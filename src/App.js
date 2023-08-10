@@ -1,7 +1,10 @@
 
 import './App.css';
+import { lazy, Suspense } from 'react'
 import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
-import Home from './components/Home';
+
+
+const Home = lazy(() => import('./components/Home'))
 
 function App() {
   return (
