@@ -1,6 +1,11 @@
 import { Grid } from '@mui/material'
+import '../App.css'
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
+import Footer from './Footer';
+import Header from './Header';
+import SearchBar from './SearchBar';
+import Layout from './Layout';
 // Top 100 films as rated by IMDb users. http://www.imdb.com/chart/top
 const top100Films = [
   { title: 'The Shawshank Redemption', year: 1994 },
@@ -131,27 +136,38 @@ const top100Films = [
 
 const Home = () => {
   return (
-    <Grid container style={{display: 'flex'}}>
-      <Grid item lg={12}>
-        {/* header */}
-        <Grid container>
-          <Grid item lg={3} xs={12} style={{ background: 'black'}}>
-            <img src="/images/logo.svg" alt="logo" width="150"/>
-          </Grid>
-          <Grid item lg={9} xs={12} style={{ background: 'grey'}}>
-            <Grid container style={{display: 'flex'}}>
-                <Grid item lg={12} style={{ justifyContent: 'end', display: 'flex', backgroundColor: 'purple'}}>Login / Sign Up</Grid>
-                <Grid item lg={12} style={{ justifyContent: 'flex-end', backgroundColor: 'blue'}}>hey</Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-      {/* body */}
-      <Grid item lg={12}>
-        <Grid container style={{display: 'flex'}}>
-          <Grid item lg={12}>Where are you planning to go</Grid>
+    // <Grid container spacing={0} className="root">
+    //     {/* header */}
+    //   <Header />
+    //   {/* body */}
+    //   <Grid item lg={12} className="homeContainer">
+    //     <Grid container  spacing={0}  className="searchContainer">
+    //       <Grid item lg={12} className="mainText">Where are you planning to go</Grid>
+    //       <Grid item lg={12}>
+    //         <Grid container>
+    //           <Grid item lg={12}>
+    //             <Grid container style={{display: 'flex'}}>
+    //               <Grid item>Single Place</Grid>
+    //               <Grid item>Multiple locations</Grid>
+    //             </Grid>
+    //           </Grid>
+    //           <Grid item lg={12}>
+    //             <SearchBar />
+    //           </Grid>
+    //         </Grid>
+    //       </Grid>
+    //     </Grid>
+    //   </Grid>
+
+    //   {/* footer */}
+    //   <Footer />
+    // </Grid>
+    <Layout>
+      <Grid item lg={12} className="homeContainer">
+        <Grid container  spacing={0}  className="searchContainer">
+          <Grid item lg={12} className="mainText">Where are you planning to go</Grid>
           <Grid item lg={12}>
-            <Grid container style={{display: 'flex'}}>
+            <Grid container>
               <Grid item lg={12}>
                 <Grid container style={{display: 'flex'}}>
                   <Grid item>Single Place</Grid>
@@ -159,29 +175,13 @@ const Home = () => {
                 </Grid>
               </Grid>
               <Grid item lg={12}>
-                <Grid container>
-                  <Grid item lg={12} style={{ margin: '10px 10px', border: 'red 2px solid', borderRadius: 5, padding: 5}}>
-                    <Grid container  style={{display: 'flex'}}>
-                      <Grid item lg={10}>
-                        <input type='text' style={{ border: 'none', width: '100%'}} />
-                      </Grid>
-                      <Grid item lg={2}>
-                        <button>hey</button>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                <SearchBar />
               </Grid>
             </Grid>
           </Grid>
         </Grid>
       </Grid>
-
-      {/* footer */}
-      <Grid container>
-        <Grid item>2023 &copy; daTryp</Grid>
-      </Grid>
-    </Grid>
+    </Layout>
   )
 }
 

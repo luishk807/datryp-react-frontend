@@ -1,4 +1,4 @@
-.App {
+/* .App {
   text-align: center;
 }
 
@@ -35,4 +35,47 @@
   to {
     transform: rotate(360deg);
   }
+} */
+
+.root {
+  height: calc(100% - 60px);
+    display: flex;
 }
+
+.homeContainer{
+  display: flex;
+  margin: 10px 0px !important;
+}
+
+.homeContainer .mainText {
+  justify-content: center;
+  display: flex;
+  font-size: 2.2em;
+  color: #3cb54b;
+  font-weight: 400;
+}
+
+.homeHeader {
+  display: flex;
+  margin: 5px;
+}
+
+.homeHeader .firstRow {
+  justify-content: end;
+  display: flex
+}
+
+.searchContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.footer{
+  position: absolute;
+  bottom: 0px;
+  background: gray;
+  width: 100%;
+  height: 60px;
+  display: flex;
+}
+
