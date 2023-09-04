@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid } from '@mui/material';
-import '../App.css';
+import './index.css';
 
 const Footer = () => {
     return (

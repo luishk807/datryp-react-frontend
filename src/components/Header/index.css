@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.homeHeader {
+  display: flex;
+  margin: 5px;
+}
+
+.homeHeader .firstRow {
+  justify-content: end;
+  display: flex
+}

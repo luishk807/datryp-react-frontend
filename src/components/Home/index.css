@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.searchContainer .mainText {
+  justify-content: center;
+  display: flex;
+  font-size: 2.2em;
+  color: theme('colors.primaryGreen');
+  font-weight: 400;
+}
+
+.searchContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.searchContainer .selection {
+  margin: 5px 6px;
+  padding: 5px 5px;
+  font-weight: 400;
+  font-size: 1.2em;
+}
+
+.searchContainer .selected {
+  color: theme('colors.primaryOrange') !important;
+}
+
+.optionSelection {
+  display: flex;
+  justify-content: center;
+}
