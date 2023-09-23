@@ -11,7 +11,7 @@ const Layout = ({children}) => {
         <Grid container spacing={0} className="root">
             {/* header */}
             <Header />
-            <Grid item lg={12} className="homeContainer">
+            <Grid item lg={12} md={12} className="homeContainer">
                 {/* body */}
                 { children }
             </Grid>

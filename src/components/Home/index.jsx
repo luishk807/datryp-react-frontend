@@ -23,7 +23,7 @@ const Home = () => {
                 <Grid item lg={12} className="mainText pb-4">Where are you planning to go</Grid>
                 <Grid item lg={12}>
                     <Grid container>
-                        <Grid item lg={12}>
+                        <Grid item lg={12} md={12}>
                             <Grid container className="optionSelection">
                                 <Grid item>
                                     <button className={classnames(
@@ -39,7 +39,7 @@ const Home = () => {
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid item lg={12}>
+                        <Grid item lg={12} md={12}>
                             <SearchBar onSelected={handleSelectedSerach} />
                         </Grid>
                     </Grid>
