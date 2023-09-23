@@ -2,7 +2,7 @@ import React, { useState} from 'react';
 import classnames from 'classnames';
 import { Grid } from '@mui/material';
 import './index.css';
-import Autocomplete from '@mui/material/Autocomplete';
+// import Autocomplete from '@mui/material/Autocomplete';
 import SearchBar from '../SearchBar';
 import Layout from '../Layout';
 
@@ -10,6 +10,11 @@ const Home = () => {
     const [selected, setSelected] = useState(true);
 
     const handleClick = (e) => {
+        console.log(e);
+        setSelected();
+    };
+
+    const handleSelectedSerach = (e) => {
         console.log(e);
     };
     return (
@@ -35,7 +40,7 @@ const Home = () => {
                             </Grid>
                         </Grid>
                         <Grid item lg={12}>
-                            <SearchBar />
+                            <SearchBar onSelected={handleSelectedSerach} />
                         </Grid>
                     </Grid>
                 </Grid>
