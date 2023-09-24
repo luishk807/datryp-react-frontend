@@ -14,8 +14,14 @@ const Home = () => {
         setSingleSelected(e);
     };
 
-    const handleSelectedSerach = (e) => {
-        console.log(e);
+    const handleSelectedSearch = (searchData) => {
+        console.log(searchData, 'searchData');
+        if (singleSelected) {
+            window.location.href='/single';
+        } else {
+            window.location.href='/multiple';
+        }
+        
     };
     return (
         <Layout>
@@ -40,7 +46,7 @@ const Home = () => {
                             </Grid>
                         </Grid>
                         <Grid item lg={12} md={12} className="searchBarContainer">
-                            <SearchBar onSelected={handleSelectedSerach} />
+                            <SearchBar onSelected={handleSelectedSearch} />
                         </Grid>
                     </Grid>
                 </Grid>

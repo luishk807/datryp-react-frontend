@@ -4,8 +4,9 @@ import './App.css';
 import { lazy, Suspense } from 'react';
 import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
 
-
 const Home = lazy(() => import('./components/Home'));
+const SingleTrip = lazy(() => import('./components/SingleTrip'));
+const MultipleTrip = lazy(() => import('./components/MultipleTrip'));
 
 function App() {
     return (
@@ -16,6 +17,16 @@ function App() {
                         <Home />
                     </Suspense>
                 } />
+                <Route path="/single" element={
+                    <Suspense fallback={<>...</>}>
+                        <SingleTrip />
+                    </Suspense>
+                } />
+                <Route path="/multiple" element={
+                    <Suspense fallback={<>...</>}>
+                        <MultipleTrip />
+                    </Suspense>
+                }/>
             </Routes>
         </Router>
     );

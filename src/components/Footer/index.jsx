@@ -5,7 +5,7 @@ import './index.css';
 const Footer = () => {
     return (
         <Grid container className="footer">
-            <Grid item>2023 &copy; daTryp</Grid> 
+            <Grid item className="mainContainer">2023 &copy; daTryp</Grid> 
         </Grid>
     );
 };

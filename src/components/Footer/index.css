@@ -12,3 +12,7 @@
   color: white;
   background-color: theme('colors.primaryGreen');
 }
+
+.footer .mainContainer {
+  padding: 10px
+}
