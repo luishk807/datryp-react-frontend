@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Grid } from '@mui/material';
-import '../App.css';
+import '../../../App.css';
 import PropTypes from 'prop-types';
-import Footer from './Footer';
-import Header from './Header';
+import Footer from '../../Footer';
+import Header from '../../Header';
  
 const Layout = ({children}) => {
     return (

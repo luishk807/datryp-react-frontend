@@ -4,7 +4,7 @@ import { Grid } from '@mui/material';
 import './index.css';
 // import Autocomplete from '@mui/material/Autocomplete';
 import SearchBar from '../SearchBar';
-import Layout from '../Layout';
+import Layout from '../common/Layout';
 
 const Home = () => {
     const [singleSelected, setSingleSelected] = useState(true);

@@ -1,6 +1,6 @@
 import React from 'react';
 import './index.css';
-import Layout from '../Layout';
+import Layout from '../common/Layout/SubLayout';
 // import PropTypes from 'prop-types';
 
 const MultipleTrip = () => {
