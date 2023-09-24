@@ -5,9 +5,31 @@
 .homeHeader {
   display: flex;
   margin: 5px;
+  position: relative;
 }
 
 .homeHeader .firstRow {
   justify-content: end;
   display: flex
+}
+
+.homeHeader .logoSection{
+  display: flex;
+  /* justify-content: start; */
+}
+
+.homeHeader .menuIcon {
+  width: 35px;
+  height: 35px;
+  fill: theme('colors.primaryOrange');
+}
+
+.homeHeader .iconContainer{
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.homeHeader .loginContainer {
+  justify-content: end;
 }

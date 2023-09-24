@@ -4,7 +4,9 @@
 @tailwind utilities;
 
 .searchbarMain {
-  display: flex
+  display: flex;
+  width: 100%;
+  justify-content: center;
 }
 .searchbarMain  .container {
   margin: 10px 10px;
@@ -29,6 +31,12 @@
 .searchbarMain .holder {
   display: flex;
   justify-content: center;
+  width: 100%
+}
+
+.searchbarMain .holder .container{
+  width: 100%;
+  justify-content: space-between;
 }
 .searchbarMain .container .buttonContainer {
   display: flex;

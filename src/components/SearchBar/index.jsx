@@ -10,12 +10,12 @@ const SearchBar = ({
 }) => {
     const inputRef = useRef();
 
-    const handleButtonClick = (e) => {
-        onSelected && onSelected(e);
+    const handleButtonClick = () => {
+        onSelected && onSelected(inputRef.current.value);
     };
 
-    const handleOnChange = (e) => {
-        console.log(e);
+    const handleOnChange = () => {
+        onSelected && onSelected(inputRef.current.value);
     };
 
     const debounceChange = debounce(handleOnChange, 500);
@@ -24,7 +24,7 @@ const SearchBar = ({
 
     return (
         <Grid container className="searchbarMain">
-            <Grid item lg={12} className="holder">
+            <Grid item lg={7} md={12} xs={12} className="holder">
                 <Grid container className="container">
                     <Grid item lg={10}>
                         <input onChange={debounceChange} ref={inputRef} className="inputBar" type='text' placeholder="Search Country for trip" />

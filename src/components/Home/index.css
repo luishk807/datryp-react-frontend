@@ -8,11 +8,16 @@
   font-size: 2.2em;
   color: theme('colors.primaryGreen');
   font-weight: 400;
+  text-align: center;
 }
+.searchContainer .searchBarContainer{
+  width: 100%
 
+}
 .searchContainer {
   display: flex;
   justify-content: center;
+  flex-direction: column;
 }
 
 .searchContainer .selection {
