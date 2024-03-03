@@ -13,12 +13,12 @@ const Header = () => {
             <Grid item lg={9} md={9} xs={12} className="loginSection">
                 <Grid container className="loginContainer" spacing={0} >
                     <Hidden smDown>
-                        <Grid item className="firstRow" lg={12}>
+                        <Grid item className="firstRow" lg={12} md={12}>
                             <p>Login / Sign Up</p>
                         </Grid>
                     </Hidden>
                     <Hidden smDown>
-                        <Grid item className="firstRow" lg={12}>
+                        <Grid item className="secondRow" lg={12} md={12}>
                             <SearchBar />
                         </Grid>
                     </Hidden>

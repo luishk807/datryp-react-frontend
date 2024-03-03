@@ -9,7 +9,12 @@
 }
 
 .homeHeader .firstRow {
-  justify-content: end;
+  justify-content: flex-end;
+  display: flex
+}
+
+.homeHeader .secondRow {
+  justify-content: flex-start;
   display: flex
 }
 
@@ -31,5 +36,5 @@
 }
 
 .homeHeader .loginContainer {
-  justify-content: end;
+  justify-content: flex-end;
 }
