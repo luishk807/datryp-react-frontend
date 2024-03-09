@@ -49,3 +49,37 @@
   border-radius: 50%;
   display: inline-block;
 }
+
+.multiTrip .tripItem .content{
+  padding-left: 25px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-left: 7px;
+}
+
+.multiTrip .tripItem .item-border{
+  border-left: 2px solid theme('colors.primaryGreen');
+}
+
+.multiTrip .tripItem .add-destination{
+  color: theme('colors.primaryOrange');
+  font-size: 1.2em;
+  font-weight: 500;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.multiTrip .tripItem .add-destination svg{
+  margin-left: 5px;
+}
+
+.multiTrip .tripItem .header .icon {
+  display: flex;
+  align-items: center; 
+}
+
+.multiTrip .tripItem .header .title{
+  padding-left: 10px;
+  font-size: 1.1em;
+}

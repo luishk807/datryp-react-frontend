@@ -2,6 +2,7 @@ import React from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
 import Layout from '../common/Layout/SubLayout';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 // import PropTypes from 'prop-types';
 
 const MultipleTrip = () => {
@@ -57,18 +58,18 @@ const MultipleTrip = () => {
                             <Grid container>
                                 <Grid item lg={12} className="header">
                                     <Grid container>
-                                        <Grid item>
+                                        <Grid item className="icon">
                                             <span className="dot"></span>
                                         </Grid>
-                                        <Grid item>
+                                        <Grid item className="title">
                                             <span className="title">January 1, 2023</span>
                                         </Grid>
                                     </Grid>
                                 </Grid>
-                                <Grid item lg={12} className="item">
+                                <Grid item lg={12} className="content item-border">
                                     <Grid container>
                                         <Grid item>
-                                            Add destination
+                                            <button className="add-destination">Add destination <AddCircleIcon /></button>
                                         </Grid>
                                     </Grid>
                                 </Grid>
@@ -79,18 +80,18 @@ const MultipleTrip = () => {
                             <Grid container>
                                 <Grid item lg={12} className="header">
                                     <Grid container>
-                                        <Grid item>
+                                        <Grid item className="icon">
                                             <span className="dot"></span>
                                         </Grid>
-                                        <Grid item>
+                                        <Grid item className="title">
                                             <span className="title">January 2, 2023</span>
                                         </Grid>
                                     </Grid>
                                 </Grid>
-                                <Grid item lg={12} className="item">
+                                <Grid item lg={12} className="content">
                                     <Grid container>
                                         <Grid item lg={6}>
-                                            Destination: china
+                                            <span>Destination:</span> china
                                         </Grid>
                                         <Grid item lg={6}>
                                             Edit / Remove
