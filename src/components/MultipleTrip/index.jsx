@@ -90,24 +90,32 @@ const MultipleTrip = () => {
                                 </Grid>
                                 <Grid item lg={12} className="content">
                                     <Grid container>
-                                        <Grid item lg={6}>
-                                            <span>Destination:</span> china
+                                        <Grid item lg={6} className="content-header">
+                                            <span className="title">Destination:</span> china
                                         </Grid>
-                                        <Grid item lg={6}>
-                                            Edit / Remove
+                                        <Grid item lg={6} className="content-option">
+                                            <span className="option">Edit</span> / 
+                                            <span className="option">Remove</span>
                                         </Grid>
-                                        <Grid item lg={12}> depart data</Grid>
-                                        <Grid item lg={12}>
+                                        <Grid item lg={12} className="content-info"> depart data</Grid>
+                                        <Grid item lg={12} className="content-trip">
                                             <Grid container>
-                                                <Grid item lg={4}>
+                                                <Grid item lg={4} className="content-image">
                                                     picture
                                                 </Grid>
-                                                <Grid item lg={8}>
+                                                <Grid item lg={8} className="content-detail">
                                                     <Grid container>
-                                                        <Grid item lg={10}>
-                                                            Glass confirmed
+                                                        <Grid item lg={10} className="info">
+                                                            <span>Glass</span>
+                                                            <span>confirmed</span>
+                                                            <p>
+                                                                China, Ghuanzhoe<br/>
+                                                                Time: 9:00am - 9:30am<br/>
+                                                                People: 2<br/>
+                                                                Cost: $150.00
+                                                            </p>
                                                         </Grid>
-                                                        <Grid item lg={2}>
+                                                        <Grid item lg={2} className="option">
                                                             <Grid container>
                                                                 <Grid item lg={12}>Edit</Grid>
                                                                 <Grid item lg={12}>Delete</Grid>
@@ -117,10 +125,10 @@ const MultipleTrip = () => {
                                                 </Grid>
                                             </Grid>
                                         </Grid>
-                                        <Grid item lg={12}>
+                                        <Grid item lg={12} className="content-trip">
                                             <Grid container>
-                                                <Grid item>
-                                                    Add Places
+                                                <Grid item lg={12} className="add-place-item">
+                                                    <button className="add-places">Add Places <AddCircleIcon /></button>
                                                 </Grid>
                                             </Grid>
                                         </Grid>

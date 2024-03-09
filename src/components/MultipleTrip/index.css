@@ -61,7 +61,14 @@
   border-left: 2px solid theme('colors.primaryGreen');
 }
 
-.multiTrip .tripItem .add-destination{
+.multiTrip .tripItem .content .add-place-item {
+  display: flex;
+  justify-content: flex-end;
+
+}
+
+.multiTrip .tripItem .add-destination,
+.multiTrip .tripItem .add-places{
   color: theme('colors.primaryOrange');
   font-size: 1.2em;
   font-weight: 500;
@@ -70,7 +77,8 @@
   align-items: center;
 }
 
-.multiTrip .tripItem .add-destination svg{
+.multiTrip .tripItem .add-destination svg, 
+.multiTrip .tripItem .add-places svg{
   margin-left: 5px;
 }
 
@@ -82,4 +90,21 @@
 .multiTrip .tripItem .header .title{
   padding-left: 10px;
   font-size: 1.1em;
+}
+
+.multiTrip .tripItem .content .content-header{
+  font-weight: 500;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.multiTrip .tripItem .content .content-info {
+  font-weight: 500;
+  padding: 5px 0px;
+}
+
+.multiTrip .tripItem .content .content-option{
+  font-weight: 500;
+  display: flex;
+  justify-content: flex-end;
 }
