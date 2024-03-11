@@ -1,0 +1,12 @@
+.button-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 1.2em;
+  font-weight: 500;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.button-icon {
+  margin-left: 5px;
+}

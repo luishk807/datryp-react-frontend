@@ -50,7 +50,7 @@
   display: inline-block;
 }
 
-.multiTrip .tripItem .content{
+/* .multiTrip .tripItem .content{
   padding-left: 25px;
   padding-top: 20px;
   padding-bottom: 20px;
@@ -64,22 +64,6 @@
 .multiTrip .tripItem .content .add-place-item {
   display: flex;
   justify-content: flex-end;
-
-}
-
-.multiTrip .tripItem .add-destination,
-.multiTrip .tripItem .add-places{
-  color: theme('colors.primaryOrange');
-  font-size: 1.2em;
-  font-weight: 500;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-}
-
-.multiTrip .tripItem .add-destination svg, 
-.multiTrip .tripItem .add-places svg{
-  margin-left: 5px;
 }
 
 .multiTrip .tripItem .header .icon {
@@ -101,12 +85,6 @@
 .multiTrip .tripItem .content .content-info {
   font-weight: 500;
   padding: 5px 0px;
-}
-
-.multiTrip .tripItem .content .content-option{
-  font-weight: 500;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .multiTrip .tripItem .content .content-trip{
@@ -140,4 +118,4 @@
 
 .multiTrip .tripItem .content .content-trip .content-detail .info .status.unconfirmed{
   color: red;
-}
+} */
