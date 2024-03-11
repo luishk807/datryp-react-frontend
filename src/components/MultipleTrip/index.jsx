@@ -97,17 +97,20 @@ const MultipleTrip = () => {
                                             <span className="option">Edit</span> / 
                                             <span className="option">Remove</span>
                                         </Grid>
-                                        <Grid item lg={12} className="content-info"> depart data</Grid>
-                                        <Grid item lg={12} className="content-trip">
+                                        <Grid item lg={12} className="content-info"> 
+                                            <span className="title">Depart</span>: JFF / ADD 140 - 10:00am - 
+                                            <span className="title">Arrive:</span> DFF / AGF 140 - 1:00pm
+                                        </Grid>
+                                        <Grid item lg={12} className="content-trip border-trip">
                                             <Grid container>
-                                                <Grid item lg={4} className="content-image">
-                                                    picture
+                                                <Grid item lg={2} className="content-image">
+                                                    <img src="/images/sample/china1.jpg" />
                                                 </Grid>
-                                                <Grid item lg={8} className="content-detail">
+                                                <Grid item lg={10} className="content-detail">
                                                     <Grid container>
-                                                        <Grid item lg={10} className="info">
-                                                            <span>Glass</span>
-                                                            <span>confirmed</span>
+                                                        <Grid item lg={11} className="info">
+                                                            <span className="title">Glass</span>
+                                                            <span className="status confirmed">confirmed</span>
                                                             <p>
                                                                 China, Ghuanzhoe<br/>
                                                                 Time: 9:00am - 9:30am<br/>
@@ -115,10 +118,10 @@ const MultipleTrip = () => {
                                                                 Cost: $150.00
                                                             </p>
                                                         </Grid>
-                                                        <Grid item lg={2} className="option">
-                                                            <Grid container>
-                                                                <Grid item lg={12}>Edit</Grid>
-                                                                <Grid item lg={12}>Delete</Grid>
+                                                        <Grid item lg={1} className="option">
+                                                            <Grid container className="flex h-full">
+                                                                <Grid item lg={12} className="flex justify-end items-start">Edit</Grid>
+                                                                <Grid item lg={12}className="flex justify-end items-end">Delete</Grid>
                                                             </Grid>
                                                         </Grid>
                                                     </Grid>
