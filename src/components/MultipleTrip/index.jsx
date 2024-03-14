@@ -56,7 +56,7 @@ const MultipleTrip = ({
                 </Grid>
                 {/* trips section */}
                 <Grid item lg={12} md={12} className="tripItems">
-                    <DestinationDetail destinations={tripInfo.destinations} />
+                    <DestinationDetail type={tripInfo.type} destinations={tripInfo.destinations} />
                 </Grid>
                 {/* end of trip section */}
 

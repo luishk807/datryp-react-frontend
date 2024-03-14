@@ -1,6 +1,7 @@
-export const tripDetailobj = {
+export const multiTripDetailobj = {
     name: "All asian!",
     organizer: "joa",
+    type: "multiple",
     budget: 2500,
     total: 5000,
     startDate: '01/01/2023',
@@ -117,6 +118,81 @@ export const tripDetailobj = {
                                 }
                             ]
                         },
+                    ]
+                },
+            ]
+        },
+    ],
+
+};
+
+export const singleTripDetailobj = {
+    name: "All asian!",
+    organizer: "joa",
+    budget: 2500,
+    total: 5000,
+    type: "single",
+    startDate: '01/01/2023',
+    endDate: '01/02/2023',
+    note: "",
+    people: 2,
+    status: 1,
+    destinations: [
+        {
+            date: "01/01/2023",
+            trips: null  
+        },
+        {
+            date: "01/02/2023",
+            activities: [
+                {
+                    name: "Glass Bridge",
+                    status: 1,
+                    location: "china, guahnzhow",
+                    startTime: "9:00am",
+                    image: {
+                        url: '/images/sample/china2.jpg',
+                        name: 'test',
+                    },
+                    endTime: "9:30am",
+                    people: "2",
+                    cost: "150",
+                    shareCost: [
+                        {
+                            name: "luis",
+                            amount: "100",
+                            status: "not paid"
+                        },
+                        {
+                            name: "joanana",
+                            amount: "50",
+                            status: "paid"
+                        }
+                    ]
+                },
+                {
+                    name: "Kings Castle",
+                    status: 1,
+                    location: "china, guahnzhow",
+                    startTime: "9:00am",
+                    endTime: "9:30am",
+                    image: {
+                        url: '/images/sample/china1.jpg',
+                        name: 'test',
+                    },
+                    people: "2",
+                    cost: "150",
+                    shareCost: [
+                        {
+                            name: "luis",
+                            amount: "100",
+                            status: "not paid"
+                        },
+                        {
+                            name: "joanana",
+                            amount: "50",
+                            status: "paid"
+                        }
                     ]
                 },
             ]

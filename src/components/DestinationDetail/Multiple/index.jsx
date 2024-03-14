@@ -6,7 +6,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ButtonIcon from '../../ButtonIcon';
 import Activities from '../Activities';
 
-const Trips = ({
+const Multiple = ({
     trips = []
 }) => {
     return (
@@ -39,8 +39,8 @@ const Trips = ({
     );
 };
 
-Trips.propTypes = {
+Multiple.propTypes = {
     trips: PropTypes.array
 };
 
-export default Trips;
+export default Multiple;

@@ -4,15 +4,21 @@ import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
 
-import Trips from './Trips';
+import MutipleTrips from './Multiple';
+import SingleTrips from './Single';
 
 const DestinationDetail = ({
-    destinations = []
+    destinations = [],
+    type = "multiple"
 }) => {
 
     const destinationData = useMemo(() => {
         return destinations ? destinations : null;
     }, [destinations]);
+
+    const isMultiple = useMemo(() => {
+        return type === "multiple" ? true : false;
+    }, [type]);
     
     return (
         <Grid container>
@@ -30,7 +36,8 @@ const DestinationDetail = ({
                                     </Grid>
                                 </Grid>
                             </Grid>
-                            <Trips trips={destination.trips} />
+                            { isMultiple ? ( <MutipleTrips trips={destination.trips} />) : ( <SingleTrips trips={destination.activities} />) }
+                           
                         </Grid>
                     </Grid>
                 )) : (
@@ -44,7 +51,8 @@ const DestinationDetail = ({
 };
 
 DestinationDetail.propTypes = {
-    destinations: PropTypes.array
+    destinations: PropTypes.array,
+    type: PropTypes.string,
 };
 
 export default DestinationDetail;

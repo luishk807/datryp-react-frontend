@@ -24,7 +24,7 @@ const SearchBar = ({
 
     return (
         <Grid container className="searchbarMain">
-            <Grid item lg={7} md={12} xs={12} className="holder">
+            <Grid item lg={8} md={12} xs={12} className="holder">
                 <Grid container className="container">
                     <Grid item lg={10}>
                         <input 
