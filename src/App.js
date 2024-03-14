@@ -3,7 +3,7 @@ import React from 'react';
 import './App.css';
 import { lazy, Suspense } from 'react';
 import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
-
+import { tripDetailobj } from '../src/sample/tripData';
 const Home = lazy(() => import('./components/Home'));
 const SingleTrip = lazy(() => import('./components/SingleTrip'));
 const MultipleTrip = lazy(() => import('./components/MultipleTrip'));
@@ -24,7 +24,7 @@ function App() {
                 } />
                 <Route path="/multiple" element={
                     <Suspense fallback={<>...</>}>
-                        <MultipleTrip />
+                        <MultipleTrip tripInfo={tripDetailobj}/>
                     </Suspense>
                 }/>
             </Routes>

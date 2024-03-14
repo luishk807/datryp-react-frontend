@@ -14,7 +14,6 @@ const DestinationDetail = ({
         return destinations ? destinations : null;
     }, [destinations]);
     
-    console.log("trips.length", destinations.length);
     return (
         <Grid container>
             {
