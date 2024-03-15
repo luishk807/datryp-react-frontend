@@ -19,7 +19,7 @@ const Header = () => {
                     </Hidden>
                     <Hidden smDown>
                         <Grid item className="secondRow" lg={12} md={12}>
-                            <SearchBar />
+                            <SearchBar className='justify-start' />
                         </Grid>
                     </Hidden>
                     <Hidden lgUp mdUp>

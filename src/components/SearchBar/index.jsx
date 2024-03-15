@@ -6,7 +6,8 @@ import { debounce} from 'lodash';
 // import { top100Films } from '../../sample/movielist';
 
 const SearchBar = ({
-    onSelected
+    onSelected,
+    className = "justify-center"
 }) => {
     const inputRef = useRef();
 
@@ -23,7 +24,7 @@ const SearchBar = ({
     const debounceClick = debounce(handleButtonClick, 500);
 
     return (
-        <Grid container className="searchbarMain">
+        <Grid container className={`searchbarMain flex w-full ${className}`}>
             <Grid item lg={8} md={12} xs={12} className="holder">
                 <Grid container className="container">
                     <Grid item lg={10}>
@@ -45,7 +46,8 @@ const SearchBar = ({
 };
 
 SearchBar.propTypes = {
-    onSelected: PropTypes.func
+    onSelected: PropTypes.func,
+    className: PropTypes.string
 };
 
 export default SearchBar;

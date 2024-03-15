@@ -3,11 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
-.searchbarMain {
+/* .searchbarMain {
   display: flex;
   width: 100%;
   justify-content: center;
-}
+} */
+
 .searchbarMain  .container {
   margin: 10px 10px;
   display: flex;
