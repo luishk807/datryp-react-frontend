@@ -21,6 +21,7 @@
         "no-await-in-loop": "off",
         "no-plusplus": "off",
         "indent": 1,
+        "no-unused-vars": "off",
         "no-multi-spaces": 1,
         "no-param-reassign": "off",
         "max-len":"off"

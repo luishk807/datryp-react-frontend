@@ -1,0 +1,52 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.tripInfo {
+  display: flex;
+}
+
+.tripInfo .header .title {
+  display: flex;
+  color: theme('colors.primaryGreen');
+  font-weight: 500;
+  font-size: 1.2em;
+  justify-content: flex-start;
+}
+
+.tripInfo .menu {
+  display: flex;
+  font-weight: 500;
+  font-size: 1.2em;
+  justify-content: flex-end;
+}
+
+.tripInfo .tripData {
+  margin: 10px 0px
+}
+
+.tripInfo .tripData .data{
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+}
+
+.tripInfo .tripData .data .title{
+  font-weight: 500;
+  padding-right: 4px;
+}
+
+.tripInfo .tripData .status{
+  display: flex;
+  justify-content: flex-end;
+  font-weight: 500;
+}
+
+.tripInfo .dot {
+  height: 15px;
+  width: 15px;
+  background-color: theme('colors.primaryGreen');
+  border-radius: 50%;
+  display: inline-block;
+}
