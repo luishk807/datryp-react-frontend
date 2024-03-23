@@ -1,0 +1,17 @@
+.StepIconCustom {
+  background-color: theme('colors.primaryGreen');
+  height: 30px;
+  width: 30px;
+  border-radius:30px;
+  -webkit-border-radius:30px;
+  -moz-border-radius:30px;
+  -ms-border-radius:30px;
+  -o-border-radius:30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.StepIconCustom .label {
+  color: white;
+}

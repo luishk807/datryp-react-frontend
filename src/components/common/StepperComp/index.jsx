@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import './index.css';
 import { Grid, Step, StepLabel, Typography } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
-
+import StepIcon from './StepIcon';
 const StepperComp = ({
     steps = null
 }) => {
@@ -42,10 +43,16 @@ const StepperComp = ({
 
     const handleReset = () => setActiveStep(0);
     return (
-        <>
+        <div className="stepperMain">
             <Stepper activeStep={activeStep}>
                 {
+
                     steps.map((label, index) => {
+                        const StepIconClasses = {
+                            "& .MuiStepIcon-root": {
+                                color: "#3cb54b"
+                            }
+                        };
                         const stepProps = {};
                         const labelProps = {};
 
@@ -62,7 +69,8 @@ const StepperComp = ({
                         return (
                             <Step classes={{
                             }} key={index} {...stepProps}>
-                                <StepLabel {...labelProps}>{label}</StepLabel>
+                                <StepLabel sx={StepIconClasses}
+                                    {...labelProps}>{label}</StepLabel>
                             </Step>
                         );
                     })
@@ -86,12 +94,12 @@ const StepperComp = ({
                     </>
                 )
             }
-        </>
+        </div>
     );
 };
 
 StepperComp.propTypes = {
-    steps: PropTypes.object
+    steps: PropTypes.array
 };
 
 export default StepperComp;
