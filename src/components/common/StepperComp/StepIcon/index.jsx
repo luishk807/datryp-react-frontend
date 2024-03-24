@@ -1,18 +1,25 @@
 import React from 'react';
+import classnames from 'classnames';
 import './index.css';
 import PropTypes from 'prop-types';
 
 const StepIcon = ({
-    label=1
+    active,
+    completed,
+    icon
 }) => {
     return (
-        <div className="StepIconCustom">
-            <div className="label">{label}</div>
+        <div className={classnames('StepIconCustom',{
+            'active': active,
+        })}>
+            <div className="label">{icon}</div>
         </div>
     );
 };
 
 StepIcon.propTypes = {
-    label: PropTypes.number
+    active: PropTypes.bool,
+    completed: PropTypes.bool,
+    icon: PropTypes.number
 };
 export default StepIcon;

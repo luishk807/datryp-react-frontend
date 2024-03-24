@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
-import { Grid, Step, StepLabel, Typography } from '@mui/material';
+import {Step, StepLabel, Typography } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 const StepperComp = ({
-    steps = null
+    steps = null,
 }) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState(new Set());
@@ -29,9 +29,9 @@ const StepperComp = ({
     };
 
     const handleSkip = () => {
-        if(!isStepOptional(activeStep)) {
-            throw new Error("you can't skip a step that isn't optional");
-        }
+        // if(!isStepOptional(activeStep)) {
+        //     throw new Error("you can't skip a step that isn't optional");
+        // }
 
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
         setSkipped((prevSkipped) => {
@@ -47,20 +47,15 @@ const StepperComp = ({
             <Stepper activeStep={activeStep}>
                 {
 
-                    steps.map((label, index) => {
-                        const StepIconClasses = {
-                            "& .MuiStepIcon-root": {
-                                color: "#3cb54b"
-                            }
-                        };
+                    steps.map((step, index) => {
                         const stepProps = {};
                         const labelProps = {};
 
-                        if(isStepOptional(index)) {
-                            labelProps.optional = (
-                                <Typography variant="caption">Optional</Typography>
-                            );
-                        }
+                        // if(isStepOptional(index)) {
+                        //     labelProps.optional = (
+                        //         <Typography variant="caption">Optional</Typography>
+                        //     );
+                        // }
 
                         if(isStepSkipped(index)) {
                             stepProps.completed = false;
@@ -69,8 +64,8 @@ const StepperComp = ({
                         return (
                             <Step classes={{
                             }} key={index} {...stepProps}>
-                                <StepLabel sx={StepIconClasses}
-                                    {...labelProps}>{label}</StepLabel>
+                                <StepLabel StepIconComponent={StepIcon}
+                                    {...labelProps}>{step.label}</StepLabel>
                             </Step>
                         );
                     })
@@ -87,7 +82,13 @@ const StepperComp = ({
                 ) : (
                     <>
                         <Typography sx={{ mt: 2, mb: 1}}>Step {activeStep + 1}</Typography>
-                                Back
+                        {
+                            steps[activeStep].comp
+                        }
+                        <button onClick={handleBack}>
+                        Back
+                        </button>
+
                         <button onClick={handleNext}>
                             { activeStep === steps.length -1 ? "Finish": "Next"}
                         </button>
@@ -99,7 +100,7 @@ const StepperComp = ({
 };
 
 StepperComp.propTypes = {
-    steps: PropTypes.array
+    steps: PropTypes.array,
 };
 
 export default StepperComp;

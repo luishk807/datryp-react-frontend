@@ -12,6 +12,10 @@
   justify-content: center;
 }
 
+.StepIconCustom.active {
+  background-color: theme('colors.primaryOrange');
+}
+
 .StepIconCustom .label {
   color: white;
 }
