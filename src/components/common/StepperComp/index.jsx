@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
-import {Step, StepLabel, Typography } from '@mui/material';
+import {Step, StepLabel, Typography, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
+import Button from '../ButtonCustom';
 const StepperComp = ({
     steps = null,
 }) => {
@@ -75,24 +76,36 @@ const StepperComp = ({
                 activeStep === steps.length ? (
                     <>
                         <Typography sx={{mt: 2, mb: 1}}>
-                                    All steps completed - you are finished
+                            All steps completed - you are finished
                         </Typography>
                         <button onClick={handleReset}>Reset</button>
                     </>
                 ) : (
-                    <>
-                        <Typography sx={{ mt: 2, mb: 1}}>Step {activeStep + 1}</Typography>
-                        {
-                            steps[activeStep].comp
-                        }
-                        <button onClick={handleBack}>
-                        Back
-                        </button>
+                    <Grid container>
+                        <Grid item lg={12} md={12} xs={12}>
+                            <Typography sx={{ mt: 2, mb: 1}}>Step {activeStep + 1}</Typography>
+                            {
+                                steps[activeStep].comp
+                            }
+                        </Grid>
+                        <Grid item lg={12} md={12} xs={12}>
+                            <Grid container className="mt-2.5">
+                                <Grid item lg={6} md={6} xs={12} className="flex justify-start">
+                                    <div className="w-40 my-2.5">
+                                        <Button onClick={handleBack} label="Back" />
+                                    </div>
 
-                        <button onClick={handleNext}>
-                            { activeStep === steps.length -1 ? "Finish": "Next"}
-                        </button>
-                    </>
+                                </Grid>
+                                <Grid item lg={6} md={6} xs={12} className="flex justify-end">
+                                    <div className="w-40 my-2.5">
+                                        <Button onClick={handleNext} label={ activeStep === steps.length -1 ? "Finish": "Next"} />
+                                    </div>
+
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+
                 )
             }
         </div>

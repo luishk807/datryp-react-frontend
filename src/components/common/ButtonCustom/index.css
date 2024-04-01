@@ -1,0 +1,8 @@
+.main-button {
+  padding: 10px 0px;
+  width: 100%;
+  background: theme('colors.primaryGreen');
+  color: white;
+  border-radius: 5px;
+  font-weight: 500;
+}

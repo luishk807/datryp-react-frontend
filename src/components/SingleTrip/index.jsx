@@ -1,30 +1,33 @@
 import React, { useState } from 'react';
 import './index.css';
-import { Grid } from '@mui/material';
+import { 
+    Grid,
+} from '@mui/material';
 import Layout from '../common/Layout/SubLayout';
 import DestinationDetail from '../DestinationDetail';
 import PropTypes from 'prop-types';
 import StepperComp from '../common/StepperComp';
+import BasicInfo from '../DestinationDetail/BasicInfo';
+import FriendPicker from '../DestinationDetail/FriendPicker';
 
-const Tester = () => {
-    return (<h1>tester</h1>);
-};
-const steps = [
-    {
-        label: 'Describe Your Trip!',
-        comp: <Tester />
-    }, {
-        label: 'Define the Trips',
-        comp: null
-    }, {
-        label: 'Finish',
-        comp: null
-    }
-];
 
 const SingleTrip = ({
     tripInfo
 }) => {
+    console.log(tripInfo);
+    const steps = [
+        {
+            label: 'Describe Your Trip!',
+            comp: <BasicInfo />
+        }, {
+            label: 'Define the Trips',
+            comp: <FriendPicker />
+        }, {
+            label: 'Finish',
+            comp: <DestinationDetail startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
+        }
+    ];
+
     return (
         <Layout>
             <Grid container className="singleTrip">

@@ -16,7 +16,7 @@ const Multiple = ({
                     <Grid item lg={6} md={6} className="content-header">
                         <span className="title">Destination:</span> {trip.name}
                     </Grid>
-                    <Grid item lg={6} md={6} className="flex justify-end font-medium">
+                    <Grid item lg={6} md={6} className="flex justify-font-medium">
                         <span>Edit</span> / 
                         <span>Remove</span>
                     </Grid>

@@ -55,7 +55,12 @@ const TripInfo = ({
                 </Grid>
                 {/* trips section */}
                 <Grid item lg={12} md={12} className="tripItems">
-                    <DestinationDetail type={data.type} destinations={data.destinations} />
+                    <DestinationDetail 
+                        startDate={data.startDate}
+                        endDate={data.endDate} 
+                        type={data.type} 
+                        destinations={data.destinations} 
+                    />
                 </Grid>
                 {/* end of trip section */}
 

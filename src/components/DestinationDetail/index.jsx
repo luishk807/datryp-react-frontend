@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
@@ -9,8 +9,41 @@ import SingleTrips from './Single';
 
 const DestinationDetail = ({
     destinations = [],
-    type = "multiple"
+    type = "multiple",
+    startDate = null,
+    endDate = null
 }) => {
+
+    const [dates, setDates] = useState();
+    const getDatesRange = async() => {
+        const date1 = moment(startDate);
+        const date2 = moment(endDate);
+
+        if (date1.isValid() && date2.isValid()) {
+            if (moment(startDate).isSame(endDate)) {
+                return [date2];
+            }
+    
+            let date = date1;
+    
+            const dateArry = [date.format('LL')];
+    
+            do {
+    
+                date = moment(date).add(1, 'day');
+                dateArry.push(date.format('LL'));
+            } while(date.isBefore(date2));
+    
+            console.log(dateArry, 'dates');
+            setDates(dateArry);
+        }
+    };
+
+
+    useEffect(() => {
+        getDatesRange();
+    }, [startDate, endDate]);
+
 
     const destinationData = useMemo(() => {
         return destinations ? destinations : null;
@@ -53,6 +86,8 @@ const DestinationDetail = ({
 DestinationDetail.propTypes = {
     destinations: PropTypes.array,
     type: PropTypes.string,
+    startDate: PropTypes.string,
+    endDate: PropTypes.string
 };
 
 export default DestinationDetail;
