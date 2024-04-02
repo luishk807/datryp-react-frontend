@@ -24,7 +24,7 @@ const SingleTrip = ({
             comp: <FriendPicker />
         }, {
             label: 'Finish',
-            comp: <DestinationDetail startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
+            comp: <DestinationDetail type={tripInfo.type} startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
         }
     ];
 
