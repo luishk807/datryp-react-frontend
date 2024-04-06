@@ -5,6 +5,7 @@ import {
     Grid,
     TextField
 } from '@mui/material';
+import InputField from '../../common/FormFields/InputField';
 const FriendPicker = ({
     onChange
 }) => {
@@ -12,7 +13,7 @@ const FriendPicker = ({
         <div>
             <Grid container>
                 <Grid item lg={12} md={12} xs={12}>
-                    <TextField label='Select Friend' name='name' onChange={onChange}/>
+                    <InputField name="fiend"/>
                 </Grid>
             </Grid>
         </div>
