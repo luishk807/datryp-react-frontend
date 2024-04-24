@@ -9,7 +9,6 @@ import Activities from '../Activities';
 const Single = ({
     trips = null
 }) => {
-    console.log(trips, 'trips single');
     return (
         trips ? (
             <Grid item lg={12} className="content">

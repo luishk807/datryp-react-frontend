@@ -144,7 +144,7 @@ export const singleTripDetailobj = {
         },
         {
             date: "01/02/2023",
-            trips: [
+            activities: [
                 {
                     name: "Glass Bridge",
                     status: 1,

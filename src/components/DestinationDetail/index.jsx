@@ -14,7 +14,7 @@ const DestinationDetail = ({
     endDate = null
 }) => {
 
-    const [dates, setDates] = useState([]);
+    const [dates, setDates] = useState();
     const getDatesRange = async() => {
         const date1 = moment(startDate);
         const date2 = moment(endDate);
@@ -26,12 +26,12 @@ const DestinationDetail = ({
     
             let date = date1;
     
-            const dateArry = [date.format('MM/DD/YYYY')];
+            const dateArry = [date.format('LL')];
     
             do {
     
                 date = moment(date).add(1, 'day');
-                dateArry.push(date.format('MM/DD/YYYY'));
+                dateArry.push(date.format('LL'));
             } while(date.isBefore(date2));
     
             console.log(dateArry, 'dates');
@@ -44,15 +44,6 @@ const DestinationDetail = ({
         getDatesRange();
     }, [startDate, endDate]);
 
-    const getDestinationData = (dateItem) => {
-        const destinationDate = destinations.filter(item => item.date === dateItem);
-        
-        console.log("checking", destinationDate);
-
-        const trips = destinationDate.length ? isMultiple ? destinationDate[0].trips : destinationDate[0].trips : null;
-        return isMultiple ? <MutipleTrips trips={trips} /> : <SingleTrips trips={trips} />;
-   
-    };
 
     const destinationData = useMemo(() => {
         return destinations ? destinations : null;
@@ -63,57 +54,30 @@ const DestinationDetail = ({
     }, [type]);
     
     return (
-    // <Grid container>
-    //     {
-    //         destinationData ? destinations.map((destination, indx) => (
-    //             <Grid item key={`destination-${indx}`} lg={12} md={12} xs={12} className="trip-detail">
-    //                 <Grid container>
-    //                     <Grid item lg={12} md={12} xs={12} className="header">
-    //                         <Grid container>
-    //                             <Grid item className="icon">
-    //                                 <span className="dot"></span>
-    //                             </Grid>
-    //                             <Grid item className="title">
-    //                                 <span className="title">{moment(destination.date).format('LL')}</span>
-    //                             </Grid>
-    //                         </Grid>
-    //                     </Grid>
-    //                     { isMultiple ? ( <MutipleTrips trips={destination.trips} />) : ( <SingleTrips trips={destination.activities} />) }
-                           
-        //                 </Grid>
-        //             </Grid>
-        //         )) : (
-        //             <Grid item lg={12} className="trip-detail">
-        //                No trips
-        //             </Grid>
-        //         )
-        //     }
-        // </Grid>
         <Grid container>
             {
-                dates && dates.map((date, indx) => {
-                    return (
-                        <Grid item key={`destination-${indx}`} lg={12} className="trip-detail">
-                            <Grid container>
-                                <Grid item lg={12} className="header">
-                                    <Grid container>
-                                        <Grid item className="icon">
-                                            <span className="dot"></span>
-                                        </Grid>
-                                        <Grid item className="title">
-                                            <span className="title">{moment(date).format("LL")}</span>
-                                        </Grid>
+                destinationData ? destinations.map((destination, indx) => (
+                    <Grid item key={`destination-${indx}`} lg={12} className="trip-detail">
+                        <Grid container>
+                            <Grid item lg={12} className="header">
+                                <Grid container>
+                                    <Grid item className="icon">
+                                        <span className="dot"></span>
+                                    </Grid>
+                                    <Grid item className="title">
+                                        <span className="title">{moment(destination.date).format('LL')}</span>
                                     </Grid>
                                 </Grid>
-                                {
-                                    getDestinationData(date)
-                                }
-
-                       
                             </Grid>
+                            { isMultiple ? ( <MutipleTrips trips={destination.trips} />) : ( <SingleTrips trips={destination.activities} />) }
+                           
                         </Grid>
-                    );
-                })
+                    </Grid>
+                )) : (
+                    <Grid item lg={12} className="trip-detail">
+                       No trips
+                    </Grid>
+                )
             }
         </Grid>
     );
