@@ -19,7 +19,7 @@ function App() {
                 } />
                 <Route path="/single" element={
                     <Suspense fallback={<>...</>}>
-                        <SingleTrip tripInfo={singleTripDetailobj}/>
+                        <SingleTrip />
                     </Suspense>
                 } />
                 <Route path="/multiple" element={

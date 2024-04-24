@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { connect } from 'react-redux';
 import './index.css';
 import { 
     Grid,
@@ -10,15 +11,20 @@ import StepperComp from '../common/StepperComp';
 import BasicInfo from '../DestinationDetail/BasicInfo';
 import FriendPicker from '../DestinationDetail/FriendPicker';
 
-
 const SingleTrip = ({
-    tripInfo
+    tripInfo,
+    onBasicInfo
 }) => {
     console.log(tripInfo);
+    const handleBasicOnChange = (id, e) => {
+        console.log("handle onchange", id, ':',e.target.value);
+        onBasicInfo();
+    };
+
     const steps = [
         {
             label: 'Describe Your Trip!',
-            comp: <BasicInfo />
+            comp: <BasicInfo onChange={handleBasicOnChange} />
         }, {
             label: 'Define the Trips',
             comp: <FriendPicker />
@@ -39,8 +45,19 @@ const SingleTrip = ({
     );
 };
 
+
+const mapStateToProps = (state) => ({
+    tripInfo: state
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    onBasicInfo: (value) => dispatch({ type: "BASIC_INFO"})
+});
+
+
 SingleTrip.propTypes = {
-    tripInfo: PropTypes.object
+    tripInfo: PropTypes.object,
+    onBasicInfo: PropTypes.func
 };
 
-export default SingleTrip;
+export default connect(mapStateToProps, mapDispatchToProps)(SingleTrip);

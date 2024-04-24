@@ -7,7 +7,7 @@ import {
 import InputField from '../../common/FormFields/InputField';
 
 const BasicInfo = ({
-    onChange
+    onChange,
 }) => {
     return (
         <div>
@@ -17,7 +17,7 @@ const BasicInfo = ({
                         Please enter basic info
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="name" onChange={onChange}/>
+                        <InputField name="name" onChange={(e) => onChange('name', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField name="budget" onChange={onChange}/>
@@ -42,6 +42,6 @@ const BasicInfo = ({
 };
 
 BasicInfo.propTypes = {
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
 };
 export default BasicInfo;
