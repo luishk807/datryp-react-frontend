@@ -5,6 +5,7 @@ import {
     Grid,
 } from '@mui/material';
 import InputField from '../../common/FormFields/InputField';
+import { status } from '../../../sample/index';
 
 const BasicInfo = ({
     onChange,
@@ -20,19 +21,19 @@ const BasicInfo = ({
                         <InputField name="name" onChange={(e) => onChange('name', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="budget" onChange={onChange}/>
+                        <InputField name="budget" onChange={(e) => onChange('budget', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="status" onChange={onChange}/>
+                        <InputField name="status" onChange={(e) => onChange('status', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="total" onChange={onChange}/>
+                        <InputField name="total" onChange={(e) => onChange('total', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="startDate" type="date" onChange={onChange}/>
+                        <InputField name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="endDate" type="date" onChange={onChange}/>
+                        <InputField name="endDate" type="date" onChange={(e) => onChange('endDate', e)}/>
                     </Grid>
                 </Grid>
             </form>

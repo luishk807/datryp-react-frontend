@@ -18,7 +18,7 @@ const SingleTrip = ({
     console.log(tripInfo);
     const handleBasicOnChange = (id, e) => {
         console.log("handle onchange", id, ':',e.target.value);
-        onBasicInfo();
+        onBasicInfo({ [id]: e.target.value});
     };
 
     const steps = [
@@ -51,7 +51,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onBasicInfo: (value) => dispatch({ type: "BASIC_INFO"})
+    onBasicInfo: (value) => dispatch({ type: "BASIC_INFO", payload: value})
 });
 
 

@@ -9,7 +9,7 @@ const initialState = {
 const tripReducer = (state = initialState, action) => {
     switch (action.type) {
     case 'BASIC_INFO':
-        console.log("testing this");
+        console.log("testing this", action.payload);
         return {
             ...state,
             ...action.payload,
