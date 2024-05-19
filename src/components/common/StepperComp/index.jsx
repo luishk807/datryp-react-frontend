@@ -4,12 +4,20 @@ import './index.css';
 import {Step, StepLabel, Typography, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
-import Button from '../ButtonCustom';
+import Button from 'components/common/FormFields/ButtonCustom';
+import BasicTripInfo from 'components/BasicTripInfo';
+import { connect } from 'react-redux';
+import _ from 'lodash';
+
 const StepperComp = ({
     steps = null,
+    data = null,
+    tripInfo,
+    resetTrip
 }) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState(new Set());
+
 
     const isStepSkipped = (step) => (skipped.has(step));
 
@@ -21,6 +29,20 @@ const StepperComp = ({
             newSkipped = new Set(newSkipped.values());
             newSkipped.delete(activeStep);
         } 
+
+        const tripType = _.get(tripInfo, 'type');
+
+        if (tripType) {
+            const { name, steps } = tripType;
+            if(activeStep === steps.FINISHED) {
+                console.log(`send ${name} trip data to backend`, tripInfo);
+                //resetTrip && resetTrip()
+            }
+        }
+
+
+        console.log("active step", activeStep + 1);
+
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
         setSkipped(newSkipped);
     };
@@ -40,6 +62,10 @@ const StepperComp = ({
             newSkipped.add(activeStep);
             return newSkipped;
         });
+    };
+
+    const handleChangeStep = (step) => {
+        setActiveStep(step);
     };
 
     const handleReset = () => setActiveStep(0);
@@ -82,6 +108,14 @@ const StepperComp = ({
                     </>
                 ) : (
                     <Grid container>
+                        {
+                            activeStep >= 2 && (
+                                <Grid item lg={12} md={12}>
+                                    <BasicTripInfo data={data} onChangeStep={handleChangeStep} />
+                                </Grid>
+                            )
+                        }
+
                         <Grid item lg={12} md={12} xs={12}>
                             <Typography sx={{ mt: 2, mb: 1}}>Step {activeStep + 1}</Typography>
                             {
@@ -91,16 +125,14 @@ const StepperComp = ({
                         <Grid item lg={12} md={12} xs={12}>
                             <Grid container className="mt-2.5">
                                 <Grid item lg={6} md={6} xs={12} className="flex justify-start">
-                                    <div className="w-40 my-2.5">
-                                        <Button onClick={handleBack} label="Back" />
+                                    <div className="w-full lg:w-40 my-2.5">
+                                        <Button type="standard" onClick={handleBack} label="Back" />
                                     </div>
-
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="flex justify-end">
-                                    <div className="w-40 my-2.5">
-                                        <Button onClick={handleNext} label={ activeStep === steps.length -1 ? "Finish": "Next"} />
+                                    <div className="w-full lg:w-40 my-2.5">
+                                        <Button type="standard" onClick={handleNext} label={ activeStep === steps.length -1 ? "Finish": "Next"} />
                                     </div>
-
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -112,8 +144,21 @@ const StepperComp = ({
     );
 };
 
-StepperComp.propTypes = {
-    steps: PropTypes.array,
+const mapStateToProps = (state) => ({ tripInfo: state });
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        resetTrip: (value) => {
+            dispatch({ type: 'RESET_STATE', payload: value});
+        }
+    };
 };
 
-export default StepperComp;
+StepperComp.propTypes = {
+    steps: PropTypes.array,
+    data: PropTypes.object,
+    tripInfo: PropTypes.object,
+    resetTrip: PropTypes.func,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(StepperComp);

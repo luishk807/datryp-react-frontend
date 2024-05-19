@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
-import Layout from '../common/Layout/SubLayout';
-import DestinationDetail from '../DestinationDetail';
+import Layout from 'components/common/Layout/SubLayout';
+import DestinationDetail from 'components/DestinationDetail';
 import PropTypes from 'prop-types';
-import StepperComp from '../common/StepperComp';
+import StepperComp from 'components/common/StepperComp';
 
 const steps = ['Describe Your Trip!', 'Define the Trips', 'Finish'];
 

@@ -1,13 +1,22 @@
 import React, { useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import { Grid } from '@mui/material';
 import './index.css';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 // import Autocomplete from '@mui/material/Autocomplete';
-import SearchBar from '../SearchBar';
-import Layout from '../common/Layout';
+import SearchBar from 'components/SearchBar';
+import Layout from 'components/common/Layout';
+// import { tripType } from 'sample';
+import { TRIP_BASIC } from 'constants';
 
-const Home = () => {
+const Home = ({
+    onBasicInfo,
+    tripInfo
+}) => {
     const [singleSelected, setSingleSelected] = useState(true);
+    const navigate = useNavigate();
 
     const handleClick = (e) => {
         console.log(e);
@@ -16,12 +25,18 @@ const Home = () => {
 
     const handleSelectedSearch = (searchData) => {
         console.log(searchData, 'searchData');
-        if (singleSelected) {
-            window.location.href='/single';
-        } else {
-            window.location.href='/multiple';
-        }
-        
+        console.log("tripInfo", tripInfo);
+
+        const type = singleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
+        onBasicInfo && onBasicInfo({
+            type,
+            destinations: [
+                {
+                    country: searchData
+                }
+            ]
+        });
+        navigate(type.route, {replace: true});
     };
     return (
         <Layout>
@@ -60,4 +75,15 @@ const Home = () => {
     );
 };
 
-export default Home;
+const mapStateToProps = (state) => ({ tripInfo: state });
+
+const mapDispatchToProps = (dispatch) => ({
+    onBasicInfo: (value) => dispatch({ type: "BASIC_INFO", payload: value})
+});
+
+
+Home.propTypes = {
+    tripInfo: PropTypes.object,
+    onBasicInfo: PropTypes.func,
+};
+export default connect(mapStateToProps, mapDispatchToProps)(Home);

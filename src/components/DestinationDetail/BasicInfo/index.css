@@ -2,8 +2,8 @@
   margin: 10px 0px !important
 }
 
-.step-sections .header {
+.step-section .header {
   font-weight: 500;
   font-size: 1.2em;
-  margin: 10px 0px;
+  padding: 10px 0px 20px 0px;
 }

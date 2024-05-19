@@ -1,0 +1,27 @@
+.button-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 1.2em;
+  font-weight: 500;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.button-no-style {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.button-no-style:hover {
+  font-weight: 500;
+}
+
+.button-simple {
+  color: inherit;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+.button-icon {
+  margin-left: 5px;
+}

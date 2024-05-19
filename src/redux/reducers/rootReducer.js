@@ -6,12 +6,12 @@ const initialStaste = {
 
 const counterReducer = (state = initialStaste, action) => {
     switch(action.type) {
-    case 'INCREMENT': 
-        return { ...state, value: state.value + 1};
-    case 'SUBSTRACT':
-        return { ...state, value: state.value - 1};
-    default:
-        return state;
+        case 'INCREMENT': 
+            return { ...state, value: state.value + 1};
+        case 'SUBSTRACT':
+            return { ...state, value: state.value - 1};
+        default:
+            return state;
     }
 };
 
