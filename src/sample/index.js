@@ -5,6 +5,10 @@ export const status = [
     },
     {
         id: 1,
+        name: "pending"
+    },
+    {
+        id: 1,
         name: "canceled"
     },
 ];

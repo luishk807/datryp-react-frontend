@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
@@ -6,10 +6,12 @@ import {
 } from '@mui/material';
 import InputField from '../../common/FormFields/InputField';
 import { status } from '../../../sample/index';
+import DropDown from '../../common/FormFields/DropDown';
 
 const BasicInfo = ({
     onChange,
 }) => {
+
     return (
         <div>
             <form>
@@ -24,7 +26,8 @@ const BasicInfo = ({
                         <InputField name="budget" onChange={(e) => onChange('budget', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="status" onChange={(e) => onChange('status', e)}/>
+                        <DropDown label="Status" options={status} id="status" onChange={(e) => onChange('status', e)} />
+
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField name="total" onChange={(e) => onChange('total', e)}/>
