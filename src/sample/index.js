@@ -4,11 +4,34 @@ export const status = [
         name: "active"
     },
     {
-        id: 1,
+        id: 2,
         name: "pending"
     },
     {
-        id: 1,
+        id: 3,
         name: "canceled"
     },
+];
+
+export const friends = [
+    {
+        id: 1,
+        firstName: "Luis",
+        lastName: "Alfredo",
+    },
+    {
+        id: 2,
+        firstName: "Joanna",
+        lastName: "Tam",
+    },
+    {
+        id: 3,
+        firstName: "Alberto",
+        lastName: "Wesker",
+    },
+    {
+        id: 4,
+        firstName: "Jessica",
+        lastName: "Ruan",
+    }
 ];

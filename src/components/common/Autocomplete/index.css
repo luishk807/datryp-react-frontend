@@ -1,0 +1,13 @@
+.autocomplete-custom-item {
+  margin: 5px;
+  text-transform: capitalize;
+}
+
+.disabled:hover {
+  cursor: none;
+}
+
+.autocomplete-custom-item:hover{
+  cursor: pointer;
+  
+}

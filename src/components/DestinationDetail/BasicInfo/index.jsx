@@ -30,9 +30,6 @@ const BasicInfo = ({
 
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="total" onChange={(e) => onChange('total', e)}/>
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">

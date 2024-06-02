@@ -1,42 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import PropTypes from 'prop-types';
+import './index.css';
 
 const DropDown = ({
     id, 
     label, 
     onChange,
-    options
+    options = []
 }) => {
-    const [data, setData] = useState('');
+    const [option, setOption] = useState('');
     
     const handleChange = (e) => {
         const { target } = e;
-        setData(target.value);
+        setOption(target.value);
         onChange(e);
     };
 
-    // useEffect(() => {
-    //     setData(options[0]);
-    // }, [options]);
-
     return (
-        <FormControl fullWidth>
+        <FormControl className="custom-dropdown" fullWidth>
             <InputLabel id="select-label">{label}</InputLabel>
             <Select
                 labelId="select-label"
                 name={id}
-                value={data}
+                value={option}
                 label={label}
                 onChange={handleChange}
             >
                 {
                     options && options.map((item, indx) => {
                         return (
-                            <MenuItem key={indx} value={item.id}>{item.name}</MenuItem>
+                            <MenuItem className='custom-dropdown-item' key={indx} value={item.id}>{item.name}</MenuItem>
                         );
                     })
                 }
