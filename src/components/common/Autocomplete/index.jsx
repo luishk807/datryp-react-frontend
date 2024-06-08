@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
@@ -9,7 +9,8 @@ import {
 const AutocompleteCustom = ({
     options = [],
     label ='',
-    isMultiple = false
+    isMultiple = false,
+    onDropChange
 }) => {
     const [data, setData] = useState([]);
 
@@ -26,9 +27,11 @@ const AutocompleteCustom = ({
                 ...data,  
                 selected
             ]);
+     
         }
-
+        onDropChange && onDropChange(selected);
     };
+
 
     return (
         <Autocomplete
@@ -66,6 +69,7 @@ const AutocompleteCustom = ({
 AutocompleteCustom.propTypes = {
     options: PropTypes.array,
     label: PropTypes.string,
-    isMultiple: PropTypes.bool
+    isMultiple: PropTypes.bool,
+    onDropChange: PropTypes.func,
 };
 export default AutocompleteCustom;

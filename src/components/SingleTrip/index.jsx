@@ -27,7 +27,7 @@ const SingleTrip = ({
             comp: <BasicInfo onChange={handleBasicOnChange} />
         }, {
             label: 'Define the Trips',
-            comp: <FriendPicker />
+            comp: <FriendPicker onChange={handleBasicOnChange}/>
         }, {
             label: 'Finish',
             comp: <DestinationDetail type={tripInfo.type} startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />

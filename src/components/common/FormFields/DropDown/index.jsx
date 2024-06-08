@@ -9,17 +9,17 @@ import './index.css';
 const DropDown = ({
     id, 
     label, 
-    onChange,
-    options = []
+    onDropChange,
+    options = [],
+    defaultOption = 0
 }) => {
-    const [option, setOption] = useState('');
+    const [option, setOption] = useState(options[defaultOption].id);
     
     const handleChange = (e) => {
         const { target } = e;
         setOption(target.value);
-        onChange(e);
+        onDropChange(e);
     };
-
     return (
         <FormControl className="custom-dropdown" fullWidth>
             <InputLabel id="select-label">{label}</InputLabel>
@@ -48,7 +48,8 @@ DropDown.propTypes = {
     id: PropTypes.string,
     label: PropTypes.string,
     options: PropTypes.array,
-    onChange: PropTypes.func
+    onDropChange: PropTypes.func,
+    defaultOption: PropTypes.number,
 };
 
 export default DropDown;

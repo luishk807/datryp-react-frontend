@@ -13,10 +13,12 @@ const InputField = ({
     label = null,
     name,
     onChange,
-    type = "text"
+    type = "text",
+    labelOnTop = false
 }) => {
     const labelText = useMemo(() => {
         if (type == "date") {
+            labelOnTop = true;
             return null;
         }
         return label || name.charAt(0).toUpperCase() + name.slice(1);
@@ -24,6 +26,7 @@ const InputField = ({
 
     return (
         <FormControl className="w-full">
+            { labelOnTop && (<div>{label}</div>)}
             <InputLabel htmlFor={name}>{labelText}</InputLabel>
             <OutlinedInput
                 id={name}
@@ -43,6 +46,7 @@ InputField.propTypes = {
     label: PropTypes.string,
     name: PropTypes.string,
     onChange: PropTypes.func,
+    labelOnTop: PropTypes.bool,
     type: PropTypes.oneOf(['text', 'email', 'password', 'date'])
 };
 export default InputField;
