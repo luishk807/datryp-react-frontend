@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
@@ -15,11 +15,9 @@ const FriendPicker = ({
 }) => {
     const [friendList, setFriendList] = useState([]);
     const handleOnChange = (e) => {
-        console.log("friend picker", e);
         setFriendList((prev) => [...prev, e]);
-        console.log("sending", 'friends', {target: friendList });
-        onChange('friends', {target: friendList });
-    };  
+    }; 
+    
     const optionList = useMemo(() => {
         const list = friends.map(item => {
             return {
@@ -32,9 +30,23 @@ const FriendPicker = ({
             id: -1,
             label: "add friends"
         });
-        console.log('heyyy', list);
+
         return list;
     }, [friends]);
+
+
+    useEffect(() => {
+        let unmounted = false;
+
+        if (!unmounted) {
+            console.log("sending", 'friends', {target: friendList });
+            onChange('friends', {target: friendList });
+        }
+        return () => {
+            unmounted = true;
+        };
+    }, [friendList]);
+
     return (
         <div>
             <Grid container>
