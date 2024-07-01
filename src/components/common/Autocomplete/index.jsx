@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
+import _ from 'lodash';
 import './index.css';
 import { 
-    Grid,
     TextField,
     Autocomplete
 } from '@mui/material';
@@ -10,14 +11,13 @@ const AutocompleteCustom = ({
     options = [],
     label ='',
     isMultiple = false,
-    onDropChange
+    onDropChange,
+    selectedOptions = []
 }) => {
     const [data, setData] = useState([]);
-
+    console.log(options, 'options');
     const handleOnChange = (selected) => {
-        console.log('click data', selected);
         if (selected.id === -1) {
-            console.log("ignore");
             return;
         }
         const found = data.filter(item => item.id === selected.id);
@@ -39,6 +39,7 @@ const AutocompleteCustom = ({
             id="combo-box-demo"
             options={options}
             value={data}
+            isOptionEqualToValue={ (option, value) => option.id === value.id}
             onChange={(event, newValue) => {
                 setData(newValue);
             }}
@@ -47,14 +48,19 @@ const AutocompleteCustom = ({
                     return (
                         <li key={`fd-${option.id}`}>
                             <hr className="my-2"/>
-                            <div className="autocomplete-custom-item" onClick={(e) => handleOnChange(option)}>{option.label}</div>
+                            <div className="autocomplete-custom-option" onClick={(e) => handleOnChange(option)}>{option.label}</div>
                         </li>
                     );
                 } else {
-                    const found = data.filter(item => item.id === option.id);
+                    let found = selectedOptions.length ? selectedOptions.filter(item => item.id === option.id) : [];
                     return ( 
                         <li key={`fd-${option.id}`}>
-                            <div className="autocomplete-custom-item" onClick={(e) => handleOnChange(option)}>{option.label}</div>
+                            <div className={
+                                classnames({
+                                    "autocomplete-custom-item": true,
+                                    "disabled": found.length
+                                })
+                            } onClick={(e) => handleOnChange(option)}>{option.label}</div>
                         </li>
                     );
                 }
@@ -71,5 +77,6 @@ AutocompleteCustom.propTypes = {
     label: PropTypes.string,
     isMultiple: PropTypes.bool,
     onDropChange: PropTypes.func,
+    selectedOptions: PropTypes.array
 };
 export default AutocompleteCustom;

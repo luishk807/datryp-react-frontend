@@ -11,7 +11,8 @@ import { friends} from '../../../sample';
 import Autocomplete from '../../common/Autocomplete';
   
 const FriendPicker = ({
-    onChange
+    onChange,
+    selectedOptions = []
 }) => {
     const [friendList, setFriendList] = useState([]);
     const handleOnChange = (e) => {
@@ -39,8 +40,7 @@ const FriendPicker = ({
         let unmounted = false;
 
         if (!unmounted) {
-            console.log("sending", 'friends', {target: friendList });
-            onChange('friends', {target: friendList });
+            onChange('friends', {target: { value: friendList }});
         }
         return () => {
             unmounted = true;
@@ -53,6 +53,7 @@ const FriendPicker = ({
                 <Grid item lg={12} md={12} xs={12}>
                     {/* <InputField name="fiend"/> */}
                     <Autocomplete
+                        selectedOptions = {selectedOptions}
                         isMultiple = {true}
                         options={optionList}
                         label="friends"
@@ -65,6 +66,7 @@ const FriendPicker = ({
 };
 
 FriendPicker.propTypes = {
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    selectedOptions: PropTypes.array
 };
 export default FriendPicker;

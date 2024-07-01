@@ -1,13 +1,19 @@
-.autocomplete-custom-item {
+.autocomplete-custom-item,
+.autocomplete-custom-option {
   margin: 5px;
   text-transform: capitalize;
 }
 
-.disabled:hover {
-  cursor: none;
+.disabled {
+  color: rgba(0,0,0,.5)
 }
 
-.autocomplete-custom-item:hover{
+.disabled:hover {
+  pointer-events: none;
+}
+
+.autocomplete-custom-item:hover,
+.autocomplete-custom-option:hover{
   cursor: pointer;
   
 }

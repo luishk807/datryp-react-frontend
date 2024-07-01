@@ -17,7 +17,7 @@ const SingleTrip = ({
 }) => {
     console.log(tripInfo);
     const handleBasicOnChange = (id, e) => {
-        console.log("handle onchange", id, ':',e.target.value);
+        console.log("handle onchange", id, ':',e);
         onBasicInfo({ [id]: e.target.value});
     };
 
@@ -27,7 +27,7 @@ const SingleTrip = ({
             comp: <BasicInfo onChange={handleBasicOnChange} />
         }, {
             label: 'Define the Trips',
-            comp: <FriendPicker onChange={handleBasicOnChange}/>
+            comp: <FriendPicker selectedOptions={tripInfo.friends} onChange={handleBasicOnChange}/>
         }, {
             label: 'Finish',
             comp: <DestinationDetail type={tripInfo.type} startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
