@@ -16,6 +16,8 @@ const DestinationDetail = ({
 
     const [dates, setDates] = useState([]);
     const getDatesRange = async() => {
+        console.log(startDate, 'startdate');
+        console.log(endDate, 'endDate');
         const date1 = moment(startDate);
         const date2 = moment(endDate);
 

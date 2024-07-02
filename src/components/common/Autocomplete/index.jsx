@@ -15,7 +15,6 @@ const AutocompleteCustom = ({
     selectedOptions = []
 }) => {
     const [data, setData] = useState([]);
-    console.log(options, 'options');
     const handleOnChange = (selected) => {
         if (selected.id === -1) {
             return;

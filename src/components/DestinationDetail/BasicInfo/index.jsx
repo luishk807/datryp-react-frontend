@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
@@ -14,8 +14,22 @@ const BasicInfo = ({
     onChange,
 }) => {
 
-    const startDate = moment().format('YYYY-MM-DD');
-    const endDate = moment().format('YYYY-MM-DD');
+    // const startDate = moment().format('YYYY-MM-DD');
+    // const endDate = moment().format('YYYY-MM-DD');
+
+
+    const endDate = useMemo(() => {
+        const date = moment().format('YYYY-MM-DD');
+        onChange('endDate', { target: {value: date }});
+        return date;
+    }, []);
+
+    const startDate = useMemo(() => {
+        const date = moment().format('YYYY-MM-DD');
+        onChange('startDate', { target: {value: date }});
+        return date;
+    }, []);
+
     return (
         <div>
             <form>
