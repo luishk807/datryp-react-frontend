@@ -23,7 +23,8 @@ const DestinationDetail = ({
 
         if (date1.isValid() && date2.isValid()) {
             if (moment(startDate).isSame(endDate)) {
-                return [date2];
+                setDates([date2]);
+                return;
             }
     
             let date = date1;
@@ -31,7 +32,6 @@ const DestinationDetail = ({
             const dateArry = [date.format('MM/DD/YYYY')];
     
             do {
-    
                 date = moment(date).add(1, 'day');
                 dateArry.push(date.format('MM/DD/YYYY'));
             } while(date.isBefore(date2));

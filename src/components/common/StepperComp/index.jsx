@@ -92,13 +92,13 @@ const StepperComp = ({
                             <Grid container className="mt-2.5">
                                 <Grid item lg={6} md={6} xs={12} className="flex justify-start">
                                     <div className="w-40 my-2.5">
-                                        <Button onClick={handleBack} label="Back" />
+                                        <Button type="standard" onClick={handleBack} label="Back" />
                                     </div>
 
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="flex justify-end">
                                     <div className="w-40 my-2.5">
-                                        <Button onClick={handleNext} label={ activeStep === steps.length -1 ? "Finish": "Next"} />
+                                        <Button type="standard" onClick={handleNext} label={ activeStep === steps.length -1 ? "Finish": "Next"} />
                                     </div>
 
                                 </Grid>

@@ -1,0 +1,38 @@
+.modalCustom {
+  background: white;
+  width: 500px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  padding: 10px
+}
+
+.modalCustom > .header {
+
+}
+
+.modalCustom > .header > .button {
+    display: flex;
+    justify-content: end;
+    margin: 5px 10px;
+}
+
+
+.modalCustom > .header > .button > .in {
+  display: flex
+}
+
+.modalCustom > .header > .title {
+    text-align: center;
+    font-weight: 500;
+    font-size: 1.2em;
+}
+
+.modalCustom > .content {
+  margin-top: 5px
+}

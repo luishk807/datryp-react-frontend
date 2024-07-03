@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { Grid } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ButtonIcon from '../../ButtonIcon';
-
 const Activities = ({
     activities = []
 })=> {
     return (
         <>
+
             {
                 activities && activities.map((activity, indx) => (
                     <Grid key={`activity-${indx}`} item lg={12} md={12} className="content-trip border-trip">

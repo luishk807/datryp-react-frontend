@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import './index.css';
 
 const ButtonIcon = ({
-    title,
-    Icon
+    title = '',
+    Icon,
+    onClick
 }) => {
     return (
-        <button className="button-icon">
+        <button onClick={onClick} className="button-icon">
             {title}<Icon />
         </button>
     );
@@ -16,6 +17,7 @@ const ButtonIcon = ({
 
 ButtonIcon.propTypes = {
     title: PropTypes.string,
-    Icon: PropTypes.object
+    Icon: PropTypes.object,
+    onClick: PropTypes.func.isRequired
 };
 export default ButtonIcon;
