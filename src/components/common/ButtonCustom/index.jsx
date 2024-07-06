@@ -6,13 +6,18 @@ import classNames from 'classnames';
 const ButtonCustom = ({
     label = '',
     onClick,
-    type
+    capitalizeType = 'capitalize',
+    type,
+    style = null
 }) => {
     return (
-        <button className={classNames({
+        <button style={style} className={classNames({
             'main-button': type === 'standard',
             'plain-button': type === 'plain',
-            'text-button': type === 'text'
+            'text-button': type === 'text',
+            'capitalize': capitalizeType === 'capitalize',
+            'lowercase': capitalizeType === 'lowercase',
+            'uppercase': capitalizeType === 'uppercase'
         })} onClick={onClick}>
             {label}
         </button>
@@ -22,6 +27,8 @@ const ButtonCustom = ({
 ButtonCustom.propTypes = {
     label: PropTypes.string,
     onClick: PropTypes.func,
+    style: PropTypes.object,
+    capitalizeType: PropTypes.oneOf(['capitalize', 'uppercase', 'lowercase']),
     type: PropTypes.oneOf(['plain','text', 'standard'])
 };
 

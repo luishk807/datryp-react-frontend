@@ -60,6 +60,6 @@ InputField.propTypes = {
     onChange: PropTypes.func,
     labelOnTop: PropTypes.bool,
     defaultValue: PropTypes.string,
-    type: PropTypes.oneOf(['text', 'email', 'password', 'date'])
+    type: PropTypes.oneOf(['text', 'email', 'password', 'date', 'file'])
 };
 export default InputField;

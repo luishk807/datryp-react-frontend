@@ -36,7 +36,9 @@ const ModalButton = ({
                     <div className="header">
                         <div className="button">
                             <div className="in">
-                                <ButtonCustom onClick={handleClose} label='&#10005;' type="text" />
+                                <ButtonCustom 
+                                    onClick={handleClose} label='&#10005;' type="text" 
+                                />
                             </div>
                         </div>
                         <div className="title">

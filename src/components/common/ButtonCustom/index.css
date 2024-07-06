@@ -7,6 +7,18 @@
   font-weight: 500;
 }
 
+.uppercase {
+  text-transform: uppercase;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.lowercase {
+  text-transform: lowercase;
+}
+
 .plain-button {
   padding: 10px 0px;
   width: 100%;
