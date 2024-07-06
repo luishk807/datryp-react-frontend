@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
+import classNames from 'classnames';
 import { 
     FormControl,
     InputLabel,
@@ -43,8 +44,11 @@ const InputField = ({
             <OutlinedInput
                 id={name}
                 fullWidth={true}
+                className={classNames({
+                    'fileStyle': type === 'file'
+                })}
                 type={type}
-                value = {data}
+                value={data}
                 label={labelText}
                 aria-describedby="my-helper-text"
                 onChange={handleOnChange}
