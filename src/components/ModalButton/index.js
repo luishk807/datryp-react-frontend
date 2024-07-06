@@ -10,7 +10,9 @@ import ButtonIcon from '../ButtonIcon';
 import ButtonCustom from '../common/ButtonCustom';
 
 const ModalButton = ({
-    title = ''
+    title = '',
+    children = null,
+    buttonProps
 }) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
@@ -18,10 +20,11 @@ const ModalButton = ({
         setOpen(true);
     };
     const handleClose = () => setOpen(false);
-
     return (
         <>
-            <ButtonIcon onClick={handleOpen} title={title} Icon={AddCircleIcon} />
+            <ButtonIcon
+                onClick={handleOpen}
+                {...buttonProps} />
             
             <Modal 
                 open={open}
@@ -29,7 +32,7 @@ const ModalButton = ({
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <div className={`modalCustom`} >
+                <div className={`modalCustom lg:w-6/12 w-full`} >
                     <div className="header">
                         <div className="button">
                             <div className="in">
@@ -37,12 +40,12 @@ const ModalButton = ({
                             </div>
                         </div>
                         <div className="title">
-                            Title
+                            {title}
                         </div>
                     </div>
 
                     <div className="content">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consectetur tristique erat. Duis vel blandit magna, sit amet ultricies tortor. Donec id odio arcu. Nulla tincidunt lectus eget libero iaculis, a ultricies lorem euismod. Nam luctus, ligula at blandit condimentum, ante est gravida lorem, at vehicula tellus metus vel ipsum. Suspendisse ultricies suscipit mauris, vel varius elit placerat sed. Sed no
+                        {children}
                     </div>
                 </div>
             </Modal>
@@ -52,6 +55,8 @@ const ModalButton = ({
 };
 
 ModalButton.propTypes = {
-    title: PropTypes.string
+    title: PropTypes.string,
+    children: PropTypes.node,
+    buttonProps: PropTypes.object,
 };
 export default ModalButton;
