@@ -53,6 +53,7 @@ const FriendPicker = ({
 
     const handleFriendOnChange = (e) => {
         console.log("fiends", e);
+        childRef.current.closeModal();
     };
 
     return (

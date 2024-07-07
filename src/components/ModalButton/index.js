@@ -22,10 +22,11 @@ const ModalButton = forwardRef(({
 
     useImperativeHandle(ref, () => ({
         openModel() {
-            console.log("xxxx");
             handleOpen();
+        },
+        closeModal() {
+            handleClose();
         }
-
     }));
 
     const handleClose = () => setOpen(false);

@@ -10,10 +10,14 @@ const AddPlaceBtn = ({
     onChange
 }) => {
     const [place, setPlace] = useState(null);
+    const friends = [];
     const handleOnChange = (name, value) => {
+        if (name === "friends") {
+            friends.push(value);
+        }
         setPlace({
             ...place,
-            [name]: value,
+            [name]: name === 'friends' ? friends : value,
 
         });
     };

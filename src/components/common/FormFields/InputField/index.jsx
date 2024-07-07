@@ -17,8 +17,13 @@ const InputField = ({
     labelOnTop = false
 }) => {
     const [data, setData] = useState('');
+    const [imageData, setImageData] = useState(null);
 
     const handleOnChange = (e) => {
+        if (type === 'file') {
+            const imageName = e.target.value;
+            setImageData(imageName.substring(imageName.lastIndexOf('\\') + 1));
+        }
         setData(e.target.value);
         onChange(e);
     };
@@ -38,9 +43,10 @@ const InputField = ({
     }, [defaultValue]);
 
     return (
-        <FormControl className="w-full">
+        <FormControl className="w-full inputFieldCustom">
             { labelOnTop && (<div>{label}</div>)}
             <InputLabel htmlFor={name}>{labelText}</InputLabel>
+            { type === "file" && imageData && (<div className="image-container">{imageData}</div>) }
             <OutlinedInput
                 id={name}
                 fullWidth={true}
@@ -50,7 +56,7 @@ const InputField = ({
                 type={type}
                 value={data}
                 label={labelText}
-                aria-describedby="my-helper-text"
+                aria-describedby={name}
                 onChange={handleOnChange}
                 required
             />
