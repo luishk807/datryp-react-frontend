@@ -13,6 +13,17 @@ export const status = [
     },
 ];
 
+export const tripType = [
+    {
+        id: 1,
+        name: 'Single'
+    },
+    {
+        id: 2,
+        name: 'Multiple'
+    }
+];
+
 export const friends = [
     {
         id: 1,

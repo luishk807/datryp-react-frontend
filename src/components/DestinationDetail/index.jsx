@@ -14,6 +14,7 @@ const DestinationDetail = ({
     endDate = null
 }) => {
 
+    console.log("destinations", destinations);
     const [dates, setDates] = useState([]);
     const getDatesRange = async() => {
         console.log(startDate, 'startdate');
@@ -51,7 +52,9 @@ const DestinationDetail = ({
         
         console.log("checking", destinationDate);
 
-        const trips = destinationDate.length ? isMultiple ? destinationDate[0].trips : destinationDate[0].trips : null;
+        const trips = destinationDate.length ? isMultiple ? destinationDate[0].itinerary
+            : destinationDate[0].itinerary : null;
+        console.log("trips", trips);
         return isMultiple ? <MutipleTrips trips={trips} /> : <SingleTrips trips={trips} />;
    
     };

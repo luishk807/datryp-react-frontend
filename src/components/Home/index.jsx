@@ -2,11 +2,15 @@ import React, { useState} from 'react';
 import classnames from 'classnames';
 import { Grid } from '@mui/material';
 import './index.css';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 // import Autocomplete from '@mui/material/Autocomplete';
 import SearchBar from '../SearchBar';
 import Layout from '../common/Layout';
 
-const Home = () => {
+const Home = ({
+    onBasicInfo
+}) => {
     const [singleSelected, setSingleSelected] = useState(true);
 
     const handleClick = (e) => {
@@ -16,6 +20,9 @@ const Home = () => {
 
     const handleSelectedSearch = (searchData) => {
         console.log(searchData, 'searchData');
+        // onBasicInfo && onBasicInfo({
+
+        // })
         if (singleSelected) {
             window.location.href='/single';
         } else {
@@ -60,4 +67,15 @@ const Home = () => {
     );
 };
 
-export default Home;
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onBasicInfo: (value) => {
+            dispatch({type: 'BASIC_INFO', payload: value});
+        }
+    };
+};
+
+Home.propTypes = {
+    onBasicInfo: PropTypes.func,
+};
+export default connect(mapDispatchToProps)(Home);
