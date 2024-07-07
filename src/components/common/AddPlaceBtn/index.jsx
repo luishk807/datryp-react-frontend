@@ -6,14 +6,15 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
 import ButtonCustom from '../../common/ButtonCustom';
-const AddPlaceBtn = () => {
-  
-  
+const AddPlaceBtn = ({
+    onChange
+}) => {
     const [place, setPlace] = useState(null);
     const handleOnChange = (name, value) => {
         setPlace({
+            ...place,
             [name]: value,
-            ...place
+
         });
     };
 
@@ -38,6 +39,7 @@ const AddPlaceBtn = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("sending", place);
+        onChange && onChange(place);
     };
     return (
         <Grid container>
@@ -84,6 +86,10 @@ const AddPlaceBtn = () => {
             </Grid>
         </Grid>
     );
+};
+
+AddPlaceBtn.propTypes = {
+    onChange: PropTypes.func
 };
 
 export default AddPlaceBtn;

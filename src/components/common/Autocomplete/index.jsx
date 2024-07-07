@@ -16,18 +16,18 @@ const AutocompleteCustom = ({
 }) => {
     const [data, setData] = useState([]);
     const handleOnChange = (selected) => {
-        if (selected.id === -1) {
-            return;
-        }
-        const found = data.filter(item => item.id === selected.id);
+        if (selected.id !== -1) {
+            const found = data.filter(item => item.id === selected.id);
 
-        if (!found.length) {
-            setData([
-                ...data,  
-                selected
-            ]);
-     
+            if (!found.length) {
+                setData([
+                    ...data,  
+                    selected
+                ]);
+         
+            }
         }
+
         onDropChange && onDropChange(selected);
     };
 

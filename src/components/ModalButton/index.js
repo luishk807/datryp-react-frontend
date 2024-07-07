@@ -1,30 +1,40 @@
-import React, {useState} from 'react';
+import React, {useState, forwardRef, useImperativeHandle } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
     Modal,
     Grid
 } from '@mui/material';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ButtonIcon from '../ButtonIcon';
 import ButtonCustom from '../common/ButtonCustom';
 
-const ModalButton = ({
+const ModalButton = forwardRef(({
     title = '',
     children = null,
-    buttonProps
-}) => {
+    buttonProps = null
+}, ref) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
         console.log("ddd");
         setOpen(true);
     };
+
+
+    useImperativeHandle(ref, () => ({
+        openModel() {
+            console.log("xxxx");
+            handleOpen();
+        }
+
+    }));
+
     const handleClose = () => setOpen(false);
+
     return (
         <>
-            <ButtonIcon
+            { buttonProps && <ButtonIcon
                 onClick={handleOpen}
-                {...buttonProps} />
+                {...buttonProps} /> }
             
             <Modal 
                 open={open}
@@ -54,11 +64,13 @@ const ModalButton = ({
         </>
 
     );
-};
+});
 
 ModalButton.propTypes = {
     title: PropTypes.string,
     children: PropTypes.node,
     buttonProps: PropTypes.object,
 };
+ModalButton.displayName = "ModelButton";
+
 export default ModalButton;

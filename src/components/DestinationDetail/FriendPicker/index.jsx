@@ -1,22 +1,27 @@
-import React, {useMemo, useState, useEffect} from 'react';
+import React, {useMemo, useState, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
     Grid,
-    TextField
 } from '@mui/material';
-import {} from 'redux';
-import InputField from '../../common/FormFields/InputField';
 import { friends} from '../../../sample';
 import Autocomplete from '../../common/Autocomplete';
-  
+import AddFriendBtn from '../../common/AddFriendBtn';
+
 const FriendPicker = ({
     onChange,
     selectedOptions = []
 }) => {
+    const childRef = useRef();
     const [friendList, setFriendList] = useState([]);
     const handleOnChange = (e) => {
-        setFriendList((prev) => [...prev, e]);
+        if(e.id !== -1) {
+            setFriendList((prev) => [...prev, e]);
+        } else {
+            console.log("open");
+            childRef.current.openModel();
+        }
+
     }; 
     
     const optionList = useMemo(() => {
@@ -35,7 +40,6 @@ const FriendPicker = ({
         return list;
     }, [friends]);
 
-
     useEffect(() => {
         let unmounted = false;
 
@@ -47,11 +51,14 @@ const FriendPicker = ({
         };
     }, [friendList]);
 
+    const handleFriendOnChange = (e) => {
+        console.log("fiends", e);
+    };
+
     return (
-        <div>
+        <>
             <Grid container>
                 <Grid item lg={12} md={12} xs={12}>
-                    {/* <InputField name="fiend"/> */}
                     <Autocomplete
                         selectedOptions = {selectedOptions}
                         isMultiple = {true}
@@ -61,7 +68,8 @@ const FriendPicker = ({
                     />
                 </Grid>
             </Grid>
-        </div>
+            <AddFriendBtn ref={childRef} onChange={handleFriendOnChange} />
+        </>
     );
 };
 
