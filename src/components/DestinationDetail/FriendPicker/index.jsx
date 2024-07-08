@@ -62,7 +62,7 @@ const FriendPicker = ({
                 <Grid item lg={12} md={12} xs={12}>
                     <Autocomplete
                         selectedOptions = {selectedOptions}
-                        isMultiple = {true}
+                        isMultiple = {false}
                         options={optionList}
                         label="friends"
                         onDropChange={handleOnChange}

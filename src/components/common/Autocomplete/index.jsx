@@ -38,6 +38,7 @@ const AutocompleteCustom = ({
             id="combo-box-demo"
             options={options}
             value={data}
+            freeSolo
             isOptionEqualToValue={ (option, value) => option.id === value.id}
             onChange={(event, newValue) => {
                 setData(newValue);

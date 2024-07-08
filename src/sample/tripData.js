@@ -189,11 +189,11 @@ export const singleTripDetailobj = {
             note: '',
             itinerary: [
                 {
-                    date: '07/07/2023',
+                    date: '07/07/2024',
                     activities: null  
                 },
                 {
-                    date: '07/08/2023',
+                    date: '07/08/2024',
                     activities: [
                         {
                             name: 'Glass Bridge',

@@ -25,7 +25,7 @@ const Activities = ({
                                         <p>
                                             {activity.location}<br/>
                                           Time: {`${activity.startTime} - ${activity.endTime}`}<br/>
-                                          People: {activity.people}<br/>
+                                          People: {activity.people.length}<br/>
                                           Cost: ${activity.cost}
                                         </p>
                                     </Grid>

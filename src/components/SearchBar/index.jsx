@@ -1,25 +1,38 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Grid } from '@mui/material';
 import './index.css';
 import PropTypes from 'prop-types';
 import { debounce} from 'lodash';
 // import { top100Films } from '../../sample/movielist';
-
+import countryList from '../../sample/countryList';
 const SearchBar = ({
     onSelected,
     className = "justify-center"
 }) => {
     const inputRef = useRef();
+    const [countriesFound, setCountriesFound] = useState([]);
 
-    const handleButtonClick = () => {
+    const handleButtonClick = (e) => {
+        console.log("clickl ", e);
+        inputRef.current.value = e.label;
+        setCountriesFound([]);
         onSelected && onSelected(inputRef.current.value);
     };
 
-    // const handleOnChange = () => {
-    //     onSelected && onSelected(inputRef.current.value);
-    // };
+    const handleOnChange = (e) => {
+        const check = inputRef.current.value.toLowerCase();
+        const foundCountry = countryList.filter(item => {
+            const data1 = item.en.toLowerCase();
+            return data1.includes(check);
+        });
 
-    // const debounceChange = debounce(handleOnChange, 500);
+        if (foundCountry.length) {
+            setCountriesFound(foundCountry.map((item, idx) => ({ id: idx, label: item.en})));
+        }
+        // onSelected && onSelected(inputRef.current.value);
+    };
+
+    const debounceChange = debounce(handleOnChange, 500);
 
     const debounceClick = debounce(handleButtonClick, 500);
 
@@ -27,14 +40,28 @@ const SearchBar = ({
         <Grid container className={`searchbarMain flex w-full ${className}`}>
             <Grid item lg={8} md={12} xs={12} className="holder">
                 <Grid container className="container">
-                    <Grid item lg={10}>
+                    <Grid item lg={10} md={10} className="inputHolder">
                         <input 
-                            // onChange={debounceChange} 
+                            onChange={debounceChange} 
                             ref={inputRef} 
                             className="inputBar" 
                             type='text' 
                             placeholder="Search Country for trip" 
                         />
+                        { !!countriesFound.length && (
+                            <div className="listContainer">
+                                <ul>
+                                    {
+                                        countriesFound.map((item, indx) => {
+                                            return (
+                                                <li onClick={(e) => handleButtonClick(item)} key={indx} className="item">{item.label}</li>
+                                            );
+                                        })
+                                    }
+                                </ul>
+                            </div>
+                        )
+                        }
                     </Grid>
                     <Grid item lg={2} className="buttonContainer">
                         <button className="button" onClick={debounceClick}>CREATE</button>

@@ -48,12 +48,15 @@ const DestinationDetail = ({
     }, [startDate, endDate]);
 
     const getDestinationData = (dateItem) => {
-        const destinationDate = destinations.filter(item => item.date === dateItem);
+        let destinationDate = null;
+        if (!isMultiple) {
+            destinationDate = destinations[0].itinerary.filter(item => moment(dateItem).isSame(moment(item.date)));
+        } else {
+            destinationDate = destinations.filter(item => item.date === dateItem);
+        }
         
-        console.log("checking", destinationDate);
-
         const trips = destinationDate.length ? isMultiple ? destinationDate[0].itinerary
-            : destinationDate[0].itinerary : null;
+            : destinationDate[0].activities : null;
         console.log("trips", trips);
         return isMultiple ? <MutipleTrips trips={trips} /> : <SingleTrips trips={trips} />;
    
