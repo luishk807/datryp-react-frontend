@@ -1,10 +1,6 @@
 // import { combineReducers } from "redux";
 
-import { singleTripDetailobj } from '../../sample/tripData';
-
-const initialState = {
-    ...singleTripDetailobj
-};
+import { initialState } from "../store/storage";
 
 const tripReducer = (state = initialState, action) => {
     switch (action.type) {
