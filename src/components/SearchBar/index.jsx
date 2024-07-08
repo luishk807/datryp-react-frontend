@@ -17,7 +17,12 @@ const SearchBar = ({
     const handleButtonClick = (e) => {
         inputRef.current.value = e.label;
         setCountriesFound([]);
-        onSelected && onSelected(inputRef.current.value);
+        onSelected && onSelected({
+            id: e.id,
+            name: e.label,
+            code: e.code,
+            local: e.local
+        });
     };
 
     const handleListHover = (e) => {
@@ -32,7 +37,12 @@ const SearchBar = ({
         });
 
         if (foundCountry.length) {
-            setCountriesFound(foundCountry.map((item, idx) => ({ id: idx, label: item.en})));
+            setCountriesFound(foundCountry.map((item, idx) => ({ 
+                id: idx, 
+                label: item.en,
+                code: item.code,
+                local: item.local
+            })));
         }
         // onSelected && onSelected(inputRef.current.value);
     };
@@ -69,7 +79,7 @@ const SearchBar = ({
                                     {
                                         countriesFound.map((item, indx) => {
                                             return (
-                                                <li onClick={(e) => handleButtonClick(item)} onMouseEnter={(e) => handleListHover(item)} key={indx} className="item">{item.label}</li>
+                                                <li onClick={(e) => handleButtonClick(item)} onMouseEnter={(e) => handleListHover(item)} key={indx} className="item">{item.label}, {item.code}, {item.local}</li>
                                             );
                                         })
                                     }

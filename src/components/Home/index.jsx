@@ -9,7 +9,8 @@ import SearchBar from '../SearchBar';
 import Layout from '../common/Layout';
 
 const Home = ({
-    onBasicInfo
+    onBasicInfo,
+    tripInfo
 }) => {
     const [singleSelected, setSingleSelected] = useState(true);
 
@@ -20,9 +21,16 @@ const Home = ({
 
     const handleSelectedSearch = (searchData) => {
         console.log(searchData, 'searchData');
-        // onBasicInfo && onBasicInfo({
+        console.log("tripInfo", tripInfo);
 
-        // })
+        onBasicInfo && onBasicInfo({
+            destinations: [
+                {
+                    country: searchData
+                }
+            ]
+        });
+
         if (singleSelected) {
             window.location.href='/single';
         } else {
@@ -67,15 +75,15 @@ const Home = ({
     );
 };
 
-const mapDispatchToProps = (dispatch) => {
-    return {
-        onBasicInfo: (value) => {
-            dispatch({type: 'BASIC_INFO', payload: value});
-        }
-    };
-};
+const mapStateToProps = (state) => ({ tripInfo: state });
+
+const mapDispatchToProps = (dispatch) => ({
+    onBasicInfo: (value) => dispatch({ type: "BASIC_INFO", payload: value})
+});
+
 
 Home.propTypes = {
+    tripInfo: PropTypes.object,
     onBasicInfo: PropTypes.func,
 };
-export default connect(mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Home);

@@ -15,7 +15,7 @@ const SingleTrip = ({
     tripInfo,
     onBasicInfo
 }) => {
-    console.log('tripInfo', tripInfo);
+    console.log('tripInfo single', tripInfo);
     const handleBasicOnChange = (id, e) => {
         console.log("handle onchange", id, ':',e);
         onBasicInfo({ [id]: e.target.value});
