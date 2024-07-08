@@ -18,7 +18,6 @@ const FriendPicker = ({
         if(e.id !== -1) {
             setFriendList((prev) => [...prev, e]);
         } else {
-            console.log("open");
             childRef.current.openModel();
         }
 
@@ -62,7 +61,7 @@ const FriendPicker = ({
                 <Grid item lg={12} md={12} xs={12}>
                     <Autocomplete
                         selectedOptions = {selectedOptions}
-                        isMultiple = {false}
+                        isMultiple = {true}
                         options={optionList}
                         label="friends"
                         onDropChange={handleOnChange}

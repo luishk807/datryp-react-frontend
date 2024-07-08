@@ -6,7 +6,7 @@ const loadSaveState = loadState();
 
 const store = configureStore({
     reducer: tripReducer,
-    preloadedState: loadSaveState
+    preloadedState: {...loadSaveState}
 });
 
 store.subscribe(() => {

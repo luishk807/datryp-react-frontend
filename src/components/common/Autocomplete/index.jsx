@@ -15,23 +15,26 @@ const AutocompleteCustom = ({
     selectedOptions = []
 }) => {
     const [data, setData] = useState([]);
-    const handleOnChange = (selected) => {
+    const handleOnClick = (selected) => {
         if (selected.id !== -1) {
             const found = data.filter(item => item.id === selected.id);
-
             if (!found.length) {
-                setData([
-                    ...data,  
+                setData(old => [
+                    ...old,  
                     selected
                 ]);
-         
             }
         }
-
         onDropChange && onDropChange(selected);
     };
 
-
+    const handleOnChange = (event, newValue) => {
+        console.log(newValue);
+        const ids = newValue.map(item => item.id);
+        const newdata = data.filter(item => ids.includes(item.id));
+        console.log(newdata, 'founddd');
+        // onDropChange && onDropChange(newdata);
+    };
     return (
         <Autocomplete
             multiple = {isMultiple}
@@ -40,15 +43,13 @@ const AutocompleteCustom = ({
             value={data}
             freeSolo
             isOptionEqualToValue={ (option, value) => option.id === value.id}
-            onChange={(event, newValue) => {
-                setData(newValue);
-            }}
+            onChange={handleOnChange}
             renderOption={(props, option) => {
                 if (option.id === -1) {
                     return (
                         <li key={`fd-${option.id}`}>
                             <hr className="my-2"/>
-                            <div className="autocomplete-custom-option" onClick={(e) => handleOnChange(option)}>{option.label}</div>
+                            <div className="autocomplete-custom-option" onClick={(e) => handleOnClick(option)}>{option.label}</div>
                         </li>
                     );
                 } else {
@@ -60,7 +61,7 @@ const AutocompleteCustom = ({
                                     "autocomplete-custom-item": true,
                                     "disabled": found.length
                                 })
-                            } onClick={(e) => handleOnChange(option)}>{option.label}</div>
+                            } onClick={(e) => handleOnClick(option)}>{option.label}</div>
                         </li>
                     );
                 }
