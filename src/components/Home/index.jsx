@@ -1,4 +1,5 @@
 import React, { useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import { Grid } from '@mui/material';
 import './index.css';
@@ -13,7 +14,7 @@ const Home = ({
     tripInfo
 }) => {
     const [singleSelected, setSingleSelected] = useState(true);
-
+    const navigate = useNavigate();
     const handleClick = (e) => {
         console.log(e);
         setSingleSelected(e);
@@ -31,11 +32,7 @@ const Home = ({
             ]
         });
 
-        if (singleSelected) {
-            window.location.href='/single';
-        } else {
-            window.location.href='/multiple';
-        }
+        singleSelected ? navigate('/single', {replace: true}) : navigate('/multiple', {replace: true});
         
     };
     return (
