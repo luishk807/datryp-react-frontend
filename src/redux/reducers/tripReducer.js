@@ -7,12 +7,10 @@ const tripReducer = (state = initialState, action) => {
     case 'BASIC_INFO':
     {
         console.log("testing this", action.payload);
-        const test = {
+        return {
             ...state,
             ...action.payload,
         };
-        console.log("final", test);
-        return test;
     }
     default: {
         return state;

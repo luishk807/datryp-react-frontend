@@ -14,14 +14,20 @@ const FriendPicker = ({
 }) => {
     const childRef = useRef();
     const [friendList, setFriendList] = useState([]);
-    const handleOnChange = (e) => {
+    const handleOnSelect = (e) => {
         if(e.id !== -1) {
             setFriendList((prev) => [...prev, e]);
         } else {
             childRef.current.openModel();
         }
 
-    }; 
+    };
+    
+    const handleOnRemove = (e) => {
+        const newFriends = friendList.filter(item => item.id !== e[0].id);
+        setFriendList(newFriends);
+        console.log("new list", newFriends);
+    };
     
     const optionList = useMemo(() => {
         const list = friends.map(item => {
@@ -64,7 +70,8 @@ const FriendPicker = ({
                         isMultiple = {true}
                         options={optionList}
                         label="friends"
-                        onDropChange={handleOnChange}
+                        onRemove={handleOnRemove}
+                        onSelect={handleOnSelect}
                     />
                 </Grid>
             </Grid>

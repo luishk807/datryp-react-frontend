@@ -22,13 +22,11 @@ export const loadState = () => {
         let serialized = localStorage.getItem('trip-state');
         if (!serialized) {
             console.log('nothin found');
-            // return initializedState();
+            return initializedState();
         }
-        console.log("found", serialized);
         return JSON.parse(serialized);
     } catch (err) {
-        console.log("err in load state", err);
-        // return initializedState();
+        return initializedState();
     }
 };
 

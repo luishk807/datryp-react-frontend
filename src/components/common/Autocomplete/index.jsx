@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import _ from 'lodash';
@@ -11,7 +11,8 @@ const AutocompleteCustom = ({
     options = [],
     label ='',
     isMultiple = false,
-    onDropChange,
+    onSelect,
+    onRemove,
     selectedOptions = []
 }) => {
     const [data, setData] = useState([]);
@@ -25,16 +26,28 @@ const AutocompleteCustom = ({
                 ]);
             }
         }
-        onDropChange && onDropChange(selected);
+        onSelect && onSelect(selected);
     };
 
     const handleOnChange = (event, newValue) => {
         console.log(newValue);
         const ids = newValue.map(item => item.id);
-        const newdata = data.filter(item => ids.includes(item.id));
+        const newdata = data.filter(item => !ids.includes(item.id));
         console.log(newdata, 'founddd');
-        // onDropChange && onDropChange(newdata);
+        onRemove && onRemove(newdata);
     };
+
+    useEffect(() => {
+
+        let mounted= true;
+
+        // if (mounted) {
+        setData(selectedOptions);
+        //}
+
+        //return () => { mounted = false; };
+    }, [selectedOptions]);
+    
     return (
         <Autocomplete
             multiple = {isMultiple}
@@ -77,7 +90,8 @@ AutocompleteCustom.propTypes = {
     options: PropTypes.array,
     label: PropTypes.string,
     isMultiple: PropTypes.bool,
-    onDropChange: PropTypes.func,
+    onSelect: PropTypes.func,
+    onRemove: PropTypes.func,
     selectedOptions: PropTypes.array
 };
 export default AutocompleteCustom;
