@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 import { debounce} from 'lodash';
 // import { top100Films } from '../../sample/movielist';
 import countryList from '../../sample/countryList';
+import { ClickAwayListener } from '@mui/base/ClickAwayListener';
+
 const SearchBar = ({
     onSelected,
     className = "justify-center"
@@ -13,10 +15,13 @@ const SearchBar = ({
     const [countriesFound, setCountriesFound] = useState([]);
 
     const handleButtonClick = (e) => {
-        console.log("clickl ", e);
         inputRef.current.value = e.label;
         setCountriesFound([]);
         onSelected && onSelected(inputRef.current.value);
+    };
+
+    const handleListHover = (e) => {
+        inputRef.current.value = e.label;
     };
 
     const handleOnChange = (e) => {
@@ -36,39 +41,45 @@ const SearchBar = ({
 
     const debounceClick = debounce(handleButtonClick, 500);
 
+    const handleClickAway = () => {
+        setCountriesFound([]);
+    };
+
     return (
-        <Grid container className={`searchbarMain flex w-full ${className}`}>
-            <Grid item lg={8} md={12} xs={12} className="holder">
-                <Grid container className="container">
-                    <Grid item lg={10} md={10} className="inputHolder">
-                        <input 
-                            onChange={debounceChange} 
-                            ref={inputRef} 
-                            className="inputBar" 
-                            type='text' 
-                            placeholder="Search Country for trip" 
-                        />
+        <ClickAwayListener onClickAway={handleClickAway}>
+            <Grid container className={`searchbarMain flex w-full ${className}`}>
+                <Grid item lg={8} md={12} xs={12} className="holder">
+                    <Grid container className="container">
+
+                        <Grid item lg={10} md={10} className="inputHolder">
+                            <input 
+                                onChange={debounceChange} 
+                                ref={inputRef} 
+                                className="inputBar" 
+                                type='text' 
+                                placeholder="Search Country for trip" 
+                            />
+                        </Grid>
+                        <Grid item lg={2} className="buttonContainer">
+                            <button className="button" onClick={debounceClick}>CREATE</button>
+                        </Grid>
                         { !!countriesFound.length && (
-                            <div className="listContainer">
+                            <div className="listContainerV2">
                                 <ul>
                                     {
                                         countriesFound.map((item, indx) => {
                                             return (
-                                                <li onClick={(e) => handleButtonClick(item)} key={indx} className="item">{item.label}</li>
+                                                <li onClick={(e) => handleButtonClick(item)} onMouseEnter={(e) => handleListHover(item)} key={indx} className="item">{item.label}</li>
                                             );
                                         })
                                     }
                                 </ul>
                             </div>
-                        )
-                        }
-                    </Grid>
-                    <Grid item lg={2} className="buttonContainer">
-                        <button className="button" onClick={debounceClick}>CREATE</button>
+                        )}
                     </Grid>
                 </Grid>
             </Grid>
-        </Grid>
+        </ClickAwayListener>
     );
 };
 
