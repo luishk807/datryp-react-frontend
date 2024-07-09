@@ -7,6 +7,9 @@ import ButtonIcon from '../../ButtonIcon';
 const Activities = ({
     activities = []
 })=> {
+    const handleOnClick = (e) => {
+        console.log("on click");
+    };
     return (
         <>
 
@@ -44,7 +47,7 @@ const Activities = ({
             <Grid item lg={12} className="content-trip">
                 <Grid container>
                     <Grid item lg={12} className="add-place-item">
-                        <ButtonIcon title="Add Places" Icon={AddCircleIcon} />
+                        <ButtonIcon onClick={handleOnClick} title="Add Places" Icon={AddCircleIcon} />
                     </Grid>
                 </Grid>
             </Grid>

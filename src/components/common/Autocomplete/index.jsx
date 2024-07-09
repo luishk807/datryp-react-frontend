@@ -41,11 +41,11 @@ const AutocompleteCustom = ({
 
         let mounted= true;
 
-        // if (mounted) {
-        setData(selectedOptions);
-        //}
+        if (mounted) {
+            setData(selectedOptions);
+        }
 
-        //return () => { mounted = false; };
+        return () => { mounted = false; };
     }, [selectedOptions]);
     
     return (

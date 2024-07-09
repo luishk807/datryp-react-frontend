@@ -32,7 +32,10 @@ const AddFriendBtn = forwardRef(({
                     title={title}>
                     <Grid container>
                         <Grid item lg={12} xs={12} className="py-5">
-                            <InputField label="Full Name" name="fullName" onChange={(e) => handleOnChange('name', e.target.value)}/>
+                            <InputField label="First Name" name="firstName" onChange={(e) => handleOnChange('firstName', e.target.value)}/>
+                        </Grid>
+                        <Grid item lg={12} xs={12} className="py-5">
+                            <InputField label="Last Name" name="lastName" onChange={(e) => handleOnChange('lastName', e.target.value)}/>
                         </Grid>
 
                         <Grid item lg={12} xs={12} className="py-5">

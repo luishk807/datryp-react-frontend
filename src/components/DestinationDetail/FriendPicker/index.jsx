@@ -13,51 +13,84 @@ const FriendPicker = ({
     selectedOptions = []
 }) => {
     const childRef = useRef();
-    const [friendList, setFriendList] = useState([]);
+    const [optionList, setOptionList] = useState([]);
+    const [selectedFriendList, setSelectedFriendList] = useState([]);
     const handleOnSelect = (e) => {
         if(e.id !== -1) {
-            setFriendList((prev) => [...prev, e]);
+            setSelectedFriendList((prev) => [...prev, e]);
         } else {
             childRef.current.openModel();
         }
-
     };
     
     const handleOnRemove = (e) => {
-        const newFriends = friendList.filter(item => item.id !== e[0].id);
-        setFriendList(newFriends);
+        const newFriends = selectedFriendList.filter(item => item.id !== e[0].id);
+        setSelectedFriendList(newFriends);
         console.log("new list", newFriends);
     };
     
-    const optionList = useMemo(() => {
-        const list = friends.map(item => {
+    // const optionList = useMemo(() => {
+    //     const list = friends.map(item => {
+    //         return {
+    //             id: item.id,
+    //             label: `${item.firstName} ${item.lastName}`
+    //         };
+    //     });
+
+    //     list.push({
+    //         id: -1,
+    //         label: "add friends"
+    //     });
+
+    //     return list;
+    // }, [friends]);
+
+    const prepareOptionList = (list) => {
+        console.log("ths list.", list);
+        const newList = list.map(item => {
             return {
                 id: item.id,
                 label: `${item.firstName} ${item.lastName}`
             };
         });
 
-        list.push({
+        newList.push({
             id: -1,
             label: "add friends"
         });
 
-        return list;
+        setOptionList(newList);
+    };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        if (isMounted) {
+            prepareOptionList(friends);
+        }
+
+        return () => isMounted = false;
     }, [friends]);
 
     useEffect(() => {
-        let unmounted = false;
+        let isMounted = true;
 
-        if (!unmounted) {
-            onChange('friends', {target: { value: friendList }});
+        if (isMounted) {
+            onChange('friends', {target: { value: selectedFriendList }});
         }
-        return () => {
-            unmounted = true;
-        };
-    }, [friendList]);
+        return () => isMounted = false;
+    }, [selectedFriendList]);
 
     const handleFriendOnChange = (e) => {
         console.log("fiends", e);
+        const list = friends;
+        list.push({
+            id: optionList.length + 1,
+            firstName: e.firstName,
+            lastName: e.lastName
+        });
+
+        prepareOptionList(list);
         childRef.current.closeModal();
     };
 
