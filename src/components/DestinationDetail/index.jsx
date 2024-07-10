@@ -1,15 +1,13 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
 
-import MutipleTrips from './Multiple';
-import SingleTrips from './Single';
-
+import TripItemBlock from './TripItemBlock';
 const DestinationDetail = ({
     destinations = [],
-    type = "multiple",
+    type={},
     startDate = null,
     endDate = null
 }) => {
@@ -46,80 +44,19 @@ const DestinationDetail = ({
     useEffect(() => {
         getDatesRange();
     }, [startDate, endDate]);
-
-    const getDestinationData = (dateItem) => {
-        let destinationDate = null;
-        if (!isMultiple) {
-            destinationDate = destinations[0].itinerary.filter(item => moment(dateItem).isSame(moment(item.date)));
-        } else {
-            destinationDate = destinations.filter(item => item.date === dateItem);
-        }
-        
-        const trips = destinationDate.length ? isMultiple ? destinationDate[0].itinerary
-            : destinationDate[0].activities : null;
-        console.log("trips", trips);
-        return isMultiple ? <MutipleTrips trips={trips} /> : <SingleTrips trips={trips} />;
-   
-    };
-
-    const destinationData = useMemo(() => {
-        return destinations ? destinations : null;
-    }, [destinations]);
-
-    const isMultiple = useMemo(() => {
-        return type === "multiple" ? true : false;
-    }, [type]);
     
     return (
-    // <Grid container>
-    //     {
-    //         destinationData ? destinations.map((destination, indx) => (
-    //             <Grid item key={`destination-${indx}`} lg={12} md={12} xs={12} className="trip-detail">
-    //                 <Grid container>
-    //                     <Grid item lg={12} md={12} xs={12} className="header">
-    //                         <Grid container>
-    //                             <Grid item className="icon">
-    //                                 <span className="dot"></span>
-    //                             </Grid>
-    //                             <Grid item className="title">
-    //                                 <span className="title">{moment(destination.date).format('LL')}</span>
-    //                             </Grid>
-    //                         </Grid>
-    //                     </Grid>
-    //                     { isMultiple ? ( <MutipleTrips trips={destination.trips} />) : ( <SingleTrips trips={destination.activities} />) }
-                           
-        //                 </Grid>
-        //             </Grid>
-        //         )) : (
-        //             <Grid item lg={12} className="trip-detail">
-        //                No trips
-        //             </Grid>
-        //         )
-        //     }
-        // </Grid>
         <Grid container>
             {
                 dates && dates.map((date, indx) => {
                     return (
-                        <Grid item key={`destination-${indx}`} lg={12} className="trip-detail">
-                            <Grid container>
-                                <Grid item lg={12} className="header">
-                                    <Grid container>
-                                        <Grid item className="icon">
-                                            <span className="dot"></span>
-                                        </Grid>
-                                        <Grid item className="title">
-                                            <span className="title">{moment(date).format("LL")}</span>
-                                        </Grid>
-                                    </Grid>
-                                </Grid>
-                                {
-                                    getDestinationData(date)
-                                }
-
-                       
-                            </Grid>
-                        </Grid>
+                        <TripItemBlock 
+                            key={indx} 
+                            index={indx} 
+                            typeId={type.id}
+                            date={date}
+                            destinations={destinations}
+                        />
                     );
                 })
             }
@@ -129,7 +66,7 @@ const DestinationDetail = ({
 
 DestinationDetail.propTypes = {
     destinations: PropTypes.array,
-    type: PropTypes.string,
+    type: PropTypes.object,
     startDate: PropTypes.string,
     endDate: PropTypes.string
 };

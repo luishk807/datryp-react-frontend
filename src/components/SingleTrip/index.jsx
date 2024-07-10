@@ -21,6 +21,7 @@ const SingleTrip = ({
         onBasicInfo({ [id]: e.target.value});
     };
 
+
     const steps = [
         {
             label: 'Describe Your Trip!',

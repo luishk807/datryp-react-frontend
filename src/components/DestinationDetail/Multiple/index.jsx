@@ -2,13 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import ButtonIcon from '../../ButtonIcon';
-import Activities from '../Activities';
+import Activities from '../../DestinationDetail/Activities';
+import AddDestinationBtn from '../../common/AddDestination';
 
 const Multiple = ({
     trips = []
 }) => {
+    const handleOnClick = (e) => {
+        console.log("on click", e);
+    };
+
     return (
         trips ? trips.map((trip, indx) => (
             <Grid key={`trip-${indx}`} item lg={12} md={12} xs={12} className="content">
@@ -31,7 +34,7 @@ const Multiple = ({
             <Grid item lg={12} md={12} xs={12} className="content item-border">
                 <Grid container>
                     <Grid item>
-                        <ButtonIcon title="Add destination" Icon={AddCircleIcon} />
+                        <AddDestinationBtn onChange={handleOnClick} />
                     </Grid>
                 </Grid>
             </Grid>
