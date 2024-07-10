@@ -16,6 +16,8 @@ const TripItemBlock = ({
 }) => {
   
     const getDestinationData = (dateItem) => {
+        console.log("destionation", destinations);
+        console.log("check data", dateItem);
         let destinationDate = null;
         const isSingle = isSingleTrip(typeId);
         if (isSingle) {

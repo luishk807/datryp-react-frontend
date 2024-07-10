@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
 
-import TripItemBlock from './TripItemBlock';
+import DateBlock from './DateBlock';
 const DestinationDetail = ({
     destinations = [],
     type={},
@@ -50,7 +50,7 @@ const DestinationDetail = ({
             {
                 dates && dates.map((date, indx) => {
                     return (
-                        <TripItemBlock 
+                        <DateBlock 
                             key={indx} 
                             index={indx} 
                             typeId={type.id}

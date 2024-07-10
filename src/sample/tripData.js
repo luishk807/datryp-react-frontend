@@ -193,7 +193,7 @@ export const singleTripDetailobj = {
                     activities: null  
                 },
                 {
-                    date: '07/08/2024',
+                    date: '07/09/2024',
                     activities: [
                         {
                             name: 'Glass Bridge',

@@ -20,7 +20,7 @@
         "camelcase": "off",
         "no-await-in-loop": "off",
         "no-plusplus": "off",
-        "indent": 1,
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "no-unescaped-entities": "off",
         "no-unused-vars": "off",
         "no-multi-spaces": 1,

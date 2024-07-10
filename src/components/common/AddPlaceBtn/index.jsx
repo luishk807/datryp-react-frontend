@@ -59,6 +59,9 @@ const AddPlaceBtn = ({
                         <Grid item lg={12} xs={12} className="py-5">
                             <InputField label="Name of Place" name="place" onChange={(e) => handleOnChange('place', e.target.value)}/>
                         </Grid>
+                        <Grid item lg={12} xs={12} className="py-5">
+                            <InputField name="location" onChange={(e) => handleOnChange('location', e.target.value)}/>
+                        </Grid>
                         <Grid item lg={6} xs={12} className="py-5">
                             <InputField label="Who is going" name="friends" onChange={(e) => handleOnChange('friends', e.target.value)}/>
                         </Grid>
@@ -66,11 +69,17 @@ const AddPlaceBtn = ({
                             <InputField name="cost" onChange={(e) => handleOnChange('cost', e.target.value)}/>
                         </Grid>
                         <Grid item lg={6} xs={12} className="py-5">
+                            <InputField name="startTime" type="time" label="Start Time" onChange={(e) => handleOnChange('startTime', e.target.value)}/>
+                        </Grid>
+                        <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
+                            <InputField name="endTime" type="time" label="End Time" onChange={(e) => handleOnChange('endTime', e.target.value)}/>
+                        </Grid>
+                        {/* <Grid item lg={6} xs={12} className="py-5">
                             <InputField type="date" label="Start Date" name="startDate" defaultValue={startDate} onChange={(e) => handleOnChange('startDate', e.target.value)}/>
                         </Grid>
                         <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
                             <InputField type="date" defaultValue={endDate} label="End Date" name="endDate" onChange={(e) => handleOnChange('endDate', e.target.value)}/>
-                        </Grid>
+                        </Grid> */}
                         <Grid item lg={12} xs={12} className="py-5">
                             <InputField name="note" onChange={(e) => handleOnChange('note', e.target.value)}/>
                         </Grid>

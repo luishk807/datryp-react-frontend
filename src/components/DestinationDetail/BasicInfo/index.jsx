@@ -50,10 +50,10 @@ const BasicInfo = ({
                         <DropDown label="Status" options={status} id="status" onChange={(e) => onChange('status', e)} />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField defaultValue={startDate} label="Start Date" name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
+                        <InputField label="Start Date" name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField defaultValue={endDate} label="End Date" name="endDate" type="date" onChange={(e) => onChange('endDate', e)}/>
+                        <InputField label="End Date" name="endDate" type="date" onChange={(e) => onChange('endDate', e)}/>
                     </Grid>
                 </Grid>
             </form>
