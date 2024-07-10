@@ -13,20 +13,15 @@ import { friends } from '../../../sample';
 const BasicInfo = ({
     onChange,
 }) => {
-
-    // const startDate = moment().format('YYYY-MM-DD');
-    // const endDate = moment().format('YYYY-MM-DD');
-
-
     const endDate = useMemo(() => {
-        const date = moment().format('YYYY-MM-DD');
-        onChange('endDate', { target: {value: date }});
+        const date = moment();
+        onChange('endDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
         return date;
     }, []);
 
     const startDate = useMemo(() => {
-        const date = moment().format('YYYY-MM-DD');
-        onChange('startDate', { target: {value: date }});
+        const date = moment();
+        onChange('startDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
         return date;
     }, []);
 

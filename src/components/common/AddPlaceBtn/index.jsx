@@ -9,7 +9,10 @@ import ButtonCustom from '../../common/ButtonCustom';
 const AddPlaceBtn = ({
     onChange
 }) => {
-    const [place, setPlace] = useState(null);
+    const [place, setPlace] = useState({
+        startTime: moment().format('LT'),
+        endTime: moment().format('LT')
+    });
     const friends = [];
     const handleOnChange = (name, value) => {
         if (name === "friends") {
@@ -21,24 +24,6 @@ const AddPlaceBtn = ({
 
         });
     };
-
-    const endDate = useMemo(() => {
-        const date = moment().format('YYYY-MM-DD');
-        setPlace({
-            ...place,
-            'startDate': date
-        });
-        return date;
-    }, []);
-
-    const startDate = useMemo(() => {
-        const date = moment().format('YYYY-MM-DD');
-        setPlace({
-            ...place,
-            'startDate': date
-        });
-        return date;
-    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
