@@ -59,7 +59,7 @@ const DestinationDetail = ({
                             key={indx} 
                             index={indx} 
                             typeId={type.id}
-                            date={date}
+                            date={moment(date)}
                             destinations={destinations}
                             onChange={handleOnChange}
                         />

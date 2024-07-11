@@ -12,8 +12,8 @@ const Single = ({
     console.log(trips, 'trips single');
     return (
         trips ? (
-            <Grid item lg={12} className="content">
-                <Activities activities={trips} />
+            <Grid item lg={12} className="content item-border">
+                <Activities activities={trips} onChange={onChange}/>
             </Grid>
 
         )

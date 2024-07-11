@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { Grid } from '@mui/material';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import ButtonIcon from '../../ButtonIcon';
 import ImageBlock from '../ImageBlock';
+import AddPlaceBtn from '../../common/AddPlaceBtn';
 
 const Activities = ({
-    activities = []
+    activities = [],
+    onChange
 })=> {
-    const handleOnClick = (e) => {
-        console.log("on click");
-    };
     return (
         <>
 
@@ -25,7 +22,7 @@ const Activities = ({
                             <Grid item lg={10} md={10} className="content-detail">
                                 <Grid container>
                                     <Grid item lg={11} md={11} className="info">
-                                        <span className="title">{activity.name}</span>
+                                        <span className="title">{activity.place}</span>
                                         <span className="status confirmed">confirmed</span>
                                         <p>
                                             {activity.location}<br/>
@@ -49,7 +46,7 @@ const Activities = ({
             <Grid item lg={12} className="content-trip">
                 <Grid container>
                     <Grid item lg={12} className="add-place-item">
-                        <ButtonIcon onClick={handleOnClick} title="Add Places" Icon={AddCircleIcon} />
+                        <AddPlaceBtn onChange={onChange} />
                     </Grid>
                 </Grid>
             </Grid>
@@ -59,6 +56,7 @@ const Activities = ({
 };
 
 Activities.propTypes = {
+    onChange: PropTypes.func,
     activities: PropTypes.array
 };
 

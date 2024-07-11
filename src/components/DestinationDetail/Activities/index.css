@@ -2,6 +2,7 @@
   margin: 10px 0px !important;
 }
 
+
 .content-trip.border-trip{
   border: 1px solid #ccc;
 }
@@ -13,7 +14,8 @@
 
 .content-trip .content-detail .info .title{
   font-size: 1.2em;
-  font-weight: 600;
+  text-transform: capitalize;
+    font-weight: 550;
 }
 
 .content-trip .content-detail .info .status{

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import moment from 'moment';
@@ -24,10 +24,11 @@ const AddPlaceBtn = ({
 
         });
     };
-
+    const modelRef = useRef();
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("sending", place);
+        modelRef.current.closeModal();
         onChange && onChange(place);
     };
     return (
@@ -35,6 +36,7 @@ const AddPlaceBtn = ({
             <Grid item>
                 {/* <ButtonIcon title="Add Places" Icon={AddCircleIcon} /> */}
                 <ModalButton 
+                    ref={modelRef}
                     title="Add Place"
                     buttonProps={{
                         title:"Add Places",
