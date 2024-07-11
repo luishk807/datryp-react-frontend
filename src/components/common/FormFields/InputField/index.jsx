@@ -54,7 +54,7 @@ const InputField = ({
     const getField = (type) => {
         switch(type) {
             case 'time':
-                return <TimePicker onChange={(e) => handleOnChange({target: { value: e.format('LT').toString()}})} defaultValue={moment()} label={label}/>;
+                return <TimePicker onChange={(e) => handleOnChange({target: { value: e.format('HH:mm').toString()}})} defaultValue={moment()} label={label}/>;
             case 'date':
                 return <DatePicker onChange={(e) => handleOnChange({target: { value: e.format('YYYY-MM-DD').toString()}})} defaultValue={moment()} label={labelText} />;
             default: 

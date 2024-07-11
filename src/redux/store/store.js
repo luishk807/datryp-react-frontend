@@ -9,6 +9,10 @@ const store = configureStore({
     preloadedState: {...loadSaveState}
 });
 
+// const store = configureStore({
+//     reducer: tripReducer
+// });
+
 store.subscribe(() => {
     saveState(store.getState());
 });

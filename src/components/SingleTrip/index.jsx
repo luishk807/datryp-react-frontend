@@ -7,6 +7,7 @@ import {
 import Layout from '../common/Layout/SubLayout';
 import DestinationDetail from '../DestinationDetail';
 import PropTypes from 'prop-types';
+import _ from 'lodash';
 import StepperComp from '../common/StepperComp';
 import BasicInfo from '../DestinationDetail/BasicInfo';
 import FriendPicker from '../DestinationDetail/FriendPicker';
@@ -17,8 +18,44 @@ const SingleTrip = ({
 }) => {
     console.log('tripInfo single', tripInfo);
     const handleBasicOnChange = (id, e) => {
+        console.log("*****************************");
         console.log("handle onchange", id, ':',e);
-        onBasicInfo({ [id]: e.target.value});
+        onBasicInfo("BASIC_INFO", { [id]: e.target.value});
+    };
+
+    const handleDestination = ({date, activity}) => {
+        const destination = JSON.parse(JSON.stringify(tripInfo.destinations));
+        let intinerary = _.get(destination, '0.itinerary') || [];
+        let new_destination = _.get(destination, '0') || [];
+        // let destination = [...tripInfo.destinations];
+
+        if (destination.length) {
+            new_destination = destination[0];
+        }
+
+        if (new_destination.intinerary) {
+            intinerary = new_destination.intinerary;
+        }
+
+        if (intinerary.length) {
+            const foundItem = intinerary.filter((item) => item.date === date);
+            if (foundItem.length) {
+                foundItem[0].activities.push(activity);
+            } else {
+                intinerary.push({
+                    date,
+                    activities: [activity]
+                });    
+            }
+        } else {
+            intinerary.push({
+                date,
+                activities: [activity]
+            });    
+        }
+        new_destination.itinerary = intinerary;
+
+        onBasicInfo && onBasicInfo("DESTINATION_SINGLE", destination);
     };
 
 
@@ -31,7 +68,7 @@ const SingleTrip = ({
             comp: <FriendPicker selectedOptions={tripInfo.friends} onChange={handleBasicOnChange}/>
         }, {
             label: 'Finish',
-            comp: <DestinationDetail type={tripInfo.type} startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
+            comp: <DestinationDetail onChange={handleDestination} type={tripInfo.type} startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
         }
     ];
 
@@ -52,7 +89,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onBasicInfo: (value) => dispatch({ type: "BASIC_INFO", payload: value})
+    onBasicInfo: (type, value) => dispatch({ type: type, payload: value})
 });
 
 

@@ -12,7 +12,8 @@ const TripItemBlock = ({
     date,
     destinations = [],
     index = 0,
-    typeId
+    typeId,
+    onChange,
 }) => {
   
     const getDestinationData = (dateItem) => {
@@ -30,7 +31,14 @@ const TripItemBlock = ({
         const trips = destinationDate.length ? !isSingle ? destinationDate[0].itinerary
             : destinationDate[0].activities : null;
         console.log("trips", trips);
-        return !isSingle ? <MutipleTrips trips={trips} /> : <SingleTrips trips={trips} />;
+        return !isSingle ? 
+            <MutipleTrips 
+                trips={trips} 
+            /> : 
+            <SingleTrips 
+                onChange={(e) => onChange({activity: e, date: date.format('YYYY-MM-DD').toString()})} 
+                trips={trips} 
+            />;
 
     };
 
@@ -60,5 +68,6 @@ TripItemBlock.propTypes = {
     destinations: PropTypes.array,
     index: PropTypes.number,
     typeId: PropTypes.number,
+    onChange: PropTypes.func,
 };
 export default TripItemBlock;

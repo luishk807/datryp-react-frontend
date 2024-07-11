@@ -9,11 +9,16 @@ const DestinationDetail = ({
     destinations = [],
     type={},
     startDate = null,
-    endDate = null
+    endDate = null,
+    onChange
 }) => {
 
     console.log("destinations", destinations);
     const [dates, setDates] = useState([]);
+    const handleOnChange = (e) => {
+        onChange && onChange(e);
+    };
+    
     const getDatesRange = async() => {
         console.log(startDate, 'startdate');
         console.log(endDate, 'endDate');
@@ -56,6 +61,7 @@ const DestinationDetail = ({
                             typeId={type.id}
                             date={date}
                             destinations={destinations}
+                            onChange={handleOnChange}
                         />
                     );
                 })
@@ -68,7 +74,8 @@ DestinationDetail.propTypes = {
     destinations: PropTypes.array,
     type: PropTypes.object,
     startDate: PropTypes.string,
-    endDate: PropTypes.string
+    endDate: PropTypes.string,
+    onChange: PropTypes.func,
 };
 
 export default DestinationDetail;

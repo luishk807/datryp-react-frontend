@@ -18,7 +18,7 @@ const Activities = ({
                     <Grid key={`activity-${indx}`} item lg={12} md={12} className="content-trip border-trip">
                         <Grid container>
                             <Grid item lg={2} md={2} className="content-image">
-                                <img src={activity.image.url} />
+                                <img src={activity?.image?.url} />
                             </Grid>
                             <Grid item lg={10} md={10} className="content-detail">
                                 <Grid container>
@@ -28,7 +28,7 @@ const Activities = ({
                                         <p>
                                             {activity.location}<br/>
                                           Time: {`${activity.startTime} - ${activity.endTime}`}<br/>
-                                          People: {activity.people.length}<br/>
+                                          People: {activity?.people?.length}<br/>
                                           Cost: ${activity.cost}
                                         </p>
                                     </Grid>
