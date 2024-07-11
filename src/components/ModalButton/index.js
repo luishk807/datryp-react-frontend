@@ -11,7 +11,7 @@ import ButtonCustom from '../common/ButtonCustom';
 const ModalButton = forwardRef(({
     title = '',
     children = null,
-    buttonProps = null
+    buttonProps = null,
 }, ref) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
@@ -70,7 +70,7 @@ const ModalButton = forwardRef(({
 ModalButton.propTypes = {
     title: PropTypes.string,
     children: PropTypes.node,
-    buttonProps: PropTypes.object,
+    buttonProps: PropTypes.object
 };
 ModalButton.displayName = "ModelButton";
 

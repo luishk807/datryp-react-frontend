@@ -4,11 +4,19 @@ import './index.css';
 import { Grid } from '@mui/material';
 import ImageBlock from '../ImageBlock';
 import AddPlaceBtn from '../../common/AddPlaceBtn';
+import ButtonCustom from '../../common/ButtonCustom';
 
 const Activities = ({
     activities = [],
     onChange
 })=> {
+    const handleDelete = (e) => {
+        console.log("delete", e);
+    };
+
+    const handleEdit = (e) => {
+        console.log("edit", e);
+    };
     return (
         <>
 
@@ -27,14 +35,24 @@ const Activities = ({
                                         <p>
                                             {activity.location}<br/>
                                           Time: {`${activity.startTime} - ${activity.endTime}`}<br/>
-                                          People: {activity?.people?.length}<br/>
+                                          Budget: {activity?.people?.length}[add]<br/>
                                           Cost: ${activity.cost}
                                         </p>
                                     </Grid>
                                     <Grid item lg={1} md={1} className="option">
                                         <Grid container className="flex h-full">
-                                            <Grid item lg={12} md={12} className="flex justify-end items-start font-medium"><a href="/">Edit</a></Grid>
-                                            <Grid item lg={12} md={12} className="flex justify-end items-end font-medium"><a href="/">Delete</a></Grid>
+                                            <Grid item lg={12} md={12} className="flex justify-end items-start font-medium">
+
+                                                <AddPlaceBtn type='edit' buttonType='text' onChange={handleEdit}/>
+                                            </Grid>
+                                            <Grid item lg={12} md={12} className="flex justify-end items-end font-medium">
+                                                <ButtonCustom 
+                                                    type="text" 
+                                                    capitalizeType="uppercase" 
+                                                    label='Delete'
+                                                    onClick={handleDelete}
+                                                />
+                                            </Grid>
                                         </Grid>
                                     </Grid>
                                 </Grid>

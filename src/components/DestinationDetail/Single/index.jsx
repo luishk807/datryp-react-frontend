@@ -17,7 +17,8 @@ const Single = ({
             </Grid>
 
         )
-            : (
+            : 
+            (
                 <Grid item lg={12} className="content item-border">
                     <AddPlaceBtn onChange={onChange} />
                 </Grid>

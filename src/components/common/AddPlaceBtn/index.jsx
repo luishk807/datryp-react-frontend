@@ -6,13 +6,19 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
 import ButtonCustom from '../../common/ButtonCustom';
+import classNames from 'classnames';
+import './index.css';
+
 const AddPlaceBtn = ({
-    onChange
+    onChange,
+    type = 'add',
+    buttonType = 'standard'
 }) => {
     const [place, setPlace] = useState({
         startTime: moment().format('HH:mm'),
         endTime: moment().format('HH:mm')
     });
+    const title = type === 'add' ? 'Add Place' : 'Edit';
     const friends = [];
     const handleOnChange = (name, value) => {
         if (name === "friends") {
@@ -32,15 +38,19 @@ const AddPlaceBtn = ({
         onChange && onChange(place);
     };
     return (
-        <Grid container>
+        <Grid container className={classNames({
+            'add-place-container-standard': buttonType === 'standard',
+            'add-place-container-simple': buttonType === 'text'
+        })}>
             <Grid item>
                 {/* <ButtonIcon title="Add Places" Icon={AddCircleIcon} /> */}
                 <ModalButton 
                     ref={modelRef}
-                    title="Add Place"
+                    title={title}
                     buttonProps={{
-                        title:"Add Places",
-                        Icon: AddCircleIcon
+                        title: title,
+                        Icon: buttonType==='standard' && AddCircleIcon,
+                        type: buttonType
                     }}>
                     <Grid container>
                         <Grid item lg={12} xs={12} className="py-5">
@@ -67,8 +77,8 @@ const AddPlaceBtn = ({
                         <Grid item lg={12}>
                             <ButtonCustom 
                                 onClick={handleSubmit} 
-                                label='Add Place' 
-                                type="standard" 
+                                label={title} 
+                                type="standard"
                                 capitalizeType="uppercase"
                             />
                         </Grid>
@@ -80,7 +90,9 @@ const AddPlaceBtn = ({
 };
 
 AddPlaceBtn.propTypes = {
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    type: PropTypes.oneOf(['add', 'edit']),
+    buttonType: PropTypes.oneOf(['text', 'standard'])
 };
 
 export default AddPlaceBtn;

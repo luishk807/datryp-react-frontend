@@ -7,6 +7,13 @@
   align-items: center;
 }
 
+
+.button-simple {
+  color: inherit;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
 .button-icon {
   margin-left: 5px;
 }
