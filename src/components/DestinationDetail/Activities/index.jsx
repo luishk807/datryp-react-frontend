@@ -4,6 +4,8 @@ import './index.css';
 import { Grid } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ButtonIcon from '../../ButtonIcon';
+import ImageBlock from '../ImageBlock';
+
 const Activities = ({
     activities = []
 })=> {
@@ -18,7 +20,7 @@ const Activities = ({
                     <Grid key={`activity-${indx}`} item lg={12} md={12} className="content-trip border-trip">
                         <Grid container>
                             <Grid item lg={2} md={2} className="content-image">
-                                <img src={activity?.image?.url} />
+                                <ImageBlock image={activity.image} />
                             </Grid>
                             <Grid item lg={10} md={10} className="content-detail">
                                 <Grid container>
