@@ -20,6 +20,20 @@ const tripReducer = (state = initialState, action) => {
                 destinations: action.payload
             };
         }
+        case 'ON_SAVE_PLACE':
+        {
+            console.log("place save redux", action.payload);
+            return {
+                ...state
+            };
+        }
+        case 'ON_DELETE_PLACE':
+        {
+            console.log("place delete redux", action.payload);
+            return {
+                ...state
+            };
+        }
         default: {
             return state;
         }

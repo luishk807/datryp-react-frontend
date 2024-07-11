@@ -8,15 +8,21 @@ import ButtonCustom from '../../common/ButtonCustom';
 
 const Activities = ({
     activities = [],
-    onChange
+    onChange,
+    onSavePlace,
+    onDeletePlace,
 })=> {
     const handleDelete = (e) => {
         console.log("delete", e);
+        // ToDo: dialog confirmation
+        // onDeletePlace && onDeletePlace(e);
     };
 
     const handleEdit = (e) => {
         console.log("edit", e);
+        onSavePlace && onSavePlace(e);
     };
+
     return (
         <>
 
@@ -31,7 +37,7 @@ const Activities = ({
                                 <Grid container>
                                     <Grid item lg={11} md={11} className="info">
                                         <span className="title">{activity.place}</span>
-                                        <span className="status confirmed">confirmed</span>
+                                        <span className="status confirmed">{activity?.status?.name}</span>
                                         <p>
                                             {activity.location}<br/>
                                           Time: {`${activity.startTime} - ${activity.endTime}`}<br/>
@@ -42,8 +48,7 @@ const Activities = ({
                                     <Grid item lg={1} md={1} className="option">
                                         <Grid container className="flex h-full">
                                             <Grid item lg={12} md={12} className="flex justify-end items-start font-medium">
-
-                                                <AddPlaceBtn type='edit' buttonType='text' onChange={handleEdit}/>
+                                                <AddPlaceBtn type='edit' data={activity} buttonType='text' onChange={handleEdit}/>
                                             </Grid>
                                             <Grid item lg={12} md={12} className="flex justify-end items-end font-medium">
                                                 <ButtonCustom 
@@ -75,7 +80,9 @@ const Activities = ({
 
 Activities.propTypes = {
     onChange: PropTypes.func,
-    activities: PropTypes.array
+    activities: PropTypes.array,
+    onSavePlace: PropTypes.func,
+    onDeletePlace: PropTypes.func,
 };
 
 export default Activities;

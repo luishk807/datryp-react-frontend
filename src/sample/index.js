@@ -13,6 +13,21 @@ export const status = [
     },
 ];
 
+export const placeStatus = [
+    {
+        id: 1,
+        name: 'Confirmed'
+    },
+    {
+        id: 2,
+        name: 'Completed'
+    },
+    {
+        id: 3,
+        name: 'Pending'
+    }
+];
+
 export const tripType = {
     single: {
         id: 1,

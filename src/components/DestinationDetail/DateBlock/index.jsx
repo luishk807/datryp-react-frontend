@@ -14,6 +14,8 @@ const TripItemBlock = ({
     index = 0,
     typeId,
     onChange,
+    onSavePlace,
+    onDeletePlace,
 }) => {
   
     const getDestinationData = (dateItem) => {
@@ -36,7 +38,9 @@ const TripItemBlock = ({
                 trips={trips} 
             /> : 
             <SingleTrips 
-                onChange={(e) => onChange({activity: e, date: date.format('YYYY-MM-DD').toString()})} 
+                onSavePlace={onSavePlace} 
+                onDeletePlace={onDeletePlace} 
+                onChange={onChange} 
                 trips={trips} 
             />;
 
@@ -69,5 +73,7 @@ TripItemBlock.propTypes = {
     index: PropTypes.number,
     typeId: PropTypes.number,
     onChange: PropTypes.func,
+    onSavePlace: PropTypes.func,
+    onDeletePlace: PropTypes.func,
 };
 export default TripItemBlock;

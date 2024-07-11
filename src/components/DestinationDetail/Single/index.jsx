@@ -7,13 +7,20 @@ import AddPlaceBtn from '../../common/AddPlaceBtn';
 
 const Single = ({
     trips = null,
-    onChange
+    onChange,
+    onSavePlace,
+    onDeletePlace,
 }) => {
     console.log(trips, 'trips single');
     return (
         trips ? (
             <Grid item lg={12} className="content item-border">
-                <Activities activities={trips} onChange={onChange}/>
+                <Activities 
+                    onSavePlace={onSavePlace} 
+                    onDeletePlace={onDeletePlace} 
+                    activities={trips} 
+                    onChange={onChange}
+                />
             </Grid>
 
         )
@@ -29,6 +36,8 @@ const Single = ({
 Single.propTypes = {
     trips: PropTypes.array,
     onChange: PropTypes.func,
+    onSavePlace: PropTypes.func,
+    onDeletePlace: PropTypes.func,
 };
 
 export default Single;

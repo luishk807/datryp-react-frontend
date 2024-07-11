@@ -14,13 +14,16 @@ import FriendPicker from '../DestinationDetail/FriendPicker';
 
 const SingleTrip = ({
     tripInfo,
-    onBasicInfo
+    onBasicInfo,
+    onSingleInfo,
+    onSavePlace,
+    onDeletePlace
 }) => {
     console.log('tripInfo single', tripInfo);
     const handleBasicOnChange = (id, e) => {
         console.log("*****************************");
         console.log("handle onchange", id, ':',e);
-        onBasicInfo("BASIC_INFO", { [id]: e.target.value});
+        onBasicInfo({[id]: e.target.value});
     };
 
     const handleDestination = ({date, activity}) => {
@@ -55,20 +58,42 @@ const SingleTrip = ({
         }
         new_destination.itinerary = intinerary;
 
-        onBasicInfo && onBasicInfo("DESTINATION_SINGLE", destination);
+        onSingleInfo && onSingleInfo(destination);
     };
 
+    const handlePlaceSave = (e) => {
+        console.log("edit", e);
+        onSavePlace && onSavePlace(e);
+    };
+
+    const handlePlaceDelete = (e) => {
+        console.log("edit", e);
+        onDeletePlace && onDeletePlace(e);
+    };
 
     const steps = [
         {
             label: 'Describe Your Trip!',
-            comp: <BasicInfo onChange={handleBasicOnChange} />
+            comp: <BasicInfo 
+                onChange={handleBasicOnChange} 
+            />
         }, {
             label: 'Define the Trips',
-            comp: <FriendPicker selectedOptions={tripInfo.friends} onChange={handleBasicOnChange}/>
+            comp: <FriendPicker 
+                selectedOptions={tripInfo.friends} 
+                onChange={handleBasicOnChange}
+            />
         }, {
             label: 'Finish',
-            comp: <DestinationDetail onChange={handleDestination} type={tripInfo.type} startDate={tripInfo.startDate} endDate={tripInfo.endDate} destinations={tripInfo.destinations} />
+            comp: <DestinationDetail 
+                onChange={handleDestination} 
+                type={tripInfo.type} 
+                startDate={tripInfo.startDate} 
+                endDate={tripInfo.endDate} 
+                destinations={tripInfo.destinations} 
+                onSavePlace={handlePlaceSave} 
+                onDeletePlace={handlePlaceDelete} 
+            />
         }
     ];
 
@@ -89,13 +114,19 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onBasicInfo: (type, value) => dispatch({ type: type, payload: value})
+    onBasicInfo: (value) => dispatch({ type: 'BASIC_INFO', payload: value}),
+    onSingleInfo: (value) => dispatch({ type: 'DESTINATION_SINGLE', payload: value}),
+    onSavePlace: (value) => dispatch({ type: 'ON_SAVE_PLACE', payload: value}),
+    onDeletePlace: (value) => dispatch({ type: 'ON_DELETE_PLACE', payload: value}),
 });
 
 
 SingleTrip.propTypes = {
     tripInfo: PropTypes.object,
-    onBasicInfo: PropTypes.func
+    onBasicInfo: PropTypes.func,
+    onSingleInfo: PropTypes.func,
+    onSavePlace: PropTypes.func,
+    onDeletePlace: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SingleTrip);

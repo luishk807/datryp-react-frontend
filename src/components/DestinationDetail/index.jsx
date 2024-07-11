@@ -10,12 +10,15 @@ const DestinationDetail = ({
     type={},
     startDate = null,
     endDate = null,
-    onChange
+    onChange,
+    onSavePlace,
+    onDeletePlace,
 }) => {
 
     console.log("destinations", destinations);
     const [dates, setDates] = useState([]);
     const handleOnChange = (e) => {
+        console.log("getting out", e);
         onChange && onChange(e);
     };
     
@@ -61,7 +64,9 @@ const DestinationDetail = ({
                             typeId={type.id}
                             date={moment(date)}
                             destinations={destinations}
-                            onChange={handleOnChange}
+                            onSavePlace={onSavePlace} 
+                            onDeletePlace={onDeletePlace} 
+                            onChange={(e) => handleOnChange({activity: e, date: date.format('YYYY-MM-DD').toString()})}
                         />
                     );
                 })
@@ -76,6 +81,8 @@ DestinationDetail.propTypes = {
     startDate: PropTypes.string,
     endDate: PropTypes.string,
     onChange: PropTypes.func,
+    onSavePlace: PropTypes.func,
+    onDeletePlace: PropTypes.func,
 };
 
 export default DestinationDetail;

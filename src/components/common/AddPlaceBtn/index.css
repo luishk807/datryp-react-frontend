@@ -3,5 +3,5 @@
 }
 
 .add-place-container-simple {
-  width: auto;
+  width: auto !important;
 }
