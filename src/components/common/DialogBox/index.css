@@ -1,0 +1,14 @@
+.datryp-dialog > .datryp-dialog-content {
+  color: inherit;
+  padding: 10px
+}
+
+.datryp-dialog  .datryp-title {
+  text-align: center;
+  text-transform: capitalize;
+  color: green;
+}
+
+.datryp-dialog .MuiPaper-root {
+  padding: 5px
+}

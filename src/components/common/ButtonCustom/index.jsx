@@ -7,7 +7,7 @@ const ButtonCustom = ({
     label = '',
     onClick,
     capitalizeType = 'capitalize',
-    type,
+    type = 'standard',
     style = null
 }) => {
     return (
@@ -15,6 +15,7 @@ const ButtonCustom = ({
             'main-button': type === 'standard',
             'plain-button': type === 'plain',
             'text-button': type === 'text',
+            'standard-small': type === 'standard-small',
             'capitalize': capitalizeType === 'capitalize',
             'lowercase': capitalizeType === 'lowercase',
             'uppercase': capitalizeType === 'uppercase'
@@ -29,7 +30,7 @@ ButtonCustom.propTypes = {
     onClick: PropTypes.func,
     style: PropTypes.object,
     capitalizeType: PropTypes.oneOf(['capitalize', 'uppercase', 'lowercase']),
-    type: PropTypes.oneOf(['plain','text', 'standard'])
+    type: PropTypes.oneOf(['plain','text', 'standard', 'standard-small'])
 };
 
 export default ButtonCustom;

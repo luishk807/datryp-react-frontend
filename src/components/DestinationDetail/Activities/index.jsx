@@ -5,6 +5,7 @@ import { Grid } from '@mui/material';
 import ImageBlock from '../ImageBlock';
 import AddPlaceBtn from '../../common/AddPlaceBtn';
 import ButtonCustom from '../../common/ButtonCustom';
+import DialogBox from '../../common/DialogBox';
 
 const Activities = ({
     activities = [],
@@ -51,12 +52,20 @@ const Activities = ({
                                                 <AddPlaceBtn type='edit' data={activity} buttonType='text' onChange={handleEdit}/>
                                             </Grid>
                                             <Grid item lg={12} md={12} className="flex justify-end items-end font-medium">
-                                                <ButtonCustom 
+                                                {/* <ButtonCustom 
                                                     type="text" 
                                                     capitalizeType="uppercase" 
                                                     label='Delete'
                                                     onClick={handleDelete}
-                                                />
+                                                /> */}
+                                                <DialogBox 
+                                                    title="Delete this place" 
+                                                    buttonLabel='Delete'
+                                                    buttonType="Text" 
+                                                    onConfirm={handleDelete}
+                                                >
+                                                    You are about to delete {activity.place}.  Are you sure you want to delete this item
+                                                </DialogBox>
                                             </Grid>
                                         </Grid>
                                     </Grid>

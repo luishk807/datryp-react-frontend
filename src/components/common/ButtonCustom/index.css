@@ -19,6 +19,15 @@
   text-transform: lowercase;
 }
 
+.standard-small {
+  padding: 7px 25px;
+  width: auto;
+  background: theme('colors.primaryGreen');
+  color: white;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
 .plain-button {
   padding: 10px 0px;
   width: 100%;
