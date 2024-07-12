@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
-import Activities from '../Activities';
-import AddPlaceBtn from '../../common/AddPlaceBtn';
+import Activities from 'components/DestinationDetail/Activities';
+import AddPlaceBtn from 'components/common/AddPlaceBtn';
 
 const Single = ({
     trips = null,

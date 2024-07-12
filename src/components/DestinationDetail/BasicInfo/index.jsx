@@ -5,10 +5,10 @@ import {
     Grid,
 } from '@mui/material';
 import moment from 'moment';
-import InputField from '../../common/FormFields/InputField';
-import { status } from '../../../sample/index';
-import DropDown from '../../common/FormFields/DropDown';
-import { friends } from '../../../sample';
+import InputField from 'components/common/FormFields/InputField';
+import { status } from 'sample';
+import DropDown from 'components/common/FormFields/DropDown';
+import { friends } from 'sample';
 
 const BasicInfo = ({
     onChange,

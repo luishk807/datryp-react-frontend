@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import './index.css';
 import { 
     Grid,
 } from '@mui/material';
-import Layout from '../common/Layout/SubLayout';
-import DestinationDetail from '../DestinationDetail';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import StepperComp from '../common/StepperComp';
-import BasicInfo from '../DestinationDetail/BasicInfo';
-import FriendPicker from '../DestinationDetail/FriendPicker';
+import Layout from 'components/common/Layout/SubLayout';
+import DestinationDetail from 'components/DestinationDetail';
+
+import StepperComp from 'components/common/StepperComp';
+import BasicInfo from 'components/DestinationDetail/BasicInfo';
+import FriendPicker from 'components/DestinationDetail/FriendPicker';
 
 const SingleTrip = ({
     tripInfo,

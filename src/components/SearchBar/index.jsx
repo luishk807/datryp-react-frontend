@@ -3,8 +3,8 @@ import { Grid } from '@mui/material';
 import './index.css';
 import PropTypes from 'prop-types';
 import { debounce} from 'lodash';
-// import { top100Films } from '../../sample/movielist';
-import countryList from '../../sample/countryList';
+// import { top100Films } from 'sample/movielist';
+import countryList from 'sample/countryList';
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
 
 const SearchBar = ({

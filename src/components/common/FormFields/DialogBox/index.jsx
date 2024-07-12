@@ -8,7 +8,7 @@ import {
     DialogContent,
     DialogActions
 } from '@mui/material';
-import ButtonCustom from '../ButtonCustom';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 
 const DialogBox = ({
     buttonLabel = '',

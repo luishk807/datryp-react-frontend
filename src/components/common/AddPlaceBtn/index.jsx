@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import ModalButton from '../../ModalButton';
-import InputField from '../../common/FormFields/InputField';
-import ButtonCustom from '../../common/FormFields/ButtonCustom';
-import DropdownCustom from '../FormFields/DropDown';
-import { placeStatus } from '../../../sample';
+import ModalButton from 'components/ModalButton';
+import InputField from 'components/common/FormFields/InputField';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import DropdownCustom from 'components/common/FormFields/DropDown';
+import { placeStatus } from 'sample';
 import classNames from 'classnames';
 import './index.css';
 

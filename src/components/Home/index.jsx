@@ -6,9 +6,9 @@ import './index.css';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 // import Autocomplete from '@mui/material/Autocomplete';
-import SearchBar from '../SearchBar';
-import Layout from '../common/Layout';
-import { tripType } from '../../sample';
+import SearchBar from 'components/SearchBar';
+import Layout from 'components/common/Layout';
+import { tripType } from 'sample';
 
 const Home = ({
     onBasicInfo,

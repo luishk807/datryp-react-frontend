@@ -4,9 +4,9 @@ import './index.css';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import ModalButton from '../../ModalButton';
-import InputField from '../../common/FormFields/InputField';
-import ButtonCustom from '../../common/FormFields/ButtonCustom';
+import ModalButton from 'components/ModalButton';
+import InputField from 'components/common/FormFields/InputField';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 
 const AddDestinationBtn = ({
     onChange
