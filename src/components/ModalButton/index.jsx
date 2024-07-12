@@ -5,8 +5,8 @@ import {
     Modal,
     Grid
 } from '@mui/material';
-import ButtonIcon from '../ButtonIcon';
-import ButtonCustom from '../common/ButtonCustom';
+import ButtonIcon from '../common/FormFields/ButtonIcon';
+import ButtonCustom from '../common/FormFields/ButtonCustom';
 
 const ModalButton = forwardRef(({
     title = '',

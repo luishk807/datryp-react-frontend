@@ -3,7 +3,7 @@ import { Grid } from '@mui/material';
 import PropTypes from 'prop-types';
 import ModalButton from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
-import ButtonCustom from '../../common/ButtonCustom';
+import ButtonCustom from '../../common/FormFields/ButtonCustom';
 
 const AddFriendBtn = forwardRef(({
     onChange

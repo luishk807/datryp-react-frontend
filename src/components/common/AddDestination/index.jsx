@@ -6,7 +6,7 @@ import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
-import ButtonCustom from '../../common/ButtonCustom';
+import ButtonCustom from '../../common/FormFields/ButtonCustom';
 
 const AddDestinationBtn = ({
     onChange

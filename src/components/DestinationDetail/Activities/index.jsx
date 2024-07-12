@@ -4,8 +4,8 @@ import './index.css';
 import { Grid } from '@mui/material';
 import ImageBlock from '../ImageBlock';
 import AddPlaceBtn from '../../common/AddPlaceBtn';
-import ButtonCustom from '../../common/ButtonCustom';
-import DialogBox from '../../common/DialogBox';
+import ButtonCustom from '../../common/FormFields/ButtonCustom';
+import DialogBox from '../../common/FormFields/DialogBox';
 
 const Activities = ({
     activities = [],

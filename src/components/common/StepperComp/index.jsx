@@ -4,7 +4,7 @@ import './index.css';
 import {Step, StepLabel, Typography, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
-import Button from '../ButtonCustom';
+import Button from '../FormFields/ButtonCustom';
 const StepperComp = ({
     steps = null,
 }) => {

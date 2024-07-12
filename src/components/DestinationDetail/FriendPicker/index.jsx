@@ -5,7 +5,7 @@ import {
     Grid,
 } from '@mui/material';
 import { friends} from '../../../sample';
-import Autocomplete from '../../common/Autocomplete';
+import Autocomplete from '../../common/FormFields/Autocomplete';
 import AddFriendBtn from '../../common/AddFriendBtn';
 
 const FriendPicker = ({
