@@ -22,24 +22,18 @@ const tripReducer = (state = initialState, action) => {
         }
         case 'ON_SAVE_PLACE':
         {
+            console.log("place save redux", action.payload);
             let currState = JSON.parse(JSON.stringify(state));
             
             const destinations = currState.destinations;
             for(let i = 0; i < destinations.length; i++) {
                 const itinerary = destinations[i].itinerary;
-                let break1loop = false;
-                if (break1loop) {
-                    break;
-                }
                 for(let x = 0; x < itinerary.length; x++) {
                     const activity = itinerary[x].activities;
-                    let break2loop = false;
-
                     for(let y = 0; y < activity.length; y++) {
                         let curActivity = activity[y];
                         if (curActivity.id === action.payload.id) {
                             currState.destinations[i].itinerary[x].activities[y] = action.payload;
-                            break2loop = true;
                             break;
                         }
                     }
