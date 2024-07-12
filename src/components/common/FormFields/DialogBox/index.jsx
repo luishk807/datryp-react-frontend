@@ -21,7 +21,7 @@ const DialogBox = ({
 
     return (
         <>
-            <ButtonCustom style={{ 'font-size': '1.1em'}} type={buttonType} onClick={() => setOpen(true)} label={buttonLabel} />
+            <ButtonCustom style={{ 'fontSize': '1.1em'}} type={buttonType} onClick={() => setOpen(true)} label={buttonLabel} />
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}
@@ -39,7 +39,7 @@ const DialogBox = ({
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom type="standard-small" onClick={() => setOpen(false)} label="Cancel" />
-                    <ButtonCustom style={{ 'margin-left': '35px'}} type="standard-small" onClick={onConfirm} label="Agree" />
+                    <ButtonCustom style={{ 'marginLeft': '35px'}} type="standard-small" onClick={onConfirm} label="Agree" />
                 </DialogActions>
             </Dialog>
         </>

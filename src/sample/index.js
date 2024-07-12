@@ -1,15 +1,15 @@
 export const status = [
     {
         id: 1,
-        name: "active"
+        name: 'active'
     },
     {
         id: 2,
-        name: "pending"
+        name: 'pending'
     },
     {
         id: 3,
-        name: "canceled"
+        name: 'canceled'
     },
 ];
 
@@ -44,22 +44,22 @@ export const tripType = {
 export const friends = [
     {
         id: 1,
-        firstName: "Luis",
-        lastName: "Alfredo",
+        firstName: 'Luis',
+        lastName: 'Alfredo',
     },
     {
         id: 2,
-        firstName: "Joanna",
-        lastName: "Tam",
+        firstName: 'Joanna',
+        lastName: 'Tam',
     },
     {
         id: 3,
-        firstName: "Alberto",
-        lastName: "Wesker",
+        firstName: 'Alberto',
+        lastName: 'Wesker',
     },
     {
         id: 4,
-        firstName: "Jessica",
-        lastName: "Ruan",
+        firstName: 'Jessica',
+        lastName: 'Ruan',
     }
 ];

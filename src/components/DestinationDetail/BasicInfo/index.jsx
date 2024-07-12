@@ -13,6 +13,12 @@ import { friends } from '../../../sample';
 const BasicInfo = ({
     onChange,
 }) => {
+
+    
+    const initilStatus = useMemo(() => {
+        return status.filter(item => item.id === 1)[0];
+    }, [status]);
+
     const endDate = useMemo(() => {
         const date = moment();
         onChange('endDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
@@ -42,7 +48,12 @@ const BasicInfo = ({
                         <InputField name="budget" onChange={(e) => onChange('budget', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <DropDown label="Status" options={status} id="status" onChange={(e) => onChange('status', e)} />
+                        <DropDown 
+                            label="Status" 
+                            defaultValue={initilStatus}
+                            options={status} 
+                            name="status" onChange={(e) => onChange('status', e)} 
+                        />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField label="Start Date" name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>

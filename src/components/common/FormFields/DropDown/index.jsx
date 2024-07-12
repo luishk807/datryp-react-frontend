@@ -1,55 +1,53 @@
-import React, { useState } from 'react';
-import InputLabel from '@mui/material/InputLabel';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { 
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
+} from '@mui/material';
 import './index.css';
 
-const DropDown = ({
-    id, 
-    label, 
-    onDropChange,
+const DropdownCustom = ({
     options = [],
-    defaultOption = 0
+    label = '',
+    onChange,
+    name,
+    defaultValue = ''
 }) => {
-    const [option, setOption] = useState(options[defaultOption].id);
-    
+    const [value, setValue] = useState(defaultValue);
     const handleChange = (e) => {
-        const { target } = e;
-        setOption(target.value);
-        onDropChange(e);
+        const { value } = e.target;
+        onChange && onChange(value);
+        setValue(value);
+
     };
+
     return (
-        <FormControl className="custom-dropdown" fullWidth>
-            <InputLabel id="select-label">{label}</InputLabel>
+        <FormControl fullWidth className="custom-dropdown">
+            <InputLabel id="dropdown-custom-label">{label}</InputLabel>
             <Select
-                labelId="select-label"
-                name={id}
-                value={option}
+                labelId="dropdown-custom-label"
+                name={name}
                 label={label}
+                value={value}
                 onChange={handleChange}
             >
                 {
-                    options && options.map((item, indx) => {
-                        return (
-                            <MenuItem className='custom-dropdown-item' key={indx} value={item.id}>{item.name}</MenuItem>
-                        );
+                    options && options.map((option, indx) => {
+                        return <MenuItem className='custom-dropdown-item' key={indx} value={option}>{option.name}</MenuItem>;
                     })
                 }
-
             </Select>
         </FormControl>
     );
 };
 
-
-DropDown.propTypes = {
-    id: PropTypes.string,
-    label: PropTypes.string,
+DropdownCustom.propTypes = {
     options: PropTypes.array,
-    onDropChange: PropTypes.func,
-    defaultOption: PropTypes.number,
+    onChange: PropTypes.func,
+    label: PropTypes.string,
+    name: PropTypes.string,
+    defaultValue: PropTypes.object
 };
-
-export default DropDown;
+export default DropdownCustom;

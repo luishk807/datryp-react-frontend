@@ -6,7 +6,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
 import ButtonCustom from '../../common/ButtonCustom';
-import DropdownCustom from '../DropdownCustom/inde';
+import DropdownCustom from '../DropDown';
 import { placeStatus } from '../../../sample';
 import classNames from 'classnames';
 import './index.css';
