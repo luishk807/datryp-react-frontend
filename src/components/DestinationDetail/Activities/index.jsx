@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { Grid } from '@mui/material';
-import ImageBlock from '../ImageBlock';
-import AddPlaceBtn from '../../common/AddPlaceBtn';
-import ButtonCustom from '../../common/FormFields/ButtonCustom';
-import DialogBox from '../../common/FormFields/DialogBox';
+import ImageBlock from 'components/DestinationDetail/ImageBlock';
+import AddPlaceBtn from 'components/common/AddPlaceBtn';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import DialogBox from 'components/common/FormFields/DialogBox';
 
 const Activities = ({
     activities = [],

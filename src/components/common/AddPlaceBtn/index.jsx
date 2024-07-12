@@ -55,6 +55,7 @@ const AddPlaceBtn = ({
             if(data) {
                 console.log("hey");
                 setPlace({
+                    id: data.id,
                     place: data.place,
                     startTime: data.startTime || moment().format('HH:mm'),
                     endTime: data.endTime || moment().format('HH:mm'),
@@ -65,6 +66,7 @@ const AddPlaceBtn = ({
                 });
             } else {
                 setPlace({
+                    id: moment().format('YYYYMMDDHHmmss').toString(),
                     startTime: moment().format('HH:mm'),
                     endTime: moment().format('HH:mm'),
                     status: initilStatus

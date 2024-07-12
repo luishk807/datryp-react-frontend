@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
-import { NO_IMAGE } from '../../constants';
+import { NO_IMAGE } from 'constants';
 
 const ImageBlock = ({ image }) => {
     return (
