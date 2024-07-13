@@ -2,11 +2,11 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import moment from 'moment';
-import MutipleTrips from '../Multiple';
-import SingleTrips from '../Single';
+import MutipleTrips from 'components/DestinationDetail/Multiple';
+import SingleTrips from 'components/DestinationDetail/Single';
 import _ from 'lodash';
 import './index.css';
-import { isSingleTrip } from '../../../services';
+import { isSingleTrip } from 'utils';
 
 const TripItemBlock = ({
     date,

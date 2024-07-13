@@ -14,7 +14,7 @@ const Single = ({
     console.log(trips, 'trips single');
     return (
         trips ? (
-            <Grid item lg={12} className="content item-border">
+            <Grid item lg={12} md={12} xs={12} className="content item-border">
                 <Activities 
                     onSavePlace={onSavePlace} 
                     onDeletePlace={onDeletePlace} 
@@ -26,7 +26,7 @@ const Single = ({
         )
             : 
             (
-                <Grid item lg={12} className="content item-border">
+                <Grid item lg={12} md={12} xs={12} className="content item-border">
                     <AddPlaceBtn onChange={onChange} />
                 </Grid>
             )

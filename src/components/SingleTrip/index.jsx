@@ -77,7 +77,7 @@ const SingleTrip = ({
             label: 'Describe Your Trip!',
             comp: <BasicInfo 
                 onChange={handleBasicOnChange} 
-                selectedOrganizer={tripInfo.friends} 
+                selectedOrganizer={tripInfo.organizer} 
             />
         }, {
             label: 'Define the Trips',
@@ -103,7 +103,7 @@ const SingleTrip = ({
         <Layout>
             <Grid container className="singleTrip">
                 <Grid item lg={12} md={12} xs={12}>
-                    <StepperComp steps={steps} />
+                    <StepperComp data={tripInfo} steps={steps} />
                 </Grid>
             </Grid>
         </Layout>

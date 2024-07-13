@@ -5,11 +5,15 @@ import {Step, StepLabel, Typography, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
+import BasicTripInfo from 'components/BasicTripInfo';
+
 const StepperComp = ({
     steps = null,
+    data = null
 }) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState(new Set());
+
 
     const isStepSkipped = (step) => (skipped.has(step));
 
@@ -21,6 +25,7 @@ const StepperComp = ({
             newSkipped = new Set(newSkipped.values());
             newSkipped.delete(activeStep);
         } 
+        console.log("active step", activeStep + 1);
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
         setSkipped(newSkipped);
     };
@@ -82,6 +87,14 @@ const StepperComp = ({
                     </>
                 ) : (
                     <Grid container>
+                        {
+                            activeStep >= 2 && (
+                                <Grid item lg={12} md={12}>
+                                    <BasicTripInfo data={data} />
+                                </Grid>
+                            )
+                        }
+
                         <Grid item lg={12} md={12} xs={12}>
                             <Typography sx={{ mt: 2, mb: 1}}>Step {activeStep + 1}</Typography>
                             {
@@ -112,6 +125,7 @@ const StepperComp = ({
 
 StepperComp.propTypes = {
     steps: PropTypes.array,
+    data: PropTypes.object,
 };
 
 export default StepperComp;

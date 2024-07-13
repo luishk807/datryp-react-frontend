@@ -1,0 +1,44 @@
+.basic-trip-info {
+  padding: 10px;
+  border-bottom: 1px solid black;
+  border-color: rgba(0,0,0, .1);
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+.basic-trip-info .item {
+  margin: 5px 0px
+}
+.basic-trip-info .title .data {
+  font-size: 1.3em;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: theme('colors.primaryGreen');
+}
+.basic-trip-info .name .data {
+  font-size: 1.2em;
+    font-weight: 400;
+    text-transform: uppercase;
+}
+.basic-trip-info .label {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  /* color: theme('colors.primaryOrange') */
+}
+
+.basic-trip-info .status .data {
+  font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: theme('colors.primaryGreen');
+}
+
+.basic-trip-info .status {
+  justify-content: end;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  width: 100%;
+  height: 100%;
+}

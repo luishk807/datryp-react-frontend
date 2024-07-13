@@ -75,6 +75,9 @@ const tripReducer = (state = initialState, action) => {
             };
 
         }
+        case 'RESET_STATE': {
+            return {};
+        }
         default: {
             return state;
         }

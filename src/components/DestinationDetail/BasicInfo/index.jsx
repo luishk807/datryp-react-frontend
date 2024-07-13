@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
@@ -8,7 +8,6 @@ import moment from 'moment';
 import InputField from 'components/common/FormFields/InputField';
 import { status } from 'sample';
 import DropDown from 'components/common/FormFields/DropDown';
-import { friends } from 'sample';
 import FriendPicker from '../FriendPicker';
 const BasicInfo = ({
     onChange,
@@ -19,23 +18,27 @@ const BasicInfo = ({
         return status.filter(item => item.id === 1)[0];
     }, [status]);
 
-    const endDate = useMemo(() => {
-        const date = moment();
-        onChange('endDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
-        return date;
-    }, []);
-
-    const startDate = useMemo(() => {
-        const date = moment();
-        onChange('startDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
-        return date;
-    }, []);
-
-    const handleFriendPicker = (name, target) => {
+    const handleOrganizerPicker = (name, target) => {
         console.log("firneds", name, 'value:', target);
         const values = target.value && target.value.length ? target.value.map(item => ({ id: item.id, label: item.name})) : [];
-        onChange('friends', target);
+        onChange('organizer', target);
     };
+
+    const handleStatusChange = (e) => {
+        onChange('status', { target: {value: e}} );
+    };
+
+    useEffect(() => {
+        let unmounted = true;
+        
+        if(unmounted) {
+            onChange('endDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
+            onChange('startDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
+        }
+
+        return () => unmounted = false;
+    }, []);
+
     return (
         <div>
             <form>
@@ -49,7 +52,7 @@ const BasicInfo = ({
                             title="Select Organizer" 
                             // isMultiple={false}
                             selectedOptions={selectedOrganizer} 
-                            onChange={handleFriendPicker}
+                            onChange={handleOrganizerPicker}
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
@@ -63,7 +66,7 @@ const BasicInfo = ({
                             label="Status" 
                             defaultValue={initilStatus}
                             options={status} 
-                            name="status" onChange={(e) => onChange('status', e)} 
+                            name="status" onChange={handleStatusChange} 
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
