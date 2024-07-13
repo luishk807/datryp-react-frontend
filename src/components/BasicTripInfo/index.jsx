@@ -17,6 +17,10 @@ export const BasicTripInfo = ({
         
         return `From ${date1} to ${date2}`; 
     }, [data]);
+
+    const organizer = useMemo(() => {
+        return data.organizer.map(item => item.label).join(', ');
+    }, [data]);
     return(
         <Grid container className="basic-trip-info">
             <Grid item lg={11} md={11}>
@@ -32,7 +36,7 @@ export const BasicTripInfo = ({
                         <Grid container>
                             <Grid item lg={12} md={12} xs={12}className="item">
                                 <div className="label">Organizer:</div>
-                                <div className="data">{ data.organizer[0].label }</div>
+                                <div className="data">{ organizer }</div>
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="item">
                                 
