@@ -12,9 +12,9 @@ import { friends } from 'sample';
 import FriendPicker from '../FriendPicker';
 const BasicInfo = ({
     onChange,
+    selectedOrganizer = []
 }) => {
 
-    const [selectedFriends, setSelectedFriends] = useState([]);
     const initilStatus = useMemo(() => {
         return status.filter(item => item.id === 1)[0];
     }, [status]);
@@ -31,11 +31,11 @@ const BasicInfo = ({
         return date;
     }, []);
 
-    // const handleFriendPicker = (name, target) => {
-    //     console.log("firneds", name, 'value:', target);
-    //     const values = target.value && target.value.length ? target.value.map(item => ({ id: item.id, label: item.name})) : [];
-    //     setSelectedFriends(values);
-    // };
+    const handleFriendPicker = (name, target) => {
+        console.log("firneds", name, 'value:', target);
+        const values = target.value && target.value.length ? target.value.map(item => ({ id: item.id, label: item.name})) : [];
+        onChange('friends', target);
+    };
     return (
         <div>
             <form>
@@ -44,8 +44,13 @@ const BasicInfo = ({
                         Please enter basic info
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="Organizer" onChange={(e) => onChange('orgnizer', e)}/>
-                        {/* <FriendPicker selectedOptions={selectedFriends} onChange={handleFriendPicker}/> */}
+                        {/* <InputField name="Organizer" onChange={(e) => onChange('orgnizer', e)}/> */}
+                        <FriendPicker
+                            title="Select Organizer" 
+                            // isMultiple={false}
+                            selectedOptions={selectedOrganizer} 
+                            onChange={handleFriendPicker}
+                        />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField name="Trip name" onChange={(e) => onChange('name', e)}/>
@@ -76,5 +81,6 @@ const BasicInfo = ({
 
 BasicInfo.propTypes = {
     onChange: PropTypes.func,
+    selectedOrganizer: PropTypes.array
 };
 export default BasicInfo;

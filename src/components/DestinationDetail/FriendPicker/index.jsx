@@ -10,9 +10,12 @@ import AddFriendBtn from '../../common/AddFriendBtn';
 
 const FriendPicker = ({
     onChange,
+    title = "friends",
+    isMultiple = true,
     selectedOptions = []
 }) => {
     const childRef = useRef();
+    console.log("selectedOptions", selectedOptions);
     const [optionList, setOptionList] = useState([]);
     const [selectedFriendList, setSelectedFriendList] = useState([]);
     const handleOnSelect = (e) => {
@@ -100,9 +103,9 @@ const FriendPicker = ({
                 <Grid item lg={12} md={12} xs={12}>
                     <Autocomplete
                         selectedOptions = {selectedOptions}
-                        isMultiple = {true}
+                        isMultiple = {isMultiple}
                         options={optionList}
-                        label="friends"
+                        label={title}
                         onRemove={handleOnRemove}
                         onSelect={handleOnSelect}
                     />
@@ -115,6 +118,8 @@ const FriendPicker = ({
 
 FriendPicker.propTypes = {
     onChange: PropTypes.func,
+    title: PropTypes.string,
+    isMultiple: PropTypes.bool,
     selectedOptions: PropTypes.array
 };
 export default FriendPicker;

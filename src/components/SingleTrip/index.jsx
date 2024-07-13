@@ -77,6 +77,7 @@ const SingleTrip = ({
             label: 'Describe Your Trip!',
             comp: <BasicInfo 
                 onChange={handleBasicOnChange} 
+                selectedOrganizer={tripInfo.friends} 
             />
         }, {
             label: 'Define the Trips',
