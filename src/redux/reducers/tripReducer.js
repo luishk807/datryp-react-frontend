@@ -50,30 +50,30 @@ const tripReducer = (state = initialState, action) => {
         case 'ON_DELETE_PLACE':
         {
             console.log("place delete redux", action.payload);
-            const currState = {...state};
+            let currState = JSON.parse(JSON.stringify(state));
             
-            for(let i = 0; i <= currState.destinations.length; i++) {
-                const itinerary = currState.destinations[i].itinerary;
-
-                let break1loop = false;
-                if (break1loop) {
-                    break;
-                }
-                for(let x = 0; x <= itinerary.length; x++) {
-                    const currItinenary = itinerary[x];
-                    let break2loop = false;
-                    console.log('checking '+currItinenary);
-                    if (currItinenary.id === action.payload.id) {
-                        console.log("founddddd", currItinenary);
-                        break2loop = true;
-                        break;
+            const destinations = currState.destinations;
+            for(let i = 0; i < destinations.length; i++) {
+                const itinerary = destinations[i].itinerary;
+                for(let x = 0; x < itinerary.length; x++) {
+                    const activities = itinerary[x].activities;
+                    for(let y = 0; y < activities.length; y++) {
+                        let curActivity = activities[y];
+                        if (curActivity.id === action.payload.id) {
+                            const new_activities = activities.filter(item => item.id !== action.payload.id);
+                            currState.destinations[i].itinerary[x].activities = new_activities;
+                            break;
+                        }
                     }
+
                 }
             }
-
+            console.log("finised delete",currState);
             return {
-                ...state
+                ...state,
+                ...currState
             };
+
         }
         default: {
             return state;

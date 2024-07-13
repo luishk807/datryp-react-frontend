@@ -15,8 +15,7 @@ const Activities = ({
 })=> {
     const handleDelete = (e) => {
         console.log("delete", e);
-        // ToDo: dialog confirmation
-        // onDeletePlace && onDeletePlace(e);
+        onDeletePlace && onDeletePlace(e);
     };
 
     const handleEdit = (e) => {
@@ -56,7 +55,7 @@ const Activities = ({
                                                     title="Delete this place" 
                                                     buttonLabel="Delete"
                                                     buttonType="text" 
-                                                    onConfirm={handleDelete}
+                                                    onConfirm={() => handleDelete(activity)}
                                                 >
                                                     You are about to delete {activity.place}.  Are you sure you want to delete this item
                                                 </DialogBox>

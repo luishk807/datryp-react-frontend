@@ -9,12 +9,12 @@ import InputField from 'components/common/FormFields/InputField';
 import { status } from 'sample';
 import DropDown from 'components/common/FormFields/DropDown';
 import { friends } from 'sample';
-
+import FriendPicker from '../FriendPicker';
 const BasicInfo = ({
     onChange,
 }) => {
 
-    
+    const [selectedFriends, setSelectedFriends] = useState([]);
     const initilStatus = useMemo(() => {
         return status.filter(item => item.id === 1)[0];
     }, [status]);
@@ -31,6 +31,11 @@ const BasicInfo = ({
         return date;
     }, []);
 
+    // const handleFriendPicker = (name, target) => {
+    //     console.log("firneds", name, 'value:', target);
+    //     const values = target.value && target.value.length ? target.value.map(item => ({ id: item.id, label: item.name})) : [];
+    //     setSelectedFriends(values);
+    // };
     return (
         <div>
             <form>
@@ -40,6 +45,7 @@ const BasicInfo = ({
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField name="Organizer" onChange={(e) => onChange('orgnizer', e)}/>
+                        {/* <FriendPicker selectedOptions={selectedFriends} onChange={handleFriendPicker}/> */}
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField name="Trip name" onChange={(e) => onChange('name', e)}/>
