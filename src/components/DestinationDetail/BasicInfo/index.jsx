@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { 
@@ -11,13 +11,16 @@ import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
 const BasicInfo = ({
     onChange,
+    data = null,
     selectedOrganizer = []
 }) => {
 
-    const initilStatus = useMemo(() => {
-        return status.filter(item => item.id === 1)[0];
-    }, [status]);
+    const [tripInfo, setTripInfo] = useState(null);
+    // const initilStatus = useMemo(() => {
+    //     return status.filter(item => item.id === 1)[0];
+    // }, [status]);
 
+    console.log("checcccc", data);
     const handleOrganizerPicker = (name, target) => {
         console.log("firneds", name, 'value:', target);
         const values = target.value && target.value.length ? target.value.map(item => ({ id: item.id, label: item.name})) : [];
@@ -32,14 +35,32 @@ const BasicInfo = ({
         let unmounted = true;
         
         if(unmounted) {
-            onChange('endDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
-            onChange('startDate', { target: {value: moment().format('YYYY-MM-DD').toString() }});
+            if (data) {
+                setTripInfo({
+                    ...tripInfo,
+                    organizer: data.organizer,
+                    name: data.name,
+                    budget: data.budget,
+                    status: data.status,
+                    startDate: data.startDate,
+                    endDate:  data.endDate
+                });
+            } else {
+                setTripInfo({
+                    ...tripInfo,
+                    status: status[0],
+                    organizer: [],
+                    startDate:  moment().format('YYYY-MM-DD').toString(),
+                    endDate:  moment().format('YYYY-MM-DD').toString()
+                });
+            }
+
         }
 
         return () => unmounted = false;
-    }, []);
+    }, [data]);
 
-    return (
+    return tripInfo && (
         <div>
             <form>
                 <Grid container className="step-section">
@@ -51,29 +72,29 @@ const BasicInfo = ({
                         <FriendPicker
                             title="Select Organizer" 
                             // isMultiple={false}
-                            selectedOptions={selectedOrganizer} 
+                            selectedOptions={tripInfo.organizer} 
                             onChange={handleOrganizerPicker}
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="Trip name" onChange={(e) => onChange('name', e)}/>
+                        <InputField defaultValue={tripInfo.name} name="Trip name" onChange={(e) => onChange('name', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField name="budget" onChange={(e) => onChange('budget', e)}/>
+                        <InputField defaultValue={tripInfo.budget} name="budget" onChange={(e) => onChange('budget', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <DropDown 
                             label="Status" 
-                            defaultValue={initilStatus}
+                            defaultValue={tripInfo.status}
                             options={status} 
                             name="status" onChange={handleStatusChange} 
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField label="Start Date" name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
+                        <InputField label="Start Date" defaultValue={tripInfo.startDate} name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField label="End Date" name="endDate" type="date" onChange={(e) => onChange('endDate', e)}/>
+                        <InputField label="End Date" defaultValue={tripInfo.endDate} name="endDate" type="date" onChange={(e) => onChange('endDate', e)}/>
                     </Grid>
                 </Grid>
             </form>
@@ -84,6 +105,7 @@ const BasicInfo = ({
 
 BasicInfo.propTypes = {
     onChange: PropTypes.func,
+    data: PropTypes.object,
     selectedOrganizer: PropTypes.array
 };
 export default BasicInfo;

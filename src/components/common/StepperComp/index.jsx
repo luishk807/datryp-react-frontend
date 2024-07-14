@@ -9,7 +9,7 @@ import BasicTripInfo from 'components/BasicTripInfo';
 
 const StepperComp = ({
     steps = null,
-    data = null
+    data = null,
 }) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState(new Set());
@@ -45,6 +45,10 @@ const StepperComp = ({
             newSkipped.add(activeStep);
             return newSkipped;
         });
+    };
+
+    const handleChangeStep = (step) => {
+        setActiveStep(step);
     };
 
     const handleReset = () => setActiveStep(0);
@@ -90,7 +94,7 @@ const StepperComp = ({
                         {
                             activeStep >= 2 && (
                                 <Grid item lg={12} md={12}>
-                                    <BasicTripInfo data={data} />
+                                    <BasicTripInfo data={data} onChangeStep={handleChangeStep} />
                                 </Grid>
                             )
                         }
@@ -125,7 +129,7 @@ const StepperComp = ({
 
 StepperComp.propTypes = {
     steps: PropTypes.array,
-    data: PropTypes.object,
+    data: PropTypes.object
 };
 
 export default StepperComp;

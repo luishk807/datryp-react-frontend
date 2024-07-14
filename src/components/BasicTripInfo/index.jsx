@@ -3,12 +3,14 @@ import PropTypes from 'prop-types';
 import './index.css';
 import moment from 'moment';
 import { 
-    Grid
+    Grid,
 } from '@mui/material';
 import { convertMoney } from 'utils';
-
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
+ButtonIcon;
 export const BasicTripInfo = ({
-    data
+    data,
+    onChangeStep
 }) => {
     console.log("in basic trip:", data);
     const tripDate = useMemo(() => {
@@ -65,7 +67,7 @@ export const BasicTripInfo = ({
                 </Grid>
             </Grid>
             <Grid item lg={1} md={1} className="status">
-                <div className="label">Status&nbsp;<span>[edit]</span>:</div>
+                <div className="label">Status&nbsp;[<ButtonIcon onClick={(e) => onChangeStep(0)} title="edit" type="text" />]:</div>
                 <div className="data">{ data.status.name }</div>
             </Grid>
         </Grid>
@@ -73,7 +75,8 @@ export const BasicTripInfo = ({
 };
 
 BasicTripInfo.propTypes = {
-    data: PropTypes.object
+    data: PropTypes.object,
+    onChangeStep: PropTypes.func,
 };
 
 export default BasicTripInfo;

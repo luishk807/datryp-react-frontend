@@ -7,13 +7,14 @@ const ButtonIcon = ({
     title = '',
     Icon,
     onClick,
+    style,
     type = "standard"
 }) => {
     return (
-        <button onClick={onClick} className={classNames(
+        <button onClick={onClick} style={style} className={classNames(
             {
                 'button-icon': type==="standard",
-                'button-simple': type==="text"
+                'button-simple': type==="text",
             }
         )}>
             {title} { Icon && (<Icon />) }
@@ -25,6 +26,7 @@ const ButtonIcon = ({
 ButtonIcon.propTypes = {
     title: PropTypes.string,
     Icon: PropTypes.object,
+    style: PropTypes.object,
     onClick: PropTypes.func.isRequired,
     type: PropTypes.oneOf(['text', 'standard'])
 };
