@@ -78,11 +78,11 @@ const SingleTrip = ({
             comp: <BasicInfo 
                 data={tripInfo}
                 onChange={handleBasicOnChange} 
-                selectedOrganizer={tripInfo.organizer} 
             />
         }, {
             label: 'Define the Trips',
             comp: <FriendPicker 
+                name="friends"
                 selectedOptions={tripInfo.friends} 
                 onChange={handleBasicOnChange}
             />

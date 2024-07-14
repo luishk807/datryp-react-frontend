@@ -11,8 +11,7 @@ import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
 const BasicInfo = ({
     onChange,
-    data = null,
-    selectedOrganizer = []
+    data = null
 }) => {
 
     const [tripInfo, setTripInfo] = useState(null);
@@ -20,10 +19,8 @@ const BasicInfo = ({
     //     return status.filter(item => item.id === 1)[0];
     // }, [status]);
 
-    console.log("checcccc", data);
     const handleOrganizerPicker = (name, target) => {
-        console.log("firneds", name, 'value:', target);
-        const values = target.value && target.value.length ? target.value.map(item => ({ id: item.id, label: item.name})) : [];
+        console.log("organizer", name, 'value:', target);
         onChange('organizer', target);
     };
 
@@ -36,14 +33,15 @@ const BasicInfo = ({
         
         if(unmounted) {
             if (data) {
+                console.log("the dataaa", data);
                 setTripInfo({
                     ...tripInfo,
                     organizer: data.organizer,
                     name: data.name,
                     budget: data.budget,
-                    status: data.status,
-                    startDate: data.startDate,
-                    endDate:  data.endDate
+                    status: data.status || status[0],
+                    startDate: data.startDate || moment().format('YYYY-MM-DD').toString(),
+                    endDate:  data.endDate || moment().format('YYYY-MM-DD').toString()
                 });
             } else {
                 setTripInfo({
@@ -71,6 +69,7 @@ const BasicInfo = ({
                         {/* <InputField name="Organizer" onChange={(e) => onChange('orgnizer', e)}/> */}
                         <FriendPicker
                             title="Select Organizer" 
+                            name="organizer"
                             // isMultiple={false}
                             selectedOptions={tripInfo.organizer} 
                             onChange={handleOrganizerPicker}
@@ -105,7 +104,6 @@ const BasicInfo = ({
 
 BasicInfo.propTypes = {
     onChange: PropTypes.func,
-    data: PropTypes.object,
-    selectedOrganizer: PropTypes.array
+    data: PropTypes.object
 };
 export default BasicInfo;

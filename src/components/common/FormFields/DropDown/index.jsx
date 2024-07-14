@@ -13,29 +13,31 @@ const DropdownCustom = ({
     label = '',
     onChange,
     name,
-    defaultValue = ''
+    defaultValue = null
 }) => {
     const [value, setValue] = useState(defaultValue);
     const handleChange = (e) => {
         const { value } = e.target;
-        onChange && onChange(value);
-        setValue(value);
+
+        const option = options.filter(item => item.id === value)[0];
+        onChange && onChange(option);
+        setValue(option);
 
     };
 
-    return (
+    return value && (
         <FormControl fullWidth className="custom-dropdown">
             <InputLabel id="dropdown-custom-label">{label}</InputLabel>
             <Select
                 labelId="dropdown-custom-label"
                 name={name}
                 label={label}
-                value={value}
+                value={value.id}
                 onChange={handleChange}
             >
                 {
                     options && options.map((option, indx) => {
-                        return <MenuItem className='custom-dropdown-item' key={indx} value={option}>{option.name}</MenuItem>;
+                        return <MenuItem className='custom-dropdown-item' key={indx} value={option.id}>{option.name}</MenuItem>;
                     })
                 }
             </Select>

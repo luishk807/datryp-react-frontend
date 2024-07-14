@@ -11,16 +11,19 @@ import AddFriendBtn from '../../common/AddFriendBtn';
 const FriendPicker = ({
     onChange,
     title = "friends",
+    name,
     isMultiple = true,
     selectedOptions = []
 }) => {
     const childRef = useRef();
-    console.log("selectedOptions", selectedOptions);
     const [optionList, setOptionList] = useState([]);
-    const [selectedFriendList, setSelectedFriendList] = useState([]);
+    const [selectedFriendList, setSelectedFriendList] = useState(selectedOptions);
     const handleOnSelect = (e) => {
         if(e.id !== -1) {
+            const currFriends = JSON.parse(JSON.stringify(selectedFriendList));
+            currFriends.push(e);
             setSelectedFriendList((prev) => [...prev, e]);
+            onChange(name, {target: { value: currFriends}});
         } else {
             childRef.current.openModel();
         }
@@ -29,24 +32,8 @@ const FriendPicker = ({
     const handleOnRemove = (e) => {
         const newFriends = selectedFriendList.filter(item => item.id !== e[0].id);
         setSelectedFriendList(newFriends);
-        console.log("new list", newFriends);
+        onChange(name, {target: { value: newFriends }});
     };
-    
-    // const optionList = useMemo(() => {
-    //     const list = friends.map(item => {
-    //         return {
-    //             id: item.id,
-    //             label: `${item.firstName} ${item.lastName}`
-    //         };
-    //     });
-
-    //     list.push({
-    //         id: -1,
-    //         label: "add friends"
-    //     });
-
-    //     return list;
-    // }, [friends]);
 
     const prepareOptionList = (list) => {
         console.log("ths list.", list);
@@ -75,14 +62,14 @@ const FriendPicker = ({
         return () => isMounted = false;
     }, [friends]);
 
-    useEffect(() => {
-        let isMounted = true;
+    // useEffect(() => {
+    //     let isMounted = true;
 
-        if (isMounted) {
-            onChange('friends', {target: { value: selectedFriendList }});
-        }
-        return () => isMounted = false;
-    }, [selectedFriendList]);
+    //     if (isMounted) {
+    //         onChange('friends', {target: { value: selectedFriendList }});
+    //     }
+    //     return () => isMounted = false;
+    // }, [selectedFriendList]);
 
     const handleFriendOnChange = (e) => {
         console.log("fiends", e);
@@ -105,6 +92,7 @@ const FriendPicker = ({
                         selectedOptions = {selectedOptions}
                         isMultiple = {isMultiple}
                         options={optionList}
+                        name={name}
                         label={title}
                         onRemove={handleOnRemove}
                         onSelect={handleOnSelect}
@@ -118,6 +106,7 @@ const FriendPicker = ({
 
 FriendPicker.propTypes = {
     onChange: PropTypes.func,
+    name: PropTypes.string,
     title: PropTypes.string,
     isMultiple: PropTypes.bool,
     selectedOptions: PropTypes.array

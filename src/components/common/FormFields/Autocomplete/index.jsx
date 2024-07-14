@@ -12,6 +12,7 @@ const AutocompleteCustom = ({
     label ='',
     isMultiple = false,
     onSelect,
+    name,
     onRemove,
     selectedOptions = []
 }) => {
@@ -55,6 +56,7 @@ const AutocompleteCustom = ({
             options={options}
             value={data}
             freeSolo
+            name={name}
             isOptionEqualToValue={ (option, value) => option.id === value.id}
             onChange={handleOnChange}
             renderOption={(props, option) => {
@@ -91,6 +93,7 @@ AutocompleteCustom.propTypes = {
     label: PropTypes.string,
     isMultiple: PropTypes.bool,
     onSelect: PropTypes.func,
+    name: PropTypes.string,
     onRemove: PropTypes.func,
     selectedOptions: PropTypes.array
 };

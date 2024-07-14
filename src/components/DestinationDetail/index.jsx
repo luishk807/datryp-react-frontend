@@ -66,7 +66,7 @@ const DestinationDetail = ({
                             destinations={destinations}
                             onSavePlace={onSavePlace} 
                             onDeletePlace={onDeletePlace} 
-                            onChange={(e) => handleOnChange({activity: e, date: date.format('YYYY-MM-DD').toString()})}
+                            onChange={(e) => handleOnChange({activity: e, date: moment(date).format('YYYY-MM-DD').toString()})}
                         />
                     );
                 })
