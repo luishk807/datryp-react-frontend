@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { connect } from 'react-redux';
 import './index.css';
 import { 
@@ -26,6 +26,24 @@ const SingleTrip = ({
         console.log("handle onchange", id, ':',e);
         onBasicInfo({[id]: e.target.value});
     };
+
+    const participants = useMemo(() => {
+        const { friends, organizer } = tripInfo;
+        const merged = [...friends, ...organizer];
+    
+        const unique = [];
+        Object.keys(merged).forEach(key => {
+            if (!unique.length) {
+                unique.push(merged[key]);
+            } else {
+                const found = unique.filter(item => item.id === merged[key].id);
+                if (!found.length) {
+                    unique.push(merged[key]);
+                }
+            }
+        });
+        return unique;
+    }, [tripInfo]);
 
     const handleDestination = ({date, activity}) => {
         const destination = JSON.parse(JSON.stringify(tripInfo.destinations));
@@ -92,6 +110,7 @@ const SingleTrip = ({
                 onChange={handleDestination} 
                 type={tripInfo.type} 
                 startDate={tripInfo.startDate} 
+                participants={participants}
                 endDate={tripInfo.endDate} 
                 destinations={tripInfo.destinations} 
                 onSavePlace={handlePlaceSave} 

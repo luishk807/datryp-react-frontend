@@ -11,6 +11,7 @@ import { isSingleTrip } from 'utils';
 const TripItemBlock = ({
     date,
     destinations = [],
+    participants = [],
     index = 0,
     typeId,
     onChange,
@@ -38,6 +39,7 @@ const TripItemBlock = ({
                 trips={trips} 
             /> : 
             <SingleTrips 
+                participants={participants}
                 onSavePlace={onSavePlace} 
                 onDeletePlace={onDeletePlace} 
                 onChange={onChange} 
@@ -72,6 +74,7 @@ TripItemBlock.propTypes = {
     destinations: PropTypes.array,
     index: PropTypes.number,
     typeId: PropTypes.number,
+    participants: PropTypes.array,
     onChange: PropTypes.func,
     onSavePlace: PropTypes.func,
     onDeletePlace: PropTypes.func,

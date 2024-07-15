@@ -5,7 +5,7 @@ import moment from 'moment';
 import { Grid } from '@mui/material';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
-import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import AddBudget from 'components/DestinationDetail/AddBudget';
 import { convertMoney } from 'utils';
 import DialogBox from 'components/common/FormFields/DialogBox';
 
@@ -14,6 +14,7 @@ const Activities = ({
     onChange,
     onSavePlace,
     onDeletePlace,
+    participants = [],
 })=> {
     const handleDelete = (e) => {
         console.log("delete", e);
@@ -45,7 +46,9 @@ const Activities = ({
                                             <ul>
                                                 <li><span className="location">{activity.location}</span></li>
                                                 <li><span className="label">Time:</span> {activityTime}</li>
-                                                <li><span className="label">Who is paying:</span>{activity?.people?.length}[add] </li>
+                                                <li><span className="label">Who is paying:</span>{activity?.people?.length}
+                                                    <AddBudget participants={participants}/>
+                                                </li>
                                                 <li><span className="label">Cost:</span> {convertMoney(activity.cost)}</li>
                                             </ul>
 
@@ -89,6 +92,7 @@ const Activities = ({
 Activities.propTypes = {
     onChange: PropTypes.func,
     activities: PropTypes.array,
+    participants: PropTypes.array,
     onSavePlace: PropTypes.func,
     onDeletePlace: PropTypes.func,
 };

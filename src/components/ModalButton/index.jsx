@@ -15,7 +15,6 @@ const ModalButton = forwardRef(({
 }, ref) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
-        console.log("ddd");
         setOpen(true);
     };
 

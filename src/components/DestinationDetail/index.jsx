@@ -11,6 +11,7 @@ const DestinationDetail = ({
     startDate = null,
     endDate = null,
     onChange,
+    participants = [],
     onSavePlace,
     onDeletePlace,
 }) => {
@@ -61,6 +62,7 @@ const DestinationDetail = ({
                         <DateBlock 
                             key={indx} 
                             index={indx} 
+                            participants={participants}
                             typeId={type.id}
                             date={moment(date)}
                             destinations={destinations}
@@ -78,6 +80,7 @@ const DestinationDetail = ({
 DestinationDetail.propTypes = {
     destinations: PropTypes.array,
     type: PropTypes.object,
+    participants: PropTypes.array,
     startDate: PropTypes.string,
     endDate: PropTypes.string,
     onChange: PropTypes.func,

@@ -10,6 +10,7 @@ const Single = ({
     onChange,
     onSavePlace,
     onDeletePlace,
+    participants = [],
 }) => {
     console.log(trips, 'trips single');
     return (
@@ -20,6 +21,7 @@ const Single = ({
                     onDeletePlace={onDeletePlace} 
                     activities={trips} 
                     onChange={onChange}
+                    participants={participants}
                 />
             </Grid>
 
@@ -38,6 +40,7 @@ Single.propTypes = {
     onChange: PropTypes.func,
     onSavePlace: PropTypes.func,
     onDeletePlace: PropTypes.func,
+    participants: PropTypes.array,
 };
 
 export default Single;

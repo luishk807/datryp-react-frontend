@@ -76,7 +76,7 @@ const BasicInfo = ({
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField defaultValue={tripInfo.name} name="Trip name" onChange={(e) => onChange('name', e)}/>
+                        <InputField defaultValue={tripInfo.name} name="name" label="Trip Name" onChange={(e) => onChange('name', e)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField defaultValue={tripInfo.budget} name="budget" onChange={(e) => onChange('budget', e)}/>

@@ -7,6 +7,14 @@
   align-items: center;
 }
 
+.button-no-style {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.button-no-style:hover {
+  font-weight: 500;
+}
 
 .button-simple {
   color: inherit;

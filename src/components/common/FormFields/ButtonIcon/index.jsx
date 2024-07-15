@@ -15,6 +15,7 @@ const ButtonIcon = ({
             {
                 'button-icon': type==="standard",
                 'button-simple': type==="text",
+                'button-no-style': type==="text-simple",
             }
         )}>
             {title} { Icon && (<Icon />) }
