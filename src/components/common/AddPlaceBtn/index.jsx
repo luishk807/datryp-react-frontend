@@ -52,8 +52,7 @@ const AddPlaceBtn = ({
     useEffect(() => {
         let unmounted = true;
         if(unmounted) {
-            if(data) {
-                console.log("hey");
+            if(data && type === 'edit') {
                 setPlace({
                     id: data.id,
                     place: data.place,

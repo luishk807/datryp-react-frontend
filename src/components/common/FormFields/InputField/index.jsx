@@ -42,9 +42,13 @@ const InputField = ({
     }, [label]);
 
     useEffect(() => {
-        if (defaultValue) {
-            setData(defaultValue);
+        let unmounted = true;
+        if (unmounted) {
+            if (defaultValue) {
+                setData(defaultValue);
+            }
         }
+        return () => unmounted = false;
     }, [defaultValue]);
 
     const showInputLabel = useMemo(() => {
