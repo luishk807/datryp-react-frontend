@@ -32,7 +32,9 @@
     font-weight: 500;
     font-size: 1.3em;
     text-transform:uppercase;
-    color: theme('colors.primaryOrange')
+    color: theme('colors.primaryOrange');
+    /* padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0,0,0,.09) */
 }
 
 .modalCustom > .content {

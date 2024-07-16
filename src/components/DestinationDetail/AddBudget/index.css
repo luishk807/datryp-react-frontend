@@ -21,3 +21,10 @@
   display: flex;
   align-items: center;
 }
+
+.travel-budget .items {
+  height: auto;
+  overflow-y: auto;
+  min-height: 200px;
+  max-height: 400px;
+}

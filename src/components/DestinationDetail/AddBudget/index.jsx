@@ -14,30 +14,44 @@ export const AddBudget = ({
     console.log("parti", participants);
     const handleSubmit = () => {
         console.log("submit");
+        console.log("budget",budget);
         //onChange('budget', budget)
     };
 
     const handleOnChange = (item, e) => {
+        console.log("budget", budget);
         console.log("on chnage", item);
         const { value } = e.target;
-        const budgetList = budget;
+        const budgetList = budget || [];
 
         const new_budget = {
             ...item,
-            budget: value
+            ['budget']: value
         };
-        if (!budget.length) {
-            setBudget(new_budget);
+        if (!budgetList.length) {
+            console.log("empty");
+            budgetList.push(new_budget);
         } else {
+            console.log("not empty");
             let foundIndx = null;
-            budgetList.forEach((item, indx) => {
-                if (item.id === new_budget.id) {
-                    foundIndx = indx;
+
+            
+            for(let i = 0; i < budgetList.length; i++) {
+                if (budgetList[i] && (budgetList[i].id === new_budget.id)) {
+                    foundIndx = i;
+                    break;
                 }
-            });
-            budgetList[foundIndx] = new_budget;
-            setBudget(budgetList);
+            }
+
+            if (foundIndx) {
+                budgetList[foundIndx] = new_budget;
+            } else {
+                budgetList.push(new_budget);
+            }
+
         }
+        
+        setBudget(budgetList);
     };
 
 
@@ -64,7 +78,6 @@ export const AddBudget = ({
                             );
                         })
                     }
-
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="button-container">
                     <ButtonCustom 
