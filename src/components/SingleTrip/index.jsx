@@ -78,6 +78,7 @@ const SingleTrip = ({
         }
         new_destination.itinerary = intinerary;
 
+        console.log("destination", destination);
         onSingleInfo && onSingleInfo(destination);
     };
 

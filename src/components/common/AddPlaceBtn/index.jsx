@@ -61,14 +61,14 @@ const AddPlaceBtn = ({
                     location: data.location,
                     cost: data.cost,
                     note: data.note,
-                    status: data.status
+                    status: data.status,
                 });
             } else {
                 setPlace({
                     id: moment().format('YYYYMMDDHHmmss').toString(),
                     startTime: moment().format('HH:mm'),
                     endTime: moment().format('HH:mm'),
-                    status: initilStatus
+                    status: initilStatus,
                 });
             }
         }

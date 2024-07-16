@@ -26,12 +26,14 @@ const Activities = ({
         onSavePlace && onSavePlace(e);
     };
 
-    const handleBudgetSubmit = (activity, budget) => {
-        const new_activities = JSON.parse(JSON.stringify(activity));
-        console.log("handleBudgetSubmit activites", new_activities);
-        console.log("handleBudgetSubmit budget", budget);
-        new_activities.budget = budget;
-        onChange({new_activities});
+    const handleBudgetSubmit = (indx, budget) => {
+        const newActivities = JSON.parse(JSON.stringify(activities));
+        // console.log("handleBudgetSubmit activites", newActivity);
+        // console.log("handleBudgetSubmit budget", newActivity);
+        // newActivity.budget = budget;
+        // onChange(newActivity);
+        newActivities[indx].budget = budget;
+        onChange(newActivities);
     };
 
     return (
@@ -55,7 +57,7 @@ const Activities = ({
                                                 <li><span className="location">{activity.location}</span></li>
                                                 <li><span className="label">Time:</span> {activityTime}</li>
                                                 <li><span className="label">Who is paying:</span>{activity?.people?.length}
-                                                    <AddBudget budget={activity.budget} onSubmit={(e) => handleBudgetSubmit(activity, e)} participants={participants}/>
+                                                    <AddBudget budget={activity.budget} onSubmit={(e) => handleBudgetSubmit(indx, e)} participants={participants}/>
                                                 </li>
                                                 <li><span className="label">Cost:</span> {convertMoney(activity.cost)}</li>
                                             </ul>
