@@ -28,7 +28,8 @@ const SingleTrip = ({
     };
 
     const participants = useMemo(() => {
-        const { friends, organizer } = tripInfo;
+        const friends = tripInfo.friends || [];
+        const organizer = tripInfo.organizer || [];
         const merged = [...friends, ...organizer];
     
         const unique = [];

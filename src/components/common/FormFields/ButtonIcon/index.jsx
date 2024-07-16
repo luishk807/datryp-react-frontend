@@ -15,7 +15,7 @@ const ButtonIcon = ({
             {
                 'button-icon': type==="standard",
                 'button-simple': type==="text",
-                'button-no-style': type==="text-simple",
+                'button-no-style': type==="text-plain",
             }
         )}>
             {title} { Icon && (<Icon />) }
@@ -29,6 +29,6 @@ ButtonIcon.propTypes = {
     Icon: PropTypes.object,
     style: PropTypes.object,
     onClick: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['text', 'standard'])
+    type: PropTypes.oneOf(['text', 'standard', 'text-plain'])
 };
 export default ButtonIcon;

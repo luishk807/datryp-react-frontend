@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import ModalButton from 'components/ModalButton';
@@ -8,52 +8,47 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 
 export const AddBudget = ({
-    participants = []
+    participants = [],
+    onSubmit,
+    budget = []
 }) => {
-    const [budget, setBudget] = useState([]);
-    console.log("parti", participants);
+    const [newBudget, setNewBudget] = useState([]);
+
+    console.log("party involved", participants);
+    
     const handleSubmit = () => {
-        console.log("submit");
-        console.log("budget",budget);
-        //onChange('budget', budget)
+        console.log("submit", newBudget);
+        onSubmit(newBudget);
     };
 
     const handleOnChange = (item, e) => {
-        console.log("budget", budget);
-        console.log("on chnage", item);
         const { value } = e.target;
-        const budgetList = budget || [];
+        let budgetList = newBudget;
 
         const new_budget = {
             ...item,
             ['budget']: value
         };
+        let foundIndx = null;
+
         if (!budgetList.length) {
-            console.log("empty");
             budgetList.push(new_budget);
         } else {
-            console.log("not empty");
-            let foundIndx = null;
-
-            
             for(let i = 0; i < budgetList.length; i++) {
                 if (budgetList[i] && (budgetList[i].id === new_budget.id)) {
                     foundIndx = i;
+                    budgetList[i].budget = value;
                     break;
                 }
             }
 
-            if (foundIndx) {
-                budgetList[foundIndx] = new_budget;
-            } else {
+            if (foundIndx < 0 || foundIndx === null ) {
                 budgetList.push(new_budget);
             }
-
         }
-        
-        setBudget(budgetList);
+        const filterBudget = budgetList.filter(item => item.budget > 0);
+        setNewBudget(filterBudget);
     };
-
 
     return(
         <ModalButton
@@ -69,11 +64,12 @@ export const AddBudget = ({
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="items">
                     {
-                        participants && participants.map((item, indx) => {
+                        participants && participants.map((participant, indx) => {
+                            const foundItem = budget.length ? budget.filter(item => item.id === participant.id)[0] : null;
                             return (
                                 <Grid container key={indx} className="item">
-                                    <Grid item lg={7} xs={7} md={7} className="label">{item.label}</Grid>
-                                    <Grid item lg={5} xs={5} md={5} className="data"><InputField name="budget" onChange={(e) => handleOnChange(item, e)} type="number" /></Grid>
+                                    <Grid item lg={7} xs={7} md={7} className="label">{participant.label}</Grid>
+                                    <Grid item lg={5} xs={5} md={5} className="data"><InputField name="budget" defaultValue={foundItem ? foundItem.budget : null} onChange={(e) => handleOnChange(participant, e)} type="number" /></Grid>
                                 </Grid>
                             );
                         })
@@ -93,7 +89,9 @@ export const AddBudget = ({
 };
 
 AddBudget.propTypes = {
-    participants: PropTypes.array
+    participants: PropTypes.array,
+    onSubmit: PropTypes.func,
+    budget: PropTypes.array
 };
 
 export default AddBudget;

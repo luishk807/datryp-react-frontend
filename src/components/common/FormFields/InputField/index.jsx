@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import './index.css';
+import { debounce} from 'lodash';
 import classNames from 'classnames';
 import { 
     FormControl,
@@ -25,11 +26,12 @@ const InputField = ({
     const [imageData, setImageData] = useState(null);
 
     const handleOnChange = (e) => {
+        const value = e.target.value;
         if (type === 'file') {
-            const imageName = e.target.value;
+            const imageName = value;
             setImageData(imageName.substring(imageName.lastIndexOf('\\') + 1));
         }
-        setData(e.target.value);
+        setData(value);
         onChange(e);
     };
 
@@ -54,6 +56,8 @@ const InputField = ({
     const showInputLabel = useMemo(() => {
         return type !== 'time';
     }, [type]);
+
+    const debounceChange = debounce(handleOnChange, 200);
 
     const getField = (type) => {
         switch(type) {
