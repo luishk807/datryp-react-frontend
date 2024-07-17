@@ -3,7 +3,7 @@
 import { initialState } from "../store/storage";
 
 
-const tripReducer = (state = initialState, action) => {
+const tripReducer = (state = null, action) => {
     switch (action.type) {
         case 'BASIC_INFO':
         {

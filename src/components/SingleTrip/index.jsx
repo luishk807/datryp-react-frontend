@@ -48,7 +48,7 @@ const SingleTrip = ({
     }, [tripInfo]);
 
     const handleBudget = (data) => {
-        onSaveActivity(data);
+        return onSaveActivity(data);
     };
 
     const handleDestination = ({date, activity}) => {
@@ -69,21 +69,25 @@ const SingleTrip = ({
             const foundItem = intinerary.filter((item) => item.date === date);
             if (foundItem.length) {
                 // foundItem[0].activities.push(activity);
+                console.log("activity item", activity);
                 const { id, type, value} = activity;
                 if (type && type === 'budget') {
                     console.log('budget', activity);
                     handleBudget({id, value});
                 } else {
+                    console.log("buidget else",activity);
                     foundItem[0].activities.push(activity);
                 }
 
             } else {
+                console.log("activity item push");
                 intinerary.push({
                     date,
                     activities: [activity]
                 });    
             }
         } else {
+            console.log("activity push", activity);
             intinerary.push({
                 date,
                 activities: [activity]
