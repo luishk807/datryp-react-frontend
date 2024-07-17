@@ -7,35 +7,26 @@ import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import { convertMoney } from 'utils';
+import { REDUX_TYPE } from 'constants';
 import DialogBox from 'components/common/FormFields/DialogBox';
 
 const Activities = ({
+    onChangePlace,
+    onChangeBudget,
     activities = [],
-    onChange,
-    onSavePlace,
-    onDeletePlace,
     participants = [],
 })=> {
-    const handleDelete = (e) => {
-        console.log("delete", e);
-        onDeletePlace && onDeletePlace(e);
-    };
 
-    const handleEdit = (e) => {
-        console.log("edit", e);
-        onSavePlace && onSavePlace(e);
-    };
-
-    const handleBudgetSubmit = (id, activity) => {
-        const newActivities = JSON.parse(JSON.stringify(activities));
-        // console.log("handleBudgetSubmit activites", newActivity);
-        // console.log("handleBudgetSubmit budget", newActivity);
-        // newActivity.budget = budget;
-        // onChange(newActivity);
-        // newActivities[indx].budget = budget;
-        // onChange(newActivities);
-        onChange({id, type: 'budget', value: activity});
-    };
+    // const handleBudgetSubmit = (activity) => {
+    //     // const newActivities = JSON.parse(JSON.stringify(activities));
+    //     // console.log("handleBudgetSubmit activites", newActivity);
+    //     // console.log("handleBudgetSubmit budget", newActivity);
+    //     // newActivity.budget = budget;
+    //     // onChange(newActivity);
+    //     // newActivities[indx].budget = budget;
+    //     // onChange(newActivities);
+    //     onChange({type: 'budget', value: activity});
+    // };
 
     return (
         <>
@@ -58,7 +49,7 @@ const Activities = ({
                                                 <li><span className="location">{activity.location}</span></li>
                                                 <li><span className="label">Time:</span> {activityTime}</li>
                                                 <li><span className="label">Who is paying:</span>{activity?.people?.length}
-                                                    <AddBudget budget={activity.budget} onSubmit={(e) => handleBudgetSubmit(activity.id, {...activity, budget: e} )} participants={participants}/>
+                                                    <AddBudget budget={activity.budget} onSubmit={(e) => onChangeBudget(REDUX_TYPE.ADD, e)} participants={participants}/>
                                                 </li>
                                                 <li><span className="label">Cost:</span> {convertMoney(activity.cost)}</li>
                                             </ul>
@@ -67,14 +58,14 @@ const Activities = ({
                                         <Grid item lg={1} md={1} xs={1} className="option">
                                             <Grid container className="flex h-full">
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-start font-medium">
-                                                    <AddPlaceBtn type="edit" data={activity} buttonType="text" onChange={handleEdit}/>
+                                                    <AddPlaceBtn type="edit" data={activity} buttonType="text" onChange={(e) => onChangePlace(REDUX_TYPE.EDIT, e)}/>
                                                 </Grid>
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-end font-medium">
                                                     <DialogBox 
                                                         title="Delete this place" 
                                                         buttonLabel="Delete"
                                                         buttonType="text" 
-                                                        onConfirm={() => handleDelete(activity)}
+                                                        onConfirm={(e) => onChangePlace(REDUX_TYPE.DELETE, activity.id)}
                                                     >
                                                     You are about to delete {activity.place}.  Are you sure you want to delete this item
                                                     </DialogBox>
@@ -91,7 +82,7 @@ const Activities = ({
             <Grid item lg={12} className="content-trip">
                 <Grid container>
                     <Grid item lg={12} className="add-place-item">
-                        <AddPlaceBtn onChange={onChange} />
+                        <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
                     </Grid>
                 </Grid>
             </Grid>
@@ -101,11 +92,11 @@ const Activities = ({
 };
 
 Activities.propTypes = {
+    onChangePlace: PropTypes.func,
     onChange: PropTypes.func,
+    onChangeBudget: PropTypes.func,
     activities: PropTypes.array,
     participants: PropTypes.array,
-    onSavePlace: PropTypes.func,
-    onDeletePlace: PropTypes.func,
 };
 
 export default Activities;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import ModalButton from 'components/ModalButton';
@@ -19,7 +19,10 @@ export const AddBudget = ({
     const handleSubmit = () => {
         console.log("submit", newBudget);
         onSubmit(newBudget);
+        modalRef.current.closeModal();
     };
+
+    const modalRef = useRef();
 
     const handleOnChange = (item, e) => {
         const { value } = e.target;
@@ -52,6 +55,7 @@ export const AddBudget = ({
 
     return(
         <ModalButton
+            ref={modalRef}
             title="Travel Budget"
             buttonProps={{
                 Icon: AddCircleOutlineIcon,

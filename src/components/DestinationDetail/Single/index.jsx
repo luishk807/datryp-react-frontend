@@ -4,23 +4,22 @@ import { Grid } from '@mui/material';
 import './index.css';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
+import { REDUX_TYPE } from 'constants';
 
 const Single = ({
     trips = null,
-    onChange,
-    onSavePlace,
-    onDeletePlace,
     participants = [],
+    onChangePlace,
+    onChangeBudget,
 }) => {
     console.log(trips, 'trips single');
     return (
         trips ? (
             <Grid item lg={12} md={12} xs={12} className="content item-border">
                 <Activities 
-                    onSavePlace={onSavePlace} 
-                    onDeletePlace={onDeletePlace} 
+                    onChangePlace={onChangePlace}
                     activities={trips} 
-                    onChange={onChange}
+                    onChangeBudget={onChangeBudget}
                     participants={participants}
                 />
             </Grid>
@@ -29,18 +28,18 @@ const Single = ({
             : 
             (
                 <Grid item lg={12} md={12} xs={12} className="content item-border">
-                    <AddPlaceBtn onChange={onChange} />
+                    <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
                 </Grid>
             )
     );
 };
 
 Single.propTypes = {
+    onChangePlace: PropTypes.func,
+    onChangeBudget: PropTypes.func,
     trips: PropTypes.array,
-    onChange: PropTypes.func,
-    onSavePlace: PropTypes.func,
-    onDeletePlace: PropTypes.func,
     participants: PropTypes.array,
+
 };
 
 export default Single;

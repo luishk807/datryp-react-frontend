@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import moment from 'moment';
+import _ from 'lodash';
 import { 
     Grid,
 } from '@mui/material';
@@ -68,7 +69,7 @@ export const BasicTripInfo = ({
             </Grid>
             <Grid item lg={1} md={1} className="status">
                 <div className="label">Status&nbsp;[<ButtonIcon onClick={(e) => onChangeStep(0)} title="edit" type="text" />]:</div>
-                <div className="data">{ data.status.name }</div>
+                <div className="data">{ _.get(data, 'status.name') }</div>
             </Grid>
         </Grid>
     );

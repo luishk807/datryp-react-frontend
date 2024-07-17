@@ -47,7 +47,9 @@ const ModalButton = forwardRef(({
                         <div className="button">
                             <div className="in">
                                 <ButtonCustom 
-                                    onClick={handleClose} label='&#10005;' type="text" 
+                                    onClick={handleClose} 
+                                    label='&#10005;' 
+                                    type="text" 
                                 />
                             </div>
                         </div>

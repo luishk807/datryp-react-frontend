@@ -13,13 +13,22 @@ import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 
+import { REDUX_TYPE } from 'constants';
+
 const SingleTrip = ({
     tripInfo,
     onBasicInfo,
-    onSingleInfo,
-    onSavePlace,
-    onDeletePlace,
-    onSaveActivity
+    // onSingleInfo,
+    // onSavePlace,
+    deletePlace,
+    editPlace,
+    addPlace,
+    addBudget,
+    deleteBudget,
+    editBudget,
+    editActivity,
+    deleteActivity,
+    addActivity,
 }) => {
     console.log('tripInfo single', tripInfo);
     const handleBasicOnChange = (id, e) => {
@@ -47,8 +56,37 @@ const SingleTrip = ({
         return unique;
     }, [tripInfo]);
 
-    const handleBudget = (data) => {
-        return onSaveActivity(data);
+    const handleChangeBudget = ({date, activity}) => {
+        console.log("handle budget");
+        console.log("dat", date, " value:", activity);
+
+    };
+
+    const handleChangePlace = ({date, activity}) => {
+        console.log("handle place");
+   
+        switch(activity.type) {
+            case REDUX_TYPE.ADD: {
+                console.log("add", date, " value: ", activity);
+                addPlace({date, value: activity.value, index: activity.index});
+                break;
+            }
+            case REDUX_TYPE.EDIT: {
+                console.log("edit", date, " value: ", activity);
+
+                break;
+            }
+            case REDUX_TYPE.DELETE: {
+                console.log("delete", date, " value: ", activity);
+                deletePlace({date, value: activity.value, index: activity.index});
+                break;
+            }
+        }
+    };
+
+    const handleChangeActivity = ({date, activity}) => {
+        console.log("handle activity");
+        console.log("dat", date, " value: ", activity);
     };
 
     const handleDestination = ({date, activity}) => {
@@ -57,6 +95,7 @@ const SingleTrip = ({
         let new_destination = _.get(destination, '0') || [];
         // let destination = [...tripInfo.destinations];
 
+        const callSingleRedux = false;
         if (destination.length) {
             new_destination = destination[0];
         }
@@ -66,17 +105,22 @@ const SingleTrip = ({
         }
 
         if (intinerary.length) {
-            const foundItem = intinerary.filter((item) => item.date === date);
-            if (foundItem.length) {
-                // foundItem[0].activities.push(activity);
+            const foundItinenary = intinerary.filter((item) => item.date === date);
+            if (foundItinenary.length) {
+                // foundItinenary[0].activities.push(activity);
                 console.log("activity item", activity);
-                const { id, type, value} = activity;
+                const { type, value } = activity;
                 if (type && type === 'budget') {
-                    console.log('budget', activity);
-                    handleBudget({id, value});
+                    console.log('budget', value);
+                    // onSaveActivity && onSaveActivity({id, value});
+                    // const activities = [
+                    //     ...foundItinenary[0].activities,
+                    //     ...activity
+                    // ];
+                    // onSaveActivity && onSaveActivity(value);
                 } else {
                     console.log("buidget else",activity);
-                    foundItem[0].activities.push(activity);
+                    foundItinenary[0].activities.push(activity);
                 }
 
             } else {
@@ -95,19 +139,20 @@ const SingleTrip = ({
         }
         new_destination.itinerary = intinerary;
 
+        
         console.log("destination", destination);
-        onSingleInfo && onSingleInfo(destination);
+        //  onSingleInfo && onSingleInfo(destination);
     };
 
-    const handlePlaceSave = (e) => {
-        console.log("edit", e);
-        onSavePlace && onSavePlace(e);
-    };
+    // const handlePlaceSave = (e) => {
+    //     console.log("edit", e);
+    //     onSavePlace && onSavePlace(e);
+    // };
 
-    const handlePlaceDelete = (e) => {
-        console.log("edit", e);
-        onDeletePlace && onDeletePlace(e);
-    };
+    // const handlePlaceDelete = (e) => {
+    //     console.log("edit", e);
+    //     onDeletePlace && onDeletePlace(e);
+    // };
 
     const steps = [
         {
@@ -126,14 +171,17 @@ const SingleTrip = ({
         }, {
             label: 'Finish',
             comp: <DestinationDetail 
-                onChange={handleDestination} 
+                // onChange={handleDestination} 
                 type={tripInfo.type} 
+
                 startDate={tripInfo.startDate} 
                 participants={participants}
                 endDate={tripInfo.endDate} 
                 destinations={tripInfo.destinations} 
-                onSavePlace={handlePlaceSave} 
-                onDeletePlace={handlePlaceDelete} 
+                // onSavePlace={handlePlaceSave} 
+                // onDeletePlace={handlePlaceDelete} 
+                onChangePlace={handleChangePlace}
+                onChangeBudget={handleChangeBudget}
             />
         }
     ];
@@ -156,20 +204,35 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onBasicInfo: (value) => dispatch({ type: 'BASIC_INFO', payload: value}),
-    onSingleInfo: (value) => dispatch({ type: 'DESTINATION_SINGLE', payload: value}),
-    onSavePlace: (value) => dispatch({ type: 'ON_SAVE_PLACE', payload: value}),
-    onDeletePlace: (value) => dispatch({ type: 'ON_DELETE_PLACE', payload: value}),
-    onSaveActivity: (value) => dispatch({ type: 'ACTIVITY_SINGLE', payload: value})
+    // onSingleInfo: (value) => dispatch({ type: 'DESTINATION_SINGLE', payload: value}),
+    // onSavePlace: (value) => dispatch({ type: 'ON_SAVE_PLACE', payload: value}),
+    addPlace: (value) => dispatch({ type: 'ADD_PLACE', payload: value}),
+    editPlace: (value) => dispatch({ type: 'EDIT_PLACE', payload: value}),
+    deletePlace: (value) => dispatch({ type: 'DELETE_PLACE', payload: value}),
+    addBudget: (value) => dispatch({ type: 'ADD_BUDGET', payload: value}),
+    deleteBudget: (value) => dispatch({ type: 'DELETE_BUDGET', payload: value}),
+    editBudget: (value) => dispatch({ type: 'EDIT_BUDGET', payload: value}),
+    addActivity: (value) => dispatch({ type: 'ADD_ACTIVITY', payload: value}),
+    editActivity: (value) => dispatch({ type: 'EDIT_ACTIVITY', payload: value}),
+    deleteActivity: (value) => dispatch({ type: 'DELETE_ACTIVITY', payload: value})
+
 });
 
 
 SingleTrip.propTypes = {
     tripInfo: PropTypes.object,
     onBasicInfo: PropTypes.func,
-    onSingleInfo: PropTypes.func,
-    onSavePlace: PropTypes.func,
-    onDeletePlace: PropTypes.func,
-    onSaveActivity: PropTypes.func,
+    // onSingleInfo: PropTypes.func,
+    // onSavePlace: PropTypes.func,
+    deletePlace: PropTypes.func,
+    addPlace: PropTypes.func,
+    editPlace: PropTypes.func,
+    addBudget: PropTypes.func,
+    deleteBudget: PropTypes.func,
+    editBudget: PropTypes.func,
+    addActivity: PropTypes.func,
+    editActivity: PropTypes.func,
+    deleteActivity: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SingleTrip);

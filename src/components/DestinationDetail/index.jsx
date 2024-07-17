@@ -10,18 +10,17 @@ const DestinationDetail = ({
     type={},
     startDate = null,
     endDate = null,
-    onChange,
     participants = [],
-    onSavePlace,
-    onDeletePlace,
+    onChangeBudget,
+    onChangePlace
 }) => {
 
     console.log("destinations", destinations);
     const [dates, setDates] = useState([]);
-    const handleOnChange = (e) => {
-        console.log("getting out", e);
-        onChange && onChange(e);
-    };
+    // const handleOnChange = (e) => {
+    //     console.log("getting out", e);
+    //     onChange && onChange(e);
+    // };
     
     const getDatesRange = async() => {
         console.log(startDate, 'startdate');
@@ -66,9 +65,8 @@ const DestinationDetail = ({
                             typeId={type.id}
                             date={moment(date)}
                             destinations={destinations}
-                            onSavePlace={onSavePlace} 
-                            onDeletePlace={onDeletePlace} 
-                            onChange={(e) => handleOnChange({activity: e, date: moment(date).format('YYYY-MM-DD').toString()})}
+                            onChangeBudget={(type, value) => onChangeBudget({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})} 
+                            onChangePlace={(type, value) => onChangePlace({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
                         />
                     );
                 })
@@ -83,9 +81,8 @@ DestinationDetail.propTypes = {
     participants: PropTypes.array,
     startDate: PropTypes.string,
     endDate: PropTypes.string,
-    onChange: PropTypes.func,
-    onSavePlace: PropTypes.func,
-    onDeletePlace: PropTypes.func,
+    onChangeBudget: PropTypes.func,
+    onChangePlace: PropTypes.func,
 };
 
 export default DestinationDetail;
