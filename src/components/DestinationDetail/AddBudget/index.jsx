@@ -15,6 +15,7 @@ export const AddBudget = ({
     const [newBudget, setNewBudget] = useState([]);
 
     console.log("party involved", participants);
+    console.log("budget", budget)
     
     const handleSubmit = () => {
         console.log("submit", newBudget);
@@ -24,12 +25,13 @@ export const AddBudget = ({
 
     const modalRef = useRef();
 
-    const handleOnChange = (item, e) => {
+    const handleOnChange = (user, e) => {
         const { value } = e.target;
         let budgetList = newBudget;
 
+        console.log("item", user)
         const new_budget = {
-            ...item,
+            userId: user.id,
             ['budget']: value
         };
         let foundIndx = null;
@@ -73,7 +75,14 @@ export const AddBudget = ({
                             return (
                                 <Grid container key={indx} className="item">
                                     <Grid item lg={7} xs={7} md={7} className="label">{participant.label}</Grid>
-                                    <Grid item lg={5} xs={5} md={5} className="data"><InputField name="budget" defaultValue={foundItem ? foundItem.budget : null} onChange={(e) => handleOnChange(participant, e)} type="number" /></Grid>
+                                    <Grid item lg={5} xs={5} md={5} className="data">
+                                        <InputField 
+                                            name="budget" 
+                                            defaultValue={foundItem ? foundItem.budget : null} 
+                                            onChange={(e) => handleOnChange(participant, e)} 
+                                            type="number" 
+                                        />
+                                    </Grid>
                                 </Grid>
                             );
                         })
