@@ -122,7 +122,9 @@ const tripReducer = (state = null, action) => {
             console.log("trip", state);
             const { value, activityIndex, itineraryIndex } = action.payload;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
+            const currValue = destinations[0].itinerary[itineraryIndex].activities[activityIndex];
             destinations[0].itinerary[itineraryIndex].activities[activityIndex] = {
+                ...currValue,
                 ...value
             };
 
