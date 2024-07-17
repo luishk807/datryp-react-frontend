@@ -46,8 +46,21 @@ const tripReducer = (state = null, action) => {
         case 'ADD_BUDGET':
         {
             console.log("add budget", action.payload);
+            console.log("trip", state);
+            const destinations = JSON.parse(JSON.stringify(state.destinations));
+            
+            const { value, itineraryId, activityIndex} = action.payload;
+            console.log("apend budget");
+            const newBudget = value.map(item => ({
+                ...item,
+                id:  lastBudgetId++
+            }));
+            destinations[0].itinerary[itineraryId].activities[activityIndex].budget =newBudget;
+
+
             return {
                 ...state,
+                destinations: destinations
             };
         }
         case 'ADD_ACTIVITY':
@@ -107,15 +120,15 @@ const tripReducer = (state = null, action) => {
         {
             console.log("edit place", action.payload);
             console.log("trip", state);
-            const { value, index } = action.payload;
+            const { value, activityIndex, itineraryIndex } = action.payload;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
-            destinations[0].itinerary[index].activities[index] = {
+            destinations[0].itinerary[itineraryIndex].activities[activityIndex] = {
                 ...value
             };
 
             return {
                 ...state,
-                // destinations: destinations
+                destinations: destinations
             };
         }
         case 'DELETE_PLACE':

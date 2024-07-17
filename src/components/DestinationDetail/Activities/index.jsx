@@ -17,23 +17,14 @@ const Activities = ({
     participants = [],
 })=> {
 
-    // const handleBudgetSubmit = (activity) => {
-    //     // const newActivities = JSON.parse(JSON.stringify(activities));
-    //     // console.log("handleBudgetSubmit activites", newActivity);
-    //     // console.log("handleBudgetSubmit budget", newActivity);
-    //     // newActivity.budget = budget;
-    //     // onChange(newActivity);
-    //     // newActivities[indx].budget = budget;
-    //     // onChange(newActivities);
-    //     onChange({type: 'budget', value: activity});
-    // };
-
     return (
         <>
 
             {
                 activities && activities.map((activity, indx) => {
                     const activityTime = `${moment(activity.startTime, 'HH:mm').format('LT').toString()} - ${moment(activity.endTime, 'HH:mm').format('LT').toString()}`;
+
+                    const budgetList = activity.budget && activity.budget.length ? activity.budget.map(item => `${item.label} (${convertMoney(item.budget)})`).join(", ") : '';
                     return (
                         <Grid key={`activity-${indx}`} item lg={12} md={12} xs={12} className="activity-content-trip border-trip">
                             <Grid container>
@@ -48,8 +39,8 @@ const Activities = ({
                                             <ul>
                                                 <li><span className="location">{activity.location}</span></li>
                                                 <li><span className="label">Time:</span> {activityTime}</li>
-                                                <li><span className="label">Who is paying:</span>{activity?.people?.length}
-                                                    <AddBudget budget={activity.budget} onSubmit={(e) => onChangeBudget(REDUX_TYPE.ADD, e)} participants={participants}/>
+                                                <li><span className="label">Who is paying:</span>{` ${budgetList}`}
+                                                    <AddBudget budget={activity.budget} onSubmit={(e) => onChangeBudget(REDUX_TYPE.ADD, { index: indx, value: e})} participants={participants}/>
                                                 </li>
                                                 <li><span className="label">Cost:</span> {convertMoney(activity.cost)}</li>
                                             </ul>
@@ -58,7 +49,7 @@ const Activities = ({
                                         <Grid item lg={1} md={1} xs={1} className="option">
                                             <Grid container className="flex h-full">
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-start font-medium">
-                                                    <AddPlaceBtn type="edit" data={activity} buttonType="text" onChange={(e) => onChangePlace(REDUX_TYPE.EDIT, e)}/>
+                                                    <AddPlaceBtn type="edit" data={activity} buttonType="text" onChange={(e) => onChangePlace(REDUX_TYPE.EDIT, { index: indx, value: e} )}/>
                                                 </Grid>
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-end font-medium">
                                                     <DialogBox 

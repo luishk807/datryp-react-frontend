@@ -4,14 +4,14 @@ import { saveState, loadState} from './storage';
 
 const loadSaveState = loadState();
 
-// const store = configureStore({
-//     reducer: tripReducer,
-//     preloadedState: {...loadSaveState}
-// });
-
 const store = configureStore({
-    reducer: tripReducer
+    reducer: tripReducer,
+    preloadedState: {...loadSaveState}
 });
+
+// const store = configureStore({
+//     reducer: tripReducer
+// });
 
 store.subscribe(() => {
     saveState(store.getState());
