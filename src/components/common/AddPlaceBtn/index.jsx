@@ -79,7 +79,7 @@ const AddPlaceBtn = ({
             'add-place-container-standard': buttonType === 'standard',
             'add-place-container-simple': buttonType === 'text'
         })}>
-            <Grid item>
+            <Grid item lg={12} md={12} xs={12}>
                 <ModalButton 
                     ref={modelRef}
                     title={isAdd ? 'Add Place' : 'Edit ' + data.place}
@@ -89,36 +89,41 @@ const AddPlaceBtn = ({
                         type: buttonType
                     }}>
                     <Grid container>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField defaultValue={place?.place} label="Name of Place" name="place" onChange={(e) => handleOnChange('place', e.target.value)}/>
+                        <Grid item lg={12} md={12} xs={12} id="add-place-form-container">
+                            <Grid container>
+                                <Grid item lg={12} xs={12} className="py-5">
+                                    <InputField defaultValue={place?.place} label="Name of Place" name="place" onChange={(e) => handleOnChange('place', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={12} xs={12} className="py-5">
+                                    <InputField defaultValue={place?.location} name="location" onChange={(e) => handleOnChange('location', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={12} xs={12} className="py-5">
+                                    <InputField defaultValue={place?.cost} name="cost" onChange={(e) => handleOnChange('cost', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={6} xs={12} className="py-5">
+                                    <InputField defaultValue={place?.startTime} name="startTime" type="time" label="Start Time" onChange={(e) => handleOnChange('startTime', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
+                                    <InputField defaultValue={place?.endTime} name="endTime" type="time" label="End Time" onChange={(e) => handleOnChange('endTime', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={12} xs={12} className="py-5">
+                                    <InputField defaultValue={place?.note} name="note" onChange={(e) => handleOnChange('note', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={12} xs={12} className="py-5">
+                                    <InputField defaultValue={place?.file} type="file" label="image" name="image" onChange={(e) => handleOnChange('image', e.target.value)}/>
+                                </Grid>
+                                <Grid item lg={12} xs={12} className="py-5">
+                                    <DropdownCustom 
+                                        defaultValue={initilStatus}
+                                        label="Status" 
+                                        options={placeStatus} 
+                                        onChange={(e) => handleOnChange('status', e)}
+                                    />
+                                </Grid>
+
+                            </Grid>
                         </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField defaultValue={place?.location} name="location" onChange={(e) => handleOnChange('location', e.target.value)}/>
-                        </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField defaultValue={place?.cost} name="cost" onChange={(e) => handleOnChange('cost', e.target.value)}/>
-                        </Grid>
-                        <Grid item lg={6} xs={12} className="py-5">
-                            <InputField defaultValue={place?.startTime} name="startTime" type="time" label="Start Time" onChange={(e) => handleOnChange('startTime', e.target.value)}/>
-                        </Grid>
-                        <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                            <InputField defaultValue={place?.endTime} name="endTime" type="time" label="End Time" onChange={(e) => handleOnChange('endTime', e.target.value)}/>
-                        </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField defaultValue={place?.note} name="note" onChange={(e) => handleOnChange('note', e.target.value)}/>
-                        </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField defaultValue={place?.file} type="file" label="image" name="image" onChange={(e) => handleOnChange('image', e.target.value)}/>
-                        </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <DropdownCustom 
-                                defaultValue={initilStatus}
-                                label="Status" 
-                                options={placeStatus} 
-                                onChange={(e) => handleOnChange('status', e)}
-                            />
-                        </Grid>
-                        <Grid item lg={12}>
+                        <Grid item lg={12} md={12} xs={12}>
                             <ButtonCustom 
                                 onClick={handleSubmit} 
                                 label={isAdd ? 'Add Place' : 'Save Place'} 
