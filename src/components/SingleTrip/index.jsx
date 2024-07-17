@@ -18,7 +18,8 @@ const SingleTrip = ({
     onBasicInfo,
     onSingleInfo,
     onSavePlace,
-    onDeletePlace
+    onDeletePlace,
+    onSaveActivity
 }) => {
     console.log('tripInfo single', tripInfo);
     const handleBasicOnChange = (id, e) => {
@@ -46,6 +47,10 @@ const SingleTrip = ({
         return unique;
     }, [tripInfo]);
 
+    const handleBudget = (data) => {
+        onSaveActivity(data);
+    };
+
     const handleDestination = ({date, activity}) => {
         const destination = JSON.parse(JSON.stringify(tripInfo.destinations));
         let intinerary = _.get(destination, '0.itinerary') || [];
@@ -63,7 +68,15 @@ const SingleTrip = ({
         if (intinerary.length) {
             const foundItem = intinerary.filter((item) => item.date === date);
             if (foundItem.length) {
-                foundItem[0].activities.push(activity);
+                // foundItem[0].activities.push(activity);
+                const { id, type, value} = activity;
+                if (type && type === 'budget') {
+                    console.log('budget', activity);
+                    handleBudget({id, value});
+                } else {
+                    foundItem[0].activities.push(activity);
+                }
+
             } else {
                 intinerary.push({
                     date,
@@ -142,6 +155,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSingleInfo: (value) => dispatch({ type: 'DESTINATION_SINGLE', payload: value}),
     onSavePlace: (value) => dispatch({ type: 'ON_SAVE_PLACE', payload: value}),
     onDeletePlace: (value) => dispatch({ type: 'ON_DELETE_PLACE', payload: value}),
+    onSaveActivity: (value) => dispatch({ type: 'ACTIVITY_SINGLE', payload: value})
 });
 
 
@@ -151,6 +165,7 @@ SingleTrip.propTypes = {
     onSingleInfo: PropTypes.func,
     onSavePlace: PropTypes.func,
     onDeletePlace: PropTypes.func,
+    onSaveActivity: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(SingleTrip);

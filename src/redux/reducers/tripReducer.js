@@ -2,6 +2,7 @@
 
 import { initialState } from "../store/storage";
 
+
 const tripReducer = (state = initialState, action) => {
     switch (action.type) {
         case 'BASIC_INFO':
@@ -18,6 +19,35 @@ const tripReducer = (state = initialState, action) => {
             return {
                 ...state,
                 destinations: action.payload
+            };
+        }
+        case 'ACTIVITY_SINGLE':
+        {
+            console.log("budget redux", action.payload);
+            const { id, value} = action.payload;
+            let currState = JSON.parse(JSON.stringify(state));
+
+            const destinations = currState.destinations;
+            
+            for(let i = 0; i < destinations.length; i++) {
+                const itinerary = destinations[i].itinerary;
+                for(let x = 0; x < itinerary.length; x++) {
+                    const activity = itinerary[x].activities;
+                    for(let y = 0; y < activity.length; y++) {
+                        let curActivity = activity[y];
+                        if (curActivity.id === value.id) {
+                            currState.destinations[i].itinerary[x].activities[y] = value;
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+            console.log("finised",currState);
+            return {
+                ...state,
+                ...currState
             };
         }
         case 'ON_SAVE_PLACE':
