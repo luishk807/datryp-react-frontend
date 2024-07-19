@@ -233,7 +233,7 @@ const tripReducer = (state = null, action) => {
 
         }
         case 'RESET_STATE': {
-            return {};
+            return null;
         }
         default: {
             return state;

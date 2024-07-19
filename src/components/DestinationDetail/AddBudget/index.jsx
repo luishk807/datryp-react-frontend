@@ -15,7 +15,7 @@ export const AddBudget = ({
     const [newBudget, setNewBudget] = useState([]);
 
     console.log("party involved", participants);
-    console.log("budget", budget)
+    console.log("budget", budget);
     
     const handleSubmit = () => {
         console.log("submit", newBudget);
@@ -29,9 +29,9 @@ export const AddBudget = ({
         const { value } = e.target;
         let budgetList = newBudget;
 
-        console.log("item", user)
+        console.log("item", user);
         const new_budget = {
-            userId: user.id,
+            user: user,
             ['budget']: value
         };
         let foundIndx = null;
@@ -40,7 +40,7 @@ export const AddBudget = ({
             budgetList.push(new_budget);
         } else {
             for(let i = 0; i < budgetList.length; i++) {
-                if (budgetList[i] && (budgetList[i].id === new_budget.id)) {
+                if (budgetList[i] && (budgetList[i].user.id === new_budget.user.id)) {
                     foundIndx = i;
                     budgetList[i].budget = value;
                     break;
@@ -71,7 +71,7 @@ export const AddBudget = ({
                 <Grid item lg={12} xs={12} md={12} className="items">
                     {
                         participants && participants.map((participant, indx) => {
-                            const foundItem = budget.length ? budget.filter(item => item.id === participant.id)[0] : null;
+                            const foundItem = budget.length ? budget.filter(item => item.user.id === participant.id)[0] : null;
                             return (
                                 <Grid container key={indx} className="item">
                                     <Grid item lg={7} xs={7} md={7} className="label">{participant.label}</Grid>

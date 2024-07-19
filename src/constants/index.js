@@ -5,3 +5,17 @@ export const REDUX_TYPE = {
     DELETE: 'delete',
     EDIT: 'edit'
 };
+
+export const TRIP_STEPS = {
+    1: {
+        BASIC: 0,
+        FRIEND: 1,
+        FINISH: 2
+    },
+    2: {
+        BASIC: 0,
+        FRIEND: 1,
+        FINISH: 2
+    }
+
+};

@@ -24,7 +24,7 @@ const Activities = ({
                 activities && activities.map((activity, indx) => {
                     const activityTime = `${moment(activity.startTime, 'HH:mm').format('LT').toString()} - ${moment(activity.endTime, 'HH:mm').format('LT').toString()}`;
 
-                    const budgetList = activity.budget && activity.budget.length ? activity.budget.map(item => `${item.label} (${convertMoney(item.budget)})`).join(", ") : '';
+                    const budgetList = activity.budget && activity.budget.length ? activity.budget.map(item => `${item.user.label} (${convertMoney(item.budget)})`).join(", ") : '';
                     return (
                         <Grid key={`activity-${indx}`} item lg={12} md={12} xs={12} className="activity-content-trip border-trip">
                             <Grid container>

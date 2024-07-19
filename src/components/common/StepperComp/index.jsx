@@ -6,10 +6,15 @@ import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
 import BasicTripInfo from 'components/BasicTripInfo';
+import { TRIP_STEPS } from 'constants';
+import { connect } from 'react-redux';
+import _ from 'lodash';
 
 const StepperComp = ({
     steps = null,
     data = null,
+    tripInfo,
+    resetTrip
 }) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState(new Set());
@@ -25,7 +30,19 @@ const StepperComp = ({
             newSkipped = new Set(newSkipped.values());
             newSkipped.delete(activeStep);
         } 
+
+        const trip_type = _.get(tripInfo, 'type.id');
+
+        if (trip_type) {
+            if(activeStep === TRIP_STEPS[tripInfo.type.id].FINISH) {
+                console.log("send data to backend", tripInfo);
+                //resetTrip && resetTrip()
+            }
+        }
+
+
         console.log("active step", activeStep + 1);
+
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
         setSkipped(newSkipped);
     };
@@ -127,9 +144,21 @@ const StepperComp = ({
     );
 };
 
-StepperComp.propTypes = {
-    steps: PropTypes.array,
-    data: PropTypes.object
+const mapStateToProps = (state) => ({ tripInfo: state });
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        resetTrip: (value) => {
+            dispatch({ type: 'RESET_STATE', payload: value});
+        }
+    };
 };
 
-export default StepperComp;
+StepperComp.propTypes = {
+    steps: PropTypes.array,
+    data: PropTypes.object,
+    tripInfo: PropTypes.object,
+    resetTrip: PropTypes.func,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(StepperComp);
