@@ -31,11 +31,12 @@ const StepperComp = ({
             newSkipped.delete(activeStep);
         } 
 
-        const trip_type = _.get(tripInfo, 'type.id');
+        const trip_type = _.get(tripInfo, 'type');
 
         if (trip_type) {
-            if(activeStep === TRIP_STEPS[tripInfo.type.id].FINISH) {
-                console.log("send data to backend", tripInfo);
+            const tripName = trip_type.name;
+            if(activeStep === TRIP_STEPS[trip_type.id].FINISH) {
+                console.log(`send ${tripName} trip data to backend`, tripInfo);
                 //resetTrip && resetTrip()
             }
         }
