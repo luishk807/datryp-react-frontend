@@ -15,6 +15,14 @@
     text-transform: uppercase;
     color: theme('colors.primaryGreen');
 }
+
+.basic-trip-info .title .type{
+  color: black;
+  font-size: 0.7em;
+  align-items: center;
+  vertical-align: middle;
+}
+
 .basic-trip-info .name .data {
   font-size: 1.2em;
     font-weight: 400;

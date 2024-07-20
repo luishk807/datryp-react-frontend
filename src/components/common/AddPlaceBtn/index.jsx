@@ -9,16 +9,20 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import DropdownCustom from 'components/common/FormFields/DropDown';
 import { placeStatus } from 'sample';
 import classNames from 'classnames';
+import { TRIP_BASIC } from 'constants';
 import './index.css';
 
 const AddPlaceBtn = ({
     onChange,
     type = 'add',
     data=null,
+    tripTypeId,
     buttonType = 'standard'
 }) => {
     const modelRef = useRef();
 
+
+    console.log("trip tpe id", tripTypeId);
     const initilStatus = useMemo(() => {
         const selected = data ? data.status?.id : 3;
         return placeStatus.filter(item => item.id === selected)[0];
@@ -123,7 +127,9 @@ const AddPlaceBtn = ({
 
                             </Grid>
                         </Grid>
-                        <Grid item lg={12} md={12} xs={12}>
+                        <Grid item lg={12} md={12} xs={12} className={classNames({
+                            'place-left': tripTypeId === TRIP_BASIC.MULTIPLE.id
+                        })} >
                             <ButtonCustom 
                                 onClick={handleSubmit} 
                                 label={isAdd ? 'Add Place' : 'Save Place'} 
@@ -141,6 +147,7 @@ const AddPlaceBtn = ({
 AddPlaceBtn.propTypes = {
     data: PropTypes.object,
     onChange: PropTypes.func,
+    tripTypeId: PropTypes.number,
     type: PropTypes.oneOf(['add', 'edit']),
     buttonType: PropTypes.oneOf(['text', 'standard'])
 };

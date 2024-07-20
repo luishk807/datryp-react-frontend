@@ -28,11 +28,17 @@ const TripItemBlock = ({
             const intinerary = _.get(destinations, '0.itinerary');
             destinationDate = intinerary ? intinerary.filter(item => moment(dateItem).isSame(moment(item.date))) : [];
         } else {
-            destinationDate = destinations.filter(item => item.date === dateItem);
+            destinationDate = destinations.length ? destinations.filter(item => moment(dateItem).isSame(moment(item.date))) : [];
+
+            console.log("destinationDate", destinationDate);
         }
-    
-        const trips = destinationDate.length ? !isSingle ? destinationDate[0].itinerary
-            : destinationDate[0].activities : null;
+
+        let trips = null;
+
+        if (destinationDate.length) {
+            trips = !isSingle ? destinationDate
+                : destinationDate[0].activities;
+        }
 
         console.log("trips", trips);
         
@@ -54,9 +60,9 @@ const TripItemBlock = ({
     };
 
     return (
-        <Grid item key={`destination-${index}`} lg={12} className="date-block">
+        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12}className="date-block">
             <Grid container>
-                <Grid item lg={12} className="header">
+                <Grid item lg={12} md={12} xs={12} className="header">
                     <Grid container>
                         <Grid item className="icon">
                             <span className="dot"></span>
@@ -66,9 +72,15 @@ const TripItemBlock = ({
                         </Grid>
                     </Grid>
                 </Grid>
-                {
-                    getDestinationData(date)
-                }                       
+                <Grid item lg={12} md={12} xs={12} className='content item-border'>
+                    <Grid container>
+                        {
+                            getDestinationData(date)
+                        }  
+                    </Grid>
+ 
+                </Grid>
+                    
             </Grid>
         </Grid>
     );

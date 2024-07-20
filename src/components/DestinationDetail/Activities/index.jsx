@@ -15,6 +15,7 @@ const Activities = ({
     onChangeBudget,
     activities = [],
     participants = [],
+    tripTypeId
 })=> {
 
     return (
@@ -49,7 +50,7 @@ const Activities = ({
                                         <Grid item lg={1} md={1} xs={1} className="option">
                                             <Grid container className="flex h-full">
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-start font-medium">
-                                                    <AddPlaceBtn type="edit" data={activity} buttonType="text" onChange={(e) => onChangePlace(REDUX_TYPE.EDIT, { index: indx, value: e} )}/>
+                                                    <AddPlaceBtn tripTypeId={tripTypeId} type="edit" data={activity} buttonType="text" onChange={(e) => onChangePlace(REDUX_TYPE.EDIT, { index: indx, value: e} )}/>
                                                 </Grid>
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-end font-medium">
                                                     <DialogBox 
@@ -73,7 +74,7 @@ const Activities = ({
             <Grid item lg={12} className="content-trip">
                 <Grid container>
                     <Grid item lg={12} className="add-place-item">
-                        <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
+                        <AddPlaceBtn tripTypeId={tripTypeId} onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
                     </Grid>
                 </Grid>
             </Grid>
@@ -88,6 +89,7 @@ Activities.propTypes = {
     onChangeBudget: PropTypes.func,
     activities: PropTypes.array,
     participants: PropTypes.array,
+    tripTypeId: PropTypes.number,
 };
 
 export default Activities;

@@ -11,3 +11,8 @@
   max-height: 700px;
   overflow-y: auto;
 }
+
+#add-place-form-container .place-left {
+  justify-content: end;
+  display: flex;
+}

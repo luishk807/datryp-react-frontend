@@ -84,6 +84,59 @@ const tripReducer = (state = null, action) => {
                 ...state,
             };
         }
+        case 'ADD_DESTINATION':
+        {
+            console.log("add destination", action.payload);
+            console.log("trip", state);
+            const destinations = JSON.parse(JSON.stringify(state.destinations));
+            
+            const { value, index } = action.payload;
+            // if (destinations.length) {
+            //     console.log("apend activities");
+            //     destinations[0].itinerary[index].activities.push({
+            //         ...value,
+            //         id: lastPlaceId++
+            //     });
+            // } else {
+            //     destinations[0].itinerary = [
+            //         {
+            //             id: ++lastDateId,
+            //             date: action.payload.date,
+            //             activities: [{
+            //                 ...action.payload.value,
+            //                 id: lastPlaceId++
+            //             }]
+            //         }
+            //     ];
+            // }
+
+            destinations.push({
+                ...value,
+                date: action.payload.date,
+                id: lastDestinationId++
+            });
+
+            console.log("destinations", destinations);
+          
+            return {
+                ...state,
+                destinations: destinations
+            };
+        }
+        case 'EDIT_DESTINATION':
+        {
+            console.log("edit destination", action.payload);
+            return {
+                ...state,
+            };
+        }
+        case 'DELETE_DESTINATION':
+        {
+            console.log("remvoe destination", action.payload);
+            return {
+                ...state,
+            };
+        }
         case 'ADD_PLACE':
         {
             console.log("add place", action.payload);

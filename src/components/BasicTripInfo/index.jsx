@@ -29,7 +29,7 @@ export const BasicTripInfo = ({
             <Grid item lg={11} md={11}>
                 <Grid container>
                     <Grid item lg={12} md={12} xs={12} className="item title">
-                        <div className="data">Trip Information</div>
+                        <div className="data">Trip Information <span className='type'>(MULTIPLE)</span></div>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="item name">
                         <div className="label">Name for trip:</div>

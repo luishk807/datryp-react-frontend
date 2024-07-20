@@ -15,22 +15,16 @@ const Single = ({
     console.log(trips, 'trips single');
     return (
         trips ? (
-            <Grid item lg={12} md={12} xs={12} className="content item-border">
-                <Activities 
-                    onChangePlace={onChangePlace}
-                    activities={trips} 
-                    onChangeBudget={onChangeBudget}
-                    participants={participants}
-                />
-            </Grid>
+            <Activities 
+                onChangePlace={onChangePlace}
+                activities={trips} 
+                onChangeBudget={onChangeBudget}
+                participants={participants}
+            />
 
+        ) : (
+            <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
         )
-            : 
-            (
-                <Grid item lg={12} md={12} xs={12} className="content item-border">
-                    <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
-                </Grid>
-            )
     );
 };
 

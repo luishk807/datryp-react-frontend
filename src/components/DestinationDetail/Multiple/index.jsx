@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
 import Activities from '../../DestinationDetail/Activities';
 import AddDestinationBtn from '../../common/AddDestination';
+import { REDUX_TYPE, TRIP_BASIC } from 'constants';
+import _ from 'lodash';
 
 const Multiple = ({
     trips = [],
@@ -16,34 +18,44 @@ const Multiple = ({
         console.log("on click", e);
     };
 
-    return (
-        trips ? trips.map((trip, indx) => (
-            <Grid key={`trip-${indx}`} item lg={12} md={12} xs={12} className="content">
-                <Grid container>
-                    <Grid item lg={6} md={6} className="content-header">
-                        <span className="title">Destination:</span> {trip.name}
+    console.log("multiple destination", trips);
+    return <>
+        {
+            trips && trips.map((trip, indx) => {
+                const flightInfo = _.get(trip, 'flightInfo');
+                const country = _.get(trip, 'country.name');
+                return (
+                    <Grid key={`trip-${indx}`} item lg={12} md={12} xs={12} className="multrip-content-item">
+                        <Grid container>
+                            <Grid item lg={6} md={6} className="content-header">
+                                <span className="title">Destination:</span>&nbsp; &nbsp;{country}
+                            </Grid>
+                            <Grid item lg={6} md={6} xs={12} className="flex justify-end justify-font-medium">
+                                <span>Edit</span> / 
+                                <span>Remove</span>
+                            </Grid>
+                            <Grid item lg={12} md={12} xs={12} className="content-info"> 
+                                <span className="title">Depart</span>: {flightInfo.departAirport} / {flightInfo.departFlight} - {flightInfo.departTime} - 
+                                <span className="title">Arrive:</span> {flightInfo.arrivalAirport} / {flightInfo.arrivalFlight} - {flightInfo.arrivalTime}
+                            </Grid>
+                            <Grid item lg={12} md={12} xs={12} className="activity-button">
+                                <Activities tripTypeId={TRIP_BASIC.MULTIPLE.id} activities={trip.activities} />
+                            </Grid>
+
+                        </Grid>
                     </Grid>
-                    <Grid item lg={6} md={6} xs={12} className="flex justify-font-medium">
-                        <span>Edit</span> / 
-                        <span>Remove</span>
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="content-info"> 
-                        <span className="title">Depart</span>: {trip.departAirport} / {trip.departFlight} - {trip.departTime} - 
-                        <span className="title">Arrive:</span> {trip.arrivalAirport} / {trip.arrivalFlight} - {trip.arrivalTime}
-                    </Grid>
-                    <Activities activities={trip.activities} />
+                );
+            }) 
+        }
+               
+        <Grid item lg={12} md={12} xs={12} className="multrip-content add-destination-button">
+            <Grid container>
+                <Grid item>
+                    <AddDestinationBtn onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} />
                 </Grid>
             </Grid>
-        )) : (
-            <Grid item lg={12} md={12} xs={12} className="content item-border">
-                <Grid container>
-                    <Grid item>
-                        <AddDestinationBtn onChange={handleOnClick} />
-                    </Grid>
-                </Grid>
-            </Grid>
-        )
-    );
+        </Grid>
+    </>;
 };
 
 Multiple.propTypes = {

@@ -27,6 +27,9 @@ const MultriTrip = ({
     editActivity,
     deleteActivity,
     addActivity,
+    addDestination,
+    editDestination,
+    deleteDestination
 }) => {
     console.log('tripInfo multrip', tripInfo);
     const handleBasicOnChange = (id, e) => {
@@ -106,8 +109,28 @@ const MultriTrip = ({
         }
     };
 
-    const handleChangeDestination = () => {
+    const handleChangeDestination = ({date, activity}) => {
         console.log("handle change destination");
+        console.log("dat", date, " value:", activity);
+        switch(activity.type) {
+            case REDUX_TYPE.ADD: {
+                console.log("add", date, " value: ", activity);
+                addDestination({
+                    date, 
+                    value: activity.value, 
+                    index: activity.index
+                });
+                break;
+            }
+            case REDUX_TYPE.EDIT: {
+                console.log("edit", date, " value: ", activity);
+                break;
+            }
+            case REDUX_TYPE.DELETE: {
+                console.log("delete", date, " value: ", activity);
+                break;
+            }
+        }
     };
 
     const steps = [
@@ -165,7 +188,10 @@ const mapDispatchToProps = (dispatch) => ({
     editBudget: (value) => dispatch({ type: 'EDIT_BUDGET', payload: value}),
     addActivity: (value) => dispatch({ type: 'ADD_ACTIVITY', payload: value}),
     editActivity: (value) => dispatch({ type: 'EDIT_ACTIVITY', payload: value}),
-    deleteActivity: (value) => dispatch({ type: 'DELETE_ACTIVITY', payload: value})
+    deleteActivity: (value) => dispatch({ type: 'DELETE_ACTIVITY', payload: value}),
+    addDestination: (value) => dispatch({ type: 'ADD_DESTINATION', payload: value}),
+    editDestination: (value) => dispatch({ type: 'EDIT_DESTINATION', payload: value}),
+    deleteDestination: (value) => dispatch({ type: 'DELETE_DESTINATION', payload: value})
 
 });
 
@@ -182,6 +208,9 @@ MultriTrip.propTypes = {
     addActivity: PropTypes.func,
     editActivity: PropTypes.func,
     deleteActivity: PropTypes.func,
+    addDestination: PropTypes.func,
+    editDestination: PropTypes.func,
+    deleteDestination: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MultriTrip);
