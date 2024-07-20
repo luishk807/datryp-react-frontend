@@ -6,7 +6,6 @@ import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
 import BasicTripInfo from 'components/BasicTripInfo';
-import { TRIP_STEPS } from 'constants';
 import { connect } from 'react-redux';
 import _ from 'lodash';
 
@@ -31,12 +30,12 @@ const StepperComp = ({
             newSkipped.delete(activeStep);
         } 
 
-        const trip_type = _.get(tripInfo, 'type');
+        const tripType = _.get(tripInfo, 'type');
 
-        if (trip_type) {
-            const tripName = trip_type.name;
-            if(activeStep === TRIP_STEPS[trip_type.id].FINISH) {
-                console.log(`send ${tripName} trip data to backend`, tripInfo);
+        if (tripType) {
+            const { name, steps } = tripType;
+            if(activeStep === steps.FINISHED) {
+                console.log(`send ${name} trip data to backend`, tripInfo);
                 //resetTrip && resetTrip()
             }
         }

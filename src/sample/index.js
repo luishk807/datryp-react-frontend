@@ -28,18 +28,18 @@ export const placeStatus = [
     }
 ];
 
-export const tripType = {
-    single: {
-        id: 1,
-        name: 'Single',
-        route: '/single'
-    },
-    multiple: {
-        id: 2,
-        name: 'Multiple',
-        route: '/multiple'
-    }
-};
+// export const tripType = {
+//     single: {
+//         id: 1,
+//         name: 'Single',
+//         route: '/single'
+//     },
+//     multiple: {
+//         id: 2,
+//         name: 'Multiple',
+//         route: '/multiple'
+//     }
+// };
 
 export const friends = [
     {

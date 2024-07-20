@@ -8,7 +8,8 @@ import { connect } from 'react-redux';
 // import Autocomplete from '@mui/material/Autocomplete';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
-import { tripType } from 'sample';
+// import { tripType } from 'sample';
+import { TRIP_BASIC } from 'constants';
 
 const Home = ({
     onBasicInfo,
@@ -16,6 +17,7 @@ const Home = ({
 }) => {
     const [singleSelected, setSingleSelected] = useState(true);
     const navigate = useNavigate();
+
     const handleClick = (e) => {
         console.log(e);
         setSingleSelected(e);
@@ -25,17 +27,16 @@ const Home = ({
         console.log(searchData, 'searchData');
         console.log("tripInfo", tripInfo);
 
-        const type = singleSelected ? 'single' : 'multiple';
+        const type = singleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
         onBasicInfo && onBasicInfo({
-            type: tripType[type],
+            type,
             destinations: [
                 {
                     country: searchData
                 }
             ]
         });
-        navigate(tripType[type].route, {replace: true});
-        
+        navigate(type.route, {replace: true});
     };
     return (
         <Layout>

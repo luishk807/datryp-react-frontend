@@ -6,16 +6,25 @@ export const REDUX_TYPE = {
     EDIT: 'edit'
 };
 
-export const TRIP_STEPS = {
-    1: {
-        BASIC: 0,
-        FRIEND: 1,
-        FINISH: 2
+export const TRIP_BASIC = {
+    SINGLE: {
+        id: 1,
+        name: 'Single',
+        route: '/single',
+        steps: {
+            BASIC: 0,
+            FRIEND: 1,
+            FINISH: 2
+        }
     },
-    2: {
-        BASIC: 0,
-        FRIEND: 1,
-        FINISH: 2
+    MULTIPLE: {
+        id: 2,
+        name: 'Multiple',
+        route: '/multiple',
+        steps: {
+            BASIC: 0,
+            FRIEND: 1,
+            FINISH: 2
+        }
     }
-
 };
