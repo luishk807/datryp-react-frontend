@@ -7,6 +7,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import SearchBar from 'components/SearchBar';
 
 const AddDestinationBtn = ({
     onChange
@@ -48,6 +49,10 @@ const AddDestinationBtn = ({
         console.log("sending", destination);
         onChange && onChange(destination);
     };
+
+    const handleSelectedDestinationSearch = (e) => {
+        console.log("destination", e);
+    };
     return (
         <Grid container>
             <Grid item>
@@ -59,7 +64,8 @@ const AddDestinationBtn = ({
                     }}>
                     <Grid container>
                         <Grid item lg={12} xs={12} className="py-5">
-                            <InputField label="Name of Place" name="place" onChange={(e) => handleOnChange('place', e.target.value)}/>
+                            {/* <InputField label="Name of Place" name="place" onChange={(e) => handleOnChange('place', e.target.value)}/> */}
+                            <SearchBar type="simple" onSelected={handleSelectedDestinationSearch} />
                         </Grid>
                         <Grid item lg={6} xs={12} className="py-5">
                             <InputField label="Who is going" name="friends" onChange={(e) => handleOnChange('friends', e.target.value)}/>

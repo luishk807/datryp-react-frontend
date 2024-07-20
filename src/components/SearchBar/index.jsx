@@ -6,15 +6,20 @@ import { debounce} from 'lodash';
 // import { top100Films } from 'sample/movielist';
 import countryList from 'sample/countryList';
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
+import InputField from 'components/common/FormFields/InputField';
+import classNames from 'classnames';
 
 const SearchBar = ({
     onSelected,
-    className = "justify-center"
+    className = "justify-center",
+    type="standard"
 }) => {
     const inputRef = useRef();
     const [countriesFound, setCountriesFound] = useState([]);
+    const [selectedDestination, setSelectedDestination] = useState('');
 
     const handleButtonClick = (e) => {
+        setSelectedDestination(e.label);
         inputRef.current.value = e.label;
         setCountriesFound([]);
         onSelected && onSelected({
@@ -58,28 +63,56 @@ const SearchBar = ({
     return (
         <ClickAwayListener onClickAway={handleClickAway}>
             <Grid container className={`searchbarMain flex w-full ${className}`}>
-                <Grid item lg={8} md={12} xs={12} className="holder">
-                    <Grid container className="container">
+                <Grid item lg={ type === 'standard' ? 10 : 12} md={12} xs={12} className="holder">
+                    <Grid container className={classNames({
+                        'container': type === 'standard',
+                        'container-simple': type === 'simple'
+                    })}>
+                        {
+                            type == "standard" ? (
+                                <>
+                                    <Grid item lg={10} md={10} className="inputHolder">
+                                        <input 
+                                            onChange={debounceChange} 
+                                            ref={inputRef} 
+                                            className="inputBar" 
+                                            type='text' 
+                                            placeholder="Search Country for trip" 
+                                        />
+                                    </Grid>
+                                    <Grid item lg={2} className="buttonContainer">
+                                        <button className="button" onClick={debounceClick}>CREATE</button>
+                                    </Grid>
+                                </>
+                            ) :(
+                                <Grid item lg={12} md={12}>
+                                    <InputField 
+                                        ref={inputRef} 
+                                        defaultValue={selectedDestination}
+                                        label="Search Destination" 
+                                        onChange={debounceChange}
+                                    />
+                                </Grid>
+                            )
+                        }
 
-                        <Grid item lg={10} md={10} className="inputHolder">
-                            <input 
-                                onChange={debounceChange} 
-                                ref={inputRef} 
-                                className="inputBar" 
-                                type='text' 
-                                placeholder="Search Country for trip" 
-                            />
-                        </Grid>
-                        <Grid item lg={2} className="buttonContainer">
-                            <button className="button" onClick={debounceClick}>CREATE</button>
-                        </Grid>
+
                         { !!countriesFound.length && (
-                            <div className="listContainerV2">
+                            <div className={classNames(
+                                {
+                                    "listContainerV2": type === "standard",
+                                    "listContainerV2-simple": type === "simple"
+                                }
+                            )}>
                                 <ul>
                                     {
                                         countriesFound.map((item, indx) => {
                                             return (
-                                                <li onClick={(e) => handleButtonClick(item)} onMouseEnter={(e) => handleListHover(item)} key={indx} className="item">{item.label}, {item.code}, {item.local}</li>
+                                                <li 
+                                                    onClick={(e) => handleButtonClick(item)} 
+                                                    onMouseEnter={(e) => handleListHover(item)} 
+                                                    key={indx} className="item">{item.label}, {item.code}, {item.local}
+                                                </li>
                                             );
                                         })
                                     }
@@ -95,7 +128,8 @@ const SearchBar = ({
 
 SearchBar.propTypes = {
     onSelected: PropTypes.func,
-    className: PropTypes.string
+    className: PropTypes.string,
+    type: PropTypes.oneOf(['standard', 'simple'])
 };
 
 export default SearchBar;

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import './index.css';
@@ -14,14 +14,14 @@ import {
     DatePicker
 } from '@mui/x-date-pickers';
 
-const InputField = ({
+const InputField = forwardRef(({
     label = null,
     name,
     onChange,
     defaultValue = "",
     type = "text",
     labelOnTop = false
-}) => {
+}, ref) => {
     const [data, setData] = useState('');
     const [imageData, setImageData] = useState(null);
 
@@ -72,6 +72,7 @@ const InputField = ({
                     className={classNames({
                         'fileStyle': type === 'file'
                     })}
+                    inputRef={ref}
                     type={type}
                     value={data}
                     label={labelText}
@@ -89,7 +90,7 @@ const InputField = ({
             { getField(type) }
         </FormControl>
     );
-};
+});
 
 InputField.propTypes = {
     label: PropTypes.string,
@@ -99,4 +100,7 @@ InputField.propTypes = {
     defaultValue: PropTypes.string,
     type: PropTypes.oneOf(['text', 'number', 'email', 'password', 'date', 'file', 'time'])
 };
+
+InputField.displayName = "InputField";
+
 export default InputField;
