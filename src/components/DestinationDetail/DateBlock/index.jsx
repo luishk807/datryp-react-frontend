@@ -16,6 +16,7 @@ const TripItemBlock = ({
     typeId,
     onChangeBudget,
     onChangePlace,
+    onChangeDestination,
 }) => {
   
     const getDestinationData = (dateItem) => {
@@ -32,10 +33,16 @@ const TripItemBlock = ({
     
         const trips = destinationDate.length ? !isSingle ? destinationDate[0].itinerary
             : destinationDate[0].activities : null;
+
         console.log("trips", trips);
+        
         return !isSingle ? 
             <MutipleTrips 
                 trips={trips} 
+                onChangePlace={onChangePlace}
+                onChangeDestination={onChangeDestination}
+                participants={participants}
+                onChangeBudget={onChangeBudget} 
             /> : 
             <SingleTrips 
                 onChangePlace={onChangePlace}
@@ -47,7 +54,7 @@ const TripItemBlock = ({
     };
 
     return (
-        <Grid item key={`destination-${index}`} lg={12} className="trip-detail">
+        <Grid item key={`destination-${index}`} lg={12} className="date-block">
             <Grid container>
                 <Grid item lg={12} className="header">
                     <Grid container>
@@ -75,5 +82,6 @@ TripItemBlock.propTypes = {
     participants: PropTypes.array,
     onChangeBudget: PropTypes.func,
     onChangePlace: PropTypes.func,
+    onChangeDestination: PropTypes.func,
 };
 export default TripItemBlock;

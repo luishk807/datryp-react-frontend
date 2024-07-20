@@ -85,7 +85,7 @@ const SearchBar = ({
                                     </Grid>
                                 </>
                             ) :(
-                                <Grid item lg={12} md={12}>
+                                <Grid item lg={12} md={12} xs={12}>
                                     <InputField 
                                         ref={inputRef} 
                                         defaultValue={selectedDestination}

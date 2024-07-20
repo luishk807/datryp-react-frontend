@@ -106,6 +106,10 @@ const MultriTrip = ({
         }
     };
 
+    const handleChangeDestination = () => {
+        console.log("handle change destination");
+    };
+
     const steps = [
         {
             label: 'Describe Your Trip!',
@@ -130,6 +134,7 @@ const MultriTrip = ({
                 destinations={tripInfo.destinations} 
                 onChangePlace={handleChangePlace}
                 onChangeBudget={handleChangeBudget}
+                onChangeDestination={handleChangeDestination}
             />
         }
     ];

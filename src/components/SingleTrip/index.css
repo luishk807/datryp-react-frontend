@@ -41,11 +41,3 @@
   justify-content: flex-end;
   font-weight: 500;
 }
-
-.singleTrip .dot {
-  height: 15px;
-  width: 15px;
-  background-color: theme('colors.primaryGreen');
-  border-radius: 50%;
-  display: inline-block;
-}

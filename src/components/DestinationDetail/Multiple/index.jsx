@@ -6,7 +6,11 @@ import Activities from '../../DestinationDetail/Activities';
 import AddDestinationBtn from '../../common/AddDestination';
 
 const Multiple = ({
-    trips = []
+    trips = [],
+    onChangeDestination,
+    onChangeBudget,
+    onChangePlace,
+    participants = [],
 }) => {
     const handleOnClick = (e) => {
         console.log("on click", e);
@@ -43,7 +47,11 @@ const Multiple = ({
 };
 
 Multiple.propTypes = {
-    trips: PropTypes.array
+    trips: PropTypes.array,
+    onChangeDestination: PropTypes.func,
+    participants: PropTypes.array,
+    onChangeBudget: PropTypes.func,
+    onChangePlace: PropTypes.func,
 };
 
 export default Multiple;

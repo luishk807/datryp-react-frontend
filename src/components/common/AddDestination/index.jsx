@@ -63,29 +63,34 @@ const AddDestinationBtn = ({
                         Icon: AddCircleIcon
                     }}>
                     <Grid container>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            {/* <InputField label="Name of Place" name="place" onChange={(e) => handleOnChange('place', e.target.value)}/> */}
-                            <SearchBar type="simple" onSelected={handleSelectedDestinationSearch} />
+                        <Grid item lg={12} md={12} xs={12} className="py-5">
+                            <SearchBar 
+                                type="simple" 
+                                onSelected={handleSelectedDestinationSearch} 
+                            />
                         </Grid>
-                        <Grid item lg={6} xs={12} className="py-5">
-                            <InputField label="Who is going" name="friends" onChange={(e) => handleOnChange('friends', e.target.value)}/>
+                        <Grid item lg={12} md={12} xs={12} className="py-5">
+                            <InputField label="Flight Number" name="flightNumber" onChange={(e) => handleOnChange('flightNumber', e.target.value)}/>
                         </Grid>
-                        <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                            <InputField name="cost" onChange={(e) => handleOnChange('cost', e.target.value)}/>
+                        <Grid item lg={12} md={12} xs={12} className="py-5">
+                            <InputField label="Depart airport" name="departAirport" onChange={(e) => handleOnChange('departAirport', e.target.value)}/>
                         </Grid>
-                        <Grid item lg={6} xs={12} className="py-5">
-                            <InputField type="date" label="Start Date" name="startDate" defaultValue={startDate} onChange={(e) => handleOnChange('startDate', e.target.value)}/>
+                        <Grid item lg={6} md={6} xs={12} className="py-5">
+                            <InputField type="date" name="departDate" onChange={(e) => handleOnChange('departDate', e.target.value)}/>
                         </Grid>
-                        <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                            <InputField type="date" defaultValue={endDate} label="End Date" name="endDate" onChange={(e) => handleOnChange('endDate', e.target.value)}/>
+                        <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
+                            <InputField name="departTime" type="time" label="Depart Time" onChange={(e) => handleOnChange('departTime', e.target.value)}/>
                         </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField name="note" onChange={(e) => handleOnChange('note', e.target.value)}/>
+                        <Grid item lg={12} md={12} xs={12} className="py-5">
+                            <InputField name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnChange('arrivalDate', e.target.value)}/>
                         </Grid>
-                        <Grid item lg={12} xs={12} className="py-5">
-                            <InputField type="file" label="image" name="image" onChange={(e) => handleOnChange('image', e.target.value)}/>
+                        <Grid item lg={6} md={6} xs={12} className="py-5">
+                            <InputField type="date" name="endDate" onChange={(e) => handleOnChange('endDate', e.target.value)}/>
                         </Grid>
-                        <Grid item lg={12}>
+                        <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
+                            <InputField name="arrivalTime" type="time" label="Arrival Time" onChange={(e) => handleOnChange('arrivalTime', e.target.value)}/>
+                        </Grid>
+                        <Grid item lg={12} md={12} xs={12} classNames="pt-5">
                             <ButtonCustom 
                                 onClick={handleSubmit} 
                                 label={title} 

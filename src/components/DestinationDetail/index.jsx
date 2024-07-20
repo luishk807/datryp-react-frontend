@@ -12,7 +12,8 @@ const DestinationDetail = ({
     endDate = null,
     participants = [],
     onChangeBudget,
-    onChangePlace
+    onChangePlace,
+    onChangeDestination
 }) => {
 
     console.log("destinations", destinations);
@@ -67,6 +68,7 @@ const DestinationDetail = ({
                             destinations={destinations}
                             onChangeBudget={(type, value) => onChangeBudget({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})} 
                             onChangePlace={(type, value) => onChangePlace({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
+                            onChangeDestination={(type, value) => onChangeDestination({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
                         />
                     );
                 })
@@ -83,6 +85,7 @@ DestinationDetail.propTypes = {
     endDate: PropTypes.string,
     onChangeBudget: PropTypes.func,
     onChangePlace: PropTypes.func,
+    onChangeDestination: PropTypes.func,
 };
 
 export default DestinationDetail;
