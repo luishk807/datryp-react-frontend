@@ -17,6 +17,7 @@ const SearchBar = ({
     const inputRef = useRef();
     const [countriesFound, setCountriesFound] = useState([]);
     const [selectedDestination, setSelectedDestination] = useState('');
+    const [showCountryList, setShowCountryList] = useState(false);
 
     const handleButtonClick = (e) => {
         setSelectedDestination(e.label);
@@ -41,6 +42,7 @@ const SearchBar = ({
             return data1.includes(check);
         });
 
+        setShowCountryList([]);
         if (foundCountry.length) {
             setCountriesFound(foundCountry.map((item, idx) => ({ 
                 id: idx, 
@@ -57,13 +59,22 @@ const SearchBar = ({
     const debounceClick = debounce(handleButtonClick, 500);
 
     const handleClickAway = () => {
-        setCountriesFound([]);
+        setShowCountryList(false);
+    };
+
+    const handleFocus = (e) => {
+        e.target.select();
     };
 
     return (
         <ClickAwayListener onClickAway={handleClickAway}>
             <Grid container className={`searchbarMain flex w-full ${className}`}>
-                <Grid item lg={ type === 'standard' ? 10 : 12} md={12} xs={12} className="holder">
+                <Grid item lg={ type === 'standard' ? 10 : 12} md={12} xs={12} className={
+                    classNames({
+                        'holder': type === 'standard',
+                        'holder-simple': type === 'simple'
+                    })
+                }>
                     <Grid container className={classNames({
                         'container': type === 'standard',
                         'container-simple': type === 'simple'
@@ -77,6 +88,7 @@ const SearchBar = ({
                                             ref={inputRef} 
                                             className="inputBar" 
                                             type='text' 
+                                            onFocus={handleFocus}
                                             placeholder="Search Country for trip" 
                                         />
                                     </Grid>
@@ -97,28 +109,27 @@ const SearchBar = ({
                         }
 
 
-                        { !!countriesFound.length && (
-                            <div className={classNames(
+                        <div className={classNames(
+                            {
+                                "show-country-list": showCountryList,
+                                "listContainerV2": type === "standard",
+                                "listContainerV2-simple": type === "simple"
+                            }
+                        )}>
+                            <ul>
                                 {
-                                    "listContainerV2": type === "standard",
-                                    "listContainerV2-simple": type === "simple"
+                                    countriesFound.map((item, indx) => {
+                                        return (
+                                            <li 
+                                                onClick={(e) => handleButtonClick(item)} 
+                                                onMouseEnter={(e) => handleListHover(item)} 
+                                                key={indx} className="item">{item.label}, {item.code}, {item.local}
+                                            </li>
+                                        );
+                                    })
                                 }
-                            )}>
-                                <ul>
-                                    {
-                                        countriesFound.map((item, indx) => {
-                                            return (
-                                                <li 
-                                                    onClick={(e) => handleButtonClick(item)} 
-                                                    onMouseEnter={(e) => handleListHover(item)} 
-                                                    key={indx} className="item">{item.label}, {item.code}, {item.local}
-                                                </li>
-                                            );
-                                        })
-                                    }
-                                </ul>
-                            </div>
-                        )}
+                            </ul>
+                        </div>
                     </Grid>
                 </Grid>
             </Grid>

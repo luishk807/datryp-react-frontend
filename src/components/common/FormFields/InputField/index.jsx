@@ -58,6 +58,10 @@ const InputField = forwardRef(({
     }, [type]);
 
     const debounceChange = debounce(handleOnChange, 200);
+    
+    const handleFocus = (e) => {
+        e.target.select();
+    };
 
     const getField = (type) => {
         switch(type) {
@@ -72,6 +76,7 @@ const InputField = forwardRef(({
                     className={classNames({
                         'fileStyle': type === 'file'
                     })}
+                    onFocus={handleFocus}
                     inputRef={ref}
                     type={type}
                     value={data}
