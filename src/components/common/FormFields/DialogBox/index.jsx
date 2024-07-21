@@ -18,6 +18,11 @@ const DialogBox = ({
     children
 }) => {
     const [open, setOpen] = useState(false);
+    
+    const handleConfirmDelete = (e) => {
+        setOpen(false);
+        onConfirm && onConfirm(e);
+    };
 
     return (
         <>
@@ -39,7 +44,7 @@ const DialogBox = ({
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom type="standard-small" onClick={() => setOpen(false)} label="Cancel" />
-                    <ButtonCustom style={{ 'marginLeft': '35px'}} type="standard-small" onClick={onConfirm} label="Agree" />
+                    <ButtonCustom style={{ 'marginLeft': '35px'}} type="standard-small" onClick={handleConfirmDelete} label="Agree" />
                 </DialogActions>
             </Dialog>
         </>

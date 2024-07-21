@@ -20,9 +20,6 @@ const AddPlaceBtn = ({
     buttonType = 'standard'
 }) => {
     const modelRef = useRef();
-
-
-    console.log("trip tpe id", tripTypeId);
     const initilStatus = useMemo(() => {
         const selected = data ? data.status?.id : 3;
         return placeStatus.filter(item => item.id === selected)[0];
@@ -83,9 +80,12 @@ const AddPlaceBtn = ({
             'add-place-container-standard': buttonType === 'standard',
             'add-place-container-simple': buttonType === 'text'
         })}>
-            <Grid item lg={12} md={12} xs={12}>
+            <Grid item lg={12} md={12} xs={12} className={classNames({
+                'place-left': tripTypeId === TRIP_BASIC.MULTIPLE.id
+            })}>
                 <ModalButton 
                     ref={modelRef}
+
                     title={isAdd ? 'Add Place' : 'Edit ' + data.place}
                     buttonProps={{
                         title: isAdd ? 'Add Place' : 'Edit',
@@ -127,9 +127,7 @@ const AddPlaceBtn = ({
 
                             </Grid>
                         </Grid>
-                        <Grid item lg={12} md={12} xs={12} className={classNames({
-                            'place-left': tripTypeId === TRIP_BASIC.MULTIPLE.id
-                        })} >
+                        <Grid item lg={12} md={12} xs={12}>
                             <ButtonCustom 
                                 onClick={handleSubmit} 
                                 label={isAdd ? 'Add Place' : 'Save Place'} 

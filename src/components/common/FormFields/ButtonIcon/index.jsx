@@ -8,14 +8,14 @@ const ButtonIcon = ({
     Icon,
     onClick,
     style,
-    type = "standard"
-}) => {
+    type = "standard",
+}) => { 
     return (
         <button onClick={onClick} style={style} className={classNames(
             {
                 'button-icon': type==="standard",
                 'button-simple': type==="text",
-                'button-no-style': type==="text-plain",
+                'button-no-style': type==="text-plain"
             }
         )}>
             {title} { Icon && (<Icon />) }

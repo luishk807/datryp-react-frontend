@@ -60,14 +60,16 @@ const MultriTrip = ({
     const handleChangeBudget = ({date, activity}) => {
         console.log("handle budget");
         console.log("dat", date, " value:", activity);
+        const { index, value, destinationIndx} = activity;
         switch(activity.type) {
             case REDUX_TYPE.ADD: {
                 console.log("add", date, " value: ", activity);
                 addBudget({
-                    date, value: 
-                    activity.value.value, 
-                    itineraryId: activity.index,
-                    activityIndex: activity.value.index
+                    date, 
+                    value: value?.value, 
+                    itineraryId: index,
+                    activityIndex: value?.index,
+                    destinationIndx: destinationIndx
                 });
                 break;
             }
@@ -85,25 +87,38 @@ const MultriTrip = ({
     const handleChangePlace = ({date, activity}) => {
         console.log("handle place");
    
+        const { index, value, destinationIndx} = activity;
+
         switch(activity.type) {
             case REDUX_TYPE.ADD: {
                 console.log("add", date, " value: ", activity);
-                addPlace({date, value: activity.value, index: activity.index});
+                addPlace({
+                    date, 
+                    value: value, 
+                    index: index, 
+                    destinationIndx: destinationIndx
+                });
                 break;
             }
             case REDUX_TYPE.EDIT: {
                 console.log("edit", date, " value: ", activity);
                 editPlace({
                     date, 
-                    value: activity.value.value, 
-                    itineraryIndex: activity.index, 
-                    activityIndex: activity.value.index}
-                );
+                    value: value?.value, 
+                    itineraryIndex: index, 
+                    activityIndex: value?.index,
+                    destinationIndx: destinationIndx
+                });
                 break;
             }
             case REDUX_TYPE.DELETE: {
                 console.log("delete", date, " value: ", activity);
-                deletePlace({date, value: activity.value, index: activity.index});
+                deletePlace({
+                    date, 
+                    value: value, 
+                    index: index,
+                    destinationIndx: destinationIndx
+                });
                 break;
             }
         }

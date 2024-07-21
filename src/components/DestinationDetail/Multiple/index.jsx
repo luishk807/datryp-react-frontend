@@ -24,6 +24,7 @@ const Multiple = ({
             trips && trips.map((trip, indx) => {
                 const flightInfo = _.get(trip, 'flightInfo');
                 const country = _.get(trip, 'country.name');
+                const activities = _.get(trip, 'itinerary.0.activities');
                 return (
                     <Grid key={`trip-${indx}`} item lg={12} md={12} xs={12} className="multrip-content-item">
                         <Grid container>
@@ -39,7 +40,13 @@ const Multiple = ({
                                 <span className="title">Arrive:</span> {flightInfo.arrivalAirport} / {flightInfo.arrivalFlight} - {flightInfo.arrivalTime}
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="activity-button">
-                                <Activities tripTypeId={TRIP_BASIC.MULTIPLE.id} activities={trip.activities} />
+                                <Activities 
+                                    tripTypeId={TRIP_BASIC.MULTIPLE.id} 
+                                    activities={activities} 
+                                    onChangePlace={(type, e) => onChangePlace(type, e, indx)}
+                                    participants={participants}
+                                    onChangeBudget={(type, e) => onChangeBudget(type, e, indx)}
+                                />
                             </Grid>
 
                         </Grid>

@@ -49,13 +49,15 @@ const tripReducer = (state = null, action) => {
             console.log("trip", state);
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             
-            const { value, itineraryId, activityIndex} = action.payload;
+            const { value, itineraryId, activityIndex, destinationIndx} = action.payload;
+
+            const destIndx = destinationIndx || 0;
             console.log("apend budget");
             const newBudget = value.map(item => ({
                 ...item,
                 id:  lastBudgetId++
             }));
-            destinations[0].itinerary[itineraryId].activities[activityIndex].budget =newBudget;
+            destinations[destIndx].itinerary[itineraryId].activities[activityIndex].budget =newBudget;
 
 
             return {
@@ -143,15 +145,18 @@ const tripReducer = (state = null, action) => {
             console.log("trip", state);
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             
-            const { value, index } = action.payload;
-            if (destinations[0].itinerary && destinations[0].itinerary.length) {
+            const { value, index, destinationIndx} = action.payload;
+            
+            const destIndx = destinationIndx || 0;
+
+            if (destinations[destIndx].itinerary && destinations[destIndx].itinerary.length) {
                 console.log("apend activities");
-                destinations[0].itinerary[index].activities.push({
+                destinations[destIndx].itinerary[index].activities.push({
                     ...value,
                     id: lastPlaceId++
                 });
             } else {
-                destinations[0].itinerary = [
+                destinations[destIndx].itinerary = [
                     {
                         id: ++lastDateId,
                         date: action.payload.date,
@@ -163,7 +168,11 @@ const tripReducer = (state = null, action) => {
                 ];
             }
 
-           
+            console.log("ADD PLACE, new destination", destinations);
+
+            // return {
+            //     ...state,
+            // };
             return {
                 ...state,
                 destinations: destinations
@@ -173,10 +182,11 @@ const tripReducer = (state = null, action) => {
         {
             console.log("edit place", action.payload);
             console.log("trip", state);
-            const { value, activityIndex, itineraryIndex } = action.payload;
+            const { value, activityIndex, itineraryIndex, destinationIndx } = action.payload;
+            const destIndx = destinationIndx || 0;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
-            const currValue = destinations[0].itinerary[itineraryIndex].activities[activityIndex];
-            destinations[0].itinerary[itineraryIndex].activities[activityIndex] = {
+            const currValue = destinations[destIndx].itinerary[itineraryIndex].activities[activityIndex];
+            destinations[destIndx].itinerary[itineraryIndex].activities[activityIndex] = {
                 ...currValue,
                 ...value
             };
@@ -190,10 +200,11 @@ const tripReducer = (state = null, action) => {
         {
             console.log("remvoe place", action.payload);
             console.log("trip", state);
-            const { value, index } = action.payload;
+            const { value, index, destinationIndx} = action.payload;
+            const destIndx = destinationIndx || 0;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
-            const n_activities = destinations[0].itinerary[index].activities.filter(item => item.id !== value);
-            destinations[0].itinerary[0].activities = n_activities;
+            const n_activities = destinations[destIndx].itinerary[index].activities.filter(item => item.id !== value);
+            destinations[destIndx].itinerary[0].activities = n_activities;
             return {
                 ...state,
                 destinations: destinations

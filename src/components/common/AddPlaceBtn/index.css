@@ -12,7 +12,7 @@
   overflow-y: auto;
 }
 
-#add-place-form-container .place-left {
+.place-left {
   justify-content: end;
   display: flex;
 }

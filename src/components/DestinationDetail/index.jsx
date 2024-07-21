@@ -66,8 +66,8 @@ const DestinationDetail = ({
                             typeId={type.id}
                             date={moment(date)}
                             destinations={destinations}
-                            onChangeBudget={(type, value) => onChangeBudget({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})} 
-                            onChangePlace={(type, value) => onChangePlace({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
+                            onChangeBudget={(type, value, destinationIndx) => onChangeBudget({activity: {type, value, index: indx, destinationIndx}, date: moment(date).format('YYYY-MM-DD').toString()})} 
+                            onChangePlace={(type, value, destinationIndx) => onChangePlace({activity: {type, value, index: indx, destinationIndx}, date: moment(date).format('YYYY-MM-DD').toString()})}
                             onChangeDestination={(type, value) => onChangeDestination({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
                         />
                     );
