@@ -1,6 +1,7 @@
 import React from 'react';
 import { Grid } from '@mui/material';
 import './index.css';
+// import LogoWhite from '/logo_white.svg';
 
 const Footer = () => {
     return (
