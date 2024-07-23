@@ -13,6 +13,27 @@
 
 }
 
+.footer .logo-container {
+  width: 180px;
+  padding: 10px
+}
+
+.footer .logo,
+.footer .links,
+.footer .icons {
+  display: flex;
+  justify-content: center;
+}
+
+.footer .links ul {
+  text-align: center;
+}
+
+.footer .links ul li {
+  display: inline;
+  padding: 5px 10px;
+}
+
 .footer .mainContainer {
   padding: 10px;
   background-color: theme('colors.primaryGreen');
