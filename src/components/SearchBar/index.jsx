@@ -17,7 +17,6 @@ const SearchBar = ({
     const inputRef = useRef();
     const [countriesFound, setCountriesFound] = useState([]);
     const [selectedDestination, setSelectedDestination] = useState('');
-    const [showCountryList, setShowCountryList] = useState(false);
 
     const handleButtonClick = (e) => {
         setSelectedDestination(e.label);
@@ -42,7 +41,7 @@ const SearchBar = ({
             return data1.includes(check);
         });
 
-        setShowCountryList([]);
+        setCountriesFound([]);
         if (foundCountry.length) {
             setCountriesFound(foundCountry.map((item, idx) => ({ 
                 id: idx, 
@@ -59,7 +58,7 @@ const SearchBar = ({
     const debounceClick = debounce(handleButtonClick, 500);
 
     const handleClickAway = () => {
-        setShowCountryList(false);
+        setCountriesFound([]);
     };
 
     const handleFocus = (e) => {
@@ -108,28 +107,31 @@ const SearchBar = ({
                             )
                         }
 
+                        {
+                            !!countriesFound.length && (
+                                <div className={classNames(
+                                    {
+                                        "listContainerV2": type === "standard",
+                                        "listContainerV2-simple": type === "simple"
+                                    }
+                                )}>
+                                    <ul>
+                                        {
+                                            countriesFound.map((item, indx) => {
+                                                return (
+                                                    <li 
+                                                        onClick={(e) => handleButtonClick(item)} 
+                                                        onMouseEnter={(e) => handleListHover(item)} 
+                                                        key={indx} className="item">{item.label}, {item.code}, {item.local}
+                                                    </li>
+                                                );
+                                            })
+                                        }
+                                    </ul>
+                                </div>
+                            )
+                        }
 
-                        <div className={classNames(
-                            {
-                                "show-country-list": showCountryList,
-                                "listContainerV2": type === "standard",
-                                "listContainerV2-simple": type === "simple"
-                            }
-                        )}>
-                            <ul>
-                                {
-                                    countriesFound.map((item, indx) => {
-                                        return (
-                                            <li 
-                                                onClick={(e) => handleButtonClick(item)} 
-                                                onMouseEnter={(e) => handleListHover(item)} 
-                                                key={indx} className="item">{item.label}, {item.code}, {item.local}
-                                            </li>
-                                        );
-                                    })
-                                }
-                            </ul>
-                        </div>
                     </Grid>
                 </Grid>
             </Grid>

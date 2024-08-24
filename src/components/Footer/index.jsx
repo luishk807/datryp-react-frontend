@@ -3,7 +3,7 @@ import { Grid } from '@mui/material';
 import './index.css';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import XIcon from '@mui/icons-material/X';
+import TwitterIcon from '@mui/icons-material/Twitter';
 
 const Footer = () => {
     return (
@@ -27,6 +27,7 @@ const Footer = () => {
                         <hr/>
                         <InstagramIcon />
                         <FacebookIcon />
+                        <TwitterIcon />
                     </Grid>
                 </Grid>    
             </Grid> 

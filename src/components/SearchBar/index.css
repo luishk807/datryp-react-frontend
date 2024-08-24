@@ -138,9 +138,6 @@
   opacity: 0;
 }
 
-.searchbarMain .show-country-list {
-  opacity: 1
-}
 
 .searchbarMain  .listContainerV2 li.item{
   font-size: 1.2em;
