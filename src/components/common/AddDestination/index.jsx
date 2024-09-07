@@ -9,17 +9,19 @@ import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
 import classNames from 'classnames';
+import _ from 'lodash';
 
 const AddDestinationBtn = ({
     onChange,
     type = 'add',
     data=null,
-    destinationId = null,
     buttonType = 'standard'
 }) => {
+
     const title = useMemo(() => {
-        return type === 'add' ? 'Add Destination' : 'Edit ';
+        return type === 'add' ? 'Add Destination' : 'Edit';
     }, [type]);
+    
     const [destination, setDestination] = useState({});
 
     const modelRef = useRef();
@@ -32,51 +34,39 @@ const AddDestinationBtn = ({
             }
         });
     };
+
     const isAdd = useMemo(() => {
         return type === 'add';
     }, [type]);
 
     useEffect(() => {
-        let unmounted = false;
-
-        if(!unmounted) {
-            setDestination({
-                'flightInfo': {
-                    departDate: moment().format('YYYY-MM-DD').toString(),
-                    departTime: moment().format('HH:mm').toString(),
-                    arrivalDate: moment().format('YYYY-MM-DD').toString(),
-                    arrivalTime: moment().format('HH:mm').toString()
-                }
-            });
-        }
-
-        return () => unmounted = true;
-
-    }, []);
-
-
-
-    useEffect(() => {
         let unmounted = true;
         if(unmounted) {
-            // if(data && type === 'edit') {
-            //     setDestination({
-            //         id: data.id,
-            //         place: data.place,
-            //         startTime: data.startTime || moment().format('HH:mm'),
-            //         endTime: data.endTime || moment().format('HH:mm'),
-            //         location: data.location,
-            //         cost: data.cost,
-            //         note: data.note,
-            //         status: data.status,
-            //     });
-            // } else {
-            //     setDestination({
-            //         startTime: moment().format('HH:mm'),
-            //         endTime: moment().format('HH:mm'),
-            //         status: initilStatus,
-            //     });
-            // }
+            if(data && type === 'edit') {
+                setDestination({
+                    'country': data.country,
+                    'flightInfo': {
+                        id: data.id,
+                        flightNumber: data.flightInfo.flightNumber,
+                        departAirport: data.flightInfo.departAirport,
+                        departDate: data.flightInfo.departDate,
+                        departTime: data.flightInfo.departTime,
+                        arrivalAirport: data.flightInfo.arrivalAirport,
+                        endDate: data.flightInfo.endDate,
+                        arrivalTime: data.flightInfo.arrivalTime,
+                    }
+                });
+            } else {
+                setDestination({
+                    'country': null,
+                    'flightInfo': {
+                        departDate: moment().format('YYYY-MM-DD').toString(),
+                        departTime: moment().format('HH:mm').toString(),
+                        arrivalDate: moment().format('YYYY-MM-DD').toString(),
+                        arrivalTime: moment().format('HH:mm').toString()
+                    }
+                });
+            }
         }
         return () => unmounted = false;
     }, [data]);
@@ -102,41 +92,43 @@ const AddDestinationBtn = ({
         })}>
             <Grid item lg={12} md={12} xs={12} >
                 <ModalButton 
-                    title={title}
+                    title={isAdd ? 'Add Destination' : 'Edit ' + data?.country?.name}
                     ref={modelRef}
                     buttonProps={{
                         title: title,
                         Icon: buttonType==='standard' ? AddCircleIcon : null,
+                        type: buttonType
                     }}>
                     <Grid container className='add-destination-comp'>
                         <Grid item lg={12} md={12} xs={12} className='form-container'>
                             <Grid container>
                                 <Grid item lg={12} md={12} xs={12} className="py-5">
                                     <SearchBar 
+                                        defaultValue={data?.country}
                                         type="simple" 
                                         onSelected={handleSelectedDestinationSearch} 
                                     />
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="py-5">
-                                    <InputField label="Flight Number" name="flightNumber" onChange={(e) => handleOnFlightInfo('flightNumber', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.flightNumber} label="Flight Number" name="flightNumber" onChange={(e) => handleOnFlightInfo('flightNumber', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="py-5">
-                                    <InputField label="Depart airport" name="departAirport" onChange={(e) => handleOnFlightInfo('departAirport', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.departAirport} label="Depart airport" name="departAirport" onChange={(e) => handleOnFlightInfo('departAirport', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField type="date" name="departDate" onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.departDate} type="date" name="departDate" onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
-                                    <InputField name="departTime" type="time" label="Depart Time" onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.departTime} name="departTime" type="time" label="Depart Time" onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="py-5">
-                                    <InputField name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.arrivalAirport} name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField type="date" name="endDate" onChange={(e) => handleOnFlightInfo('endDate', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.endDate} type="date" name="endDate" onChange={(e) => handleOnFlightInfo('endDate', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
-                                    <InputField name="arrivalTime" type="time" label="Arrival Time" onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.arrivalTime} name="arrivalTime" type="time" label="Arrival Time" onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}/>
                                 </Grid>
                             </Grid>
                         </Grid>
@@ -158,7 +150,6 @@ const AddDestinationBtn = ({
 
 AddDestinationBtn.propTypes = {
     onChange: PropTypes.func,
-    destinationId: PropTypes.number,
     type: PropTypes.oneOf(['add', 'edit']),
     data: PropTypes.object,
     buttonType: PropTypes.oneOf(['text', 'standard'])

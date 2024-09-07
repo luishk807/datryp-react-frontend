@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import './index.css';
 import PropTypes from 'prop-types';
@@ -11,6 +11,7 @@ import classNames from 'classnames';
 
 const SearchBar = ({
     onSelected,
+    defaultValue = null,
     className = "justify-center",
     type="standard"
 }) => {
@@ -29,6 +30,17 @@ const SearchBar = ({
             local: e.local
         });
     };
+
+    useEffect(() => {
+        let unmounted = true;
+        if(unmounted) {
+            if(defaultValue) {
+                setSelectedDestination(defaultValue.name);
+                inputRef.current.value = defaultValue.name;
+            }
+        }
+        return () => unmounted = false;
+    }, [defaultValue]);
 
     const handleListHover = (e) => {
         inputRef.current.value = e.label;
@@ -87,6 +99,7 @@ const SearchBar = ({
                                             ref={inputRef} 
                                             className="inputBar" 
                                             type='text' 
+                                            value={defaultValue}
                                             onFocus={handleFocus}
                                             placeholder="Search Country for trip" 
                                         />
@@ -142,6 +155,7 @@ const SearchBar = ({
 SearchBar.propTypes = {
     onSelected: PropTypes.func,
     className: PropTypes.string,
+    defaultValue: PropTypes.object,
     type: PropTypes.oneOf(['standard', 'simple'])
 };
 

@@ -36,7 +36,8 @@ const Multiple = ({
                                     <AddDestinationBtn 
                                         onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
                                         type="edit"
-                                        buttonType="text" 
+                                        buttonType="text-plain" 
+                                        data={trip}
                                     /> 
                                 </span> / 
                                 <span>Remove</span>
