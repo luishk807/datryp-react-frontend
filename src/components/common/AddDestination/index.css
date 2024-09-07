@@ -3,3 +3,11 @@
   max-height: 700px;
   overflow-y: auto;
 }
+
+.add-place-container-standard {
+  width: 100%
+}
+
+.add-place-container-simple {
+  width: auto !important;
+}

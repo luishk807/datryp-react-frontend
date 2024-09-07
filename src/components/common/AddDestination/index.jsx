@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect,useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { Grid } from '@mui/material';
@@ -8,13 +8,20 @@ import ModalButton from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
-
+import classNames from 'classnames';
 
 const AddDestinationBtn = ({
-    onChange
+    onChange,
+    type = 'add',
+    data=null,
+    destinationId = null,
+    buttonType = 'standard'
 }) => {
-    const title = "Add Destination";
-    const [destination, setDestination] = useState(null);
+    const title = useMemo(() => {
+        return type === 'add' ? 'Add Destination' : 'Edit ';
+    }, [type]);
+    const [destination, setDestination] = useState({});
+
     const modelRef = useRef();
     const handleOnFlightInfo = (name, value) => {
         setDestination({
@@ -25,6 +32,9 @@ const AddDestinationBtn = ({
             }
         });
     };
+    const isAdd = useMemo(() => {
+        return type === 'add';
+    }, [type]);
 
     useEffect(() => {
         let unmounted = false;
@@ -45,9 +55,31 @@ const AddDestinationBtn = ({
     }, []);
 
 
+
     useEffect(() => {
-        console.log("change destination", destination);
-    }, [destination]);
+        let unmounted = true;
+        if(unmounted) {
+            // if(data && type === 'edit') {
+            //     setDestination({
+            //         id: data.id,
+            //         place: data.place,
+            //         startTime: data.startTime || moment().format('HH:mm'),
+            //         endTime: data.endTime || moment().format('HH:mm'),
+            //         location: data.location,
+            //         cost: data.cost,
+            //         note: data.note,
+            //         status: data.status,
+            //     });
+            // } else {
+            //     setDestination({
+            //         startTime: moment().format('HH:mm'),
+            //         endTime: moment().format('HH:mm'),
+            //         status: initilStatus,
+            //     });
+            // }
+        }
+        return () => unmounted = false;
+    }, [data]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -64,14 +96,17 @@ const AddDestinationBtn = ({
         });
     };
     return (
-        <Grid container>
+        <Grid container className={classNames({
+            'add-place-container-standard': buttonType === 'standard',
+            'add-place-container-simple': buttonType === 'text'
+        })}>
             <Grid item lg={12} md={12} xs={12} >
                 <ModalButton 
                     title={title}
                     ref={modelRef}
                     buttonProps={{
                         title: title,
-                        Icon: AddCircleIcon
+                        Icon: buttonType==='standard' ? AddCircleIcon : null,
                     }}>
                     <Grid container className='add-destination-comp'>
                         <Grid item lg={12} md={12} xs={12} className='form-container'>
@@ -95,7 +130,7 @@ const AddDestinationBtn = ({
                                     <InputField name="departTime" type="time" label="Depart Time" onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="py-5">
-                                    <InputField name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}/>
+                                    <InputField name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5">
                                     <InputField type="date" name="endDate" onChange={(e) => handleOnFlightInfo('endDate', e.target.value)}/>
@@ -109,8 +144,8 @@ const AddDestinationBtn = ({
                         <Grid item lg={12} md={12} xs={12} className="pt-5">
                             <ButtonCustom 
                                 onClick={handleSubmit} 
-                                label={title} 
-                                type="standard" 
+                                label={isAdd ? 'Add Destination' : 'Save Destination'} 
+                                type="standard"
                                 capitalizeType="uppercase"
                             />
                         </Grid>
@@ -122,7 +157,11 @@ const AddDestinationBtn = ({
 };
 
 AddDestinationBtn.propTypes = {
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    destinationId: PropTypes.number,
+    type: PropTypes.oneOf(['add', 'edit']),
+    data: PropTypes.object,
+    buttonType: PropTypes.oneOf(['text', 'standard'])
 };
 
 export default AddDestinationBtn;

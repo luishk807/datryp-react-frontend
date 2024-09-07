@@ -32,7 +32,13 @@ const Multiple = ({
                                 <span className="title">Destination:</span>&nbsp; &nbsp;{country}
                             </Grid>
                             <Grid item lg={6} md={6} xs={12} className="flex justify-end justify-font-medium">
-                                <span>Edit</span> / 
+                                <span>
+                                    <AddDestinationBtn 
+                                        onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
+                                        type="edit"
+                                        buttonType="text" 
+                                    /> 
+                                </span> / 
                                 <span>Remove</span>
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="content-info"> 
