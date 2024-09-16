@@ -54,7 +54,8 @@ const AddDestinationBtn = ({
                         arrivalAirport: data.flightInfo.arrivalAirport,
                         arrivalDate: data.flightInfo.arrivalDate,
                         arrivalTime: data.flightInfo.arrivalTime,
-                    }
+                    },
+                    'itinerary': data.itinerary
                 });
             } else {
                 setDestination({

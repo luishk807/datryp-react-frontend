@@ -49,7 +49,7 @@ const Multiple = ({
                                         buttonType="none" 
                                         onConfirm={(e) => onChangeDestination(REDUX_TYPE.DELETE, trip.id)}
                                     >
-                                        You are about to delete {country.name}.  Are you sure you want to delete this item
+                                        You are about to delete {country}.  Are you sure you want to delete this item
                                     </DialogBox>
                                 </span>
                             </Grid>
