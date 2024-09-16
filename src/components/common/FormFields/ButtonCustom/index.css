@@ -39,3 +39,9 @@
   /* width: 100%; */
   font-weight: 500;
 }
+
+.none {
+  font-weight: inherit;
+  color: inherit;
+  font-size: inherit !important;
+}

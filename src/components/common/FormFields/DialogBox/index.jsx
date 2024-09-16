@@ -26,7 +26,12 @@ const DialogBox = ({
 
     return (
         <>
-            <ButtonCustom style={{ 'fontSize': '1.1em'}} type={buttonType} onClick={() => setOpen(true)} label={buttonLabel} />
+            <ButtonCustom 
+                // style={{ 'fontSize': '1.1em'}} 
+                type={buttonType} 
+                onClick={() => setOpen(true)} 
+                label={buttonLabel} 
+            />
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}

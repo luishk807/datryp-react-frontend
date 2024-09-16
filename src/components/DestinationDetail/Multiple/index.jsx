@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
+import _ from 'lodash';
 import { Grid } from '@mui/material';
 import './index.css';
-import Activities from '../../DestinationDetail/Activities';
-import AddDestinationBtn from '../../common/AddDestination';
 import { REDUX_TYPE, TRIP_BASIC } from 'constants';
-import _ from 'lodash';
+import Activities from 'components/DestinationDetail/Activities';
+import AddDestinationBtn from 'components/common/AddDestination';
+import DialogBox from 'components/common/FormFields/DialogBox';
+
 
 const Multiple = ({
     trips = [],
@@ -29,22 +31,31 @@ const Multiple = ({
                     <Grid key={`trip-${indx}`} item lg={12} md={12} xs={12} className="multrip-content-item">
                         <Grid container>
                             <Grid item lg={6} md={6} className="content-header">
-                                <span className="title">Destination:</span>&nbsp; &nbsp;{country}
+                                <span className="title">Destination:</span>&nbsp; &nbsp;{country} - Flight: {flightInfo.flightNumber}
                             </Grid>
                             <Grid item lg={6} md={6} xs={12} className="flex justify-end justify-font-medium">
                                 <span>
                                     <AddDestinationBtn 
-                                        onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
+                                        onChange={(e) => onChangeDestination(REDUX_TYPE.EDIT, e)} 
                                         type="edit"
                                         buttonType="text-plain" 
                                         data={trip}
                                     /> 
                                 </span> / 
-                                <span>Remove</span>
+                                <span>
+                                    <DialogBox 
+                                        title="Delete this destination" 
+                                        buttonLabel="Delete"
+                                        buttonType="none" 
+                                        onConfirm={(e) => onChangeDestination(REDUX_TYPE.DELETE, trip.id)}
+                                    >
+                                        You are about to delete {country.name}.  Are you sure you want to delete this item
+                                    </DialogBox>
+                                </span>
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="content-info"> 
-                                <span className="title">Depart</span>: {flightInfo.departAirport} / {flightInfo.departFlight} - {flightInfo.departTime} - 
-                                <span className="title">Arrive:</span> {flightInfo.arrivalAirport} / {flightInfo.arrivalFlight} - {flightInfo.arrivalTime}
+                                <span className="title">Depart</span>: {flightInfo.departAirport} - {flightInfo.departTime} - 
+                                <span className="title">Arrive:</span> {flightInfo.arrivalAirport} - {flightInfo.arrivalTime}
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="activity-button">
                                 <Activities 

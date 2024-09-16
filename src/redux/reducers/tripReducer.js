@@ -93,24 +93,6 @@ const tripReducer = (state = null, action) => {
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             
             const { value, index } = action.payload;
-            // if (destinations.length) {
-            //     console.log("apend activities");
-            //     destinations[0].itinerary[index].activities.push({
-            //         ...value,
-            //         id: lastPlaceId++
-            //     });
-            // } else {
-            //     destinations[0].itinerary = [
-            //         {
-            //             id: ++lastDateId,
-            //             date: action.payload.date,
-            //             activities: [{
-            //                 ...action.payload.value,
-            //                 id: lastPlaceId++
-            //             }]
-            //         }
-            //     ];
-            // }
 
             destinations.push({
                 ...value,
@@ -128,15 +110,34 @@ const tripReducer = (state = null, action) => {
         case 'EDIT_DESTINATION':
         {
             console.log("edit destination", action.payload);
+            console.log("trip", state);
+            const { value, index, date } = action.payload;
+            const destinations = JSON.parse(JSON.stringify(state.destinations));
+            // const currValue = destinations[index];
+
+            destinations[index] = {
+                date,
+                ...value
+            };
+
             return {
                 ...state,
+                destinations: destinations
             };
         }
         case 'DELETE_DESTINATION':
         {
             console.log("remvoe destination", action.payload);
+            console.log("trip", state);
+
+            const { index } = action.payload;
+            let destinations = JSON.parse(JSON.stringify(state.destinations));
+            const n_activities = destinations.filter(item => item.id !== index);
+            destinations = n_activities;
+
             return {
                 ...state,
+                destinations: destinations
             };
         }
         case 'ADD_PLACE':
