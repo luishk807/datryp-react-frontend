@@ -8,7 +8,8 @@ import Button from 'components/common/FormFields/ButtonCustom';
 import BasicTripInfo from 'components/BasicTripInfo';
 import { connect } from 'react-redux';
 import _ from 'lodash';
-import Confetti from 'components/Confetti';
+// import Confetti from 'components/Confetti';
+import TripComplete from 'components/TripCompleted';
 
 const StepperComp = ({
     steps = null,
@@ -101,13 +102,7 @@ const StepperComp = ({
             </Stepper>
             {
                 activeStep === steps.length ? (
-                    <>
-                        <Typography sx={{mt: 2, mb: 1}}>
-                            All steps completed - you are finished
-                        </Typography>
-                        <Confetti activate={true} />
-                        <button onClick={handleReset}>Reset</button>
-                    </>
+                    <TripComplete onClick={handleReset} />
                 ) : (
                     <Grid container>
                         {
