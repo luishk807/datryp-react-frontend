@@ -7,20 +7,21 @@ import {
     Grid 
 } from '@mui/material';
 import Confetti from 'components/Confetti';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './index.css';
 import Button from 'components/common/FormFields/ButtonCustom';
 const Complete = ({
     onReset
 }) => {
+    const history = useNavigate();
     const handleClick = (type) => {
         switch(type) {
             case 'home': {
-                history.push('/');
+                history('/');
                 break;
             }
             case 'account': {
-                history.push('/account');
+                history('/account');
                 break;
             }
         }
