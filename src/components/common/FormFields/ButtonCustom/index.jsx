@@ -13,6 +13,7 @@ const ButtonCustom = ({
     return (
         <button style={style} className={classNames({
             'main-button': type === 'standard',
+            'main-line': type === 'line',
             'plain-button': type === 'plain',
             'text-button': type === 'text',
             'standard-small': type === 'standard-small',
@@ -31,7 +32,7 @@ ButtonCustom.propTypes = {
     onClick: PropTypes.func,
     style: PropTypes.object,
     capitalizeType: PropTypes.oneOf(['capitalize', 'uppercase', 'lowercase']),
-    type: PropTypes.oneOf(['plain','text', 'standard', 'standard-small', 'none'])
+    type: PropTypes.oneOf(['plain','text', 'standard', 'standard-small', 'none', 'line'])
 };
 
 export default ButtonCustom;

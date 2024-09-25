@@ -9,7 +9,7 @@ import BasicTripInfo from 'components/BasicTripInfo';
 import { connect } from 'react-redux';
 import _ from 'lodash';
 // import Confetti from 'components/Confetti';
-import TripComplete from 'components/TripCompleted';
+import TripComplete from 'components/DestinationDetail/Completed';
 
 const StepperComp = ({
     steps = null,
@@ -102,7 +102,7 @@ const StepperComp = ({
             </Stepper>
             {
                 activeStep === steps.length ? (
-                    <TripComplete onClick={handleReset} />
+                    <TripComplete onReset={handleReset} />
                 ) : (
                     <Grid container>
                         {
