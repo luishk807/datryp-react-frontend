@@ -53,6 +53,7 @@
 .plain-button {
   padding: 10px 0px;
   width: 100%;
+  color: inherit;
   border-radius: 5px;
   font-weight: 500;
 }
@@ -60,6 +61,7 @@
 .text-button {
   /* width: 100%; */
   font-weight: 500;
+    color: inherit;
 }
 
 .none {
