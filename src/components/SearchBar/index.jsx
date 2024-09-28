@@ -11,7 +11,7 @@ import classNames from 'classnames';
 
 const SearchBar = ({
     onSelected,
-    defaultValue = "",
+    defaultValue = null,
     className = "justify-center",
     type="standard"
 }) => {

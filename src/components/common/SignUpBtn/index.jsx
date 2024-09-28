@@ -5,7 +5,6 @@ import { Grid } from '@mui/material';
 import ModalButton from 'components/ModalButton';
 import ButtonCustom from '../FormFields/ButtonCustom';
 import InputField from '../FormFields/InputField';
-import CheckBoxCustom from '../FormFields/CheckBoxCustom';
 export const SignUp = ({
     onClick
 }) => {
@@ -13,10 +12,7 @@ export const SignUp = ({
     const [form, setForm] = useState({});
 
     const label = "Sign Up";
-
-    const handleCheckBox = (e) => {
-        console.log("hey", e.target);
-    };
+    
     const onChange = (type, e) => {
         console.log(type);
         setForm({
@@ -27,6 +23,7 @@ export const SignUp = ({
 
     const handleSubmit = (e) => {
         console.log("submiting", form);
+        onClick && onClick(form);
     };
     return(
         <ModalButton
@@ -37,7 +34,7 @@ export const SignUp = ({
                 type: 'text-plain'
             }}
         >
-            <Grid container>
+            <Grid container id="signup">
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <InputField name="username" onChange={(e) => onChange('username', e)}/>
                 </Grid>
@@ -56,17 +53,14 @@ export const SignUp = ({
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <InputField name="phone" onChange={(e) => onChange('phone', e)}/>
                 </Grid>
-                <Grid item lg={12} xs={12} md={12} className="form-input">
-                    <CheckBoxCustom 
-                        onClick={handleCheckBox}
-                        label="By clicking Agree & Join or Continue, 
-                        you agree to the LinkedIn User Agreement, Privacy Policy, and 
-                        Cookie Policy." 
-                    />
+                <Grid item lg={12} xs={12} md={12} className="form-input terms-condition">
+                        By clicking Agree & Join, 
+                        you agree to the DaTryp User Agreement, Privacy Policy, and 
+                        Cookie Policy.
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <ButtonCustom 
-                        label={label}
+                        label="Agree & Join"
                         onClick={handleSubmit}
                         capitalizeType="uppercase"
                     />

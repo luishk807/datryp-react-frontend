@@ -21,12 +21,8 @@ export const LoginBtn = ({
     const handleLogin = (e) => {
         e.preventDefault();
         console.log("submit login", form);
+        onClick && onClick(form);
     };
-
-
-    useEffect(() => {
-        console.log("form value", form);
-    }, [form]);
 
     return(
         <ModalButton
@@ -43,6 +39,9 @@ export const LoginBtn = ({
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <InputField name="password" onChange={(e) => onChange('password', e)}/>
+                </Grid>
+                <Grid item lg={12} xs={12} md={12} className="form-input">
+                    <a href="">Forgot password?</a>
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <ButtonCustom 

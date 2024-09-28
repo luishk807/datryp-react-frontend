@@ -8,6 +8,7 @@ const Home = lazy(() => import('components/Home'));
 const SingleTrip = lazy(() => import('components/SingleTrip'));
 const MultipleTrip = lazy(() => import('components/MultipleTrip'));
 const Account = lazy(() => import('components/Account'));
+const Trips = lazy(() => import('components/Trips'));
 
 import { TRIP_BASIC } from 'constants';
 
@@ -33,6 +34,11 @@ function App() {
                 <Route path='/account' element={
                     <Suspense fallback={<>...</>}>
                         <Account />
+                    </Suspense>
+                }/>
+                <Route path='/trips' element={
+                    <Suspense fallback={<>...</>}>
+                        <Trips />
                     </Suspense>
                 }/>
             </Routes>

@@ -188,7 +188,7 @@ const MultriTrip = ({
     ];
 
     return (
-        <Layout>
+        <Layout title='Multrip Information'>
             <Grid container className="multriTrip">
                 <Grid item lg={12} md={12} xs={12}>
                     <StepperComp data={tripInfo} steps={steps} />

@@ -8,10 +8,12 @@ import { connect } from 'react-redux';
 export const Account = ({ user }) => {
     console.log("user", user);
     return(
-        <Layout>
-            <div>
-              test account
-            </div>
+        <Layout title="Account">
+            <Grid container id="account-section" spacing={0}>
+                <Grid item lg={12} md={12} xs={12}>
+                        Welcome Luis
+                </Grid>
+            </Grid>
         </Layout>
     );
 };

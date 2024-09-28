@@ -1,0 +1,17 @@
+#trip .trip-ul {
+  list-style: none;
+  display: flex;
+}
+
+#trip .trip-ul > .trip-li{
+  
+}
+
+#trip-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#trip-container .trip-item {
+  display: flex;
+}
