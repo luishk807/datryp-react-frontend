@@ -1,7 +1,6 @@
 import React from 'react';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import { Grid, Link, Hidden } from '@mui/material';
-import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import { Grid, Link } from '@mui/material';
 import './index.css';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';

@@ -10,7 +10,7 @@
 .main-button:hover{
   background: white ;
   color: theme('colors.primaryGreen');
-  border: 1px solid theme('colors.primaryGreen');
+  outline: 1px solid theme('colors.primaryGreen');
 }
 
 .main-line {

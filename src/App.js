@@ -7,6 +7,8 @@ import { multiTripDetailobj, singleTripDetailobj } from 'sample/tripData';
 const Home = lazy(() => import('components/Home'));
 const SingleTrip = lazy(() => import('components/SingleTrip'));
 const MultipleTrip = lazy(() => import('components/MultipleTrip'));
+const Account = lazy(() => import('components/Account'));
+
 import { TRIP_BASIC } from 'constants';
 
 function App() {
@@ -26,6 +28,11 @@ function App() {
                 <Route path={TRIP_BASIC.MULTIPLE.route} element={
                     <Suspense fallback={<>...</>}>
                         <MultipleTrip tripInfo={multiTripDetailobj}/>
+                    </Suspense>
+                }/>
+                <Route path='/account' element={
+                    <Suspense fallback={<>...</>}>
+                        <Account />
                     </Suspense>
                 }/>
             </Routes>

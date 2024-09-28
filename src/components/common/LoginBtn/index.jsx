@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './index.css';
 import { Grid } from '@mui/material';
@@ -10,17 +10,31 @@ export const LoginBtn = ({
     onClick
 }) => {
     const modelRef = useRef();
+    const [form, setForm] = useState({});
     const label = "Login";
     const onChange = (type, e) => {
-        console.log(type);
+        setForm({
+            ...form,
+            [type]: e.target.value
+        });
     };
+    const handleLogin = (e) => {
+        e.preventDefault();
+        console.log("submit login", form);
+    };
+
+
+    useEffect(() => {
+        console.log("form value", form);
+    }, [form]);
+
     return(
         <ModalButton
             ref={modelRef}
             title={label}
             buttonProps={{
                 title:  label,
-                type: 'plain'
+                type: 'text-plain'
             }}
         >
             <Grid container>
@@ -34,6 +48,7 @@ export const LoginBtn = ({
                     <ButtonCustom 
                         label={label}
                         capitalizeType="uppercase"
+                        onClick={handleLogin}
                     />
                 </Grid>
             </Grid>
