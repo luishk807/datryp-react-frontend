@@ -14,7 +14,7 @@ const Layout = ({children, title = ''}) => {
             <Header />
             <Grid item lg={8} md={12} xs={12} className="layout-container">
                 <Grid container>
-                    <Grid item lg={12} md={12} xs={12} className="title">
+                    <Grid item lg={12} md={12} xs={12} className="layout-title">
                         {title}
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="homeContainer">

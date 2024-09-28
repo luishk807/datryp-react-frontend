@@ -2,12 +2,12 @@ import React from 'react';
 import { Grid } from '@mui/material';
 import PropTypes from 'prop-types';
 import './index.css';
-
+import Link from '@mui/material/Link';
 export const TripBox = ({
     data = null
 }) => {
     return(
-        <a href='/'>
+        <Link href="/" underline="none">
             <Grid container id="trip-box">
                 <Grid item lg={12} md={12} xs={12} className="container">
                     <Grid item lg={12} md={12} xs={12} className='image'>
@@ -23,7 +23,7 @@ export const TripBox = ({
                     </Grid>
                 </Grid>
             </Grid>
-        </a>
+        </Link>
     );
 };
 
