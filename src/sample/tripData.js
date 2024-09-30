@@ -270,4 +270,131 @@ export const multiTripDetailobj = {
 //     ],
 
 // };
+
+export const multiTripDetailobj2 = {
+    "type": {
+        "id": 2,
+        "name": "Multiple",
+        "route": "/multiple",
+        "steps": {
+            "BASIC": 0,
+            "FRIEND": 1,
+            "FINISH": 2
+        }
+    },
+    "destinations": [
+        {
+            "country": {
+                "id": 0,
+                "name": "Chile",
+                "code": "CL",
+                "local": "Chili (le)"
+            },
+            "flightInfo": {
+                "departDate": "2024-09-30",
+                "departTime": "15:38",
+                "arrivalDate": "2024-09-30",
+                "arrivalTime": "15:38",
+                "flightNumber": "5t",
+                "departAirport": "test",
+                "arrivalAirport": "test"
+            },
+            "date": "2024-09-07",
+            "id": 0,
+            "itinerary": [
+                {
+                    "id": 1,
+                    "date": "2024-09-07",
+                    "activities": [
+                        {
+                            "startTime": "15:38",
+                            "endTime": "15:38",
+                            "status": {
+                                "id": 3,
+                                "name": "Pending"
+                            },
+                            "place": "test",
+                            "location": "test",
+                            "cost": "111",
+                            "note": "test",
+                            "id": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "country": {
+                "id": 0,
+                "name": "American Samoa",
+                "code": "AS",
+                "local": "Samoa américaines (les)"
+            },
+            "flightInfo": {
+                "departDate": "2024-09-30",
+                "departTime": "15:38",
+                "arrivalDate": "2024-09-30",
+                "arrivalTime": "15:38",
+                "flightNumber": "5t",
+                "departAirport": "test",
+                "arrivalAirport": "test"
+            },
+            "date": "2024-09-07",
+            "id": 1,
+            "itinerary": [
+                {
+                    "id": 2,
+                    "date": "2024-09-07",
+                    "activities": [
+                        {
+                            "startTime": "15:38",
+                            "endTime": "15:38",
+                            "status": {
+                                "id": 3,
+                                "name": "Pending"
+                            },
+                            "place": "test",
+                            "location": "test1",
+                            "cost": "1111",
+                            "id": 1
+                        },
+                        {
+                            "startTime": "15:38",
+                            "endTime": "15:38",
+                            "status": {
+                                "id": 3,
+                                "name": "Pending"
+                            },
+                            "place": "test2",
+                            "location": "test1",
+                            "cost": "444",
+                            "id": 2
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "organizer": [
+        {
+            "id": 2,
+            "label": "Joanna Tam"
+        }
+    ],
+    "name": "China trip",
+    "budget": "1200",
+    "friends": [
+        {
+            "id": 3,
+            "label": "Alberto Wesker"
+        },
+        {
+            "id": 4,
+            "label": "Jessica Ruan"
+        }
+    ],
+    "startDate": "2024-09-07",
+    "endDate": "2024-09-07"
+};
+
 export const singleTripDetailobj = null;

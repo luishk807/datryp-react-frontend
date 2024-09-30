@@ -15,7 +15,8 @@ const AddDestinationBtn = ({
     onChange,
     type = 'add',
     data=null,
-    buttonType = 'standard'
+    buttonType = 'standard',
+    isViewMode = false
 }) => {
 
     const title = useMemo(() => {
@@ -86,7 +87,7 @@ const AddDestinationBtn = ({
             'country': e
         });
     };
-    return (
+    return !isViewMode && (
         <Grid container className={classNames({
             'add-place-container-standard': buttonType === 'standard',
             'add-place-container-simple': buttonType === 'text'
@@ -153,7 +154,8 @@ AddDestinationBtn.propTypes = {
     onChange: PropTypes.func,
     type: PropTypes.oneOf(['add', 'edit']),
     data: PropTypes.object,
-    buttonType: PropTypes.oneOf(['text', 'standard'])
+    buttonType: PropTypes.oneOf(['text', 'standard']),
+    isViewMode: PropTypes.bool,
 };
 
 export default AddDestinationBtn;

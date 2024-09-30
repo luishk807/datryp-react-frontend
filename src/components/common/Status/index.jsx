@@ -6,12 +6,13 @@ import { Grid } from '@mui/material';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 export const Status = ({ 
     data = null,
-    onClick
+    onClick,
+    isViewMode = false
 }) => {
     return(
         <Grid container id="trip-status">
             <Grid item lg={12} md={12} xs={12} className="status-label">
-                Status&nbsp;&#91;<ButtonIcon onClick={onClick} title="edit" type="text" />&#93;:
+                Status&nbsp;<ButtonIcon isViewMode={isViewMode} onClick={onClick} title="edit" type="text" />:
             </Grid>
             <Grid item lg={12} md={12} xs={12} className="status-data">
                 { _.get(data, 'status.name') }
@@ -22,6 +23,7 @@ export const Status = ({
 
 Status.propTypes = {
     data: PropTypes.object,
-    onClick: PropTypes.func
+    onClick: PropTypes.func,
+    isViewMode: PropTypes.bool
 };
 export default Status;

@@ -15,7 +15,8 @@ const DialogBox = ({
     title,
     onConfirm,
     buttonType='standard',
-    children
+    children,
+    isViewMode=false
 }) => {
     const [open, setOpen] = useState(false);
     
@@ -24,7 +25,7 @@ const DialogBox = ({
         onConfirm && onConfirm(e);
     };
 
-    return (
+    return !isViewMode && (
         <>
             <ButtonCustom 
                 // style={{ 'fontSize': '1.1em'}} 
@@ -61,7 +62,8 @@ DialogBox.propTypes = {
     title: PropTypes.string,
     onConfirm: PropTypes.func,
     children: PropTypes.node,
-    buttonType: PropTypes.oneOf(['text', 'standard'])
+    buttonType: PropTypes.oneOf(['text', 'standard']),
+    isViewMode: PropTypes.bool
 };
 
 export default DialogBox;

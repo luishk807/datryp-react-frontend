@@ -15,6 +15,7 @@ const Multiple = ({
     onChangeBudget,
     onChangePlace,
     participants = [],
+    isViewMode = false
 }) => {
     const handleOnClick = (e) => {
         console.log("on click", e);
@@ -36,14 +37,16 @@ const Multiple = ({
                             <Grid item lg={6} md={6} xs={12} className="flex justify-end justify-font-medium">
                                 <span>
                                     <AddDestinationBtn 
+                                        isViewMode={isViewMode}
                                         onChange={(e) => onChangeDestination(REDUX_TYPE.EDIT, e)} 
                                         type="edit"
                                         buttonType="text-plain" 
                                         data={trip}
                                     /> 
-                                </span> / 
+                                </span>
                                 <span>
                                     <DialogBox 
+                                        isViewMode={isViewMode}
                                         title="Delete this destination" 
                                         buttonLabel="Delete"
                                         buttonType="none" 
@@ -51,7 +54,7 @@ const Multiple = ({
                                     >
                                         You are about to delete {country}.  Are you sure you want to delete this item
                                     </DialogBox>
-                                </span>
+                                </span>  
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="content-info"> 
                                 <span className="title">Depart</span>: {flightInfo.departAirport} - {flightInfo.departTime} - 
@@ -59,6 +62,7 @@ const Multiple = ({
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="activity-button">
                                 <Activities 
+                                    isViewMode={isViewMode}
                                     tripTypeId={TRIP_BASIC.MULTIPLE.id} 
                                     activities={activities} 
                                     onChangePlace={(type, e) => onChangePlace(type, e, indx)}
@@ -72,14 +76,14 @@ const Multiple = ({
                 );
             }) 
         }
-               
         <Grid item lg={12} md={12} xs={12} className="multrip-content add-destination-button">
             <Grid container>
                 <Grid item>
-                    <AddDestinationBtn onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} />
+                    <AddDestinationBtn isViewMode={isViewMode} onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} />
                 </Grid>
             </Grid>
         </Grid>
+
     </>;
 };
 
@@ -89,6 +93,7 @@ Multiple.propTypes = {
     participants: PropTypes.array,
     onChangeBudget: PropTypes.func,
     onChangePlace: PropTypes.func,
+    isViewMode: PropTypes.bool
 };
 
 export default Multiple;

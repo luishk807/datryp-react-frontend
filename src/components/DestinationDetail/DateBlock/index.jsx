@@ -17,6 +17,7 @@ const TripItemBlock = ({
     onChangeBudget,
     onChangePlace,
     onChangeDestination,
+    isViewMode = false,
 }) => {
   
     const getDestinationData = (dateItem) => {
@@ -44,6 +45,7 @@ const TripItemBlock = ({
         
         return !isSingle ? 
             <MutipleTrips 
+                isViewMode={isViewMode}
                 trips={trips} 
                 onChangePlace={onChangePlace}
                 onChangeDestination={onChangeDestination}
@@ -51,6 +53,7 @@ const TripItemBlock = ({
                 onChangeBudget={onChangeBudget} 
             /> : 
             <SingleTrips 
+                isViewMode={isViewMode}
                 onChangePlace={onChangePlace}
                 participants={participants}
                 onChangeBudget={onChangeBudget} 
@@ -95,5 +98,6 @@ TripItemBlock.propTypes = {
     onChangeBudget: PropTypes.func,
     onChangePlace: PropTypes.func,
     onChangeDestination: PropTypes.func,
+    isViewMode: PropTypes.bool
 };
 export default TripItemBlock;

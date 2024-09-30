@@ -13,7 +13,8 @@ const DestinationDetail = ({
     participants = [],
     onChangeBudget,
     onChangePlace,
-    onChangeDestination
+    onChangeDestination,
+    isViewMode = false
 }) => {
 
     console.log("destinations", destinations);
@@ -53,13 +54,14 @@ const DestinationDetail = ({
     useEffect(() => {
         getDatesRange();
     }, [startDate, endDate]);
-    
+
     return (
         <Grid container>
             {
                 dates && dates.map((date, indx) => {
                     return (
                         <DateBlock 
+                            isViewMode={isViewMode}
                             key={indx} 
                             index={indx} 
                             participants={participants}
@@ -69,6 +71,7 @@ const DestinationDetail = ({
                             onChangeBudget={(type, value, destinationIndx) => onChangeBudget({activity: {type, value, index: indx, destinationIndx}, date: moment(date).format('YYYY-MM-DD').toString()})} 
                             onChangePlace={(type, value, destinationIndx) => onChangePlace({activity: {type, value, index: indx, destinationIndx}, date: moment(date).format('YYYY-MM-DD').toString()})}
                             onChangeDestination={(type, value) => onChangeDestination({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
+
                         />
                     );
                 })
@@ -86,6 +89,7 @@ DestinationDetail.propTypes = {
     onChangeBudget: PropTypes.func,
     onChangePlace: PropTypes.func,
     onChangeDestination: PropTypes.func,
+    isViewMode: PropTypes.bool,
 };
 
 export default DestinationDetail;

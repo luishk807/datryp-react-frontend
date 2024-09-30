@@ -11,11 +11,13 @@ const Single = ({
     participants = [],
     onChangePlace,
     onChangeBudget,
+    isViewMode = false,
 }) => {
     console.log(trips, 'trips single');
     return (
         trips ? (
             <Activities 
+                isViewMode={isViewMode}
                 onChangePlace={onChangePlace}
                 activities={trips} 
                 onChangeBudget={onChangeBudget}
@@ -23,7 +25,7 @@ const Single = ({
             />
 
         ) : (
-            <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
+            <AddPlaceBtn isViewMode={isViewMode} onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
         )
     );
 };
@@ -33,7 +35,7 @@ Single.propTypes = {
     onChangeBudget: PropTypes.func,
     trips: PropTypes.array,
     participants: PropTypes.array,
-
+    isViewMode: PropTypes.bool,
 };
 
 export default Single;

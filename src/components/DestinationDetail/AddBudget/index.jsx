@@ -10,7 +10,8 @@ import InputField from 'components/common/FormFields/InputField';
 export const AddBudget = ({
     participants = [],
     onSubmit,
-    budget = []
+    budget = [],
+    isViewMode = false,
 }) => {
     const [newBudget, setNewBudget] = useState([]);
 
@@ -55,7 +56,7 @@ export const AddBudget = ({
         setNewBudget(filterBudget);
     };
 
-    return(
+    return !isViewMode && (
         <ModalButton
             ref={modalRef}
             title="Travel Budget"
@@ -104,7 +105,8 @@ export const AddBudget = ({
 AddBudget.propTypes = {
     participants: PropTypes.array,
     onSubmit: PropTypes.func,
-    budget: PropTypes.array
+    budget: PropTypes.array,
+    isViewMode: PropTypes.bool,
 };
 
 export default AddBudget;

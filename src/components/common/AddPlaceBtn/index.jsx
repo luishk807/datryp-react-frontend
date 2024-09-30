@@ -17,7 +17,8 @@ const AddPlaceBtn = ({
     type = 'add',
     data=null,
     tripTypeId,
-    buttonType = 'standard'
+    buttonType = 'standard',
+    isViewMode = false
 }) => {
     const modelRef = useRef();
     const initilStatus = useMemo(() => {
@@ -75,7 +76,7 @@ const AddPlaceBtn = ({
         return () => unmounted = false;
     }, [data]);
 
-    return (
+    return !isViewMode && (
         <Grid container className={classNames({
             'add-place-container-standard': buttonType === 'standard',
             'add-place-container-simple': buttonType === 'text'
@@ -147,7 +148,8 @@ AddPlaceBtn.propTypes = {
     onChange: PropTypes.func,
     tripTypeId: PropTypes.number,
     type: PropTypes.oneOf(['add', 'edit']),
-    buttonType: PropTypes.oneOf(['text', 'standard'])
+    buttonType: PropTypes.oneOf(['text', 'standard']),
+    isViewMode: PropTypes.bool,
 };
 
 export default AddPlaceBtn;

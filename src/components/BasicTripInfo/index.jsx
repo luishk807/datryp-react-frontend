@@ -12,7 +12,8 @@ import Status from 'components/common/Status';
 ButtonIcon;
 export const BasicTripInfo = ({
     data,
-    onChangeStep
+    onChangeStep,
+    isViewMode = false
 }) => {
     console.log("in basic trip:", data);
     const tripDate = useMemo(() => {
@@ -25,7 +26,7 @@ export const BasicTripInfo = ({
     const organizer = useMemo(() => {
         return data.organizer.map(item => item.label).join(', ');
     }, [data]);
-    return(
+    return (
         <Grid container className="basic-trip-info">
             <Grid item lg={10} md={10} xs={12}>
                 <Grid container>
@@ -83,7 +84,7 @@ export const BasicTripInfo = ({
                 lg: 'flex',
                 md: 'flex'
             }}}>
-                <Status onClick={(e) => onChangeStep(0)}/>
+                <Status isViewMode={isViewMode} onClick={(e) => onChangeStep(0)}/>
             </Grid>
         </Grid>
     );
@@ -92,6 +93,7 @@ export const BasicTripInfo = ({
 BasicTripInfo.propTypes = {
     data: PropTypes.object,
     onChangeStep: PropTypes.func,
+    isViewMode: PropTypes.bool
 };
 
 export default BasicTripInfo;
