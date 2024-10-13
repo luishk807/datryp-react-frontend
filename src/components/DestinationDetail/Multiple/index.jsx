@@ -40,16 +40,17 @@ const Multiple = ({
                                         isViewMode={isViewMode}
                                         onChange={(e) => onChangeDestination(REDUX_TYPE.EDIT, e)} 
                                         type="edit"
-                                        buttonType="text-plain" 
+                                        buttonType="text" 
                                         data={trip}
                                     /> 
                                 </span>
+                                /
                                 <span>
                                     <DialogBox 
                                         isViewMode={isViewMode}
                                         title="Delete this destination" 
                                         buttonLabel="Delete"
-                                        buttonType="none" 
+                                        buttonType="text"
                                         onConfirm={(e) => onChangeDestination(REDUX_TYPE.DELETE, trip.id)}
                                     >
                                         You are about to delete {country}.  Are you sure you want to delete this item
@@ -79,7 +80,10 @@ const Multiple = ({
         <Grid item lg={12} md={12} xs={12} className="multrip-content add-destination-button">
             <Grid container>
                 <Grid item>
-                    <AddDestinationBtn isViewMode={isViewMode} onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} />
+                    <AddDestinationBtn 
+                        isViewMode={isViewMode} 
+                        onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
+                    />
                 </Grid>
             </Grid>
         </Grid>

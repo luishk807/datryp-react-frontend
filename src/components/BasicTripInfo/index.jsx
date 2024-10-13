@@ -33,7 +33,7 @@ export const BasicTripInfo = ({
                     <Grid item lg={12} md={12} xs={12} className="item title">
                         <div className="data" >
                             Trip Information 
-                            <span className='type'>(MULTIPLE)</span>
+                            <span className='type'>({_.get(data, 'type.name')})</span>
                         </div>
                     </Grid>
                     <Grid className="status" item lg={12} md={12} xs={12} sx={{ display: {
@@ -41,7 +41,7 @@ export const BasicTripInfo = ({
                         lg: "none",
                         md: "none"
                     }}}>
-                        <Status onClick={(e) => onChangeStep(0)}/>
+                        <Status data={data.status} onClick={(e) => onChangeStep(0)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="item name">
                         <div className="label">Name for trip:</div>
@@ -84,7 +84,7 @@ export const BasicTripInfo = ({
                 lg: 'flex',
                 md: 'flex'
             }}}>
-                <Status isViewMode={isViewMode} onClick={(e) => onChangeStep(0)}/>
+                <Status data={data.status} isViewMode={isViewMode} onClick={(e) => onChangeStep(0)}/>
             </Grid>
         </Grid>
     );

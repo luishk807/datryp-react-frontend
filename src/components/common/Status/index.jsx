@@ -15,7 +15,7 @@ export const Status = ({
                 Status&nbsp;<ButtonIcon isViewMode={isViewMode} onClick={onClick} title="edit" type="text" />:
             </Grid>
             <Grid item lg={12} md={12} xs={12} className="status-data">
-                { _.get(data, 'status.name') }
+                { _.get(data, 'name') }
             </Grid>
         </Grid>
     );

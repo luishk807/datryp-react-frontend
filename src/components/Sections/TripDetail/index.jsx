@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import Layout from 'components/common/Layout/SubLayout';
 import BasicTripInfo from 'components/BasicTripInfo';
 import DestinationDetail from 'components/DestinationDetail';
+import _ from 'lodash';
 
 import { multiTripDetailobj2} from 'sample/tripData';
 
@@ -19,6 +20,7 @@ export const TripDetail = ({
     };
     
     const participants = useMemo(() => {
+        console.log("trup ino", multiTripDetailobj2);
         const friends = tripInfo.friends || [];
         const organizer = tripInfo.organizer || [];
         const merged = [...friends, ...organizer];
@@ -35,6 +37,11 @@ export const TripDetail = ({
             }
         });
         return unique;
+    }, [multiTripDetailobj2]);
+
+
+    const destinations = useMemo(() => {
+        return _.get(multiTripDetailobj2, 'destinations');
     }, [multiTripDetailobj2]);
     
     const handleChangePlace = () => {
@@ -55,20 +62,26 @@ export const TripDetail = ({
     }, [multiTripDetailobj2]);
 
 
-    return(
+    return tripData && (
         <Layout title="Trip Detail">
             <Grid container>
-                <Grid item>
-                    { tripData && (<BasicTripInfo isViewMode={true} data={tripInfo} onChangeStep={handleChangeStep} />)} 
+                <Grid item lg={12}>
+                    { tripData && (
+                        <BasicTripInfo 
+                            isViewMode={true} 
+                            data={tripData} 
+                            onChangeStep={handleChangeStep} 
+                        />
+                    )} 
                 </Grid>
-                <Grid item>
+                <Grid item lg={12}>
                     <DestinationDetail 
-                        type={tripInfo.type} 
+                        type={tripData.type} 
                         isViewMode={true}
-                        startDate={tripInfo.startDate} 
+                        startDate={tripData.startDate} 
                         participants={participants}
-                        endDate={tripInfo.endDate} 
-                        destinations={tripInfo.destinations} 
+                        endDate={tripData.endDate} 
+                        destinations={destinations} 
                     />
                 </Grid>
             </Grid>

@@ -282,6 +282,10 @@ export const multiTripDetailobj2 = {
             "FINISH": 2
         }
     },
+    "status": {
+        id: 1,
+        name: 'active'
+    },
     "destinations": [
         {
             "country": {
@@ -378,7 +382,7 @@ export const multiTripDetailobj2 = {
     "organizer": [
         {
             "id": 2,
-            "label": "Joanna Tam"
+            "label": "Joanna Tamx"
         }
     ],
     "name": "China trip",

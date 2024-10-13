@@ -10,4 +10,5 @@
 
 .add-place-container-simple {
   width: auto !important;
+  font-size: inherit;
 }
