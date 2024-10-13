@@ -118,7 +118,14 @@ const AddDestinationBtn = ({
                                     <InputField defaultValue={destination?.flightInfo?.departAirport} label="Depart airport" name="departAirport" onChange={(e) => handleOnFlightInfo('departAirport', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField defaultValue={destination?.flightInfo?.departDate} type="date" name="departDate" onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}/>
+                                    <InputField 
+                                        defaultValue={destination?.flightInfo?.departDate} 
+                                        type="date" 
+                                        disablePast={true}
+                                        disabled={true} 
+                                        name="departDate" 
+                                        onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}
+                                    />
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
                                     <InputField defaultValue={destination?.flightInfo?.departTime} name="departTime" type="time" label="Depart Time" onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}/>
@@ -127,7 +134,7 @@ const AddDestinationBtn = ({
                                     <InputField defaultValue={destination?.flightInfo?.arrivalAirport} name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField defaultValue={destination?.flightInfo?.endDate} type="date" name="arrivalDate" onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}/>
+                                    <InputField defaultValue={destination?.flightInfo?.endDate} type="date" name="arrivalDate" disablePast={true} onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
                                     <InputField defaultValue={destination?.flightInfo?.arrivalTime} name="arrivalTime" type="time" label="Arrival Time" onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}/>

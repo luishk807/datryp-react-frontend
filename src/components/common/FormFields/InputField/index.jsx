@@ -18,8 +18,10 @@ const InputField = forwardRef(({
     label = null,
     name,
     onChange,
+    disablePast = false,
     defaultValue = "",
     type = "text",
+    disabled = false,
     labelOnTop = false
 }, ref) => {
     const [data, setData] = useState('');
@@ -66,9 +68,19 @@ const InputField = forwardRef(({
     const getField = (type) => {
         switch(type) {
             case 'time':
-                return <TimePicker onChange={(e) => handleOnChange({target: { value: e.format('HH:mm').toString()}})} defaultValue={moment()} label={label}/>;
+                return <TimePicker 
+                    disablePast={disablePast} 
+                    disabled={disabled} 
+                    onChange={(e) => handleOnChange({target: { value: e.format('HH:mm').toString()}})} 
+                    defaultValue={moment()} 
+                    label={label} />;
             case 'date':
-                return <DatePicker onChange={(e) => handleOnChange({target: { value: e.format('YYYY-MM-DD').toString()}})} defaultValue={moment()} label={labelText} />;
+                return <DatePicker 
+                    disablePast={disablePast} 
+                    disabled={disabled} 
+                    onChange={(e) => handleOnChange({target: { value: e.format('YYYY-MM-DD').toString()}})} 
+                    defaultValue={moment()} 
+                    label={labelText} />;
             default: 
                 return <OutlinedInput
                     id={name}
@@ -79,6 +91,7 @@ const InputField = forwardRef(({
                     onFocus={handleFocus}
                     inputRef={ref}
                     type={type}
+                    disabled={disabled}
                     value={data}
                     label={labelText}
                     aria-describedby={name}
@@ -101,8 +114,10 @@ InputField.propTypes = {
     label: PropTypes.string,
     name: PropTypes.string,
     onChange: PropTypes.func,
+    disablePast: PropTypes.bool,
     labelOnTop: PropTypes.bool,
     defaultValue: PropTypes.string,
+    disabled: PropTypes.bool,
     type: PropTypes.oneOf(['text', 'number', 'email', 'password', 'date', 'file', 'time'])
 };
 

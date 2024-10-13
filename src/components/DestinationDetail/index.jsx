@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
+import _ from 'lodash';
 import './index.css';
 
 import DateBlock from './DateBlock';
@@ -24,6 +25,32 @@ const DestinationDetail = ({
     //     onChange && onChange(e);
     // };
     
+    // const getDatesRange = async() => {
+    //     console.log(startDate, 'startdate');
+    //     console.log(endDate, 'endDate');
+    //     const date1 = moment(startDate);
+    //     const date2 = moment(endDate);
+
+    //     if (date1.isValid() && date2.isValid()) {
+    //         if (moment(startDate).isSame(endDate)) {
+    //             setDates([date2]);
+    //             return;
+    //         }
+    
+    //         let date = date1;
+    
+    //         const dateArry = [date.format('MM/DD/YYYY')];
+    
+    //         do {
+    //             date = moment(date).add(1, 'day');
+    //             dateArry.push(date.format('MM/DD/YYYY'));
+    //         } while(date.isBefore(date2));
+    
+    //         console.log(dateArry, 'dates');
+    //         setDates(dateArry);
+    //     }
+    // };
+
     const getDatesRange = async() => {
         console.log(startDate, 'startdate');
         console.log(endDate, 'endDate');
@@ -55,6 +82,17 @@ const DestinationDetail = ({
         getDatesRange();
     }, [startDate, endDate]);
 
+    const handleChangeDestination = (obj) => {
+        console.log("obj destination*****************", obj);
+        const departDate = _.get(obj, 'activity.value.flightInfo.departDate');
+        const arrivalDate = _.get(obj, 'activity.value.flightInfo.arrivalDate');
+        console.log("get arrivaldate",arrivalDate);
+        if(!moment(departDate).isSame(arrivalDate)){
+            console.log("***********DISFERETENT DATES**********");
+        }
+        onChangeDestination && onChangeDestination(obj);
+    };
+
     return (
         <Grid container>
             {
@@ -70,7 +108,14 @@ const DestinationDetail = ({
                             destinations={destinations}
                             onChangeBudget={(type, value, destinationIndx) => onChangeBudget({activity: {type, value, index: indx, destinationIndx}, date: moment(date).format('YYYY-MM-DD').toString()})} 
                             onChangePlace={(type, value, destinationIndx) => onChangePlace({activity: {type, value, index: indx, destinationIndx}, date: moment(date).format('YYYY-MM-DD').toString()})}
-                            onChangeDestination={(type, value) => onChangeDestination({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
+                            // onChangeDestination={(type, value) => onChangeDestination({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
+
+                            onChangeDestination={(type, value) => {
+                                handleChangeDestination({
+                                    activity: {type, value, index: indx}, 
+                                    date: moment(date).format('YYYY-MM-DD').toString()
+                                });
+                            }}
 
                         />
                     );

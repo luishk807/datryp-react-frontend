@@ -44,7 +44,7 @@ const Multiple = ({
                                         data={trip}
                                     /> 
                                 </span>
-                                /
+                                &#47;
                                 <span>
                                     <DialogBox 
                                         isViewMode={isViewMode}
