@@ -16,7 +16,9 @@ import {
 
 const InputField = forwardRef(({
     label = null,
+    maxDate,
     name,
+    minDate,
     onChange,
     disablePast = false,
     defaultValue = "",
@@ -74,13 +76,17 @@ const InputField = forwardRef(({
                     onChange={(e) => handleOnChange({target: { value: e.format('HH:mm').toString()}})} 
                     defaultValue={moment()} 
                     label={label} />;
-            case 'date':
+            case 'date': {
                 return <DatePicker 
                     disablePast={disablePast} 
                     disabled={disabled} 
                     onChange={(e) => handleOnChange({target: { value: e.format('YYYY-MM-DD').toString()}})} 
-                    defaultValue={moment()} 
-                    label={labelText} />;
+                    defaultValue={defaultValue ? moment(defaultValue) : moment()} 
+                    label={labelText}
+                    {...(minDate ? { minDate: moment(minDate) } : {})}
+                    {...(maxDate ? { maxDate: moment(maxDate) } : {})}
+                />;
+            }
             default: 
                 return <OutlinedInput
                     id={name}
@@ -111,6 +117,8 @@ const InputField = forwardRef(({
 });
 
 InputField.propTypes = {
+    maxDate: PropTypes.string,
+    minDate: PropTypes.string,
     label: PropTypes.string,
     name: PropTypes.string,
     onChange: PropTypes.func,

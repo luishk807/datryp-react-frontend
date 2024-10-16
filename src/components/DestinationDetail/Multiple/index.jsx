@@ -10,6 +10,8 @@ import DialogBox from 'components/common/FormFields/DialogBox';
 
 
 const Multiple = ({
+    defaultDate,
+    tripMaxDate,
     trips = [],
     onChangeDestination,
     onChangeBudget,
@@ -37,6 +39,8 @@ const Multiple = ({
                             <Grid item lg={6} md={6} xs={12} className="flex justify-end justify-font-medium">
                                 <span>
                                     <AddDestinationBtn 
+                                        defaultDate={defaultDate}
+                                        tripMaxDate={tripMaxDate}
                                         isViewMode={isViewMode}
                                         onChange={(e) => onChangeDestination(REDUX_TYPE.EDIT, e)} 
                                         type="edit"
@@ -77,21 +81,29 @@ const Multiple = ({
                 );
             }) 
         }
-        <Grid item lg={12} md={12} xs={12} className="multrip-content add-destination-button">
-            <Grid container>
-                <Grid item>
-                    <AddDestinationBtn 
-                        isViewMode={isViewMode} 
-                        onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
-                    />
+        {
+            !trips && (
+                <Grid item lg={12} md={12} xs={12} className="multrip-content add-destination-button">
+                    <Grid container>
+                        <Grid item>
+                            <AddDestinationBtn 
+                                tripMaxDate={tripMaxDate}
+                                isViewMode={isViewMode} 
+                                defaultDate={defaultDate}
+                                onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
+                            />
+                        </Grid>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Grid>
+            )
+        }
 
     </>;
 };
 
 Multiple.propTypes = {
+    tripMaxDate: PropTypes.string,
+    defaultDate: PropTypes.string,
     trips: PropTypes.array,
     onChangeDestination: PropTypes.func,
     participants: PropTypes.array,

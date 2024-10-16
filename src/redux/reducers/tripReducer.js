@@ -96,7 +96,8 @@ const tripReducer = (state = null, action) => {
 
             destinations.push({
                 ...value,
-                date: action.payload.date,
+                startDate: action.payload.startDate,
+                endDate: action.payload.endDate,
                 id: lastDestinationId++
             });
 
@@ -111,12 +112,13 @@ const tripReducer = (state = null, action) => {
         {
             console.log("edit destination", action.payload);
             console.log("trip", state);
-            const { value, index, date } = action.payload;
+            const { value, index, startDate, endDate } = action.payload;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             // const currValue = destinations[index];
 
             destinations[index] = {
-                date,
+                startDate,
+                endDate,
                 ...value
             };
 

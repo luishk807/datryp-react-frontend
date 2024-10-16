@@ -12,13 +12,14 @@ import classNames from 'classnames';
 import _ from 'lodash';
 
 const AddDestinationBtn = ({
+    defaultDate,
+    tripMaxDate,
     onChange,
     type = 'add',
     data=null,
     buttonType = 'standard',
     isViewMode = false
 }) => {
-
     const title = useMemo(() => {
         return type === 'add' ? 'Add Destination' : 'Edit';
     }, [type]);
@@ -50,28 +51,30 @@ const AddDestinationBtn = ({
                     'flightInfo': {
                         flightNumber: data.flightInfo.flightNumber,
                         departAirport: data.flightInfo.departAirport,
-                        departDate: data.flightInfo.departDate,
+                        departDate: defaultDate || data.flightInfo.departDate,
                         departTime: data.flightInfo.departTime,
                         arrivalAirport: data.flightInfo.arrivalAirport,
-                        arrivalDate: data.flightInfo.arrivalDate,
+                        arrivalDate: defaultDate || data.flightInfo.arrivalDate,
                         arrivalTime: data.flightInfo.arrivalTime,
                     },
                     'itinerary': data.itinerary
                 });
             } else {
+                console.log("**************ADD DESTINATION BTN*********");
+                console.log("defaultDate",defaultDate );
                 setDestination({
                     'country': null,
                     'flightInfo': {
-                        departDate: moment().format('YYYY-MM-DD').toString(),
+                        departDate: defaultDate || moment().format('YYYY-MM-DD').toString(),
                         departTime: moment().format('HH:mm').toString(),
-                        arrivalDate: moment().format('YYYY-MM-DD').toString(),
+                        arrivalDate: defaultDate || moment().format('YYYY-MM-DD').toString(),
                         arrivalTime: moment().format('HH:mm').toString()
                     }
                 });
             }
         }
         return () => unmounted = false;
-    }, [data]);
+    }, [data, defaultDate]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -122,7 +125,8 @@ const AddDestinationBtn = ({
                                         defaultValue={destination?.flightInfo?.departDate} 
                                         type="date" 
                                         disablePast={true}
-                                        disabled={true} 
+                                        disabled={true}
+                                        maxDate={tripMaxDate}
                                         name="departDate" 
                                         onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}
                                     />
@@ -134,7 +138,15 @@ const AddDestinationBtn = ({
                                     <InputField defaultValue={destination?.flightInfo?.arrivalAirport} name="Arrival Airport" label="Arrival Airport" onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField defaultValue={destination?.flightInfo?.endDate} type="date" name="arrivalDate" disablePast={true} onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}/>
+                                    <InputField 
+                                        defaultValue={destination?.flightInfo?.arrivalDate} 
+                                        type="date" 
+                                        minDate={destination?.flightInfo?.arrivalDate}
+                                        name="arrivalDate" 
+                                        maxDate={tripMaxDate}
+                                        disablePast={true} 
+                                        onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}
+                                    />
                                 </Grid>
                                 <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
                                     <InputField defaultValue={destination?.flightInfo?.arrivalTime} name="arrivalTime" type="time" label="Arrival Time" onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}/>
@@ -158,6 +170,8 @@ const AddDestinationBtn = ({
 };
 
 AddDestinationBtn.propTypes = {
+    tripMaxDate: PropTypes.string,
+    defaultDate: PropTypes.string,
     onChange: PropTypes.func,
     type: PropTypes.oneOf(['add', 'edit']),
     data: PropTypes.object,

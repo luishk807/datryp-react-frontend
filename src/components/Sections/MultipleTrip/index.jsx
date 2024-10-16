@@ -124,33 +124,36 @@ const MultriTrip = ({
         }
     };
 
-    const handleChangeDestination = ({date, activity}) => {
+    const handleChangeDestination = ({startDate, endDate, activity}) => {
         console.log("handle change destination");
-        console.log("dat", date, " value:", activity);
+        console.log("dat", startDate, " value:", activity);
 
         switch(activity.type) {
             case REDUX_TYPE.ADD: {
-                console.log("add", date, " value: ", activity);
+                console.log("add", startDate, " value: ", activity);
                 addDestination({
-                    date, 
+                    startDate, 
+                    endDate,
                     value: activity.value, 
                     index: activity.index
                 });
                 break;
             }
             case REDUX_TYPE.EDIT: {
-                console.log("edit", date, " value: ", activity);
+                console.log("edit", startDate, " value: ", activity);
                 editDestination({
-                    date, 
+                    startDate, 
+                    endDate,
                     value: activity.value, 
                     index: activity.value.id
                 });
                 break;
             }
             case REDUX_TYPE.DELETE: {
-                console.log("delete", date, " value: ", activity);
+                console.log("delete", startDate, " value: ", activity);
                 deleteDestination({
-                    date, 
+                    startDate, 
+                    endDate,
                     index: activity.value
                 });
                 break;
