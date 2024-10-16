@@ -102,6 +102,29 @@ const DestinationDetail = ({
         onChangeDestination && onChangeDestination(obj);
     };
 
+    const handleChangePlace = (obj) => {
+        const { activity, date } = obj;
+        console.log("*********HANDLE CHANGE PLACE************");
+        console.log("SENDING", obj);
+        console.log("destinations", destinations);
+        let destIndx = null;
+        for(let i = 0; i < destinations.length; i++) {
+            if(moment(destinations[i].startDate).isSame(obj.date)) {
+                destIndx = i;
+                break;
+            }
+        }
+
+        onChangePlace && onChangePlace({
+            activity: {
+                destinationIndx: destIndx,
+                index: 0,
+                ...activity
+            }, 
+            date
+        });
+    };
+
     return (
         <Grid container>
             {
@@ -130,9 +153,9 @@ const DestinationDetail = ({
                             //         }
                             //     )}
                             onChangePlace={
-                                (type, value, destinationIndx) => onChangePlace(
+                                (type, value) => handleChangePlace(
                                     {
-                                        activity: {type, value, index: 0, destinationIndx: indx}, date: moment(date.startDate).format('YYYY-MM-DD').toString()
+                                        activity: {type, value}, date: moment(date.startDate).format('YYYY-MM-DD').toString()
                                     }
                                 )}
                             // onChangeDestination={(type, value) => onChangeDestination({activity: {type, value, index: indx}, date: moment(date).format('YYYY-MM-DD').toString()})}
