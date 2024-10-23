@@ -8,6 +8,9 @@ let lastActivityId = 0;
 let lastDateId = 0;
 let lastDestinationId = 0;
 
+const generationRandomId = () => {
+    return Math.floor(Math.random()*1000);
+};
 const tripReducer = (state = null, action) => {
     switch (action.type) {
         case 'BASIC_INFO':
@@ -21,10 +24,11 @@ const tripReducer = (state = null, action) => {
         case 'DESTINATION_SINGLE':
         {
             console.log("destination redux", action.payload);
+
             return {
                 ...state,
                 destinations: {
-                    id: ++lastDestinationId,
+                    id: generationRandomId(),
                     ...action.payload
                 }
             };
@@ -52,10 +56,11 @@ const tripReducer = (state = null, action) => {
             const { value, itineraryId, activityIndex, destinationIndx} = action.payload;
 
             const destIndx = destinationIndx || 0;
+
             console.log("apend budget");
             const newBudget = value.map(item => ({
                 ...item,
-                id:  lastBudgetId++
+                id: generationRandomId()
             }));
             destinations[destIndx].itinerary[itineraryId].activities[activityIndex].budget =newBudget;
 
@@ -94,11 +99,13 @@ const tripReducer = (state = null, action) => {
             
             const { value, index } = action.payload;
 
+            // lastDestinationId++;
+
             destinations.push({
                 ...value,
                 startDate: action.payload.startDate,
                 endDate: action.payload.endDate,
-                id: lastDestinationId++
+                id: generationRandomId()
             });
 
             console.log("destinations", destinations);
@@ -112,7 +119,7 @@ const tripReducer = (state = null, action) => {
         {
             console.log("edit destination", action.payload);
             console.log("trip", state);
-            const { value, index, startDate, endDate } = action.payload;
+            const { value, index, startDate, endDate, removeIndexes } = action.payload;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             // const currValue = destinations[index];
 
@@ -122,10 +129,28 @@ const tripReducer = (state = null, action) => {
                 ...value
             };
 
-            return {
-                ...state,
-                destinations: destinations
-            };
+            console.log("destinations", destinations);
+            let n_destination = [];
+
+            if (removeIndexes.length) {
+                for(let i = 0; i < destinations.length; i++) {
+                    if(!removeIndexes.includes(destinations[i].id)) {
+                        n_destination.push(destinations[i]);
+                    }
+                }
+                return {
+                    ...state,
+                    destinations: n_destination
+                };
+            } else {
+                return {
+                    ...state,
+                    destinations: destinations
+                };
+            }
+
+            
+ 
         }
         case 'DELETE_DESTINATION':
         {
@@ -151,21 +176,21 @@ const tripReducer = (state = null, action) => {
             const { value, index, destinationIndx} = action.payload;
             
             const destIndx = destinationIndx || 0;
-
+            
             if (destinations[destIndx].itinerary && destinations[destIndx].itinerary.length) {
                 console.log("apend activities");
                 destinations[destIndx].itinerary[index].activities.push({
                     ...value,
-                    id: lastPlaceId++
+                    id: generationRandomId()
                 });
             } else {
                 destinations[destIndx].itinerary = [
                     {
-                        id: ++lastDateId,
+                        id: lastDateId,
                         date: action.payload.date,
                         activities: [{
                             ...action.payload.value,
-                            id: lastPlaceId++
+                            id: generationRandomId()
                         }]
                     }
                 ];

@@ -141,7 +141,7 @@ const AddDestinationBtn = ({
                                     <InputField 
                                         defaultValue={destination?.flightInfo?.arrivalDate} 
                                         type="date" 
-                                        minDate={destination?.flightInfo?.arrivalDate}
+                                        minDate={data?.flightInfo?.departDate}
                                         name="arrivalDate" 
                                         maxDate={tripMaxDate}
                                         disablePast={true} 

@@ -61,6 +61,7 @@ const DestinationDetail = ({
 
                 date = moment(date).add(1, 'day');
 
+                console.log("FLAG DATE:", flagDate);
                 if (flagDate) {
                     dateArry.forEach(item => {
                         if(moment(item.startDate).isSame(destinationDateFlag)) {
@@ -99,7 +100,42 @@ const DestinationDetail = ({
     }, [startDate, endDate]);
 
     const handleChangeDestination = (obj) => {
-        onChangeDestination && onChangeDestination(obj);
+        console.log("******handleChangeDestination********", obj);
+        console.log("destinations", destinations);
+        const ignoreId = _.get(obj, 'activity.value.id');
+        const flagStartDate = _.get(obj, 'startDate');
+        const flagEndDate = _.get(obj, 'endDate');
+        console.log("Ignroe id", ignoreId);
+        console.log("flagStartDate", flagStartDate);
+        console.log("flagEndDate", flagEndDate);
+        const indxList = [];
+        for(let i = 0; i < destinations.length; i++) {
+            console.log("COMPAREING", destinations[i]);
+            if (
+                ignoreId != destinations[i].id &&
+                (
+                    (
+                        moment(destinations[i].startDate).isAfter(flagStartDate) ||
+                        moment(destinations[i].startDate).isSame(flagStartDate)
+                    )
+                    &&
+                    (
+                        moment(destinations[i].endDate).isBefore(flagEndDate) ||
+                        moment(destinations[i].endDate).isSame(flagEndDate)
+                    )
+                )
+            ) {
+                console.log("in here");
+                indxList.push(destinations[i].id);
+            } else {
+                console.log("not in here");
+            }
+        }
+
+        onChangeDestination && onChangeDestination({
+            ...obj,
+            removeIndexes: indxList
+        });
     };
 
     const handleChangePlace = (obj) => {

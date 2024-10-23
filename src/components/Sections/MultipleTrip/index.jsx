@@ -124,7 +124,7 @@ const MultriTrip = ({
         }
     };
 
-    const handleChangeDestination = ({startDate, endDate, activity}) => {
+    const handleChangeDestination = ({startDate, endDate, removeIndexes, activity}) => {
         console.log("handle change destination");
         console.log("dat", startDate, " value:", activity);
 
@@ -141,11 +141,13 @@ const MultriTrip = ({
             }
             case REDUX_TYPE.EDIT: {
                 console.log("edit", startDate, " value: ", activity);
+                console.log("removeIndexes", removeIndexes);
                 editDestination({
                     startDate, 
                     endDate,
+                    removeIndexes,
                     value: activity.value, 
-                    index: activity.value.id
+                    index: activity.index,
                 });
                 break;
             }
