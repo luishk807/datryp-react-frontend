@@ -11,3 +11,8 @@
   max-height: 700px;
   overflow-y: auto;
 }
+
+.place-left {
+  justify-content: end;
+  display: flex;
+}

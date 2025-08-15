@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import { Grid } from '@mui/material';
@@ -15,29 +15,35 @@ const Home = ({
     onBasicInfo,
     tripInfo
 }) => {
-    const [singleSelected, setSingleSelected] = useState(true);
+    const [isSingleSelected, setIsSingleSelected] = useState(true);
     const navigate = useNavigate();
 
     const handleClick = (e) => {
         console.log(e);
-        setSingleSelected(e);
+        setIsSingleSelected(TRIP_BASIC.SINGLE.id === e ? true : false);
     };
 
     const handleSelectedSearch = (searchData) => {
         console.log(searchData, 'searchData');
         console.log("tripInfo", tripInfo);
-
-        const type = singleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
+        const type = isSingleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
         onBasicInfo && onBasicInfo({
             type,
-            destinations: [
+            destinations: isSingleSelected ? [
                 {
                     country: searchData
                 }
-            ]
+            ] : []
         });
         navigate(type.route, {replace: true});
     };
+
+    useEffect(() => {
+        if (!isSingleSelected) {
+            handleSelectedSearch();
+        }
+    }, [isSingleSelected]);
+    
     return (
         <Layout>
             <Grid container spacing={0} className="searchContainer">
@@ -51,14 +57,14 @@ const Home = ({
                                         <Grid item>
                                             <button className={classnames(
                                                 'selection', {
-                                                    'selected': singleSelected
-                                                })} onClick={() => handleClick(true)}>Single Place</button>
+                                                    'selected': isSingleSelected
+                                                })} onClick={() => handleClick(TRIP_BASIC.SINGLE.id)}>Single Place</button>
                                         </Grid>
                                         <Grid item>
                                             <button className={classnames(
                                                 'selection', {
-                                                    'selected': !singleSelected
-                                                })} onClick={() => handleClick(false)}>Multiple locations</button>
+                                                    'selected': !isSingleSelected
+                                                })} onClick={() => handleClick(TRIP_BASIC.MULTIPLE.id)}>Multiple locations</button>
                                         </Grid>
                                     </Grid>
                                 </Grid>

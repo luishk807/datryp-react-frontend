@@ -6,6 +6,7 @@
   margin-top: 20px;
 }
 
+
 .basic-trip-info .item {
   margin: 5px 0px
 }
@@ -15,6 +16,14 @@
     text-transform: uppercase;
     color: theme('colors.primaryGreen');
 }
+
+.basic-trip-info .title .type{
+  color: black;
+  font-size: 0.7em;
+  align-items: center;
+  vertical-align: middle;
+}
+
 .basic-trip-info .name .data {
   font-size: 1.2em;
     font-weight: 400;
@@ -27,17 +36,15 @@
   /* color: theme('colors.primaryOrange') */
 }
 
-.basic-trip-info .status .data {
+/* .basic-trip-info .status .data {
   font-size: 1.2em;
     text-transform: uppercase;
     font-weight: 500;
     color: theme('colors.primaryGreen');
-}
+} */
 
 .basic-trip-info .status {
   justify-content: end;
-  display: flex;
-  flex-direction: column;
   align-items: start;
   width: 100%;
   height: 100%;

@@ -27,6 +27,9 @@ const MultriTrip = ({
     editActivity,
     deleteActivity,
     addActivity,
+    addDestination,
+    editDestination,
+    deleteDestination
 }) => {
     console.log('tripInfo multrip', tripInfo);
     const handleBasicOnChange = (id, e) => {
@@ -57,14 +60,16 @@ const MultriTrip = ({
     const handleChangeBudget = ({date, activity}) => {
         console.log("handle budget");
         console.log("dat", date, " value:", activity);
+        const { index, value, destinationIndx} = activity;
         switch(activity.type) {
             case REDUX_TYPE.ADD: {
                 console.log("add", date, " value: ", activity);
                 addBudget({
-                    date, value: 
-                    activity.value.value, 
-                    itineraryId: activity.index,
-                    activityIndex: activity.value.index
+                    date, 
+                    value: value?.value, 
+                    itineraryId: index,
+                    activityIndex: value?.index,
+                    destinationIndx: destinationIndx
                 });
                 break;
             }
@@ -82,32 +87,80 @@ const MultriTrip = ({
     const handleChangePlace = ({date, activity}) => {
         console.log("handle place");
    
+        const { index, value, destinationIndx} = activity;
+
         switch(activity.type) {
             case REDUX_TYPE.ADD: {
                 console.log("add", date, " value: ", activity);
-                addPlace({date, value: activity.value, index: activity.index});
+                addPlace({
+                    date, 
+                    value: value, 
+                    index: index, 
+                    destinationIndx: destinationIndx
+                });
                 break;
             }
             case REDUX_TYPE.EDIT: {
                 console.log("edit", date, " value: ", activity);
                 editPlace({
                     date, 
-                    value: activity.value.value, 
-                    itineraryIndex: activity.index, 
-                    activityIndex: activity.value.index}
-                );
+                    value: value?.value, 
+                    itineraryIndex: index, 
+                    activityIndex: value?.index,
+                    destinationIndx: destinationIndx
+                });
                 break;
             }
             case REDUX_TYPE.DELETE: {
                 console.log("delete", date, " value: ", activity);
-                deletePlace({date, value: activity.value, index: activity.index});
+                deletePlace({
+                    date, 
+                    value: value, 
+                    index: index,
+                    destinationIndx: destinationIndx
+                });
                 break;
             }
         }
     };
 
-    const handleChangeDestination = () => {
+    const handleChangeDestination = ({startDate, endDate, removeIndexes, activity}) => {
         console.log("handle change destination");
+        console.log("dat", startDate, " value:", activity);
+
+        switch(activity.type) {
+            case REDUX_TYPE.ADD: {
+                console.log("add", startDate, " value: ", activity);
+                addDestination({
+                    startDate, 
+                    endDate,
+                    value: activity.value, 
+                    index: activity.index
+                });
+                break;
+            }
+            case REDUX_TYPE.EDIT: {
+                console.log("edit", startDate, " value: ", activity);
+                console.log("removeIndexes", removeIndexes);
+                editDestination({
+                    startDate, 
+                    endDate,
+                    removeIndexes,
+                    value: activity.value, 
+                    index: activity.index,
+                });
+                break;
+            }
+            case REDUX_TYPE.DELETE: {
+                console.log("delete", startDate, " value: ", activity);
+                deleteDestination({
+                    startDate, 
+                    endDate,
+                    index: activity.value
+                });
+                break;
+            }
+        }
     };
 
     const steps = [
@@ -140,7 +193,7 @@ const MultriTrip = ({
     ];
 
     return (
-        <Layout>
+        <Layout title='Multrip Information'>
             <Grid container className="multriTrip">
                 <Grid item lg={12} md={12} xs={12}>
                     <StepperComp data={tripInfo} steps={steps} />
@@ -165,7 +218,10 @@ const mapDispatchToProps = (dispatch) => ({
     editBudget: (value) => dispatch({ type: 'EDIT_BUDGET', payload: value}),
     addActivity: (value) => dispatch({ type: 'ADD_ACTIVITY', payload: value}),
     editActivity: (value) => dispatch({ type: 'EDIT_ACTIVITY', payload: value}),
-    deleteActivity: (value) => dispatch({ type: 'DELETE_ACTIVITY', payload: value})
+    deleteActivity: (value) => dispatch({ type: 'DELETE_ACTIVITY', payload: value}),
+    addDestination: (value) => dispatch({ type: 'ADD_DESTINATION', payload: value}),
+    editDestination: (value) => dispatch({ type: 'EDIT_DESTINATION', payload: value}),
+    deleteDestination: (value) => dispatch({ type: 'DELETE_DESTINATION', payload: value})
 
 });
 
@@ -182,6 +238,9 @@ MultriTrip.propTypes = {
     addActivity: PropTypes.func,
     editActivity: PropTypes.func,
     deleteActivity: PropTypes.func,
+    addDestination: PropTypes.func,
+    editDestination: PropTypes.func,
+    deleteDestination: PropTypes.func,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MultriTrip);

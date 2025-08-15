@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.content .content-header{
+/* .content .content-header{
   font-weight: 500;
   display: flex;
   justify-content: flex-start;
@@ -11,4 +11,4 @@
 .content .content-info {
   font-weight: 500;
   padding: 5px 0px;
-}
+} */

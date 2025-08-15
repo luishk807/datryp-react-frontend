@@ -15,6 +15,8 @@ const Activities = ({
     onChangeBudget,
     activities = [],
     participants = [],
+    tripTypeId,
+    isViewMode = false
 })=> {
 
     return (
@@ -40,7 +42,16 @@ const Activities = ({
                                                 <li><span className="location">{activity.location}</span></li>
                                                 <li><span className="label">Time:</span> {activityTime}</li>
                                                 <li><span className="label">Who is paying:</span>{` ${budgetList}`}
-                                                    <AddBudget budget={activity.budget} onSubmit={(e) => onChangeBudget(REDUX_TYPE.ADD, { index: indx, value: e})} participants={participants}/>
+
+                                                    <AddBudget 
+                                                        isViewMode={isViewMode}
+                                                        budget={activity.budget} 
+                                                        onSubmit={(e) => onChangeBudget(
+                                                            REDUX_TYPE.ADD, 
+                                                            { index: indx, value: e}
+                                                        )} 
+                                                        participants={participants}
+                                                    />
                                                 </li>
                                                 <li><span className="label">Cost:</span> {convertMoney(activity.cost)}</li>
                                             </ul>
@@ -49,16 +60,26 @@ const Activities = ({
                                         <Grid item lg={1} md={1} xs={1} className="option">
                                             <Grid container className="flex h-full">
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-start font-medium">
-                                                    <AddPlaceBtn type="edit" data={activity} buttonType="text" onChange={(e) => onChangePlace(REDUX_TYPE.EDIT, { index: indx, value: e} )}/>
+                                                    <AddPlaceBtn 
+                                                        isViewMode={isViewMode}
+                                                        type="edit" 
+                                                        data={activity} 
+                                                        buttonType="text" 
+                                                        onChange={(e) => onChangePlace(
+                                                            REDUX_TYPE.EDIT, 
+                                                            { index: indx, value: e} 
+                                                        )}
+                                                    />
                                                 </Grid>
                                                 <Grid item lg={12} md={12} xs={12} className="flex justify-end items-end font-medium">
                                                     <DialogBox 
+                                                        isViewMode={isViewMode}
                                                         title="Delete this place" 
                                                         buttonLabel="Delete"
                                                         buttonType="text" 
                                                         onConfirm={(e) => onChangePlace(REDUX_TYPE.DELETE, activity.id)}
                                                     >
-                                                    You are about to delete {activity.place}.  Are you sure you want to delete this item
+                                                        You are about to delete {activity.place}.  Are you sure you want to delete this item
                                                     </DialogBox>
                                                 </Grid>
                                             </Grid>
@@ -73,7 +94,11 @@ const Activities = ({
             <Grid item lg={12} className="content-trip">
                 <Grid container>
                     <Grid item lg={12} className="add-place-item">
-                        <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
+                        <AddPlaceBtn 
+                            isViewMode={isViewMode}
+                            tripTypeId={tripTypeId} 
+                            onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} 
+                        />
                     </Grid>
                 </Grid>
             </Grid>
@@ -88,6 +113,8 @@ Activities.propTypes = {
     onChangeBudget: PropTypes.func,
     activities: PropTypes.array,
     participants: PropTypes.array,
+    tripTypeId: PropTypes.number,
+    isViewMode: PropTypes.bool,
 };
 
 export default Activities;

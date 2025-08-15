@@ -7,6 +7,28 @@
   font-weight: 500;
 }
 
+.main-button:hover{
+  background: white ;
+  color: theme('colors.primaryGreen');
+  outline: 1px solid theme('colors.primaryGreen');
+}
+
+.main-line {
+  padding: 10px 0px;
+  width: 100%;
+  background: white;
+  color: theme('colors.primaryGreen');
+  border-radius: 5px;
+  font-weight: 500;
+  border: 1px solid theme('colors.primaryGreen');
+}
+
+.main-line:hover {
+  background: theme('colors.primaryGreen');
+  color: white;
+}
+
+
 .uppercase {
   text-transform: uppercase;
 }
@@ -31,6 +53,7 @@
 .plain-button {
   padding: 10px 0px;
   width: 100%;
+  color: inherit;
   border-radius: 5px;
   font-weight: 500;
 }
@@ -38,4 +61,11 @@
 .text-button {
   /* width: 100%; */
   font-weight: 500;
+    color: inherit;
+}
+
+.none {
+  font-weight: inherit;
+  color: inherit;
+  font-size: inherit !important;
 }

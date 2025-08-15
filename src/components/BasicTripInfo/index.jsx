@@ -8,10 +8,12 @@ import {
 } from '@mui/material';
 import { convertMoney } from 'utils';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
+import Status from 'components/common/Status';
 ButtonIcon;
 export const BasicTripInfo = ({
     data,
-    onChangeStep
+    onChangeStep,
+    isViewMode = false
 }) => {
     console.log("in basic trip:", data);
     const tripDate = useMemo(() => {
@@ -24,12 +26,22 @@ export const BasicTripInfo = ({
     const organizer = useMemo(() => {
         return data.organizer.map(item => item.label).join(', ');
     }, [data]);
-    return(
+    return (
         <Grid container className="basic-trip-info">
-            <Grid item lg={11} md={11}>
+            <Grid item lg={10} md={10} xs={12}>
                 <Grid container>
                     <Grid item lg={12} md={12} xs={12} className="item title">
-                        <div className="data">Trip Information</div>
+                        <div className="data" >
+                            Trip Information 
+                            <span className='type'>({_.get(data, 'type.name')})</span>
+                        </div>
+                    </Grid>
+                    <Grid className="status" item lg={12} md={12} xs={12} sx={{ display: {
+                        xs: "flex",
+                        lg: "none",
+                        md: "none"
+                    }}}>
+                        <Status data={data.status} onClick={(e) => onChangeStep(0)}/>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="item name">
                         <div className="label">Name for trip:</div>
@@ -67,9 +79,12 @@ export const BasicTripInfo = ({
                     </Grid>
                 </Grid>
             </Grid>
-            <Grid item lg={1} md={1} className="status">
-                <div className="label">Status&nbsp;[<ButtonIcon onClick={(e) => onChangeStep(0)} title="edit" type="text" />]:</div>
-                <div className="data">{ _.get(data, 'status.name') }</div>
+            <Grid item lg={2} md={2} xs={12} className="status" sx={{ display: { 
+                xs: 'none',
+                lg: 'flex',
+                md: 'flex'
+            }}}>
+                <Status data={data.status} isViewMode={isViewMode} onClick={(e) => onChangeStep(0)}/>
             </Grid>
         </Grid>
     );
@@ -78,6 +93,7 @@ export const BasicTripInfo = ({
 BasicTripInfo.propTypes = {
     data: PropTypes.object,
     onChangeStep: PropTypes.func,
+    isViewMode: PropTypes.bool
 };
 
 export default BasicTripInfo;

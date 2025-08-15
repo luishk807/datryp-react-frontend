@@ -8,8 +8,10 @@ import _ from 'lodash';
 import './index.css';
 import { isSingleTrip } from 'utils';
 
-const TripItemBlock = ({
-    date,
+const DateBlock = ({
+    startDate,
+    endDate,
+    tripMaxDate,
     destinations = [],
     participants = [],
     index = 0,
@@ -17,34 +19,49 @@ const TripItemBlock = ({
     onChangeBudget,
     onChangePlace,
     onChangeDestination,
+    isViewMode = false,
 }) => {
+    
+    const shouldShow = useMemo(() => !moment(startDate).isSame(endDate));
   
     const getDestinationData = (dateItem) => {
-        console.log("destionation", destinations);
-        console.log("check data", dateItem);
+        // console.log("**********DATE BLOCK************");
+        // console.log("destionation", destinations);
+        // console.log("check data", dateItem);
+        // console.log("start date", startDate);
         let destinationDate = null;
         const isSingle = isSingleTrip(typeId);
         if (isSingle) {
             const intinerary = _.get(destinations, '0.itinerary');
-            destinationDate = intinerary ? intinerary.filter(item => moment(dateItem).isSame(moment(item.date))) : [];
+            destinationDate = intinerary ? intinerary.filter(item => moment(dateItem).isSame(moment(item?.startDate))) : [];
         } else {
-            destinationDate = destinations.filter(item => item.date === dateItem);
+            destinationDate = destinations.length ? destinations.filter(item => moment(dateItem).isSame(moment(item?.startDate))) : [];
+
+            console.log("destinationDate", destinationDate);
         }
-    
-        const trips = destinationDate.length ? !isSingle ? destinationDate[0].itinerary
-            : destinationDate[0].activities : null;
+
+        let trips = null;
+
+        if (destinationDate.length) {
+            trips = !isSingle ? destinationDate
+                : destinationDate[0].activities;
+        }
 
         console.log("trips", trips);
         
         return !isSingle ? 
             <MutipleTrips 
+                defaultDate={startDate}
+                isViewMode={isViewMode}
                 trips={trips} 
+                tripMaxDate={tripMaxDate}
                 onChangePlace={onChangePlace}
                 onChangeDestination={onChangeDestination}
                 participants={participants}
                 onChangeBudget={onChangeBudget} 
             /> : 
             <SingleTrips 
+                isViewMode={isViewMode}
                 onChangePlace={onChangePlace}
                 participants={participants}
                 onChangeBudget={onChangeBudget} 
@@ -54,28 +71,42 @@ const TripItemBlock = ({
     };
 
     return (
-        <Grid item key={`destination-${index}`} lg={12} className="date-block">
+        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12}className="date-block">
             <Grid container>
-                <Grid item lg={12} className="header">
+                <Grid item lg={12} md={12} xs={12} className="header">
                     <Grid container>
                         <Grid item className="icon">
                             <span className="dot"></span>
                         </Grid>
                         <Grid item className="title">
-                            <span className="title">{moment(date).format("LL")}</span>
+                            <span className="title">{moment(startDate).format("LL")} </span>
+                            {
+                                !moment(endDate).isSame(startDate) && (
+                                    <span className="title">&#45;&nbsp;&nbsp;{moment(endDate).format("LL")} </span>
+                                )
+                            }
+
                         </Grid>
                     </Grid>
                 </Grid>
-                {
-                    getDestinationData(date)
-                }                       
+                <Grid item lg={12} md={12} xs={12} className='content item-border'>
+                    <Grid container>
+                        {
+                            getDestinationData(startDate)
+                        }  
+                    </Grid>
+ 
+                </Grid>
+                    
             </Grid>
         </Grid>
     );
 };
 
-TripItemBlock.propTypes = {
-    date: PropTypes.object,
+DateBlock.propTypes = {
+    tripMaxDate: PropTypes.string,
+    startDate: PropTypes.string,
+    endDate: PropTypes.string,
     destinations: PropTypes.array,
     index: PropTypes.number,
     typeId: PropTypes.number,
@@ -83,5 +114,6 @@ TripItemBlock.propTypes = {
     onChangeBudget: PropTypes.func,
     onChangePlace: PropTypes.func,
     onChangeDestination: PropTypes.func,
+    isViewMode: PropTypes.bool
 };
-export default TripItemBlock;
+export default DateBlock;

@@ -135,7 +135,7 @@ const SingleTrip = ({
     ];
 
     return (
-        <Layout>
+        <Layout title="Single Trip Detail">
             <Grid container className="singleTrip">
                 <Grid item lg={12} md={12} xs={12}>
                     <StepperComp data={tripInfo} steps={steps} />

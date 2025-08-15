@@ -1,0 +1,29 @@
+#trip-complete {
+  margin: 0px auto
+}
+
+#trip-complete .trip-content .main-image {
+  display: flex;
+  justify-content: center;
+}
+
+#trip-complete  .trip-content .title {
+  display: flex;
+  justify-content: center;
+  margin: 50px 0px 50px 0px
+}
+
+#trip-complete  .trip-content .title .content {
+  font-size: 1.5em;
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: center;
+}
+
+#trip-complete .trip-content .title .text-1 {
+  color: theme('colors.primaryGreen');
+}
+
+#trip-complete  .trip-content .title .text-2 {
+  color: theme('colors.primaryOrange');
+}

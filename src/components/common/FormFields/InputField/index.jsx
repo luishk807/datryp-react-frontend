@@ -16,10 +16,14 @@ import {
 
 const InputField = forwardRef(({
     label = null,
+    maxDate,
     name,
+    minDate,
     onChange,
+    disablePast = false,
     defaultValue = "",
     type = "text",
+    disabled = false,
     labelOnTop = false
 }, ref) => {
     const [data, setData] = useState('');
@@ -58,13 +62,31 @@ const InputField = forwardRef(({
     }, [type]);
 
     const debounceChange = debounce(handleOnChange, 200);
+    
+    const handleFocus = (e) => {
+        e.target.select();
+    };
 
     const getField = (type) => {
         switch(type) {
             case 'time':
-                return <TimePicker onChange={(e) => handleOnChange({target: { value: e.format('HH:mm').toString()}})} defaultValue={moment()} label={label}/>;
-            case 'date':
-                return <DatePicker onChange={(e) => handleOnChange({target: { value: e.format('YYYY-MM-DD').toString()}})} defaultValue={moment()} label={labelText} />;
+                return <TimePicker 
+                    disablePast={disablePast} 
+                    disabled={disabled} 
+                    onChange={(e) => handleOnChange({target: { value: e.format('HH:mm').toString()}})} 
+                    defaultValue={moment()} 
+                    label={label} />;
+            case 'date': {
+                return <DatePicker 
+                    disablePast={disablePast} 
+                    disabled={disabled} 
+                    onChange={(e) => handleOnChange({target: { value: e.format('YYYY-MM-DD').toString()}})} 
+                    defaultValue={defaultValue ? moment(defaultValue) : moment()} 
+                    label={labelText}
+                    {...(minDate ? { minDate: moment(minDate) } : {})}
+                    {...(maxDate ? { maxDate: moment(maxDate) } : {})}
+                />;
+            }
             default: 
                 return <OutlinedInput
                     id={name}
@@ -72,8 +94,10 @@ const InputField = forwardRef(({
                     className={classNames({
                         'fileStyle': type === 'file'
                     })}
+                    onFocus={handleFocus}
                     inputRef={ref}
                     type={type}
+                    disabled={disabled}
                     value={data}
                     label={labelText}
                     aria-describedby={name}
@@ -93,11 +117,15 @@ const InputField = forwardRef(({
 });
 
 InputField.propTypes = {
+    maxDate: PropTypes.string,
+    minDate: PropTypes.string,
     label: PropTypes.string,
     name: PropTypes.string,
     onChange: PropTypes.func,
+    disablePast: PropTypes.bool,
     labelOnTop: PropTypes.bool,
     defaultValue: PropTypes.string,
+    disabled: PropTypes.bool,
     type: PropTypes.oneOf(['text', 'number', 'email', 'password', 'date', 'file', 'time'])
 };
 

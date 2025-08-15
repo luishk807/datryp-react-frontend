@@ -15,13 +15,24 @@ const DialogBox = ({
     title,
     onConfirm,
     buttonType='standard',
-    children
+    children,
+    isViewMode=false
 }) => {
     const [open, setOpen] = useState(false);
+    
+    const handleConfirmDelete = (e) => {
+        setOpen(false);
+        onConfirm && onConfirm(e);
+    };
 
-    return (
+    return !isViewMode && (
         <>
-            <ButtonCustom style={{ 'fontSize': '1.1em'}} type={buttonType} onClick={() => setOpen(true)} label={buttonLabel} />
+            <ButtonCustom 
+                // style={{ 'fontSize': '1.1em'}} 
+                type={buttonType} 
+                onClick={() => setOpen(true)} 
+                label={buttonLabel} 
+            />
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}
@@ -39,7 +50,7 @@ const DialogBox = ({
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom type="standard-small" onClick={() => setOpen(false)} label="Cancel" />
-                    <ButtonCustom style={{ 'marginLeft': '35px'}} type="standard-small" onClick={onConfirm} label="Agree" />
+                    <ButtonCustom style={{ 'marginLeft': '35px'}} type="standard-small" onClick={handleConfirmDelete} label="Agree" />
                 </DialogActions>
             </Dialog>
         </>
@@ -51,7 +62,8 @@ DialogBox.propTypes = {
     title: PropTypes.string,
     onConfirm: PropTypes.func,
     children: PropTypes.node,
-    buttonType: PropTypes.oneOf(['text', 'standard'])
+    buttonType: PropTypes.oneOf(['text', 'standard']),
+    isViewMode: PropTypes.bool
 };
 
 export default DialogBox;

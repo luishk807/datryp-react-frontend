@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useMemo} from 'react';
+import moment from 'moment/moment';
 import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
@@ -11,6 +12,7 @@ const Single = ({
     participants = [],
     onChangePlace,
     onChangeBudget,
+    isViewMode = false,
 }) => {
 
     const [place, setPlace] = useState(null);
@@ -46,22 +48,17 @@ const Single = ({
 
     return (
         trips ? (
-            <Grid item lg={12} md={12} xs={12} className="content item-border">
-                <Activities 
-                    onChangePlace={onChangePlace}
-                    activities={trips} 
-                    onChangeBudget={onChangeBudget}
-                    participants={participants}
-                />
-            </Grid>
+            <Activities 
+                isViewMode={isViewMode}
+                onChangePlace={onChangePlace}
+                activities={trips} 
+                onChangeBudget={onChangeBudget}
+                participants={participants}
+            />
 
+        ) : (
+            <AddPlaceBtn isViewMode={isViewMode} onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
         )
-            : 
-            (
-                <Grid item lg={12} md={12} xs={12} className="content item-border">
-                    <AddPlaceBtn onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} />
-                </Grid>
-            )
     );
 };
 
@@ -70,7 +67,7 @@ Single.propTypes = {
     onChangeBudget: PropTypes.func,
     trips: PropTypes.array,
     participants: PropTypes.array,
-
+    isViewMode: PropTypes.bool,
 };
 
 export default Single;

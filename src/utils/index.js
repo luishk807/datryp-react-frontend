@@ -1,5 +1,6 @@
+import { TRIP_BASIC } from "constants";
 export const isSingleTrip = (type) => {
-    return type === 1 ? true : false;
+    return type === TRIP_BASIC.SINGLE.id ? true : false;
 };
 
 export const convertMoney = (value) => {

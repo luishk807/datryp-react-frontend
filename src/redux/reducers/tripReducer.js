@@ -8,6 +8,9 @@ let lastActivityId = 0;
 let lastDateId = 0;
 let lastDestinationId = 0;
 
+const generationRandomId = () => {
+    return Math.floor(Math.random()*1000);
+};
 const tripReducer = (state = null, action) => {
     switch (action.type) {
         case 'BASIC_INFO':
@@ -21,10 +24,11 @@ const tripReducer = (state = null, action) => {
         case 'DESTINATION_SINGLE':
         {
             console.log("destination redux", action.payload);
+
             return {
                 ...state,
                 destinations: {
-                    id: ++lastDestinationId,
+                    id: generationRandomId(),
                     ...action.payload
                 }
             };
@@ -49,13 +53,16 @@ const tripReducer = (state = null, action) => {
             console.log("trip", state);
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             
-            const { value, itineraryId, activityIndex} = action.payload;
+            const { value, itineraryId, activityIndex, destinationIndx} = action.payload;
+
+            const destIndx = destinationIndx || 0;
+
             console.log("apend budget");
             const newBudget = value.map(item => ({
                 ...item,
-                id:  lastBudgetId++
+                id: generationRandomId()
             }));
-            destinations[0].itinerary[itineraryId].activities[activityIndex].budget =newBudget;
+            destinations[destIndx].itinerary[itineraryId].activities[activityIndex].budget =newBudget;
 
 
             return {
@@ -84,33 +91,116 @@ const tripReducer = (state = null, action) => {
                 ...state,
             };
         }
+        case 'ADD_DESTINATION':
+        {
+            console.log("add destination", action.payload);
+            console.log("trip", state);
+            const destinations = JSON.parse(JSON.stringify(state.destinations));
+            
+            const { value, index } = action.payload;
+
+            // lastDestinationId++;
+
+            destinations.push({
+                ...value,
+                startDate: action.payload.startDate,
+                endDate: action.payload.endDate,
+                id: generationRandomId()
+            });
+
+            console.log("destinations", destinations);
+          
+            return {
+                ...state,
+                destinations: destinations
+            };
+        }
+        case 'EDIT_DESTINATION':
+        {
+            console.log("edit destination", action.payload);
+            console.log("trip", state);
+            const { value, index, startDate, endDate, removeIndexes } = action.payload;
+            const destinations = JSON.parse(JSON.stringify(state.destinations));
+            // const currValue = destinations[index];
+
+            destinations[index] = {
+                startDate,
+                endDate,
+                ...value
+            };
+
+            console.log("destinations", destinations);
+            let n_destination = [];
+
+            if (removeIndexes.length) {
+                for(let i = 0; i < destinations.length; i++) {
+                    if(!removeIndexes.includes(destinations[i].id)) {
+                        n_destination.push(destinations[i]);
+                    }
+                }
+                return {
+                    ...state,
+                    destinations: n_destination
+                };
+            } else {
+                return {
+                    ...state,
+                    destinations: destinations
+                };
+            }
+
+            
+ 
+        }
+        case 'DELETE_DESTINATION':
+        {
+            console.log("remvoe destination", action.payload);
+            console.log("trip", state);
+
+            const { index } = action.payload;
+            let destinations = JSON.parse(JSON.stringify(state.destinations));
+            const n_activities = destinations.filter(item => item.id !== index);
+            destinations = n_activities;
+
+            return {
+                ...state,
+                destinations: destinations
+            };
+        }
         case 'ADD_PLACE':
         {
             console.log("add place", action.payload);
             console.log("trip", state);
             const destinations = JSON.parse(JSON.stringify(state.destinations));
             
-            const { value, index } = action.payload;
-            if (destinations[0].itinerary && destinations[0].itinerary.length) {
+            const { value, index, destinationIndx} = action.payload;
+            
+            const destIndx = destinationIndx || 0;
+            
+            if (destinations[destIndx].itinerary && destinations[destIndx].itinerary.length) {
                 console.log("apend activities");
-                destinations[0].itinerary[index].activities.push({
+                destinations[destIndx].itinerary[index].activities.push({
                     ...value,
-                    id: lastPlaceId++
+                    id: generationRandomId()
                 });
             } else {
-                destinations[0].itinerary = [
+                destinations[destIndx].itinerary = [
                     {
-                        id: ++lastDateId,
+                        id: lastDateId,
                         date: action.payload.date,
                         activities: [{
                             ...action.payload.value,
-                            id: lastPlaceId++
+                            id: generationRandomId()
                         }]
                     }
                 ];
             }
 
-           
+            console.log("ADD PLACE, new destination", destinations);
+
+            // return {
+            //     ...state,
+            // };
             return {
                 ...state,
                 destinations: destinations
@@ -120,10 +210,11 @@ const tripReducer = (state = null, action) => {
         {
             console.log("edit place", action.payload);
             console.log("trip", state);
-            const { value, activityIndex, itineraryIndex } = action.payload;
+            const { value, activityIndex, itineraryIndex, destinationIndx } = action.payload;
+            const destIndx = destinationIndx || 0;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
-            const currValue = destinations[0].itinerary[itineraryIndex].activities[activityIndex];
-            destinations[0].itinerary[itineraryIndex].activities[activityIndex] = {
+            const currValue = destinations[destIndx].itinerary[itineraryIndex].activities[activityIndex];
+            destinations[destIndx].itinerary[itineraryIndex].activities[activityIndex] = {
                 ...currValue,
                 ...value
             };
@@ -137,10 +228,11 @@ const tripReducer = (state = null, action) => {
         {
             console.log("remvoe place", action.payload);
             console.log("trip", state);
-            const { value, index } = action.payload;
+            const { value, index, destinationIndx} = action.payload;
+            const destIndx = destinationIndx || 0;
             const destinations = JSON.parse(JSON.stringify(state.destinations));
-            const n_activities = destinations[0].itinerary[index].activities.filter(item => item.id !== value);
-            destinations[0].itinerary[0].activities = n_activities;
+            const n_activities = destinations[destIndx].itinerary[index].activities.filter(item => item.id !== value);
+            destinations[destIndx].itinerary[0].activities = n_activities;
             return {
                 ...state,
                 destinations: destinations

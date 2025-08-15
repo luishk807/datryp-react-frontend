@@ -1,0 +1,14 @@
+.add-destination-comp > .form-container {
+  min-height: 200px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.add-place-container-standard {
+  width: 100%
+}
+
+.add-place-container-simple {
+  width: auto !important;
+  font-size: inherit;
+}

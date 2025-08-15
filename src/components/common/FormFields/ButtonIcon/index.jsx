@@ -8,14 +8,15 @@ const ButtonIcon = ({
     Icon,
     onClick,
     style,
-    type = "standard"
-}) => {
-    return (
+    type = "standard",
+    isViewMode = false,
+}) => { 
+    return !isViewMode && (
         <button onClick={onClick} style={style} className={classNames(
             {
                 'button-icon': type==="standard",
                 'button-simple': type==="text",
-                'button-no-style': type==="text-plain",
+                'button-no-style': type==="text-plain"
             }
         )}>
             {title} { Icon && (<Icon />) }
@@ -29,6 +30,7 @@ ButtonIcon.propTypes = {
     Icon: PropTypes.object,
     style: PropTypes.object,
     onClick: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['text', 'standard', 'text-plain'])
+    type: PropTypes.oneOf(['text', 'standard', 'text-plain']),
+    isViewMode: PropTypes.bool
 };
 export default ButtonIcon;
