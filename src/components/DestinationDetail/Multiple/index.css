@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.content .content-header{
+/* .content .content-header{
   font-weight: 500;
   display: flex;
   justify-content: flex-start;
@@ -11,4 +11,29 @@
 .content .content-info {
   font-weight: 500;
   padding: 5px 0px;
+} */
+
+
+.multrip-content-item {
+  margin-bottom: 20px!important;
+}
+
+.multrip-content-item:not(:first-child){
+  padding-top: 20px!important;
+}
+.multrip-content-item .content-header{
+  display: flex;
+  justify-content: flex-start;
+  /* margin: 10px 0px; */
+}
+
+.multrip-content-item .title{
+  font-weight: 500;
+}
+
+
+.multrip-content-item .content-info {
+  /* font-weight: 500; */
+  padding: 5px 0px;
+  margin-bottom: 10px
 }

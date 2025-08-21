@@ -1,0 +1,12 @@
+#trip-status .status-data {
+  font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: theme('colors.primaryGreen');
+}
+
+#trip-status .status-label {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}

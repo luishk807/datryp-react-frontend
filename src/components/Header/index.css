@@ -10,7 +10,7 @@
 
 .homeHeader .firstRow {
   justify-content: flex-end;
-  display: flex
+  /* display: flex */
 }
 
 .homeHeader .secondRow {

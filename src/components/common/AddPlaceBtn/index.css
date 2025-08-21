@@ -1,0 +1,18 @@
+.add-place-container-standard {
+  width: 100%
+}
+
+.add-place-container-simple {
+  width: auto !important;
+}
+
+#add-place-form-container {
+  min-height: 200px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.place-left {
+  justify-content: end;
+  display: flex;
+}

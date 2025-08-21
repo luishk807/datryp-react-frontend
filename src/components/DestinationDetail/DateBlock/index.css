@@ -1,0 +1,31 @@
+.date-block .content{
+  padding: 20px 5px 20px 20px;
+  margin-left: 7px;
+}
+
+.date-block .item-border{
+  border-left: 2px solid theme('colors.primaryGreen');
+}
+
+.date-block .content .add-place-item {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.date-block .header .icon {
+  display: flex;
+  align-items: center; 
+}
+
+.date-block .header .title{
+  padding-left: 10px;
+  font-size: 1.1em;
+}
+
+.date-block .header .dot {
+  height: 15px;
+  width: 15px;
+  background-color: theme('colors.primaryGreen');
+  border-radius: 50%;
+  display: inline-block;
+}

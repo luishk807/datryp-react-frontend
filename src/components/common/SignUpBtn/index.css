@@ -1,0 +1,11 @@
+#signup .form-input {
+  margin: 10px 0px !important
+}
+
+#signup .terms-condition {
+  justify-content: center;
+  display: flex;
+  font-size: .9em;
+  color: rgba(0,0,0, .5);
+  font-family: Arial, Helvetica, sans-serif;
+}

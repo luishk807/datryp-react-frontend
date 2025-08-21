@@ -9,16 +9,19 @@
   justify-content: center;
 } */
 
+.searchbarMain {
+  position: relative;
+}
 .searchbarMain  .container {
-  margin: 10px 10px;
+  /* margin: 10px 10px; */
   display: flex;
-  border: theme('colors.primaryGreen') 2px solid;
-  border-radius: 10px;
+  /* border: theme('colors.primaryGreen') 2px solid; */
+  /* border-radius: 10px; */
   padding: 15px 30px;
-  -webkit-border-radius: 10px;
+  /* -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   -ms-border-radius: 10px;
-  -o-border-radius: 10px;
+  -o-border-radius: 10px; */
 }
 
 .searchbarMain .inputBar {
@@ -31,8 +34,27 @@
 
 .searchbarMain .holder {
   display: flex;
+  border: theme('colors.primaryGreen') 2px solid;
+  border-radius: 10px;
   justify-content: center;
-  width: 100%
+  width: 100%;
+  position: relative;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+}
+
+.searchbarMain .holder-simple {
+  display: flex;
+  border-radius: 10px;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
 }
 
 .searchbarMain .holder .container{
@@ -48,4 +70,132 @@
   color: theme('colors.primaryOrange');
   font-size: 1.2em;
   font-weight: 400;
+}
+
+.searchbarMain .inputHolder {
+  position: relative
+}
+
+.searchbarMain  .inputHolder > .listContainer {
+  box-shadow: 0px 4px 4px rgba(0,0,0, .05);
+ position: absolute;
+ min-height: 50px;
+ max-height: 300px;
+ overflow: auto;
+ z-index: 100;
+ background-color: white;
+ width: 100%;
+ border-radius:5px;
+ border-left: 1px solid rgba(0,0,0, .09);
+ border-right: 1px solid rgba(0,0,0, .09);
+ border-bottom: 1px solid rgba(0,0,0, .09);
+ top: 42px;
+ padding: 5px 10px;
+ -webkit-border-radius:5px;
+ -moz-border-radius:5px;
+ -ms-border-radius:5px;
+ -o-border-radius:5px;
+}
+
+.searchbarMain  .inputHolder > .listContainer li.item{
+  font-size: 1.2em;
+  text-transform: capitalize;
+  padding: 5px 0px;
+  cursor: pointer;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -ms-transition: .3s;
+  -o-transition: .3s;
+}
+.searchbarMain  .inputHolder > .listContainer li.item:hover{
+  background-color: #ccc;
+
+}
+
+.searchbarMain .listContainerV2 {
+  background: white;
+  position: absolute;
+  width: 100%;
+  top: 68px;
+  border: 2px solid #3cb54b;
+  padding: 10px 30px;
+  min-height: 50px;
+  max-height: 300px;
+  overflow: auto;
+  border-radius: 10px;
+  left: 0px;
+  z-index: 5;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -ms-transition: .3s;
+  -o-transition: .3s;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  box-shadow: 0px 0px 6px rgba(0,0,6, .4);
+  /* opacity: 0; */
+}
+
+
+.searchbarMain  .listContainerV2 li.item{
+  font-size: 1.2em;
+  text-transform: capitalize;
+  padding: 5px 0px;
+  cursor: pointer;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -ms-transition: .3s;
+  -o-transition: .3s;
+}
+.searchbarMain   .listContainerV2 li.item:hover{
+  font-weight: 500;
+}
+
+.searchbarMain .listContainerV2-simple {
+  background: rgba(255, 255, 255, .9);
+  position: absolute;
+  width: 100%;
+  top: 60px;
+  border: 1px solid rgba(0,0,0,.2);
+  padding: 10px 15px;
+  min-height: 50px;
+  max-height: 300px;
+  overflow: auto;
+  border-radius: 5px;
+  left: 0px;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -ms-transition: .3s;
+  -o-transition: .3s;
+  z-index: 4;
+  -webkit-border-radius: 5;
+  -moz-border-radius: 5;
+  -ms-border-radius: 5;
+  -o-border-radius: 5;
+  box-shadow: 0px 5px 4px rgba(0,0,0,0.3);
+}
+
+.searchbarMain  .listContainerV2-simple li.item{
+  font-size: inherit;
+  text-transform: capitalize;
+  padding: 5px 0px;
+  cursor: pointer;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -ms-transition: .3s;
+  -o-transition: .3s;
+}
+.searchbarMain   .listContainerV2-simple li.item:hover{
+  font-weight: 500;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -ms-transition: .3s;
+  -o-transition: .3s;  
 }

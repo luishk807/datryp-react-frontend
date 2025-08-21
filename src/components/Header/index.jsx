@@ -1,8 +1,9 @@
 import React from 'react';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import { Grid, Link, Hidden } from '@mui/material';
+import { Grid, Link } from '@mui/material';
 import './index.css';
-
+import LoginBtn from 'components/common/LoginBtn';
+import SignUp from 'components/common/SignUpBtn';
 const Header = () => {
     return (
         <Grid container className="homeHeader" spacing={0} >
@@ -11,18 +12,23 @@ const Header = () => {
             </Grid>
             <Grid item lg={9} md={9} xs={12} className="loginSection">
                 <Grid container className="loginContainer" spacing={0} >
-                    <Hidden smDown>
-                        <Grid item className="firstRow" lg={12}>
-                            <p>Login / Sign Up</p>
-                        </Grid>
-                    </Hidden>
-                    <Hidden lgUp mdUp>
-                        <Grid item className="iconContainer">
-                            <div>
-                                <MenuRoundedIcon color="primary" className="menuIcon" />
-                            </div>
-                        </Grid>
-                    </Hidden>
+                    <Grid item className="firstRow" lg={12} sx={{ display: { 
+                        lg: 'flex',
+                        md: 'flex',
+                        xs: 'none'
+                    }}}>
+                        <LoginBtn />
+                        &nbsp; &#x2f; &nbsp;                       
+                        <SignUp />
+
+                    </Grid>
+                    {/* <Hidden lgUp mdUp> */}
+                    <Grid item className="iconContainer" sx={{ display: { xl: 'none', md: 'none'}}}>
+                        <div>
+                            <MenuRoundedIcon color="primary" className="menuIcon" />
+                        </div>
+                    </Grid>
+                    {/* </Hidden> */}
                 </Grid>
             </Grid>
         </Grid>

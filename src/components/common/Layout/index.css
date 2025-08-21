@@ -1,0 +1,15 @@
+#layout .layout-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: theme('colors.primaryGreen')
+}
+
+#layout .layout-container {
+  margin:20px auto 10px auto;
+}
+
+
+.homeContainer{
+  display: flex;
+  margin: 10px 5px !important;
+}

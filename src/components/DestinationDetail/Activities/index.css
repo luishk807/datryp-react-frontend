@@ -1,32 +1,41 @@
-.content-trip{
+.activity-content-trip{
   margin: 10px 0px !important;
 }
 
-.content-trip.border-trip{
+.activity-content-trip .label {
+  font-weight: 400;
+}
+
+.activity-content-trip .location {
+  font-style: italic;
+}
+
+.activity-content-trip.border-trip{
   border: 1px solid #ccc;
 }
 
-.content-trip .content-detail{
+.activity-content-trip .content-detail{
   padding: 5px 5px 5px 10px;
   display: flex;
 }
 
-.content-trip .content-detail .info .title{
+.activity-content-trip .content-detail .info .title{
   font-size: 1.2em;
-  font-weight: 600;
+  text-transform: capitalize;
+    font-weight: 550;
 }
 
-.content-trip .content-detail .info .status{
+.activity-content-trip .content-detail .info .status{
   font-size: 1em;
   padding-left: 5px;
   font-weight: 500;
   text-transform: uppercase;
 }
 
-.content-trip .content-detail .info .status.confirmed{
+.activity-content-trip .content-detail .info .status.confirmed{
   color: theme("colors.primaryGreen");
 }
 
-.content-trip .content-detail .info .status.unconfirmed{
+.activity-content-trip .content-detail .info .status.unconfirmed{
   color: red;
 }
