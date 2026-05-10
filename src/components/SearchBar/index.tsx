@@ -1,11 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Grid } from '@mui/material';
+import { ClickAwayListener, Grid } from '@mui/material';
 import './index.css';
 import PropTypes from 'prop-types';
 import { debounce} from 'lodash';
 // import { top100Films } from 'sample/movielist';
 import countryList from 'sample/countryList';
-import { ClickAwayListener } from '@mui/base/ClickAwayListener';
 import InputField from 'components/common/FormFields/InputField';
 import classNames from 'classnames';
 
