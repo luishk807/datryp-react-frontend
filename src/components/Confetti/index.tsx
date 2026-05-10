@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
 import useWindowSize from 'react-use/lib/useWindowSize';
 import Confetti from 'react-confetti';
-import PropTypes from 'prop-types';
 
-const ConfettiComp = ({
-    activate = false,
-    recycle = false,
-}) => {
+export interface ConfettiCompProps {
+    activate?: boolean;
+    recycle?: boolean;
+}
+
+const ConfettiComp = ({ activate = false, recycle = false }: ConfettiCompProps) => {
     const { width, height } = useWindowSize();
     return (
         <Confetti
@@ -14,16 +14,11 @@ const ConfettiComp = ({
             height={height}
             numberOfPieces={activate ? 500 : 0}
             recycle={recycle}
-            onConfettiComplete={confetti => {
-                confetti.reset();
+            onConfettiComplete={(confetti) => {
+                confetti?.reset();
             }}
         />
     );
-};
-
-ConfettiComp.propTypes = {
-    activate: PropTypes.bool,
-    recycle: PropTypes.bool,
 };
 
 export default ConfettiComp;
