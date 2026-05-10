@@ -30,6 +30,7 @@ export const SignUp = ({ onClick }: SignUpProps) => {
 
     const handleSubmit = () => {
         onClick?.(form);
+        modelRef.current?.closeModal();
     };
 
     return (

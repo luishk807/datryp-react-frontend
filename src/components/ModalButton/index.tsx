@@ -7,9 +7,9 @@ import React, {
     type ReactNode,
 } from 'react';
 import './index.css';
-import { Modal } from '@mui/material';
+import { IconButton, Modal } from '@mui/material';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
-import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 
 export interface ModalButtonHandle {
     openModel: () => void;
@@ -49,23 +49,25 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                     open={open}
                     onClose={handleClose}
                     aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
                 >
-                    <div className="modalCustom lg:w-6/12 w-full">
-                        <div className="header">
-                            <div className="button">
-                                <div className="in">
-                                    <ButtonCustom
-                                        onClick={handleClose}
-                                        label="&#10005;"
-                                        type="text"
-                                    />
-                                </div>
-                            </div>
-                            <div className="title">{title}</div>
+                    <div className="modalCustom">
+                        <span className="modalCustom-stripe" aria-hidden="true" />
+                        <div className="modalCustom-header">
+                            <h2
+                                id="modal-modal-title"
+                                className="modalCustom-title"
+                            >
+                                {title}
+                            </h2>
+                            <IconButton
+                                className="modalCustom-close"
+                                aria-label="Close"
+                                onClick={handleClose}
+                            >
+                                <CloseRoundedIcon />
+                            </IconButton>
                         </div>
-
-                        <div className="content">{children}</div>
+                        <div className="modalCustom-content">{children}</div>
                     </div>
                 </Modal>
             </>

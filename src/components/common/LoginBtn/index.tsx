@@ -26,6 +26,7 @@ export const LoginBtn = ({ onClick }: LoginBtnProps) => {
     const handleLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         onClick?.(form);
+        modelRef.current?.closeModal();
     };
 
     return (

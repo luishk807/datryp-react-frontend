@@ -117,6 +117,36 @@
   font-size: 0.85rem;
 }
 
+/* ---------- Avatar (logged in) ---------- */
+.app-header-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-header-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.35);
+}
+
+.app-header-menu-name {
+  opacity: 1 !important;
+  font-weight: 600 !important;
+  color: theme('colors.primary') !important;
+  font-size: 0.85rem !important;
+  pointer-events: none;
+}
+
 /* ---------- Drawer ---------- */
 .app-header-drawer {
   width: min(82vw, 320px);
@@ -145,6 +175,53 @@
   display: block;
   padding: 12px 20px;
   font-size: 1rem;
+}
+
+.app-header-drawer .drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 6px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 8px;
+}
+
+.app-header-drawer .drawer-avatar {
+  width: 42px;
+  height: 42px;
+  font-size: 1.05rem;
+}
+
+.app-header-drawer .drawer-user-name {
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.app-header-drawer .drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  text-align: left;
+  background: transparent;
+  color: theme('colors.primary');
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.app-header-drawer .drawer-link:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.app-header-drawer .drawer-logout {
+  margin-top: 8px;
+  color: #c0392b;
+}
+
+.app-header-drawer .drawer-logout:hover {
+  background: rgba(192, 57, 43, 0.08);
 }
 
 /* ---------- Responsive ---------- */
