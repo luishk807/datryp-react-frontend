@@ -1,7 +1,8 @@
 .root {
-  height: calc(100% - 100px);
-    display: flex;
-    padding-bottom: 220px;
+  min-height: 100vh;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
 }
 
 .homeContainer{

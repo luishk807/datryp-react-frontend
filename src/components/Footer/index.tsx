@@ -1,36 +1,67 @@
-import { Grid } from '@mui/material';
 import './index.css';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
 
+const QUICK_LINKS = [
+    { label: 'About Us', href: '#' },
+    { label: 'Contact Us', href: '#' },
+    { label: 'Terms of Use', href: '#' },
+    { label: 'Privacy Policy', href: '#' },
+];
+
 const Footer = () => {
+    const year = new Date().getFullYear();
+
     return (
-        <Grid container className="footer">
-            <Grid item lg={12} md={12} xs={12} className="mainContainer">
-                <Grid container>
-                    <Grid item lg={12} md={12} xs={12} className="logo">
-                        <div className="logo-container">
-                            <img src="/images/logoWhite.svg" />
-                        </div>
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="links">
+        <footer className="footer">
+            <div className="footer-inner">
+                <div className="footer-top">
+                    <div className="footer-brand">
+                        <img
+                            src="/images/logoWhite.svg"
+                            alt="daTryp"
+                            className="footer-logo"
+                        />
+                        <p className="footer-tagline">
+                            Plan trips that feel effortless.
+                        </p>
+                    </div>
+
+                    <div className="footer-links">
+                        <h4 className="footer-heading">Quick links</h4>
                         <ul>
-                            <li>About Us</li>
-                            <li>Contact Us</li>
-                            <li>Terms of Use</li>
-                            <li>Privacy Policy</li>
+                            {QUICK_LINKS.map((link) => (
+                                <li key={link.label}>
+                                    <a href={link.href}>{link.label}</a>
+                                </li>
+                            ))}
                         </ul>
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="icons">
-                        <hr/>
-                        <InstagramIcon />
-                        <FacebookIcon />
-                        <TwitterIcon />
-                    </Grid>
-                </Grid>    
-            </Grid> 
-        </Grid>
+                    </div>
+
+                    <div className="footer-social">
+                        <h4 className="footer-heading">Connect</h4>
+                        <div className="footer-social-icons">
+                            <a href="#" aria-label="Instagram">
+                                <InstagramIcon />
+                            </a>
+                            <a href="#" aria-label="Facebook">
+                                <FacebookIcon />
+                            </a>
+                            <a href="#" aria-label="Twitter">
+                                <TwitterIcon />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="footer-bottom">
+                    <span className="footer-copy">
+                        © {year} daTryp. All rights reserved.
+                    </span>
+                </div>
+            </div>
+        </footer>
     );
 };
 
