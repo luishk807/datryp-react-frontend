@@ -2,9 +2,12 @@ import { useMemo } from 'react';
 import './index.css';
 import moment from 'moment';
 import _ from 'lodash';
-import { Grid } from '@mui/material';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
+import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { convertMoney } from 'utils';
-import Status from 'components/common/Status';
 import type { TripState } from 'types/trip';
 
 interface BasicTripInfoProps {
@@ -19,80 +22,82 @@ export const BasicTripInfo = ({
     isViewMode = false,
 }: BasicTripInfoProps) => {
     const tripDate = useMemo(() => {
-        const date1 = moment(data.startDate).format('MMMM Do YYYY').toString();
-        const date2 = moment(data.endDate).format('MMMM Do YYYY').toString();
-        return `From ${date1} to ${date2}`;
+        const start = moment(data.startDate);
+        const end = moment(data.endDate);
+        if (!start.isValid() || !end.isValid()) return '—';
+        if (start.isSame(end, 'day')) return start.format('MMM D, YYYY');
+        return `${start.format('MMM D')} → ${end.format('MMM D, YYYY')}`;
     }, [data]);
 
     const organizer = useMemo(
-        () => (data.organizer ?? []).map((item) => item.label).join(', '),
+        () => (data.organizer ?? []).map((item) => item.label).filter(Boolean).join(', '),
         [data]
     );
 
+    const statusName = _.get(data, 'status.name', 'Draft');
+    const friends = data.friends ?? [];
+
     return (
-        <Grid container className="basic-trip-info">
-            <Grid item lg={10} md={10} xs={12}>
-                <Grid container>
-                    <Grid item lg={12} md={12} xs={12} className="item title">
-                        <div className="data">
-                            Trip Information
-                            <span className="type">({_.get(data, 'type.name')})</span>
-                        </div>
-                    </Grid>
-                    <Grid
-                        className="status"
-                        item
-                        lg={12}
-                        md={12}
-                        xs={12}
-                        sx={{ display: { xs: 'flex', lg: 'none', md: 'none' } }}
-                    >
-                        <Status data={data.status} onClick={() => onChangeStep(0)} />
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="item name">
-                        <div className="label">Name for trip:</div>
-                        <div className="data">{data.name}</div>
-                    </Grid>
-                    <Grid item lg={6} md={6} xs={12}>
-                        <Grid container>
-                            <Grid item lg={12} md={12} xs={12} className="item">
-                                <div className="label">Organizer:</div>
-                                <div className="data">{organizer}</div>
-                            </Grid>
-                            <Grid item lg={12} md={12} xs={12} className="item">
-                                <div className="label">When?:</div>
-                                <div className="data">{tripDate}</div>
-                            </Grid>
-                            <Grid item lg={12} md={12} xs={12} className="item">
-                                <div className="label">How much?:</div>
-                                <div className="data">{convertMoney(data.budget)}</div>
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                    <Grid item lg={6} md={6} xs={12} className="item">
-                        <div className="label">Who is Going?:</div>
-                        <div className="data">
-                            <ul>
-                                {data.friends &&
-                                    data.friends.map((item, indx) => (
-                                        <li key={indx}>{item.label}</li>
-                                    ))}
-                            </ul>
-                        </div>
-                    </Grid>
-                </Grid>
-            </Grid>
-            <Grid
-                item
-                lg={2}
-                md={2}
-                xs={12}
-                className="status"
-                sx={{ display: { xs: 'none', lg: 'flex', md: 'flex' } }}
-            >
-                <Status data={data.status} isViewMode={isViewMode} onClick={() => onChangeStep(0)} />
-            </Grid>
-        </Grid>
+        <section className="basic-trip-info">
+            <div className="trip-header">
+                <div className="trip-header-left">
+                    <span className="trip-eyebrow">
+                        Trip · {_.get(data, 'type.name', 'Custom')}
+                    </span>
+                    <h2 className="trip-name">{data.name || 'Untitled trip'}</h2>
+                </div>
+                <button
+                    type="button"
+                    className="trip-status-badge"
+                    onClick={() => onChangeStep(0)}
+                    disabled={isViewMode}
+                >
+                    <span className="status-dot" />
+                    <span className="status-text">{statusName}</span>
+                    {!isViewMode && <EditOutlinedIcon className="status-edit" />}
+                </button>
+            </div>
+
+            <div className="trip-stats">
+                <div className="trip-stat">
+                    <PersonOutlineIcon className="stat-icon" />
+                    <div className="stat-text">
+                        <span className="stat-label">Organizer</span>
+                        <span className="stat-value">{organizer || '—'}</span>
+                    </div>
+                </div>
+                <div className="trip-stat">
+                    <EventOutlinedIcon className="stat-icon" />
+                    <div className="stat-text">
+                        <span className="stat-label">When</span>
+                        <span className="stat-value">{tripDate}</span>
+                    </div>
+                </div>
+                <div className="trip-stat">
+                    <PaymentsOutlinedIcon className="stat-icon" />
+                    <div className="stat-text">
+                        <span className="stat-label">Budget</span>
+                        <span className="stat-value">{convertMoney(data.budget)}</span>
+                    </div>
+                </div>
+            </div>
+
+            {friends.length > 0 && (
+                <div className="trip-friends">
+                    <div className="trip-friends-header">
+                        <GroupOutlinedIcon className="stat-icon" />
+                        <span className="stat-label">Who's going</span>
+                    </div>
+                    <div className="friend-chips">
+                        {friends.map((f, idx) => (
+                            <span className="friend-chip" key={idx}>
+                                {f.label}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </section>
     );
 };
 

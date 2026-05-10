@@ -3,6 +3,7 @@ import './index.css';
 import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import BasicTripInfo from 'components/BasicTripInfo';
+import BudgetSummary from 'components/BudgetSummary';
 import DestinationDetail from 'components/DestinationDetail';
 import _ from 'lodash';
 import { multiTripDetailobj2 } from 'sample/tripData';
@@ -41,12 +42,15 @@ export const TripDetail = () => {
     return (
         <Layout title="Trip Detail">
             <Grid container>
-                <Grid item lg={12}>
+                <Grid item lg={12} md={12} xs={12}>
                     <BasicTripInfo
                         isViewMode={true}
                         data={tripData}
                         onChangeStep={handleChangeStep}
                     />
+                </Grid>
+                <Grid item lg={12} md={12} xs={12}>
+                    <BudgetSummary data={tripData} />
                 </Grid>
                 <Grid item lg={12}>
                     <DestinationDetail

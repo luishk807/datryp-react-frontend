@@ -5,6 +5,7 @@ import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
 import BasicTripInfo from 'components/BasicTripInfo';
+import BudgetSummary from 'components/BudgetSummary';
 import TripComplete from 'components/DestinationDetail/Completed';
 import { resetTrip, useTripDispatch } from 'context/TripContext';
 import type { TripState } from 'types/trip';
@@ -67,9 +68,14 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             ) : (
                 <Grid container>
                     {activeStep >= 2 && data && (
-                        <Grid item lg={12} md={12}>
-                            <BasicTripInfo data={data} onChangeStep={handleChangeStep} />
-                        </Grid>
+                        <>
+                            <Grid item lg={12} md={12} xs={12}>
+                                <BasicTripInfo data={data} onChangeStep={handleChangeStep} />
+                            </Grid>
+                            <Grid item lg={12} md={12} xs={12}>
+                                <BudgetSummary data={data} />
+                            </Grid>
+                        </>
                     )}
 
                     <Grid item lg={12} md={12} xs={12}>
