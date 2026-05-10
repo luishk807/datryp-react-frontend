@@ -1,37 +1,48 @@
-import React, {useState} from 'react';
-import PropTypes from 'prop-types';
+import { useState, type ReactNode } from 'react';
 import './index.css';
-import { 
+import {
     DialogContentText,
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
 } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+
+type DialogButtonType = 'text' | 'standard';
+
+export interface DialogBoxProps {
+    buttonLabel?: string;
+    title?: string;
+    onConfirm?: () => void;
+    buttonType?: DialogButtonType;
+    children?: ReactNode;
+    isViewMode?: boolean;
+}
 
 const DialogBox = ({
     buttonLabel = '',
     title,
     onConfirm,
-    buttonType='standard',
+    buttonType = 'standard',
     children,
-    isViewMode=false
-}) => {
+    isViewMode = false,
+}: DialogBoxProps) => {
     const [open, setOpen] = useState(false);
-    
-    const handleConfirmDelete = (e) => {
+
+    const handleConfirmDelete = () => {
         setOpen(false);
-        onConfirm && onConfirm(e);
+        onConfirm?.();
     };
 
-    return !isViewMode && (
+    if (isViewMode) return null;
+
+    return (
         <>
-            <ButtonCustom 
-                // style={{ 'fontSize': '1.1em'}} 
-                type={buttonType} 
-                onClick={() => setOpen(true)} 
-                label={buttonLabel} 
+            <ButtonCustom
+                type={buttonType}
+                onClick={() => setOpen(true)}
+                label={buttonLabel}
             />
             <Dialog
                 open={open}
@@ -44,26 +55,29 @@ const DialogBox = ({
                     {title}
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText className="datryp-dialog-content" id="alert-dialog-description">
-                        { children}
+                    <DialogContentText
+                        className="datryp-dialog-content"
+                        id="alert-dialog-description"
+                    >
+                        {children}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <ButtonCustom type="standard-small" onClick={() => setOpen(false)} label="Cancel" />
-                    <ButtonCustom style={{ 'marginLeft': '35px'}} type="standard-small" onClick={handleConfirmDelete} label="Agree" />
+                    <ButtonCustom
+                        type="standard-small"
+                        onClick={() => setOpen(false)}
+                        label="Cancel"
+                    />
+                    <ButtonCustom
+                        style={{ marginLeft: '35px' }}
+                        type="standard-small"
+                        onClick={handleConfirmDelete}
+                        label="Agree"
+                    />
                 </DialogActions>
             </Dialog>
         </>
     );
-};
-
-DialogBox.propTypes = {
-    buttonLabel: PropTypes.string,
-    title: PropTypes.string,
-    onConfirm: PropTypes.func,
-    children: PropTypes.node,
-    buttonType: PropTypes.oneOf(['text', 'standard']),
-    isViewMode: PropTypes.bool
 };
 
 export default DialogBox;

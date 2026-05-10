@@ -1,31 +1,27 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import './index.css';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
+import type { Activity } from 'types/trip';
 
-const Single = ({
-    trips = null
-}) => {
-    console.log(trips, 'trips single');
-    return (
-        trips ? (
-            <Grid item lg={12} className="content">
-                <Activities activities={trips} />
-            </Grid>
+interface SingleProps {
+    trips?: Activity[] | null;
+}
 
-        )
-            : (
-                <Grid item lg={12} className="content item-border">
-                    <AddPlaceBtn />
-                </Grid>
-            )
+const Single = ({ trips = null }: SingleProps) => {
+    return trips ? (
+        <Grid item lg={12} className="content">
+            <Activities
+                activities={trips}
+                onChangePlace={() => {}}
+                onChangeBudget={() => {}}
+            />
+        </Grid>
+    ) : (
+        <Grid item lg={12} className="content item-border">
+            <AddPlaceBtn onChange={() => {}} />
+        </Grid>
     );
-};
-
-Single.propTypes = {
-    trips: PropTypes.array
 };
 
 export default Single;

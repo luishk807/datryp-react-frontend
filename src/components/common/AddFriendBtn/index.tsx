@@ -1,6 +1,5 @@
-import React, { forwardRef, useState, useEffect} from 'react';
+import React, { forwardRef, useState } from 'react';
 import { Grid } from '@mui/material';
-import PropTypes from 'prop-types';
 import ModalButton, { type ModalButtonHandle } from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
 import ButtonCustom from '../../common/FormFields/ButtonCustom';
@@ -72,10 +71,6 @@ const AddFriendBtn = forwardRef<ModalButtonHandle, AddFriendBtnProps>(({
         </Grid>
     );
 });
-
-AddFriendBtn.propTypes = {
-    onChange: PropTypes.func
-};
 
 AddFriendBtn.displayName = "AddFriendBtn";
 

@@ -1,100 +1,93 @@
-import React, {useState, useEffect} from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import classnames from 'classnames';
-import _ from 'lodash';
 import './index.css';
-import { 
-    TextField,
-    Autocomplete
-} from '@mui/material';
-const AutocompleteCustom = ({
+import { TextField, Autocomplete } from '@mui/material';
+
+export interface AutocompleteOption {
+    id: number;
+    label: string;
+}
+
+export interface AutocompleteCustomProps<T extends AutocompleteOption = AutocompleteOption> {
+    options?: T[];
+    label?: string;
+    isMultiple?: boolean;
+    onSelect?: (selected: T) => void;
+    name?: string;
+    onRemove?: (remaining: T[]) => void;
+    selectedOptions?: T[];
+}
+
+const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
     options = [],
-    label ='',
+    label = '',
     isMultiple = false,
     onSelect,
     name,
     onRemove,
-    selectedOptions = []
-}) => {
-    const [data, setData] = useState([]);
-    const handleOnClick = (selected) => {
+    selectedOptions = [],
+}: AutocompleteCustomProps<T>) => {
+    const [data, setData] = useState<T[]>([]);
+
+    const handleOnClick = (selected: T) => {
         if (selected.id !== -1) {
-            const found = data.filter(item => item.id === selected.id);
-            if (!found.length) {
-                setData(old => [
-                    ...old,  
-                    selected
-                ]);
-            }
+            const exists = data.some((item) => item.id === selected.id);
+            if (!exists) setData((prev) => [...prev, selected]);
         }
-        onSelect && onSelect(selected);
+        onSelect?.(selected);
     };
 
-    const handleOnChange = (event, newValue) => {
-        console.log(newValue);
-        const ids = newValue.map(item => item.id);
-        const newdata = data.filter(item => !ids.includes(item.id));
-        console.log(newdata, 'founddd');
-        onRemove && onRemove(newdata);
+    const handleOnChange = (_event: unknown, newValue: T[]) => {
+        const ids = new Set(newValue.map((item) => item.id));
+        const remaining = data.filter((item) => !ids.has(item.id));
+        onRemove?.(remaining);
     };
 
     useEffect(() => {
-
-        let mounted= true;
-
-        if (mounted) {
-            setData(selectedOptions);
-        }
-
-        return () => { mounted = false; };
+        setData(selectedOptions);
     }, [selectedOptions]);
-    
+
     return (
         <Autocomplete
-            multiple = {isMultiple}
+            multiple={isMultiple}
             id="combo-box-demo"
             options={options}
             value={data}
             freeSolo
-            name={name}
-            isOptionEqualToValue={ (option, value) => option.id === value.id}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={handleOnChange}
-            renderOption={(props, option) => {
+            renderOption={(_props, option) => {
                 if (option.id === -1) {
                     return (
                         <li key={`fd-${option.id}`}>
-                            <hr className="my-2"/>
-                            <div className="autocomplete-custom-option" onClick={(e) => handleOnClick(option)}>{option.label}</div>
-                        </li>
-                    );
-                } else {
-                    let found = selectedOptions.length ? selectedOptions.filter(item => item.id === option.id) : [];
-                    return ( 
-                        <li key={`fd-${option.id}`}>
-                            <div className={
-                                classnames({
-                                    "autocomplete-custom-item": true,
-                                    "disabled": found.length
-                                })
-                            } onClick={(e) => handleOnClick(option)}>{option.label}</div>
+                            <hr className="my-2" />
+                            <div
+                                className="autocomplete-custom-option"
+                                onClick={() => handleOnClick(option)}
+                            >
+                                {option.label}
+                            </div>
                         </li>
                     );
                 }
-
+                const alreadySelected = selectedOptions.some((item) => item.id === option.id);
+                return (
+                    <li key={`fd-${option.id}`}>
+                        <div
+                            className={classnames({
+                                'autocomplete-custom-item': true,
+                                disabled: alreadySelected,
+                            })}
+                            onClick={() => handleOnClick(option)}
+                        >
+                            {option.label}
+                        </div>
+                    </li>
+                );
             }}
-            renderInput={(params) => 
-                <TextField {...params} label={label} />
-            }
-        />);
+            renderInput={(params) => <TextField {...params} name={name} label={label} />}
+        />
+    );
 };
 
-AutocompleteCustom.propTypes = {
-    options: PropTypes.array,
-    label: PropTypes.string,
-    isMultiple: PropTypes.bool,
-    onSelect: PropTypes.func,
-    name: PropTypes.string,
-    onRemove: PropTypes.func,
-    selectedOptions: PropTypes.array
-};
 export default AutocompleteCustom;

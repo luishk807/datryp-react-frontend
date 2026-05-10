@@ -1,21 +1,21 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
+import type { TripState } from 'types/trip';
 import './index.css';
 
-const TripInfo = ({
-    data
-}) => {
+interface TripInfoProps {
+    data: TripState;
+}
+
+const TripInfo = ({ data }: TripInfoProps) => {
     return (
         <Layout>
             <Grid container className="tripInfo">
-                {/* header */}
                 <Grid item lg={12} md={12} xs={12}>
                     <Grid container className="header">
                         <Grid item lg={6} md={6} xs={6} className="title">
-                          Trip: { data.name}
+                          Trip: {data.name}
                         </Grid>
                         <Grid item lg={6} md={6} xs={6} className="menu">
                           Edit
@@ -23,9 +23,8 @@ const TripInfo = ({
                     </Grid>
                 </Grid>
                 <Grid item lg={12} md={12} xs={12}>
-                    <hr/>
+                    <hr />
                 </Grid>
-                {/* budget data */}
                 <Grid item lg={12} md={12} xs={12}>
                     <Grid container className="tripData">
                         <Grid item lg={6} md={6} xs={12} className="data">
@@ -49,28 +48,23 @@ const TripInfo = ({
                             </ul>
                         </Grid>
                         <Grid item lg={6} md={6} xs={12} className="status">
-                      Completed?
+                          Completed?
                         </Grid>
                     </Grid>
                 </Grid>
-                {/* trips section */}
                 <Grid item lg={12} md={12} className="tripItems">
-                    <DestinationDetail 
+                    <DestinationDetail
                         startDate={data.startDate}
-                        endDate={data.endDate} 
-                        type={data.type} 
-                        destinations={data.destinations} 
+                        endDate={data.endDate}
+                        type={data.type}
+                        destinations={data.destinations}
+                        onChangeBudget={() => {}}
+                        onChangePlace={() => {}}
                     />
                 </Grid>
-                {/* end of trip section */}
-
             </Grid>
         </Layout>
     );
-};
-
-TripInfo.propTypes = {
-    data: PropTypes.object
 };
 
 export default TripInfo;

@@ -1,25 +1,19 @@
-import React from 'react';
 import classnames from 'classnames';
+import type { ReactNode } from 'react';
 import './index.css';
-import PropTypes from 'prop-types';
 
-const StepIcon = ({
-    active,
-    completed,
-    icon
-}) => {
+export interface StepIconProps {
+    active?: boolean;
+    completed?: boolean;
+    icon?: ReactNode;
+}
+
+const StepIcon = ({ active, icon }: StepIconProps) => {
     return (
-        <div className={classnames('StepIconCustom',{
-            'active': active,
-        })}>
+        <div className={classnames('StepIconCustom', { active })}>
             <div className="label">{icon}</div>
         </div>
     );
 };
 
-StepIcon.propTypes = {
-    active: PropTypes.bool,
-    completed: PropTypes.bool,
-    icon: PropTypes.number
-};
 export default StepIcon;

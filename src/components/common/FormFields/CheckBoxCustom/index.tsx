@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import type { MouseEventHandler } from 'react';
 import { Grid, FormControlLabel } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
-import PropTypes from 'prop-types';
 import 'index.css';
+
+export interface CheckBoxCustomProps {
+    label?: string;
+    onClick?: MouseEventHandler<HTMLButtonElement>;
+    value?: string;
+    defaultCheck?: boolean;
+}
 
 export const CheckBoxCustom = ({
     label = 'test',
     onClick,
     value = '',
-    defaultCheck = false
-}) => {
-
-    return(
+    defaultCheck = false,
+}: CheckBoxCustomProps) => {
+    return (
         <Grid container>
             <Grid item lg={12} md={12} xs={12}>
-                <FormControlLabel 
+                <FormControlLabel
                     value={value}
                     control={<Checkbox checked={defaultCheck} onClick={onClick} />}
                     label={label}
@@ -23,13 +28,6 @@ export const CheckBoxCustom = ({
             </Grid>
         </Grid>
     );
-};
-
-CheckBoxCustom.propTypes = {
-    label: PropTypes.string,
-    onClick: PropTypes.func,
-    value: PropTypes.string,
-    defaultCheck: PropTypes.bool,
 };
 
 export default CheckBoxCustom;

@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState, type ReactNode } from 'react';
 import './index.css';
 import { Step, StepLabel, Typography, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
 import BasicTripInfo from 'components/BasicTripInfo';
-import _ from 'lodash';
 import TripComplete from 'components/DestinationDetail/Completed';
-import { resetTrip, useTripDispatch, useTripState } from 'context/TripContext';
+import { resetTrip, useTripDispatch } from 'context/TripContext';
+import type { TripState } from 'types/trip';
 
-const StepperComp = ({ steps = null, data = null }) => {
-    const tripInfo = useTripState();
+export interface StepperStep {
+    label: string;
+    comp: ReactNode;
+}
+
+interface StepperCompProps {
+    steps?: StepperStep[];
+    data?: TripState;
+}
+
+const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const dispatch = useTripDispatch();
     const [activeStep, setActiveStep] = useState(0);
-    const [skipped, setSkipped] = useState(new Set<number>());
+    const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
 
-    const isStepSkipped = (step) => skipped.has(step);
+    const isStepSkipped = (step: number) => skipped.has(step);
 
     const handleNext = () => {
         let newSkipped = skipped;
@@ -24,26 +32,15 @@ const StepperComp = ({ steps = null, data = null }) => {
             newSkipped = new Set(newSkipped.values());
             newSkipped.delete(activeStep);
         }
-
-        const tripType = _.get(tripInfo, 'type');
-
-        if (tripType) {
-            const { name, steps: typeSteps } = tripType;
-            if (activeStep === typeSteps.FINISHED) {
-                console.log(`send ${name} trip data to backend`, tripInfo);
-                // dispatch(resetTrip());
-            }
-        }
-
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        setActiveStep((prev) => prev + 1);
         setSkipped(newSkipped);
     };
 
     const handleBack = () => {
-        setActiveStep((prevStep) => prevStep - 1);
+        setActiveStep((prev) => prev - 1);
     };
 
-    const handleChangeStep = (step) => {
+    const handleChangeStep = (step: number) => {
         setActiveStep(step);
     };
 
@@ -57,17 +54,10 @@ const StepperComp = ({ steps = null, data = null }) => {
             <Stepper activeStep={activeStep}>
                 {steps.map((step, index) => {
                     const stepProps: { completed?: boolean } = {};
-                    const labelProps = {};
-
-                    if (isStepSkipped(index)) {
-                        stepProps.completed = false;
-                    }
-
+                    if (isStepSkipped(index)) stepProps.completed = false;
                     return (
                         <Step classes={{}} key={index} {...stepProps}>
-                            <StepLabel StepIconComponent={StepIcon} {...labelProps}>
-                                {step.label}
-                            </StepLabel>
+                            <StepLabel StepIconComponent={StepIcon}>{step.label}</StepLabel>
                         </Step>
                     );
                 })}
@@ -76,7 +66,7 @@ const StepperComp = ({ steps = null, data = null }) => {
                 <TripComplete onReset={handleReset} />
             ) : (
                 <Grid container>
-                    {activeStep >= 2 && (
+                    {activeStep >= 2 && data && (
                         <Grid item lg={12} md={12}>
                             <BasicTripInfo data={data} onChangeStep={handleChangeStep} />
                         </Grid>
@@ -84,7 +74,7 @@ const StepperComp = ({ steps = null, data = null }) => {
 
                     <Grid item lg={12} md={12} xs={12}>
                         <Typography sx={{ mt: 2, mb: 1 }}>Step {activeStep + 1}</Typography>
-                        {steps[activeStep].comp}
+                        {steps[activeStep]?.comp}
                     </Grid>
                     <Grid item lg={12} md={12} xs={12}>
                         <Grid container className="mt-2.5">
@@ -108,11 +98,6 @@ const StepperComp = ({ steps = null, data = null }) => {
             )}
         </div>
     );
-};
-
-StepperComp.propTypes = {
-    steps: PropTypes.array,
-    data: PropTypes.object,
 };
 
 export default StepperComp;
