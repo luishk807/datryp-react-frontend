@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import moment from 'moment';
 import InputField from 'components/common/FormFields/InputField';
 import { status } from 'sample';
@@ -32,6 +33,13 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
         [data, today]
     );
 
+    const selectedCountries = useMemo(() => {
+        const names = (data?.destinations ?? [])
+            .map((d) => d.country?.name)
+            .filter((n): n is string => !!n);
+        return Array.from(new Set(names));
+    }, [data]);
+
     useEffect(() => {
         if (!data?.startDate) onChange('startDate', { target: { value: today } });
         if (!data?.endDate) onChange('endDate', { target: { value: today } });
@@ -53,6 +61,21 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                     <Grid item lg={12} md={12} xs={12} className="header">
                         Please enter basic info
                     </Grid>
+                    {selectedCountries.length > 0 && (
+                        <Grid item lg={12} md={12} xs={12} className="trip-destination-card">
+                            <FlightTakeoffIcon className="trip-destination-icon" />
+                            <div className="trip-destination-text">
+                                <span className="trip-destination-label">
+                                    {selectedCountries.length > 1
+                                        ? "You're heading to"
+                                        : 'Next stop'}
+                                </span>
+                                <span className="trip-destination-name">
+                                    {selectedCountries.join(' • ')}
+                                </span>
+                            </div>
+                        </Grid>
+                    )}
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <FriendPicker
                             title="Select Organizer"
