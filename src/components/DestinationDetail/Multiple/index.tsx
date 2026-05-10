@@ -1,11 +1,25 @@
 import _ from 'lodash';
+import moment from 'moment';
 import { Grid } from '@mui/material';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import FlightLandIcon from '@mui/icons-material/FlightLand';
 import './index.css';
 import { TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import type { ActionType, Destination, Friend } from 'types/trip';
+
+const formatDate = (value?: string) =>
+    value && moment(value).isValid() ? moment(value).format('MMM D, YYYY') : '';
+
+const formatTime = (value?: string) =>
+    value && moment(value, 'HH:mm').isValid() ? moment(value, 'HH:mm').format('LT') : '';
+
+const formatLegMeta = (date?: string, time?: string) => {
+    const parts = [formatDate(date), formatTime(time)].filter(Boolean);
+    return parts.length ? parts.join(' · ') : 'Not set';
+};
 
 export interface MultipleProps {
     defaultDate?: string;
@@ -45,8 +59,15 @@ const Multiple = ({
                             className="multrip-content-item"
                         >
                             <Grid container>
-                                <Grid item lg={6} md={6} className="content-header">
-                                    <span className="title">Destination:</span>&nbsp; &nbsp;{country} - Flight: {flightInfo?.flightNumber}
+                                <Grid item lg={6} md={6} xs={12} className="content-header">
+                                    <span className="country-name">
+                                        {country || 'Destination not set'}
+                                    </span>
+                                    {flightInfo?.flightNumber && (
+                                        <span className="flight-no">
+                                            Flight {flightInfo.flightNumber}
+                                        </span>
+                                    )}
                                 </Grid>
                                 <Grid
                                     item
@@ -80,8 +101,37 @@ const Multiple = ({
                                     </span>
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="content-info">
-                                    <span className="title">Depart</span>: {flightInfo?.departAirport} - {flightInfo?.departTime} -
-                                    <span className="title">Arrive:</span> {flightInfo?.arrivalAirport} - {flightInfo?.arrivalTime}
+                                    <div className="flight-leg">
+                                        <FlightTakeoffIcon className="leg-icon" />
+                                        <div className="leg-detail">
+                                            <span className="leg-label">Depart</span>
+                                            <span className="leg-airport">
+                                                {flightInfo?.departAirport || 'Not set'}
+                                            </span>
+                                            <span className="leg-meta">
+                                                {formatLegMeta(
+                                                    flightInfo?.departDate,
+                                                    flightInfo?.departTime
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flight-divider" aria-hidden="true" />
+                                    <div className="flight-leg">
+                                        <FlightLandIcon className="leg-icon" />
+                                        <div className="leg-detail">
+                                            <span className="leg-label">Arrive</span>
+                                            <span className="leg-airport">
+                                                {flightInfo?.arrivalAirport || 'Not set'}
+                                            </span>
+                                            <span className="leg-meta">
+                                                {formatLegMeta(
+                                                    flightInfo?.arrivalDate,
+                                                    flightInfo?.arrivalTime
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="activity-button">
                                     <Activities
