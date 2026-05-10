@@ -1,81 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
-import { Grid } from '@mui/material';
 import './index.css';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
 import { TRIP_BASIC } from 'constants';
-import { basicInfo, useTripDispatch } from 'context/TripContext';
+import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { Country, Destination } from 'types/trip';
+
+const HERO_IMAGES = [
+    '/images/sample/iceland.jpg',
+    '/images/sample/china1.jpg',
+    '/images/sample/china2.jpg',
+    '/images/sample/vietnam.jpg',
+];
 
 const Home = () => {
     const dispatch = useTripDispatch();
     const [isSingleSelected, setIsSingleSelected] = useState(true);
+    const [pendingCountry, setPendingCountry] = useState<Country | null>(null);
     const navigate = useNavigate();
+
+    const heroImage = useMemo(
+        () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)],
+        []
+    );
 
     const handleClick = (id: number) => {
         setIsSingleSelected(TRIP_BASIC.SINGLE.id === id);
     };
 
-    const handleSelectedSearch = (searchData?: Country) => {
+    const handleSearchSelected = (country: Country) => {
+        if (!country?.name) return;
+        setPendingCountry(country);
+    };
+
+    const handleCreate = () => {
+        if (!pendingCountry?.name) return;
+
         const type = isSingleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
-        const destinations = (
-            isSingleSelected && searchData ? [{ country: searchData }] : []
-        ) as Destination[];
+        const destinations = [{ country: pendingCountry }] as Destination[];
+
+        dispatch(resetTrip());
         dispatch(basicInfo({ type, destinations }));
         navigate(type.route, { replace: true });
     };
 
-    useEffect(() => {
-        if (!isSingleSelected) {
-            handleSelectedSearch(undefined);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSingleSelected]);
-
     return (
         <Layout>
-            <Grid container spacing={0} className="searchContainer">
-                <Grid item lg={12} md={12} xs={12}>
-                    <Grid container>
-                        <Grid item lg={12} md={12} xs={12} className="mainText pb-4">
-                            Where are you planning to go
-                        </Grid>
-                        <Grid item lg={12} md={12} xs={12}>
-                            <Grid container>
-                                <Grid item lg={12} md={12} xs={12}>
-                                    <Grid container className="optionSelection">
-                                        <Grid item>
-                                            <button
-                                                className={classnames('selection', {
-                                                    selected: isSingleSelected,
-                                                })}
-                                                onClick={() => handleClick(TRIP_BASIC.SINGLE.id)}
-                                            >
-                                                Single Place
-                                            </button>
-                                        </Grid>
-                                        <Grid item>
-                                            <button
-                                                className={classnames('selection', {
-                                                    selected: !isSingleSelected,
-                                                })}
-                                                onClick={() => handleClick(TRIP_BASIC.MULTIPLE.id)}
-                                            >
-                                                Multiple locations
-                                            </button>
-                                        </Grid>
-                                    </Grid>
-                                </Grid>
-                                <Grid item lg={12} md={12} className="searchBarContainer">
-                                    <SearchBar onSelected={handleSelectedSearch} />
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Grid>
+            <section
+                className="home-hero"
+                style={{ backgroundImage: `url(${heroImage})` }}
+            >
+                <div className="home-hero-overlay" />
+                <div className="home-hero-content">
+                    <h1 className="home-hero-title">Where to next?</h1>
+                    <p className="home-hero-subtitle">
+                        Plan a single getaway or a multi-stop journey in minutes.
+                    </p>
+
+                    <div className="home-hero-options">
+                        <button
+                            className={classnames('hero-option', {
+                                selected: isSingleSelected,
+                            })}
+                            onClick={() => handleClick(TRIP_BASIC.SINGLE.id)}
+                        >
+                            Single place
+                        </button>
+                        <button
+                            className={classnames('hero-option', {
+                                selected: !isSingleSelected,
+                            })}
+                            onClick={() => handleClick(TRIP_BASIC.MULTIPLE.id)}
+                        >
+                            Multiple locations
+                        </button>
+                    </div>
+
+                    <div className="home-hero-search">
+                        <SearchBar
+                            onSelected={handleSearchSelected}
+                            onCreate={handleCreate}
+                        />
+                    </div>
+                </div>
+            </section>
         </Layout>
     );
 };

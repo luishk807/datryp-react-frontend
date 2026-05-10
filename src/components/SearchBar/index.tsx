@@ -24,6 +24,7 @@ interface CountryListEntry {
 
 interface SearchBarProps {
     onSelected?: (country: Country) => void;
+    onCreate?: () => void;
     defaultValue?: Country;
     className?: string;
     type?: SearchBarVariant;
@@ -31,6 +32,7 @@ interface SearchBarProps {
 
 const SearchBar = ({
     onSelected,
+    onCreate,
     defaultValue,
     className = 'justify-center',
     type = 'standard',
@@ -64,7 +66,11 @@ const SearchBar = ({
     };
 
     const handleOnChange = () => {
-        const check = inputRef.current?.value.toLowerCase() ?? '';
+        const check = inputRef.current?.value.toLowerCase().trim() ?? '';
+        if (!check) {
+            setCountriesFound([]);
+            return;
+        }
         const found = (countryList as CountryListEntry[]).filter((item) =>
             item.en.toLowerCase().includes(check)
         );
@@ -90,6 +96,10 @@ const SearchBar = ({
     }, [debounceChange, debounceClick]);
 
     const handleCreateClick = () => {
+        if (onCreate) {
+            onCreate();
+            return;
+        }
         debounceClick({});
     };
 

@@ -2,35 +2,203 @@
 @tailwind components;
 @tailwind utilities;
 
-.searchContainer .mainText {
-  justify-content: center;
+/* ---------- Hero ---------- */
+.home-hero {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: -10px;
+  margin-bottom: 24px;
+  min-height: 70vh;
+  background-color: #1a1a1a;
+  background-size: cover;
+  background-position: center;
   display: flex;
-  font-size: 2.2em;
-  color: theme('colors.primaryGreen');
-  font-weight: 400;
-  text-align: center;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
 }
-.searchContainer .searchBarContainer{
+
+.home-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.55) 60%,
+    rgba(0, 0, 0, 0.65) 100%
+  );
+  z-index: 0;
+}
+
+.home-hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1120px;
+  padding: 64px 24px;
+  text-align: center;
+  color: #fff;
+}
+
+.home-hero-title {
+  font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 14px;
+  letter-spacing: -0.015em;
+}
+
+.home-hero-subtitle {
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 28px;
+}
+
+/* ---------- Trip type pills ---------- */
+.home-hero-options {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 22px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.home-hero-options .hero-option {
+  padding: 8px 18px;
+  border-radius: 9999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.home-hero-options .hero-option:hover {
+  color: #fff;
+}
+
+.home-hero-options .hero-option.selected {
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.4);
+}
+
+/* ---------- Compact pill search bar in hero ---------- */
+.home-hero-search {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.home-hero-search .searchbarMain .holder {
+  background: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 6px 6px 22px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+}
+
+.home-hero-search .searchbarMain .container {
+  padding: 0;
+}
+
+.home-hero-search .searchbarMain .inputHolder {
+  position: relative;
+  flex: 1;
+}
+
+.home-hero-search .searchbarMain .inputBar {
+  font-size: 1.05rem;
+  padding: 12px 16px 12px 4px;
+  text-transform: none;
+  background: transparent;
+  color: #1a1a1a;
   width: 100%;
 }
-.searchContainer {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
+
+.home-hero-search .searchbarMain .inputBar::placeholder {
+  color: rgba(0, 0, 0, 0.4);
 }
 
-.searchContainer .selection {
-  margin: 5px 6px;
-  padding: 5px 5px;
-  font-weight: 400;
-  font-size: 1.2em;
+.home-hero-search .searchbarMain .buttonContainer {
+  padding: 0;
 }
 
-.searchContainer .selected {
-  color: theme('colors.primaryOrange') !important;
+.home-hero-search .searchbarMain .container .button {
+  background: theme('colors.primaryOrange') !important;
+  color: #fff !important;
+  border-radius: 12px;
+  padding: 12px 38px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-.optionSelection {
-  display: flex;
-  justify-content: center;
+.home-hero-search .searchbarMain .container .button:hover {
+  background: #db7710 !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+
+/* Anchor the country results dropdown right under the pill */
+.home-hero-search .searchbarMain .listContainerV2 {
+  top: calc(100% + 8px);
+  background: #fff;
+  color: #1a1a1a;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 10px 16px;
+  text-align: left;
+}
+
+.home-hero-search .searchbarMain .listContainerV2 li.item {
+  color: #1a1a1a;
+  padding: 8px 6px;
+  border-radius: 8px;
+}
+
+.home-hero-search .searchbarMain .listContainerV2 li.item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  font-weight: 500;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .home-hero {
+    min-height: 60vh;
+  }
+
+  .home-hero-content {
+    padding: 40px 16px;
+  }
+
+  .home-hero-options .hero-option {
+    padding: 7px 14px;
+    font-size: 0.85rem;
+  }
+
+  .home-hero-search .searchbarMain .holder {
+    padding: 8px 8px 8px 16px;
+    border-radius: 14px;
+  }
+
+  .home-hero-search .searchbarMain .container .button {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .home-hero-search .searchbarMain .inputBar {
+    font-size: 1rem;
+    padding: 14px 8px;
+  }
 }
