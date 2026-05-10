@@ -1,25 +1,36 @@
 import React, { forwardRef, useState, useEffect} from 'react';
 import { Grid } from '@mui/material';
 import PropTypes from 'prop-types';
-import ModalButton from '../../ModalButton';
+import ModalButton, { type ModalButtonHandle } from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
 import ButtonCustom from '../../common/FormFields/ButtonCustom';
 
-const AddFriendBtn = forwardRef(({
+export interface NewFriendInput {
+    firstName?: string;
+    lastName?: string;
+    dob?: string;
+    email?: string;
+    phone?: string;
+}
+
+export interface AddFriendBtnProps {
+    onChange?: (friend: NewFriendInput | null) => void;
+}
+
+const AddFriendBtn = forwardRef<ModalButtonHandle, AddFriendBtnProps>(({
     onChange
 }, ref) => {
     const title = "Add Friend";
-    const [friend, setFriend] = useState(null);
-    const handleOnChange = (name, value) => {
-        setFriend({
-            ...friend,
-            [name]: value,
-        });
+    const [friend, setFriend] = useState<NewFriendInput | null>(null);
+    const handleOnChange = (fieldName: keyof NewFriendInput, value: string) => {
+        setFriend((prev) => ({
+            ...(prev ?? {}),
+            [fieldName]: value,
+        }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.MouseEvent) => {
         e.preventDefault();
-        console.log("sending", friend);
         onChange && onChange(friend);
     };
 

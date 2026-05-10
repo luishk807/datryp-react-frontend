@@ -52,7 +52,11 @@ const AddPlaceBtn = ({
     const handleImageChange = (e) => {
         const file = e?.target?.files?.[0];
         if (!file) return;
-        handleOnChange('image', { url: URL.createObjectURL(file), name: file.name });
+        const reader = new FileReader();
+        reader.onload = () => {
+            handleOnChange('image', { url: reader.result, name: file.name });
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = (e) => {

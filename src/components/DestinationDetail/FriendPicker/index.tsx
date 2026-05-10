@@ -1,87 +1,82 @@
-import React, {useMemo, useState, useEffect, useRef} from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect, useRef } from 'react';
 import './index.css';
-import { 
-    Grid,
-} from '@mui/material';
-import { friends} from '../../../sample';
+import { Grid } from '@mui/material';
+import { friends } from '../../../sample';
 import Autocomplete from '../../common/FormFields/Autocomplete';
-import AddFriendBtn from '../../common/AddFriendBtn';
+import AddFriendBtn, { type NewFriendInput } from '../../common/AddFriendBtn';
+import type { Friend } from 'types/trip';
+import type { ModalButtonHandle } from 'components/ModalButton';
+
+interface FriendOption {
+    id: number;
+    label: string;
+}
+
+interface SampleFriend {
+    id: number;
+    firstName: string;
+    lastName: string;
+}
+
+interface FriendPickerProps {
+    onChange: (name: string | undefined, e: { target: { value: Friend[] } }) => void;
+    title?: string;
+    name?: string;
+    isMultiple?: boolean;
+    selectedOptions?: Friend[];
+}
+
+const ADD_FRIEND_OPTION_ID = -1;
 
 const FriendPicker = ({
     onChange,
-    title = "friends",
+    title = 'friends',
     name,
     isMultiple = true,
-    selectedOptions = []
-}) => {
-    const childRef = useRef();
-    const [optionList, setOptionList] = useState([]);
-    const [selectedFriendList, setSelectedFriendList] = useState(selectedOptions);
-    const handleOnSelect = (e) => {
-        if(e.id !== -1) {
-            const currFriends = JSON.parse(JSON.stringify(selectedFriendList));
-            currFriends.push(e);
-            setSelectedFriendList((prev) => [...prev, e]);
-            onChange(name, {target: { value: currFriends}});
-        } else {
-            childRef.current.openModel();
-        }
-    };
-    
-    const handleOnRemove = (e) => {
-        const newFriends = selectedFriendList.filter(item => item.id !== e[0].id);
-        setSelectedFriendList(newFriends);
-        onChange(name, {target: { value: newFriends }});
-    };
+    selectedOptions = [],
+}: FriendPickerProps) => {
+    const modalRef = useRef<ModalButtonHandle>(null);
+    const [optionList, setOptionList] = useState<FriendOption[]>([]);
+    const [selectedFriendList, setSelectedFriendList] = useState<Friend[]>(selectedOptions);
 
-    const prepareOptionList = (list) => {
-        console.log("ths list.", list);
-        const newList = list.map(item => {
-            return {
-                id: item.id,
-                label: `${item.firstName} ${item.lastName}`
-            };
-        });
-
-        newList.push({
-            id: -1,
-            label: "add friends"
-        });
-
+    const prepareOptionList = (list: SampleFriend[]) => {
+        const newList: FriendOption[] = list.map((item) => ({
+            id: item.id,
+            label: `${item.firstName} ${item.lastName}`,
+        }));
+        newList.push({ id: ADD_FRIEND_OPTION_ID, label: 'add friends' });
         setOptionList(newList);
     };
 
     useEffect(() => {
-        let isMounted = true;
+        prepareOptionList(friends);
+    }, []);
 
-        if (isMounted) {
-            prepareOptionList(friends);
+    const handleOnSelect = (e: FriendOption) => {
+        if (e.id === ADD_FRIEND_OPTION_ID) {
+            modalRef.current?.openModel();
+            return;
         }
+        const next = [...selectedFriendList, e];
+        setSelectedFriendList(next);
+        onChange(name, { target: { value: next } });
+    };
 
-        return () => isMounted = false;
-    }, [friends]);
+    const handleOnRemove = (e: Friend[]) => {
+        const next = selectedFriendList.filter((item) => item.id !== e[0].id);
+        setSelectedFriendList(next);
+        onChange(name, { target: { value: next } });
+    };
 
-    // useEffect(() => {
-    //     let isMounted = true;
-
-    //     if (isMounted) {
-    //         onChange('friends', {target: { value: selectedFriendList }});
-    //     }
-    //     return () => isMounted = false;
-    // }, [selectedFriendList]);
-
-    const handleFriendOnChange = (e) => {
-        console.log("fiends", e);
-        const list = friends;
-        list.push({
+    const handleFriendOnChange = (e: NewFriendInput | null) => {
+        if (!e?.firstName || !e?.lastName) return;
+        friends.push({
             id: optionList.length + 1,
             firstName: e.firstName,
-            lastName: e.lastName
+            lastName: e.lastName,
         });
-
-        prepareOptionList(list);
-        childRef.current.closeModal();
+        prepareOptionList(friends);
+        modalRef.current?.closeModal();
     };
 
     return (
@@ -89,8 +84,8 @@ const FriendPicker = ({
             <Grid container>
                 <Grid item lg={12} md={12} xs={12}>
                     <Autocomplete
-                        selectedOptions = {selectedOptions}
-                        isMultiple = {isMultiple}
+                        selectedOptions={selectedOptions}
+                        isMultiple={isMultiple}
                         options={optionList}
                         name={name}
                         label={title}
@@ -99,16 +94,9 @@ const FriendPicker = ({
                     />
                 </Grid>
             </Grid>
-            <AddFriendBtn ref={childRef} onChange={handleFriendOnChange} />
+            <AddFriendBtn ref={modalRef} onChange={handleFriendOnChange} />
         </>
     );
 };
 
-FriendPicker.propTypes = {
-    onChange: PropTypes.func,
-    name: PropTypes.string,
-    title: PropTypes.string,
-    isMultiple: PropTypes.bool,
-    selectedOptions: PropTypes.array
-};
 export default FriendPicker;

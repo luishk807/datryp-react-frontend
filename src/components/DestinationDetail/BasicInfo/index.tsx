@@ -1,61 +1,52 @@
-import React, {useEffect, useState, useMemo} from 'react';
-import PropTypes from 'prop-types';
+import { useEffect, useMemo } from 'react';
 import './index.css';
-import { 
-    Grid,
-} from '@mui/material';
+import { Grid } from '@mui/material';
 import moment from 'moment';
 import InputField from 'components/common/FormFields/InputField';
 import { status } from 'sample';
 import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
-const BasicInfo = ({
-    onChange,
-    data = null
-}) => {
+import type { Friend, TripState } from 'types/trip';
 
-    const [tripInfo, setTripInfo] = useState(null);
-    // const initilStatus = useMemo(() => {
-    //     return status.filter(item => item.id === 1)[0];
-    // }, [status]);
+interface ChangeEventLike {
+    target: { value: unknown };
+}
 
-    const handleOrganizerPicker = (name, target) => {
-        console.log("organizer", name, 'value:', target);
-        onChange('organizer', target);
-    };
+interface BasicInfoProps {
+    onChange: (id: string, e: ChangeEventLike) => void;
+    data?: TripState | null;
+}
 
-    const handleStatusChange = (e) => {
-        onChange('status', { target: {value: e}} );
-    };
+const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
+    const today = useMemo(() => moment().format('YYYY-MM-DD'), []);
+
+    const view = useMemo(
+        () => ({
+            organizer: (data?.organizer ?? []) as Friend[],
+            name: data?.name ?? '',
+            budget: data?.budget ?? '',
+            status: data?.status ?? status[0],
+            startDate: data?.startDate ?? today,
+            endDate: data?.endDate ?? today,
+        }),
+        [data, today]
+    );
 
     useEffect(() => {
-        const today = moment().format('YYYY-MM-DD').toString();
+        if (!data?.startDate) onChange('startDate', { target: { value: today } });
+        if (!data?.endDate) onChange('endDate', { target: { value: today } });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        if (data) {
-            if (!data.startDate) onChange('startDate', { target: { value: today } });
-            if (!data.endDate) onChange('endDate', { target: { value: today } });
+    const handleOrganizerPicker = (_name: string | undefined, e: ChangeEventLike) => {
+        onChange('organizer', e);
+    };
 
-            setTripInfo({
-                ...tripInfo,
-                organizer: data.organizer,
-                name: data.name,
-                budget: data.budget,
-                status: data.status || status[0],
-                startDate: data.startDate || today,
-                endDate: data.endDate || today,
-            });
-        } else {
-            setTripInfo({
-                ...tripInfo,
-                status: status[0],
-                organizer: [],
-                startDate: today,
-                endDate: today,
-            });
-        }
-    }, [data]);
+    const handleStatusChange = (value: unknown) => {
+        onChange('status', { target: { value } });
+    };
 
-    return tripInfo && (
+    return (
         <div>
             <form>
                 <Grid container className="step-section">
@@ -63,44 +54,59 @@ const BasicInfo = ({
                         Please enter basic info
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        {/* <InputField name="Organizer" onChange={(e) => onChange('orgnizer', e)}/> */}
                         <FriendPicker
-                            title="Select Organizer" 
+                            title="Select Organizer"
                             name="organizer"
-                            // isMultiple={false}
-                            selectedOptions={tripInfo.organizer} 
+                            selectedOptions={view.organizer}
                             onChange={handleOrganizerPicker}
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField defaultValue={tripInfo.name} name="name" label="Trip Name" onChange={(e) => onChange('name', e)}/>
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField defaultValue={tripInfo.budget} name="budget" onChange={(e) => onChange('budget', e)}/>
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <DropDown 
-                            label="Status" 
-                            defaultValue={tripInfo.status}
-                            options={status} 
-                            name="status" onChange={handleStatusChange} 
+                        <InputField
+                            defaultValue={view.name}
+                            name="name"
+                            label="Trip Name"
+                            onChange={(e) => onChange('name', e)}
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField label="Start Date" defaultValue={tripInfo.startDate} name="startDate" type="date" onChange={(e) => onChange('startDate', e)}/>
+                        <InputField
+                            defaultValue={String(view.budget)}
+                            name="budget"
+                            onChange={(e) => onChange('budget', e)}
+                        />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
-                        <InputField label="End Date" defaultValue={tripInfo.endDate} name="endDate" type="date" onChange={(e) => onChange('endDate', e)}/>
+                        <DropDown
+                            label="Status"
+                            defaultValue={view.status}
+                            options={status}
+                            name="status"
+                            onChange={handleStatusChange}
+                        />
+                    </Grid>
+                    <Grid item lg={12} md={12} xs={12} className="form-input">
+                        <InputField
+                            label="Start Date"
+                            defaultValue={view.startDate}
+                            name="startDate"
+                            type="date"
+                            onChange={(e) => onChange('startDate', e)}
+                        />
+                    </Grid>
+                    <Grid item lg={12} md={12} xs={12} className="form-input">
+                        <InputField
+                            label="End Date"
+                            defaultValue={view.endDate}
+                            name="endDate"
+                            type="date"
+                            onChange={(e) => onChange('endDate', e)}
+                        />
                     </Grid>
                 </Grid>
             </form>
-
         </div>
     );
 };
 
-BasicInfo.propTypes = {
-    onChange: PropTypes.func,
-    data: PropTypes.object
-};
 export default BasicInfo;
