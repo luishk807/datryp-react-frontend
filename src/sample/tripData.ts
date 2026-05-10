@@ -32,7 +32,7 @@ export const multiTripDetailobj = {
                 }
             ],
             note: '',
-            intineraries: [
+            itinerary: [
                 {
                     date: '01/01/2023',
                     activities: null  
@@ -116,7 +116,7 @@ export const multiTripDetailobj = {
                 }
             ],
             note: '',
-            intineraries: [
+            itinerary: [
                 {
                     date: '01/02/2023',
                     activities: [
