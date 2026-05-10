@@ -1,4 +1,4 @@
-import { Typography, Grid } from '@mui/material';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import Confetti from 'components/Confetti';
 import { useNavigate } from 'react-router-dom';
 import './index.css';
@@ -10,54 +10,54 @@ export interface CompleteProps {
     onReset?: () => void;
 }
 
-const Complete = ({ onReset: _onReset }: CompleteProps) => {
+const Complete = ({ onReset }: CompleteProps) => {
     const navigate = useNavigate();
+
     const handleClick = (target: CompleteNavTarget) => {
-        switch (target) {
-            case 'home':
-                navigate('/');
-                break;
-            case 'account':
-                navigate('/account');
-                break;
-        }
+        if (target === 'home') navigate('/');
+        else navigate('/account');
+    };
+
+    const handleSecondary = () => {
+        if (onReset) onReset();
+        else handleClick('home');
     };
 
     return (
         <>
-            <Grid container>
-                <Grid item lg={6} xs={12} id="trip-complete">
-                    <Grid container className="trip-content">
-                        <Grid item lg={12} xs={12} className="title">
-                            <Typography className="content">
-                                <span className="text-1">Congratulation! </span>
-                                <span className="text-2">All Set!</span>
-                            </Typography>
-                        </Grid>
-                        <Grid item lg={12} xs={12} className="main-image">
-                            <img src="/images/complete.png" width="400" />
-                        </Grid>
-                        <Grid item lg={12} xs={12} className="button">
-                            <Grid container spacing={1}>
-                                <Grid item xs={12} lg={6}>
-                                    <Button
-                                        type="line"
-                                        onClick={() => handleClick('home')}
-                                        label="Return Home"
-                                    />
-                                </Grid>
-                                <Grid item xs={12} lg={6}>
-                                    <Button
-                                        type="line"
-                                        onClick={() => handleClick('account')}
-                                        label="View Your Trip"
-                                    />
-                                </Grid>
-                            </Grid>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Grid>
+            <section className="trip-complete">
+                <div className="trip-complete-card">
+                    <span className="trip-complete-stripe" aria-hidden="true" />
+
+                    <div className="trip-complete-icon">
+                        <CelebrationIcon />
+                    </div>
+
+                    <h1 className="trip-complete-title">Your trip is all set!</h1>
+                    <p className="trip-complete-subtitle">
+                        Pack your bags — we've saved every detail.
+                    </p>
+
+                    <div className="trip-complete-image">
+                        <img src="/images/complete.png" alt="Trip complete" />
+                    </div>
+
+                    <div className="trip-complete-actions">
+                        <Button
+                            type="standard"
+                            capitalizeType="uppercase"
+                            onClick={() => handleClick('account')}
+                            label="View Your Trip"
+                        />
+                        <Button
+                            type="line"
+                            capitalizeType="uppercase"
+                            onClick={handleSecondary}
+                            label={onReset ? 'Plan Another' : 'Return Home'}
+                        />
+                    </div>
+                </div>
+            </section>
 
             <Confetti activate={true} />
         </>
