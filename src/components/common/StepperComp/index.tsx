@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import './index.css';
-import { Step, StepLabel, Typography, Grid } from '@mui/material';
+import { Step, StepLabel, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
@@ -78,27 +78,25 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                         </>
                     )}
 
+                    <Grid item lg={12} md={12} xs={12} className="step-title">
+                        <h2 className="step-heading">
+                            {steps[activeStep]?.label}
+                        </h2>
+                    </Grid>
                     <Grid item lg={12} md={12} xs={12}>
-                        <Typography sx={{ mt: 2, mb: 1 }}>Step {activeStep + 1}</Typography>
                         {steps[activeStep]?.comp}
                     </Grid>
                     <Grid item lg={12} md={12} xs={12}>
-                        <Grid container className="mt-2.5">
-                            <Grid item lg={6} md={6} xs={12} className="flex justify-start">
-                                <div className="w-full lg:w-40 my-2.5">
-                                    <Button type="standard" onClick={handleBack} label="Back" />
-                                </div>
-                            </Grid>
-                            <Grid item lg={6} md={6} xs={12} className="flex justify-end">
-                                <div className="w-full lg:w-40 my-2.5">
-                                    <Button
-                                        type="standard"
-                                        onClick={handleNext}
-                                        label={activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                                    />
-                                </div>
-                            </Grid>
-                        </Grid>
+                        <div className="step-actions">
+                            {activeStep > 0 && (
+                                <Button type="line" onClick={handleBack} label="Back" />
+                            )}
+                            <Button
+                                type="standard"
+                                onClick={handleNext}
+                                label={activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+                            />
+                        </div>
                     </Grid>
                 </Grid>
             )}
