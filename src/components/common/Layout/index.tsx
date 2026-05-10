@@ -10,13 +10,17 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
     return (
-        <Grid container spacing={0} className="root">
+        <div className="page-shell">
             <Header />
-            <Grid item lg={12} md={12} className="homeContainer">
-                {children}
-            </Grid>
+            <main className="page-content">
+                <Grid container spacing={0} className="root">
+                    <Grid item lg={12} md={12} className="homeContainer">
+                        {children}
+                    </Grid>
+                </Grid>
+            </main>
             <Footer />
-        </Grid>
+        </div>
     );
 };
 

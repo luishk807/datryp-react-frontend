@@ -1,5 +1,17 @@
-.root {
+.page-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.root {
+  flex: 1;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;

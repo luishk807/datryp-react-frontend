@@ -1,26 +1,101 @@
-#trip-box > .container {
-  border: 1px solid #ccc;
-  margin: 5px;
-  overflow: hidden;
-  border-radius: 10px;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  -ms-border-radius: 10px;
-  -o-border-radius: 10px;
-  box-shadow: 0px 3px 7px #ccc;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-box-link {
+  display: block;
+  color: inherit !important;
 }
 
-#trip .trip-item {
-  
+.trip-box {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-#trip-box > .container > .image {
-  object-fit: contain;
+
+.trip-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
 }
-#trip-box > .container > .content {
-  padding: 10px;
-  color: black;
+
+.trip-box-image {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: #1a1a1a;
 }
-#trip-box > .container > .content > ul li.title {
-  color: black;
-  font-size: 1.2em;
+
+.trip-box-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.trip-box:hover .trip-box-image img {
+  transform: scale(1.05);
+}
+
+.trip-box-status {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: theme('colors.primary');
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.trip-box-status.trip-box-status-confirmed {
+  color: theme('colors.primaryGreen');
+}
+
+.trip-box-status.trip-box-status-planning {
+  color: theme('colors.primaryOrange');
+}
+
+.trip-box-status.trip-box-status-completed {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.trip-box-content {
+  padding: 16px 18px 18px;
+}
+
+.trip-box-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  margin: 0 0 4px;
+  letter-spacing: -0.005em;
+}
+
+.trip-box-destination {
+  font-size: 0.85rem;
+  color: theme('colors.primaryOrange');
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+
+.trip-box-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  gap: 8px;
+}
+
+.trip-box-friends {
+  font-weight: 500;
+  white-space: nowrap;
 }

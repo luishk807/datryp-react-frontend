@@ -12,20 +12,24 @@ interface SubLayoutProps {
 
 const Layout = ({ children, title = '' }: SubLayoutProps) => {
     return (
-        <Grid container spacing={0} id="layout" className="root">
+        <div className="page-shell">
             <Header />
-            <Grid item lg={8} md={12} xs={12} className="layout-container">
-                <Grid container>
-                    <Grid item lg={12} md={12} xs={12} className="layout-title">
-                        {title}
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="homeContainer">
-                        {children}
+            <main className="page-content">
+                <Grid container spacing={0} id="layout" className="root">
+                    <Grid item lg={8} md={12} xs={12} className="layout-container">
+                        <Grid container>
+                            <Grid item lg={12} md={12} xs={12} className="layout-title">
+                                {title}
+                            </Grid>
+                            <Grid item lg={12} md={12} xs={12} className="homeContainer">
+                                {children}
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </Grid>
-            </Grid>
+            </main>
             <Footer />
-        </Grid>
+        </div>
     );
 };
 

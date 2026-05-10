@@ -1,6 +1,7 @@
 import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import TripBox from 'components/common/TripBox';
+import { userTrips } from 'sample/userTrips';
 import './index.css';
 
 const TRIP_ITEM_FLEX = {
@@ -13,9 +14,14 @@ export const Trips = () => {
     return (
         <Layout title="My Trips">
             <Grid container id="trip-container">
-                {Array.from({ length: 6 }).map((_, idx) => (
-                    <Grid key={idx} item className="trip-item" sx={{ flexBasis: TRIP_ITEM_FLEX }}>
-                        <TripBox />
+                {userTrips.map((trip) => (
+                    <Grid
+                        key={trip.id}
+                        item
+                        className="trip-item"
+                        sx={{ flexBasis: TRIP_ITEM_FLEX }}
+                    >
+                        <TripBox data={trip} />
                     </Grid>
                 ))}
             </Grid>

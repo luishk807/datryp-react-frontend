@@ -4,10 +4,8 @@
 
 .footer {
   width: 100%;
-  flex: 0 0 100%;
   background: theme('colors.primaryGreen');
   color: #fff;
-  margin-top: auto;
 }
 
 .footer-inner {

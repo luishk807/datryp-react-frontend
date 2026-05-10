@@ -1,30 +1,52 @@
-import { Grid } from '@mui/material';
-import './index.css';
 import Link from '@mui/material/Link';
-import type { TripState } from 'types/trip';
+import classnames from 'classnames';
+import moment from 'moment';
+import './index.css';
+import type { UserTripSummary } from 'sample/userTrips';
 
 interface TripBoxProps {
-    data?: TripState | null;
+    data: UserTripSummary;
+    href?: string;
 }
 
-export const TripBox = ({ data: _data = null }: TripBoxProps) => {
+const formatDateRange = (start: string, end: string) => {
+    const a = moment(start);
+    const b = moment(end);
+    if (!a.isValid() || !b.isValid()) return '';
+    if (a.year() === b.year()) {
+        return `${a.format('MMM D')} – ${b.format('MMM D, YYYY')}`;
+    }
+    return `${a.format('MMM D, YYYY')} – ${b.format('MMM D, YYYY')}`;
+};
+
+export const TripBox = ({ data, href = '#' }: TripBoxProps) => {
+    const friendsLabel = `${data.friendsCount} friend${
+        data.friendsCount === 1 ? '' : 's'
+    }`;
+
     return (
-        <Link href="/" underline="none">
-            <Grid container id="trip-box">
-                <Grid item lg={12} md={12} xs={12} className="container">
-                    <Grid item lg={12} md={12} xs={12} className="image">
-                        <img src="/images/sample/china1.jpg" />
-                    </Grid>
-                    <Grid item lg={12} md={12} xs={12} className="content">
-                        <ul>
-                            <li className="title">Name: China Trip</li>
-                            <li>Orgnizer: Joanna</li>
-                            <li>Date: 10 Oct - 12 Oct 2024</li>
-                            <li>Status: Active</li>
-                        </ul>
-                    </Grid>
-                </Grid>
-            </Grid>
+        <Link href={href} underline="none" className="trip-box-link">
+            <article className="trip-box">
+                <div className="trip-box-image">
+                    <img src={data.image} alt={data.destination} loading="lazy" />
+                    <span
+                        className={classnames(
+                            'trip-box-status',
+                            `trip-box-status-${data.status}`
+                        )}
+                    >
+                        {data.status}
+                    </span>
+                </div>
+                <div className="trip-box-content">
+                    <h3 className="trip-box-name">{data.name}</h3>
+                    <p className="trip-box-destination">{data.destination}</p>
+                    <div className="trip-box-meta">
+                        <span>{formatDateRange(data.startDate, data.endDate)}</span>
+                        <span className="trip-box-friends">{friendsLabel}</span>
+                    </div>
+                </div>
+            </article>
         </Link>
     );
 };
