@@ -139,12 +139,117 @@
   box-shadow: 0 4px 12px rgba(60, 181, 75, 0.35);
 }
 
-.app-header-menu-name {
-  opacity: 1 !important;
-  font-weight: 600 !important;
-  color: theme('colors.primary') !important;
-  font-size: 0.85rem !important;
-  pointer-events: none;
+/* ---------- User dropdown menu ---------- */
+.user-menu {
+  margin-top: 12px !important;
+  border-radius: 18px !important;
+  min-width: 300px !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden !important;
+  padding: 8px !important;
+}
+
+.user-menu .MuiList-root {
+  padding: 0 !important;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 14px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.1) 0%,
+    rgba(246, 137, 31, 0.1) 100%
+  );
+  margin-bottom: 4px;
+}
+
+.user-menu-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.3);
+}
+
+.user-menu-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-menu-name {
+  font-weight: 700;
+  color: theme('colors.primary');
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu-email {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.user-menu .user-menu-divider {
+  margin: 6px 0 !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.user-menu .MuiMenuItem-root.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.95rem;
+  padding: 12px 14px;
+  color: theme('colors.primary');
+  font-weight: 500;
+  border-radius: 10px;
+  margin: 2px 0;
+  transition: background-color 0.15s ease;
+}
+
+.user-menu .MuiMenuItem-root.user-menu-item:hover {
+  background: rgba(60, 181, 75, 0.08);
+}
+
+.user-menu .MuiMenuItem-root.user-menu-item .MuiSvgIcon-root {
+  color: theme('colors.primaryGreen');
+  font-size: 22px;
+}
+
+.user-menu .MuiMenuItem-root.user-menu-logout {
+  color: #c0392b !important;
+}
+
+.user-menu .MuiMenuItem-root.user-menu-logout .MuiSvgIcon-root {
+  color: #c0392b !important;
+}
+
+.user-menu .MuiMenuItem-root.user-menu-logout:hover {
+  background: rgba(192, 57, 43, 0.08) !important;
+}
+
+@media (max-width: 480px) {
+  .user-menu {
+    min-width: min(300px, calc(100vw - 24px)) !important;
+  }
 }
 
 /* ---------- Drawer ---------- */

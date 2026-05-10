@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Drawer, IconButton, Link, Menu, MenuItem } from '@mui/material';
+import { Divider, Drawer, IconButton, Link, Menu, MenuItem } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import { useUser } from 'context/UserContext';
@@ -64,18 +66,40 @@ const Header = () => {
                                 onClose={handleMenuClose}
                                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                slotProps={{ paper: { className: 'user-menu' } }}
                             >
-                                <MenuItem disabled className="app-header-menu-name">
-                                    {user.name}
-                                </MenuItem>
-                                <MenuItem onClick={() => handleNavigate('/account')}>
+                                <div className="user-menu-header">
+                                    <span className="user-menu-avatar">{initial}</span>
+                                    <div className="user-menu-info">
+                                        <span className="user-menu-name">{user.name}</span>
+                                        {user.email && (
+                                            <span className="user-menu-email">
+                                                {user.email}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <Divider className="user-menu-divider" />
+                                <MenuItem
+                                    onClick={() => handleNavigate('/account')}
+                                    className="user-menu-item"
+                                >
+                                    <PersonOutlineIcon fontSize="small" />
                                     Account
                                 </MenuItem>
-                                <MenuItem onClick={() => handleNavigate('/trips')}>
+                                <MenuItem
+                                    onClick={() => handleNavigate('/trips')}
+                                    className="user-menu-item"
+                                >
+                                    <FlightTakeoffIcon fontSize="small" />
                                     My Trips
                                 </MenuItem>
-                                <MenuItem onClick={handleLogout}>
-                                    <LogoutRoundedIcon fontSize="small" style={{ marginRight: 8 }} />
+                                <Divider className="user-menu-divider" />
+                                <MenuItem
+                                    onClick={handleLogout}
+                                    className="user-menu-item user-menu-logout"
+                                >
+                                    <LogoutRoundedIcon fontSize="small" />
                                     Logout
                                 </MenuItem>
                             </Menu>
