@@ -7,16 +7,37 @@ import {
     type ReactNode,
 } from 'react';
 
+export type PaymentType = 'card' | 'paypal' | 'venmo' | 'other';
+
+export interface NotificationPrefs {
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+}
+
+export interface UserFriend {
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+}
+
 export interface User {
     id: string;
     name: string;
     email?: string;
+    phone?: string;
+    preferredAirport?: string;
+    paymentType?: PaymentType;
+    notifications?: NotificationPrefs;
+    friends?: UserFriend[];
 }
 
 interface UserContextValue {
     user: User | null;
     login: (user: User) => void;
     logout: () => void;
+    updateUser: (updates: Partial<User>) => void;
 }
 
 const STORAGE_KEY = 'datryp:user';
@@ -54,9 +75,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     const login = useCallback((next: User) => setUser(next), []);
     const logout = useCallback(() => setUser(null), []);
+    const updateUser = useCallback((updates: Partial<User>) => {
+        setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+    }, []);
 
     return (
-        <UserContext.Provider value={{ user, login, logout }}>
+        <UserContext.Provider value={{ user, login, logout, updateUser }}>
             {children}
         </UserContext.Provider>
     );

@@ -6,6 +6,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import SearchBar from 'components/SearchBar';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
@@ -112,6 +113,13 @@ const Header = () => {
                                     <FlightTakeoffIcon fontSize="small" />
                                     My Trips
                                 </MenuItem>
+                                <MenuItem
+                                    onClick={() => handleNavigate('/friends')}
+                                    className="user-menu-item"
+                                >
+                                    <PeopleOutlineIcon fontSize="small" />
+                                    Manage Friends
+                                </MenuItem>
                                 <Divider className="user-menu-divider" />
                                 <MenuItem
                                     onClick={handleLogout}
@@ -177,6 +185,12 @@ const Header = () => {
                                     onClick={() => handleNavigate('/trips')}
                                 >
                                     My Trips
+                                </button>
+                                <button
+                                    className="drawer-link"
+                                    onClick={() => handleNavigate('/friends')}
+                                >
+                                    Manage Friends
                                 </button>
                                 <button
                                     className="drawer-link drawer-logout"

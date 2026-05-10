@@ -9,6 +9,7 @@ const MultipleTrip = lazy(() => import('components/Sections/MultipleTrip'));
 const Account = lazy(() => import('components/Sections/Account'));
 const Trips = lazy(() => import('components/Sections/Trips'));
 const TripDetail = lazy(() => import('components/Sections/TripDetail'));
+const Friends = lazy(() => import('components/Sections/Friends'));
 
 import { TRIP_BASIC } from 'constants';
 
@@ -44,6 +45,11 @@ function App() {
                 <Route path='/trip-detail' element={
                     <Suspense fallback={<>...</>}>
                         <TripDetail />
+                    </Suspense>
+                }/>
+                <Route path='/friends' element={
+                    <Suspense fallback={<>...</>}>
+                        <Friends />
                     </Suspense>
                 }/>
             </Routes>
