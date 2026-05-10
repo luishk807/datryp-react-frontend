@@ -1,27 +1,23 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import './index.css';
 import { NO_IMAGE } from 'constants';
+import type { ImageRef } from 'types/trip';
 
-const ImageBlock = ({ image }) => {
+interface ImageBlockProps {
+    image?: ImageRef | null;
+}
+
+const ImageBlock = ({ image }: ImageBlockProps) => {
     return (
         <div className="activity-image">
-            {
-                image ? (
-                    <img src={image?.url} />
-                ) : (
-                    <div className="in-no-image">
-                        <img src={NO_IMAGE} />
-                    </div>
-                )
-            }
-
+            {image ? (
+                <img src={image.url} />
+            ) : (
+                <div className="in-no-image">
+                    <img src={NO_IMAGE} />
+                </div>
+            )}
         </div>
     );
-};
-
-ImageBlock.propTypes = {
-    image: PropTypes.object
 };
 
 export default ImageBlock;
