@@ -6,6 +6,8 @@ import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
 import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
+import type { TopPlace } from 'sample/topPlaces';
+import TopPlaces from 'components/TopPlaces';
 import type { Country, Destination } from 'types/trip';
 
 const HERO_IMAGES = [
@@ -44,6 +46,18 @@ const Home = () => {
         dispatch(resetTrip());
         dispatch(basicInfo({ type, destinations }));
         navigate(type.route, { replace: true });
+    };
+
+    const handlePlaceClick = (place: TopPlace) => {
+        const country: Country = {
+            id: place.id,
+            name: place.country,
+            code: place.countryCode,
+        };
+        const destinations = [{ country }] as Destination[];
+        dispatch(resetTrip());
+        dispatch(basicInfo({ type: TRIP_BASIC.SINGLE, destinations }));
+        navigate(TRIP_BASIC.SINGLE.route, { replace: true });
     };
 
     return (
@@ -86,6 +100,8 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+
+            <TopPlaces onPlaceClick={handlePlaceClick} />
         </Layout>
     );
 };
