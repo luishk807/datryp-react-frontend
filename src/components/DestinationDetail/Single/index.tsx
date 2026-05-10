@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import './index.css';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
-import type { Activity, ActionType, Friend } from 'types/trip';
+import type { Activity, ActionType, Friend } from 'types/trip.types';
 
 interface SingleProps {
     trips?: Activity[] | null;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton, Link, Menu, MenuItem } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
@@ -15,7 +15,7 @@ import type { SignUpForm } from 'components/common/SignUpBtn';
 import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
-import type { Country, Destination } from 'types/trip';
+import type { Country, Destination } from 'types/trip.types';
 import './index.css';
 
 const Header = () => {

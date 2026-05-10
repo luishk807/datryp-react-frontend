@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
@@ -18,7 +18,7 @@ import {
     useTripDispatch,
     useTripState,
 } from 'context/TripContext';
-import type { ActionType, Friend } from 'types/trip';
+import type { ActionType, Friend } from 'types/trip.types';
 
 interface ChangeEventLike {
     target: { value: unknown };

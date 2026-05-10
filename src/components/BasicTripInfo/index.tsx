@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import './index.css';
 import moment from 'moment';
 import _ from 'lodash';
@@ -8,7 +8,7 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { convertMoney } from 'utils';
-import type { TripState } from 'types/trip';
+import type { TripState } from 'types/trip.types';
 
 interface BasicTripInfoProps {
     data: TripState;

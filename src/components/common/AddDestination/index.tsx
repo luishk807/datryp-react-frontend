@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+﻿import { useState, useEffect, useMemo, useRef } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
 import moment from 'moment';
@@ -8,7 +8,7 @@ import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
 import classNames from 'classnames';
-import type { Country, Destination, FlightInfo } from 'types/trip';
+import type { Country, Destination, FlightInfo } from 'types/trip.types';
 
 type AddDestinationType = 'add' | 'edit';
 type AddDestinationButtonType = 'text' | 'standard';

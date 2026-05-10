@@ -1,11 +1,11 @@
-import { useRef, useState, useEffect, useMemo } from 'react';
+﻿import { useRef, useState, useEffect, useMemo } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
 import './index.css';
 import { debounce } from 'lodash';
 import countryList from 'sample/countryList.json';
 import InputField from 'components/common/FormFields/InputField';
 import classNames from 'classnames';
-import type { Country } from 'types/trip';
+import type { Country } from 'types/trip.types';
 
 type SearchBarVariant = 'standard' | 'simple';
 

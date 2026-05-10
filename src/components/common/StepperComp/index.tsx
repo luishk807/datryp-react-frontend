@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+﻿import { useState, type ReactNode } from 'react';
 import './index.css';
 import { Step, StepLabel, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
@@ -8,7 +8,7 @@ import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
 import TripComplete from 'components/DestinationDetail/Completed';
 import { resetTrip, useTripDispatch } from 'context/TripContext';
-import type { TripState } from 'types/trip';
+import type { TripState } from 'types/trip.types';
 
 export interface StepperStep {
     label: string;

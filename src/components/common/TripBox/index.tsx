@@ -1,4 +1,4 @@
-import Link from '@mui/material/Link';
+import { Link } from 'react-router-dom';
 import classnames from 'classnames';
 import moment from 'moment';
 import './index.css';
@@ -6,7 +6,7 @@ import type { UserTripSummary } from 'sample/userTrips';
 
 interface TripBoxProps {
     data: UserTripSummary;
-    href?: string;
+    to?: string;
 }
 
 const formatDateRange = (start: string, end: string) => {
@@ -19,13 +19,14 @@ const formatDateRange = (start: string, end: string) => {
     return `${a.format('MMM D, YYYY')} – ${b.format('MMM D, YYYY')}`;
 };
 
-export const TripBox = ({ data, href = '#' }: TripBoxProps) => {
+export const TripBox = ({ data, to }: TripBoxProps) => {
     const friendsLabel = `${data.friendsCount} friend${
         data.friendsCount === 1 ? '' : 's'
     }`;
+    const target = to ?? `/trip-detail?id=${data.id}`;
 
     return (
-        <Link href={href} underline="none" className="trip-box-link">
+        <Link to={target} className="trip-box-link">
             <article className="trip-box">
                 <div className="trip-box-image">
                     <img src={data.image} alt={data.destination} loading="lazy" />

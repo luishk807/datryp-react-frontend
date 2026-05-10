@@ -1,8 +1,8 @@
-import { Grid } from '@mui/material';
+﻿import { Grid } from '@mui/material';
 import './index.css';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
-import type { Activity } from 'types/trip';
+import type { Activity } from 'types/trip.types';
 
 interface SingleProps {
     trips?: Activity[] | null;

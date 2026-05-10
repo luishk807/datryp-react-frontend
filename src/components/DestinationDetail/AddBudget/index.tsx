@@ -1,11 +1,11 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useRef, useState } from 'react';
 import './index.css';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { Grid } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
-import type { BudgetEntry, BudgetItem, Friend } from 'types/trip';
+import type { BudgetEntry, BudgetItem, Friend } from 'types/trip.types';
 
 interface AddBudgetProps {
     participants?: Friend[];

@@ -1,4 +1,4 @@
-import './index.css';
+﻿import './index.css';
 import moment from 'moment';
 import { Grid } from '@mui/material';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
@@ -6,7 +6,7 @@ import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import { convertMoney } from 'utils';
 import DialogBox from 'components/common/FormFields/DialogBox';
-import type { ActionType, Activity, ActivityStatus, Friend } from 'types/trip';
+import type { ActionType, Activity, ActivityStatus, Friend } from 'types/trip.types';
 
 export interface ActivitiesProps {
     onChangePlace: (type: ActionType, value: unknown) => void;

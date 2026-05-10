@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
     createContext,
     useContext,
     useEffect,
@@ -13,8 +13,8 @@ import type {
     BudgetItem,
     Destination,
     TripState,
-} from 'types/trip';
-import { emptyTripState } from 'types/trip';
+} from 'types/trip.types';
+import { emptyTripState } from 'types/trip.types';
 
 const STORAGE_KEY = 'trip-state';
 

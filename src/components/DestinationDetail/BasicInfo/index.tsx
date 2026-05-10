@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+﻿import { useEffect, useMemo } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
@@ -7,7 +7,7 @@ import InputField from 'components/common/FormFields/InputField';
 import { status } from 'sample';
 import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
-import type { Friend, TripState } from 'types/trip';
+import type { Friend, TripState } from 'types/trip.types';
 
 interface ChangeEventLike {
     target: { value: unknown };

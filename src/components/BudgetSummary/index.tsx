@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import './index.css';
 import classNames from 'classnames';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -6,7 +6,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import { convertMoney } from 'utils';
-import type { Destination, TripState } from 'types/trip';
+import type { Destination, TripState } from 'types/trip.types';
 
 interface BudgetSummaryProps {
     data: TripState;
