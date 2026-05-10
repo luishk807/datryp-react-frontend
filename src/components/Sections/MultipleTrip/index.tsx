@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';

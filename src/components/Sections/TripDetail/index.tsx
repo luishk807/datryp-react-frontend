@@ -1,26 +1,25 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import BasicTripInfo from 'components/BasicTripInfo';
 import DestinationDetail from 'components/DestinationDetail';
 import _ from 'lodash';
-
 import { multiTripDetailobj2 } from 'sample/tripData';
+import type { Friend, TripState } from 'types/trip';
 
 export const TripDetail = () => {
-    const [tripData, setTripData] = useState(null);
+    const [tripData, setTripData] = useState<TripState | null>(null);
 
-    const handleChangeStep = () => {
-        console.log('fff');
-    };
+    const handleChangeStep = () => {};
 
-    const participants = useMemo(() => {
-        const friends = (multiTripDetailobj2 as any).friends || [];
-        const organizer = (multiTripDetailobj2 as any).organizer || [];
-        const merged = [...friends, ...organizer];
+    const participants = useMemo<Friend[]>(() => {
+        const sample = multiTripDetailobj2 as unknown as TripState;
+        const friends = sample.friends ?? [];
+        const organizer = sample.organizer ?? [];
+        const merged: Friend[] = [...friends, ...organizer];
 
-        const unique = [];
+        const unique: Friend[] = [];
         merged.forEach((entry) => {
             if (!unique.find((u) => u.id === entry.id)) {
                 unique.push(entry);
@@ -34,35 +33,35 @@ export const TripDetail = () => {
     }, []);
 
     useEffect(() => {
-        setTripData(multiTripDetailobj2);
+        setTripData(multiTripDetailobj2 as unknown as TripState);
     }, []);
 
+    if (!tripData) return null;
+
     return (
-        tripData && (
-            <Layout title="Trip Detail">
-                <Grid container>
-                    <Grid item lg={12}>
-                        {tripData && (
-                            <BasicTripInfo
-                                isViewMode={true}
-                                data={tripData}
-                                onChangeStep={handleChangeStep}
-                            />
-                        )}
-                    </Grid>
-                    <Grid item lg={12}>
-                        <DestinationDetail
-                            type={tripData.type}
-                            isViewMode={true}
-                            startDate={tripData.startDate}
-                            participants={participants}
-                            endDate={tripData.endDate}
-                            destinations={destinations}
-                        />
-                    </Grid>
+        <Layout title="Trip Detail">
+            <Grid container>
+                <Grid item lg={12}>
+                    <BasicTripInfo
+                        isViewMode={true}
+                        data={tripData}
+                        onChangeStep={handleChangeStep}
+                    />
                 </Grid>
-            </Layout>
-        )
+                <Grid item lg={12}>
+                    <DestinationDetail
+                        type={tripData.type}
+                        isViewMode={true}
+                        startDate={tripData.startDate}
+                        participants={participants}
+                        endDate={tripData.endDate}
+                        destinations={destinations}
+                        onChangePlace={() => {}}
+                        onChangeBudget={() => {}}
+                    />
+                </Grid>
+            </Grid>
+        </Layout>
     );
 };
 

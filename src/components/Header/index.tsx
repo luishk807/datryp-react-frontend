@@ -1,34 +1,38 @@
-import React from 'react';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import { Grid, Link } from '@mui/material';
 import './index.css';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
+
 const Header = () => {
     return (
-        <Grid container className="homeHeader" spacing={0} >
+        <Grid container className="homeHeader" spacing={0}>
             <Grid item lg={3} md={3} xs={12} className="logoSection justify-center lg:justify-start">
-                <Link href="/"><img src="/images/logo.svg" alt="logo" width="150" /></Link>
+                <Link href="/">
+                    <img src="/images/logo.svg" alt="logo" width="150" />
+                </Link>
             </Grid>
             <Grid item lg={9} md={9} xs={12} className="loginSection">
-                <Grid container className="loginContainer" spacing={0} >
-                    <Grid item className="firstRow" lg={12} sx={{ display: { 
-                        lg: 'flex',
-                        md: 'flex',
-                        xs: 'none'
-                    }}}>
+                <Grid container className="loginContainer" spacing={0}>
+                    <Grid
+                        item
+                        className="firstRow"
+                        lg={12}
+                        sx={{ display: { lg: 'flex', md: 'flex', xs: 'none' } }}
+                    >
                         <LoginBtn />
-                        &nbsp; &#x2f; &nbsp;                       
+                        &nbsp; &#x2f; &nbsp;
                         <SignUp />
-
                     </Grid>
-                    {/* <Hidden lgUp mdUp> */}
-                    <Grid item className="iconContainer" sx={{ display: { xl: 'none', md: 'none'}}}>
+                    <Grid
+                        item
+                        className="iconContainer"
+                        sx={{ display: { xl: 'none', md: 'none' } }}
+                    >
                         <div>
                             <MenuRoundedIcon color="primary" className="menuIcon" />
                         </div>
                     </Grid>
-                    {/* </Hidden> */}
                 </Grid>
             </Grid>
         </Grid>

@@ -1,4 +1,3 @@
-import React from 'react';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import { Grid, Link } from '@mui/material';
 import SearchBar from 'components/SearchBar';
