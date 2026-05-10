@@ -29,33 +29,30 @@ const BasicInfo = ({
     };
 
     useEffect(() => {
-        let unmounted = true;
-        
-        if(unmounted) {
-            if (data) {
-                console.log("the dataaa", data);
-                setTripInfo({
-                    ...tripInfo,
-                    organizer: data.organizer,
-                    name: data.name,
-                    budget: data.budget,
-                    status: data.status || status[0],
-                    startDate: data.startDate || moment().format('YYYY-MM-DD').toString(),
-                    endDate:  data.endDate || moment().format('YYYY-MM-DD').toString()
-                });
-            } else {
-                setTripInfo({
-                    ...tripInfo,
-                    status: status[0],
-                    organizer: [],
-                    startDate:  moment().format('YYYY-MM-DD').toString(),
-                    endDate:  moment().format('YYYY-MM-DD').toString()
-                });
-            }
+        const today = moment().format('YYYY-MM-DD').toString();
 
+        if (data) {
+            if (!data.startDate) onChange('startDate', { target: { value: today } });
+            if (!data.endDate) onChange('endDate', { target: { value: today } });
+
+            setTripInfo({
+                ...tripInfo,
+                organizer: data.organizer,
+                name: data.name,
+                budget: data.budget,
+                status: data.status || status[0],
+                startDate: data.startDate || today,
+                endDate: data.endDate || today,
+            });
+        } else {
+            setTripInfo({
+                ...tripInfo,
+                status: status[0],
+                organizer: [],
+                startDate: today,
+                endDate: today,
+            });
         }
-
-        return () => unmounted = false;
     }, [data]);
 
     return tripInfo && (

@@ -14,7 +14,22 @@ import {
     DatePicker
 } from '@mui/x-date-pickers';
 
-const InputField = forwardRef(({
+type InputFieldType = 'text' | 'number' | 'email' | 'password' | 'date' | 'file' | 'time';
+
+export interface InputFieldProps {
+    label?: string | null;
+    maxDate?: string;
+    name?: string;
+    minDate?: string;
+    onChange?: (e: { target: { value: string } }) => void;
+    disablePast?: boolean;
+    defaultValue?: string;
+    type?: InputFieldType;
+    disabled?: boolean;
+    labelOnTop?: boolean;
+}
+
+const InputField = forwardRef<HTMLInputElement, InputFieldProps>(({
     label = null,
     maxDate,
     name,

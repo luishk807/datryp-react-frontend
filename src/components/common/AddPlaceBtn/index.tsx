@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import ModalButton from 'components/ModalButton';
+import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import DropdownCustom from 'components/common/FormFields/DropDown';
@@ -16,11 +16,11 @@ const AddPlaceBtn = ({
     onChange,
     type = 'add',
     data=null,
-    tripTypeId,
+    tripTypeId = undefined,
     buttonType = 'standard',
     isViewMode = false
 }) => {
-    const modelRef = useRef();
+    const modelRef = useRef<ModalButtonHandle>(null);
     const initilStatus = useMemo(() => {
         const selected = data ? data.status?.id : 3;
         return placeStatus.filter(item => item.id === selected)[0];
@@ -31,49 +31,56 @@ const AddPlaceBtn = ({
     }, [type]);
 
     const [place, setPlace] = useState({});
+    const [formKey, setFormKey] = useState(0);
 
-    const friends = [];
+    const buildInitialPlace = () => ({
+        startTime: moment().format('HH:mm'),
+        endTime: moment().format('HH:mm'),
+        status: initilStatus,
+    });
+
     const handleOnChange = (name, value) => {
-        if (name === "friends") {
-            friends.push(value);
-        }
-        setPlace({
-            ...place,
-            [name]: name === 'friends' ? friends : value,
-
+        setPlace((prev) => {
+            if (name === 'friends') {
+                const next = Array.isArray(prev.friends) ? [...prev.friends, value] : [value];
+                return { ...prev, friends: next };
+            }
+            return { ...prev, [name]: value };
         });
+    };
+
+    const handleImageChange = (e) => {
+        const file = e?.target?.files?.[0];
+        if (!file) return;
+        handleOnChange('image', { url: URL.createObjectURL(file), name: file.name });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("sending", place);
         modelRef.current.closeModal();
         onChange && onChange(place);
+        if (type === 'add') {
+            setPlace(buildInitialPlace());
+            setFormKey((k) => k + 1);
+        }
     };
 
     useEffect(() => {
-        let unmounted = true;
-        if(unmounted) {
-            if(data && type === 'edit') {
-                setPlace({
-                    id: data.id,
-                    place: data.place,
-                    startTime: data.startTime || moment().format('HH:mm'),
-                    endTime: data.endTime || moment().format('HH:mm'),
-                    location: data.location,
-                    cost: data.cost,
-                    note: data.note,
-                    status: data.status,
-                });
-            } else {
-                setPlace({
-                    startTime: moment().format('HH:mm'),
-                    endTime: moment().format('HH:mm'),
-                    status: initilStatus,
-                });
-            }
+        if (data && type === 'edit') {
+            setPlace({
+                id: data.id,
+                place: data.place,
+                startTime: data.startTime || moment().format('HH:mm'),
+                endTime: data.endTime || moment().format('HH:mm'),
+                location: data.location,
+                cost: data.cost,
+                note: data.note,
+                status: data.status,
+                image: data.image,
+            });
+        } else {
+            setPlace(buildInitialPlace());
         }
-        return () => unmounted = false;
     }, [data]);
 
     return !isViewMode && (
@@ -93,7 +100,7 @@ const AddPlaceBtn = ({
                         Icon: buttonType==='standard' ? AddCircleIcon : null,
                         type: buttonType
                     }}>
-                    <Grid container>
+                    <Grid container key={formKey}>
                         <Grid item lg={12} md={12} xs={12} id="add-place-form-container">
                             <Grid container>
                                 <Grid item lg={12} xs={12} className="py-5">
@@ -115,7 +122,7 @@ const AddPlaceBtn = ({
                                     <InputField defaultValue={place?.note} name="note" onChange={(e) => handleOnChange('note', e.target.value)}/>
                                 </Grid>
                                 <Grid item lg={12} xs={12} className="py-5">
-                                    <InputField defaultValue={place?.file} type="file" label="image" name="image" onChange={(e) => handleOnChange('image', e.target.value)}/>
+                                    <InputField type="file" label="image" name="image" onChange={handleImageChange}/>
                                 </Grid>
                                 <Grid item lg={12} xs={12} className="py-5">
                                     <DropdownCustom 

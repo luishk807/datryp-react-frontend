@@ -7,6 +7,7 @@ import React, {
     type ReactNode,
 } from 'react';
 import { produce } from 'immer';
+import moment from 'moment';
 import type {
     Activity,
     BudgetItem,
@@ -69,8 +70,7 @@ interface DeletePlacePayload {
 
 interface AddBudgetPayload {
     value: Array<Omit<BudgetItem, 'id'>>;
-    itineraryId: number;
-    activityIndex: number;
+    activityId: number;
     destinationIndx?: number;
 }
 
@@ -169,55 +169,77 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
             return;
         }
         case 'addPlace': {
-            const { value, index, date, destinationIndx } = action.payload;
+            const { value, date, destinationIndx } = action.payload;
             const destIndx = destinationIndx ?? 0;
             const dest = draft.destinations[destIndx];
             if (!dest) return;
 
-            const newActivity: Activity = { ...value, id: generateId() };
+            if (!dest.itinerary) dest.itinerary = [];
 
-            if (dest.itinerary && dest.itinerary.length) {
-                const day = dest.itinerary[index];
-                if (day) {
-                    day.activities.push(newActivity);
-                }
+            const newActivity: Activity = { ...value, id: generateId() };
+            const day = dest.itinerary.find(
+                (d) => moment(d.date).isSame(date, 'day')
+            );
+
+            if (day) {
+                day.activities.push(newActivity);
             } else {
-                dest.itinerary = [
-                    {
-                        id: generateId(),
-                        date,
-                        activities: [newActivity],
-                    },
-                ];
+                dest.itinerary.push({
+                    id: generateId(),
+                    date,
+                    activities: [newActivity],
+                });
             }
             return;
         }
         case 'editPlace': {
-            const { value, itineraryIndex, activityIndex, destinationIndx } = action.payload;
+            const { value, destinationIndx } = action.payload;
             const destIndx = destinationIndx ?? 0;
-            const day = draft.destinations[destIndx]?.itinerary?.[itineraryIndex];
-            const current = day?.activities?.[activityIndex];
-            if (current && day) {
-                day.activities[activityIndex] = { ...current, ...value };
+            const dest = draft.destinations[destIndx];
+            if (!dest?.itinerary) return;
+
+            const targetId = (value as { id?: number })?.id;
+            if (targetId == null) return;
+
+            for (const day of dest.itinerary) {
+                const idx = day.activities.findIndex((a) => a.id === targetId);
+                if (idx !== -1) {
+                    day.activities[idx] = { ...day.activities[idx], ...value };
+                    return;
+                }
             }
             return;
         }
         case 'deletePlace': {
-            const { value, index, destinationIndx } = action.payload;
+            const { value: activityId, destinationIndx } = action.payload;
             const destIndx = destinationIndx ?? 0;
-            const day = draft.destinations[destIndx]?.itinerary?.[index];
-            if (day) {
-                day.activities = day.activities.filter((a) => a.id !== value);
+            const dest = draft.destinations[destIndx];
+            if (!dest?.itinerary) return;
+
+            for (const day of dest.itinerary) {
+                const idx = day.activities.findIndex((a) => a.id === activityId);
+                if (idx !== -1) {
+                    day.activities.splice(idx, 1);
+                    return;
+                }
             }
             return;
         }
         case 'addBudget': {
-            const { value, itineraryId, activityIndex, destinationIndx } = action.payload;
+            const { value, activityId, destinationIndx } = action.payload;
             const destIndx = destinationIndx ?? 0;
-            const activity =
-                draft.destinations[destIndx]?.itinerary?.[itineraryId]?.activities?.[activityIndex];
-            if (activity) {
-                activity.budget = value.map((item) => ({ ...item, id: generateId() }));
+            const dest = draft.destinations[destIndx];
+            if (!dest?.itinerary) return;
+
+            for (const day of dest.itinerary) {
+                const activity = day.activities.find((a) => a.id === activityId);
+                if (activity) {
+                    activity.budget = value.map((item) => ({
+                        ...item,
+                        id: generateId(),
+                    }));
+                    return;
+                }
             }
             return;
         }

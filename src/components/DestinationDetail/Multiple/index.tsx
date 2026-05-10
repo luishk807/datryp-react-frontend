@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { Grid } from '@mui/material';
 import './index.css';
-import { REDUX_TYPE, TRIP_BASIC } from 'constants';
+import { TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
@@ -42,7 +42,7 @@ const Multiple = ({
                                         defaultDate={defaultDate}
                                         tripMaxDate={tripMaxDate}
                                         isViewMode={isViewMode}
-                                        onChange={(e) => onChangeDestination(REDUX_TYPE.EDIT, e)} 
+                                        onChange={(e) => onChangeDestination('edit', e)} 
                                         type="edit"
                                         buttonType="text" 
                                         data={trip}
@@ -55,7 +55,7 @@ const Multiple = ({
                                         title="Delete this destination" 
                                         buttonLabel="Delete"
                                         buttonType="text"
-                                        onConfirm={(e) => onChangeDestination(REDUX_TYPE.DELETE, trip.id)}
+                                        onConfirm={(e) => onChangeDestination('delete', trip.id)}
                                     >
                                         You are about to delete {country}.  Are you sure you want to delete this item
                                     </DialogBox>
@@ -90,7 +90,7 @@ const Multiple = ({
                                 tripMaxDate={tripMaxDate}
                                 isViewMode={isViewMode} 
                                 defaultDate={defaultDate}
-                                onChange={(e) => onChangeDestination(REDUX_TYPE.ADD, e)} 
+                                onChange={(e) => onChangeDestination('add', e)} 
                             />
                         </Grid>
                     </Grid>

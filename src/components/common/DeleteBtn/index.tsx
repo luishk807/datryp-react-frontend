@@ -80,7 +80,7 @@ const AddPlaceBtn = ({
             title="Delete this place" 
             buttonLabel="Delete"
             buttonType="text" 
-            onConfirm={(e) => onChangePlace(REDUX_TYPE.DELETE, activity.id)}
+            onConfirm={(e) => onChangePlace('delete', activity.id)}
         >
         You are about to delete {activity.place}.  Are you sure you want to delete this item
         </DialogBox>

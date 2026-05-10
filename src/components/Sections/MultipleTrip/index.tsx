@@ -1,13 +1,11 @@
 import React, { useMemo } from 'react';
 import './index.css';
 import { Grid } from '@mui/material';
-import _ from 'lodash';
 import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
-import { REDUX_TYPE } from 'constants';
 import {
     basicInfo,
     addPlace,
@@ -20,21 +18,45 @@ import {
     useTripDispatch,
     useTripState,
 } from 'context/TripContext';
+import type { ActionType, Friend } from 'types/trip';
+
+interface ChangeEventLike {
+    target: { value: unknown };
+}
+
+interface ActivityPayload {
+    type: ActionType;
+    value: any;
+    index: number;
+    destinationIndx?: number;
+}
+
+interface PlaceEvent {
+    date: string;
+    activity: ActivityPayload;
+}
+
+interface DestinationEvent {
+    startDate: string;
+    endDate: string;
+    removeIndexes?: number[];
+    activity: ActivityPayload;
+}
 
 const MultiTrip = () => {
     const tripInfo = useTripState();
     const dispatch = useTripDispatch();
 
-    const handleBasicOnChange = (id, e) => {
+    const handleBasicOnChange = (id: string, e: ChangeEventLike) => {
         dispatch(basicInfo({ [id]: e.target.value }));
     };
 
-    const participants = useMemo(() => {
+    const participants = useMemo<Friend[]>(() => {
         const friends = tripInfo.friends || [];
         const organizer = tripInfo.organizer || [];
         const merged = [...friends, ...organizer];
 
-        const unique = [];
+        const unique: Friend[] = [];
         merged.forEach((entry) => {
             if (!unique.find((u) => u.id === entry.id)) {
                 unique.push(entry);
@@ -43,43 +65,27 @@ const MultiTrip = () => {
         return unique;
     }, [tripInfo]);
 
-    const handleChangeBudget = ({ date, activity }) => {
-        const { index, value, destinationIndx } = activity;
-        switch (activity.type) {
-            case REDUX_TYPE.ADD: {
-                dispatch(
-                    addBudget({
-                        value: value?.value,
-                        itineraryId: index,
-                        activityIndex: value?.index,
-                        destinationIndx,
-                    })
-                );
-                break;
-            }
-            case REDUX_TYPE.EDIT:
-            case REDUX_TYPE.DELETE:
-                console.log('budget edit/delete not implemented', date, activity);
-                break;
+    const handleChangeBudget = ({ activity }: PlaceEvent) => {
+        const { value, destinationIndx } = activity;
+        if (activity.type === 'add') {
+            dispatch(
+                addBudget({
+                    value: value?.value,
+                    activityId: value?.activityId,
+                    destinationIndx,
+                })
+            );
         }
     };
 
-    const handleChangePlace = ({ date, activity }) => {
+    const handleChangePlace = ({ date, activity }: PlaceEvent) => {
         const { index, value, destinationIndx } = activity;
 
         switch (activity.type) {
-            case REDUX_TYPE.ADD: {
-                dispatch(
-                    addPlace({
-                        date,
-                        value,
-                        index,
-                        destinationIndx,
-                    })
-                );
+            case 'add':
+                dispatch(addPlace({ date, value, index, destinationIndx }));
                 break;
-            }
-            case REDUX_TYPE.EDIT: {
+            case 'edit':
                 dispatch(
                     editPlace({
                         value: value?.value,
@@ -89,23 +95,20 @@ const MultiTrip = () => {
                     })
                 );
                 break;
-            }
-            case REDUX_TYPE.DELETE: {
-                dispatch(
-                    deletePlace({
-                        value,
-                        index,
-                        destinationIndx,
-                    })
-                );
+            case 'delete':
+                dispatch(deletePlace({ value, index, destinationIndx }));
                 break;
-            }
         }
     };
 
-    const handleChangeDestination = ({ startDate, endDate, removeIndexes, activity }) => {
+    const handleChangeDestination = ({
+        startDate,
+        endDate,
+        removeIndexes = [],
+        activity,
+    }: DestinationEvent) => {
         switch (activity.type) {
-            case REDUX_TYPE.ADD: {
+            case 'add':
                 dispatch(
                     addDestination({
                         startDate,
@@ -115,8 +118,7 @@ const MultiTrip = () => {
                     })
                 );
                 break;
-            }
-            case REDUX_TYPE.EDIT: {
+            case 'edit':
                 dispatch(
                     editDestination({
                         startDate,
@@ -127,11 +129,9 @@ const MultiTrip = () => {
                     })
                 );
                 break;
-            }
-            case REDUX_TYPE.DELETE: {
+            case 'delete':
                 dispatch(deleteDestination({ index: activity.value }));
                 break;
-            }
         }
     };
 

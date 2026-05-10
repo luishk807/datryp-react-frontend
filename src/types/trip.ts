@@ -1,3 +1,5 @@
+export type ActionType = 'add' | 'edit' | 'delete';
+
 export interface Friend {
     id: number;
     label?: string;
@@ -39,10 +41,11 @@ export interface ShareCostEntry {
 
 export interface BudgetItem {
     id: number;
-    name?: string;
-    amount?: string | number;
-    [extra: string]: unknown;
+    user: Friend;
+    budget: string | number;
 }
+
+export type BudgetEntry = Omit<BudgetItem, 'id'>;
 
 export interface Activity {
     id: number;

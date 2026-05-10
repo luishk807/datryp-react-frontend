@@ -7,7 +7,6 @@ import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import { convertMoney } from 'utils';
-import { REDUX_TYPE } from 'constants';
 import DialogBox from 'components/common/FormFields/DialogBox';
 
 const Activities = ({
@@ -15,8 +14,8 @@ const Activities = ({
     onChangeBudget,
     activities = [],
     participants = [],
-    tripTypeId,
-    isViewMode = false
+    tripTypeId = undefined,
+    isViewMode = false,
 })=> {
 
     return (
@@ -43,13 +42,13 @@ const Activities = ({
                                                 <li><span className="label">Time:</span> {activityTime}</li>
                                                 <li><span className="label">Who is paying:</span>{` ${budgetList}`}
 
-                                                    <AddBudget 
+                                                    <AddBudget
                                                         isViewMode={isViewMode}
-                                                        budget={activity.budget} 
+                                                        budget={activity.budget}
                                                         onSubmit={(e) => onChangeBudget(
-                                                            REDUX_TYPE.ADD, 
-                                                            { index: indx, value: e}
-                                                        )} 
+                                                            'add',
+                                                            { activityId: activity.id, value: e }
+                                                        )}
                                                         participants={participants}
                                                     />
                                                 </li>
@@ -66,8 +65,8 @@ const Activities = ({
                                                         data={activity} 
                                                         buttonType="text" 
                                                         onChange={(e) => onChangePlace(
-                                                            REDUX_TYPE.EDIT, 
-                                                            { index: indx, value: e} 
+                                                            'edit',
+                                                            { index: indx, value: e}
                                                         )}
                                                     />
                                                 </Grid>
@@ -77,7 +76,7 @@ const Activities = ({
                                                         title="Delete this place" 
                                                         buttonLabel="Delete"
                                                         buttonType="text" 
-                                                        onConfirm={(e) => onChangePlace(REDUX_TYPE.DELETE, activity.id)}
+                                                        onConfirm={(e) => onChangePlace('delete', activity.id)}
                                                     >
                                                         You are about to delete {activity.place}.  Are you sure you want to delete this item
                                                     </DialogBox>
@@ -97,7 +96,7 @@ const Activities = ({
                         <AddPlaceBtn 
                             isViewMode={isViewMode}
                             tripTypeId={tripTypeId} 
-                            onChange={(e) => onChangePlace(REDUX_TYPE.ADD, e)} 
+                            onChange={(e) => onChangePlace('add', e)}
                         />
                     </Grid>
                 </Grid>
