@@ -2,39 +2,178 @@
 @tailwind components;
 @tailwind utilities;
 
-.homeHeader {
-  display: flex;
-  margin: 5px;
-  position: relative;
-}
-
-.homeHeader .firstRow {
-  justify-content: flex-end;
-  /* display: flex */
-}
-
-.homeHeader .secondRow {
-  justify-content: flex-start;
-  display: flex
-}
-
-.homeHeader .logoSection{
-  display: flex;
-  /* justify-content: start; */
-}
-
-.homeHeader .menuIcon {
-  width: 35px;
-  height: 35px;
-  fill: theme('colors.primaryOrange');
-}
-
-.homeHeader .iconContainer{
-  position: absolute;
+.app-header {
+  width: 100%;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: sticky;
   top: 0;
-  right: 0;
+  z-index: 50;
 }
 
-.homeHeader .loginContainer {
+.app-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.app-header-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.app-header-logo img {
+  width: 130px;
+  display: block;
+}
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header-burger {
+  display: none !important;
+}
+
+.app-header-burger svg {
+  fill: theme('colors.primary');
+  width: 28px;
+  height: 28px;
+}
+
+/* ---------- Auth buttons (desktop) ---------- */
+.app-header .auth-link button,
+.app-header-drawer .drawer-auth:not(.signup) button {
+  background: transparent !important;
+  color: theme('colors.primary') !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-transform: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.app-header .auth-link button:hover,
+.app-header-drawer .drawer-auth:not(.signup) button:hover {
+  color: theme('colors.primaryOrange') !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  font-weight: 500;
+}
+
+.app-header .auth-cta button,
+.app-header-drawer .drawer-auth.signup button {
+  background: theme('colors.primaryOrange') !important;
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: none;
+  padding: 8px 20px;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.app-header .auth-cta button:hover,
+.app-header-drawer .drawer-auth.signup button:hover {
+  background: #db7710 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(246, 137, 31, 0.25);
+}
+
+/* ---------- Compact search (subheader) ---------- */
+.app-header-search {
+  flex: 1 1 auto;
+  max-width: 360px;
+}
+
+.app-header-search .searchbarMain .holder-simple {
+  background: #f6f6f6;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 2px 10px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.app-header-search .searchbarMain .holder-simple:focus-within {
+  background: #fff;
+  border-color: theme('colors.primaryGreen');
+}
+
+.app-header-search .MuiOutlinedInput-root {
+  font-size: 0.9rem;
+}
+
+.app-header-search .MuiOutlinedInput-notchedOutline {
+  border: none;
+}
+
+.app-header-search .MuiInputLabel-root {
+  font-size: 0.85rem;
+}
+
+/* ---------- Drawer ---------- */
+.app-header-drawer {
+  width: min(82vw, 320px);
+  height: 100%;
+  padding: 14px 20px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header-drawer .drawer-head {
+  display: flex;
   justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.app-header-drawer .drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.app-header-drawer .drawer-auth button {
+  width: 100%;
+  text-align: center;
+  display: block;
+  padding: 12px 20px;
+  font-size: 1rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .app-header-inner {
+    padding: 10px 16px;
+    gap: 12px;
+  }
+
+  .app-header-logo img {
+    width: 110px;
+  }
+
+  .app-header-nav {
+    display: none;
+  }
+
+  .app-header-burger {
+    display: inline-flex !important;
+  }
+
+  .app-header-inner.with-search {
+    flex-wrap: wrap;
+  }
+
+  .app-header-search {
+    order: 3;
+    flex-basis: 100%;
+    max-width: 100%;
+    margin-top: 4px;
+  }
 }

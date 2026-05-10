@@ -1,43 +1,69 @@
+import { useState } from 'react';
+import { Drawer, IconButton, Link } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-import { Grid, Link } from '@mui/material';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SearchBar from 'components/SearchBar';
-import './index.css';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
+import './index.css';
 
 const Header = () => {
+    const [drawerOpen, setDrawerOpen] = useState(false);
+
     return (
-        <Grid container className="homeHeader" spacing={0} >
-            <Grid item lg={3} md={3} xs={12} className="logoSection justify-center lg:justify-start">
-                <Link href="/"><img src="/images/logo.svg" alt="logo" width="150" /></Link>
-            </Grid>
-            <Grid item lg={9} md={9} xs={12} className="loginSection">
-                <Grid container className="loginContainer" spacing={0} >
-                    <Grid item className="firstRow" lg={12} md={12} sx={{ display: {
-                        lg: 'flex',
-                        md: 'flex',
-                        xs: 'none'
-                    }}}>
+        <header className="app-header">
+            <div className="app-header-inner with-search">
+                <Link href="/" className="app-header-logo" underline="none">
+                    <img src="/images/logo.svg" alt="logo" />
+                </Link>
+
+                <div className="app-header-search">
+                    <SearchBar type="simple" />
+                </div>
+
+                <nav className="app-header-nav">
+                    <span className="auth-link">
                         <LoginBtn />
-                        &nbsp; &#x2f; &nbsp;                       
+                    </span>
+                    <span className="auth-cta">
                         <SignUp />
-                    </Grid>
-                
-                    <Grid item className="secondRow" lg={12} md={12} xs={12}>
-                        <SearchBar className='justify-start' />
-                    </Grid>
-                    <Grid item className="iconContainer" sx={{ display: {
-                        xs: 'flex',
-                        lg: 'none',
-                        md: 'none'
-                    }}}>
-                        <div>
-                            <MenuRoundedIcon color="primary" className="menuIcon" />
+                    </span>
+                </nav>
+
+                <IconButton
+                    className="app-header-burger"
+                    aria-label="Open menu"
+                    onClick={() => setDrawerOpen(true)}
+                >
+                    <MenuRoundedIcon />
+                </IconButton>
+            </div>
+
+            <Drawer
+                anchor="right"
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+            >
+                <div className="app-header-drawer">
+                    <div className="drawer-head">
+                        <IconButton
+                            aria-label="Close menu"
+                            onClick={() => setDrawerOpen(false)}
+                        >
+                            <CloseRoundedIcon />
+                        </IconButton>
+                    </div>
+                    <div className="drawer-body">
+                        <div className="drawer-auth">
+                            <LoginBtn />
                         </div>
-                    </Grid>
-                </Grid>
-            </Grid>
-        </Grid>
+                        <div className="drawer-auth signup">
+                            <SignUp />
+                        </div>
+                    </div>
+                </div>
+            </Drawer>
+        </header>
     );
 };
 
