@@ -1,40 +1,91 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import moment from "moment";
 import "./index.css";
 import { Grid } from "@mui/material";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
 import DestinationDetail from "components/DestinationDetail";
-import { userTrips, type UserTripSummary } from "sample/userTrips";
-import type { Friend, TripState } from "types/trip.types";
+import { userIntinerary } from "sample/userIntineraries";
+import type {
+  Destination,
+  Friend,
+  MultipleDestinations,
+  SingleDestination,
+  TripState,
+} from "types/trip.types";
 
-const summaryToTripState = (s: UserTripSummary): TripState => {
-  const parts = s.destination.split(",").map((p) => p.trim());
-  const country = parts[parts.length - 1] || parts[0] || "";
+type TripEntry = SingleDestination | MultipleDestinations;
 
-  const friends: Friend[] = Array.from({ length: s.friendsCount }, (_, i) => ({
-    id: i + 1,
-    label: `Traveler ${i + 1}`,
-  }));
+const isSingle = (trip: TripEntry): trip is SingleDestination =>
+  (trip as SingleDestination).country !== undefined;
+
+const userToFriend = (u: { id: number; name: string }): Friend => ({
+  id: u.id,
+  label: u.name,
+  name: u.name,
+});
+
+const tripToTripState = (trip: TripEntry): TripState => {
+  const friends: Friend[] = (trip.friends ?? []).map(userToFriend);
+  const organizer: Friend[] = (trip.organizers ?? []).map(userToFriend);
+
+  let destinations: Destination[];
+  if (isSingle(trip)) {
+    destinations = [
+      {
+        id: trip.id,
+        country: trip.country,
+        flightInfo: trip.flightInfo,
+        itinerary: trip.intenaryDates.map((d) => ({
+          id: d.id,
+          date: d.date,
+          activities: d.activities,
+        })),
+      },
+    ];
+  } else {
+    const legs = trip.intenaryDates;
+    destinations = legs.map((d, i) => {
+      const nextDate = legs[i + 1]?.date;
+      const endDate = nextDate
+        ? moment(nextDate).subtract(1, "day").format("YYYY-MM-DD")
+        : trip.endDate;
+      return {
+        id: d.id,
+        country: d.country,
+        flightInfo: d.flightInfo,
+        startDate: d.date,
+        endDate,
+        itinerary: [
+          {
+            id: d.id,
+            date: d.date,
+            activities: d.activities,
+          },
+        ],
+      };
+    });
+  }
 
   return {
-    name: s.name,
-    startDate: s.startDate,
-    endDate: s.endDate,
-    status: { id: 0, name: s.status },
-    budget: 0,
-    total: 0,
-    destinations: [
-      {
-        id: 0,
-        country: { id: 0, name: country },
-        startDate: s.startDate,
-        endDate: s.endDate,
-        itinerary: [],
-      },
-    ],
-    organizer: [],
+    name: trip.name,
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    status: trip.status,
+    type: trip.interaryType
+      ? {
+          id: trip.interaryType.id,
+          name: trip.interaryType.name,
+          route: "",
+          steps: { BASIC: 0, FRIEND: 0, FINISH: 0 },
+        }
+      : undefined,
+    budget: trip.budget,
+    total: trip.budget,
+    destinations,
+    organizer,
     friends,
   };
 };
@@ -44,13 +95,16 @@ export const TripDetail = () => {
   const idParam = searchParams.get("id");
   const id = idParam ? Number(idParam) : null;
 
-  const trip = useMemo(
-    () => (id != null ? userTrips.find((t) => t.id === id) : undefined),
-    [id],
-  );
+  const trip = useMemo<TripEntry | undefined>(() => {
+    if (id == null) return undefined;
+    return (
+      userIntinerary.singleDestinations.find((t) => t.id === id) ??
+      userIntinerary.multipleDestinations.find((t) => t.id === id)
+    );
+  }, [id]);
 
   const tripData = useMemo(
-    () => (trip ? summaryToTripState(trip) : null),
+    () => (trip ? tripToTripState(trip) : null),
     [trip],
   );
 

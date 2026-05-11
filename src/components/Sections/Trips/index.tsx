@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Grid } from '@mui/material';
 import classnames from 'classnames';
 import Layout from 'components/common/Layout/SubLayout';
-import TripBox from 'components/common/TripBox';
+import TripBox, { type TripBoxData } from 'components/common/TripBox';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import { userTrips, type UserTripStatus } from 'sample/userTrips';
+import { userIntinerary } from 'sample/userIntineraries';
 import './index.css';
 
-type FilterValue = 'all' | UserTripStatus;
+type FilterValue = 'all' | 'planning' | 'confirmed' | 'completed';
 
 const FILTERS: { value: FilterValue; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -21,23 +21,32 @@ export const Trips = () => {
     const [filter, setFilter] = useState<FilterValue>('all');
     const navigate = useNavigate();
 
+    const allTrips = useMemo<TripBoxData[]>(
+        () => [
+            ...userIntinerary.singleDestinations,
+            ...userIntinerary.multipleDestinations,
+        ],
+        []
+    );
+
     const counts = useMemo(() => {
-        const c = {
-            all: userTrips.length,
+        const c: Record<FilterValue, number> = {
+            all: allTrips.length,
             planning: 0,
             confirmed: 0,
             completed: 0,
         };
-        userTrips.forEach((t) => {
-            c[t.status]++;
+        allTrips.forEach((t) => {
+            const key = t.status.name.toLowerCase() as FilterValue;
+            if (key in c) c[key]++;
         });
         return c;
-    }, []);
+    }, [allTrips]);
 
     const filteredTrips = useMemo(() => {
-        if (filter === 'all') return userTrips;
-        return userTrips.filter((t) => t.status === filter);
-    }, [filter]);
+        if (filter === 'all') return allTrips;
+        return allTrips.filter((t) => t.status.name.toLowerCase() === filter);
+    }, [filter, allTrips]);
 
     return (
         <Layout title="My Trips">
@@ -45,7 +54,7 @@ export const Trips = () => {
                 <div className="trips-header">
                     <div className="trips-summary">
                         <span className="trips-count">
-                            {userTrips.length} trip{userTrips.length === 1 ? '' : 's'}
+                            {allTrips.length} trip{allTrips.length === 1 ? '' : 's'}
                         </span>
                         {counts.planning > 0 && (
                             <span className="trips-summary-item">

@@ -127,8 +127,8 @@ const multiTripType: IntineraryType = {
 
 const inteneraryType: IntineraryType[] = [singleTripType, multiTripType];
 
-const statusPlanned: IntenaryStatus = { id: 1, name: "Planned" };
-const statusOngoing: IntenaryStatus = { id: 2, name: "Ongoing" };
+const statusPlanning: IntenaryStatus = { id: 1, name: "Planning" };
+const statusConfirmed: IntenaryStatus = { id: 2, name: "Confirmed" };
 const statusCompleted: IntenaryStatus = { id: 3, name: "Completed" };
 
 const tokyoTrip: SingleDestination = {
@@ -136,10 +136,9 @@ const tokyoTrip: SingleDestination = {
   name: "Tokyo Spring Getaway",
   startDate: "2026-04-05",
   endDate: "2026-04-12",
-  status: statusPlanned,
+  status: statusPlanning,
   user: me,
   budget: 3500,
-  image: "/images/sample/japan1.jpg",
   friends: [joanna, jessica],
   organizers: [me],
   interaryType: singleTripType,
@@ -147,6 +146,7 @@ const tokyoTrip: SingleDestination = {
     id: 392,
     name: "Japan",
     code: "JP",
+    image: "/images/sample/japan.jpg",
   },
   flightInfo: {
     departDate: "2026-04-05",
@@ -212,7 +212,7 @@ const parisTrip: SingleDestination = {
   name: "Paris Weekend",
   startDate: "2026-06-12",
   endDate: "2026-06-15",
-  status: statusPlanned,
+  status: statusPlanning,
   user: me,
   budget: 2000,
   friends: [joanna],
@@ -222,6 +222,7 @@ const parisTrip: SingleDestination = {
     id: 250,
     name: "France",
     code: "FR",
+    image: "/images/sample/france.jpg",
   },
   flightInfo: {
     departDate: "2026-06-12",
@@ -255,10 +256,9 @@ const euroTour: MultipleDestinations = {
   name: "Euro Summer Tour",
   startDate: "2026-07-01",
   endDate: "2026-07-21",
-  status: statusOngoing,
+  status: statusConfirmed,
   user: me,
   budget: 8000,
-  image: "/images/sample/europe.jpg",
   friends: [alberto, chris, leon],
   organizers: [me, joanna],
   interaryType: multiTripType,
@@ -266,7 +266,12 @@ const euroTour: MultipleDestinations = {
     {
       id: 1,
       date: "2026-07-02",
-      country: { id: 380, name: "Italy", code: "IT" },
+      country: {
+        id: 380,
+        name: "Italy",
+        code: "IT",
+        image: "/images/sample/italy.jpg",
+      },
       flightInfo: {
         departDate: "2026-07-01",
         departTime: "22:00",
@@ -291,7 +296,12 @@ const euroTour: MultipleDestinations = {
     {
       id: 2,
       date: "2026-07-08",
-      country: { id: 250, name: "France", code: "FR" },
+      country: {
+        id: 250,
+        name: "France",
+        code: "FR",
+        image: "/images/sample/france.jpg",
+      },
       flightInfo: {
         departDate: "2026-07-08",
         departTime: "08:00",
@@ -315,7 +325,12 @@ const euroTour: MultipleDestinations = {
     {
       id: 3,
       date: "2026-07-15",
-      country: { id: 724, name: "Spain", code: "ES" },
+      country: {
+        id: 724,
+        name: "Spain",
+        code: "ES",
+        image: "/images/sample/spain.jpg",
+      },
       flightInfo: {
         departDate: "2026-07-15",
         departTime: "09:00",
@@ -354,7 +369,12 @@ const asiaPastTour: MultipleDestinations = {
     {
       id: 1,
       date: "2025-10-06",
-      country: { id: 156, name: "China", code: "CN" },
+      country: {
+        id: 156,
+        name: "China",
+        code: "CN",
+        image: "/images/sample/china1.jpg",
+      },
       flightInfo: {
         departDate: "2025-10-05",
         departTime: "23:00",
@@ -378,7 +398,12 @@ const asiaPastTour: MultipleDestinations = {
     {
       id: 2,
       date: "2025-10-14",
-      country: { id: 410, name: "South Korea", code: "KR" },
+      country: {
+        id: 410,
+        name: "South Korea",
+        code: "KR",
+        image: "/images/sample/south-korea.jpg",
+      },
       flightInfo: {
         departDate: "2025-10-14",
         departTime: "10:00",

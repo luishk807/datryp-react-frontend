@@ -59,7 +59,7 @@ const Activities = ({
                                 <Grid item lg={10} md={10} xs={12} className="content-detail">
                                     <Grid container>
                                         <Grid item lg={11} md={11} xs={11} className="info">
-                                            <span className="title">{activity.place}</span>
+                                            <span className="title">{activity.name}</span>
                                             <span className="status confirmed">
                                                 {getStatusName(activity.status)}
                                             </span>
@@ -70,25 +70,30 @@ const Activities = ({
                                                 <li>
                                                     <span className="label">Time:</span> {activityTime}
                                                 </li>
-                                                <li>
-                                                    <span className="label">Who is paying:</span>
-                                                    {` ${budgetList}`}
-                                                    <AddBudget
-                                                        isViewMode={isViewMode}
-                                                        budget={activity.budget}
-                                                        onSubmit={(e) =>
-                                                            onChangeBudget('add', {
-                                                                activityId: activity.id,
-                                                                value: e,
-                                                            })
-                                                        }
-                                                        participants={participants}
-                                                    />
-                                                </li>
-                                                <li>
-                                                    <span className="label">Cost:</span>{' '}
-                                                    {convertMoney(activity.cost)}
-                                                </li>
+                                                {(budgetList || !isViewMode) && (
+                                                    <li>
+                                                        <span className="label">Who is paying:</span>
+                                                        {` ${budgetList}`}
+                                                        <AddBudget
+                                                            isViewMode={isViewMode}
+                                                            budget={activity.budget}
+                                                            onSubmit={(e) =>
+                                                                onChangeBudget('add', {
+                                                                    activityId: activity.id,
+                                                                    value: e,
+                                                                })
+                                                            }
+                                                            participants={participants}
+                                                        />
+                                                    </li>
+                                                )}
+                                                {Number.isFinite(Number(activity.cost)) &&
+                                                    Number(activity.cost) !== 0 && (
+                                                        <li>
+                                                            <span className="label">Cost:</span>{' '}
+                                                            {convertMoney(activity.cost)}
+                                                        </li>
+                                                    )}
                                             </ul>
                                         </Grid>
                                         <Grid item lg={1} md={1} xs={1} className="option">
@@ -129,7 +134,7 @@ const Activities = ({
                                                             onChangePlace('delete', activity.id)
                                                         }
                                                     >
-                                                        You are about to delete {activity.place}. Are you sure you want to delete this item
+                                                        You are about to delete {activity.name}. Are you sure you want to delete this item
                                                     </DialogBox>
                                                 </Grid>
                                             </Grid>
