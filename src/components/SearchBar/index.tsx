@@ -43,6 +43,7 @@ const SearchBar = ({
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [countriesFound, setCountriesFound] = useState<CountryOption[]>([]);
     const [selectedDestination, setSelectedDestination] = useState('');
+    const [isCountrySearching, setIsCountrySearching] = useState(false);
 
     const [recommendQuery, setRecommendQuery] = useState('');
     const [submittedQuery, setSubmittedQuery] = useState('');
@@ -59,9 +60,23 @@ const SearchBar = ({
 
     useEffect(() => {
         setCountriesFound([]);
+        setIsCountrySearching(false);
         setSubmittedQuery('');
         setRecommendQuery('');
     }, [mode]);
+
+    // Debounce: 500ms of idle after the last keystroke before firing the query.
+    // Matches Country mode's autocomplete feel and avoids one API call per keystroke.
+    useEffect(() => {
+        if (mode !== 'recommend') return;
+        const trimmed = recommendQuery.trim();
+        if (!trimmed) {
+            setSubmittedQuery('');
+            return;
+        }
+        const handle = setTimeout(() => setSubmittedQuery(trimmed), 500);
+        return () => clearTimeout(handle);
+    }, [recommendQuery, mode]);
 
     const handleCountryClick = (option: CountryOption) => {
         const label = option.label ?? '';
@@ -109,6 +124,7 @@ const SearchBar = ({
 
     const handleCountryInputChange = () => {
         const check = inputRef.current?.value.toLowerCase().trim() ?? '';
+        setIsCountrySearching(false);
         if (!check) {
             setCountriesFound([]);
             return;
@@ -132,6 +148,11 @@ const SearchBar = ({
         []
     );
 
+    const handleCountryKeystroke = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setIsCountrySearching(e.target.value.trim().length > 0);
+        debounceCountryChange();
+    };
+
     useEffect(() => {
         return () => {
             debounceCountryChange.cancel();
@@ -146,13 +167,6 @@ const SearchBar = ({
         e.target.select();
     };
 
-    const handleRecommendSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const trimmed = recommendQuery.trim();
-        if (!trimmed) return;
-        setSubmittedQuery(trimmed);
-    };
-
     const renderCountryMode = () => (
         <Grid
             container
@@ -164,13 +178,16 @@ const SearchBar = ({
             {type === 'standard' ? (
                 <Grid item lg={12} md={12} xs={12} className="inputHolder">
                     <input
-                        onChange={debounceCountryChange}
+                        onChange={handleCountryKeystroke}
                         ref={inputRef}
                         className="inputBar"
                         type="text"
                         onFocus={handleFocus}
                         placeholder="Search Country for trip"
                     />
+                    {isCountrySearching && (
+                        <span className="searchbar-country-spinner" aria-hidden="true" />
+                    )}
                 </Grid>
             ) : (
                 <Grid item lg={12} md={12} xs={12}>
@@ -178,7 +195,7 @@ const SearchBar = ({
                         ref={inputRef}
                         defaultValue={selectedDestination}
                         label="Search Destination"
-                        onChange={debounceCountryChange}
+                        onChange={handleCountryKeystroke}
                     />
                 </Grid>
             )}
@@ -211,13 +228,14 @@ const SearchBar = ({
         const items = recommendations?.items ?? [];
         const showEmpty =
             submittedQuery && !isRecommending && items.length === 0 && !hasRecommendError;
+        const showLoading = isRecommending && items.length === 0 && !hasRecommendError;
+        const showDropdown =
+            recommendQuery.trim().length > 0 &&
+            (items.length > 0 || showEmpty || hasRecommendError || showLoading);
 
         return (
             <div className="searchbar-recommend">
-                <form
-                    className="searchbar-recommend-form"
-                    onSubmit={handleRecommendSubmit}
-                >
+                <div className="searchbar-recommend-form">
                     <input
                         type="text"
                         className={classNames('searchbar-recommend-input', {
@@ -228,16 +246,12 @@ const SearchBar = ({
                         onChange={(e) => setRecommendQuery(e.target.value)}
                         aria-label="Describe what you're looking for"
                     />
-                    <button
-                        type="submit"
-                        className="searchbar-recommend-submit"
-                        disabled={!recommendQuery.trim() || isRecommending}
-                    >
-                        {isRecommending ? 'Searching…' : 'Find places'}
-                    </button>
-                </form>
+                    {isRecommending && (
+                        <span className="searchbar-recommend-spinner" aria-hidden="true" />
+                    )}
+                </div>
 
-                {submittedQuery && (items.length > 0 || showEmpty || hasRecommendError) && (
+                {showDropdown && (
                     <div
                         className={classNames('searchbar-recommend-results', {
                             'is-standard': type === 'standard',
@@ -251,6 +265,10 @@ const SearchBar = ({
                                     : ''}
                                 . Is the backend running?
                             </p>
+                        )}
+
+                        {showLoading && (
+                            <p className="searchbar-recommend-loading">Searching…</p>
                         )}
 
                         {showEmpty && (

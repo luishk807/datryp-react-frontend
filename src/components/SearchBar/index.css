@@ -236,10 +236,14 @@
 .searchbarMain .searchbar-recommend-form {
   display: flex;
   gap: 10px;
-  border: theme('colors.primaryGreen') 2px solid;
+  border: 2px solid transparent;
   border-radius: 10px;
   padding: 10px 12px 10px 20px;
-  background: #fff;
+  /* AI gradient border: gradient on the border-box, white fill on the
+     padding-box. Border itself is transparent so the gradient shows through. */
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, #7c3aed 0%, #2563eb 100%) border-box;
   align-items: center;
 }
 
@@ -262,25 +266,36 @@
   letter-spacing: 0.02em;
 }
 
-.searchbarMain .searchbar-recommend-submit {
-  border: none;
-  border-radius: 8px;
-  background: theme('colors.primary');
-  color: #fff;
-  font-weight: 600;
-  padding: 10px 18px;
-  cursor: pointer;
-  transition: opacity 120ms ease;
-  white-space: nowrap;
+.searchbarMain .searchbar-recommend-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 58, 237, 0.18);
+  border-top-color: #7c3aed;
+  animation: searchbar-spin 0.7s linear infinite;
+  margin-right: 4px;
+  flex-shrink: 0;
 }
 
-.searchbarMain .searchbar-recommend-submit:hover:not(:disabled) {
-  opacity: 0.92;
+/* Country-mode spinner — orange to match the trip-type tab thumb.
+   Positioned at the right edge of the input via the relative inputHolder.
+   Using margin-top for centering so the rotation transform doesn't conflict. */
+.searchbarMain .inputHolder .searchbar-country-spinner {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  margin-top: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(246, 137, 31, 0.18);
+  border-top-color: theme('colors.primaryOrange');
+  animation: searchbar-spin 0.7s linear infinite;
+  pointer-events: none;
 }
 
-.searchbarMain .searchbar-recommend-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+@keyframes searchbar-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ── Recommend mode results dropdown ─────────────────────────────────── */
@@ -290,9 +305,11 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: #fff;
-  border: 2px solid #3cb54b;
+  border: 2px solid transparent;
   border-radius: 10px;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, #7c3aed 0%, #2563eb 100%) border-box;
   padding: 8px;
   max-height: 360px;
   overflow: auto;
@@ -319,6 +336,16 @@
   color: rgba(0, 0, 0, 0.6);
   border-radius: 8px;
   font-size: 0.95rem;
+}
+
+.searchbarMain .searchbar-recommend-loading {
+  margin: 0;
+  padding: 10px 12px;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .searchbarMain .searchbar-recommend-item {

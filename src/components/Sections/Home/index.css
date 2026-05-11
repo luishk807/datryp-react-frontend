@@ -236,16 +236,14 @@
 
 /* ── Recommend-mode pill: match country pill's height in the hero ──── */
 .home-hero-search .searchbarMain .holder-recommend {
-  /* The outer holder itself is a transparent flex column wrapper. We
-     style the inner form to look like the .holder pill (white card,
-     same border-radius and shadow) while keeping the green border + button
-     the user wanted. */
+  /* Outer holder is a transparent wrapper. The inner form provides the
+     white card with the AI gradient border (inherited from SearchBar CSS). */
   width: 100%;
 }
 
 .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-form {
   border-radius: 16px;
-  padding: 4px 4px 4px 22px; /* compensates for the 2px green border so
+  padding: 4px 4px 4px 22px; /* compensates for the 2px gradient border so
                                 total height matches the country pill */
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
   gap: 8px;
@@ -262,32 +260,14 @@
   color: rgba(0, 0, 0, 0.4);
 }
 
-.home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-submit {
-  /* Match the orange "search" button style used in country mode, but with
-     the AI gradient since we're in recommend mode. */
-  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
-  border-radius: 12px;
-  padding: 12px 28px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
-  opacity: 1;
-}
-
-/* Anchor the recommend results dropdown under the pill, same look as
-   the country list dropdown for visual consistency. */
+/* Recommend results dropdown — AI gradient border, same as the input pill above. */
 .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-results {
   top: calc(100% + 8px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
   border-radius: 16px;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(135deg, #7c3aed 0%, #2563eb 100%) border-box;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
   padding: 10px;
   z-index: 1000;
@@ -363,13 +343,6 @@
     font-size: 1rem;
     padding: 12px 14px;
     width: 100%;
-  }
-
-  .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-submit {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 0.95rem;
-    border-radius: 10px;
   }
 
   .home-hero-search .searchbarMain > .holder > .container,
