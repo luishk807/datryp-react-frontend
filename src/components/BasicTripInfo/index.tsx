@@ -1,26 +1,59 @@
-﻿import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import './index.css';
 import moment from 'moment';
 import _ from 'lodash';
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    type SelectChangeEvent,
+} from '@mui/material';
+import IconButton from '@mui/material/IconButton';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { convertMoney } from 'utils';
-import type { TripState } from 'types';
+import { status as statusOptions } from 'sample';
+import type { TripState, TripStatus } from 'types';
 
 interface BasicTripInfoProps {
     data: TripState;
     onChangeStep: (step: number) => void;
+    onStatusChange?: (status: TripStatus) => void;
     isViewMode?: boolean;
 }
+
+const resolveStatus = (
+    raw: TripState['status']
+): TripStatus | undefined => {
+    if (!raw) return undefined;
+    if (typeof raw === 'number') {
+        return statusOptions.find((o) => o.id === raw);
+    }
+    return raw;
+};
 
 export const BasicTripInfo = ({
     data,
     onChangeStep,
+    onStatusChange,
     isViewMode = false,
 }: BasicTripInfoProps) => {
+    const currentStatus = useMemo(() => resolveStatus(data.status), [data.status]);
+
+    const [statusModalOpen, setStatusModalOpen] = useState(false);
+    const [draftStatusId, setDraftStatusId] = useState<number | undefined>(
+        currentStatus?.id
+    );
+
     const tripDate = useMemo(() => {
         const start = moment(data.startDate);
         const end = moment(data.endDate);
@@ -30,12 +63,29 @@ export const BasicTripInfo = ({
     }, [data]);
 
     const organizer = useMemo(
-        () => (data.organizer ?? []).map((item) => item.label).filter(Boolean).join(', '),
+        () =>
+            (data.organizer ?? [])
+                .map((item) => item.label)
+                .filter(Boolean)
+                .join(', '),
         [data]
     );
 
-    const statusName = _.get(data, 'status.name', 'Draft');
+    const statusName = currentStatus?.name ?? 'Draft';
     const friends = data.friends ?? [];
+
+    const openStatusModal = () => {
+        setDraftStatusId(currentStatus?.id);
+        setStatusModalOpen(true);
+    };
+
+    const closeStatusModal = () => setStatusModalOpen(false);
+
+    const handleSaveStatus = () => {
+        const next = statusOptions.find((o) => o.id === draftStatusId);
+        if (next) onStatusChange?.(next);
+        setStatusModalOpen(false);
+    };
 
     return (
         <section className="basic-trip-info">
@@ -44,12 +94,24 @@ export const BasicTripInfo = ({
                     <span className="trip-eyebrow">
                         Trip · {_.get(data, 'type.name', 'Custom')}
                     </span>
-                    <h2 className="trip-name">{data.name || 'Untitled trip'}</h2>
+                    <div className="trip-name-row">
+                        <h2 className="trip-name">{data.name || 'Untitled trip'}</h2>
+                        {!isViewMode && (
+                            <IconButton
+                                size="small"
+                                aria-label="Edit trip"
+                                className="trip-name-edit"
+                                onClick={() => onChangeStep(0)}
+                            >
+                                <EditOutlinedIcon fontSize="small" />
+                            </IconButton>
+                        )}
+                    </div>
                 </div>
                 <button
                     type="button"
                     className="trip-status-badge"
-                    onClick={() => onChangeStep(0)}
+                    onClick={openStatusModal}
                     disabled={isViewMode}
                 >
                     <span className="status-dot" />
@@ -97,6 +159,44 @@ export const BasicTripInfo = ({
                     </div>
                 </div>
             )}
+
+            <Dialog open={statusModalOpen} onClose={closeStatusModal} fullWidth maxWidth="xs">
+                <DialogTitle>Update trip status</DialogTitle>
+                <DialogContent>
+                    <FormControl fullWidth sx={{ mt: 1 }}>
+                        <InputLabel id="status-select-label">Status</InputLabel>
+                        <Select
+                            labelId="status-select-label"
+                            label="Status"
+                            value={draftStatusId ?? ''}
+                            onChange={(e: SelectChangeEvent<number | ''>) =>
+                                setDraftStatusId(
+                                    e.target.value === '' ? undefined : Number(e.target.value)
+                                )
+                            }
+                        >
+                            {statusOptions.map((option) => (
+                                <MenuItem key={option.id} value={option.id}>
+                                    {option.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <ButtonCustom
+                        type="standard-small"
+                        label="Cancel"
+                        onClick={closeStatusModal}
+                    />
+                    <ButtonCustom
+                        type="standard-small"
+                        label="Save"
+                        onClick={handleSaveStatus}
+                        style={{ marginLeft: '12px' }}
+                    />
+                </DialogActions>
+            </Dialog>
         </section>
     );
 };

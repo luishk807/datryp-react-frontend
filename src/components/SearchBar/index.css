@@ -25,11 +25,28 @@
 }
 
 .searchbarMain .inputBar {
-  border: none; 
+  border: none;
   outline: none;
   width: 100%;
   text-transform: uppercase;
-  font-size: 1.2em;
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: theme('colors.primary');
+  background: transparent;
+  padding: 6px 0;
+  transition: letter-spacing 0.2s ease, color 0.2s ease;
+}
+
+.searchbarMain .inputBar::placeholder {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.35);
+  text-transform: none;
+}
+
+.searchbarMain .inputBar:focus {
+  letter-spacing: 0.05em;
 }
 
 .searchbarMain .holder {

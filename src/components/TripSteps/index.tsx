@@ -1,11 +1,14 @@
 ﻿import { useMemo } from 'react';
-import { Grid } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Grid, IconButton, Tooltip } from '@mui/material';
+import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 import { useTripState } from 'context/TripContext';
+import { TRIP_BASIC } from 'constants';
 import type {
     Friend,
     TripChangeEvent,
@@ -13,9 +16,12 @@ import type {
     TripPlaceEvent,
 } from 'types';
 
+type TripMode = 'single' | 'multiple';
+
 interface TripStepsProps {
     title: string;
     containerClassName?: string;
+    currentType: TripMode;
     onBasicChange: (id: string, e: TripChangeEvent) => void;
     onChangePlace: (event: TripPlaceEvent) => void;
     onChangeBudget: (event: TripPlaceEvent) => void;
@@ -25,12 +31,20 @@ interface TripStepsProps {
 const TripSteps = ({
     title,
     containerClassName,
+    currentType,
     onBasicChange,
     onChangePlace,
     onChangeBudget,
     onChangeDestination,
 }: TripStepsProps) => {
     const tripInfo = useTripState();
+    const navigate = useNavigate();
+
+    const otherMode: TripMode = currentType === 'single' ? 'multiple' : 'single';
+    const switchTarget =
+        otherMode === 'single' ? TRIP_BASIC.SINGLE.route : TRIP_BASIC.MULTIPLE.route;
+    const switchLabel =
+        otherMode === 'single' ? 'Switch to Single Trip' : 'Switch to Multi Trip';
 
     const participants = useMemo<Friend[]>(() => {
         const friends = tripInfo.friends || [];
@@ -79,7 +93,21 @@ const TripSteps = ({
     ];
 
     return (
-        <Layout title={title}>
+        <Layout
+            title={title}
+            titleAction={
+                <Tooltip title={switchLabel}>
+                    <IconButton
+                        size="small"
+                        aria-label={switchLabel}
+                        onClick={() => navigate(switchTarget)}
+                        sx={{ ml: 1 }}
+                    >
+                        <SyncAltIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            }
+        >
             <Grid container className={containerClassName}>
                 <Grid item lg={12} md={12} xs={12}>
                     <StepperComp data={tripInfo} steps={steps} />

@@ -48,6 +48,20 @@
   letter-spacing: -0.01em;
 }
 
+.basic-trip-info .trip-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.basic-trip-info .trip-name-edit {
+  opacity: 0.7;
+}
+
+.basic-trip-info .trip-name-edit:hover {
+  opacity: 1;
+}
+
 /* ---------- Status badge ---------- */
 .basic-trip-info .trip-status-badge {
   display: inline-flex;

@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import './index.css';
@@ -20,7 +20,6 @@ const HERO_IMAGES = [
 const Home = () => {
     const dispatch = useTripDispatch();
     const [isSingleSelected, setIsSingleSelected] = useState(true);
-    const [pendingCountry, setPendingCountry] = useState<Country | null>(null);
     const navigate = useNavigate();
 
     const heroImage = useMemo(
@@ -32,21 +31,18 @@ const Home = () => {
         setIsSingleSelected(TRIP_BASIC.SINGLE.id === id);
     };
 
-    const handleSearchSelected = (country: Country) => {
-        if (!country?.name) return;
-        setPendingCountry(country);
-    };
+    const handleSearchSelected = useCallback(
+        (country: Country) => {
+            if (!country?.name) return;
+            const type = isSingleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
+            const destinations = [{ country }] as Destination[];
 
-    const handleCreate = () => {
-        if (!pendingCountry?.name) return;
-
-        const type = isSingleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
-        const destinations = [{ country: pendingCountry }] as Destination[];
-
-        dispatch(resetTrip());
-        dispatch(basicInfo({ type, destinations }));
-        navigate(type.route, { replace: true });
-    };
+            dispatch(resetTrip());
+            dispatch(basicInfo({ type, destinations }));
+            navigate(type.route, { replace: true });
+        },
+        [dispatch, isSingleSelected, navigate]
+    );
 
     const handlePlaceClick = (place: TopPlace) => {
         const country: Country = {
@@ -73,8 +69,18 @@ const Home = () => {
                         Plan a single getaway or a multi-stop journey in minutes.
                     </p>
 
-                    <div className="home-hero-options">
+                    <div
+                        role="tablist"
+                        aria-label="Trip type"
+                        className={classnames('home-hero-options', {
+                            'is-single': isSingleSelected,
+                            'is-multiple': !isSingleSelected,
+                        })}
+                    >
+                        <span className="hero-option-thumb" aria-hidden="true" />
                         <button
+                            role="tab"
+                            aria-selected={isSingleSelected}
                             className={classnames('hero-option', {
                                 selected: isSingleSelected,
                             })}
@@ -83,6 +89,8 @@ const Home = () => {
                             Single place
                         </button>
                         <button
+                            role="tab"
+                            aria-selected={!isSingleSelected}
                             className={classnames('hero-option', {
                                 selected: !isSingleSelected,
                             })}
@@ -93,10 +101,7 @@ const Home = () => {
                     </div>
 
                     <div className="home-hero-search">
-                        <SearchBar
-                            onSelected={handleSearchSelected}
-                            onCreate={handleCreate}
-                        />
+                        <SearchBar onSelected={handleSearchSelected} />
                     </div>
                 </div>
             </section>

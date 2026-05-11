@@ -22,8 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  isolation: isolate;
+  z-index: 1;
 }
 
 .home-hero-overlay {
@@ -62,27 +61,48 @@
   margin: 0 0 28px;
 }
 
-/* ---------- Trip type pills ---------- */
+/* ---------- Trip type toggle ---------- */
 .home-hero-options {
+  position: relative;
   display: inline-flex;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 9999px;
   padding: 4px;
-  gap: 4px;
   margin-bottom: 22px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  min-width: 320px;
+}
+
+.home-hero-options .hero-option-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: theme('colors.primaryOrange');
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.4);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.home-hero-options.is-multiple .hero-option-thumb {
+  transform: translateX(100%);
 }
 
 .home-hero-options .hero-option {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
   padding: 8px 18px;
   border-radius: 9999px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
   font-size: 0.9rem;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: color 0.18s ease;
 }
 
 .home-hero-options .hero-option:hover {
@@ -90,9 +110,8 @@
 }
 
 .home-hero-options .hero-option.selected {
-  background: theme('colors.primaryOrange');
   color: #fff;
-  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.4);
+  font-weight: 600;
 }
 
 /* ---------- Compact pill search bar in hero ---------- */
@@ -163,6 +182,7 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
   padding: 10px 16px;
   text-align: left;
+  z-index: 1000;
 }
 
 .home-hero-search .searchbarMain .listContainerV2 li.item {
@@ -208,18 +228,18 @@
   }
 
   .home-hero-options {
-    flex-wrap: wrap;
     margin-bottom: 18px;
     background: rgba(0, 0, 0, 0.04);
     border-color: rgba(0, 0, 0, 0.1);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    min-width: 280px;
   }
 
   .home-hero-options .hero-option {
     padding: 8px 14px;
     font-size: 0.85rem;
-    color: rgba(0, 0, 0, 0.65);
+    color: rgba(0, 0, 0, 0.55);
   }
 
   .home-hero-options .hero-option:hover {

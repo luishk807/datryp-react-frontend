@@ -59,6 +59,7 @@ const SingleTrip = () => {
         <TripSteps
             title="Single Trip Detail"
             containerClassName="singleTrip"
+            currentType="single"
             onBasicChange={handleBasicOnChange}
             onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}

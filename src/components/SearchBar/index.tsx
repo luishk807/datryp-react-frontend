@@ -24,7 +24,6 @@ interface CountryListEntry {
 
 interface SearchBarProps {
     onSelected?: (country: Country) => void;
-    onCreate?: () => void;
     defaultValue?: Country;
     className?: string;
     type?: SearchBarVariant;
@@ -32,7 +31,6 @@ interface SearchBarProps {
 
 const SearchBar = ({
     onSelected,
-    onCreate,
     defaultValue,
     className = 'justify-center',
     type = 'standard',
@@ -86,22 +84,12 @@ const SearchBar = ({
     };
 
     const debounceChange = useMemo(() => debounce(handleOnChange, 500), []);
-    const debounceClick = useMemo(() => debounce(handleButtonClick, 500), [onSelected]);
 
     useEffect(() => {
         return () => {
             debounceChange.cancel();
-            debounceClick.cancel();
         };
-    }, [debounceChange, debounceClick]);
-
-    const handleCreateClick = () => {
-        if (onCreate) {
-            onCreate();
-            return;
-        }
-        debounceClick({});
-    };
+    }, [debounceChange]);
 
     const handleClickAway = () => {
         setCountriesFound([]);
@@ -132,23 +120,16 @@ const SearchBar = ({
                         })}
                     >
                         {type === 'standard' ? (
-                            <>
-                                <Grid item lg={10} md={10} className="inputHolder">
-                                    <input
-                                        onChange={debounceChange}
-                                        ref={inputRef}
-                                        className="inputBar"
-                                        type="text"
-                                        onFocus={handleFocus}
-                                        placeholder="Search Country for trip"
-                                    />
-                                </Grid>
-                                <Grid item lg={2} className="buttonContainer">
-                                    <button className="button" onClick={handleCreateClick}>
-                                        CREATE
-                                    </button>
-                                </Grid>
-                            </>
+                            <Grid item lg={12} md={12} xs={12} className="inputHolder">
+                                <input
+                                    onChange={debounceChange}
+                                    ref={inputRef}
+                                    className="inputBar"
+                                    type="text"
+                                    onFocus={handleFocus}
+                                    placeholder="Search Country for trip"
+                                />
+                            </Grid>
                         ) : (
                             <Grid item lg={12} md={12} xs={12}>
                                 <InputField

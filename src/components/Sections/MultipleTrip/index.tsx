@@ -98,6 +98,7 @@ const MultiTrip = () => {
         <TripSteps
             title="Multrip Information"
             containerClassName="multriTrip"
+            currentType="multiple"
             onBasicChange={handleBasicOnChange}
             onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}

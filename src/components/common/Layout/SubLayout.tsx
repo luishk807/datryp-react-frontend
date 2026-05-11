@@ -8,9 +8,10 @@ import Header from 'components/Header/Subheader';
 interface SubLayoutProps {
     children?: ReactNode;
     title?: string;
+    titleAction?: ReactNode;
 }
 
-const Layout = ({ children, title = '' }: SubLayoutProps) => {
+const Layout = ({ children, title = '', titleAction }: SubLayoutProps) => {
     return (
         <div className="page-shell">
             <Header />
@@ -19,7 +20,8 @@ const Layout = ({ children, title = '' }: SubLayoutProps) => {
                     <Grid item lg={8} md={12} xs={12} className="layout-container">
                         <Grid container>
                             <Grid item lg={12} md={12} xs={12} className="layout-title">
-                                {title}
+                                <span>{title}</span>
+                                {titleAction}
                             </Grid>
                             <Grid item lg={12} md={12} xs={12} className="homeContainer">
                                 {children}

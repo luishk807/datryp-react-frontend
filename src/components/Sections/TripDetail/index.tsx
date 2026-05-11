@@ -1,5 +1,5 @@
-﻿import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+﻿import { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import moment from "moment";
 import "./index.css";
 import { Grid } from "@mui/material";
@@ -8,13 +8,16 @@ import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
 import DestinationDetail from "components/DestinationDetail";
 import { useUser } from "context/UserContext";
+import { basicInfo, useTripDispatch } from "context/TripContext";
 import { userIntinerary } from "sample/userIntineraries";
+import { TRIP_BASIC } from "constants";
 import type {
   Destination,
   Friend,
   MultipleDestinations,
   SingleDestination,
   TripState,
+  TripStatus,
 } from "types";
 
 const LOCKED_STATUS_NAMES = new Set(["Confirmed", "Completed"]);
@@ -95,6 +98,8 @@ const tripToTripState = (trip: TripEntry): TripState => {
 
 export const TripDetail = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const dispatch = useTripDispatch();
   const { user: currentUser } = useUser();
   const idParam = searchParams.get("id");
   const id = idParam ? Number(idParam) : null;
@@ -107,7 +112,19 @@ export const TripDetail = () => {
     );
   }, [id]);
 
-  const tripData = useMemo(() => (trip ? tripToTripState(trip) : null), [trip]);
+  const baseTripData = useMemo(
+    () => (trip ? tripToTripState(trip) : null),
+    [trip],
+  );
+
+  const [statusOverride, setStatusOverride] = useState<TripStatus | null>(null);
+
+  const tripData = useMemo<TripState | null>(() => {
+    if (!baseTripData) return null;
+    return statusOverride
+      ? { ...baseTripData, status: statusOverride }
+      : baseTripData;
+  }, [baseTripData, statusOverride]);
 
   const isOrganizer = useMemo(() => {
     if (!trip || !currentUser?.email) return false;
@@ -122,7 +139,15 @@ export const TripDetail = () => {
 
   const isViewMode = !isOrganizer || isLocked;
 
-  const handleChangeStep = () => {};
+  const handleChangeStep = () => {
+    if (!tripData || !trip) return;
+    dispatch(basicInfo(tripData));
+    const route =
+      trip.interaryType?.id === TRIP_BASIC.MULTIPLE.id
+        ? TRIP_BASIC.MULTIPLE.route
+        : TRIP_BASIC.SINGLE.route;
+    navigate(route);
+  };
 
   if (!trip || !tripData) {
     return (
@@ -145,6 +170,7 @@ export const TripDetail = () => {
             isViewMode={isViewMode}
             data={tripData}
             onChangeStep={handleChangeStep}
+            onStatusChange={setStatusOverride}
           />
         </Grid>
         <Grid item lg={12} md={12} xs={12}>
