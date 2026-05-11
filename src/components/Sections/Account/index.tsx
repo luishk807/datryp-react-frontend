@@ -3,7 +3,16 @@ import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
+import countryList from 'sample/countryList.json';
 import './index.css';
+
+interface CountryEntry {
+    en: string;
+    local: string;
+    code: string;
+}
+
+const COUNTRIES = countryList as CountryEntry[];
 
 const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
     email: true,
@@ -18,6 +27,10 @@ export const Account = () => {
     const [name, setName] = useState(user?.name ?? '');
     const [email, setEmail] = useState(user?.email ?? '');
     const [phone, setPhone] = useState(user?.phone ?? '');
+    const [dob, setDob] = useState(user?.dob ?? '');
+    const [countryOfBirth, setCountryOfBirth] = useState(
+        user?.countryOfBirth ?? ''
+    );
     const [profileSaved, setProfileSaved] = useState(false);
 
     // Password
@@ -43,6 +56,8 @@ export const Account = () => {
         setName(user.name);
         setEmail(user.email ?? '');
         setPhone(user.phone ?? '');
+        setDob(user.dob ?? '');
+        setCountryOfBirth(user.countryOfBirth ?? '');
         setPreferredAirport(user.preferredAirport ?? '');
         setNotifications(user.notifications ?? DEFAULT_NOTIFICATIONS);
     }, [user]);
@@ -69,6 +84,8 @@ export const Account = () => {
             name: name.trim(),
             email: email.trim() || undefined,
             phone: phone.trim() || undefined,
+            dob: dob || undefined,
+            countryOfBirth: countryOfBirth.trim() || undefined,
         });
         setProfileSaved(true);
         setTimeout(() => setProfileSaved(false), 2000);
@@ -147,6 +164,28 @@ export const Account = () => {
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="+1 555 123 4567"
                             />
+                        </Field>
+                        <Field label="Date of birth">
+                            <input
+                                className="account-input"
+                                type="date"
+                                value={dob}
+                                onChange={(e) => setDob(e.target.value)}
+                            />
+                        </Field>
+                        <Field label="Country of birth">
+                            <select
+                                className="account-input"
+                                value={countryOfBirth}
+                                onChange={(e) => setCountryOfBirth(e.target.value)}
+                            >
+                                <option value="">Select a country</option>
+                                {COUNTRIES.map((c) => (
+                                    <option key={c.code} value={c.code}>
+                                        {c.en}
+                                    </option>
+                                ))}
+                            </select>
                         </Field>
                         <div className="account-actions">
                             <ButtonCustom

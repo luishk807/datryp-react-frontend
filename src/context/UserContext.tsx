@@ -27,6 +27,8 @@ export interface User {
     name: string;
     email?: string;
     phone?: string;
+    dob?: string;
+    countryOfBirth?: string;
     preferredAirport?: string;
     paymentType?: PaymentType;
     notifications?: NotificationPrefs;

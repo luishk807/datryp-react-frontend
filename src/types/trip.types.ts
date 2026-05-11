@@ -129,6 +129,15 @@ export interface User {
   name: string;
   phone: string;
   email: string;
+  dob: string;
+  countryOfBirth: Country;
+  preferredAirport?: string;
+  gender: Gender;
+}
+
+export interface Gender {
+  id: number;
+  name: string;
 }
 export interface IntenaryStatus {
   id: number;
@@ -147,8 +156,16 @@ export interface IntenaryDatesMultiple extends IntenaryDates {
 
 export interface DestinationBasic {
   id: number;
-  intineraryType: IntineraryType;
-  date: string;
+  startDate: string;
+  endDate: string;
+  status: IntenaryStatus;
+  name: string;
+  user: User;
+  budget: number;
+  image?: string;
+  friends: User[];
+  organizers: User[];
+  interaryType: IntineraryType;
 }
 
 export interface MultipleDestinations extends DestinationBasic {
@@ -161,20 +178,7 @@ export interface SingleDestination extends DestinationBasic {
   intenaryDates: IntenaryDates[];
 }
 
-export interface Destinations {
+export interface Intinerary {
   singleDestinations: SingleDestination[];
   multipleDestinations: MultipleDestinations[];
-}
-export interface Intinerary {
-  id: number;
-  name: string;
-  destinations: Destinations;
-  startDate: string;
-  endDate: string;
-  status: IntenaryStatus;
-  friends: User[];
-  organizers: User[];
-  user: User;
-  budget: number;
-  image?: string;
 }

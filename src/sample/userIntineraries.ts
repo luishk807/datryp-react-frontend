@@ -1,10 +1,28 @@
-import type { Intinerary, User } from "types/trip.types";
+import type {
+  Intinerary,
+  IntenaryStatus,
+  IntineraryType,
+  MultipleDestinations,
+  SingleDestination,
+  User,
+} from "types/trip.types";
 
 const me: User = {
   id: 1,
   name: "Luis",
   phone: "+1 555 123 4567",
   email: "luis@example.com",
+  dob: "1990-05-20",
+  countryOfBirth: {
+    id: 1,
+    name: "United States",
+    code: "US",
+  },
+  preferredAirport: "JFK",
+  gender: {
+    id: 1,
+    name: "Male",
+  },
 };
 
 const joanna: User = {
@@ -12,6 +30,17 @@ const joanna: User = {
   name: "Joanna Tam",
   phone: "+1 555 234 5678",
   email: "joanna@example.com",
+  dob: "1990-05-20",
+  countryOfBirth: {
+    id: 1,
+    name: "United States",
+    code: "US",
+  },
+  preferredAirport: "JFK",
+  gender: {
+    id: 1,
+    name: "Male",
+  },
 };
 
 const alberto: User = {
@@ -19,6 +48,17 @@ const alberto: User = {
   name: "Alberto Wesker",
   phone: "+1 555 345 6789",
   email: "alberto@example.com",
+  dob: "1990-05-20",
+  countryOfBirth: {
+    id: 1,
+    name: "United States",
+    code: "US",
+  },
+  preferredAirport: "JFK",
+  gender: {
+    id: 1,
+    name: "Male",
+  },
 };
 
 const jessica: User = {
@@ -26,6 +66,17 @@ const jessica: User = {
   name: "Jessica Ruan",
   phone: "+1 555 456 7890",
   email: "jessica@example.com",
+  dob: "1990-05-20",
+  countryOfBirth: {
+    id: 1,
+    name: "United States",
+    code: "US",
+  },
+  preferredAirport: "JFK",
+  gender: {
+    id: 1,
+    name: "Male",
+  },
 };
 
 const chris: User = {
@@ -33,6 +84,17 @@ const chris: User = {
   name: "Chris Redfield",
   phone: "+1 555 567 8901",
   email: "chris@example.com",
+  dob: "1990-05-20",
+  countryOfBirth: {
+    id: 1,
+    name: "United States",
+    code: "US",
+  },
+  preferredAirport: "JFK",
+  gender: {
+    id: 1,
+    name: "Male",
+  },
 };
 
 const leon: User = {
@@ -40,306 +102,307 @@ const leon: User = {
   name: "Leon Kennedy",
   phone: "+1 555 678 9012",
   email: "leon@example.com",
+  dob: "1990-05-20",
+  countryOfBirth: {
+    id: 1,
+    name: "United States",
+    code: "US",
+  },
+  preferredAirport: "JFK",
+  gender: {
+    id: 1,
+    name: "Male",
+  },
 };
 
-export const userIntineraries: Intinerary[] = [
-  // ---------- Trip 1: Iceland — single destination ----------
-  {
-    id: 1,
-    name: "Iceland Getaway",
-    startDate: "2026-03-15",
-    endDate: "2026-03-22",
-    status: { id: 2, name: "confirmed" },
-    budget: 4500,
-    user: me,
-    organizers: [me],
-    friends: [joanna, alberto, jessica],
-    destinations: {
-      singleDestinations: [
-        {
-          id: 1,
-          intineraryType: { id: 1, name: "single" },
-          date: "2026-03-15",
-          country: {
-            id: 1,
-            name: "Iceland",
-            code: "IS",
-            image: "/images/sample/iceland.jpg",
-          },
-          flightInfo: {
-            departDate: "2026-03-15",
-            departTime: "08:30",
-            arrivalDate: "2026-03-15",
-            arrivalTime: "17:45",
-            flightNumber: "IS204",
-            departAirport: "JFK",
-            arrivalAirport: "KEF",
-          },
-          intenaryDates: [
-            {
-              id: 1,
-              date: "2026-03-15",
-              activities: [
-                {
-                  id: 1,
-                  place: "Blue Lagoon",
-                  location: "Grindavik",
-                  startTime: "14:00",
-                  endTime: "17:00",
-                  cost: 120,
-                  note: "Geothermal spa",
-                  status: { id: 1, name: "Confirmed" },
-                },
-              ],
-            },
-            {
-              id: 2,
-              date: "2026-03-16",
-              activities: [
-                {
-                  id: 2,
-                  place: "Hallgrimskirkja",
-                  location: "Reykjavik",
-                  startTime: "10:00",
-                  endTime: "11:30",
-                  cost: 0,
-                  status: { id: 1, name: "Confirmed" },
-                },
-                {
-                  id: 3,
-                  place: "Northern Lights Tour",
-                  location: "Reykjavik",
-                  startTime: "21:00",
-                  endTime: "01:00",
-                  cost: 95,
-                  status: { id: 1, name: "Confirmed" },
-                },
-              ],
-            },
-            {
-              id: 3,
-              date: "2026-03-18",
-              activities: [
-                {
-                  id: 4,
-                  place: "Golden Circle Tour",
-                  location: "Thingvellir",
-                  startTime: "09:00",
-                  endTime: "18:00",
-                  cost: 180,
-                  status: { id: 1, name: "Confirmed" },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      multipleDestinations: [],
-    },
-  },
+const singleTripType: IntineraryType = {
+  id: 1,
+  name: "Single Destination Trip",
+};
 
-  // ---------- Trip 2: Vietnam — multi-destination ----------
-  {
-    id: 2,
-    name: "Vietnam Adventure",
-    startDate: "2026-06-10",
-    endDate: "2026-06-20",
-    status: { id: 1, name: "planning" },
-    budget: 3200,
-    image: "/images/sample/vietnam.jpg",
-    user: me,
-    organizers: [me, joanna],
-    friends: [joanna],
-    destinations: {
-      singleDestinations: [],
-      multipleDestinations: [
-        {
-          id: 1,
-          intineraryType: { id: 2, name: "multiple" },
-          date: "2026-06-10",
-          intenaryDates: [
-            {
-              id: 1,
-              date: "2026-06-11",
-              country: { id: 2, name: "Vietnam", code: "VN" },
-              flightInfo: {
-                departDate: "2026-06-10",
-                departTime: "06:00",
-                arrivalDate: "2026-06-11",
-                arrivalTime: "12:30",
-                flightNumber: "VN23",
-                departAirport: "LAX",
-                arrivalAirport: "HAN",
-              },
-              activities: [
-                {
-                  id: 1,
-                  place: "Hoan Kiem Lake",
-                  location: "Hanoi",
-                  startTime: "16:00",
-                  endTime: "18:00",
-                  cost: 0,
-                  status: { id: 1, name: "Confirmed" },
-                },
-                {
-                  id: 2,
-                  place: "Old Quarter Walking Tour",
-                  location: "Hanoi",
-                  startTime: "19:30",
-                  endTime: "22:00",
-                  cost: 35,
-                  status: { id: 2, name: "Pending" },
-                },
-              ],
-            },
-            {
-              id: 2,
-              date: "2026-06-15",
-              country: { id: 2, name: "Vietnam", code: "VN" },
-              flightInfo: {
-                departDate: "2026-06-15",
-                departTime: "08:00",
-                arrivalDate: "2026-06-15",
-                arrivalTime: "10:30",
-                flightNumber: "VN101",
-                departAirport: "HAN",
-                arrivalAirport: "DAD",
-              },
-              activities: [
-                {
-                  id: 3,
-                  place: "Halong Bay Cruise",
-                  location: "Halong Bay",
-                  startTime: "13:00",
-                  endTime: "18:00",
-                  cost: 220,
-                  status: { id: 2, name: "Pending" },
-                },
-              ],
-            },
-            {
-              id: 3,
-              date: "2026-06-18",
-              country: { id: 2, name: "Vietnam", code: "VN" },
-              flightInfo: {
-                departDate: "2026-06-18",
-                departTime: "11:00",
-                arrivalDate: "2026-06-18",
-                arrivalTime: "12:30",
-                flightNumber: "VN202",
-                departAirport: "DAD",
-                arrivalAirport: "SGN",
-              },
-              activities: [
-                {
-                  id: 4,
-                  place: "Cu Chi Tunnels",
-                  location: "Ho Chi Minh City",
-                  startTime: "14:00",
-                  endTime: "18:00",
-                  cost: 60,
-                  status: { id: 2, name: "Pending" },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  },
+const multiTripType: IntineraryType = {
+  id: 2,
+  name: "Multi Destination Trip",
+};
 
-  // ---------- Trip 3: China — single destination, completed ----------
-  {
-    id: 3,
-    name: "China Tour",
-    startDate: "2025-11-01",
-    endDate: "2025-11-12",
-    status: { id: 3, name: "completed" },
-    budget: 5800,
-    image: "/images/sample/china1.jpg",
-    user: me,
-    organizers: [me],
-    friends: [joanna, alberto, jessica, chris, leon],
-    destinations: {
-      singleDestinations: [
+const inteneraryType: IntineraryType[] = [singleTripType, multiTripType];
+
+const statusPlanned: IntenaryStatus = { id: 1, name: "Planned" };
+const statusOngoing: IntenaryStatus = { id: 2, name: "Ongoing" };
+const statusCompleted: IntenaryStatus = { id: 3, name: "Completed" };
+
+const tokyoTrip: SingleDestination = {
+  id: 101,
+  name: "Tokyo Spring Getaway",
+  startDate: "2026-04-05",
+  endDate: "2026-04-12",
+  status: statusPlanned,
+  user: me,
+  budget: 3500,
+  image: "/images/sample/japan1.jpg",
+  friends: [joanna, jessica],
+  organizers: [me],
+  interaryType: singleTripType,
+  country: {
+    id: 392,
+    name: "Japan",
+    code: "JP",
+  },
+  flightInfo: {
+    departDate: "2026-04-05",
+    departTime: "10:30",
+    arrivalDate: "2026-04-06",
+    arrivalTime: "14:45",
+    flightNumber: "NH9",
+    departAirport: "JFK",
+    arrivalAirport: "HND",
+  },
+  intenaryDates: [
+    {
+      id: 1,
+      date: "2026-04-06",
+      activities: [
         {
           id: 1,
-          intineraryType: { id: 1, name: "single" },
-          date: "2025-11-01",
-          country: {
-            id: 3,
-            name: "China",
-            code: "CN",
-            image: "/images/sample/china1.jpg",
-          },
-          flightInfo: {
-            departDate: "2025-11-01",
-            departTime: "23:30",
-            arrivalDate: "2025-11-03",
-            arrivalTime: "05:15",
-            flightNumber: "CA988",
-            departAirport: "SFO",
-            arrivalAirport: "PEK",
-          },
-          intenaryDates: [
-            {
-              id: 1,
-              date: "2025-11-03",
-              activities: [
-                {
-                  id: 1,
-                  place: "Great Wall of China",
-                  location: "Badaling",
-                  startTime: "08:00",
-                  endTime: "14:00",
-                  cost: 65,
-                  status: { id: 1, name: "Confirmed" },
-                },
-              ],
-            },
-            {
-              id: 2,
-              date: "2025-11-04",
-              activities: [
-                {
-                  id: 2,
-                  place: "Forbidden City",
-                  location: "Beijing",
-                  startTime: "09:30",
-                  endTime: "13:00",
-                  cost: 30,
-                  status: { id: 1, name: "Confirmed" },
-                },
-                {
-                  id: 3,
-                  place: "Wangfujing Snack Street",
-                  location: "Beijing",
-                  startTime: "18:00",
-                  endTime: "20:30",
-                  cost: 25,
-                  status: { id: 1, name: "Confirmed" },
-                },
-              ],
-            },
-            {
-              id: 3,
-              date: "2025-11-06",
-              activities: [
-                {
-                  id: 4,
-                  place: "Summer Palace",
-                  location: "Beijing",
-                  startTime: "10:00",
-                  endTime: "15:00",
-                  cost: 28,
-                  status: { id: 1, name: "Confirmed" },
-                },
-              ],
-            },
-          ],
+          name: "Check-in at Shinjuku Hotel",
+          place: "Park Hyatt Tokyo",
+          location: "Shinjuku, Tokyo",
+          startTime: "16:00",
+          endTime: "17:00",
+          cost: 0,
+        },
+        {
+          id: 2,
+          name: "Dinner at Omoide Yokocho",
+          location: "Shinjuku, Tokyo",
+          startTime: "19:00",
+          endTime: "21:00",
+          cost: 80,
+          people: 3,
         },
       ],
-      multipleDestinations: [],
     },
+    {
+      id: 2,
+      date: "2026-04-07",
+      activities: [
+        {
+          id: 3,
+          name: "Senso-ji Temple",
+          location: "Asakusa, Tokyo",
+          startTime: "09:00",
+          endTime: "11:00",
+          image: { url: "/images/sample/japan2.jpg", name: "sensoji" },
+        },
+        {
+          id: 4,
+          name: "Akihabara Walk",
+          location: "Akihabara, Tokyo",
+          startTime: "14:00",
+          endTime: "17:00",
+          cost: 50,
+        },
+      ],
+    },
+  ],
+};
+
+const parisTrip: SingleDestination = {
+  id: 102,
+  name: "Paris Weekend",
+  startDate: "2026-06-12",
+  endDate: "2026-06-15",
+  status: statusPlanned,
+  user: me,
+  budget: 2000,
+  friends: [joanna],
+  organizers: [me, joanna],
+  interaryType: singleTripType,
+  country: {
+    id: 250,
+    name: "France",
+    code: "FR",
   },
-];
+  flightInfo: {
+    departDate: "2026-06-12",
+    departTime: "21:00",
+    arrivalDate: "2026-06-13",
+    arrivalTime: "10:30",
+    flightNumber: "AF23",
+    departAirport: "JFK",
+    arrivalAirport: "CDG",
+  },
+  intenaryDates: [
+    {
+      id: 1,
+      date: "2026-06-13",
+      activities: [
+        {
+          id: 1,
+          name: "Eiffel Tower",
+          location: "Champ de Mars, Paris",
+          startTime: "11:00",
+          endTime: "13:00",
+          cost: 30,
+        },
+      ],
+    },
+  ],
+};
+
+const euroTour: MultipleDestinations = {
+  id: 201,
+  name: "Euro Summer Tour",
+  startDate: "2026-07-01",
+  endDate: "2026-07-21",
+  status: statusOngoing,
+  user: me,
+  budget: 8000,
+  image: "/images/sample/europe.jpg",
+  friends: [alberto, chris, leon],
+  organizers: [me, joanna],
+  interaryType: multiTripType,
+  intenaryDates: [
+    {
+      id: 1,
+      date: "2026-07-02",
+      country: { id: 380, name: "Italy", code: "IT" },
+      flightInfo: {
+        departDate: "2026-07-01",
+        departTime: "22:00",
+        arrivalDate: "2026-07-02",
+        arrivalTime: "12:00",
+        flightNumber: "AZ611",
+        departAirport: "JFK",
+        arrivalAirport: "FCO",
+      },
+      activities: [
+        {
+          id: 1,
+          name: "Colosseum Tour",
+          location: "Rome",
+          startTime: "10:00",
+          endTime: "13:00",
+          cost: 60,
+          people: 5,
+        },
+      ],
+    },
+    {
+      id: 2,
+      date: "2026-07-08",
+      country: { id: 250, name: "France", code: "FR" },
+      flightInfo: {
+        departDate: "2026-07-08",
+        departTime: "08:00",
+        arrivalDate: "2026-07-08",
+        arrivalTime: "10:00",
+        flightNumber: "AF1305",
+        departAirport: "FCO",
+        arrivalAirport: "CDG",
+      },
+      activities: [
+        {
+          id: 1,
+          name: "Louvre Museum",
+          location: "Paris",
+          startTime: "10:00",
+          endTime: "14:00",
+          cost: 25,
+        },
+      ],
+    },
+    {
+      id: 3,
+      date: "2026-07-15",
+      country: { id: 724, name: "Spain", code: "ES" },
+      flightInfo: {
+        departDate: "2026-07-15",
+        departTime: "09:00",
+        arrivalDate: "2026-07-15",
+        arrivalTime: "11:00",
+        flightNumber: "IB3403",
+        departAirport: "CDG",
+        arrivalAirport: "MAD",
+      },
+      activities: [
+        {
+          id: 1,
+          name: "Sagrada Familia",
+          location: "Barcelona",
+          startTime: "10:30",
+          endTime: "12:30",
+          cost: 40,
+        },
+      ],
+    },
+  ],
+};
+
+const asiaPastTour: MultipleDestinations = {
+  id: 202,
+  name: "Asia Discovery 2025",
+  startDate: "2025-10-05",
+  endDate: "2025-10-20",
+  status: statusCompleted,
+  user: me,
+  budget: 6500,
+  friends: [joanna, jessica],
+  organizers: [me],
+  interaryType: multiTripType,
+  intenaryDates: [
+    {
+      id: 1,
+      date: "2025-10-06",
+      country: { id: 156, name: "China", code: "CN" },
+      flightInfo: {
+        departDate: "2025-10-05",
+        departTime: "23:00",
+        arrivalDate: "2025-10-06",
+        arrivalTime: "16:00",
+        flightNumber: "CA982",
+        departAirport: "JFK",
+        arrivalAirport: "PEK",
+      },
+      activities: [
+        {
+          id: 1,
+          name: "Great Wall",
+          location: "Beijing",
+          startTime: "08:00",
+          endTime: "15:00",
+          cost: 70,
+        },
+      ],
+    },
+    {
+      id: 2,
+      date: "2025-10-14",
+      country: { id: 410, name: "South Korea", code: "KR" },
+      flightInfo: {
+        departDate: "2025-10-14",
+        departTime: "10:00",
+        arrivalDate: "2025-10-14",
+        arrivalTime: "13:00",
+        flightNumber: "KE852",
+        departAirport: "PEK",
+        arrivalAirport: "ICN",
+      },
+      activities: [
+        {
+          id: 1,
+          name: "Gyeongbokgung Palace",
+          location: "Seoul",
+          startTime: "09:00",
+          endTime: "12:00",
+          cost: 20,
+        },
+      ],
+    },
+  ],
+};
+
+export const userIntinerary: Intinerary = {
+  singleDestinations: [tokyoTrip, parisTrip],
+  multipleDestinations: [euroTour, asiaPastTour],
+};
