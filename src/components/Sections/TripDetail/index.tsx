@@ -11,6 +11,7 @@ import { useUser } from "context/UserContext";
 import { basicInfo, useTripDispatch } from "context/TripContext";
 import { userIntinerary } from "sample/userIntineraries";
 import { TRIP_BASIC } from "constants";
+import { exportTripToExcel } from "utils/exportTripExcel";
 import type {
   Destination,
   Friend,
@@ -139,6 +140,8 @@ export const TripDetail = () => {
 
   const isViewMode = !isOrganizer || isLocked;
 
+  const canExport = isLocked;
+
   const handleChangeStep = () => {
     if (!tripData || !trip) return;
     dispatch(basicInfo(tripData));
@@ -147,6 +150,11 @@ export const TripDetail = () => {
         ? TRIP_BASIC.MULTIPLE.route
         : TRIP_BASIC.SINGLE.route;
     navigate(route);
+  };
+
+  const handleExportExcel = () => {
+    if (!tripData) return;
+    void exportTripToExcel(tripData);
   };
 
   if (!trip || !tripData) {
@@ -171,6 +179,7 @@ export const TripDetail = () => {
             data={tripData}
             onChangeStep={handleChangeStep}
             onStatusChange={setStatusOverride}
+            onExportExcel={canExport ? handleExportExcel : undefined}
           />
         </Grid>
         <Grid item lg={12} md={12} xs={12}>

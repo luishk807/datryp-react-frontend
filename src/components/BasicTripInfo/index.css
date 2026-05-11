@@ -62,6 +62,32 @@
   opacity: 1;
 }
 
+/* ---------- Header right cluster ---------- */
+.basic-trip-info .trip-header-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.basic-trip-info .trip-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease;
+}
+
+.basic-trip-info .trip-export-btn:hover {
+  background: rgba(60, 181, 75, 0.22);
+}
+
 /* ---------- Status badge ---------- */
 .basic-trip-info .trip-status-badge {
   display: inline-flex;

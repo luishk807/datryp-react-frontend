@@ -19,6 +19,7 @@ import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { convertMoney } from 'utils';
 import { status as statusOptions } from 'sample';
@@ -28,6 +29,7 @@ interface BasicTripInfoProps {
     data: TripState;
     onChangeStep: (step: number) => void;
     onStatusChange?: (status: TripStatus) => void;
+    onExportExcel?: () => void;
     isViewMode?: boolean;
 }
 
@@ -45,6 +47,7 @@ export const BasicTripInfo = ({
     data,
     onChangeStep,
     onStatusChange,
+    onExportExcel,
     isViewMode = false,
 }: BasicTripInfoProps) => {
     const currentStatus = useMemo(() => resolveStatus(data.status), [data.status]);
@@ -108,16 +111,29 @@ export const BasicTripInfo = ({
                         )}
                     </div>
                 </div>
-                <button
-                    type="button"
-                    className="trip-status-badge"
-                    onClick={openStatusModal}
-                    disabled={isViewMode}
-                >
-                    <span className="status-dot" />
-                    <span className="status-text">{statusName}</span>
-                    {!isViewMode && <EditOutlinedIcon className="status-edit" />}
-                </button>
+                <div className="trip-header-right">
+                    {onExportExcel && (
+                        <button
+                            type="button"
+                            className="trip-export-btn"
+                            onClick={onExportExcel}
+                            aria-label="Download as Excel"
+                        >
+                            <FileDownloadOutlinedIcon fontSize="small" />
+                            <span>Excel</span>
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className="trip-status-badge"
+                        onClick={openStatusModal}
+                        disabled={isViewMode}
+                    >
+                        <span className="status-dot" />
+                        <span className="status-text">{statusName}</span>
+                        {!isViewMode && <EditOutlinedIcon className="status-edit" />}
+                    </button>
+                </div>
             </div>
 
             <div className="trip-stats">
