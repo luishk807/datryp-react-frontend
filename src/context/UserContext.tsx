@@ -44,17 +44,27 @@ interface UserContextValue {
 
 const STORAGE_KEY = 'datryp:user';
 
+const DEFAULT_USER: User = {
+    id: 'luis@example.com',
+    name: 'Luis',
+    email: 'luis@example.com',
+    phone: '+1 555 123 4567',
+    dob: '1990-05-20',
+    countryOfBirth: 'US',
+    preferredAirport: 'JFK',
+};
+
 const loadUser = (): User | null => {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
+        if (!raw) return DEFAULT_USER;
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object' && parsed.name) {
             return parsed as User;
         }
-        return null;
+        return DEFAULT_USER;
     } catch {
-        return null;
+        return DEFAULT_USER;
     }
 };
 

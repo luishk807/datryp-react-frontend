@@ -7,6 +7,7 @@ import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
 import DestinationDetail from "components/DestinationDetail";
+import { useUser } from "context/UserContext";
 import { userIntinerary } from "sample/userIntineraries";
 import type {
   Destination,
@@ -15,6 +16,8 @@ import type {
   SingleDestination,
   TripState,
 } from "types";
+
+const LOCKED_STATUS_NAMES = new Set(["Confirmed", "Completed"]);
 
 type TripEntry = SingleDestination | MultipleDestinations;
 
@@ -92,6 +95,7 @@ const tripToTripState = (trip: TripEntry): TripState => {
 
 export const TripDetail = () => {
   const [searchParams] = useSearchParams();
+  const { user: currentUser } = useUser();
   const idParam = searchParams.get("id");
   const id = idParam ? Number(idParam) : null;
 
@@ -104,6 +108,19 @@ export const TripDetail = () => {
   }, [id]);
 
   const tripData = useMemo(() => (trip ? tripToTripState(trip) : null), [trip]);
+
+  const isOrganizer = useMemo(() => {
+    if (!trip || !currentUser?.email) return false;
+    return trip.organizers.some(
+      (o) => o.email?.toLowerCase() === currentUser.email?.toLowerCase(),
+    );
+  }, [trip, currentUser]);
+
+  const isLocked = !!(
+    trip?.status?.name && LOCKED_STATUS_NAMES.has(trip.status.name)
+  );
+
+  const isViewMode = !isOrganizer || isLocked;
 
   const handleChangeStep = () => {};
 
@@ -125,7 +142,7 @@ export const TripDetail = () => {
       <Grid container>
         <Grid item lg={12} md={12} xs={12}>
           <BasicTripInfo
-            isViewMode={false}
+            isViewMode={isViewMode}
             data={tripData}
             onChangeStep={handleChangeStep}
           />
@@ -136,7 +153,7 @@ export const TripDetail = () => {
         <Grid item lg={12}>
           <DestinationDetail
             type={tripData.type}
-            isViewMode={false}
+            isViewMode={isViewMode}
             startDate={tripData.startDate}
             participants={participants}
             endDate={tripData.endDate}
