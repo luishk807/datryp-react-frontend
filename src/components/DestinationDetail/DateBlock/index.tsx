@@ -61,6 +61,17 @@ const DateBlock = ({
         return matchingDest.length ? matchingDest : null;
     }, [destinations, startDate, isSingle]);
 
+    const hideEmpty = useMemo(() => {
+        if (!isViewMode) return false;
+        if (!trips) return true;
+        if (isSingle) {
+            return (trips as Activity[]).length === 0;
+        }
+        return false;
+    }, [isViewMode, trips, isSingle]);
+
+    if (hideEmpty) return null;
+
     return (
         <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className="date-block">
             <Grid container>
