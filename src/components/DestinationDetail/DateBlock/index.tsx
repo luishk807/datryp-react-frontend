@@ -6,7 +6,7 @@ import MultipleTrips from 'components/DestinationDetail/Multiple';
 import SingleTrips from 'components/DestinationDetail/Single';
 import { isSingleTrip } from 'utils';
 import './index.css';
-import type { ActionType, Activity, Destination, Friend } from 'types/trip.types';
+import type { ActionType, Activity, Destination, Friend } from 'types';
 
 interface DateBlockProps {
     startDate: string;

@@ -8,7 +8,7 @@ import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
 import TripComplete from 'components/DestinationDetail/Completed';
 import { resetTrip, useTripDispatch } from 'context/TripContext';
-import type { TripState } from 'types/trip.types';
+import type { TripState } from 'types';
 
 export interface StepperStep {
     label: string;

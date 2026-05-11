@@ -6,7 +6,7 @@ import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import { convertMoney } from 'utils';
 import DialogBox from 'components/common/FormFields/DialogBox';
-import type { ActionType, Activity, ActivityStatus, Friend } from 'types/trip.types';
+import type { ActionType, Activity, ActivityStatus, Friend } from 'types';
 
 export interface ActivitiesProps {
     onChangePlace: (type: ActionType, value: unknown) => void;

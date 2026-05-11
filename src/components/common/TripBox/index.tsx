@@ -1,11 +1,11 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import classnames from 'classnames';
 import moment from 'moment';
 import './index.css';
 import type {
     MultipleDestinations,
     SingleDestination,
-} from 'types/trip.types';
+} from 'types';
 
 export type TripBoxData = SingleDestination | MultipleDestinations;
 

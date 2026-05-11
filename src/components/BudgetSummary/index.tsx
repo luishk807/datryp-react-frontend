@@ -6,7 +6,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import { convertMoney } from 'utils';
-import type { Destination, TripState } from 'types/trip.types';
+import type { Destination, TripState } from 'types';
 
 interface BudgetSummaryProps {
     data: TripState;

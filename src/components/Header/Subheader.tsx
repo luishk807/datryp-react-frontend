@@ -15,7 +15,7 @@ import type { SignUpForm } from 'components/common/SignUpBtn';
 import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
-import type { Country, Destination } from 'types/trip.types';
+import type { Country, Destination } from 'types';
 import './index.css';
 
 const Header = () => {

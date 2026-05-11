@@ -4,7 +4,7 @@ import { Grid } from '@mui/material';
 import { friends } from '../../../sample';
 import Autocomplete from '../../common/FormFields/Autocomplete';
 import AddFriendBtn, { type NewFriendInput } from '../../common/AddFriendBtn';
-import type { Friend } from 'types/trip.types';
+import type { Friend } from 'types';
 import type { ModalButtonHandle } from 'components/ModalButton';
 
 interface FriendOption {

@@ -1,6 +1,6 @@
 ﻿import './index.css';
 import { NO_IMAGE } from 'constants';
-import type { ImageRef } from 'types/trip.types';
+import type { ImageRef } from 'types';
 
 interface ImageBlockProps {
     image?: ImageRef | null;

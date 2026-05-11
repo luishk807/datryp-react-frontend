@@ -5,7 +5,7 @@ import { debounce } from 'lodash';
 import countryList from 'sample/countryList.json';
 import InputField from 'components/common/FormFields/InputField';
 import classNames from 'classnames';
-import type { Country } from 'types/trip.types';
+import type { Country } from 'types';
 
 type SearchBarVariant = 'standard' | 'simple';
 

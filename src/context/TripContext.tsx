@@ -13,8 +13,8 @@ import type {
     BudgetItem,
     Destination,
     TripState,
-} from 'types/trip.types';
-import { emptyTripState } from 'types/trip.types';
+} from 'types';
+import { emptyTripState } from 'types';
 
 const STORAGE_KEY = 'trip-state';
 

@@ -8,7 +8,7 @@ import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
 import classNames from 'classnames';
-import type { Country, Destination, FlightInfo } from 'types/trip.types';
+import type { Country, Destination, FlightInfo } from 'types';
 
 type AddDestinationType = 'add' | 'edit';
 type AddDestinationButtonType = 'text' | 'standard';

@@ -2,7 +2,7 @@
 import './index.css';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
-import type { Activity } from 'types/trip.types';
+import type { Activity } from 'types';
 
 interface SingleProps {
     trips?: Activity[] | null;

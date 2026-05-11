@@ -7,14 +7,14 @@ import InputField from 'components/common/FormFields/InputField';
 import { status } from 'sample';
 import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
-import type { Friend, TripState } from 'types/trip.types';
-
-interface ChangeEventLike {
-    target: { value: unknown };
-}
+import type {
+    Friend,
+    TripChangeEvent,
+    TripState,
+} from 'types';
 
 interface BasicInfoProps {
-    onChange: (id: string, e: ChangeEventLike) => void;
+    onChange: (id: string, e: TripChangeEvent) => void;
     data?: TripState | null;
 }
 

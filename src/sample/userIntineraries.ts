@@ -1,11 +1,11 @@
-import type {
+﻿import type {
   Intinerary,
   IntenaryStatus,
   IntineraryType,
   MultipleDestinations,
   SingleDestination,
   User,
-} from "types/trip.types";
+} from "types";
 
 const me: User = {
   id: 1,

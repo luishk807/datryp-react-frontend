@@ -8,7 +8,7 @@ import { TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
-import type { ActionType, Destination, Friend } from 'types/trip.types';
+import type { ActionType, Destination, Friend } from 'types';
 
 const formatDate = (value?: string) =>
     value && moment(value).isValid() ? moment(value).format('MMM D, YYYY') : '';

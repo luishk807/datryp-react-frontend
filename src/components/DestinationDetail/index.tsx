@@ -9,30 +9,13 @@ import type {
     Destination,
     Friend,
     TripBasicType,
-} from 'types/trip.types';
+    TripDestinationEvent,
+    TripPlaceEvent,
+} from 'types';
 
 interface DateRange {
     startDate: string;
     endDate: string;
-}
-
-interface ActivityPayload {
-    type: ActionType;
-    value: any;
-    index?: number;
-    destinationIndx?: number | null;
-}
-
-interface PlaceEvent {
-    date: string;
-    activity: ActivityPayload;
-}
-
-interface DestinationEvent {
-    startDate: string;
-    endDate: string;
-    activity: ActivityPayload;
-    removeIndexes?: number[];
 }
 
 interface DestinationDetailProps {
@@ -41,9 +24,9 @@ interface DestinationDetailProps {
     startDate?: string | null;
     endDate?: string | null;
     participants?: Friend[];
-    onChangeBudget: (event: PlaceEvent) => void;
-    onChangePlace: (event: PlaceEvent) => void;
-    onChangeDestination?: (event: DestinationEvent) => void;
+    onChangeBudget: (event: TripPlaceEvent) => void;
+    onChangePlace: (event: TripPlaceEvent) => void;
+    onChangeDestination?: (event: TripDestinationEvent) => void;
     isViewMode?: boolean;
 }
 
@@ -119,7 +102,7 @@ const DestinationDetail = ({
         setDates(computeDatesRange(startDate, endDate, destinations));
     }, [startDate, endDate, destinations]);
 
-    const handleChangeDestination = (obj: DestinationEvent) => {
+    const handleChangeDestination = (obj: TripDestinationEvent) => {
         const ignoreId = _.get(obj, 'activity.value.id');
         const { startDate: flagStart, endDate: flagEnd } = obj;
 
@@ -140,7 +123,7 @@ const DestinationDetail = ({
         onChangeDestination?.({ ...obj, removeIndexes: indxList });
     };
 
-    const handleChangePlace = (obj: PlaceEvent) => {
+    const handleChangePlace = (obj: TripPlaceEvent) => {
         const { activity, date } = obj;
         let destIndx: number | null = null;
         for (let i = 0; i < destinations.length; i++) {

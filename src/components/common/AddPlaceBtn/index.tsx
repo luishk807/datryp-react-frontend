@@ -10,7 +10,7 @@ import { placeStatus } from 'sample';
 import classNames from 'classnames';
 import { TRIP_BASIC } from 'constants';
 import './index.css';
-import type { Activity, Friend, ImageRef } from 'types/trip.types';
+import type { Activity, Friend, ImageRef } from 'types';
 
 type AddPlaceType = 'add' | 'edit';
 type AddPlaceButtonType = 'text' | 'standard';

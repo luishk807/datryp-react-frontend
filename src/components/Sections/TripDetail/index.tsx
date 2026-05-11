@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+﻿import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import moment from "moment";
 import "./index.css";
@@ -14,7 +14,7 @@ import type {
   MultipleDestinations,
   SingleDestination,
   TripState,
-} from "types/trip.types";
+} from "types";
 
 type TripEntry = SingleDestination | MultipleDestinations;
 
@@ -103,10 +103,7 @@ export const TripDetail = () => {
     );
   }, [id]);
 
-  const tripData = useMemo(
-    () => (trip ? tripToTripState(trip) : null),
-    [trip],
-  );
+  const tripData = useMemo(() => (trip ? tripToTripState(trip) : null), [trip]);
 
   const handleChangeStep = () => {};
 
@@ -128,7 +125,7 @@ export const TripDetail = () => {
       <Grid container>
         <Grid item lg={12} md={12} xs={12}>
           <BasicTripInfo
-            isViewMode={true}
+            isViewMode={false}
             data={tripData}
             onChangeStep={handleChangeStep}
           />
@@ -139,7 +136,7 @@ export const TripDetail = () => {
         <Grid item lg={12}>
           <DestinationDetail
             type={tripData.type}
-            isViewMode={true}
+            isViewMode={false}
             startDate={tripData.startDate}
             participants={participants}
             endDate={tripData.endDate}

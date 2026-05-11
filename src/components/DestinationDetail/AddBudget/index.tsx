@@ -5,7 +5,7 @@ import { Grid } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
-import type { BudgetEntry, BudgetItem, Friend } from 'types/trip.types';
+import type { BudgetEntry, BudgetItem, Friend } from 'types';
 
 interface AddBudgetProps {
     participants?: Friend[];

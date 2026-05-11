@@ -8,7 +8,7 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { convertMoney } from 'utils';
-import type { TripState } from 'types/trip.types';
+import type { TripState } from 'types';
 
 interface BasicTripInfoProps {
     data: TripState;

@@ -8,7 +8,7 @@ import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
-import type { Country, Destination } from 'types/trip.types';
+import type { Country, Destination } from 'types';
 
 const HERO_IMAGES = [
     '/images/sample/iceland.jpg',
