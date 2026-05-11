@@ -1,4 +1,4 @@
-export interface DestinationRecommendationRequest {
+export interface CountryRecommendationRequest {
     query: string;
     interests?: string[];
     budget?: string | null;
@@ -6,16 +6,15 @@ export interface DestinationRecommendationRequest {
     userId?: string | null;
 }
 
-export interface DestinationRecommendation {
+export interface CountryRecommendation {
     id: string;
-    slug: string;
     name: string;
-    country: string | null;
+    code: string;
     score: number;
     reason: string | null;
 }
 
-export interface RecommendationResponse {
-    items: DestinationRecommendation[];
+export interface CountryRecommendationResponse {
+    items: CountryRecommendation[];
     modelVersion: string;
 }

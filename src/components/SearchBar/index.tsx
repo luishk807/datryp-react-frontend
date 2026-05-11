@@ -5,8 +5,8 @@ import { debounce } from 'lodash';
 import countryList from 'sample/countryList.json';
 import InputField from 'components/common/FormFields/InputField';
 import classNames from 'classnames';
-import { useDestinationRecommendations } from 'api/hooks/useDestinationRecommendations';
-import type { Country, DestinationRecommendation } from 'types';
+import { useCountryRecommendations } from 'api/hooks/useCountryRecommendations';
+import type { Country, CountryRecommendation } from 'types';
 
 type SearchBarVariant = 'standard' | 'simple';
 export type SearchMode = 'country' | 'recommend';
@@ -52,7 +52,7 @@ const SearchBar = ({
         isFetching: isRecommending,
         isError: hasRecommendError,
         error: recommendError,
-    } = useDestinationRecommendations(
+    } = useCountryRecommendations(
         { query: submittedQuery, limit: 6 },
         { enabled: mode === 'recommend' && submittedQuery.length > 0 }
     );
@@ -76,24 +76,19 @@ const SearchBar = ({
         });
     };
 
-    const handleRecommendationClick = (item: DestinationRecommendation) => {
-        const matched = item.country
-            ? (countryList as CountryListEntry[]).find(
-                  (c) => c.en.toLowerCase() === item.country!.toLowerCase()
-              )
-            : undefined;
+    const handleRecommendationClick = (item: CountryRecommendation) => {
+        // The recommendation IS a country — we just look up the `local` name
+        // from countryList.json so the downstream trip flow has everything.
+        const localMatch = (countryList as CountryListEntry[]).find(
+            (c) => c.code === item.code
+        );
 
-        const country: Country = matched
-            ? {
-                  id: Date.now(),
-                  name: matched.en,
-                  code: matched.code,
-                  local: matched.local,
-              }
-            : {
-                  id: Date.now(),
-                  name: item.country ?? item.name,
-              };
+        const country: Country = {
+            id: Date.now(),
+            name: item.name,
+            code: item.code,
+            local: localMatch?.local,
+        };
 
         setSelectedDestination(country.name);
         setSubmittedQuery('');
@@ -276,11 +271,9 @@ const SearchBar = ({
                                     <span className="searchbar-recommend-item-name">
                                         {item.name}
                                     </span>
-                                    {item.country && (
-                                        <span className="searchbar-recommend-item-country">
-                                            {item.country}
-                                        </span>
-                                    )}
+                                    <span className="searchbar-recommend-item-country">
+                                        {item.code}
+                                    </span>
                                 </span>
                                 <span className="searchbar-recommend-item-score">
                                     {Math.round(item.score * 100)}%

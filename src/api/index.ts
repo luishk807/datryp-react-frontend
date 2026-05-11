@@ -3,4 +3,4 @@ export { pythonGqlClient } from './pythonGqlClient';
 export { queryClient } from './queryClient';
 export { queryKeys } from './queryKeys';
 export { useMe } from './hooks/useMe';
-export { useDestinationRecommendations } from './hooks/useDestinationRecommendations';
+export { useCountryRecommendations } from './hooks/useCountryRecommendations';

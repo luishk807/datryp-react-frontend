@@ -3,19 +3,18 @@ import { gql } from 'graphql-request';
 import { pythonGqlClient } from 'api/pythonGqlClient';
 import { queryKeys } from 'api/queryKeys';
 import type {
-    DestinationRecommendationRequest,
-    RecommendationResponse,
+    CountryRecommendationRequest,
+    CountryRecommendationResponse,
 } from 'types';
 
-const RECOMMEND_DESTINATIONS_QUERY = gql`
-    query RecommendDestinations($input: DestinationRecommendationInput!) {
-        recommendDestinations(input: $input) {
+const RECOMMEND_COUNTRIES_QUERY = gql`
+    query RecommendCountries($input: CountryRecommendationInput!) {
+        recommendCountries(input: $input) {
             modelVersion
             items {
                 id
-                slug
                 name
-                country
+                code
                 score
                 reason
             }
@@ -24,21 +23,21 @@ const RECOMMEND_DESTINATIONS_QUERY = gql`
 `;
 
 interface QueryResult {
-    recommendDestinations: RecommendationResponse;
+    recommendCountries: CountryRecommendationResponse;
 }
 
-export const useDestinationRecommendations = (
-    payload: DestinationRecommendationRequest,
+export const useCountryRecommendations = (
+    payload: CountryRecommendationRequest,
     options?: { enabled?: boolean }
 ) =>
     useQuery({
-        queryKey: queryKeys.recommendations.destinations(payload.query),
+        queryKey: queryKeys.recommendations.countries(payload.query),
         queryFn: async () => {
             const data = await pythonGqlClient.request<QueryResult>(
-                RECOMMEND_DESTINATIONS_QUERY,
+                RECOMMEND_COUNTRIES_QUERY,
                 { input: payload }
             );
-            return data.recommendDestinations;
+            return data.recommendCountries;
         },
         enabled: (options?.enabled ?? true) && payload.query.trim().length > 0,
         placeholderData: keepPreviousData,

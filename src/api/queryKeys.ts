@@ -7,7 +7,7 @@ export const queryKeys = {
     },
     friends: ['friends'] as const,
     recommendations: {
-        destinations: (query: string) =>
-            ['recommendations', 'destinations', query] as const,
+        countries: (query: string) =>
+            ['recommendations', 'countries', query] as const,
     },
 };
