@@ -6,4 +6,8 @@ export const queryKeys = {
         detail: (id: number | string) => ['trips', 'detail', id] as const,
     },
     friends: ['friends'] as const,
+    recommendations: {
+        destinations: (query: string) =>
+            ['recommendations', 'destinations', query] as const,
+    },
 };

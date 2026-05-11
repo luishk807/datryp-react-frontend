@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(docker --version)",
+      "Bash(uv sync *)",
+      "Bash(uv run *)",
+      "PowerShell(Get-CimInstance Win32_ComputerSystem)",
+      "PowerShell(Get-CimInstance Win32_BIOS)",
+      "PowerShell(Get-CimInstance Win32_Processor)"
+    ]
+  }
+}

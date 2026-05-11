@@ -214,5 +214,158 @@
   -webkit-transition: .3s;
   -moz-transition: .3s;
   -ms-transition: .3s;
-  -o-transition: .3s;  
+  -o-transition: .3s;
+}
+
+/* ── Holder when in recommend mode ───────────────────────────────────── */
+
+.searchbarMain .holder-recommend {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+/* ── Recommend mode form ─────────────────────────────────────────────── */
+
+.searchbarMain .searchbar-recommend {
+  width: 100%;
+  position: relative;
+}
+
+.searchbarMain .searchbar-recommend-form {
+  display: flex;
+  gap: 10px;
+  border: theme('colors.primaryGreen') 2px solid;
+  border-radius: 10px;
+  padding: 10px 12px 10px 20px;
+  background: #fff;
+  align-items: center;
+}
+
+.searchbarMain .searchbar-recommend-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.1rem;
+  color: theme('colors.primary');
+  padding: 6px 0;
+}
+
+.searchbarMain .searchbar-recommend-input.is-standard {
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+}
+
+.searchbarMain .searchbar-recommend-input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.02em;
+}
+
+.searchbarMain .searchbar-recommend-submit {
+  border: none;
+  border-radius: 8px;
+  background: theme('colors.primary');
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+  white-space: nowrap;
+}
+
+.searchbarMain .searchbar-recommend-submit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.searchbarMain .searchbar-recommend-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Recommend mode results dropdown ─────────────────────────────────── */
+
+.searchbarMain .searchbar-recommend-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 2px solid #3cb54b;
+  border-radius: 10px;
+  padding: 8px;
+  max-height: 360px;
+  overflow: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.searchbarMain .searchbar-recommend-error {
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(220, 38, 38, 0.08);
+  color: rgb(153, 27, 27);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.searchbarMain .searchbar-recommend-empty {
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.searchbarMain .searchbar-recommend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.searchbarMain .searchbar-recommend-item:hover {
+  background: rgba(60, 181, 75, 0.08);
+  border-color: rgba(60, 181, 75, 0.4);
+}
+
+.searchbarMain .searchbar-recommend-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.searchbarMain .searchbar-recommend-item-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.searchbarMain .searchbar-recommend-item-country {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.searchbarMain .searchbar-recommend-item-score {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgb(6, 95, 70);
+  background: rgba(16, 185, 129, 0.12);
+  padding: 4px 10px;
+  border-radius: 999px;
 }

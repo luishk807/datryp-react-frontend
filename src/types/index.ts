@@ -4,3 +4,4 @@ export * from "./user.types";
 export * from "./itinerary.types";
 export * from "./tripState.types";
 export * from "./tripEvent.types";
+export * from "./recommendation.types";

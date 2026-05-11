@@ -1,6 +1,7 @@
-﻿import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import './index.css';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
@@ -17,9 +18,11 @@ const HERO_IMAGES = [
     '/images/sample/vietnam.jpg',
 ];
 
+type TripMode = 'single' | 'multiple' | 'recommend';
+
 const Home = () => {
     const dispatch = useTripDispatch();
-    const [isSingleSelected, setIsSingleSelected] = useState(true);
+    const [tripMode, setTripMode] = useState<TripMode>('single');
     const navigate = useNavigate();
 
     const heroImage = useMemo(
@@ -27,21 +30,19 @@ const Home = () => {
         []
     );
 
-    const handleClick = (id: number) => {
-        setIsSingleSelected(TRIP_BASIC.SINGLE.id === id);
-    };
-
     const handleSearchSelected = useCallback(
         (country: Country) => {
             if (!country?.name) return;
-            const type = isSingleSelected ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
+            // 'recommend' mode kicks off a single-trip flow with the chosen destination.
+            const type =
+                tripMode === 'multiple' ? TRIP_BASIC.MULTIPLE : TRIP_BASIC.SINGLE;
             const destinations = [{ country }] as Destination[];
 
             dispatch(resetTrip());
             dispatch(basicInfo({ type, destinations }));
             navigate(type.route, { replace: true });
         },
-        [dispatch, isSingleSelected, navigate]
+        [dispatch, tripMode, navigate]
     );
 
     const handlePlaceClick = (place: TopPlace) => {
@@ -66,42 +67,54 @@ const Home = () => {
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">Where to next?</h1>
                     <p className="home-hero-subtitle">
-                        Plan a single getaway or a multi-stop journey in minutes.
+                        Plan a single getaway, a multi-stop journey, or let AI find your match.
                     </p>
 
                     <div
                         role="tablist"
                         aria-label="Trip type"
-                        className={classnames('home-hero-options', {
-                            'is-single': isSingleSelected,
-                            'is-multiple': !isSingleSelected,
-                        })}
+                        className={classnames('home-hero-options', `is-${tripMode}`)}
                     >
                         <span className="hero-option-thumb" aria-hidden="true" />
                         <button
                             role="tab"
-                            aria-selected={isSingleSelected}
+                            aria-selected={tripMode === 'single'}
                             className={classnames('hero-option', {
-                                selected: isSingleSelected,
+                                selected: tripMode === 'single',
                             })}
-                            onClick={() => handleClick(TRIP_BASIC.SINGLE.id)}
+                            onClick={() => setTripMode('single')}
                         >
                             Single place
                         </button>
                         <button
                             role="tab"
-                            aria-selected={!isSingleSelected}
+                            aria-selected={tripMode === 'multiple'}
                             className={classnames('hero-option', {
-                                selected: !isSingleSelected,
+                                selected: tripMode === 'multiple',
                             })}
-                            onClick={() => handleClick(TRIP_BASIC.MULTIPLE.id)}
+                            onClick={() => setTripMode('multiple')}
                         >
                             Multiple locations
+                        </button>
+                        <button
+                            role="tab"
+                            aria-selected={tripMode === 'recommend'}
+                            className={classnames('hero-option', 'is-ai', {
+                                selected: tripMode === 'recommend',
+                            })}
+                            onClick={() => setTripMode('recommend')}
+                        >
+                            <AutoAwesomeIcon className="hero-option-icon" />
+                            <span>Recommend</span>
+                            <span className="hero-option-ai-badge">AI</span>
                         </button>
                     </div>
 
                     <div className="home-hero-search">
-                        <SearchBar onSelected={handleSearchSelected} />
+                        <SearchBar
+                            onSelected={handleSearchSelected}
+                            mode={tripMode === 'recommend' ? 'recommend' : 'country'}
+                        />
                     </div>
                 </div>
             </section>
