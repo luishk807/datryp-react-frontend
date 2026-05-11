@@ -5,16 +5,22 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { useUser, type UserFriend } from 'context/UserContext';
 import './index.css';
 
-interface FriendFormValues {
-    name: string;
-    email?: string;
-    phone?: string;
+interface InviteFormValues {
+    email: string;
 }
+
+const deriveNameFromEmail = (email: string): string => {
+    const handle = email.split('@')[0] ?? email;
+    return handle
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join(' ') || email;
+};
 
 export const Friends = () => {
     const { user, updateUser } = useUser();
     const modalRef = useRef<ModalButtonHandle>(null);
-    const [editing, setEditing] = useState<UserFriend | null>(null);
 
     if (!user) {
         return (
@@ -28,33 +34,25 @@ export const Friends = () => {
 
     const friends = user.friends ?? [];
 
-    const handleOpenAdd = () => {
-        setEditing(null);
+    const handleOpenInvite = () => {
         modalRef.current?.openModel();
     };
 
-    const handleOpenEdit = (friend: UserFriend) => {
-        setEditing(friend);
-        modalRef.current?.openModel();
-    };
-
-    const handleSubmit = (data: FriendFormValues) => {
-        if (editing) {
-            const next = friends.map((f) =>
-                f.id === editing.id ? { ...f, ...data } : f
-            );
-            updateUser({ friends: next });
-        } else {
-            const newFriend: UserFriend = {
-                id: Date.now().toString(),
-                name: data.name,
-                email: data.email,
-                phone: data.phone,
-            };
-            updateUser({ friends: [...friends, newFriend] });
+    const handleInvite = (data: InviteFormValues) => {
+        const email = data.email.trim().toLowerCase();
+        if (!email) return;
+        if (friends.some((f) => f.email?.toLowerCase() === email)) {
+            modalRef.current?.closeModal();
+            return;
         }
+        const newFriend: UserFriend = {
+            id: email,
+            name: deriveNameFromEmail(email),
+            email,
+            pending: true,
+        };
+        updateUser({ friends: [...friends, newFriend] });
         modalRef.current?.closeModal();
-        setEditing(null);
     };
 
     const handleRemove = (id: string) => {
@@ -81,8 +79,8 @@ export const Friends = () => {
                             <ButtonCustom
                                 type="standard"
                                 capitalizeType="uppercase"
-                                label="+ Add friend"
-                                onClick={handleOpenAdd}
+                                label="+ Invite friend"
+                                onClick={handleOpenInvite}
                             />
                         </div>
                     </div>
@@ -90,7 +88,7 @@ export const Friends = () => {
                     <div className="friends-list">
                         {friends.length === 0 ? (
                             <p className="friends-empty">
-                                No friends added yet. Add one to get started.
+                                No friends yet. Invite one to get started.
                             </p>
                         ) : (
                             friends.map((f) => (
@@ -99,7 +97,14 @@ export const Friends = () => {
                                         {f.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="friend-info">
-                                        <span className="friend-name">{f.name}</span>
+                                        <span className="friend-name">
+                                            {f.name}
+                                            {f.pending && (
+                                                <span className="friend-pending-badge">
+                                                    Invited
+                                                </span>
+                                            )}
+                                        </span>
                                         {(f.email || f.phone) && (
                                             <div className="friend-meta">
                                                 {f.email && (
@@ -118,14 +123,6 @@ export const Friends = () => {
                                     <div className="friend-actions">
                                         <button
                                             type="button"
-                                            className="friend-edit"
-                                            onClick={() => handleOpenEdit(f)}
-                                            aria-label={`Edit ${f.name}`}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            type="button"
                                             className="friend-remove"
                                             onClick={() => handleRemove(f.id)}
                                             aria-label={`Remove ${f.name}`}
@@ -139,57 +136,39 @@ export const Friends = () => {
                     </div>
                 </section>
 
-                <ModalButton
-                    ref={modalRef}
-                    title={editing ? 'Edit friend' : 'Add friend'}
-                >
-                    <FriendForm
-                        key={editing?.id ?? 'new'}
-                        initial={editing}
-                        onSubmit={handleSubmit}
-                    />
+                <ModalButton ref={modalRef} title="Invite a friend">
+                    <InviteForm onSubmit={handleInvite} />
                 </ModalButton>
             </div>
         </Layout>
     );
 };
 
-interface FriendFormProps {
-    initial: UserFriend | null;
-    onSubmit: (data: FriendFormValues) => void;
+interface InviteFormProps {
+    onSubmit: (data: InviteFormValues) => void;
 }
 
-const FriendForm = ({ initial, onSubmit }: FriendFormProps) => {
-    const [name, setName] = useState(initial?.name ?? '');
-    const [email, setEmail] = useState(initial?.email ?? '');
-    const [phone, setPhone] = useState(initial?.phone ?? '');
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const InviteForm = ({ onSubmit }: InviteFormProps) => {
+    const [email, setEmail] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    const handleSave = () => {
-        if (!name.trim()) {
-            setError('Name is required.');
+    const handleSend = () => {
+        const trimmed = email.trim();
+        if (!EMAIL_RE.test(trimmed)) {
+            setError('Enter a valid email address.');
             return;
         }
         setError(null);
-        onSubmit({
-            name: name.trim(),
-            email: email.trim() || undefined,
-            phone: phone.trim() || undefined,
-        });
+        onSubmit({ email: trimmed });
     };
 
     return (
         <div className="friend-form">
-            <FriendField label="Name">
-                <input
-                    className="friends-input"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Friend's name"
-                    autoFocus
-                />
-            </FriendField>
+            <p className="friend-form-helper">
+                We'll send them an invite to join your trips.
+            </p>
             <FriendField label="Email">
                 <input
                     className="friends-input"
@@ -197,15 +176,7 @@ const FriendForm = ({ initial, onSubmit }: FriendFormProps) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="email@example.com"
-                />
-            </FriendField>
-            <FriendField label="Phone">
-                <input
-                    className="friends-input"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1 555 123 4567"
+                    autoFocus
                 />
             </FriendField>
 
@@ -215,8 +186,8 @@ const FriendForm = ({ initial, onSubmit }: FriendFormProps) => {
                 <ButtonCustom
                     type="standard"
                     capitalizeType="uppercase"
-                    label={initial ? 'Save changes' : 'Add friend'}
-                    onClick={handleSave}
+                    label="Send invite"
+                    onClick={handleSend}
                 />
             </div>
         </div>

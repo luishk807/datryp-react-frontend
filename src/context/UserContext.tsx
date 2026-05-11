@@ -20,6 +20,7 @@ export interface UserFriend {
     name: string;
     email?: string;
     phone?: string;
+    pending?: boolean;
 }
 
 export interface User {
@@ -44,6 +45,39 @@ interface UserContextValue {
 
 const STORAGE_KEY = 'datryp:user';
 
+const DEFAULT_FRIENDS: UserFriend[] = [
+    {
+        id: 'joanna@example.com',
+        name: 'Joanna Tam',
+        email: 'joanna@example.com',
+        phone: '+1 555 234 5678',
+    },
+    {
+        id: 'alberto@example.com',
+        name: 'Alberto Wesker',
+        email: 'alberto@example.com',
+        phone: '+1 555 345 6789',
+    },
+    {
+        id: 'jessica@example.com',
+        name: 'Jessica Ruan',
+        email: 'jessica@example.com',
+        phone: '+1 555 456 7890',
+    },
+    {
+        id: 'chris@example.com',
+        name: 'Chris Redfield',
+        email: 'chris@example.com',
+        phone: '+1 555 567 8901',
+    },
+    {
+        id: 'leon@example.com',
+        name: 'Leon Kennedy',
+        email: 'leon@example.com',
+        phone: '+1 555 678 9012',
+    },
+];
+
 const DEFAULT_USER: User = {
     id: 'luis@example.com',
     name: 'Luis',
@@ -52,6 +86,7 @@ const DEFAULT_USER: User = {
     dob: '1990-05-20',
     countryOfBirth: 'US',
     preferredAirport: 'JFK',
+    friends: DEFAULT_FRIENDS,
 };
 
 const loadUser = (): User | null => {
@@ -60,7 +95,11 @@ const loadUser = (): User | null => {
         if (!raw) return DEFAULT_USER;
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object' && parsed.name) {
-            return parsed as User;
+            const stored = parsed as User;
+            if (!stored.friends) {
+                stored.friends = DEFAULT_FRIENDS;
+            }
+            return stored;
         }
         return DEFAULT_USER;
     } catch {

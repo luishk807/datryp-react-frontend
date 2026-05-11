@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+.friend-form-helper {
+  margin: 0 0 12px;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.9rem;
+}
+
+.friend-pending-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: rgba(246, 137, 31, 0.12);
+  color: theme('colors.primaryOrange');
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
 .friends-page {
   width: 100%;
   padding: 8px;

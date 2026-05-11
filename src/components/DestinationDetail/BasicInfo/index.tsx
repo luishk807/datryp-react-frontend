@@ -46,7 +46,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleOrganizerPicker = (_name: string | undefined, e: ChangeEventLike) => {
+    const handleOrganizerPicker = (_name: string | undefined, e: TripChangeEvent) => {
         onChange('organizer', e);
     };
 
