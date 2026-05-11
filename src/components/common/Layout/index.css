@@ -1,11 +1,25 @@
 #layout .layout-title {
   font-size: 1.5em;
   font-weight: bold;
-  color: theme('colors.primaryGreen')
+  color: theme('colors.primaryGreen');
+  padding: 0 16px;
+}
+
+@media (min-width: 1200px) {
+  #layout .layout-title {
+    padding: 0;
+  }
 }
 
 #layout .layout-container {
-  margin:20px auto 10px auto;
+  margin: 20px auto 10px auto;
+}
+
+@media (max-width: 1199px) {
+  #layout .layout-container {
+    margin: 12px auto 10px auto;
+    padding: 0 8px;
+  }
 }
 
 
