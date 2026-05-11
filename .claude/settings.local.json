@@ -6,7 +6,10 @@
       "Bash(uv run *)",
       "PowerShell(Get-CimInstance Win32_ComputerSystem)",
       "PowerShell(Get-CimInstance Win32_BIOS)",
-      "PowerShell(Get-CimInstance Win32_Processor)"
+      "PowerShell(Get-CimInstance Win32_Processor)",
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/graphql -H 'Origin: http://localhost:3000' -H 'Content-Type: application/json' -d '{\"query\":\"query R\\($input: DestinationRecommendationInput!\\){ recommendDestinations\\(input:$input\\){ modelVersion items{ id slug name country score reason } } }\",\"variables\":{\"input\":{\"query\":\"beach yoga retreat\",\"limit\":3}}}')",
+      "Bash(curl -s -i -X OPTIONS http://127.0.0.1:8000/graphql -H \"Origin: http://localhost:3000\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: content-type\")"
     ]
   }
 }

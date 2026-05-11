@@ -3,6 +3,7 @@ export interface DestinationRecommendationRequest {
     interests?: string[];
     budget?: string | null;
     limit?: number;
+    userId?: string | null;
 }
 
 export interface DestinationRecommendation {
@@ -16,5 +17,5 @@ export interface DestinationRecommendation {
 
 export interface RecommendationResponse {
     items: DestinationRecommendation[];
-    model_version: string;
+    modelVersion: string;
 }
