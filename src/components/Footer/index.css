@@ -2,39 +2,136 @@
 @tailwind components;
 @tailwind utilities;
 
-.footer{
-  position: absolute;
-  bottom: 0px;
-  background: gray;
+.footer {
   width: 100%;
-  height: 200px;
-  display: flex;
-  color: white;
-
+  background: theme('colors.primaryGreen');
+  color: #fff;
 }
 
-.footer .logo-container {
-  width: 180px;
-  padding: 10px
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 24px 16px;
 }
 
-.footer .logo,
-.footer .links,
-.footer .icons {
+.footer-top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Brand column */
+.footer-brand {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-logo {
+  width: 140px;
+  display: block;
+}
+
+.footer-tagline {
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* Section heading */
+.footer-heading {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 14px;
+}
+
+/* Links */
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.15s ease;
+}
+
+.footer-links a:hover {
+  color: #fff;
+}
+
+/* Social */
+.footer-social-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.footer-social-icons a {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-.footer .links ul {
+.footer-social-icons a:hover {
+  background: theme('colors.primaryOrange');
+  transform: translateY(-2px);
+}
+
+.footer-social-icons .MuiSvgIcon-root {
+  font-size: 20px;
+}
+
+/* Bottom bar */
+.footer-bottom {
+  padding-top: 16px;
   text-align: center;
 }
 
-.footer .links ul li {
-  display: inline;
-  padding: 5px 10px;
+.footer-copy {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.footer .mainContainer {
-  padding: 10px;
-  background-color: theme('colors.primaryGreen');
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-top {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    text-align: center;
+  }
+  .footer-inner {
+    padding: 28px 18px 14px;
+  }
+  .footer-logo {
+    width: 120px;
+    margin: 0 auto;
+  }
+  .footer-brand {
+    align-items: center;
+  }
+  .footer-tagline {
+    margin: 0 auto;
+  }
+  .footer-social-icons {
+    justify-content: center;
+  }
 }
