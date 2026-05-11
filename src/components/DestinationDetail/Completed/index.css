@@ -1,29 +1,131 @@
-#trip-complete {
-  margin: 0px auto
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-#trip-complete .trip-content .main-image {
+.trip-complete {
   display: flex;
   justify-content: center;
+  padding: 24px 16px 40px;
+  width: 100%;
 }
 
-#trip-complete  .trip-content .title {
-  display: flex;
-  justify-content: center;
-  margin: 50px 0px 50px 0px
-}
-
-#trip-complete  .trip-content .title .content {
-  font-size: 1.5em;
-  text-transform: uppercase;
-  font-weight: bold;
+.trip-complete-card {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 44px 32px 36px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
   text-align: center;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-#trip-complete .trip-content .title .text-1 {
-  color: theme('colors.primaryGreen');
+.trip-complete-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
 }
 
-#trip-complete  .trip-content .title .text-2 {
-  color: theme('colors.primaryOrange');
+.trip-complete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
+  color: #fff;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 24px rgba(60, 181, 75, 0.3);
+}
+
+.trip-complete-icon .MuiSvgIcon-root {
+  font-size: 36px;
+}
+
+.trip-complete-title {
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 700;
+  color: theme('colors.primary');
+  margin: 0 0 10px;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+.trip-complete-subtitle {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+.trip-complete-image {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.trip-complete-image img {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  display: block;
+}
+
+.trip-complete-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.trip-complete-actions > * {
+  width: 100%;
+}
+
+.trip-complete-actions button {
+  width: 100%;
+}
+
+@media (min-width: 540px) {
+  .trip-complete-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+  .trip-complete-actions > * {
+    flex: 1;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .trip-complete-card {
+    padding: 36px 20px 28px;
+    border-radius: 16px;
+  }
+  .trip-complete-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 14px;
+  }
+  .trip-complete-icon .MuiSvgIcon-root {
+    font-size: 32px;
+  }
+  .trip-complete-image img {
+    max-width: 220px;
+  }
 }

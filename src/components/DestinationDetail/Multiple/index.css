@@ -2,38 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
-/* .content .content-header{
-  font-weight: 500;
-  display: flex;
-  justify-content: flex-start;
-}
-
-.content .content-info {
-  font-weight: 500;
-  padding: 5px 0px;
-} */
-
-
 .multrip-content-item {
-  margin-bottom: 20px!important;
+  margin-bottom: 20px !important;
 }
 
-.multrip-content-item:not(:first-child){
-  padding-top: 20px!important;
+.multrip-content-item:not(:first-child) {
+  padding-top: 20px !important;
 }
-.multrip-content-item .content-header{
-  display: flex;
+
+.multrip-content-item .content-header {
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
   justify-content: flex-start;
-  /* margin: 10px 0px; */
 }
 
-.multrip-content-item .title{
+.multrip-content-item .country-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.multrip-content-item .flight-no {
+  font-size: 0.85rem;
+  color: theme('colors.primaryOrange');
+  letter-spacing: 0.04em;
   font-weight: 500;
 }
 
+.multrip-content-item .title {
+  font-weight: 500;
+}
 
+/* Flight leg pair */
 .multrip-content-item .content-info {
-  /* font-weight: 500; */
-  padding: 5px 0px;
-  margin-bottom: 10px
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+  padding: 14px 0 18px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.multrip-content-item .flight-leg {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.multrip-content-item .leg-icon {
+  flex-shrink: 0;
+  font-size: 24px !important;
+  color: theme('colors.primaryGreen');
+  margin-top: 2px;
+}
+
+.multrip-content-item .leg-detail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.multrip-content-item .leg-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+}
+
+.multrip-content-item .leg-airport {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  line-height: 1.25;
+  margin-top: 2px;
+}
+
+.multrip-content-item .leg-meta {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin-top: 2px;
+}
+
+.multrip-content-item .flight-divider {
+  width: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  align-self: stretch;
+}
+
+@media (max-width: 640px) {
+  .multrip-content-item .content-info {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .multrip-content-item .flight-divider {
+    width: 100%;
+    height: 1px;
+  }
 }

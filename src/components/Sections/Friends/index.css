@@ -1,0 +1,291 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.friends-page {
+  width: 100%;
+  padding: 8px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.friends-logged-out {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+/* ---------- Card ---------- */
+.friends-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  padding: 26px 28px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+.friends-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.friends-card-headings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.friends-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.friends-card-subtitle {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.friends-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.friends-card-actions button.main-button {
+  width: auto !important;
+  padding: 9px 18px !important;
+  min-width: 140px;
+}
+
+.friends-count {
+  flex-shrink: 0;
+  background: rgba(60, 181, 75, 0.1);
+  color: theme('colors.primaryGreen');
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ---------- Friend list ---------- */
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.friends-empty {
+  font-size: 0.92rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin: 6px 0 4px;
+  font-style: italic;
+  text-align: center;
+  padding: 16px;
+}
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.025);
+  transition: background-color 0.15s ease;
+}
+
+.friend-row:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.friend-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.friend-name {
+  font-weight: 600;
+  color: theme('colors.primary');
+  font-size: 0.95rem;
+}
+
+.friend-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.friend-meta-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.friend-edit,
+.friend-remove {
+  padding: 6px 12px;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.friend-edit {
+  color: theme('colors.primaryGreen');
+}
+
+.friend-edit:hover {
+  background: rgba(60, 181, 75, 0.08);
+}
+
+.friend-remove {
+  color: #c0392b;
+}
+
+.friend-remove:hover {
+  background: rgba(192, 57, 43, 0.08);
+}
+
+/* ---------- Modal form ---------- */
+.friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.friend-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.friend-form-label {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 600;
+}
+
+.friends-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: theme('colors.primary');
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.friends-input:focus {
+  border-color: theme('colors.primaryGreen');
+  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.15);
+}
+
+.friends-input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.friend-form-error {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+  font-size: 0.88rem;
+}
+
+.friend-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.friend-form-actions button.main-button {
+  width: auto !important;
+  padding: 10px 24px !important;
+  min-width: 170px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .friends-card {
+    padding: 20px 18px;
+    border-radius: 16px;
+  }
+  .friends-card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .friends-card-actions {
+    justify-content: space-between;
+  }
+  .friends-card-actions button.main-button {
+    flex: 1;
+    min-width: 0;
+  }
+  .friend-row {
+    flex-wrap: wrap;
+  }
+  .friend-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 4px;
+    padding-left: 54px;
+  }
+  .friend-form-actions {
+    justify-content: stretch;
+  }
+  .friend-form-actions button.main-button {
+    width: 100% !important;
+  }
+}

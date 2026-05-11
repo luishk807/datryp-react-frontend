@@ -1,42 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .modalCustom {
-  background: white;
-  /* width: 500px; */
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  -webkit-transform: translate(-50%, -50%);
-  -moz-transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  -o-transform: translate(-50%, -50%);
-  padding: 10px
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+  outline: none;
 }
 
-.modalCustom > .header {
-
+.modalCustom-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(
+    90deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
+  z-index: 1;
 }
 
-.modalCustom > .header > .button {
-    display: flex;
-    justify-content: end;
-    margin: 5px 10px;
+.modalCustom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 24px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-
-.modalCustom > .header > .button > .in {
-  display: flex
+.modalCustom-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  margin: 0;
+  letter-spacing: -0.005em;
+  flex: 1;
+  min-width: 0;
 }
 
-.modalCustom > .header > .title {
-    text-align: center;
-    font-weight: 500;
-    font-size: 1.3em;
-    text-transform:uppercase;
-    color: theme('colors.primaryOrange');
-    /* padding-bottom: 10px;
-    border-bottom: 1px solid rgba(0,0,0,.09) */
+.modalCustom-close {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.55) !important;
 }
 
-.modalCustom > .content {
-  margin-top: 5px
+.modalCustom-close:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: theme('colors.primary') !important;
+}
+
+.modalCustom-content {
+  padding: 18px 24px 24px;
+  overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  .modalCustom {
+    width: calc(100vw - 24px);
+    border-radius: 16px;
+    max-height: calc(100vh - 32px);
+  }
+  .modalCustom-header {
+    padding: 18px 18px 12px;
+  }
+  .modalCustom-content {
+    padding: 14px 18px 22px;
+  }
+  .modalCustom-title {
+    font-size: 1.05rem;
+  }
 }

@@ -26,10 +26,5 @@
         "no-multi-spaces": 1,
         "no-param-reassign": "off",
         "max-len":"off"
-    },
-    "settings": {
-      "react": {
-          "version": "detect"
-      }
-  }
+    }
 }

@@ -1,4 +1,344 @@
-#account-section {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.account-page {
+  width: 100%;
+  padding: 8px;
   display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---------- Logged-out state ---------- */
+.account-logged-out {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+/* ---------- Card ---------- */
+.account-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  padding: 26px 28px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+.account-card-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.account-card-headings.simple {
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.account-avatar {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(60, 181, 75, 0.3);
+}
+
+.account-card-headings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.account-card-subtitle {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ---------- Form ---------- */
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-field-label {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 600;
+}
+
+.account-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: theme('colors.primary');
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.account-input:focus {
+  border-color: theme('colors.primaryGreen');
+  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.15);
+}
+
+.account-input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.account-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+  padding-right: 36px;
+}
+
+.account-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.account-actions button.main-button {
+  width: auto !important;
+  padding: 10px 24px !important;
+  min-width: 170px;
+}
+
+.account-message {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.account-message-success {
+  background: rgba(60, 181, 75, 0.1);
+  color: theme('colors.primaryGreen');
+}
+
+.account-message-error {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+}
+
+/* ---------- Toggle ---------- */
+.account-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.account-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.account-toggle-track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  transition: background-color 0.18s ease;
+  flex-shrink: 0;
+}
+
+.account-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.18s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.account-toggle input:checked + .account-toggle-track {
+  background: theme('colors.primaryGreen');
+}
+
+.account-toggle input:checked + .account-toggle-track .account-toggle-thumb {
+  transform: translateX(18px);
+}
+
+.account-toggle-label {
+  font-size: 0.95rem;
+  color: theme('colors.primary');
+}
+
+/* ---------- Friends ---------- */
+.account-friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.account-empty {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin: 4px 0;
+  font-style: italic;
+}
+
+.account-friend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.account-friend-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.account-friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.account-friend-name {
+  font-weight: 600;
+  color: theme('colors.primary');
+  font-size: 0.95rem;
+}
+
+.account-friend-email {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-friend-remove {
+  padding: 6px 12px;
+  background: transparent;
+  color: #c0392b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.account-friend-remove:hover {
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.account-add-friend {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: stretch;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.account-add-friend button.main-line {
+  width: auto !important;
+  padding: 10px 18px !important;
+  min-width: 130px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .account-card {
+    padding: 20px 18px;
+    border-radius: 16px;
+  }
+  .account-card-header {
+    gap: 14px;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+  }
+  .account-avatar {
+    width: 54px;
+    height: 54px;
+    font-size: 1.3rem;
+  }
+  .account-card-title {
+    font-size: 1.1rem;
+  }
+  .account-actions {
+    justify-content: stretch;
+  }
+  .account-actions button.main-button {
+    width: 100% !important;
+  }
+  .account-add-friend {
+    grid-template-columns: 1fr;
+  }
+  .account-add-friend button.main-line {
+    width: 100% !important;
+  }
 }

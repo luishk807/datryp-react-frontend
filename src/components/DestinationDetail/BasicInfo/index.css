@@ -7,3 +7,82 @@
   font-size: 1.2em;
   padding: 10px 0px 20px 0px;
 }
+
+.step-section .trip-destination-card {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 28px;
+  margin: 4px 0 24px;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
+  box-shadow: 0 10px 28px rgba(60, 181, 75, 0.28);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.step-section .trip-destination-card::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -50px;
+  width: 220px;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.step-section .trip-destination-icon {
+  flex-shrink: 0;
+  font-size: 44px !important;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.step-section .trip-destination-text {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.step-section .trip-destination-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.step-section .trip-destination-name {
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .step-section .trip-destination-card {
+    padding: 16px 18px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+  .step-section .trip-destination-icon {
+    font-size: 36px !important;
+  }
+  .step-section .trip-destination-name {
+    font-size: 1.5rem;
+  }
+}

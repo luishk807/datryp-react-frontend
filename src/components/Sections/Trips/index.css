@@ -1,17 +1,124 @@
-#trip .trip-ul {
-  list-style: none;
-  display: flex;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trips-page {
+  width: 100%;
+  padding: 8px;
 }
 
-#trip .trip-ul > .trip-li{
-  
-}
-
-#trip-container {
+/* ---------- Header row ---------- */
+.trips-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
-#trip-container .trip-item {
+.trips-summary {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.95rem;
+}
+
+.trips-summary .trips-count {
+  color: theme('colors.primary');
+  font-weight: 700;
+}
+
+.trips-summary-item {
+  margin-left: 2px;
+}
+
+.trips-cta button.main-button {
+  padding: 10px 22px !important;
+  width: auto !important;
+  min-width: 180px;
+}
+
+/* ---------- Filter chips ---------- */
+.trips-filters {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.trips-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.trips-filter:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.trips-filter.active {
+  background: theme('colors.primaryOrange');
+  color: #fff;
+}
+
+.trips-filter-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.trips-filter.active .trips-filter-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* ---------- Trip grid ---------- */
+#trip-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -8px;
+}
+
+#trip-container .trip-item {
+  padding: 8px !important;
+}
+
+/* ---------- Empty state ---------- */
+.trips-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 1rem;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+.trips-empty p {
+  margin: 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .trips-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .trips-cta button.main-button {
+    width: 100% !important;
+    min-width: 0;
+  }
+  .trips-summary {
+    font-size: 0.9rem;
+  }
 }
