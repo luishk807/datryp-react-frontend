@@ -17,7 +17,7 @@ type AddPlaceButtonType = 'text' | 'standard';
 
 interface PlaceDraft {
     id?: number;
-    place?: string;
+    name?: string;
     location?: string;
     cost?: string | number;
     startTime?: string;
@@ -103,7 +103,7 @@ const AddPlaceBtn = ({
         if (data && type === 'edit') {
             setPlace({
                 id: data.id,
-                place: data.place,
+                name: data.name,
                 startTime: data.startTime || moment().format('HH:mm'),
                 endTime: data.endTime || moment().format('HH:mm'),
                 location: data.location,
@@ -142,7 +142,7 @@ const AddPlaceBtn = ({
             >
                 <ModalButton
                     ref={modelRef}
-                    title={isAdd ? 'Add Place' : 'Edit ' + (data?.place ?? '')}
+                    title={isAdd ? 'Add Place' : 'Edit ' + (data?.name ?? '')}
                     buttonProps={{
                         title: isAdd ? 'Add Place' : 'Edit',
                         Icon: buttonType === 'standard' ? AddCircleIcon : null,
@@ -154,10 +154,10 @@ const AddPlaceBtn = ({
                             <Grid container>
                                 <Grid item lg={12} xs={12} className="py-5">
                                     <InputField
-                                        defaultValue={place.place}
+                                        defaultValue={place.name}
                                         label="Name of Place"
-                                        name="place"
-                                        onChange={(e) => handleOnChange('place', e.target.value)}
+                                        name="name"
+                                        onChange={(e) => handleOnChange('name', e.target.value)}
                                     />
                                 </Grid>
                                 <Grid item lg={12} xs={12} className="py-5">

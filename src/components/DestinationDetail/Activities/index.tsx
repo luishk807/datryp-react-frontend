@@ -1,6 +1,11 @@
 ﻿import './index.css';
 import moment from 'moment';
 import { Grid } from '@mui/material';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
+import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
@@ -63,17 +68,29 @@ const Activities = ({
                                             <span className="status confirmed">
                                                 {getStatusName(activity.status)}
                                             </span>
-                                            <ul>
-                                                <li>
-                                                    <span className="location">{activity.location}</span>
-                                                </li>
-                                                <li>
-                                                    <span className="label">Time:</span> {activityTime}
-                                                </li>
+                                            <div className="activity-meta">
+                                                {activity.location && (
+                                                    <div className="meta-row">
+                                                        <LocationOnOutlinedIcon className="meta-icon" />
+                                                        <span className="meta-text location">
+                                                            {activity.location}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <div className="meta-row">
+                                                    <ScheduleOutlinedIcon className="meta-icon" />
+                                                    <span className="meta-text">{activityTime}</span>
+                                                </div>
                                                 {(budgetList || !isViewMode) && (
-                                                    <li>
-                                                        <span className="label">Who is paying:</span>
-                                                        {` ${budgetList}`}
+                                                    <div className="meta-row">
+                                                        <GroupOutlinedIcon className="meta-icon" />
+                                                        <span className="meta-text">
+                                                            {budgetList || (
+                                                                <span className="meta-hint">
+                                                                    No one yet
+                                                                </span>
+                                                            )}
+                                                        </span>
                                                         <AddBudget
                                                             isViewMode={isViewMode}
                                                             budget={activity.budget}
@@ -85,16 +102,26 @@ const Activities = ({
                                                             }
                                                             participants={participants}
                                                         />
-                                                    </li>
+                                                    </div>
                                                 )}
                                                 {Number.isFinite(Number(activity.cost)) &&
                                                     Number(activity.cost) !== 0 && (
-                                                        <li>
-                                                            <span className="label">Cost:</span>{' '}
-                                                            {convertMoney(activity.cost)}
-                                                        </li>
+                                                        <div className="meta-row">
+                                                            <PaymentsOutlinedIcon className="meta-icon" />
+                                                            <span className="meta-text">
+                                                                {convertMoney(activity.cost)}
+                                                            </span>
+                                                        </div>
                                                     )}
-                                            </ul>
+                                                {activity.note && (
+                                                    <div className="meta-row meta-row-note">
+                                                        <NotesOutlinedIcon className="meta-icon" />
+                                                        <span className="meta-text">
+                                                            {activity.note}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </Grid>
                                         <Grid item lg={1} md={1} xs={1} className="option">
                                             <Grid container className="flex h-full">

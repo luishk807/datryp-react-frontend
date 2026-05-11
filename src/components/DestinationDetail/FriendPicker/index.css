@@ -1,0 +1,114 @@
+.autocomplete-custom-li {
+  list-style: none;
+}
+
+.autocomplete-custom-li.disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.friend-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin: 2px 4px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.friend-option:hover {
+  background: rgba(60, 181, 75, 0.08);
+}
+
+.friend-option.is-selected {
+  background: rgba(60, 181, 75, 0.06);
+}
+
+.friend-option-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3cb54b 0%, #2a9039 100%);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.friend-option-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(60, 181, 75, 0.14);
+  color: #3cb54b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.friend-option-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.friend-option-name {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.82);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.friend-option-sub {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 2px;
+}
+
+.friend-option-pending {
+  display: inline-block;
+  padding: 1px 7px;
+  background: rgba(246, 137, 31, 0.12);
+  color: #f6891f;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.friend-option-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #3cb54b;
+  padding: 2px 8px;
+  background: rgba(60, 181, 75, 0.12);
+  border-radius: 9999px;
+}
+
+.friend-option-invite {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 6px;
+  padding-top: 12px;
+}
+
+.friend-option-invite:hover {
+  background: rgba(60, 181, 75, 0.1);
+}
+
+.friend-option-invite .friend-option-name {
+  color: #3cb54b;
+  font-weight: 600;
+}

@@ -1,0 +1,17 @@
+.invite-friend-modal {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.invite-friend-helper {
+  margin: 0 0 14px;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.92rem;
+}
+
+.invite-friend-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}

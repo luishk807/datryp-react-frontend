@@ -76,29 +76,33 @@ const Multiple = ({
                                     xs={12}
                                     className="flex justify-end justify-font-medium"
                                 >
-                                    <span>
-                                        <AddDestinationBtn
-                                            defaultDate={defaultDate}
-                                            tripMaxDate={tripMaxDate}
-                                            isViewMode={isViewMode}
-                                            onChange={(e) => onChangeDestination('edit', e)}
-                                            type="edit"
-                                            buttonType="text"
-                                            data={trip}
-                                        />
-                                    </span>
-                                    &#47;
-                                    <span>
-                                        <DialogBox
-                                            isViewMode={isViewMode}
-                                            title="Delete this destination"
-                                            buttonLabel="Delete"
-                                            buttonType="text"
-                                            onConfirm={() => onChangeDestination('delete', trip.id)}
-                                        >
-                                            You are about to delete {country}. Are you sure you want to delete this item
-                                        </DialogBox>
-                                    </span>
+                                    {!isViewMode && (
+                                        <>
+                                            <span>
+                                                <AddDestinationBtn
+                                                    defaultDate={defaultDate}
+                                                    tripMaxDate={tripMaxDate}
+                                                    isViewMode={isViewMode}
+                                                    onChange={(e) => onChangeDestination('edit', e)}
+                                                    type="edit"
+                                                    buttonType="text"
+                                                    data={trip}
+                                                />
+                                            </span>
+                                            &#47;
+                                            <span>
+                                                <DialogBox
+                                                    isViewMode={isViewMode}
+                                                    title="Delete this destination"
+                                                    buttonLabel="Delete"
+                                                    buttonType="text"
+                                                    onConfirm={() => onChangeDestination('delete', trip.id)}
+                                                >
+                                                    You are about to delete {country}. Are you sure you want to delete this item
+                                                </DialogBox>
+                                            </span>
+                                        </>
+                                    )}
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="content-info">
                                     <div className="flight-leg">

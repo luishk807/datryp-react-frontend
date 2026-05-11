@@ -1,26 +1,13 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
-import { useUser, type UserFriend } from 'context/UserContext';
+import InviteFriendModal from 'components/InviteFriendModal';
+import { useUser } from 'context/UserContext';
 import './index.css';
-
-interface InviteFormValues {
-    email: string;
-}
-
-const deriveNameFromEmail = (email: string): string => {
-    const handle = email.split('@')[0] ?? email;
-    return handle
-        .split(/[._-]+/)
-        .filter(Boolean)
-        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-        .join(' ') || email;
-};
 
 export const Friends = () => {
     const { user, updateUser } = useUser();
-    const modalRef = useRef<ModalButtonHandle>(null);
+    const [inviteOpen, setInviteOpen] = useState(false);
 
     if (!user) {
         return (
@@ -33,27 +20,6 @@ export const Friends = () => {
     }
 
     const friends = user.friends ?? [];
-
-    const handleOpenInvite = () => {
-        modalRef.current?.openModel();
-    };
-
-    const handleInvite = (data: InviteFormValues) => {
-        const email = data.email.trim().toLowerCase();
-        if (!email) return;
-        if (friends.some((f) => f.email?.toLowerCase() === email)) {
-            modalRef.current?.closeModal();
-            return;
-        }
-        const newFriend: UserFriend = {
-            id: email,
-            name: deriveNameFromEmail(email),
-            email,
-            pending: true,
-        };
-        updateUser({ friends: [...friends, newFriend] });
-        modalRef.current?.closeModal();
-    };
 
     const handleRemove = (id: string) => {
         updateUser({ friends: friends.filter((f) => f.id !== id) });
@@ -80,7 +46,7 @@ export const Friends = () => {
                                 type="standard"
                                 capitalizeType="uppercase"
                                 label="+ Invite friend"
-                                onClick={handleOpenInvite}
+                                onClick={() => setInviteOpen(true)}
                             />
                         </div>
                     </div>
@@ -136,74 +102,13 @@ export const Friends = () => {
                     </div>
                 </section>
 
-                <ModalButton ref={modalRef} title="Invite a friend">
-                    <InviteForm onSubmit={handleInvite} />
-                </ModalButton>
+                <InviteFriendModal
+                    open={inviteOpen}
+                    onClose={() => setInviteOpen(false)}
+                />
             </div>
         </Layout>
     );
 };
-
-interface InviteFormProps {
-    onSubmit: (data: InviteFormValues) => void;
-}
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const InviteForm = ({ onSubmit }: InviteFormProps) => {
-    const [email, setEmail] = useState('');
-    const [error, setError] = useState<string | null>(null);
-
-    const handleSend = () => {
-        const trimmed = email.trim();
-        if (!EMAIL_RE.test(trimmed)) {
-            setError('Enter a valid email address.');
-            return;
-        }
-        setError(null);
-        onSubmit({ email: trimmed });
-    };
-
-    return (
-        <div className="friend-form">
-            <p className="friend-form-helper">
-                We'll send them an invite to join your trips.
-            </p>
-            <FriendField label="Email">
-                <input
-                    className="friends-input"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@example.com"
-                    autoFocus
-                />
-            </FriendField>
-
-            {error && <div className="friend-form-error">{error}</div>}
-
-            <div className="friend-form-actions">
-                <ButtonCustom
-                    type="standard"
-                    capitalizeType="uppercase"
-                    label="Send invite"
-                    onClick={handleSend}
-                />
-            </div>
-        </div>
-    );
-};
-
-interface FriendFieldProps {
-    label: string;
-    children: ReactNode;
-}
-
-const FriendField = ({ label, children }: FriendFieldProps) => (
-    <label className="friend-form-field">
-        <span className="friend-form-label">{label}</span>
-        {children}
-    </label>
-);
 
 export default Friends;

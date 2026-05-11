@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './index.css';
 import Button from 'components/common/FormFields/ButtonCustom';
 
-type CompleteNavTarget = 'home' | 'account';
+type CompleteNavTarget = 'home' | 'trips';
 
 export interface CompleteProps {
     onReset?: () => void;
@@ -15,7 +15,7 @@ const Complete = ({ onReset }: CompleteProps) => {
 
     const handleClick = (target: CompleteNavTarget) => {
         if (target === 'home') navigate('/');
-        else navigate('/account');
+        else navigate('/trips');
     };
 
     const handleSecondary = () => {
@@ -46,7 +46,7 @@ const Complete = ({ onReset }: CompleteProps) => {
                         <Button
                             type="standard"
                             capitalizeType="uppercase"
-                            onClick={() => handleClick('account')}
+                            onClick={() => handleClick('trips')}
                             label="View Your Trip"
                         />
                         <Button

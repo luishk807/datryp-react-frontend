@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import classnames from 'classnames';
 import './index.css';
 import { TextField, Autocomplete } from '@mui/material';
@@ -16,6 +16,7 @@ export interface AutocompleteCustomProps<T extends AutocompleteOption = Autocomp
     name?: string;
     onRemove?: (remaining: T[]) => void;
     selectedOptions?: T[];
+    renderOption?: (option: T, isSelected: boolean) => ReactNode;
 }
 
 const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
@@ -26,6 +27,7 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
     name,
     onRemove,
     selectedOptions = [],
+    renderOption,
 }: AutocompleteCustomProps<T>) => {
     const [data, setData] = useState<T[]>([]);
 
@@ -57,6 +59,24 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={handleOnChange}
             renderOption={(_props, option) => {
+                const alreadySelected = selectedOptions.some(
+                    (item) => item.id === option.id
+                );
+
+                if (renderOption) {
+                    return (
+                        <li
+                            key={`fd-${option.id}`}
+                            className={classnames('autocomplete-custom-li', {
+                                disabled: alreadySelected && option.id !== -1,
+                            })}
+                            onClick={() => handleOnClick(option)}
+                        >
+                            {renderOption(option, alreadySelected)}
+                        </li>
+                    );
+                }
+
                 if (option.id === -1) {
                     return (
                         <li key={`fd-${option.id}`}>
@@ -70,7 +90,6 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
                         </li>
                     );
                 }
-                const alreadySelected = selectedOptions.some((item) => item.id === option.id);
                 return (
                     <li key={`fd-${option.id}`}>
                         <div
