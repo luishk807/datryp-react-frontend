@@ -11,6 +11,7 @@ export interface ButtonCustomProps {
     capitalizeType?: CapitalizeType;
     type?: ButtonVariant;
     style?: CSSProperties | null;
+    disabled?: boolean;
 }
 
 const ButtonCustom = ({
@@ -19,10 +20,12 @@ const ButtonCustom = ({
     capitalizeType = 'capitalize',
     type = 'standard',
     style = null,
+    disabled = false,
 }: ButtonCustomProps) => {
     return (
         <button
             style={style ?? undefined}
+            disabled={disabled}
             className={classNames({
                 'main-button': type === 'standard',
                 'main-line': type === 'line',
@@ -33,6 +36,7 @@ const ButtonCustom = ({
                 lowercase: capitalizeType === 'lowercase',
                 uppercase: capitalizeType === 'uppercase',
                 none: capitalizeType === 'none',
+                'is-disabled': disabled,
             })}
             onClick={onClick}
         >

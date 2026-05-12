@@ -3,6 +3,7 @@ import React from 'react';
 import './App.css';
 import { lazy, Suspense } from 'react';
 import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
+import AuthGate from 'components/AuthGate';
 const Home = lazy(() => import('components/Sections/Home'));
 const SingleTrip = lazy(() => import('components/Sections/SingleTrip'));
 const MultipleTrip = lazy(() => import('components/Sections/MultipleTrip'));
@@ -12,6 +13,16 @@ const TripDetail = lazy(() => import('components/Sections/TripDetail'));
 const Friends = lazy(() => import('components/Sections/Friends'));
 
 import { TRIP_BASIC } from 'constants';
+
+const Gated = ({ children, title, subtitle }: {
+    children: React.ReactNode;
+    title?: string;
+    subtitle?: string;
+}) => (
+    <AuthGate title={title} subtitle={subtitle}>
+        <Suspense fallback={<>...</>}>{children}</Suspense>
+    </AuthGate>
+);
 
 function App() {
     return (
@@ -23,34 +34,46 @@ function App() {
                     </Suspense>
                 } />
                 <Route path={TRIP_BASIC.SINGLE.route} element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated title="Sign in to plan your trip">
                         <SingleTrip />
-                    </Suspense>
+                    </Gated>
                 } />
                 <Route path={TRIP_BASIC.MULTIPLE.route} element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated title="Sign in to plan your trip">
                         <MultipleTrip />
-                    </Suspense>
+                    </Gated>
                 }/>
                 <Route path='/account' element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated
+                        title="Sign in to manage your account"
+                        subtitle="Profile, preferences and password live here."
+                    >
                         <Account />
-                    </Suspense>
+                    </Gated>
                 }/>
                 <Route path='/trips' element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated
+                        title="Sign in to see your trips"
+                        subtitle="All your itineraries in one place."
+                    >
                         <Trips />
-                    </Suspense>
+                    </Gated>
                 }/>
                 <Route path='/trip-detail' element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated
+                        title="Sign in to see this trip"
+                        subtitle="You need an account to view itinerary details."
+                    >
                         <TripDetail />
-                    </Suspense>
+                    </Gated>
                 }/>
                 <Route path='/friends' element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated
+                        title="Sign in to manage friends"
+                        subtitle="Invite friends, accept requests, plan together."
+                    >
                         <Friends />
-                    </Suspense>
+                    </Gated>
                 }/>
             </Routes>
         </Router>

@@ -6,6 +6,27 @@ export { useMe } from './hooks/useMe';
 export { useCountryRecommendations } from './hooks/useCountryRecommendations';
 export { useCountries } from './hooks/useCountries';
 export type { CountryResult } from './hooks/useCountries';
+export { useItineraryTypes, useTripStatuses } from './hooks/useLookups';
+export type { LookupRow } from './hooks/useLookups';
+export {
+    useMyItineraries,
+    useSaveItinerary,
+    useDeleteItinerary,
+    isSingleDestination,
+    isMultiDestination,
+} from './hooks/useItineraries';
+export type {
+    ApiItinerary,
+    ApiItineraryDate,
+    ApiActivity,
+    ApiCountry,
+    ApiFlightInfo,
+    ApiUserPublic,
+    SaveItineraryInput,
+    ItineraryDayInput,
+    ActivityInput,
+    FlightInfoInput,
+} from './hooks/useItineraries';
 export {
     useCurrentUser,
     useLogin,

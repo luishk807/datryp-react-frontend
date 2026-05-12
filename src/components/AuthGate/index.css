@@ -1,0 +1,262 @@
+/* Split-screen auth page — full-bleed, no site chrome. Convention for
+ * gated auth flows (Airbnb, Auth0, Linear). The Header/Footer come back
+ * naturally once the user signs in and the children render. */
+
+.authgate-page {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  overflow: auto;
+  z-index: 50;
+}
+
+.authgate-loading {
+  margin: 80px auto;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ── Hero (left) ────────────────────────────────────────────────────────── */
+
+.authgate-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 56px 64px;
+  color: #fff;
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(8, 30, 60, 0.72) 0%,
+      rgba(20, 70, 110, 0.55) 55%,
+      rgba(8, 30, 60, 0.6) 100%
+    ),
+    url('/images/sample/iceland.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.authgate-hero::after {
+  /* Subtle radial vignette for depth. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 70% 30%,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.authgate-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+}
+
+.authgate-brand {
+  display: inline-flex;
+  margin-bottom: 56px;
+  filter: brightness(0) invert(1);
+}
+
+.authgate-brand img {
+  height: 56px;
+  width: auto;
+}
+
+.authgate-hero-title {
+  margin: 0 0 12px;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.authgate-hero-subtitle {
+  margin: 0 0 32px;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.authgate-hero-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.authgate-hero-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.authgate-hero-list li span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.authgate-hero-back {
+  position: relative;
+  z-index: 1;
+}
+
+.authgate-back-link {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.authgate-back-link:hover {
+  color: #fff;
+}
+
+/* ── Form panel (right) ────────────────────────────────────────────────── */
+
+.authgate-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: #fff;
+}
+
+.authgate-form-wrap {
+  width: 100%;
+  max-width: 380px;
+}
+
+.authgate-brand-mobile {
+  display: none;
+  margin-bottom: 32px;
+}
+
+.authgate-form-title {
+  margin: 0 0 6px;
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #111;
+}
+
+.authgate-form-subtitle {
+  margin: 0 0 28px;
+  font-size: 0.9375rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.authgate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.authgate-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.authgate-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.authgate-optional {
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.authgate-input {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.authgate-input:focus {
+  border-color: #1976d2;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.12);
+}
+
+.authgate-error {
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(179, 38, 30, 0.08);
+  border-left: 3px solid #b3261e;
+  color: #b3261e;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.authgate-toggle {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.authgate-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1976d2;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+}
+
+.authgate-link:hover {
+  color: #1565c0;
+  text-decoration: underline;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .authgate-page {
+    grid-template-columns: 1fr;
+    position: static;
+    min-height: 100vh;
+  }
+
+  .authgate-hero {
+    display: none;
+  }
+
+  .authgate-brand-mobile {
+    display: inline-flex;
+  }
+
+  .authgate-brand-mobile img {
+    height: 44px;
+  }
+}
