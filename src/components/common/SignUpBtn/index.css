@@ -9,3 +9,16 @@
   color: rgba(0,0,0, .5);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+#signup .form-error {
+  color: #b3261e;
+  font-size: 0.875rem;
+  padding: 4px 0;
+}
+
+#signup .age-notice {
+  margin: 6px 0 0;
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.6);
+  font-family: Arial, Helvetica, sans-serif;
+}

@@ -1,28 +1,14 @@
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
 import './index.css';
-import { debounce } from 'lodash';
-import countryList from 'sample/countryList.json';
 import InputField from 'components/common/FormFields/InputField';
 import classNames from 'classnames';
+import { useCountries } from 'api/hooks/useCountries';
 import { useCountryRecommendations } from 'api/hooks/useCountryRecommendations';
 import type { Country, CountryRecommendation } from 'types';
 
 type SearchBarVariant = 'standard' | 'simple';
 export type SearchMode = 'country' | 'recommend';
-
-interface CountryOption {
-    id?: number;
-    label?: string;
-    code?: string;
-    local?: string;
-}
-
-interface CountryListEntry {
-    en: string;
-    code: string;
-    local: string;
-}
 
 interface SearchBarProps {
     onSelected?: (country: Country) => void;
@@ -33,6 +19,8 @@ interface SearchBarProps {
     mode?: SearchMode;
 }
 
+const DEBOUNCE_MS = 500;
+
 const SearchBar = ({
     onSelected,
     defaultValue,
@@ -41,12 +29,21 @@ const SearchBar = ({
     mode = 'country',
 }: SearchBarProps) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const [countriesFound, setCountriesFound] = useState<CountryOption[]>([]);
     const [selectedDestination, setSelectedDestination] = useState('');
-    const [isCountrySearching, setIsCountrySearching] = useState(false);
 
-    const [recommendQuery, setRecommendQuery] = useState('');
+    // Single text-state across both modes; we just route it to a different
+    // submitted-query state based on `mode` so React Query can debounce.
+    const [rawQuery, setRawQuery] = useState('');
     const [submittedQuery, setSubmittedQuery] = useState('');
+
+    const {
+        data: countryResults,
+        isFetching: isCountryFetching,
+        isError: hasCountryError,
+    } = useCountries(submittedQuery, {
+        enabled: mode === 'country' && submittedQuery.length > 0,
+        limit: 10,
+    });
 
     const {
         data: recommendations,
@@ -59,57 +56,22 @@ const SearchBar = ({
     );
 
     useEffect(() => {
-        setCountriesFound([]);
-        setIsCountrySearching(false);
+        // Clear in-flight state when the user toggles between country/recommend.
+        setRawQuery('');
         setSubmittedQuery('');
-        setRecommendQuery('');
+        if (inputRef.current) inputRef.current.value = '';
     }, [mode]);
 
     // Debounce: 500ms of idle after the last keystroke before firing the query.
-    // Matches Country mode's autocomplete feel and avoids one API call per keystroke.
     useEffect(() => {
-        if (mode !== 'recommend') return;
-        const trimmed = recommendQuery.trim();
+        const trimmed = rawQuery.trim();
         if (!trimmed) {
             setSubmittedQuery('');
             return;
         }
-        const handle = setTimeout(() => setSubmittedQuery(trimmed), 500);
+        const handle = setTimeout(() => setSubmittedQuery(trimmed), DEBOUNCE_MS);
         return () => clearTimeout(handle);
-    }, [recommendQuery, mode]);
-
-    const handleCountryClick = (option: CountryOption) => {
-        const label = option.label ?? '';
-        setSelectedDestination(label);
-        if (inputRef.current) inputRef.current.value = label;
-        setCountriesFound([]);
-        onSelected?.({
-            id: option.id as number,
-            name: label,
-            code: option.code,
-            local: option.local,
-        });
-    };
-
-    const handleRecommendationClick = (item: CountryRecommendation) => {
-        // The recommendation IS a country — we just look up the `local` name
-        // from countryList.json so the downstream trip flow has everything.
-        const localMatch = (countryList as CountryListEntry[]).find(
-            (c) => c.code === item.code
-        );
-
-        const country: Country = {
-            id: Date.now(),
-            name: item.name,
-            code: item.code,
-            local: localMatch?.local,
-        };
-
-        setSelectedDestination(country.name);
-        setSubmittedQuery('');
-        setRecommendQuery('');
-        onSelected?.(country);
-    };
+    }, [rawQuery]);
 
     useEffect(() => {
         if (defaultValue) {
@@ -118,111 +80,138 @@ const SearchBar = ({
         }
     }, [defaultValue]);
 
-    const handleListHover = (option: CountryOption) => {
-        if (inputRef.current) inputRef.current.value = option.label ?? '';
+    const closeResults = () => {
+        setRawQuery('');
+        setSubmittedQuery('');
     };
 
-    const handleCountryInputChange = () => {
-        const check = inputRef.current?.value.toLowerCase().trim() ?? '';
-        setIsCountrySearching(false);
-        if (!check) {
-            setCountriesFound([]);
-            return;
-        }
-        const found = (countryList as CountryListEntry[]).filter((item) =>
-            item.en.toLowerCase().includes(check)
-        );
-
-        setCountriesFound(
-            found.map((item, idx) => ({
-                id: idx,
-                label: item.en,
-                code: item.code,
-                local: item.local,
-            }))
-        );
+    const handleCountryClick = (item: {
+        id: string;
+        name: string;
+        code: string;
+        local: string | null;
+    }) => {
+        setSelectedDestination(item.name);
+        if (inputRef.current) inputRef.current.value = item.name;
+        closeResults();
+        onSelected?.({
+            id: item.id,
+            name: item.name,
+            code: item.code,
+            local: item.local ?? undefined,
+        });
     };
 
-    const debounceCountryChange = useMemo(
-        () => debounce(handleCountryInputChange, 500),
-        []
-    );
-
-    const handleCountryKeystroke = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setIsCountrySearching(e.target.value.trim().length > 0);
-        debounceCountryChange();
-    };
-
-    useEffect(() => {
-        return () => {
-            debounceCountryChange.cancel();
+    const handleRecommendationClick = (item: CountryRecommendation) => {
+        const country: Country = {
+            id: item.id,
+            name: item.name,
+            code: item.code,
+            local: item.local ?? undefined,
+            image: item.image ?? undefined,
         };
-    }, [debounceCountryChange]);
-
-    const handleClickAway = () => {
-        setCountriesFound([]);
+        setSelectedDestination(country.name);
+        closeResults();
+        if (inputRef.current) inputRef.current.value = country.name;
+        onSelected?.(country);
     };
+
+    const handleListHover = (label: string) => {
+        if (inputRef.current) inputRef.current.value = label;
+    };
+
+    const handleKeystroke = (e: { target: { value: string } }) => {
+        setRawQuery(e.target.value);
+    };
+
+    const handleClickAway = () => closeResults();
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
         e.target.select();
     };
 
-    const renderCountryMode = () => (
-        <Grid
-            container
-            className={classNames({
-                container: type === 'standard',
-                'container-simple': type === 'simple',
-            })}
-        >
-            {type === 'standard' ? (
-                <Grid item lg={12} md={12} xs={12} className="inputHolder">
-                    <input
-                        onChange={handleCountryKeystroke}
-                        ref={inputRef}
-                        className="inputBar"
-                        type="text"
-                        onFocus={handleFocus}
-                        placeholder="Search Country for trip"
-                    />
-                    {isCountrySearching && (
-                        <span className="searchbar-country-spinner" aria-hidden="true" />
-                    )}
-                </Grid>
-            ) : (
-                <Grid item lg={12} md={12} xs={12}>
-                    <InputField
-                        ref={inputRef}
-                        defaultValue={selectedDestination}
-                        label="Search Destination"
-                        onChange={handleCountryKeystroke}
-                    />
-                </Grid>
-            )}
+    const renderCountryMode = () => {
+        const items = countryResults ?? [];
+        const trimmed = rawQuery.trim();
+        const showLoading = isCountryFetching && items.length === 0 && !hasCountryError;
+        const showEmpty =
+            submittedQuery && !isCountryFetching && items.length === 0 && !hasCountryError;
+        const showDropdown =
+            trimmed.length > 0 && (items.length > 0 || showLoading || showEmpty || hasCountryError);
 
-            {!!countriesFound.length && (
-                <div
-                    className={classNames({
-                        listContainerV2: type === 'standard',
-                        'listContainerV2-simple': type === 'simple',
-                    })}
-                >
-                    <ul>
-                        {countriesFound.map((item, indx) => (
-                            <li
-                                onClick={() => handleCountryClick(item)}
-                                onMouseEnter={() => handleListHover(item)}
-                                key={indx}
-                                className="item"
-                            >
-                                {item.label}, {item.code}, {item.local}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-        </Grid>
-    );
+        return (
+            <Grid
+                container
+                className={classNames({
+                    container: type === 'standard',
+                    'container-simple': type === 'simple',
+                })}
+            >
+                {type === 'standard' ? (
+                    <Grid item lg={12} md={12} xs={12} className="inputHolder">
+                        <input
+                            onChange={(e) => handleKeystroke(e)}
+                            ref={inputRef}
+                            className="inputBar"
+                            type="text"
+                            onFocus={handleFocus}
+                            placeholder="Search Country for trip"
+                        />
+                        {isCountryFetching && (
+                            <span className="searchbar-country-spinner" aria-hidden="true" />
+                        )}
+                    </Grid>
+                ) : (
+                    <Grid item lg={12} md={12} xs={12}>
+                        <InputField
+                            ref={inputRef}
+                            defaultValue={selectedDestination}
+                            label="Search Destination"
+                            onChange={handleKeystroke}
+                        />
+                    </Grid>
+                )}
+
+                {showDropdown && (
+                    <div
+                        className={classNames({
+                            listContainerV2: type === 'standard',
+                            'listContainerV2-simple': type === 'simple',
+                        })}
+                    >
+                        {hasCountryError && (
+                            <p className="searchbar-recommend-error">
+                                Could not reach the country service. Is the backend running?
+                            </p>
+                        )}
+                        {showLoading && (
+                            <p className="searchbar-recommend-loading">Searching…</p>
+                        )}
+                        {showEmpty && (
+                            <p className="searchbar-recommend-empty">
+                                No countries match &ldquo;{submittedQuery}&rdquo;.
+                            </p>
+                        )}
+                        {!!items.length && (
+                            <ul>
+                                {items.map((item) => (
+                                    <li
+                                        onClick={() => handleCountryClick(item)}
+                                        onMouseEnter={() => handleListHover(item.name)}
+                                        key={item.id}
+                                        className="item"
+                                    >
+                                        {item.name}, {item.code}
+                                        {item.local ? `, ${item.local}` : ''}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )}
+            </Grid>
+        );
+    };
 
     const renderRecommendMode = () => {
         const items = recommendations?.items ?? [];
@@ -230,7 +219,7 @@ const SearchBar = ({
             submittedQuery && !isRecommending && items.length === 0 && !hasRecommendError;
         const showLoading = isRecommending && items.length === 0 && !hasRecommendError;
         const showDropdown =
-            recommendQuery.trim().length > 0 &&
+            rawQuery.trim().length > 0 &&
             (items.length > 0 || showEmpty || hasRecommendError || showLoading);
 
         return (
@@ -242,8 +231,8 @@ const SearchBar = ({
                             'is-standard': type === 'standard',
                         })}
                         placeholder="Try 'beach yoga retreat' or 'ancient ruins'"
-                        value={recommendQuery}
-                        onChange={(e) => setRecommendQuery(e.target.value)}
+                        value={rawQuery}
+                        onChange={(e) => setRawQuery(e.target.value)}
                         aria-label="Describe what you're looking for"
                     />
                     {isRecommending && (

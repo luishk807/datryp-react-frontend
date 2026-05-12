@@ -4,6 +4,7 @@ import { Grid } from '@mui/material';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from '../FormFields/ButtonCustom';
 import InputField from '../FormFields/InputField';
+import { MIN_SIGNUP_AGE } from 'utils/age';
 
 export interface SignUpForm {
     username?: string;
@@ -15,22 +16,39 @@ export interface SignUpForm {
 }
 
 export interface SignUpProps {
-    onClick?: (form: SignUpForm) => void;
+    /**
+     * Called when the user submits. Return a Promise to surface errors
+     * inside the modal: rejection renders the error and keeps the modal
+     * open; resolve closes it.
+     */
+    onClick?: (form: SignUpForm) => void | Promise<void>;
 }
 
 export const SignUp = ({ onClick }: SignUpProps) => {
     const modelRef = useRef<ModalButtonHandle>(null);
     const [form, setForm] = useState<SignUpForm>({});
+    const [error, setError] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const label = 'Sign Up';
 
     const onChange = (field: keyof SignUpForm, e: { target: { value: string } }) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
+        if (error) setError(null);
     };
 
-    const handleSubmit = () => {
-        onClick?.(form);
-        modelRef.current?.closeModal();
+    const handleSubmit = async () => {
+        if (submitting) return;
+        setError(null);
+        setSubmitting(true);
+        try {
+            await onClick?.(form);
+            modelRef.current?.closeModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Signup failed');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -47,7 +65,7 @@ export const SignUp = ({ onClick }: SignUpProps) => {
                     <InputField name="username" onChange={(e) => onChange('username', e)} />
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
-                    <InputField name="password" onChange={(e) => onChange('password', e)} />
+                    <InputField name="password" type="password" onChange={(e) => onChange('password', e)} />
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <InputField name="name" onChange={(e) => onChange('name', e)} />
@@ -57,6 +75,9 @@ export const SignUp = ({ onClick }: SignUpProps) => {
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <InputField type="date" name="date of birth" onChange={(e) => onChange('dob', e)} />
+                    <p className="age-notice">
+                        You must be at least {MIN_SIGNUP_AGE} years old to use daTryp.
+                    </p>
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <InputField name="phone" onChange={(e) => onChange('phone', e)} />
@@ -65,9 +86,14 @@ export const SignUp = ({ onClick }: SignUpProps) => {
                     By clicking Agree & Join, you agree to the DaTryp User Agreement, Privacy
                     Policy, and Cookie Policy.
                 </Grid>
+                {error && (
+                    <Grid item lg={12} xs={12} md={12} className="form-input form-error" role="alert">
+                        {error}
+                    </Grid>
+                )}
                 <Grid item lg={12} xs={12} md={12} className="form-input">
                     <ButtonCustom
-                        label="Agree & Join"
+                        label={submitting ? 'Creating account…' : 'Agree & Join'}
                         onClick={handleSubmit}
                         capitalizeType="uppercase"
                     />

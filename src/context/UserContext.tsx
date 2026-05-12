@@ -3,9 +3,17 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useState,
     type ReactNode,
 } from 'react';
+import {
+    useCurrentUser,
+    useLogin,
+    useLogout,
+    useSignup,
+} from 'api/hooks/useAuth';
+import type { SignupPayload } from 'api/authApi';
 
 export type PaymentType = 'card' | 'paypal' | 'venmo' | 'other';
 
@@ -36,104 +44,142 @@ export interface User {
     friends?: UserFriend[];
 }
 
+/**
+ * Fields the Python backend doesn't yet model (friends list, payment type,
+ * notification prefs, etc). We store them per-user in localStorage and merge
+ * them on top of the authenticated user from /auth/me.
+ */
+type LocalOverlay = Pick<
+    User,
+    | 'phone'
+    | 'dob'
+    | 'countryOfBirth'
+    | 'preferredAirport'
+    | 'paymentType'
+    | 'notifications'
+    | 'friends'
+>;
+
 interface UserContextValue {
     user: User | null;
-    login: (user: User) => void;
+    isLoading: boolean;
+    login: (email: string, password: string) => Promise<void>;
+    signup: (payload: SignupPayload) => Promise<void>;
     logout: () => void;
     updateUser: (updates: Partial<User>) => void;
+    loginError: Error | null;
+    signupError: Error | null;
+    isLoggingIn: boolean;
+    isSigningUp: boolean;
 }
 
-const STORAGE_KEY = 'datryp:user';
+const OVERLAY_KEY_PREFIX = 'datryp:user-overlay:';
 
-const DEFAULT_FRIENDS: UserFriend[] = [
-    {
-        id: 'joanna@example.com',
-        name: 'Joanna Tam',
-        email: 'joanna@example.com',
-        phone: '+1 555 234 5678',
-    },
-    {
-        id: 'alberto@example.com',
-        name: 'Alberto Wesker',
-        email: 'alberto@example.com',
-        phone: '+1 555 345 6789',
-    },
-    {
-        id: 'jessica@example.com',
-        name: 'Jessica Ruan',
-        email: 'jessica@example.com',
-        phone: '+1 555 456 7890',
-    },
-    {
-        id: 'chris@example.com',
-        name: 'Chris Redfield',
-        email: 'chris@example.com',
-        phone: '+1 555 567 8901',
-    },
-    {
-        id: 'leon@example.com',
-        name: 'Leon Kennedy',
-        email: 'leon@example.com',
-        phone: '+1 555 678 9012',
-    },
-];
-
-const DEFAULT_USER: User = {
-    id: 'luis@example.com',
-    name: 'Luis',
-    email: 'luis@example.com',
-    phone: '+1 555 123 4567',
-    dob: '1990-05-20',
-    countryOfBirth: 'US',
-    preferredAirport: 'JFK',
-    friends: DEFAULT_FRIENDS,
+const loadOverlay = (userId: string): LocalOverlay => {
+    try {
+        const raw = localStorage.getItem(OVERLAY_KEY_PREFIX + userId);
+        if (!raw) return {};
+        return JSON.parse(raw) as LocalOverlay;
+    } catch {
+        return {};
+    }
 };
 
-const loadUser = (): User | null => {
+const saveOverlay = (userId: string, overlay: LocalOverlay): void => {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return DEFAULT_USER;
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object' && parsed.name) {
-            const stored = parsed as User;
-            if (!stored.friends) {
-                stored.friends = DEFAULT_FRIENDS;
-            }
-            return stored;
-        }
-        return DEFAULT_USER;
+        localStorage.setItem(
+            OVERLAY_KEY_PREFIX + userId,
+            JSON.stringify(overlay)
+        );
     } catch {
-        return DEFAULT_USER;
+        // ignore quota errors
     }
 };
 
 const UserContext = createContext<UserContextValue | null>(null);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(loadUser);
+    const { data: me, isLoading } = useCurrentUser();
+    const loginMutation = useLogin();
+    const signupMutation = useSignup();
+    const logoutFn = useLogout();
+
+    const [overlay, setOverlay] = useState<LocalOverlay>({});
 
     useEffect(() => {
-        try {
-            if (user) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-            } else {
-                localStorage.removeItem(STORAGE_KEY);
-            }
-        } catch {
-            // ignore quota errors
+        if (me?.id) {
+            setOverlay(loadOverlay(me.id));
+        } else {
+            setOverlay({});
         }
-    }, [user]);
+    }, [me?.id]);
 
-    const login = useCallback((next: User) => setUser(next), []);
-    const logout = useCallback(() => setUser(null), []);
+    useEffect(() => {
+        if (me?.id) saveOverlay(me.id, overlay);
+    }, [me?.id, overlay]);
+
+    const user: User | null = useMemo(() => {
+        if (!me) return null;
+        return {
+            id: me.id,
+            name: me.name ?? me.email,
+            email: me.email,
+            ...overlay,
+        };
+    }, [me, overlay]);
+
+    const login = useCallback(
+        async (email: string, password: string) => {
+            await loginMutation.mutateAsync({ email, password });
+        },
+        [loginMutation]
+    );
+
+    const signup = useCallback(
+        async (payload: SignupPayload) => {
+            await signupMutation.mutateAsync(payload);
+        },
+        [signupMutation]
+    );
+
+    const logout = useCallback(() => {
+        logoutFn();
+        setOverlay({});
+    }, [logoutFn]);
+
     const updateUser = useCallback((updates: Partial<User>) => {
-        setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+        setOverlay((prev) => ({ ...prev, ...updates }));
     }, []);
 
+    const value = useMemo<UserContextValue>(
+        () => ({
+            user,
+            isLoading,
+            login,
+            signup,
+            logout,
+            updateUser,
+            loginError: loginMutation.error,
+            signupError: signupMutation.error,
+            isLoggingIn: loginMutation.isPending,
+            isSigningUp: signupMutation.isPending,
+        }),
+        [
+            user,
+            isLoading,
+            login,
+            signup,
+            logout,
+            updateUser,
+            loginMutation.error,
+            signupMutation.error,
+            loginMutation.isPending,
+            signupMutation.isPending,
+        ]
+    );
+
     return (
-        <UserContext.Provider value={{ user, login, logout, updateUser }}>
-            {children}
-        </UserContext.Provider>
+        <UserContext.Provider value={value}>{children}</UserContext.Provider>
     );
 };
 

@@ -3,16 +3,8 @@ import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
-import countryList from 'sample/countryList.json';
+import { useCountries } from 'api/hooks/useCountries';
 import './index.css';
-
-interface CountryEntry {
-    en: string;
-    local: string;
-    code: string;
-}
-
-const COUNTRIES = countryList as CountryEntry[];
 
 const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
     email: true,
@@ -22,6 +14,9 @@ const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
 
 export const Account = () => {
     const { user, updateUser } = useUser();
+    const { data: countries = [], isLoading: countriesLoading } = useCountries('', {
+        limit: 300,
+    });
 
     // Profile
     const [name, setName] = useState(user?.name ?? '');
@@ -178,11 +173,14 @@ export const Account = () => {
                                 className="account-input"
                                 value={countryOfBirth}
                                 onChange={(e) => setCountryOfBirth(e.target.value)}
+                                disabled={countriesLoading}
                             >
-                                <option value="">Select a country</option>
-                                {COUNTRIES.map((c) => (
+                                <option value="">
+                                    {countriesLoading ? 'Loading countries…' : 'Select a country'}
+                                </option>
+                                {countries.map((c) => (
                                     <option key={c.code} value={c.code}>
-                                        {c.en}
+                                        {c.name}
                                     </option>
                                 ))}
                             </select>

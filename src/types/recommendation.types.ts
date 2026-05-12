@@ -10,6 +10,8 @@ export interface CountryRecommendation {
     id: string;
     name: string;
     code: string;
+    local: string | null;
+    image: string | null;
     score: number;
     reason: string | null;
 }

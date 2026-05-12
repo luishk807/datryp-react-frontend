@@ -12,22 +12,47 @@ import SignUp from 'components/common/SignUpBtn';
 import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import type { SignUpForm } from 'components/common/SignUpBtn';
+import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
 import './index.css';
 
 const Header = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-    const { user, login, logout } = useUser();
+    const { user, login, signup, logout } = useUser();
     const navigate = useNavigate();
 
-    const handleLogin = (form: LoginForm) => {
-        const name = form.username || 'User';
-        login({ id: name, name });
+    const handleLogin = async (form: LoginForm) => {
+        // The login modal labels its field "username"; the backend expects email.
+        const email = form.username?.trim();
+        const password = form.password ?? '';
+        if (!email || !password) {
+            throw new Error('Email and password are required.');
+        }
+        await login(email, password);
     };
 
-    const handleSignUp = (form: SignUpForm) => {
-        const name = form.name || form.username || 'User';
-        login({ id: form.email || name, name, email: form.email });
+    const handleSignUp = async (form: SignUpForm) => {
+        const email = (form.email || form.username)?.trim();
+        const password = form.password ?? '';
+        const dob = form.dob;
+        if (!email || !password) {
+            throw new Error('Email and password are required.');
+        }
+        if (!dob) {
+            throw new Error('Date of birth is required.');
+        }
+        if (yearsSince(dob) < MIN_SIGNUP_AGE) {
+            throw new Error(
+                `You must be at least ${MIN_SIGNUP_AGE} years old to create an account.`
+            );
+        }
+        await signup({
+            email,
+            password,
+            dob,
+            name: form.name,
+            phone: form.phone,
+        });
     };
 
     const handleMenuClose = () => setMenuAnchor(null);
@@ -40,6 +65,7 @@ const Header = () => {
         logout();
         handleMenuClose();
         setDrawerOpen(false);
+        navigate('/');
     };
 
     const initial = user?.name.charAt(0).toUpperCase() ?? '?';

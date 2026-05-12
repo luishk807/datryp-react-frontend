@@ -1,3 +1,9 @@
 .form-input {
   margin: 10px 0px !important
 }
+
+.form-error {
+  color: #b3261e;
+  font-size: 0.875rem;
+  padding: 4px 0;
+}

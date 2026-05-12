@@ -1,5 +1,6 @@
 export const queryKeys = {
     me: ['me'] as const,
+    currentUser: ['python-auth', 'me'] as const,
     trips: {
         all: ['trips'] as const,
         list: (filter?: string) => ['trips', 'list', filter ?? 'all'] as const,

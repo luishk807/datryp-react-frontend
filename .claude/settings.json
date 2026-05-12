@@ -1,7 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(curl.exe -sS -X POST http://localhost:8000/auth/signup -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"luis@test.com\\\\\",\\\\\"password\\\\\":\\\\\"password123\\\\\",\\\\\"name\\\\\":\\\\\"Luis\\\\\"}\")",
+      "Bash(curl.exe -sS -i -X POST http://localhost:8000/auth/signup -H \"Content-Type: application/json\" --data-raw '{\"email\":\"kid3@example.com\",\"password\":\"password123\",\"dob\":\"2020-01-01\"}')",
+      "Bash(curl.exe -sS http://localhost:8000/openapi.json)",
+      "Bash(python -c \"import json,sys; data=json.load\\(sys.stdin\\); schema=data.get\\('components',{}\\).get\\('schemas',{}\\).get\\('SignupRequest',{}\\); print\\('required:', schema.get\\('required'\\)\\); print\\('dob:', schema.get\\('properties',{}\\).get\\('dob'\\)\\)\")",
+      "PowerShell($pids = \\(Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Where-Object State -eq Listen | Select-Object -ExpandProperty OwningProcess\\); Write-Host \"PIDs on 8000: $pids\"; $pids | ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue | Format-Table Id, ProcessName, Path })",
+      "PowerShell(Stop-Process -Id 22348 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Id 14320 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue)",
+      "PowerShell($pid8k = \\(Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Where-Object State -eq Listen | Select-Object -First 1 -ExpandProperty OwningProcess\\); Write-Host \"Still listening on 8000: $pid8k\"; if \\($pid8k\\) { Stop-Process -Id $pid8k -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; $pid8k2 = \\(Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Where-Object State -eq Listen | Select-Object -First 1 -ExpandProperty OwningProcess\\); Write-Host \"After second kill: $pid8k2\")",
+      "Bash(taskkill /F /PID 2416)",
+      "PowerShell(taskkill /F /PID 2416)",
+      "PowerShell($pid8k = \\(Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | Where-Object State -eq Listen | Select-Object -First 1 -ExpandProperty OwningProcess\\); Write-Host \"Currently listening: $pid8k\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('required:', d['components']['schemas']['SignupRequest']['required']\\)\")",
+      "PowerShell(Get-Process -Id 2416 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"ProcessId = 2416\")",
+      "PowerShell(Get-WmiObject -Class Win32_Process -Filter \"ProcessId = 2416\")",
+      "Bash(curl.exe -sS http://localhost:8000/health)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('info'\\)\\)\")",
+      "PowerShell(Get-WmiObject Win32_Process -Filter \"Name='python.exe'\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); s=d['components']['schemas']['SignupRequest']; print\\('required:', s['required']\\); print\\('dob nullable:', 'null' in str\\(s['properties'].get\\('dob',''\\)\\)\\)\")",
+      "Bash(curl.exe -sS -i -X POST http://localhost:8000/auth/signup -H \"Content-Type: application/json\" --data-raw '{\"email\":\"kid4@example.com\",\"password\":\"password123\",\"dob\":\"2020-01-01\"}')"
     ]
   }
 }

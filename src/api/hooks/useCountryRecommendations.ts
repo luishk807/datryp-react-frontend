@@ -15,6 +15,8 @@ const RECOMMEND_COUNTRIES_QUERY = gql`
                 id
                 name
                 code
+                local
+                image
                 score
                 reason
             }

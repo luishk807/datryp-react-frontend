@@ -12,6 +12,7 @@ import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import type { LoginForm } from 'components/common/LoginBtn';
 import type { SignUpForm } from 'components/common/SignUpBtn';
+import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
 import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
@@ -23,7 +24,7 @@ const Header = () => {
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
-    const { user, login, logout } = useUser();
+    const { user, login, signup, logout } = useUser();
 
     const handleSearchSelected = (country: Country) => {
         if (!country?.name) return;
@@ -34,14 +35,37 @@ const Header = () => {
         navigate(type.route, { replace: true });
     };
 
-    const handleLogin = (form: LoginForm) => {
-        const name = form.username || 'User';
-        login({ id: name, name });
+    const handleLogin = async (form: LoginForm) => {
+        const email = form.username?.trim();
+        const password = form.password ?? '';
+        if (!email || !password) {
+            throw new Error('Email and password are required.');
+        }
+        await login(email, password);
     };
 
-    const handleSignUp = (form: SignUpForm) => {
-        const name = form.name || form.username || 'User';
-        login({ id: form.email || name, name, email: form.email });
+    const handleSignUp = async (form: SignUpForm) => {
+        const email = (form.email || form.username)?.trim();
+        const password = form.password ?? '';
+        const dob = form.dob;
+        if (!email || !password) {
+            throw new Error('Email and password are required.');
+        }
+        if (!dob) {
+            throw new Error('Date of birth is required.');
+        }
+        if (yearsSince(dob) < MIN_SIGNUP_AGE) {
+            throw new Error(
+                `You must be at least ${MIN_SIGNUP_AGE} years old to create an account.`
+            );
+        }
+        await signup({
+            email,
+            password,
+            dob,
+            name: form.name,
+            phone: form.phone,
+        });
     };
 
     const handleMenuClose = () => setMenuAnchor(null);
@@ -54,6 +78,7 @@ const Header = () => {
         logout();
         handleMenuClose();
         setDrawerOpen(false);
+        navigate('/');
     };
 
     const initial = user?.name.charAt(0).toUpperCase() ?? '?';
