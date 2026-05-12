@@ -26,7 +26,9 @@ export interface TripBasicType {
 }
 
 export interface TripStatus {
-  id: number;
+  /** Numeric for legacy sample-driven flows; string when sourced from the
+   * backend trip_statuses lookup (UUID). */
+  id: number | string;
   name: string;
 }
 

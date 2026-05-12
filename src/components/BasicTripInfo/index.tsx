@@ -3,17 +3,16 @@ import './index.css';
 import moment from 'moment';
 import _ from 'lodash';
 import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
     FormControl,
     InputLabel,
     MenuItem,
+    Modal,
     Select,
     type SelectChangeEvent,
 } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import 'components/ModalButton/index.css';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
@@ -22,8 +21,8 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { convertMoney } from 'utils';
-import { status as statusOptions } from 'sample';
-import type { TripState, TripStatus } from 'types';
+import { useTripStatuses } from 'api/hooks/useLookups';
+import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 
 interface BasicTripInfoProps {
     data: TripState;
@@ -34,13 +33,42 @@ interface BasicTripInfoProps {
 }
 
 const resolveStatus = (
-    raw: TripState['status']
+    raw: TripState['status'],
+    options: Array<{ id: string | number; name: string }>
 ): TripStatus | undefined => {
     if (!raw) return undefined;
-    if (typeof raw === 'number') {
-        return statusOptions.find((o) => o.id === raw);
+    if (typeof raw === 'number' || typeof raw === 'string') {
+        const match = options.find((o) => o.id === raw);
+        return match as TripStatus | undefined;
     }
+    // `raw` is an object. The pre-seeded sample option uses a numeric id while
+    // the modal's options come from the backend (UUID). Reconcile by name so
+    // the dropdown shows the correct current selection even across that gap.
+    const byName = options.find((o) => o.name === raw.name);
+    if (byName) return byName as TripStatus;
     return raw;
+};
+
+const isActivityConfirmed = (status: Activity['status']): boolean => {
+    if (status && typeof status === 'object') {
+        return (status as ActivityStatus).name === 'Confirmed';
+    }
+    return false;
+};
+
+/** Return names of activities that aren't Confirmed. */
+const findUnconfirmedActivities = (state: TripState): string[] => {
+    const names: string[] = [];
+    for (const dest of state.destinations ?? []) {
+        for (const day of dest.itinerary ?? []) {
+            for (const a of day.activities ?? []) {
+                if (!isActivityConfirmed(a.status)) {
+                    names.push(a.name?.trim() || `Activity on ${day.date}`);
+                }
+            }
+        }
+    }
+    return names;
 };
 
 export const BasicTripInfo = ({
@@ -50,12 +78,27 @@ export const BasicTripInfo = ({
     onExportExcel,
     isViewMode = false,
 }: BasicTripInfoProps) => {
-    const currentStatus = useMemo(() => resolveStatus(data.status), [data.status]);
+    const { data: tripStatuses = [] } = useTripStatuses();
+
+    const statusOptions = useMemo(
+        () =>
+            tripStatuses.map((s) => ({
+                id: s.id as string | number,
+                name: s.name,
+            })),
+        [tripStatuses]
+    );
+
+    const currentStatus = useMemo(
+        () => resolveStatus(data.status, statusOptions),
+        [data.status, statusOptions]
+    );
 
     const [statusModalOpen, setStatusModalOpen] = useState(false);
-    const [draftStatusId, setDraftStatusId] = useState<number | undefined>(
+    const [draftStatusId, setDraftStatusId] = useState<string | number | undefined>(
         currentStatus?.id
     );
+    const [statusError, setStatusError] = useState<string | null>(null);
 
     const tripDate = useMemo(() => {
         const start = moment(data.startDate);
@@ -74,19 +117,44 @@ export const BasicTripInfo = ({
         [data]
     );
 
-    const statusName = currentStatus?.name ?? 'Draft';
+    const statusName = currentStatus?.name ?? 'Planning';
     const friends = data.friends ?? [];
 
     const openStatusModal = () => {
         setDraftStatusId(currentStatus?.id);
+        setStatusError(null);
         setStatusModalOpen(true);
     };
 
-    const closeStatusModal = () => setStatusModalOpen(false);
+    const closeStatusModal = () => {
+        setStatusError(null);
+        setStatusModalOpen(false);
+    };
 
     const handleSaveStatus = () => {
         const next = statusOptions.find((o) => o.id === draftStatusId);
-        if (next) onStatusChange?.(next);
+        if (!next) {
+            setStatusModalOpen(false);
+            return;
+        }
+        // Trip can only be marked Confirmed when every activity is also Confirmed.
+        if (next.name === 'Confirmed') {
+            const unconfirmed = findUnconfirmedActivities(data);
+            if (unconfirmed.length) {
+                const preview = unconfirmed.slice(0, 3).join(', ');
+                const extra =
+                    unconfirmed.length > 3
+                        ? ` and ${unconfirmed.length - 3} more`
+                        : '';
+                setStatusError(
+                    `Confirm every activity first (${preview}${extra}). ` +
+                        `Toggle each place to "Confirmed" before promoting the trip.`
+                );
+                return;
+            }
+        }
+        setStatusError(null);
+        onStatusChange?.(next as TripStatus);
         setStatusModalOpen(false);
     };
 
@@ -176,43 +244,82 @@ export const BasicTripInfo = ({
                 </div>
             )}
 
-            <Dialog open={statusModalOpen} onClose={closeStatusModal} fullWidth maxWidth="xs">
-                <DialogTitle>Update trip status</DialogTitle>
-                <DialogContent>
-                    <FormControl fullWidth sx={{ mt: 1 }}>
-                        <InputLabel id="status-select-label">Status</InputLabel>
-                        <Select
-                            labelId="status-select-label"
-                            label="Status"
-                            value={draftStatusId ?? ''}
-                            onChange={(e: SelectChangeEvent<number | ''>) =>
-                                setDraftStatusId(
-                                    e.target.value === '' ? undefined : Number(e.target.value)
-                                )
-                            }
+            <Modal
+                open={statusModalOpen}
+                onClose={closeStatusModal}
+                aria-labelledby="trip-status-title"
+            >
+                <div className="modalCustom">
+                    <span className="modalCustom-stripe" aria-hidden="true" />
+                    <div className="modalCustom-header">
+                        <h2 id="trip-status-title" className="modalCustom-title">
+                            Update trip status
+                        </h2>
+                        <IconButton
+                            className="modalCustom-close"
+                            aria-label="Close"
+                            onClick={closeStatusModal}
                         >
-                            {statusOptions.map((option) => (
-                                <MenuItem key={option.id} value={option.id}>
-                                    {option.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </DialogContent>
-                <DialogActions>
-                    <ButtonCustom
-                        type="standard-small"
-                        label="Cancel"
-                        onClick={closeStatusModal}
-                    />
-                    <ButtonCustom
-                        type="standard-small"
-                        label="Save"
-                        onClick={handleSaveStatus}
-                        style={{ marginLeft: '12px' }}
-                    />
-                </DialogActions>
-            </Dialog>
+                            <CloseRoundedIcon />
+                        </IconButton>
+                    </div>
+                    <div className="modalCustom-content">
+                        <FormControl fullWidth sx={{ mt: 1 }}>
+                            <InputLabel id="status-select-label">Status</InputLabel>
+                            <Select
+                                labelId="status-select-label"
+                                label="Status"
+                                value={draftStatusId ?? ''}
+                                onChange={(e: SelectChangeEvent<string | number | ''>) => {
+                                    const v = e.target.value;
+                                    setDraftStatusId(v === '' ? undefined : v);
+                                    setStatusError(null);
+                                }}
+                            >
+                                {statusOptions.map((option) => (
+                                    <MenuItem
+                                        key={String(option.id)}
+                                        value={option.id as string | number}
+                                    >
+                                        {option.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        {statusError && (
+                            <p
+                                role="alert"
+                                style={{
+                                    color: '#b3261e',
+                                    background: '#fdecea',
+                                    border: '1px solid #f5c2bd',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 500,
+                                    padding: '10px 12px',
+                                    borderRadius: '6px',
+                                    margin: '14px 0 0',
+                                }}
+                            >
+                                {statusError}
+                            </p>
+                        )}
+                        <div className="trip-status-actions">
+                            <ButtonCustom
+                                type="line"
+                                capitalizeType="uppercase"
+                                label="Cancel"
+                                onClick={closeStatusModal}
+                            />
+                            <ButtonCustom
+                                type="standard"
+                                capitalizeType="uppercase"
+                                label="Save"
+                                onClick={handleSaveStatus}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </section>
     );
 };

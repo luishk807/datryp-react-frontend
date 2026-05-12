@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+﻿import { useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Grid, IconButton, Tooltip } from '@mui/material';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
@@ -7,14 +7,27 @@ import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
-import { useTripState } from 'context/TripContext';
+import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
+import { useUser } from 'context/UserContext';
+import { status as statusOptions } from 'sample';
 import { TRIP_BASIC } from 'constants';
+
+const PLANNING_STATUS =
+    statusOptions.find((s) => s.name === 'Planning') ?? statusOptions[0];
 import type {
     Friend,
     TripChangeEvent,
     TripDestinationEvent,
     TripPlaceEvent,
 } from 'types';
+
+const hashUuid = (s: string): number => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+        h = (h * 31 + s.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+};
 
 type TripMode = 'single' | 'multiple';
 
@@ -38,7 +51,57 @@ const TripSteps = ({
     onChangeDestination,
 }: TripStepsProps) => {
     const tripInfo = useTripState();
+    const dispatch = useTripDispatch();
+    const { user } = useUser();
     const navigate = useNavigate();
+
+    // Pre-seed the current user as an organizer once per mount. We deliberately
+    // don't watch `tripInfo.organizer` here — otherwise removing yourself
+    // would trigger this effect and re-add you, making de-select impossible.
+    const seededRef = useRef(false);
+    useEffect(() => {
+        if (!user || seededRef.current) return;
+        seededRef.current = true;
+        const current = tripInfo.organizer ?? [];
+        if (current.some((o) => o.userId === user.id)) return;
+        const selfAsFriend: Friend = {
+            id: hashUuid(user.id),
+            label: `${user.name} (you)`,
+            name: `${user.name} (you)`,
+            userId: user.id,
+        };
+        dispatch(basicInfo({ organizer: [...current, selfAsFriend] }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
+
+    // Default the trip status to "Planning" on first mount so the badge in
+    // BasicTripInfo reads "Planning" instead of the legacy "Draft" placeholder.
+    const statusSeededRef = useRef(false);
+    useEffect(() => {
+        if (statusSeededRef.current) return;
+        statusSeededRef.current = true;
+        if (tripInfo.status) return;
+        dispatch(basicInfo({ status: PLANNING_STATUS }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Auto-fill the trip name to "<Country> trip" once — the first time a
+    // country is picked and the name is empty. After that, the user fully
+    // owns the field (clearing it stays cleared, typing custom stays custom).
+    const seededNameRef = useRef(false);
+    useEffect(() => {
+        if (seededNameRef.current) return;
+        const firstCountry = tripInfo.destinations?.[0]?.country?.name;
+        if (!firstCountry) return;
+        if ((tripInfo.name ?? '').trim()) {
+            // User already had a name when entering — count that as engagement
+            // and don't auto-fill later.
+            seededNameRef.current = true;
+            return;
+        }
+        seededNameRef.current = true;
+        dispatch(basicInfo({ name: `${firstCountry} trip` }));
+    }, [tripInfo.destinations, tripInfo.name, dispatch]);
 
     const otherMode: TripMode = currentType === 'single' ? 'multiple' : 'single';
     const switchTarget =
@@ -66,10 +129,11 @@ const TripSteps = ({
             comp: <BasicInfo data={tripInfo} onChange={onBasicChange} />,
         },
         {
-            label: 'Define the Trips',
+            label: 'Participants',
             comp: (
                 <FriendPicker
                     name="friends"
+                    title="participants"
                     selectedOptions={tripInfo.friends}
                     onChange={onBasicChange}
                 />

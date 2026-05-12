@@ -69,3 +69,9 @@
   color: inherit;
   font-size: inherit !important;
 }
+
+.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}

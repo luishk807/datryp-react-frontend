@@ -100,3 +100,10 @@
     padding: 10px 0;
   }
 }
+
+/* Used by the inline "Saving your trip…" spinner. */
+@keyframes searchbar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

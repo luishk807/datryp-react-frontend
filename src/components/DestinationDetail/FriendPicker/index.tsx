@@ -6,6 +6,7 @@ import Autocomplete, {
     type AutocompleteOption,
 } from 'components/common/FormFields/Autocomplete';
 import InviteFriendModal from 'components/InviteFriendModal';
+import { useFriends, type ApiFriend } from 'api/hooks/useFriends';
 import { useUser, type UserFriend } from 'context/UserContext';
 import type { Friend } from 'types';
 
@@ -14,6 +15,8 @@ const ADD_FRIEND_OPTION_ID = -1;
 interface FriendOption extends AutocompleteOption {
     email?: string;
     pending?: boolean;
+    /** Original backend UUID — preserved so the save mutation can use it. */
+    userId?: string;
 }
 
 interface FriendPickerProps {
@@ -40,6 +43,15 @@ const toOption = (f: UserFriend): FriendOption => ({
     label: f.name,
     email: f.email,
     pending: f.pending,
+    // f.id from the API is a UUID string; keep it so we can send it back to the server.
+    userId: typeof f.id === 'string' ? f.id : undefined,
+});
+
+/** Backend ApiFriend → the UserFriend shape that the rest of the picker uses. */
+const apiToUserFriend = (f: ApiFriend): UserFriend => ({
+    id: f.id,
+    name: f.name ?? f.email,
+    email: f.email,
 });
 
 const FriendPicker = ({
@@ -50,7 +62,21 @@ const FriendPicker = ({
     selectedOptions = [],
 }: FriendPickerProps) => {
     const { user } = useUser();
-    const userFriends = useMemo(() => user?.friends ?? [], [user?.friends]);
+    const { data: apiFriends = [] } = useFriends();
+    const userFriends = useMemo<UserFriend[]>(() => {
+        const list = apiFriends.map(apiToUserFriend);
+        // Surface the current user at the top of the picker so they can add
+        // themselves to a trip (e.g. as participant/organizer). They aren't
+        // in their own friends list — symmetric self-friendship isn't a thing.
+        if (user) {
+            list.unshift({
+                id: user.id,
+                name: `${user.name} (you)`,
+                email: user.email,
+            });
+        }
+        return list;
+    }, [apiFriends, user]);
 
     const [inviteOpen, setInviteOpen] = useState(false);
     const [selectedFriendList, setSelectedFriendList] =
@@ -73,7 +99,12 @@ const FriendPicker = ({
         if (selectedFriendList.some((f) => f.id === option.id)) return;
         const next: Friend[] = [
             ...selectedFriendList,
-            { id: option.id, label: option.label, name: option.label },
+            {
+                id: option.id,
+                label: option.label,
+                name: option.label,
+                userId: option.userId,
+            },
         ];
         setSelectedFriendList(next);
         onChange(name, { target: { value: next } });

@@ -171,9 +171,19 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
         case 'addPlace': {
             const { value, date, destinationIndx } = action.payload;
             const destIndx = destinationIndx ?? 0;
-            const dest = draft.destinations[destIndx];
-            if (!dest) return;
 
+            // Auto-create destinations up to `destIndx` if missing. Otherwise
+            // a user who landed on the trip page without a country pre-set
+            // (e.g. TopPlace lookup failed, direct URL after reset) would see
+            // Add Place silently no-op. The country can be filled in later.
+            while (draft.destinations.length <= destIndx) {
+                draft.destinations.push({
+                    id: generateId(),
+                    country: { id: 0, name: '' },
+                    itinerary: [],
+                } as Destination);
+            }
+            const dest = draft.destinations[destIndx];
             if (!dest.itinerary) dest.itinerary = [];
 
             const newActivity: Activity = { ...value, id: generateId() };

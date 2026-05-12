@@ -8,6 +8,8 @@ export { useCountries } from './hooks/useCountries';
 export type { CountryResult } from './hooks/useCountries';
 export { useItineraryTypes, useTripStatuses } from './hooks/useLookups';
 export type { LookupRow } from './hooks/useLookups';
+export { useFriends } from './hooks/useFriends';
+export type { ApiFriend } from './hooks/useFriends';
 export {
     useMyItineraries,
     useSaveItinerary,

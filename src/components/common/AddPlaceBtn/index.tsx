@@ -1,16 +1,21 @@
-﻿import { useState, useMemo, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import DropdownCustom, { type DropdownOption } from 'components/common/FormFields/DropDown';
+import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import { placeStatus } from 'sample';
 import classNames from 'classnames';
 import { TRIP_BASIC } from 'constants';
 import './index.css';
 import type { Activity, Friend, ImageRef } from 'types';
+
+// Default status for newly added places. The user toggles between Pending /
+// Confirmed on the place card itself, so the modal no longer asks for it.
+const DEFAULT_PENDING_STATUS: DropdownOption =
+    placeStatus.find((p) => p.name === 'Pending') ?? placeStatus[0];
 
 type AddPlaceType = 'add' | 'edit';
 type AddPlaceButtonType = 'text' | 'standard';
@@ -47,26 +52,26 @@ const AddPlaceBtn = ({
 }: AddPlaceBtnProps) => {
     const modelRef = useRef<ModalButtonHandle>(null);
 
-    const initilStatus = useMemo<DropdownOption>(() => {
-        const selected =
-            data && typeof data.status === 'object' && data.status
-                ? data.status.id
-                : 3;
-        return placeStatus.find((item) => item.id === selected) ?? placeStatus[0];
-    }, [data]);
-
     const isAdd = type === 'add';
+
+    // Preserve an existing place's status on edit; default to Pending on add.
+    const existingStatus: DropdownOption =
+        data && typeof data.status === 'object' && data.status
+            ? (data.status as DropdownOption)
+            : DEFAULT_PENDING_STATUS;
 
     const buildInitialPlace = (): PlaceDraft => ({
         startTime: moment().format('HH:mm'),
         endTime: moment().format('HH:mm'),
-        status: initilStatus,
+        status: existingStatus,
     });
 
     const [place, setPlace] = useState<PlaceDraft>(buildInitialPlace);
     const [formKey, setFormKey] = useState(0);
+    const [error, setError] = useState<string | null>(null);
 
     const handleOnChange = <K extends keyof PlaceDraft>(name: K, value: PlaceDraft[K] | Friend) => {
+        setError(null);
         setPlace((prev) => {
             if (name === 'friends') {
                 const next = Array.isArray(prev.friends)
@@ -91,6 +96,16 @@ const AddPlaceBtn = ({
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        const missing: string[] = [];
+        if (!place.name?.trim()) missing.push('name of place');
+        if (!place.location?.trim()) missing.push('location');
+        if (!place.startTime?.trim()) missing.push('start time');
+        if (!place.endTime?.trim()) missing.push('end time');
+        if (missing.length) {
+            setError(`Please provide ${missing.join(', ')}.`);
+            return;
+        }
+        setError(null);
         modelRef.current?.closeModal();
         onChange?.(place);
         if (type === 'add') {
@@ -100,6 +115,7 @@ const AddPlaceBtn = ({
     };
 
     useEffect(() => {
+        setError(null);
         if (data && type === 'edit') {
             setPlace({
                 id: data.id,
@@ -112,7 +128,7 @@ const AddPlaceBtn = ({
                 status:
                     data.status && typeof data.status === 'object'
                         ? (data.status as DropdownOption)
-                        : initilStatus,
+                        : DEFAULT_PENDING_STATUS,
                 image: data.image,
             });
         } else {
@@ -207,16 +223,27 @@ const AddPlaceBtn = ({
                                         onChange={handleImageChange}
                                     />
                                 </Grid>
-                                <Grid item lg={12} xs={12} className="py-5">
-                                    <DropdownCustom
-                                        defaultValue={initilStatus}
-                                        label="Status"
-                                        options={placeStatus}
-                                        onChange={(option) => handleOnChange('status', option)}
-                                    />
-                                </Grid>
                             </Grid>
                         </Grid>
+                        {error && (
+                            <Grid item lg={12} md={12} xs={12}>
+                                <p
+                                    role="alert"
+                                    style={{
+                                        color: '#b3261e',
+                                        background: '#fdecea',
+                                        border: '1px solid #f5c2bd',
+                                        fontSize: '0.9375rem',
+                                        fontWeight: 500,
+                                        padding: '10px 12px',
+                                        borderRadius: '6px',
+                                        margin: '12px 0 10px',
+                                    }}
+                                >
+                                    {error}
+                                </p>
+                            </Grid>
+                        )}
                         <Grid item lg={12} md={12} xs={12}>
                             <ButtonCustom
                                 onClick={handleSubmit}

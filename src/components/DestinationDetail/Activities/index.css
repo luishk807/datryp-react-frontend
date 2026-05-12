@@ -45,28 +45,46 @@
   letter-spacing: -0.005em;
 }
 
-.activity-content-trip .content-detail .info .status {
+.activity-content-trip .content-detail .info .status-toggle {
   display: inline-block;
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 3px 12px;
   margin-left: 10px;
   border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   vertical-align: middle;
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.55);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
-.activity-content-trip .content-detail .info .status.confirmed {
+.activity-content-trip .content-detail .info .status-toggle.is-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.32);
+}
+
+.activity-content-trip .content-detail .info .status-toggle.is-pending:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.activity-content-trip .content-detail .info .status-toggle.is-confirmed {
   background: rgba(60, 181, 75, 0.12);
   color: theme('colors.primaryGreen');
+  border-color: rgba(60, 181, 75, 0.32);
 }
 
-.activity-content-trip .content-detail .info .status.unconfirmed {
-  background: rgba(220, 38, 38, 0.1);
-  color: #c0392b;
+.activity-content-trip .content-detail .info .status-toggle.is-confirmed:hover:not(:disabled) {
+  background: rgba(60, 181, 75, 0.2);
+  border-color: rgba(60, 181, 75, 0.5);
+}
+
+.activity-content-trip .content-detail .info .status-toggle:disabled {
+  cursor: default;
+  opacity: 0.8;
 }
 
 .activity-content-trip .content-detail .info .activity-meta {
@@ -168,8 +186,30 @@
   .activity-content-trip .content-detail {
     padding: 12px 14px 16px;
   }
+
+  /* Lay the edit/delete actions as a horizontal toolbar at the bottom of
+   * the card instead of a squeezed sidebar column. */
+  .activity-content-trip .option {
+    padding: 8px 0 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin-top: 12px;
+  }
+  .activity-content-trip .option > .MuiGrid-container {
+    flex-direction: row !important;
+    align-content: flex-end !important;
+    justify-content: flex-end !important;
+    gap: 4px;
+  }
+  .activity-content-trip .option > .MuiGrid-container > .MuiGrid-item {
+    flex: 0 0 auto !important;
+    max-width: none !important;
+    width: auto !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+  }
   .activity-content-trip .option button {
-    padding: 4px 8px !important;
-    font-size: 0.68rem !important;
+    padding: 8px 16px !important;
+    font-size: 0.78rem !important;
+    min-height: 36px;
   }
 }

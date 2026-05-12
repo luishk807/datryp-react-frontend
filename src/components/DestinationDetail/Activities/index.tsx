@@ -9,6 +9,7 @@ import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
+import { placeStatus } from 'sample';
 import { convertMoney } from 'utils';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import type { ActionType, Activity, ActivityStatus, Friend } from 'types';
@@ -22,11 +23,16 @@ export interface ActivitiesProps {
     isViewMode?: boolean;
 }
 
-const getStatusName = (status: Activity['status']): string => {
+const CONFIRMED_STATUS: ActivityStatus =
+    placeStatus.find((p) => p.name === 'Confirmed') ?? placeStatus[0];
+const PENDING_STATUS: ActivityStatus =
+    placeStatus.find((p) => p.name === 'Pending') ?? placeStatus[0];
+
+const isConfirmedStatus = (status: Activity['status']): boolean => {
     if (status && typeof status === 'object') {
-        return (status as ActivityStatus).name ?? '';
+        return (status as ActivityStatus).name === 'Confirmed';
     }
-    return '';
+    return false;
 };
 
 const Activities = ({
@@ -63,11 +69,36 @@ const Activities = ({
                                 </Grid>
                                 <Grid item lg={10} md={10} xs={12} className="content-detail">
                                     <Grid container>
-                                        <Grid item lg={11} md={11} xs={11} className="info">
+                                        <Grid item lg={11} md={11} xs={12} className="info">
                                             <span className="title">{activity.name}</span>
-                                            <span className="status confirmed">
-                                                {getStatusName(activity.status)}
-                                            </span>
+                                            {(() => {
+                                                const confirmed = isConfirmedStatus(activity.status);
+                                                const nextStatus = confirmed
+                                                    ? PENDING_STATUS
+                                                    : CONFIRMED_STATUS;
+                                                return (
+                                                    <button
+                                                        type="button"
+                                                        className={
+                                                            'status-toggle ' +
+                                                            (confirmed ? 'is-confirmed' : 'is-pending')
+                                                        }
+                                                        disabled={isViewMode}
+                                                        aria-label={`Status: ${confirmed ? 'Confirmed' : 'Pending'}. Click to toggle.`}
+                                                        onClick={() =>
+                                                            onChangePlace('edit', {
+                                                                index: indx,
+                                                                value: {
+                                                                    id: activity.id,
+                                                                    status: nextStatus,
+                                                                },
+                                                            })
+                                                        }
+                                                    >
+                                                        {confirmed ? 'Confirmed' : 'Pending'}
+                                                    </button>
+                                                );
+                                            })()}
                                             <div className="activity-meta">
                                                 {activity.location && (
                                                     <div className="meta-row">
@@ -123,7 +154,7 @@ const Activities = ({
                                                 )}
                                             </div>
                                         </Grid>
-                                        <Grid item lg={1} md={1} xs={1} className="option">
+                                        <Grid item lg={1} md={1} xs={12} className="option">
                                             <Grid container className="flex h-full">
                                                 <Grid
                                                     item

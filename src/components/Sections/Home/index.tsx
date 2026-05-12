@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { gql } from 'graphql-request';
 import classnames from 'classnames';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import './index.css';
@@ -9,7 +10,60 @@ import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
+import { pythonGqlClient } from 'api/pythonGqlClient';
 import type { Country, Destination } from 'types';
+
+const COUNTRY_LOOKUP_QUERY = gql`
+    query CountryLookup($query: String!) {
+        countries(query: $query, limit: 10) {
+            id
+            name
+            code
+            local
+            image
+        }
+    }
+`;
+
+interface CountryLookupResult {
+    countries: Array<{
+        id: string;
+        name: string;
+        code: string;
+        local: string | null;
+        image: string | null;
+    }>;
+}
+
+/**
+ * Look up a backend Country UUID by name + ISO code. TopPlaces ships with
+ * sample numeric IDs that don't match anything in the DB, so we resolve to
+ * the real row before dispatching to TripContext — otherwise the
+ * saveItinerary mutation rejects "1" as a malformed UUID.
+ */
+const resolveCountryByCode = async (
+    countryName: string,
+    code: string
+): Promise<Country | null> => {
+    try {
+        const result = await pythonGqlClient.request<CountryLookupResult>(
+            COUNTRY_LOOKUP_QUERY,
+            { query: countryName }
+        );
+        const match =
+            result.countries.find((c) => c.code === code) ?? result.countries[0];
+        if (!match) return null;
+        return {
+            id: match.id,
+            name: match.name,
+            code: match.code,
+            local: match.local ?? undefined,
+            image: match.image ?? undefined,
+        };
+    } catch {
+        return null;
+    }
+};
 
 const HERO_IMAGES = [
     '/images/sample/iceland.jpg',
@@ -45,12 +99,18 @@ const Home = () => {
         [dispatch, tripMode, navigate]
     );
 
-    const handlePlaceClick = (place: TopPlace) => {
-        const country: Country = {
-            id: place.id,
-            name: place.country,
-            code: place.countryCode,
-        };
+    const handlePlaceClick = async (place: TopPlace) => {
+        // Resolve to the real backend UUID before navigating — the TopPlace
+        // sample data uses numeric IDs that don't exist in the DB.
+        const country = await resolveCountryByCode(place.country, place.countryCode);
+        if (!country) {
+            // Couldn't resolve (DB not seeded with this country, backend down).
+            // Fall back to letting the user pick a destination on the trip page.
+            dispatch(resetTrip());
+            dispatch(basicInfo({ type: TRIP_BASIC.SINGLE, destinations: [] }));
+            navigate(TRIP_BASIC.SINGLE.route, { replace: true });
+            return;
+        }
         const destinations = [{ country }] as Destination[];
         dispatch(resetTrip());
         dispatch(basicInfo({ type: TRIP_BASIC.SINGLE, destinations }));

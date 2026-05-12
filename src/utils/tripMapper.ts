@@ -43,8 +43,19 @@ const combineDateTime = (
     return `${date}T${padded}`;
 };
 
-const countryIdOf = (country: Country | undefined): string | null =>
-    country?.id != null ? String(country.id) : null;
+/** Returns the country UUID only if `country.id` looks like a real backend
+ * UUID. Placeholder values (numeric 0 / sample numeric IDs) are dropped so
+ * the save mutation surfaces a useful "country required" error instead of
+ * a cryptic "badly formed hexadecimal UUID". */
+const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const countryIdOf = (country: Country | undefined): string | null => {
+    const id = country?.id;
+    if (id == null) return null;
+    const str = String(id);
+    return UUID_RE.test(str) ? str : null;
+};
 
 const flightToInput = (
     flight: FlightInfo | undefined,
@@ -122,6 +133,13 @@ export const tripStateToSaveInput = (
     }
 
     const rootDest = destinations[0];
+    const organizerIds = (tripState.organizer ?? [])
+        .map((f) => f.userId)
+        .filter((id): id is string => Boolean(id));
+    const participantIds = (tripState.friends ?? [])
+        .map((f) => f.userId)
+        .filter((id): id is string => Boolean(id));
+
     return {
         id: options.id ?? undefined,
         interaryTypeId: options.interaryTypeId,
@@ -131,10 +149,10 @@ export const tripStateToSaveInput = (
         budget: toNumber(tripState.budget),
         image: null,
         tripStatusId: options.tripStatusId ?? null,
-        // TODO: map TripContext friends/organizer to real User UUIDs once
-        // friends-API integration is in place. For now we save the trip skeleton.
-        organizerIds: [],
-        participantIds: [],
+        // Picked friends/organizers carry their backend UUID via Friend.userId;
+        // legacy mock entries without userId are silently dropped.
+        organizerIds,
+        participantIds,
         countryId: isMulti ? null : countryIdOf(rootDest?.country),
         flightInfo: isMulti
             ? null

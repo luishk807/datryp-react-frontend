@@ -4,6 +4,9 @@ export interface Friend {
   id: number;
   label?: string;
   name?: string;
+  /** Backend User UUID — preserved so the save mutation can use it for
+   * participantIds / organizerIds. Optional for legacy/mock entries. */
+  userId?: string;
 }
 
 export interface Country {
