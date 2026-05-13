@@ -55,7 +55,17 @@ const AddDestinationBtn = ({
         }));
     };
 
+    // Normalize whatever date format comes in (MM/DD/YYYY from
+    // DestinationDetail or YYYY-MM-DD from raw state) into ISO YYYY-MM-DD so
+    // the MUI DatePicker doesn't reject it and flag the field in red.
+    const isoDate = (raw?: string | null): string | undefined => {
+        if (!raw) return undefined;
+        const m = moment(raw);
+        return m.isValid() ? m.format('YYYY-MM-DD') : undefined;
+    };
+
     useEffect(() => {
+        const fallback = isoDate(defaultDate) ?? moment().format('YYYY-MM-DD');
         if (data && type === 'edit') {
             setDestination({
                 country: data.country,
@@ -63,10 +73,10 @@ const AddDestinationBtn = ({
                 flightInfo: {
                     flightNumber: data.flightInfo?.flightNumber,
                     departAirport: data.flightInfo?.departAirport,
-                    departDate: defaultDate || data.flightInfo?.departDate,
+                    departDate: isoDate(data.flightInfo?.departDate) ?? fallback,
                     departTime: data.flightInfo?.departTime,
                     arrivalAirport: data.flightInfo?.arrivalAirport,
-                    arrivalDate: defaultDate || data.flightInfo?.arrivalDate,
+                    arrivalDate: isoDate(data.flightInfo?.arrivalDate) ?? fallback,
                     arrivalTime: data.flightInfo?.arrivalTime,
                 },
                 itinerary: data.itinerary,
@@ -75,14 +85,16 @@ const AddDestinationBtn = ({
             setDestination({
                 country: null,
                 flightInfo: {
-                    departDate: defaultDate || moment().format('YYYY-MM-DD').toString(),
+                    departDate: fallback,
                     departTime: moment().format('HH:mm').toString(),
-                    arrivalDate: defaultDate || moment().format('YYYY-MM-DD').toString(),
+                    arrivalDate: fallback,
                     arrivalTime: moment().format('HH:mm').toString(),
                 },
             });
         }
     }, [data, defaultDate, type]);
+
+    const normalizedTripMaxDate = isoDate(tripMaxDate ?? undefined);
 
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -146,7 +158,7 @@ const AddDestinationBtn = ({
                                         type="date"
                                         disablePast
                                         disabled
-                                        maxDate={tripMaxDate ?? undefined}
+                                        maxDate={normalizedTripMaxDate}
                                         name="departDate"
                                         onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}
                                     />
@@ -172,9 +184,9 @@ const AddDestinationBtn = ({
                                     <InputField
                                         defaultValue={destination.flightInfo?.arrivalDate}
                                         type="date"
-                                        minDate={data?.flightInfo?.departDate}
+                                        minDate={isoDate(destination.flightInfo?.departDate)}
                                         name="arrivalDate"
-                                        maxDate={tripMaxDate ?? undefined}
+                                        maxDate={normalizedTripMaxDate}
                                         disablePast
                                         onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}
                                     />

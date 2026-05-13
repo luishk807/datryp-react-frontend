@@ -5,7 +5,8 @@ import classnames from 'classnames';
 import Layout from 'components/common/Layout/SubLayout';
 import TripBox, { type TripBoxData } from 'components/common/TripBox';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import { userIntinerary } from 'sample/userIntineraries';
+import { useMyItineraries } from 'api/hooks/useItineraries';
+import { apiToTripEntry } from 'utils/itineraryAdapter';
 import './index.css';
 
 type FilterValue = 'all' | 'planning' | 'confirmed' | 'completed';
@@ -20,14 +21,16 @@ const FILTERS: { value: FilterValue; label: string }[] = [
 export const Trips = () => {
     const [filter, setFilter] = useState<FilterValue>('all');
     const navigate = useNavigate();
+    const { data: apiItineraries = [], isLoading, isError } = useMyItineraries();
 
-    const allTrips = useMemo<TripBoxData[]>(
-        () => [
-            ...userIntinerary.singleDestinations,
-            ...userIntinerary.multipleDestinations,
-        ],
-        []
-    );
+    // Convert API itineraries to the legacy TripBoxData shape. Each entry
+    // carries an `apiId` (UUID) so TripDetail can look it up later.
+    const allTrips = useMemo(() => {
+        return apiItineraries.map((it) => {
+            const entry = apiToTripEntry(it) as TripBoxData & { apiId: string };
+            return entry;
+        });
+    }, [apiItineraries]);
 
     const counts = useMemo(() => {
         const c: Record<FilterValue, number> = {
@@ -99,7 +102,15 @@ export const Trips = () => {
                     ))}
                 </div>
 
-                {filteredTrips.length === 0 ? (
+                {isLoading ? (
+                    <div className="trips-empty">
+                        <p>Loading trips…</p>
+                    </div>
+                ) : isError ? (
+                    <div className="trips-empty">
+                        <p>Couldn't load your trips. Is the backend running?</p>
+                    </div>
+                ) : filteredTrips.length === 0 ? (
                     <div className="trips-empty">
                         <p>No trips in this category yet.</p>
                     </div>
@@ -107,14 +118,17 @@ export const Trips = () => {
                     <Grid container id="trip-container">
                         {filteredTrips.map((trip) => (
                             <Grid
-                                key={trip.id}
+                                key={(trip as { apiId?: string }).apiId ?? trip.id}
                                 item
                                 lg={4}
                                 md={6}
                                 xs={12}
                                 className="trip-item"
                             >
-                                <TripBox data={trip} />
+                                <TripBox
+                                    data={trip}
+                                    to={`/trip-detail?id=${(trip as { apiId?: string }).apiId ?? trip.id}`}
+                                />
                             </Grid>
                         ))}
                     </Grid>

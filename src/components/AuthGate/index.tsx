@@ -1,9 +1,12 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './index.css';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import InputField from 'components/common/FormFields/InputField';
+import IconLink from 'components/common/IconLink';
 import { useUser } from 'context/UserContext';
 import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
+import logoUrl from 'assets/logo.svg';
 
 type Mode = 'login' | 'signup';
 
@@ -115,9 +118,12 @@ const AuthGate = ({
         <div className="authgate-page">
             <aside className="authgate-hero">
                 <div className="authgate-hero-inner">
-                    <Link to="/" className="authgate-brand">
-                        <img src="/images/logo.svg" alt="daTryp" />
-                    </Link>
+                    <IconLink
+                        to="/"
+                        icon={<img src={logoUrl} alt="" />}
+                        ariaLabel="daTryp home"
+                        className="authgate-brand"
+                    />
                     <h1 className="authgate-hero-title">{title}</h1>
                     <p className="authgate-hero-subtitle">{subtitle}</p>
                     <ul className="authgate-hero-list">
@@ -129,17 +135,23 @@ const AuthGate = ({
                     </ul>
                 </div>
                 <div className="authgate-hero-back">
-                    <Link to="/" className="authgate-back-link">
-                        ← Back to home
-                    </Link>
+                    <IconLink
+                        to="/"
+                        label="Back to home"
+                        icon={<ArrowBackIcon />}
+                        className="authgate-back-link"
+                    />
                 </div>
             </aside>
 
             <main className="authgate-panel">
                 <div className="authgate-form-wrap">
-                    <Link to="/" className="authgate-brand authgate-brand-mobile">
-                        <img src="/images/logo.svg" alt="daTryp" />
-                    </Link>
+                    <IconLink
+                        to="/"
+                        icon={<img src={logoUrl} alt="" />}
+                        ariaLabel="daTryp home"
+                        className="authgate-brand authgate-brand-mobile"
+                    />
                     <h2 className="authgate-form-title">
                         {mode === 'login' ? 'Welcome back' : 'Create your account'}
                     </h2>
@@ -150,79 +162,69 @@ const AuthGate = ({
                     </p>
 
                     <form className="authgate-form" onSubmit={handleSubmit}>
-                        <label className="authgate-field">
-                            <span className="authgate-label">Email</span>
-                            <input
-                                className="authgate-input"
+                        <div className="authgate-field">
+                            <InputField
+                                name="email"
+                                label="Email"
                                 type="email"
-                                value={email}
-                                autoComplete="email"
+                                defaultValue={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
                                     resetError();
                                 }}
-                                placeholder="you@example.com"
                             />
-                        </label>
-                        <label className="authgate-field">
-                            <span className="authgate-label">Password</span>
-                            <input
-                                className="authgate-input"
+                        </div>
+                        <div className="authgate-field">
+                            <InputField
+                                name="password"
+                                label="Password"
                                 type="password"
-                                value={password}
-                                autoComplete={
-                                    mode === 'login' ? 'current-password' : 'new-password'
-                                }
+                                defaultValue={password}
                                 onChange={(e) => {
                                     setPassword(e.target.value);
                                     resetError();
                                 }}
-                                placeholder={mode === 'login' ? '••••••••' : 'At least 8 characters'}
                             />
-                        </label>
+                        </div>
 
                         {mode === 'signup' && (
                             <>
-                                <label className="authgate-field">
-                                    <span className="authgate-label">
-                                        Full name <span className="authgate-optional">(optional)</span>
-                                    </span>
-                                    <input
-                                        className="authgate-input"
+                                <div className="authgate-field">
+                                    <InputField
+                                        name="name"
+                                        label="Full name (optional)"
                                         type="text"
-                                        value={name}
+                                        defaultValue={name}
                                         onChange={(e) => {
                                             setName(e.target.value);
                                             resetError();
                                         }}
                                     />
-                                </label>
-                                <label className="authgate-field">
-                                    <span className="authgate-label">Date of birth</span>
-                                    <input
-                                        className="authgate-input"
+                                </div>
+                                <div className="authgate-field">
+                                    <InputField
+                                        name="dob"
+                                        label="Date of birth"
                                         type="date"
-                                        value={dob}
+                                        defaultValue={dob}
                                         onChange={(e) => {
                                             setDob(e.target.value);
                                             resetError();
                                         }}
                                     />
-                                </label>
-                                <label className="authgate-field">
-                                    <span className="authgate-label">
-                                        Phone <span className="authgate-optional">(optional)</span>
-                                    </span>
-                                    <input
-                                        className="authgate-input"
+                                </div>
+                                <div className="authgate-field">
+                                    <InputField
+                                        name="phone"
+                                        label="Phone (optional)"
                                         type="tel"
-                                        value={phone}
+                                        defaultValue={phone}
                                         onChange={(e) => {
                                             setPhone(e.target.value);
                                             resetError();
                                         }}
                                     />
-                                </label>
+                                </div>
                             </>
                         )}
 
@@ -255,24 +257,24 @@ const AuthGate = ({
                         {mode === 'login' ? (
                             <>
                                 New to daTryp?{' '}
-                                <button
-                                    type="button"
+                                <ButtonCustom
+                                    type="text"
+                                    capitalizeType="none"
                                     className="authgate-link"
+                                    label="Create an account"
                                     onClick={toggleMode}
-                                >
-                                    Create an account
-                                </button>
+                                />
                             </>
                         ) : (
                             <>
                                 Already have an account?{' '}
-                                <button
-                                    type="button"
+                                <ButtonCustom
+                                    type="text"
+                                    capitalizeType="none"
                                     className="authgate-link"
+                                    label="Sign in"
                                     onClick={toggleMode}
-                                >
-                                    Sign in
-                                </button>
+                                />
                             </>
                         )}
                     </p>

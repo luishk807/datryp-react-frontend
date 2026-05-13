@@ -1,0 +1,35 @@
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+  transition: color 120ms ease;
+}
+
+.icon-link:hover {
+  color: #111;
+}
+
+.icon-link-adornment {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* Make MUI icons inside the adornment honor the link's font-size. */
+.icon-link-adornment .MuiSvgIcon-root {
+  font-size: 1.125rem;
+}
+
+.icon-link-adornment img {
+  display: block;
+  height: 1em;
+  width: auto;
+}
+
+.icon-link-label {
+  line-height: 1;
+}

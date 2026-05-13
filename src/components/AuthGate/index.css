@@ -66,8 +66,11 @@
   filter: brightness(0) invert(1);
 }
 
-.authgate-brand img {
-  height: 56px;
+/* The `.icon-link-adornment` selector beats IconLink's default `1em` image
+ * sizing — without it the brand logo would render at text height. */
+.authgate-brand img,
+.authgate-brand .icon-link-adornment img {
+  height: 80px;
   width: auto;
 }
 
@@ -121,14 +124,14 @@
   z-index: 1;
 }
 
-.authgate-back-link {
+.icon-link.authgate-back-link {
   color: rgba(255, 255, 255, 0.85);
   font-size: 0.875rem;
   text-decoration: none;
   transition: color 120ms ease;
 }
 
-.authgate-back-link:hover {
+.icon-link.authgate-back-link:hover {
   color: #fff;
 }
 
@@ -175,36 +178,13 @@
 .authgate-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
-.authgate-label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.authgate-optional {
-  font-weight: 400;
-  color: rgba(0, 0, 0, 0.4);
-}
-
-.authgate-input {
-  height: 44px;
-  padding: 0 14px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: 8px;
-  font-size: 0.9375rem;
-  font-family: inherit;
-  background: #fafafa;
-  outline: none;
-  transition: border-color 120ms ease, background 120ms ease;
-}
-
-.authgate-input:focus {
-  border-color: #1976d2;
+/* Match the inputs to the modal style elsewhere in the app — MUI default
+ * spacing is a bit tight for a hero auth form. */
+.authgate-form .MuiFormControl-root,
+.authgate-form .MuiOutlinedInput-root {
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.12);
 }
 
 .authgate-error {
@@ -224,7 +204,9 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
-.authgate-link {
+/* Wins over ButtonCustom's `.text-button` (which sets `color: inherit`) so
+ * the toggle reads like a link rather than a button. */
+.authgate-toggle .authgate-link {
   background: none;
   border: none;
   padding: 0;
@@ -232,11 +214,14 @@
   cursor: pointer;
   font: inherit;
   font-weight: 500;
+  width: auto;
+  display: inline;
 }
 
-.authgate-link:hover {
+.authgate-toggle .authgate-link:hover {
   color: #1565c0;
   text-decoration: underline;
+  background: transparent;
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
@@ -256,7 +241,8 @@
     display: inline-flex;
   }
 
-  .authgate-brand-mobile img {
-    height: 44px;
+  .authgate-brand-mobile img,
+  .authgate-brand-mobile .icon-link-adornment img {
+    height: 64px;
   }
 }

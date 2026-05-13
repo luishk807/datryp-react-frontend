@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { FormControl, InputLabel, OutlinedInput } from '@mui/material';
 import { TimePicker, DatePicker } from '@mui/x-date-pickers';
 
-type InputFieldType = 'text' | 'number' | 'email' | 'password' | 'date' | 'file' | 'time';
+type InputFieldType = 'text' | 'number' | 'email' | 'password' | 'date' | 'file' | 'time' | 'tel';
 
 interface ChangeEventLike {
     target: { value: string };

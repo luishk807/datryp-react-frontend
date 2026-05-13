@@ -12,6 +12,7 @@ export interface ButtonCustomProps {
     type?: ButtonVariant;
     style?: CSSProperties | null;
     disabled?: boolean;
+    className?: string;
 }
 
 const ButtonCustom = ({
@@ -21,12 +22,13 @@ const ButtonCustom = ({
     type = 'standard',
     style = null,
     disabled = false,
+    className,
 }: ButtonCustomProps) => {
     return (
         <button
             style={style ?? undefined}
             disabled={disabled}
-            className={classNames({
+            className={classNames(className, {
                 'main-button': type === 'standard',
                 'main-line': type === 'line',
                 'plain-button': type === 'plain',
