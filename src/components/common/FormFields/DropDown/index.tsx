@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
     FormControl,
     InputLabel,
-    Select,
     MenuItem,
+    Select,
     type SelectChangeEvent,
 } from '@mui/material';
 import './index.scss';
@@ -18,7 +18,10 @@ export interface DropdownCustomProps<T extends DropdownOption = DropdownOption> 
     label?: string;
     onChange?: (option: T | undefined) => void;
     name?: string;
+    /** Uncontrolled initial selection. Ignored when `value` is supplied. */
     defaultValue?: T | null;
+    /** Controlled selection (the option id). Pass `null` for empty. */
+    value?: T['id'] | null;
 }
 
 const DropdownCustom = <T extends DropdownOption = DropdownOption>({
@@ -27,33 +30,37 @@ const DropdownCustom = <T extends DropdownOption = DropdownOption>({
     onChange,
     name,
     defaultValue = null,
+    value,
 }: DropdownCustomProps<T>) => {
-    const [value, setValue] = useState<T | null>(defaultValue);
+    const labelId = useId();
+    const [internal, setInternal] = useState<T | null>(defaultValue);
+    const isControlled = value !== undefined;
+    const selectedId: T['id'] | '' = isControlled
+        ? (value ?? '')
+        : (internal?.id ?? '');
 
-    const handleChange = (e: SelectChangeEvent<T['id']>) => {
-        const selected = options.find((item) => item.id === e.target.value);
-        if (selected) {
-            setValue(selected);
-            onChange?.(selected);
-        }
+    const handleChange = (e: SelectChangeEvent<T['id'] | ''>) => {
+        const raw = e.target.value;
+        const selected =
+            raw === '' ? undefined : options.find((item) => item.id === raw);
+        if (!isControlled) setInternal(selected ?? null);
+        onChange?.(selected);
     };
-
-    if (!value) return null;
 
     return (
         <FormControl fullWidth className="custom-dropdown">
-            <InputLabel id="dropdown-custom-label">{label}</InputLabel>
+            <InputLabel id={labelId}>{label}</InputLabel>
             <Select
-                labelId="dropdown-custom-label"
+                labelId={labelId}
                 name={name}
                 label={label}
-                value={value.id}
+                value={selectedId}
                 onChange={handleChange}
             >
-                {options.map((option, indx) => (
+                {options.map((option) => (
                     <MenuItem
                         className="custom-dropdown-item"
-                        key={indx}
+                        key={String(option.id)}
                         value={option.id}
                     >
                         {option.name}

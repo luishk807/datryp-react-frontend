@@ -5,6 +5,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import ErrorAlert from 'components/common/ErrorAlert';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import { placeStatus } from 'sample';
 import classNames from 'classnames';
@@ -227,21 +228,7 @@ const AddPlaceBtn = ({
                         </Grid>
                         {error && (
                             <Grid item lg={12} md={12} xs={12}>
-                                <p
-                                    role="alert"
-                                    style={{
-                                        color: '#b3261e',
-                                        background: '#fdecea',
-                                        border: '1px solid #f5c2bd',
-                                        fontSize: '0.9375rem',
-                                        fontWeight: 500,
-                                        padding: '10px 12px',
-                                        borderRadius: '6px',
-                                        margin: '12px 0 10px',
-                                    }}
-                                >
-                                    {error}
-                                </p>
+                                <ErrorAlert>{error}</ErrorAlert>
                             </Grid>
                         )}
                         <Grid item lg={12} md={12} xs={12}>

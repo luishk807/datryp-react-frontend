@@ -24,3 +24,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Claude Code (local only — let collaborators use their own AI tools)
+/.claude/
+/CLAUDE.md

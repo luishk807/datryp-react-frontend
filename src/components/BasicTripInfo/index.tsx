@@ -2,13 +2,6 @@ import { useMemo, useRef, useState } from 'react';
 import './index.scss';
 import moment from 'moment';
 import _ from 'lodash';
-import {
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    type SelectChangeEvent,
-} from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
@@ -19,6 +12,8 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
+import ErrorAlert from 'components/common/ErrorAlert';
+import DropDown from 'components/common/FormFields/DropDown';
 import { convertMoney } from 'utils';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
@@ -246,45 +241,18 @@ export const BasicTripInfo = ({
             )}
 
             <ModalButton ref={statusModalRef} title="Update trip status">
-                <FormControl fullWidth sx={{ mt: 1 }}>
-                    <InputLabel id="status-select-label">Status</InputLabel>
-                    <Select
-                        labelId="status-select-label"
+                <div className="trip-status-dropdown">
+                    <DropDown
                         label="Status"
-                        value={draftStatusId ?? ''}
-                        onChange={(e: SelectChangeEvent<string | number | ''>) => {
-                            const v = e.target.value;
-                            setDraftStatusId(v === '' ? undefined : v);
+                        options={statusOptions}
+                        value={draftStatusId ?? null}
+                        onChange={(opt) => {
+                            setDraftStatusId(opt?.id);
                             setStatusError(null);
                         }}
-                    >
-                        {statusOptions.map((option) => (
-                            <MenuItem
-                                key={String(option.id)}
-                                value={option.id as string | number}
-                            >
-                                {option.name}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                {statusError && (
-                    <p
-                        role="alert"
-                        style={{
-                            color: '#b3261e',
-                            background: '#fdecea',
-                            border: '1px solid #f5c2bd',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            padding: '10px 12px',
-                            borderRadius: '6px',
-                            margin: '14px 0 0',
-                        }}
-                    >
-                        {statusError}
-                    </p>
-                )}
+                    />
+                </div>
+                <ErrorAlert>{statusError}</ErrorAlert>
                 <div className="trip-status-actions">
                     <ButtonCustom
                         type="line"

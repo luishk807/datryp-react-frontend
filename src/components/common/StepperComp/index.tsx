@@ -5,6 +5,7 @@ import { Step, StepLabel, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
+import ErrorAlert from 'components/common/ErrorAlert';
 import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
 import TripComplete from 'components/DestinationDetail/Completed';
@@ -322,20 +323,9 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                     )}
                     {!saveError && hasMissingFields && (
                         <Grid item lg={12} md={12} xs={12}>
-                            <p
-                                style={{
-                                    color: '#b3261e',
-                                    background: '#fdecea',
-                                    border: '1px solid #f5c2bd',
-                                    fontSize: '0.9375rem',
-                                    fontWeight: 500,
-                                    padding: '10px 12px',
-                                    borderRadius: '6px',
-                                    margin: '12px 0 0',
-                                }}
-                            >
+                            <ErrorAlert>
                                 Add {stepMissing.join(', ')} to continue.
-                            </p>
+                            </ErrorAlert>
                         </Grid>
                     )}
                     <Grid item lg={12} md={12} xs={12}>
