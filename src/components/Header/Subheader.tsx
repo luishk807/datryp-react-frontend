@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton, Link, Menu, MenuItem } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
@@ -17,7 +17,7 @@ import { TRIP_BASIC } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
 import type { Country, Destination } from 'types';
-import './index.css';
+import './index.scss';
 
 const Header = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);

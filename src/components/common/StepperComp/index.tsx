@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import moment from 'moment';
-import './index.css';
+import './index.scss';
 import { Step, StepLabel, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';

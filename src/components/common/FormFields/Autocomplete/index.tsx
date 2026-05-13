@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import classnames from 'classnames';
-import './index.css';
+import './index.scss';
 import { TextField, Autocomplete } from '@mui/material';
 
 export interface AutocompleteOption {

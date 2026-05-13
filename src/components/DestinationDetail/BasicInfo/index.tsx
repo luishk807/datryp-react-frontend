@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo } from 'react';
-import './index.css';
+import { useEffect, useMemo } from 'react';
+import './index.scss';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import moment from 'moment';

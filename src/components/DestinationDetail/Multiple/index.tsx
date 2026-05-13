@@ -1,9 +1,9 @@
-﻿import _ from 'lodash';
+import _ from 'lodash';
 import moment from 'moment';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
-import './index.css';
+import './index.scss';
 import { TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddDestinationBtn from 'components/common/AddDestination';

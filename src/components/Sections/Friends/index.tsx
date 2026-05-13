@@ -3,7 +3,7 @@ import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InviteFriendModal from 'components/InviteFriendModal';
 import { useUser } from 'context/UserContext';
-import './index.css';
+import './index.scss';
 
 export const Friends = () => {
     const { user, updateUser } = useUser();

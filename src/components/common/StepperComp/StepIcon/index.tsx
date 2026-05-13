@@ -1,7 +1,7 @@
 import classnames from 'classnames';
 import type { ReactNode } from 'react';
 import CheckIcon from '@mui/icons-material/Check';
-import './index.css';
+import './index.scss';
 
 export interface StepIconProps {
     active?: boolean;

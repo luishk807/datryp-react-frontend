@@ -1,4 +1,4 @@
-﻿import './index.css';
+import './index.scss';
 import moment from 'moment';
 import { Grid } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';

@@ -1,5 +1,5 @@
-﻿import { useState, useEffect, useMemo, useRef } from 'react';
-import './index.css';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import './index.scss';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';

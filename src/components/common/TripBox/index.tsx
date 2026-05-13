@@ -1,7 +1,7 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import classnames from 'classnames';
 import moment from 'moment';
-import './index.css';
+import './index.scss';
 import type {
     MultipleDestinations,
     SingleDestination,

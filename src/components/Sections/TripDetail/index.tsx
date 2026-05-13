@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import "./index.css";
+import "./index.scss";
 import { Grid } from "@mui/material";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";

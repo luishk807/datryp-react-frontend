@@ -4,7 +4,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
-import './index.css';
+import './index.scss';
 
 const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
     email: true,

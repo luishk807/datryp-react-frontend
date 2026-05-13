@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -9,7 +9,7 @@ import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import { placeStatus } from 'sample';
 import classNames from 'classnames';
 import { TRIP_BASIC } from 'constants';
-import './index.css';
+import './index.scss';
 import type { Activity, Friend, ImageRef } from 'types';
 
 // Default status for newly added places. The user toggles between Pending /

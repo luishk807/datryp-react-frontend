@@ -6,7 +6,7 @@ import {
     MenuItem,
     type SelectChangeEvent,
 } from '@mui/material';
-import './index.css';
+import './index.scss';
 
 export interface DropdownOption {
     id: number | string;

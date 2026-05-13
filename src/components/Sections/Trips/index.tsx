@@ -7,7 +7,7 @@ import TripBox, { type TripBoxData } from 'components/common/TripBox';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useMyItineraries } from 'api/hooks/useItineraries';
 import { apiToTripEntry } from 'utils/itineraryAdapter';
-import './index.css';
+import './index.scss';
 
 type FilterValue = 'all' | 'planning' | 'confirmed' | 'completed';
 

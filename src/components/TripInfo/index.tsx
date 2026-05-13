@@ -1,8 +1,8 @@
-﻿import { Grid } from '@mui/material';
+import { Grid } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import type { TripState } from 'types';
-import './index.css';
+import './index.scss';
 
 interface TripInfoProps {
     data: TripState;

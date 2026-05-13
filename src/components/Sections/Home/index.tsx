@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { gql } from 'graphql-request';
 import classnames from 'classnames';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import './index.css';
+import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
 import { TRIP_BASIC } from 'constants';

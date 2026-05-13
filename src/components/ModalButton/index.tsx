@@ -6,7 +6,7 @@ import React, {
     type CSSProperties,
     type ReactNode,
 } from 'react';
-import './index.css';
+import './index.scss';
 import { IconButton, Modal } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';

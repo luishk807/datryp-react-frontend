@@ -1,5 +1,5 @@
-﻿import React from 'react';
-import './index.css';
+import React from 'react';
+import './index.scss';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import type { Activity, ActionType, Friend } from 'types';

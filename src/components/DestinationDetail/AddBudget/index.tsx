@@ -1,5 +1,5 @@
-﻿import React, { useRef, useState } from 'react';
-import './index.css';
+import React, { useRef, useState } from 'react';
+import './index.scss';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { Grid } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';

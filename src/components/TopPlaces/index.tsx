@@ -1,4 +1,4 @@
-import './index.css';
+import './index.scss';
 import PlaceCard from 'components/common/PlaceCard';
 import { topPlaces, type TopPlace } from 'sample/topPlaces';
 

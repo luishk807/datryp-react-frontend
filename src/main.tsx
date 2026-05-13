@@ -4,7 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import './index.css';
+import './index.scss';
 import App from './App';
 import { TripProvider } from 'context/TripContext';
 import { UserProvider } from 'context/UserContext';

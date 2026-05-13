@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, forwardRef } from 'react';
 import moment from 'moment';
-import './index.css';
+import './index.scss';
 import classNames from 'classnames';
 import { FormControl, InputLabel, OutlinedInput } from '@mui/material';
 import { TimePicker, DatePicker } from '@mui/x-date-pickers';

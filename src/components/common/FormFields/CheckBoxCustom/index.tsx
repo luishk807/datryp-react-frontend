@@ -1,7 +1,7 @@
 import type { MouseEventHandler } from 'react';
 import { Grid, FormControlLabel } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
-import 'index.css';
+import 'index.scss';
 
 export interface CheckBoxCustomProps {
     label?: string;

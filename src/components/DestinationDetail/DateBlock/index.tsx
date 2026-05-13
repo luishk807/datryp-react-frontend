@@ -1,11 +1,11 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Grid } from '@mui/material';
 import moment from 'moment';
 import _ from 'lodash';
 import MultipleTrips from 'components/DestinationDetail/Multiple';
 import SingleTrips from 'components/DestinationDetail/Single';
 import { isSingleTrip } from 'utils';
-import './index.css';
+import './index.scss';
 import type { ActionType, Activity, Destination, Friend } from 'types';
 
 interface DateBlockProps {

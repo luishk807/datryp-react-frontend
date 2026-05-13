@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Grid } from '@mui/material';
-import 'App.css';
-import './index.css';
+import 'App.scss';
+import './index.scss';
 import Footer from 'components/Footer';
 import Header from 'components/Header/Subheader';
 

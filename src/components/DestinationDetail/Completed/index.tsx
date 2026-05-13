@@ -1,7 +1,7 @@
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import Confetti from 'components/Confetti';
 import { useNavigate } from 'react-router-dom';
-import './index.css';
+import './index.scss';
 import Button from 'components/common/FormFields/ButtonCustom';
 
 type CompleteNavTarget = 'home' | 'trips';

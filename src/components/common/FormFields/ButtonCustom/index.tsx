@@ -1,5 +1,5 @@
-import type { CSSProperties, MouseEventHandler } from 'react';
-import './index.css';
+import type { CSSProperties, MouseEventHandler, ReactNode } from 'react';
+import './index.scss';
 import classNames from 'classnames';
 
 type ButtonVariant = 'plain' | 'text' | 'standard' | 'standard-small' | 'none' | 'line';
@@ -7,6 +7,7 @@ type CapitalizeType = 'capitalize' | 'uppercase' | 'lowercase' | 'none';
 
 export interface ButtonCustomProps {
     label?: string;
+    children?: ReactNode;
     onClick?: MouseEventHandler<HTMLButtonElement>;
     capitalizeType?: CapitalizeType;
     type?: ButtonVariant;
@@ -17,6 +18,7 @@ export interface ButtonCustomProps {
 
 const ButtonCustom = ({
     label = '',
+    children,
     onClick,
     capitalizeType = 'capitalize',
     type = 'standard',
@@ -42,7 +44,7 @@ const ButtonCustom = ({
             })}
             onClick={onClick}
         >
-            {label}
+            {children ?? label}
         </button>
     );
 };

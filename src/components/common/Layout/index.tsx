@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Grid } from '@mui/material';
-import '../../../App.css';
+import '../../../App.scss';
 import Footer from '../../Footer';
 import Header from '../../Header';
 

@@ -7,8 +7,8 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser, type UserFriend } from 'context/UserContext';
-import 'components/ModalButton/index.css';
-import './index.css';
+import 'components/ModalButton/index.scss';
+import './index.scss';
 
 interface InviteFriendModalProps {
     open: boolean;

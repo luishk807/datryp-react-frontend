@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import './index.css';
+import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import IconLink from 'components/common/IconLink';

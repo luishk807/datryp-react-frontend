@@ -1,5 +1,5 @@
 import type { MouseEventHandler } from 'react';
-import './index.css';
+import './index.scss';
 import _ from 'lodash';
 import { Grid } from '@mui/material';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';

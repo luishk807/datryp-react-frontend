@@ -13,7 +13,7 @@ import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import type { SignUpForm } from 'components/common/SignUpBtn';
 import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
-import './index.css';
+import './index.scss';
 
 const Header = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);

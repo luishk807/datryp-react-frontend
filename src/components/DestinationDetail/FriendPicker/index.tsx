@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import './index.css';
+import './index.scss';
 import { Grid } from '@mui/material';
 import PersonAddAlt1OutlinedIcon from '@mui/icons-material/PersonAddAlt1Outlined';
 import Autocomplete, {

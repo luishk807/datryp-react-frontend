@@ -1,18 +1,15 @@
-import { useMemo, useState } from 'react';
-import './index.css';
+import { useMemo, useRef, useState } from 'react';
+import './index.scss';
 import moment from 'moment';
 import _ from 'lodash';
 import {
     FormControl,
     InputLabel,
     MenuItem,
-    Modal,
     Select,
     type SelectChangeEvent,
 } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import 'components/ModalButton/index.css';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
@@ -20,6 +17,8 @@ import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
+import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { convertMoney } from 'utils';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
@@ -94,7 +93,7 @@ export const BasicTripInfo = ({
         [data.status, statusOptions]
     );
 
-    const [statusModalOpen, setStatusModalOpen] = useState(false);
+    const statusModalRef = useRef<ModalButtonHandle>(null);
     const [draftStatusId, setDraftStatusId] = useState<string | number | undefined>(
         currentStatus?.id
     );
@@ -123,18 +122,18 @@ export const BasicTripInfo = ({
     const openStatusModal = () => {
         setDraftStatusId(currentStatus?.id);
         setStatusError(null);
-        setStatusModalOpen(true);
+        statusModalRef.current?.openModel();
     };
 
     const closeStatusModal = () => {
         setStatusError(null);
-        setStatusModalOpen(false);
+        statusModalRef.current?.closeModal();
     };
 
     const handleSaveStatus = () => {
         const next = statusOptions.find((o) => o.id === draftStatusId);
         if (!next) {
-            setStatusModalOpen(false);
+            statusModalRef.current?.closeModal();
             return;
         }
         // Trip can only be marked Confirmed when every activity is also Confirmed.
@@ -155,7 +154,7 @@ export const BasicTripInfo = ({
         }
         setStatusError(null);
         onStatusChange?.(next as TripStatus);
-        setStatusModalOpen(false);
+        statusModalRef.current?.closeModal();
     };
 
     return (
@@ -181,18 +180,20 @@ export const BasicTripInfo = ({
                 </div>
                 <div className="trip-header-right">
                     {onExportExcel && (
-                        <button
-                            type="button"
+                        <ButtonIcon
+                            type="standard"
                             className="trip-export-btn"
+                            Icon={FileDownloadOutlinedIcon}
+                            iconProps={{ fontSize: 'small' }}
+                            iconPosition="start"
+                            title="Excel"
+                            ariaLabel="Download as Excel"
                             onClick={onExportExcel}
-                            aria-label="Download as Excel"
-                        >
-                            <FileDownloadOutlinedIcon fontSize="small" />
-                            <span>Excel</span>
-                        </button>
+                        />
                     )}
-                    <button
-                        type="button"
+                    <ButtonCustom
+                        type="none"
+                        capitalizeType="none"
                         className="trip-status-badge"
                         onClick={openStatusModal}
                         disabled={isViewMode}
@@ -200,7 +201,7 @@ export const BasicTripInfo = ({
                         <span className="status-dot" />
                         <span className="status-text">{statusName}</span>
                         {!isViewMode && <EditOutlinedIcon className="status-edit" />}
-                    </button>
+                    </ButtonCustom>
                 </div>
             </div>
 
@@ -244,82 +245,61 @@ export const BasicTripInfo = ({
                 </div>
             )}
 
-            <Modal
-                open={statusModalOpen}
-                onClose={closeStatusModal}
-                aria-labelledby="trip-status-title"
-            >
-                <div className="modalCustom">
-                    <span className="modalCustom-stripe" aria-hidden="true" />
-                    <div className="modalCustom-header">
-                        <h2 id="trip-status-title" className="modalCustom-title">
-                            Update trip status
-                        </h2>
-                        <IconButton
-                            className="modalCustom-close"
-                            aria-label="Close"
-                            onClick={closeStatusModal}
-                        >
-                            <CloseRoundedIcon />
-                        </IconButton>
-                    </div>
-                    <div className="modalCustom-content">
-                        <FormControl fullWidth sx={{ mt: 1 }}>
-                            <InputLabel id="status-select-label">Status</InputLabel>
-                            <Select
-                                labelId="status-select-label"
-                                label="Status"
-                                value={draftStatusId ?? ''}
-                                onChange={(e: SelectChangeEvent<string | number | ''>) => {
-                                    const v = e.target.value;
-                                    setDraftStatusId(v === '' ? undefined : v);
-                                    setStatusError(null);
-                                }}
+            <ModalButton ref={statusModalRef} title="Update trip status">
+                <FormControl fullWidth sx={{ mt: 1 }}>
+                    <InputLabel id="status-select-label">Status</InputLabel>
+                    <Select
+                        labelId="status-select-label"
+                        label="Status"
+                        value={draftStatusId ?? ''}
+                        onChange={(e: SelectChangeEvent<string | number | ''>) => {
+                            const v = e.target.value;
+                            setDraftStatusId(v === '' ? undefined : v);
+                            setStatusError(null);
+                        }}
+                    >
+                        {statusOptions.map((option) => (
+                            <MenuItem
+                                key={String(option.id)}
+                                value={option.id as string | number}
                             >
-                                {statusOptions.map((option) => (
-                                    <MenuItem
-                                        key={String(option.id)}
-                                        value={option.id as string | number}
-                                    >
-                                        {option.name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        {statusError && (
-                            <p
-                                role="alert"
-                                style={{
-                                    color: '#b3261e',
-                                    background: '#fdecea',
-                                    border: '1px solid #f5c2bd',
-                                    fontSize: '0.875rem',
-                                    fontWeight: 500,
-                                    padding: '10px 12px',
-                                    borderRadius: '6px',
-                                    margin: '14px 0 0',
-                                }}
-                            >
-                                {statusError}
-                            </p>
-                        )}
-                        <div className="trip-status-actions">
-                            <ButtonCustom
-                                type="line"
-                                capitalizeType="uppercase"
-                                label="Cancel"
-                                onClick={closeStatusModal}
-                            />
-                            <ButtonCustom
-                                type="standard"
-                                capitalizeType="uppercase"
-                                label="Save"
-                                onClick={handleSaveStatus}
-                            />
-                        </div>
-                    </div>
+                                {option.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                {statusError && (
+                    <p
+                        role="alert"
+                        style={{
+                            color: '#b3261e',
+                            background: '#fdecea',
+                            border: '1px solid #f5c2bd',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            padding: '10px 12px',
+                            borderRadius: '6px',
+                            margin: '14px 0 0',
+                        }}
+                    >
+                        {statusError}
+                    </p>
+                )}
+                <div className="trip-status-actions">
+                    <ButtonCustom
+                        type="line"
+                        capitalizeType="uppercase"
+                        label="Cancel"
+                        onClick={closeStatusModal}
+                    />
+                    <ButtonCustom
+                        type="standard"
+                        capitalizeType="uppercase"
+                        label="Save"
+                        onClick={handleSaveStatus}
+                    />
                 </div>
-            </Modal>
+            </ModalButton>
         </section>
     );
 };

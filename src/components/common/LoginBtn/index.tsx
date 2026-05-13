@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import './index.css';
+import './index.scss';
 import { Grid } from '@mui/material';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from '../FormFields/ButtonCustom';

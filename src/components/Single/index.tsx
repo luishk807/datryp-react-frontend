@@ -1,5 +1,5 @@
-﻿import { Grid } from '@mui/material';
-import './index.css';
+import { Grid } from '@mui/material';
+import './index.scss';
 import Activities from 'components/DestinationDetail/Activities';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import type { Activity } from 'types';

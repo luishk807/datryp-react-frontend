@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
-import './index.css';
+import './index.scss';
 import InputField from 'components/common/FormFields/InputField';
 import classNames from 'classnames';
 import { useCountries } from 'api/hooks/useCountries';

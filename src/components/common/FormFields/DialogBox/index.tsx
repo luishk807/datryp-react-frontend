@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import './index.css';
+import './index.scss';
 import {
     DialogContentText,
     Dialog,

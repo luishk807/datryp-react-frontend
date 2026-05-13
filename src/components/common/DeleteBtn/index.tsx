@@ -1,4 +1,4 @@
-import './index.css';
+import './index.scss';
 import DialogBox from 'components/common/FormFields/DialogBox';
 
 type DeleteBtnVariant = 'text' | 'standard';

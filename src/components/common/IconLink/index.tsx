@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import classNames from 'classnames';
-import './index.css';
+import './index.scss';
 
 export interface IconLinkProps {
     /** Route to navigate to. */
