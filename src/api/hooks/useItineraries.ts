@@ -11,6 +11,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { gql } from 'graphql-request';
 import { pythonGqlClient } from 'api/pythonGqlClient';
+import { ITINERARY_TYPE } from 'constants';
 
 // ── Types mirroring the GraphQL schema ───────────────────────────────────────
 
@@ -293,6 +294,6 @@ export const useDeleteItinerary = () => {
 
 /** Discriminator helpers — matches `interaryType.name` rows seeded in the backend. */
 export const isSingleDestination = (itin: ApiItinerary) =>
-    itin.interaryType.name === 'Single Destination Trip';
+    itin.interaryType.name === ITINERARY_TYPE.SINGLE;
 export const isMultiDestination = (itin: ApiItinerary) =>
-    itin.interaryType.name === 'Multi Destination Trip';
+    itin.interaryType.name === ITINERARY_TYPE.MULTI;

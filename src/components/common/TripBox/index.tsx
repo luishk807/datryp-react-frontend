@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import classnames from 'classnames';
-import moment from 'moment';
 import './index.scss';
+import { NO_IMAGE } from 'constants';
+import { formatDate, isValidDate } from 'utils';
 import type {
     MultipleDestinations,
     SingleDestination,
@@ -14,16 +15,16 @@ interface TripBoxProps {
     to?: string;
 }
 
-const FALLBACK_IMAGE = '/images/sample/iceland.jpg';
+const TRIP_BOX_LABEL = {
+    MULTIPLE: 'Multiple destinations',
+} as const;
 
 const formatDateRange = (start: string, end: string) => {
-    const a = moment(start);
-    const b = moment(end);
-    if (!a.isValid() || !b.isValid()) return '';
-    if (a.year() === b.year()) {
-        return `${a.format('MMM D')} – ${b.format('MMM D, YYYY')}`;
+    if (!isValidDate(start) || !isValidDate(end)) return '';
+    if (formatDate(start, 'YYYY') === formatDate(end, 'YYYY')) {
+        return `${formatDate(start, 'MMM D')} – ${formatDate(end, 'MMM D, YYYY')}`;
     }
-    return `${a.format('MMM D, YYYY')} – ${b.format('MMM D, YYYY')}`;
+    return `${formatDate(start, 'MMM D, YYYY')} – ${formatDate(end, 'MMM D, YYYY')}`;
 };
 
 const isSingle = (data: TripBoxData): data is SingleDestination =>
@@ -35,7 +36,7 @@ const getDestinationLabel = (data: TripBoxData) => {
         .map((d) => d.country?.name)
         .filter(Boolean) as string[];
     const unique = Array.from(new Set(countries));
-    return unique.join(' · ') || 'Multiple destinations';
+    return unique.join(' · ') || TRIP_BOX_LABEL.MULTIPLE;
 };
 
 const getTripImage = (data: TripBoxData) => {
@@ -43,7 +44,7 @@ const getTripImage = (data: TripBoxData) => {
     const country = isSingle(data)
         ? data.country
         : data.intenaryDates[0]?.country;
-    return country?.image || FALLBACK_IMAGE;
+    return country?.image || NO_IMAGE;
 };
 
 export const TripBox = ({ data, to }: TripBoxProps) => {

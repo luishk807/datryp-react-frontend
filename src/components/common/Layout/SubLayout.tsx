@@ -3,7 +3,7 @@ import { Grid } from '@mui/material';
 import 'App.scss';
 import './index.scss';
 import Footer from 'components/Footer';
-import Header from 'components/Header/Subheader';
+import Header from 'components/Header';
 
 interface SubLayoutProps {
     children?: ReactNode;
@@ -14,7 +14,7 @@ interface SubLayoutProps {
 const Layout = ({ children, title = '', titleAction }: SubLayoutProps) => {
     return (
         <div className="page-shell">
-            <Header />
+            <Header withSearch />
             <main className="page-content">
                 <Grid container spacing={0} id="layout" className="root">
                     <Grid item lg={8} md={12} xs={12} className="layout-container">

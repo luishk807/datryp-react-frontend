@@ -1,8 +1,12 @@
 import type { ComponentType, CSSProperties, MouseEventHandler } from 'react';
 import './index.scss';
 import classNames from 'classnames';
+import { BUTTON_VARIANT } from 'constants';
 
-type ButtonIconVariant = 'text' | 'standard' | 'text-plain';
+type ButtonIconVariant =
+    | typeof BUTTON_VARIANT.TEXT
+    | typeof BUTTON_VARIANT.STANDARD
+    | typeof BUTTON_VARIANT.TEXT_PLAIN;
 type IconPosition = 'start' | 'end';
 
 export interface ButtonIconProps {
@@ -26,7 +30,7 @@ const ButtonIcon = ({
     iconPosition = 'end',
     onClick,
     style,
-    type = 'standard',
+    type = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
     className,
     ariaLabel,
@@ -43,9 +47,9 @@ const ButtonIcon = ({
             aria-label={ariaLabel}
             disabled={disabled}
             className={classNames(className, {
-                'button-icon': type === 'standard',
-                'button-simple': type === 'text',
-                'button-no-style': type === 'text-plain',
+                'button-icon': type === BUTTON_VARIANT.STANDARD,
+                'button-simple': type === BUTTON_VARIANT.TEXT,
+                'button-no-style': type === BUTTON_VARIANT.TEXT_PLAIN,
             })}
         >
             {iconPosition === 'start' && iconNode}

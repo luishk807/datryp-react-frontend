@@ -1,7 +1,8 @@
 import './index.scss';
 import DialogBox from 'components/common/FormFields/DialogBox';
+import { BUTTON_VARIANT } from 'constants';
 
-type DeleteBtnVariant = 'text' | 'standard';
+type DeleteBtnVariant = typeof BUTTON_VARIANT.TEXT | typeof BUTTON_VARIANT.STANDARD;
 
 export interface DeleteBtnProps {
     title?: string;
@@ -17,7 +18,7 @@ const DeleteBtn = ({
     label = 'Delete',
     targetName,
     onConfirm,
-    buttonType = 'text',
+    buttonType = BUTTON_VARIANT.TEXT,
     isViewMode = false,
 }: DeleteBtnProps) => {
     return (

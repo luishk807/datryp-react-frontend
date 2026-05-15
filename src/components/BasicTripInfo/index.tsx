@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import './index.scss';
-import moment from 'moment';
+import { formatDate, isSameDay, isValidDate } from 'utils';
 import _ from 'lodash';
 import IconButton from '@mui/material/IconButton';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
@@ -111,11 +111,9 @@ export const BasicTripInfo = ({
     const [statusError, setStatusError] = useState<string | null>(null);
 
     const tripDate = useMemo(() => {
-        const start = moment(data.startDate);
-        const end = moment(data.endDate);
-        if (!start.isValid() || !end.isValid()) return '—';
-        if (start.isSame(end, 'day')) return start.format('MMM D, YYYY');
-        return `${start.format('MMM D')} → ${end.format('MMM D, YYYY')}`;
+        if (!isValidDate(data.startDate) || !isValidDate(data.endDate)) return '—';
+        if (isSameDay(data.startDate, data.endDate)) return formatDate(data.startDate, 'MMM D, YYYY');
+        return `${formatDate(data.startDate, 'MMM D')} → ${formatDate(data.endDate, 'MMM D, YYYY')}`;
     }, [data]);
 
     const organizer = useMemo(

@@ -1,5 +1,5 @@
 import './index.scss';
-import moment from 'moment';
+import { reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
@@ -47,7 +47,7 @@ const Activities = ({
         <>
             {activities &&
                 activities.map((activity, indx) => {
-                    const activityTime = `${moment(activity.startTime, 'HH:mm').format('LT').toString()} - ${moment(activity.endTime, 'HH:mm').format('LT').toString()}`;
+                    const activityTime = `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
                     const budgetList =
                         activity.budget && activity.budget.length
                             ? activity.budget

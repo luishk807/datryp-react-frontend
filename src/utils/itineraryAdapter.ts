@@ -6,9 +6,9 @@
  * Keeps the rest of the UI working without rewriting every component.
  */
 
-import moment from 'moment';
+import { addDays, formatDate, isValidDate } from 'utils';
 import type { ApiActivityBudget, ApiItinerary } from 'api/hooks/useItineraries';
-import { TRIP_BASIC, TRIP_STATUS } from 'constants';
+import { ITINERARY_TYPE, TRIP_BASIC, TRIP_STATUS } from 'constants';
 import type {
     BudgetItem,
     Destination,
@@ -17,8 +17,6 @@ import type {
     SingleDestination,
     TripState,
 } from 'types';
-
-const SINGLE_TRIP_TYPE_NAME = 'Single Destination Trip';
 
 /** Cheap stable hash so UUID strings can still be used where a numeric id is expected. */
 const uuidToNumericId = (uuid: string): number => {
@@ -36,8 +34,7 @@ const uuidToNumericId = (uuid: string): number => {
  */
 const apiTimeToHHmm = (iso: string | null | undefined): string | undefined => {
     if (!iso) return undefined;
-    const m = moment(iso);
-    return m.isValid() ? m.format('HH:mm') : undefined;
+    return isValidDate(iso) ? formatDate(iso, 'HH:mm') : undefined;
 };
 
 /** Convert backend `ActivityBudgetEntry[]` to the frontend `BudgetItem[]`
@@ -85,7 +82,7 @@ const apiUserToLegacyUser = (u: {
     }) as unknown as Friend; // shape mismatch is intentional — see file header
 
 export const apiIsSingleTrip = (it: ApiItinerary): boolean =>
-    it.interaryType.name === SINGLE_TRIP_TYPE_NAME;
+    it.interaryType.name === ITINERARY_TYPE.SINGLE;
 
 /** ApiItinerary → SingleDestination | MultipleDestinations (for TripBox / TripDetail). */
 export const apiToTripEntry = (
@@ -195,7 +192,7 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
         destinations = dates.map((d, i) => {
             const nextDate = dates[i + 1]?.date;
             const endDate = nextDate
-                ? moment(nextDate).subtract(1, 'day').format('YYYY-MM-DD')
+                ? addDays(nextDate, -1)
                 : it.endDate ?? d.date;
             return {
                 id: uuidToNumericId(d.id),

@@ -4,6 +4,7 @@ import { Grid } from '@mui/material';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from '../FormFields/ButtonCustom';
 import InputField from '../FormFields/InputField';
+import { AUTH_LABEL } from 'constants';
 
 export interface LoginForm {
     username?: string;
@@ -24,7 +25,7 @@ export const LoginBtn = ({ onClick }: LoginBtnProps) => {
     const [form, setForm] = useState<LoginForm>({});
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
-    const label = 'Login';
+    const label = AUTH_LABEL.LOGIN;
 
     const onChange = (field: keyof LoginForm, e: { target: { value: string } }) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));

@@ -1,4 +1,32 @@
-export type ActionType = "add" | "edit" | "delete";
+import type {
+  ACTION,
+  AUTH_MODE,
+  BUDGET_STATUS,
+  BUTTON_VARIANT,
+  ITINERARY_TYPE,
+  TRIP_STATUS,
+} from "constants";
+
+export type ActionType = (typeof ACTION)[keyof typeof ACTION];
+export type AuthMode = (typeof AUTH_MODE)[keyof typeof AUTH_MODE];
+export type BudgetStatus = (typeof BUDGET_STATUS)[keyof typeof BUDGET_STATUS];
+export type ButtonVariant = (typeof BUTTON_VARIANT)[keyof typeof BUTTON_VARIANT];
+export type ItineraryTypeName = (typeof ITINERARY_TYPE)[keyof typeof ITINERARY_TYPE];
+export type TripStatusName = (typeof TRIP_STATUS)[keyof typeof TRIP_STATUS];
+
+/**
+ * Shared props for "add/edit modal button" components (e.g. AddDestination,
+ * AddPlaceBtn). Extend it and add the fields unique to that component.
+ * - TDraft: shape passed to onChange (the work-in-progress object)
+ * - TData:  shape of the existing record being edited
+ */
+export interface AddEditButtonProps<TDraft, TData> {
+  onChange?: (item: TDraft) => void;
+  type?: typeof ACTION.ADD | typeof ACTION.EDIT;
+  data?: TData | null;
+  buttonType?: typeof BUTTON_VARIANT.TEXT | typeof BUTTON_VARIANT.STANDARD;
+  isViewMode?: boolean;
+}
 
 export interface Friend {
   id: number;

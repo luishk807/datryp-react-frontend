@@ -19,7 +19,7 @@ import type {
     ItineraryDayInput,
     SaveItineraryInput,
 } from 'api/hooks/useItineraries';
-import { TRIP_BASIC } from 'constants';
+import { ITINERARY_TYPE, TRIP_BASIC } from 'constants';
 
 const isFiniteNumber = (v: unknown): v is number =>
     typeof v === 'number' && Number.isFinite(v);
@@ -196,8 +196,6 @@ export const resolveInteraryTypeId = (
     types: { id: string; name: string }[]
 ): string | null => {
     const wantMulti = tripState.type?.id === TRIP_BASIC.MULTIPLE.id;
-    const wantName = wantMulti
-        ? 'Multi Destination Trip'
-        : 'Single Destination Trip';
+    const wantName = wantMulti ? ITINERARY_TYPE.MULTI : ITINERARY_TYPE.SINGLE;
     return types.find((t) => t.name === wantName)?.id ?? null;
 };

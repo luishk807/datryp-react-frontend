@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import moment from 'moment';
+import { formatDate, isValidDate, reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
@@ -10,14 +10,14 @@ import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import type { ActionType, Destination, Friend } from 'types';
 
-const formatDate = (value?: string) =>
-    value && moment(value).isValid() ? moment(value).format('MMM D, YYYY') : '';
+const formatLegDate = (value?: string) =>
+    value && isValidDate(value) ? formatDate(value, 'MMM D, YYYY') : '';
 
-const formatTime = (value?: string) =>
-    value && moment(value, 'HH:mm').isValid() ? moment(value, 'HH:mm').format('LT') : '';
+const formatLegTime = (value?: string) =>
+    value && isValidDate(value, 'HH:mm') ? reformatDate(value, 'HH:mm', 'LT') : '';
 
 const formatLegMeta = (date?: string, time?: string) => {
-    const parts = [formatDate(date), formatTime(time)].filter(Boolean);
+    const parts = [formatLegDate(date), formatLegTime(time)].filter(Boolean);
     return parts.length ? parts.join(' · ') : 'Not set';
 };
 

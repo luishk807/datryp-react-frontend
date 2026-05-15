@@ -6,13 +6,12 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import { convertMoney } from 'utils';
-import type { Destination, TripState } from 'types';
+import { BUDGET_STATUS } from 'constants';
+import type { BudgetStatus, Destination, TripState } from 'types';
 
 interface BudgetSummaryProps {
     data: TripState;
 }
-
-type BudgetStatus = 'under' | 'warning' | 'over' | 'empty';
 
 const toNumber = (v?: string | number): number => {
     if (v == null) return 0;
@@ -38,10 +37,10 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
         const budget = toNumber(data.budget);
         const remaining = budget - spent;
         const percent = budget > 0 ? (spent / budget) * 100 : 0;
-        let status: BudgetStatus = 'under';
-        if (budget <= 0) status = 'empty';
-        else if (percent > 100) status = 'over';
-        else if (percent >= 80) status = 'warning';
+        let status: BudgetStatus = BUDGET_STATUS.UNDER;
+        if (budget <= 0) status = BUDGET_STATUS.EMPTY;
+        else if (percent > 100) status = BUDGET_STATUS.OVER;
+        else if (percent >= 80) status = BUDGET_STATUS.WARNING;
         return { spent, budget, percent, status, remaining };
     }, [data]);
 
@@ -65,7 +64,7 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
                 </div>
             </div>
 
-            {status !== 'empty' && (
+            {status !== BUDGET_STATUS.EMPTY && (
                 <div className="budget-bar">
                     <div
                         className="budget-bar-fill"
@@ -75,12 +74,12 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
             )}
 
             <div className="budget-footer">
-                {status === 'empty' && (
+                {status === BUDGET_STATUS.EMPTY && (
                     <span className="budget-message">
                         Set a budget on the trip details to track spending.
                     </span>
                 )}
-                {status === 'under' && (
+                {status === BUDGET_STATUS.UNDER && (
                     <>
                         <CheckCircleOutlineIcon className="budget-icon" />
                         <span className="budget-message">
@@ -88,7 +87,7 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
                         </span>
                     </>
                 )}
-                {status === 'warning' && (
+                {status === BUDGET_STATUS.WARNING && (
                     <>
                         <WarningAmberIcon className="budget-icon" />
                         <span className="budget-message">
@@ -96,7 +95,7 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
                         </span>
                     </>
                 )}
-                {status === 'over' && (
+                {status === BUDGET_STATUS.OVER && (
                     <>
                         <ReportProblemOutlinedIcon className="budget-icon" />
                         <span className="budget-message">
@@ -104,7 +103,7 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
                         </span>
                     </>
                 )}
-                {status !== 'empty' && (
+                {status !== BUDGET_STATUS.EMPTY && (
                     <span className="budget-percent">{percent.toFixed(0)}%</span>
                 )}
             </div>

@@ -1,4 +1,5 @@
-﻿import type {
+﻿import { ITINERARY_TYPE } from "constants";
+import type {
   Intinerary,
   IntenaryStatus,
   IntineraryType,
@@ -117,12 +118,12 @@ const leon: User = {
 
 const singleTripType: IntineraryType = {
   id: 1,
-  name: "Single Destination Trip",
+  name: ITINERARY_TYPE.SINGLE,
 };
 
 const multiTripType: IntineraryType = {
   id: 2,
-  name: "Multi Destination Trip",
+  name: ITINERARY_TYPE.MULTI,
 };
 
 const inteneraryType: IntineraryType[] = [singleTripType, multiTripType];

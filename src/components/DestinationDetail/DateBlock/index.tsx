@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import { Grid } from '@mui/material';
-import moment from 'moment';
 import _ from 'lodash';
 import MultipleTrips from 'components/DestinationDetail/Multiple';
 import SingleTrips from 'components/DestinationDetail/Single';
-import { isSingleTrip } from 'utils';
+import { formatDate, isSameDay, isSingleTrip } from 'utils';
 import './index.scss';
 import type { ActionType, Activity, Destination, Friend } from 'types';
 
@@ -36,7 +35,7 @@ const DateBlock = ({
     isViewMode = false,
 }: DateBlockProps) => {
     const showsRange = useMemo(
-        () => !moment(startDate).isSame(endDate, 'day'),
+        () => !isSameDay(startDate, endDate),
         [startDate, endDate]
     );
 
@@ -47,16 +46,14 @@ const DateBlock = ({
             const itinerary = _.get(destinations, '0.itinerary');
             const matchingDay = itinerary
                 ? itinerary.filter((day: { date?: string }) =>
-                      moment(startDate).isSame(moment(day?.date), 'day')
+                      isSameDay(startDate, day?.date)
                   )
                 : [];
             return matchingDay.length ? matchingDay[0].activities : null;
         }
 
         const matchingDest = destinations.length
-            ? destinations.filter((d) =>
-                  moment(startDate).isSame(moment(d?.startDate), 'day')
-              )
+            ? destinations.filter((d) => isSameDay(startDate, d?.startDate))
             : [];
         return matchingDest.length ? matchingDest : null;
     }, [destinations, startDate, isSingle]);
@@ -81,10 +78,10 @@ const DateBlock = ({
                             <span className="dot"></span>
                         </Grid>
                         <Grid item className="title">
-                            <span className="title">{moment(startDate).format('LL')} </span>
+                            <span className="title">{formatDate(startDate, 'LL')} </span>
                             {showsRange && (
                                 <span className="title">
-                                    &#45;&nbsp;&nbsp;{moment(endDate).format('LL')}{' '}
+                                    &#45;&nbsp;&nbsp;{formatDate(endDate, 'LL')}{' '}
                                 </span>
                             )}
                         </Grid>

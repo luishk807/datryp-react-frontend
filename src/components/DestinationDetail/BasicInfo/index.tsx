@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import './index.scss';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import moment from 'moment';
+import { now } from 'utils';
 import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
@@ -24,7 +24,7 @@ interface BasicInfoProps {
 }
 
 const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
-    const today = useMemo(() => moment().format('YYYY-MM-DD'), []);
+    const today = useMemo(() => now(), []);
     const dispatch = useTripDispatch();
     const isSingle = data?.type?.id === TRIP_BASIC.SINGLE.id;
     const rootCountry = data?.destinations?.[0]?.country;

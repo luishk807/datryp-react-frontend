@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
+import moment from 'moment'; // iteration loop in buildExpectedDates uses moment object mutation directly
+import { formatDate, isValidDate } from 'utils';
 import './index.scss';
 import { Step, StepLabel, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
@@ -26,10 +27,8 @@ interface DayCoverage {
     missing: string[];
 }
 
-const toIsoDay = (value: string): string | null => {
-    const m = moment(value);
-    return m.isValid() ? m.format('YYYY-MM-DD') : null;
-};
+const toIsoDay = (value: string): string | null =>
+    isValidDate(value) ? formatDate(value) : null;
 
 /** Every date between start and end, inclusive. Empty if either is missing. */
 const buildExpectedDates = (state: TripState | undefined): string[] => {
@@ -69,10 +68,7 @@ const inspectDays = (state: TripState | undefined): DayCoverage => {
 const formatDateList = (isoDates: string[]): string => {
     if (!isoDates.length) return '';
     return isoDates
-        .map((d) => {
-            const m = moment(d);
-            return m.isValid() ? m.format('MMM D, YYYY') : d;
-        })
+        .map((d) => (isValidDate(d) ? formatDate(d, 'MMM D, YYYY') : d))
         .join(', ');
 };
 

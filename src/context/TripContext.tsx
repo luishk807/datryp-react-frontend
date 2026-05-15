@@ -7,7 +7,7 @@
     type ReactNode,
 } from 'react';
 import { produce } from 'immer';
-import moment from 'moment';
+import { isSameDay } from 'utils';
 import type {
     Activity,
     BudgetItem,
@@ -188,7 +188,7 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
 
             const newActivity: Activity = { ...value, id: generateId() };
             const day = dest.itinerary.find(
-                (d) => moment(d.date).isSame(date, 'day')
+                (d) => isSameDay(d.date, date)
             );
 
             if (day) {

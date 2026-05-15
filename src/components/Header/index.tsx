@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Divider, Drawer, IconButton, Link, Menu, MenuItem } from '@mui/material';
+import { Divider, Drawer, IconButton, Menu, MenuItem } from '@mui/material';
+import classnames from 'classnames';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
@@ -9,17 +10,38 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
+import SearchBar from 'components/SearchBar';
+import IconLink from 'components/common/IconLink';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
+import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import type { SignUpForm } from 'components/common/SignUpBtn';
 import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
+import { BUTTON_VARIANT, LOGO_IMAGE, TRIP_BASIC } from 'constants';
+import type { Country, Destination } from 'types';
 import './index.scss';
 
-const Header = () => {
+interface HeaderProps {
+    /** Renders a search bar between the logo and the nav (was the old Subheader). */
+    withSearch?: boolean;
+}
+
+const Header = ({ withSearch = false }: HeaderProps) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const { user, login, signup, logout } = useUser();
     const navigate = useNavigate();
+    const dispatch = useTripDispatch();
+
+    const handleSearchSelected = (country: Country) => {
+        if (!country?.name) return;
+        const type = TRIP_BASIC.SINGLE;
+        const destinations = [{ country }] as Destination[];
+        dispatch(resetTrip());
+        dispatch(basicInfo({ type, destinations }));
+        navigate(type.route, { replace: true });
+    };
 
     const handleLogin = async (form: LoginForm) => {
         // The login modal labels its field "username"; the backend expects email.
@@ -72,10 +94,19 @@ const Header = () => {
 
     return (
         <header className="app-header">
-            <div className="app-header-inner">
-                <Link href="/" className="app-header-logo" underline="none">
-                    <img src="/images/logo.svg" alt="logo" />
-                </Link>
+            <div className={classnames('app-header-inner', { 'with-search': withSearch })}>
+                <IconLink
+                    to="/"
+                    icon={<img src={LOGO_IMAGE} alt="" />}
+                    ariaLabel="daTryp home"
+                    className="app-header-logo"
+                />
+
+                {withSearch && (
+                    <div className="app-header-search">
+                        <SearchBar type="simple" onSelected={handleSearchSelected} />
+                    </div>
+                )}
 
                 <nav className="app-header-nav">
                     {user ? (
@@ -182,30 +213,35 @@ const Header = () => {
                                     </span>
                                     <span className="drawer-user-name">{user.name}</span>
                                 </div>
-                                <button
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
                                     className="drawer-link"
+                                    label="Account"
                                     onClick={() => handleNavigate('/account')}
-                                >
-                                    Account
-                                </button>
-                                <button
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
                                     className="drawer-link"
+                                    label="My Trips"
                                     onClick={() => handleNavigate('/trips')}
-                                >
-                                    My Trips
-                                </button>
-                                <button
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
                                     className="drawer-link"
+                                    label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
-                                >
-                                    Manage Friends
-                                </button>
-                                <button
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
                                     className="drawer-link drawer-logout"
                                     onClick={handleLogout}
                                 >
                                     <LogoutRoundedIcon fontSize="small" /> Logout
-                                </button>
+                                </ButtonCustom>
                             </>
                         ) : (
                             <>

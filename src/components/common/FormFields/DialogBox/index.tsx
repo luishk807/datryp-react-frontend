@@ -8,8 +8,9 @@ import {
     DialogActions,
 } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import { BUTTON_VARIANT } from 'constants';
 
-type DialogButtonType = 'text' | 'standard';
+type DialogButtonType = typeof BUTTON_VARIANT.TEXT | typeof BUTTON_VARIANT.STANDARD;
 
 export interface DialogBoxProps {
     buttonLabel?: string;
@@ -24,7 +25,7 @@ const DialogBox = ({
     buttonLabel = '',
     title,
     onConfirm,
-    buttonType = 'standard',
+    buttonType = BUTTON_VARIANT.STANDARD,
     children,
     isViewMode = false,
 }: DialogBoxProps) => {
@@ -64,13 +65,13 @@ const DialogBox = ({
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom
-                        type="standard-small"
+                        type={BUTTON_VARIANT.STANDARD_SMALL}
                         onClick={() => setOpen(false)}
                         label="Cancel"
                     />
                     <ButtonCustom
                         style={{ marginLeft: '35px' }}
-                        type="standard-small"
+                        type={BUTTON_VARIANT.STANDARD_SMALL}
                         onClick={handleConfirmDelete}
                         label="Agree"
                     />

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import moment from 'moment';
+import moment from 'moment'; // computeDatesRange iterates moment objects directly (clone/add/isAfter/isBefore); kept on raw moment
 import { Grid } from '@mui/material';
 import _ from 'lodash';
+import { formatDate, isAfter, isBefore, isSameDay } from 'utils';
 import './index.scss';
 import DateBlock from './DateBlock';
 import type {
@@ -110,11 +111,11 @@ const DestinationDetail = ({
         for (let i = 0; i < destinations.length; i++) {
             const dest = destinations[i];
             const startsInRange =
-                moment(dest.startDate).isAfter(flagStart) ||
-                moment(dest.startDate).isSame(flagStart, 'day');
+                isAfter(dest.startDate, flagStart) ||
+                isSameDay(dest.startDate, flagStart);
             const endsInRange =
-                moment(dest.endDate).isBefore(flagEnd) ||
-                moment(dest.endDate).isSame(flagEnd, 'day');
+                isBefore(dest.endDate, flagEnd) ||
+                isSameDay(dest.endDate, flagEnd);
             if (ignoreId !== dest.id && startsInRange && endsInRange) {
                 indxList.push(dest.id);
             }
@@ -127,7 +128,7 @@ const DestinationDetail = ({
         const { activity, date } = obj;
         let destIndx: number | null = null;
         for (let i = 0; i < destinations.length; i++) {
-            if (moment(destinations[i].startDate).isSame(date, 'day')) {
+            if (isSameDay(destinations[i].startDate, date)) {
                 destIndx = i;
                 break;
             }
@@ -146,7 +147,7 @@ const DestinationDetail = ({
     return (
         <Grid container>
             {dates.map((date, indx) => {
-                const dateStr = moment(date.startDate).format('YYYY-MM-DD').toString();
+                const dateStr = formatDate(date.startDate);
                 return (
                     <DateBlock
                         isViewMode={isViewMode}
@@ -174,7 +175,7 @@ const DestinationDetail = ({
                             handleChangeDestination({
                                 activity: { type, value, index: indx },
                                 startDate: dateStr,
-                                endDate: moment(value?.flightInfo?.arrivalDate).format('YYYY-MM-DD').toString(),
+                                endDate: formatDate(value?.flightInfo?.arrivalDate),
                             })
                         }
                     />

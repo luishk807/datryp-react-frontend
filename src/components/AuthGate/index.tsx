@@ -7,8 +7,8 @@ import IconLink from 'components/common/IconLink';
 import { useUser } from 'context/UserContext';
 import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
 import logoUrl from 'assets/logo.svg';
-
-type Mode = 'login' | 'signup';
+import { AUTH_MODE } from 'constants';
+import type { AuthMode } from 'types';
 
 interface AuthGateProps {
     children: ReactNode;
@@ -34,7 +34,7 @@ const AuthGate = ({
     subtitle = 'Sign in to save trips, invite friends and pick up where you left off.',
 }: AuthGateProps) => {
     const { user, isLoading, login, signup } = useUser();
-    const [mode, setMode] = useState<Mode>('login');
+    const [mode, setMode] = useState<AuthMode>(AUTH_MODE.LOGIN);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -105,12 +105,12 @@ const AuthGate = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (submitting) return;
-        if (mode === 'login') void handleLogin();
+        if (mode === AUTH_MODE.LOGIN) void handleLogin();
         else void handleSignup();
     };
 
     const toggleMode = () => {
-        setMode((m) => (m === 'login' ? 'signup' : 'login'));
+        setMode((m) => (m === AUTH_MODE.LOGIN ? AUTH_MODE.SIGNUP : AUTH_MODE.LOGIN));
         setError(null);
     };
 
@@ -153,10 +153,10 @@ const AuthGate = ({
                         className="authgate-brand authgate-brand-mobile"
                     />
                     <h2 className="authgate-form-title">
-                        {mode === 'login' ? 'Welcome back' : 'Create your account'}
+                        {mode === AUTH_MODE.LOGIN ? 'Welcome back' : 'Create your account'}
                     </h2>
                     <p className="authgate-form-subtitle">
-                        {mode === 'login'
+                        {mode === AUTH_MODE.LOGIN
                             ? 'Sign in with your email and password.'
                             : `Free to use. You must be at least ${MIN_SIGNUP_AGE} years old.`}
                     </p>
@@ -187,7 +187,7 @@ const AuthGate = ({
                             />
                         </div>
 
-                        {mode === 'signup' && (
+                        {mode === AUTH_MODE.SIGNUP && (
                             <>
                                 <div className="authgate-field">
                                     <InputField
@@ -239,10 +239,10 @@ const AuthGate = ({
                             capitalizeType="uppercase"
                             label={
                                 submitting
-                                    ? mode === 'login'
+                                    ? mode === AUTH_MODE.LOGIN
                                         ? 'Signing in…'
                                         : 'Creating account…'
-                                    : mode === 'login'
+                                    : mode === AUTH_MODE.LOGIN
                                         ? 'Continue'
                                         : 'Create account'
                             }
@@ -254,7 +254,7 @@ const AuthGate = ({
                     </form>
 
                     <p className="authgate-toggle">
-                        {mode === 'login' ? (
+                        {mode === AUTH_MODE.LOGIN ? (
                             <>
                                 New to daTryp?{' '}
                                 <ButtonCustom

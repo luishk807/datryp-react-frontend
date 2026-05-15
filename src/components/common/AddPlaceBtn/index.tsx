@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Grid } from '@mui/material';
-import moment from 'moment';
+import { now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
@@ -9,17 +9,20 @@ import ErrorAlert from 'components/common/ErrorAlert';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import { placeStatus } from 'sample';
 import classNames from 'classnames';
-import { TRIP_BASIC } from 'constants';
+import { ACTION, BUTTON_VARIANT, TRIP_BASIC } from 'constants';
 import './index.scss';
-import type { Activity, Friend, ImageRef } from 'types';
+import type { Activity, AddEditButtonProps, Friend, ImageRef } from 'types';
 
 // Default status for newly added places. The user toggles between Pending /
 // Confirmed on the place card itself, so the modal no longer asks for it.
 const DEFAULT_PENDING_STATUS: DropdownOption =
     placeStatus.find((p) => p.name === 'Pending') ?? placeStatus[0];
 
-type AddPlaceType = 'add' | 'edit';
-type AddPlaceButtonType = 'text' | 'standard';
+const PLACE_LABEL = {
+    ADD: 'Add Place',
+    EDIT: 'Edit',
+    SAVE: 'Save Place',
+} as const;
 
 interface PlaceDraft {
     id?: number;
@@ -34,26 +37,21 @@ interface PlaceDraft {
     friends?: Friend[];
 }
 
-export interface AddPlaceBtnProps {
-    onChange?: (place: PlaceDraft) => void;
-    type?: AddPlaceType;
-    data?: Activity | null;
+export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activity> {
     tripTypeId?: number;
-    buttonType?: AddPlaceButtonType;
-    isViewMode?: boolean;
 }
 
 const AddPlaceBtn = ({
     onChange,
-    type = 'add',
+    type = ACTION.ADD,
     data = null,
     tripTypeId,
-    buttonType = 'standard',
+    buttonType = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
 }: AddPlaceBtnProps) => {
     const modelRef = useRef<ModalButtonHandle>(null);
 
-    const isAdd = type === 'add';
+    const isAdd = type === ACTION.ADD;
 
     // Preserve an existing place's status on edit; default to Pending on add.
     const existingStatus: DropdownOption =
@@ -62,8 +60,8 @@ const AddPlaceBtn = ({
             : DEFAULT_PENDING_STATUS;
 
     const buildInitialPlace = (): PlaceDraft => ({
-        startTime: moment().format('HH:mm'),
-        endTime: moment().format('HH:mm'),
+        startTime: now('HH:mm'),
+        endTime: now('HH:mm'),
         status: existingStatus,
     });
 
@@ -109,7 +107,7 @@ const AddPlaceBtn = ({
         setError(null);
         modelRef.current?.closeModal();
         onChange?.(place);
-        if (type === 'add') {
+        if (type === ACTION.ADD) {
             setPlace(buildInitialPlace());
             setFormKey((k) => k + 1);
         }
@@ -117,12 +115,12 @@ const AddPlaceBtn = ({
 
     useEffect(() => {
         setError(null);
-        if (data && type === 'edit') {
+        if (data && type === ACTION.EDIT) {
             setPlace({
                 id: data.id,
                 name: data.name,
-                startTime: data.startTime || moment().format('HH:mm'),
-                endTime: data.endTime || moment().format('HH:mm'),
+                startTime: data.startTime || now('HH:mm'),
+                endTime: data.endTime || now('HH:mm'),
                 location: data.location,
                 cost: data.cost,
                 note: data.note,
@@ -144,8 +142,8 @@ const AddPlaceBtn = ({
         <Grid
             container
             className={classNames({
-                'add-place-container-standard': buttonType === 'standard',
-                'add-place-container-simple': buttonType === 'text',
+                'add-place-container-standard': buttonType === BUTTON_VARIANT.STANDARD,
+                'add-place-container-simple': buttonType === BUTTON_VARIANT.TEXT,
             })}
         >
             <Grid
@@ -159,10 +157,10 @@ const AddPlaceBtn = ({
             >
                 <ModalButton
                     ref={modelRef}
-                    title={isAdd ? 'Add Place' : 'Edit ' + (data?.name ?? '')}
+                    title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
                     buttonProps={{
-                        title: isAdd ? 'Add Place' : 'Edit',
-                        Icon: buttonType === 'standard' ? AddCircleIcon : null,
+                        title: isAdd ? PLACE_LABEL.ADD : PLACE_LABEL.EDIT,
+                        Icon: buttonType === BUTTON_VARIANT.STANDARD ? AddCircleIcon : null,
                         type: buttonType,
                     }}
                 >
@@ -234,8 +232,8 @@ const AddPlaceBtn = ({
                         <Grid item lg={12} md={12} xs={12}>
                             <ButtonCustom
                                 onClick={handleSubmit}
-                                label={isAdd ? 'Add Place' : 'Save Place'}
-                                type="standard"
+                                label={isAdd ? PLACE_LABEL.ADD : PLACE_LABEL.SAVE}
+                                type={BUTTON_VARIANT.STANDARD}
                                 capitalizeType="uppercase"
                             />
                         </Grid>

@@ -1,17 +1,21 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import './index.scss';
 import { Grid } from '@mui/material';
-import moment from 'moment';
+import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
 import classNames from 'classnames';
-import type { Country, Destination, FlightInfo } from 'types';
+import { ACTION, BUTTON_VARIANT } from 'constants';
+import type { AddEditButtonProps, Country, Destination, FlightInfo } from 'types';
 
-type AddDestinationType = 'add' | 'edit';
-type AddDestinationButtonType = 'text' | 'standard';
+const DESTINATION_LABEL = {
+    ADD: 'Add Destination',
+    EDIT: 'Edit',
+    SAVE: 'Save Destination',
+} as const;
 
 interface DestinationDraft {
     id?: number;
@@ -20,27 +24,22 @@ interface DestinationDraft {
     itinerary?: Destination['itinerary'];
 }
 
-export interface AddDestinationBtnProps {
+export interface AddDestinationBtnProps extends AddEditButtonProps<DestinationDraft, Destination> {
     defaultDate?: string;
     tripMaxDate?: string | null;
-    onChange?: (destination: DestinationDraft) => void;
-    type?: AddDestinationType;
-    data?: Destination | null;
-    buttonType?: AddDestinationButtonType;
-    isViewMode?: boolean;
 }
 
 const AddDestinationBtn = ({
     defaultDate,
     tripMaxDate,
     onChange,
-    type = 'add',
+    type = ACTION.ADD,
     data = null,
-    buttonType = 'standard',
+    buttonType = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
 }: AddDestinationBtnProps) => {
-    const isAdd = type === 'add';
-    const title = useMemo(() => (isAdd ? 'Add Destination' : 'Edit'), [isAdd]);
+    const isAdd = type === ACTION.ADD;
+    const title = useMemo(() => (isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.EDIT), [isAdd]);
 
     const [destination, setDestination] = useState<DestinationDraft>({});
     const modelRef = useRef<ModalButtonHandle>(null);
@@ -60,13 +59,12 @@ const AddDestinationBtn = ({
     // the MUI DatePicker doesn't reject it and flag the field in red.
     const isoDate = (raw?: string | null): string | undefined => {
         if (!raw) return undefined;
-        const m = moment(raw);
-        return m.isValid() ? m.format('YYYY-MM-DD') : undefined;
+        return isValidDate(raw) ? formatDate(raw) : undefined;
     };
 
     useEffect(() => {
-        const fallback = isoDate(defaultDate) ?? moment().format('YYYY-MM-DD');
-        if (data && type === 'edit') {
+        const fallback = isoDate(defaultDate) ?? now();
+        if (data && type === ACTION.EDIT) {
             setDestination({
                 country: data.country,
                 id: data.id,
@@ -86,9 +84,9 @@ const AddDestinationBtn = ({
                 country: null,
                 flightInfo: {
                     departDate: fallback,
-                    departTime: moment().format('HH:mm').toString(),
+                    departTime: now('HH:mm'),
                     arrivalDate: fallback,
-                    arrivalTime: moment().format('HH:mm').toString(),
+                    arrivalTime: now('HH:mm'),
                 },
             });
         }
@@ -112,17 +110,17 @@ const AddDestinationBtn = ({
         <Grid
             container
             className={classNames({
-                'add-place-container-standard': buttonType === 'standard',
-                'add-place-container-simple': buttonType === 'text',
+                'add-place-container-standard': buttonType === BUTTON_VARIANT.STANDARD,
+                'add-place-container-simple': buttonType === BUTTON_VARIANT.TEXT,
             })}
         >
             <Grid item lg={12} md={12} xs={12}>
                 <ModalButton
-                    title={isAdd ? 'Add Destination' : 'Edit ' + (data?.country?.name ?? '')}
+                    title={isAdd ? DESTINATION_LABEL.ADD : `${DESTINATION_LABEL.EDIT} ${data?.country?.name ?? ''}`}
                     ref={modelRef}
                     buttonProps={{
                         title,
-                        Icon: buttonType === 'standard' ? AddCircleIcon : null,
+                        Icon: buttonType === BUTTON_VARIANT.STANDARD ? AddCircleIcon : null,
                         type: buttonType,
                     }}
                 >
@@ -206,8 +204,8 @@ const AddDestinationBtn = ({
                         <Grid item lg={12} md={12} xs={12} className="pt-5">
                             <ButtonCustom
                                 onClick={handleSubmit}
-                                label={isAdd ? 'Add Destination' : 'Save Destination'}
-                                type="standard"
+                                label={isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.SAVE}
+                                type={BUTTON_VARIANT.STANDARD}
                                 capitalizeType="uppercase"
                             />
                         </Grid>

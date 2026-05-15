@@ -10,6 +10,7 @@ import './index.scss';
 import { IconButton, Modal } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
+import type { BUTTON_VARIANT } from 'constants';
 
 export interface ModalButtonHandle {
     openModel: () => void;
@@ -20,7 +21,10 @@ export interface ModalButtonButtonProps {
     title?: string;
     Icon?: ComponentType<any> | null;
     style?: CSSProperties;
-    type?: 'text' | 'standard' | 'text-plain';
+    type?:
+        | typeof BUTTON_VARIANT.TEXT
+        | typeof BUTTON_VARIANT.STANDARD
+        | typeof BUTTON_VARIANT.TEXT_PLAIN;
     isViewMode?: boolean;
 }
 

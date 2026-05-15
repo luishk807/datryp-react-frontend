@@ -1,8 +1,9 @@
 import type { CSSProperties, MouseEventHandler, ReactNode } from 'react';
 import './index.scss';
 import classNames from 'classnames';
+import { BUTTON_VARIANT } from 'constants';
+import type { ButtonVariant } from 'types';
 
-type ButtonVariant = 'plain' | 'text' | 'standard' | 'standard-small' | 'none' | 'line';
 type CapitalizeType = 'capitalize' | 'uppercase' | 'lowercase' | 'none';
 
 export interface ButtonCustomProps {
@@ -21,7 +22,7 @@ const ButtonCustom = ({
     children,
     onClick,
     capitalizeType = 'capitalize',
-    type = 'standard',
+    type = BUTTON_VARIANT.STANDARD,
     style = null,
     disabled = false,
     className,
@@ -31,11 +32,11 @@ const ButtonCustom = ({
             style={style ?? undefined}
             disabled={disabled}
             className={classNames(className, {
-                'main-button': type === 'standard',
-                'main-line': type === 'line',
-                'plain-button': type === 'plain',
-                'text-button': type === 'text',
-                'standard-small': type === 'standard-small',
+                'main-button': type === BUTTON_VARIANT.STANDARD,
+                'main-line': type === BUTTON_VARIANT.LINE,
+                'plain-button': type === BUTTON_VARIANT.PLAIN,
+                'text-button': type === BUTTON_VARIANT.TEXT,
+                'standard-small': type === BUTTON_VARIANT.STANDARD_SMALL,
                 capitalize: capitalizeType === 'capitalize',
                 lowercase: capitalizeType === 'lowercase',
                 uppercase: capitalizeType === 'uppercase',

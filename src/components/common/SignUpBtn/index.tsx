@@ -5,6 +5,7 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from '../FormFields/ButtonCustom';
 import InputField from '../FormFields/InputField';
 import { MIN_SIGNUP_AGE } from 'utils/age';
+import { AUTH_LABEL } from 'constants';
 
 export interface SignUpForm {
     username?: string;
@@ -30,7 +31,7 @@ export const SignUp = ({ onClick }: SignUpProps) => {
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const label = 'Sign Up';
+    const label = AUTH_LABEL.SIGNUP;
 
     const onChange = (field: keyof SignUpForm, e: { target: { value: string } }) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
