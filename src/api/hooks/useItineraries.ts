@@ -5,7 +5,7 @@
  *   Returns the raw shape from the API; UI does its own single/multi split via
  *   `interaryType.name` (frontend types call this the discriminator).
  * - `useSaveItinerary` — create-or-replace (omit `id` to create).
- * - `useDeleteItinerary` — soft-delete (owner only).
+ * - `useDeleteItinerary` — soft-delete (owner or organizer).
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -36,6 +36,12 @@ export interface ApiFlightInfo {
     arrivalAirport: string | null;
 }
 
+export interface ApiActivityBudget {
+    id: string;
+    user: ApiUserPublic;
+    amount: number;
+}
+
 export interface ApiActivity {
     id: string;
     name: string;
@@ -47,6 +53,7 @@ export interface ApiActivity {
     notes: string | null;
     image: string | null;
     budget: number | null;
+    budgets: ApiActivityBudget[];
 }
 
 export interface ApiItineraryDate {
@@ -82,6 +89,11 @@ export interface FlightInfoInput {
     arrivalAirport?: string | null;
 }
 
+export interface ActivityBudgetInput {
+    userId: string;
+    amount: number;
+}
+
 export interface ActivityInput {
     name: string;
     place?: string | null;
@@ -92,6 +104,7 @@ export interface ActivityInput {
     notes?: string | null;
     image?: string | null;
     budget?: number | null;
+    budgets?: ActivityBudgetInput[];
 }
 
 export interface ItineraryDayInput {
@@ -194,6 +207,15 @@ const ITINERARY_FIELDS = gql`
                 notes
                 image
                 budget
+                budgets {
+                    id
+                    user {
+                        id
+                        email
+                        name
+                    }
+                    amount
+                }
             }
         }
     }

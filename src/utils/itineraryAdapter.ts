@@ -7,8 +7,10 @@
  */
 
 import moment from 'moment';
-import type { ApiItinerary } from 'api/hooks/useItineraries';
+import type { ApiActivityBudget, ApiItinerary } from 'api/hooks/useItineraries';
+import { TRIP_BASIC, TRIP_STATUS } from 'constants';
 import type {
+    BudgetItem,
     Destination,
     Friend,
     MultipleDestinations,
@@ -25,6 +27,37 @@ const uuidToNumericId = (uuid: string): number => {
         h = (h * 31 + uuid.charCodeAt(i)) | 0;
     }
     return Math.abs(h);
+};
+
+/** Extract `HH:mm` from a backend datetime string ("2026-05-14T12:00:00" → "12:00").
+ * The frontend Activity type stores times as `HH:mm` (paired with the day's
+ * `date`); tripMapper recombines them on save. If we pass the full ISO back
+ * through tripMapper, `combineDateTime` would double-prepend the date.
+ */
+const apiTimeToHHmm = (iso: string | null | undefined): string | undefined => {
+    if (!iso) return undefined;
+    const m = moment(iso);
+    return m.isValid() ? m.format('HH:mm') : undefined;
+};
+
+/** Convert backend `ActivityBudgetEntry[]` to the frontend `BudgetItem[]`
+ * shape that AddBudget / Activities expect. We preserve `userId` so future
+ * round-trips can match the breakdown back to the same user.
+ */
+const apiBudgetsToItems = (
+    entries: ApiActivityBudget[] | null | undefined
+): BudgetItem[] | undefined => {
+    if (!entries || !entries.length) return undefined;
+    return entries.map((b) => ({
+        id: uuidToNumericId(b.id),
+        user: {
+            id: uuidToNumericId(b.user.id),
+            label: b.user.name ?? b.user.email,
+            name: b.user.name ?? b.user.email,
+            userId: b.user.id,
+        },
+        budget: b.amount,
+    }));
 };
 
 const apiUserToFriend = (u: { id: string; name: string | null; email: string }): Friend => ({
@@ -68,7 +101,7 @@ export const apiToTripEntry = (
         endDate: it.endDate ?? '',
         status: it.status
             ? { id: it.status.id, name: it.status.name }
-            : { id: 1, name: 'Planning' },
+            : { id: 1, name: TRIP_STATUS.PLANNING },
         user: apiUserToLegacyUser(it.user) as unknown as SingleDestination['user'],
         budget: it.budget ?? 0,
         image: it.image ?? undefined,
@@ -94,10 +127,11 @@ export const apiToTripEntry = (
                     name: a.name,
                     place: a.place ?? undefined,
                     location: a.location ?? undefined,
-                    startTime: a.startTime ?? undefined,
-                    endTime: a.endTime ?? undefined,
+                    startTime: apiTimeToHHmm(a.startTime),
+                    endTime: apiTimeToHHmm(a.endTime),
                     cost: a.cost ?? undefined,
                     note: a.notes ?? undefined,
+                    budget: apiBudgetsToItems(a.budgets),
                 })),
             })),
         } as unknown as SingleDestination & { apiId: string };
@@ -115,10 +149,11 @@ export const apiToTripEntry = (
                 name: a.name,
                 place: a.place ?? undefined,
                 location: a.location ?? undefined,
-                startTime: a.startTime ?? undefined,
-                endTime: a.endTime ?? undefined,
+                startTime: apiTimeToHHmm(a.startTime),
+                endTime: apiTimeToHHmm(a.endTime),
                 cost: a.cost ?? undefined,
                 note: a.notes ?? undefined,
+                budget: apiBudgetsToItems(a.budgets),
             })),
         })),
     } as unknown as MultipleDestinations & { apiId: string };
@@ -145,10 +180,11 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
                         name: a.name,
                         place: a.place ?? undefined,
                         location: a.location ?? undefined,
-                        startTime: a.startTime ?? undefined,
-                        endTime: a.endTime ?? undefined,
+                        startTime: apiTimeToHHmm(a.startTime),
+                        endTime: apiTimeToHHmm(a.endTime),
                         cost: a.cost ?? undefined,
                         note: a.notes ?? undefined,
+                        budget: apiBudgetsToItems(a.budgets),
                     })),
                 })),
             },
@@ -176,10 +212,11 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
                             name: a.name,
                             place: a.place ?? undefined,
                             location: a.location ?? undefined,
-                            startTime: a.startTime ?? undefined,
-                            endTime: a.endTime ?? undefined,
+                            startTime: apiTimeToHHmm(a.startTime),
+                            endTime: apiTimeToHHmm(a.endTime),
                             cost: a.cost ?? undefined,
                             note: a.notes ?? undefined,
+                            budget: apiBudgetsToItems(a.budgets),
                         })),
                     },
                 ],
@@ -188,19 +225,20 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
     }
 
     return {
+        apiId: it.id,
         name: it.name ?? '',
         startDate: it.startDate ?? undefined,
         endDate: it.endDate ?? undefined,
         status: it.status
             ? { id: it.status.id, name: it.status.name }
             : undefined,
+        // Match the numeric id to TRIP_BASIC so downstream `isSingleTrip(type?.id)`
+        // checks resolve correctly — DateBlock branches single vs multi rendering
+        // off this id, not off `interaryType.name`.
         type: it.interaryType
-            ? {
-                  id: 0, // numeric id only matters for the single/multi route picker
-                  name: it.interaryType.name,
-                  route: '',
-                  steps: { BASIC: 0, FRIEND: 0, FINISH: 0 },
-              }
+            ? isSingle
+                ? { ...TRIP_BASIC.SINGLE, name: it.interaryType.name }
+                : { ...TRIP_BASIC.MULTIPLE, name: it.interaryType.name }
             : undefined,
         budget: it.budget ?? undefined,
         total: it.budget ?? undefined,

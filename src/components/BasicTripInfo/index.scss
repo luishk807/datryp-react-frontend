@@ -88,6 +88,72 @@
   background: rgba(60, 181, 75, 0.22);
 }
 
+/* The three action chips in the header right cluster (Export, Save Trip,
+ * Delete Trip) and the status badge all share the same pill shape, size,
+ * and weight — only the intent color changes. Keeps the cluster reading as
+ * one related group rather than three different button systems. */
+.basic-trip-info .trip-save-btn,
+.basic-trip-info .trip-cancel-btn,
+.basic-trip-info .trip-delete-wrapper button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px !important;
+  border-radius: 999px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease;
+  min-width: 0 !important;
+  width: auto !important;
+  text-transform: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Cancel: neutral outline pill to read as the "discard" pair to Save Trip. */
+.basic-trip-info .trip-cancel-btn {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.18) !important;
+}
+
+.basic-trip-info .trip-cancel-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.basic-trip-info .trip-cancel-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.basic-trip-info .trip-save-btn {
+  background: rgba(246, 137, 31, 0.12) !important;
+  color: theme('colors.primaryOrange') !important;
+}
+
+.basic-trip-info .trip-save-btn:hover:not(:disabled) {
+  background: rgba(246, 137, 31, 0.22) !important;
+}
+
+.basic-trip-info .trip-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.basic-trip-info .trip-delete-wrapper button {
+  background: rgba(192, 57, 43, 0.1) !important;
+  color: #c0392b !important;
+}
+
+.basic-trip-info .trip-delete-wrapper button:hover {
+  background: rgba(192, 57, 43, 0.2) !important;
+}
+
+.basic-trip-info .trip-save-error {
+  margin: -4px 0 14px;
+}
+
 /* ---------- Status badge ---------- */
 .basic-trip-info .trip-status-badge {
   display: inline-flex;

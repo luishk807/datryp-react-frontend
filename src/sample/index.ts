@@ -1,43 +1,17 @@
+import { TRIP_STATUS } from "constants";
+
 export const status = [
-  {
-    id: 1,
-    name: "Planning",
-  },
-  {
-    id: 2,
-    name: "Confirmed",
-  },
-  {
-    id: 3,
-    name: "In Progress",
-  },
-  {
-    id: 4,
-    name: "Completed",
-  },
-  {
-    id: 5,
-    name: "Cancelled",
-  },
+  { id: 1, name: TRIP_STATUS.PLANNING },
+  { id: 2, name: TRIP_STATUS.CONFIRMED },
+  { id: 3, name: TRIP_STATUS.COMPLETED },
+  { id: 4, name: TRIP_STATUS.CANCELLED },
 ];
 
 export const placeStatus = [
-  {
-    id: 1,
-    name: "Confirmed",
-  },
-  {
-    id: 2,
-    name: "Completed",
-  },
-  {
-    id: 3,
-    name: "Pending",
-  },
-  {
-    id: 4,
-    name: "Cancelled",
-  },
+  { id: 1, name: "Confirmed" },
+  { id: 2, name: "Completed" },
+  { id: 3, name: "Pending" },
+  { id: 4, name: "Cancelled" },
 ];
 
 // export const tripType = {

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Grid, IconButton, Tooltip } from '@mui/material';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import Layout from 'components/common/Layout/SubLayout';
@@ -9,11 +9,13 @@ import BasicInfo from 'components/DestinationDetail/BasicInfo';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
+import { useMyItineraries } from 'api/hooks/useItineraries';
+import { apiToTripState } from 'utils/itineraryAdapter';
 import { status as statusOptions } from 'sample';
-import { TRIP_BASIC } from 'constants';
+import { TRIP_BASIC, TRIP_STATUS } from 'constants';
 
 const PLANNING_STATUS =
-    statusOptions.find((s) => s.name === 'Planning') ?? statusOptions[0];
+    statusOptions.find((s) => s.name === TRIP_STATUS.PLANNING) ?? statusOptions[0];
 import type {
     Friend,
     TripChangeEvent,
@@ -54,6 +56,23 @@ const TripSteps = ({
     const dispatch = useTripDispatch();
     const { user } = useUser();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const editingId = searchParams.get('id');
+
+    // When the URL carries ?id=<uuid> we're editing an existing trip. Hydrate
+    // TripContext from the API once per id change so refresh-on-/single?id=X
+    // and "Edit Trip" both land on the right data. Skipped during the new-
+    // trip flow (no `?id=`).
+    const { data: apiItineraries = [] } = useMyItineraries({
+        enabled: !!editingId,
+    });
+    useEffect(() => {
+        if (!editingId) return;
+        if (tripInfo.apiId === editingId) return;
+        const apiTrip = apiItineraries.find((t) => t.id === editingId);
+        if (!apiTrip) return;
+        dispatch(basicInfo(apiToTripState(apiTrip)));
+    }, [editingId, apiItineraries, tripInfo.apiId, dispatch]);
 
     // Pre-seed the current user as an organizer once per mount. We deliberately
     // don't watch `tripInfo.organizer` here — otherwise removing yourself

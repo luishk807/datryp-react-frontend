@@ -14,8 +14,10 @@ import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ErrorAlert from 'components/common/ErrorAlert';
 import DropDown from 'components/common/FormFields/DropDown';
+import DialogBox from 'components/common/FormFields/DialogBox';
 import { convertMoney } from 'utils';
 import { useTripStatuses } from 'api/hooks/useLookups';
+import { TRIP_STATUS } from 'constants';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 
 interface BasicTripInfoProps {
@@ -23,6 +25,13 @@ interface BasicTripInfoProps {
     onChangeStep: (step: number) => void;
     onStatusChange?: (status: TripStatus) => void;
     onExportExcel?: () => void;
+    onSaveTrip?: () => void;
+    onCancel?: () => void;
+    onDeleteTrip?: () => void;
+    isSaving?: boolean;
+    isDeleting?: boolean;
+    isDirty?: boolean;
+    saveError?: string | null;
     isViewMode?: boolean;
 }
 
@@ -45,7 +54,7 @@ const resolveStatus = (
 
 const isActivityConfirmed = (status: Activity['status']): boolean => {
     if (status && typeof status === 'object') {
-        return (status as ActivityStatus).name === 'Confirmed';
+        return (status as ActivityStatus).name === TRIP_STATUS.CONFIRMED;
     }
     return false;
 };
@@ -70,6 +79,13 @@ export const BasicTripInfo = ({
     onChangeStep,
     onStatusChange,
     onExportExcel,
+    onSaveTrip,
+    onCancel,
+    onDeleteTrip,
+    isSaving = false,
+    isDeleting = false,
+    isDirty = false,
+    saveError = null,
     isViewMode = false,
 }: BasicTripInfoProps) => {
     const { data: tripStatuses = [] } = useTripStatuses();
@@ -111,7 +127,7 @@ export const BasicTripInfo = ({
         [data]
     );
 
-    const statusName = currentStatus?.name ?? 'Planning';
+    const statusName = currentStatus?.name ?? TRIP_STATUS.PLANNING;
     const friends = data.friends ?? [];
 
     const openStatusModal = () => {
@@ -132,7 +148,7 @@ export const BasicTripInfo = ({
             return;
         }
         // Trip can only be marked Confirmed when every activity is also Confirmed.
-        if (next.name === 'Confirmed') {
+        if (next.name === TRIP_STATUS.CONFIRMED) {
             const unconfirmed = findUnconfirmedActivities(data);
             if (unconfirmed.length) {
                 const preview = unconfirmed.slice(0, 3).join(', ');
@@ -186,6 +202,40 @@ export const BasicTripInfo = ({
                             onClick={onExportExcel}
                         />
                     )}
+                    {onCancel && (
+                        <ButtonCustom
+                            type="line"
+                            capitalizeType="uppercase"
+                            className="trip-cancel-btn"
+                            label="Cancel"
+                            onClick={onCancel}
+                            disabled={isSaving}
+                        />
+                    )}
+                    {onSaveTrip && (
+                        <ButtonCustom
+                            type="standard"
+                            capitalizeType="uppercase"
+                            className="trip-save-btn"
+                            label={isSaving ? 'Saving…' : 'Save Trip'}
+                            onClick={onSaveTrip}
+                            disabled={!isDirty || isSaving}
+                        />
+                    )}
+                    {onDeleteTrip && (
+                        <span className="trip-delete-wrapper">
+                            <DialogBox
+                                buttonLabel={isDeleting ? 'Deleting…' : 'Delete Trip'}
+                                buttonType="text"
+                                title="Delete this trip?"
+                                onConfirm={onDeleteTrip}
+                            >
+                                This permanently removes the trip and all its
+                                activities. Participants will no longer see it
+                                in their list. This cannot be undone.
+                            </DialogBox>
+                        </span>
+                    )}
                     <ButtonCustom
                         type="none"
                         capitalizeType="none"
@@ -199,6 +249,10 @@ export const BasicTripInfo = ({
                     </ButtonCustom>
                 </div>
             </div>
+
+            {saveError && (
+                <ErrorAlert className="trip-save-error">{saveError}</ErrorAlert>
+            )}
 
             <div className="trip-stats">
                 <div className="trip-stat">

@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import './index.scss';
 import { Step, StepLabel, Grid } from '@mui/material';
@@ -9,11 +10,13 @@ import ErrorAlert from 'components/common/ErrorAlert';
 import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
 import TripComplete from 'components/DestinationDetail/Completed';
+import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useItineraryTypes, useTripStatuses } from 'api/hooks/useLookups';
 import { useSaveItinerary } from 'api/hooks/useItineraries';
 import { useUser } from 'context/UserContext';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
+import { TRIP_STATUS } from 'constants';
 import type { TripState, TripStatus } from 'types';
 
 interface DayCoverage {
@@ -85,14 +88,26 @@ interface StepperCompProps {
 
 const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const dispatch = useTripDispatch();
+    const navigate = useNavigate();
     const { user } = useUser();
     const { data: itineraryTypes = [] } = useItineraryTypes();
     const { data: tripStatuses = [] } = useTripStatuses();
     const saveItinerary = useSaveItinerary();
 
+    // Editing an existing trip when apiId is present (set by apiToTripState
+    // via the /single?id=<uuid> hydration in TripSteps). Drives a flat
+    // single-page edit layout instead of the new-trip wizard.
+    const isEditing = !!data?.apiId;
+
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
+
+    // In edit mode the "Describe Your Trip!" form opens as a modal triggered
+    // by the pencil-edit icon on BasicTripInfo, rather than appearing inline
+    // (the summary card already shows that data — duplicating it inline read
+    // poorly).
+    const basicInfoModalRef = useRef<ModalButtonHandle>(null);
 
     const isStepSkipped = (step: number) => skipped.has(step);
     const isLastStep = activeStep === steps.length - 1;
@@ -100,20 +115,20 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     // Required-field check for the current step.
     // - Step 0 (basic info): name + dates.
     // - Step 1 (participants): at least one participant.
-    // - Last step: everything above + at least one organizer.
+    // - Last step (or edit mode, which shows everything at once): all of the above.
     const stepMissing: string[] = [];
     if (data) {
-        if (activeStep === 0) {
+        if (!isEditing && activeStep === 0) {
             if (!data.name?.trim()) stepMissing.push('trip name');
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
         }
-        if (activeStep === 1) {
+        if (!isEditing && activeStep === 1) {
             if (!(data.friends ?? []).some((f) => f.userId)) {
                 stepMissing.push('at least one participant');
             }
         }
-        if (isLastStep) {
+        if (isEditing || isLastStep) {
             if (!data.name?.trim()) stepMissing.push('trip name');
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
@@ -183,11 +198,12 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         const desiredStatusName =
             currentStatus && typeof currentStatus === 'object'
                 ? (currentStatus as TripStatus).name
-                : 'Planning';
+                : TRIP_STATUS.PLANNING;
         const tripStatusId =
             tripStatuses.find((s) => s.name === desiredStatusName)?.id ?? null;
 
         const input = tripStateToSaveInput(data, {
+            id: data.apiId,
             interaryTypeId,
             tripStatusId,
         });
@@ -197,6 +213,13 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         try {
             await saveItinerary.mutateAsync(input);
             setSaveError(null);
+            if (isEditing && data?.apiId) {
+                // Edit flow: drop the user back at the read-only view of the
+                // trip they just updated, rather than the new-trip "complete"
+                // screen.
+                navigate(`/trip-detail?id=${data.apiId}`);
+                return;
+            }
             setActiveStep((prev) => prev + 1);
         } catch (err) {
             const message =
@@ -234,6 +257,142 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         setActiveStep(0);
         setSaveError(null);
     };
+
+    // Edit mode: skip the wizard, render every section stacked with a single
+    // Save Changes button. No Next/Back/Finish — Save Trip on TripDetail is
+    // the equivalent action for budget-only edits; this page handles the
+    // bigger structural edits (name, dates, friends, places).
+    if (isEditing) {
+        return (
+            <div className="stepperMain stepperMain--edit">
+                {saveItinerary.isPending ? (
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '16px',
+                            padding: '64px 24px',
+                            minHeight: '320px',
+                            color: 'rgba(0, 0, 0, 0.7)',
+                        }}
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <span
+                            style={{
+                                width: '36px',
+                                height: '36px',
+                                border: '3px solid rgba(0, 0, 0, 0.1)',
+                                borderTopColor: '#1976d2',
+                                borderRadius: '50%',
+                                animation: 'searchbar-spin 0.9s linear infinite',
+                            }}
+                            aria-hidden="true"
+                        />
+                        <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+                            Saving changes…
+                        </span>
+                    </div>
+                ) : (
+                    <Grid container>
+                        {data && (
+                            <>
+                                <Grid item lg={12} md={12} xs={12}>
+                                    <BasicTripInfo
+                                        data={data}
+                                        onChangeStep={() =>
+                                            basicInfoModalRef.current?.openModel()
+                                        }
+                                        onStatusChange={(status) =>
+                                            dispatch(basicInfo({ status }))
+                                        }
+                                        onSaveTrip={() =>
+                                            void handleSaveAndAdvance()
+                                        }
+                                        onCancel={() =>
+                                            data?.apiId
+                                                ? navigate(
+                                                      `/trip-detail?id=${data.apiId}`
+                                                  )
+                                                : navigate('/trips')
+                                        }
+                                        isSaving={saveItinerary.isPending}
+                                        // Always allow save in edit mode —
+                                        // user explicitly came here to edit.
+                                        // Missing fields surface via saveError
+                                        // (merged below) and prevent the call
+                                        // server-side.
+                                        isDirty
+                                        saveError={
+                                            saveError ??
+                                            (hasMissingFields
+                                                ? `Add ${stepMissing.join(', ')} to continue.`
+                                                : null)
+                                        }
+                                    />
+                                </Grid>
+                                <Grid item lg={12} md={12} xs={12}>
+                                    <BudgetSummary data={data} />
+                                </Grid>
+                            </>
+                        )}
+                        {/* Skip steps 0 (BasicInfo) and 1 (Participants) —
+                            they live inside the trip-info modal triggered by
+                            the BasicTripInfo edit pencil. Only the activities
+                            section (steps[2], "Finish") stays inline because
+                            it's the bulky part the user actually scrolls
+                            through. */}
+                        {steps.slice(2).map((step, idx) => (
+                            <Grid
+                                item
+                                lg={12}
+                                md={12}
+                                xs={12}
+                                key={`edit-step-${idx + 2}`}
+                            >
+                                <h2 className="step-heading">{step.label}</h2>
+                                {step.comp}
+                            </Grid>
+                        ))}
+                        <ModalButton ref={basicInfoModalRef} title="Edit trip info">
+                            {steps[0] && (
+                                <div className="edit-trip-modal-section">
+                                    <h3 className="edit-trip-modal-heading">
+                                        {steps[0].label}
+                                    </h3>
+                                    {steps[0].comp}
+                                </div>
+                            )}
+                            {steps[1] && (
+                                <div className="edit-trip-modal-section">
+                                    <h3 className="edit-trip-modal-heading">
+                                        {steps[1].label}
+                                    </h3>
+                                    {steps[1].comp}
+                                </div>
+                            )}
+                            <div className="edit-trip-modal-actions">
+                                <Button
+                                    type="standard"
+                                    capitalizeType="uppercase"
+                                    label="Done"
+                                    onClick={() =>
+                                        basicInfoModalRef.current?.closeModal()
+                                    }
+                                />
+                            </div>
+                        </ModalButton>
+                        {/* Cancel + Save Trip both live in the BasicTripInfo
+                            header so users don't have to scroll to find them.
+                            saveError + missing-fields alert surface via
+                            BasicTripInfo's saveError prop. */}
+                    </Grid>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="stepperMain">

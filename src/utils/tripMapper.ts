@@ -13,6 +13,7 @@
 
 import type { Activity, Country, FlightInfo, TripState } from 'types';
 import type {
+    ActivityBudgetInput,
     ActivityInput,
     FlightInfoInput,
     ItineraryDayInput,
@@ -71,6 +72,35 @@ const flightToInput = (
     };
 };
 
+/** Sum the per-friend budget breakdown into a single total for the
+ * denormalized `activity.budget` column on the backend. The per-friend split
+ * persists in `activity_budgets` (sent below as `budgets`); this float is
+ * kept as a list-view shortcut.
+ */
+const sumBudget = (items: Activity['budget']): number | null => {
+    if (!items || !items.length) return null;
+    const total = items.reduce((acc, item) => acc + (toNumber(item.budget) ?? 0), 0);
+    return Number.isFinite(total) && total > 0 ? total : null;
+};
+
+/** Map the frontend per-friend entries to backend ActivityBudgetInput rows.
+ * Drops entries with no backend user id (legacy mock friends) or non-positive
+ * amounts, both of which can't be saved.
+ */
+const budgetEntriesToInput = (
+    items: Activity['budget']
+): ActivityBudgetInput[] => {
+    if (!items || !items.length) return [];
+    const out: ActivityBudgetInput[] = [];
+    for (const item of items) {
+        const userId = item.user?.userId;
+        const amount = toNumber(item.budget);
+        if (!userId || amount == null || amount <= 0) continue;
+        out.push({ userId, amount });
+    }
+    return out;
+};
+
 const activityToInput = (
     activity: Activity,
     dayDate?: string
@@ -83,9 +113,8 @@ const activityToInput = (
     cost: toNumber(activity.cost),
     notes: activity.note ?? null,
     image: activity.image?.url ?? null,
-    // Frontend `budget` is an array of items; backend `budget` is a single
-    // total. We leave it null; budget summaries stay client-side for now.
-    budget: null,
+    budget: sumBudget(activity.budget),
+    budgets: budgetEntriesToInput(activity.budget),
 });
 
 export interface MapTripOptions {

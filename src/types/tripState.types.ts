@@ -33,6 +33,9 @@ export interface TripStatus {
 }
 
 export interface TripState {
+  /** Backend UUID — set when editing an existing trip so save UPDATEs
+   * instead of creating a duplicate. Undefined during the new-trip flow. */
+  apiId?: string;
   name?: string;
   organizer?: Friend[];
   type?: TripBasicType;
