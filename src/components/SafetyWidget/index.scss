@@ -1,0 +1,83 @@
+.safety-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  /* Color tokens, swapped per level by the parent modifier class. Default to
+   * the "low risk = green" palette so an unknown level still renders. */
+  --safety-color: #{theme('colors.primaryGreen')};
+  --safety-bg: rgba(60, 181, 75, 0.12);
+
+  &.level-moderate {
+    --safety-color: #b8780a;
+    --safety-bg: rgba(245, 166, 35, 0.18);
+  }
+
+  &.level-high {
+    --safety-color: #c0392b;
+    --safety-bg: rgba(192, 57, 43, 0.14);
+  }
+}
+
+.safety-widget-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.safety-widget-level {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--safety-bg);
+  color: var(--safety-color);
+}
+
+.safety-widget-score {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  strong {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--safety-color);
+    margin-right: 2px;
+  }
+}
+
+.safety-widget-score-max {
+  font-size: 0.75rem;
+}
+
+.safety-widget-meter {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.safety-widget-meter-fill {
+  height: 100%;
+  background: var(--safety-color);
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.safety-widget-summary {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+.safety-widget-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
