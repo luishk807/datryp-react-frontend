@@ -1,6 +1,12 @@
 export const NO_IMAGE = './images/logo-gray.png';
 export const LOGO_IMAGE = '/images/logo.svg';
 
+/** Lightweight email validator — checks for `local@domain.tld` shape only.
+ *  Not RFC-5321 strict (intentionally — the backend does the authoritative
+ *  validation when the email is actually sent). Use this for client-side
+ *  "enter a valid email" UX in forms. */
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** Local hero images shown on the homepage when `/hero-images` is empty or unreachable. */
 export const FALLBACK_HERO_IMAGES = [
     '/images/sample/iceland.jpg',

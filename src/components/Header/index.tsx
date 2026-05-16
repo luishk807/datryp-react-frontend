@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Divider, Drawer, IconButton, Menu, MenuItem } from '@mui/material';
+import { Divider, Drawer, IconButton } from '@mui/material';
+import Menu, { MenuActionItem } from 'components/common/Menu';
 import classnames from 'classnames';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -123,11 +124,8 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                             </ButtonCustom>
                             <Menu
                                 anchorEl={menuAnchor}
-                                open={Boolean(menuAnchor)}
                                 onClose={handleMenuClose}
-                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                                slotProps={{ paper: { className: 'user-menu' } }}
+                                paperClassName="user-menu"
                             >
                                 <div className="user-menu-header">
                                     <span className="user-menu-avatar">{initial}</span>
@@ -141,42 +139,33 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     </div>
                                 </div>
                                 <Divider className="user-menu-divider" />
-                                <MenuItem
+                                <MenuActionItem
+                                    icon={<PersonOutlineIcon />}
+                                    label="Account"
                                     onClick={() => handleNavigate('/account')}
-                                    className="user-menu-item"
-                                >
-                                    <PersonOutlineIcon fontSize="small" />
-                                    Account
-                                </MenuItem>
-                                <MenuItem
+                                />
+                                <MenuActionItem
+                                    icon={<FlightTakeoffIcon />}
+                                    label="My Trips"
                                     onClick={() => handleNavigate('/trips')}
-                                    className="user-menu-item"
-                                >
-                                    <FlightTakeoffIcon fontSize="small" />
-                                    My Trips
-                                </MenuItem>
-                                <MenuItem
+                                />
+                                <MenuActionItem
+                                    icon={<PeopleOutlineIcon />}
+                                    label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
-                                    className="user-menu-item"
-                                >
-                                    <PeopleOutlineIcon fontSize="small" />
-                                    Manage Friends
-                                </MenuItem>
-                                <MenuItem
+                                />
+                                <MenuActionItem
+                                    icon={<HistoryRoundedIcon />}
+                                    label="Recent searches"
                                     onClick={() => handleNavigate('/history')}
-                                    className="user-menu-item"
-                                >
-                                    <HistoryRoundedIcon fontSize="small" />
-                                    Recent searches
-                                </MenuItem>
+                                />
                                 <Divider className="user-menu-divider" />
-                                <MenuItem
+                                <MenuActionItem
+                                    icon={<LogoutRoundedIcon />}
+                                    label="Logout"
                                     onClick={handleLogout}
-                                    className="user-menu-item user-menu-logout"
-                                >
-                                    <LogoutRoundedIcon fontSize="small" />
-                                    Logout
-                                </MenuItem>
+                                    tone="danger"
+                                />
                             </Menu>
                         </>
                     ) : (

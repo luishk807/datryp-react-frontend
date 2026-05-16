@@ -1,0 +1,62 @@
+// Shared paper styling for every common Menu — rounded card with shadow,
+// a small inset padding, and a sensible min-width. The paper class is
+// added by the wrapper itself, so callers don't have to opt in.
+.common-menu {
+  margin-top: 12px !important;
+  border-radius: 18px !important;
+  min-width: 240px !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden !important;
+  padding: 8px !important;
+
+  .MuiList-root {
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .common-menu {
+    min-width: min(240px, calc(100vw - 24px)) !important;
+  }
+}
+
+// Action items — green-tinted hover by default, red for destructive actions.
+.common-menu .MuiMenuItem-root.common-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.95rem;
+  padding: 12px 14px;
+  color: theme('colors.primary');
+  font-weight: 500;
+  border-radius: 10px;
+  margin: 2px 0;
+  transition: background-color 0.15s ease;
+
+  .MuiSvgIcon-root {
+    font-size: 22px;
+  }
+
+  &.tone-default {
+    .MuiSvgIcon-root {
+      color: theme('colors.primaryGreen');
+    }
+
+    &:hover {
+      background: rgba(60, 181, 75, 0.08);
+    }
+  }
+
+  &.tone-danger {
+    color: #c0392b !important;
+
+    .MuiSvgIcon-root {
+      color: #c0392b !important;
+    }
+
+    &:hover {
+      background: rgba(192, 57, 43, 0.08) !important;
+    }
+  }
+}

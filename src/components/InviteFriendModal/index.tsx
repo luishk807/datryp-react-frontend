@@ -7,6 +7,7 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser, type UserFriend } from 'context/UserContext';
+import { EMAIL_REGEX } from 'constants';
 import 'components/ModalButton/index.scss';
 import './index.scss';
 
@@ -15,8 +16,6 @@ interface InviteFriendModalProps {
     onClose: () => void;
     onInvited?: (friend: UserFriend) => void;
 }
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const deriveNameFromEmail = (email: string): string => {
     const handle = email.split('@')[0] ?? email;
@@ -47,7 +46,7 @@ const InviteFriendModal = ({
 
     const handleSend = () => {
         const trimmed = email.trim().toLowerCase();
-        if (!EMAIL_RE.test(trimmed)) {
+        if (!EMAIL_REGEX.test(trimmed)) {
             setError('Enter a valid email address.');
             return;
         }

@@ -1,52 +1,47 @@
-.email-share-dialog .MuiDialog-paper {
+// Layout shell is `.modalCustom` (from components/ModalButton).
+// Row spacing and `.form-error` come from `.form-input` / `.form-error`
+// defined alongside LoginBtn — same convention as the login/signup modals.
+
+// Tinted context banner showing the place being shared.
+.email-share-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: 12px;
-  padding: 4px;
+  background: rgba(60, 181, 75, 0.08);
+  border: 1px solid rgba(60, 181, 75, 0.16);
 }
 
-.email-share-title {
-  font-size: 1.15rem !important;
-  font-weight: 600 !important;
-  color: theme('colors.primary');
-  padding-bottom: 4px !important;
+.email-share-context-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 22px !important;
+  flex-shrink: 0;
 }
 
-.email-share-content {
+.email-share-context-text {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  min-width: 0;
 }
 
-.email-share-subtitle {
-  margin: 0 0 4px;
-  font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.email-share-subtitle strong {
+.email-share-context-name {
+  font-weight: 700;
   color: theme('colors.primary');
-  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.email-share-field {
-  width: 100%;
-}
-
-.email-share-error {
-  color: #c0392b;
-  font-size: 0.85rem;
-  background: rgba(192, 57, 43, 0.06);
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin: 0;
+.email-share-context-location {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin-top: 2px;
 }
 
 .email-share-success {
   color: theme('colors.primaryGreen');
   font-size: 0.9rem;
-  margin: 0;
-}
-
-.email-share-actions {
-  padding: 12px 24px 18px !important;
-  gap: 8px;
+  font-weight: 500;
 }

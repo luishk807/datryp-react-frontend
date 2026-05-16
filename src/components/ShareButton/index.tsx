@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import './index.scss';
-import { IconButton, Menu, MenuItem, Snackbar } from '@mui/material';
+import { IconButton, Snackbar } from '@mui/material';
+import Menu, { MenuActionItem } from 'components/common/Menu';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import classNames from 'classnames';
-import EmailShareModal from 'components/EmailShareModal';
+import EmailShareModal, {
+    type EmailShareModalHandle,
+} from 'components/EmailShareModal';
 import type { PlaceRecommendation } from 'types';
 
 export interface ShareButtonProps {
@@ -23,8 +26,8 @@ const canNativeShare = (): boolean =>
 
 const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) => {
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-    const [emailOpen, setEmailOpen] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
+    const emailModalRef = useRef<EmailShareModalHandle>(null);
 
     const closeMenu = () => setMenuAnchor(null);
 
@@ -53,7 +56,7 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
 
     const handleEmail = () => {
         closeMenu();
-        setEmailOpen(true);
+        emailModalRef.current?.open();
     };
 
     return (
@@ -79,30 +82,28 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
                 </IconButton>
             )}
 
-            <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={closeMenu}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                slotProps={{ paper: { className: 'share-menu' } }}
-            >
+            <Menu anchorEl={menuAnchor} onClose={closeMenu}>
                 {canNativeShare() && (
-                    <MenuItem onClick={handleNativeShare} className="share-menu-item">
-                        <ShareRoundedIcon fontSize="small" /> Share…
-                    </MenuItem>
+                    <MenuActionItem
+                        icon={<ShareRoundedIcon />}
+                        label="Share…"
+                        onClick={handleNativeShare}
+                    />
                 )}
-                <MenuItem onClick={handleCopy} className="share-menu-item">
-                    <ContentCopyRoundedIcon fontSize="small" /> Copy link
-                </MenuItem>
-                <MenuItem onClick={handleEmail} className="share-menu-item">
-                    <EmailRoundedIcon fontSize="small" /> Email
-                </MenuItem>
+                <MenuActionItem
+                    icon={<ContentCopyRoundedIcon />}
+                    label="Copy link"
+                    onClick={handleCopy}
+                />
+                <MenuActionItem
+                    icon={<EmailRoundedIcon />}
+                    label="Email"
+                    onClick={handleEmail}
+                />
             </Menu>
 
             <EmailShareModal
-                open={emailOpen}
-                onClose={() => setEmailOpen(false)}
+                ref={emailModalRef}
                 place={place}
                 searchUrl={searchUrl}
             />

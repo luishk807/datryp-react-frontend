@@ -68,19 +68,3 @@
   font-size: 1.05rem !important;
 }
 
-.share-menu .MuiList-root {
-  padding: 4px;
-}
-
-.share-menu-item {
-  display: flex !important;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem !important;
-  padding: 8px 14px !important;
-  color: theme('colors.primary') !important;
-}
-
-.share-menu-item:hover {
-  background: rgba(0, 0, 0, 0.04) !important;
-}
