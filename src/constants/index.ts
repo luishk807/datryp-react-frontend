@@ -1,6 +1,14 @@
 export const NO_IMAGE = './images/logo-gray.png';
 export const LOGO_IMAGE = '/images/logo.svg';
 
+/** Local hero images shown on the homepage when `/hero-images` is empty or unreachable. */
+export const FALLBACK_HERO_IMAGES = [
+    '/images/sample/iceland.jpg',
+    '/images/sample/china1.jpg',
+    '/images/sample/china2.jpg',
+    '/images/sample/vietnam.jpg',
+] as const;
+
 export const ACTION = {
     ADD: 'add',
     EDIT: 'edit',

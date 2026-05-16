@@ -6,12 +6,13 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
-import { TRIP_BASIC, TRIP_MODE } from 'constants';
+import { FALLBACK_HERO_IMAGES, TRIP_BASIC, TRIP_MODE } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
 import { pythonGqlClient } from 'api/pythonGqlClient';
-import type { Country, Destination, TripMode } from 'types';
+import { useHeroImages } from 'api/hooks/useHeroImages';
+import type { Country, Destination, HeroImage, TripMode } from 'types';
 
 const COUNTRY_LOOKUP_QUERY = gql`
     query CountryLookup($query: String!) {
@@ -65,22 +66,32 @@ const resolveCountryByCode = async (
     }
 };
 
-const HERO_IMAGES = [
-    '/images/sample/iceland.jpg',
-    '/images/sample/china1.jpg',
-    '/images/sample/china2.jpg',
-    '/images/sample/vietnam.jpg',
-];
+interface SelectedHero {
+    url: string;
+    /** Only present when the image came from the backend (Unsplash attribution required). */
+    attribution?: { name: string; profileUrl: string };
+}
+
+const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
+    if (heroes && heroes.length > 0) {
+        const pick = heroes[Math.floor(Math.random() * heroes.length)];
+        return {
+            url: pick.imageUrl,
+            attribution: { name: pick.photographerName, profileUrl: pick.photographerUrl },
+        };
+    }
+    const url =
+        FALLBACK_HERO_IMAGES[Math.floor(Math.random() * FALLBACK_HERO_IMAGES.length)];
+    return { url };
+};
 
 const Home = () => {
     const dispatch = useTripDispatch();
     const [tripMode, setTripMode] = useState<TripMode>(TRIP_MODE.SINGLE);
     const navigate = useNavigate();
 
-    const heroImage = useMemo(
-        () => HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)],
-        []
-    );
+    const { data: heroImages } = useHeroImages();
+    const heroImage = useMemo(() => pickRandomHero(heroImages), [heroImages]);
 
     const handleSearchSelected = useCallback(
         (country: Country) => {
@@ -119,9 +130,29 @@ const Home = () => {
         <Layout>
             <section
                 className="home-hero"
-                style={{ backgroundImage: `url(${heroImage})` }}
+                style={{ backgroundImage: `url(${heroImage.url})` }}
             >
                 <div className="home-hero-overlay" />
+                {heroImage.attribution && (
+                    <span className="home-hero-attribution">
+                        Photo by{' '}
+                        <a
+                            href={heroImage.attribution.profileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {heroImage.attribution.name}
+                        </a>{' '}
+                        on{' '}
+                        <a
+                            href="https://unsplash.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Unsplash
+                        </a>
+                    </span>
+                )}
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">Where to next?</h1>
                     <p className="home-hero-subtitle">

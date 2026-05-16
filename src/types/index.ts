@@ -5,3 +5,4 @@ export * from "./itinerary.types";
 export * from "./tripState.types";
 export * from "./tripEvent.types";
 export * from "./recommendation.types";
+export * from "./heroImage.types";
