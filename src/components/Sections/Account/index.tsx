@@ -3,6 +3,8 @@ import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
+import Field from 'components/common/FormFields/Field';
+import Toggle from 'components/common/FormFields/Toggle';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
@@ -304,36 +306,5 @@ export const Account = () => {
     );
 };
 
-interface FieldProps {
-    label: string;
-    children: React.ReactNode;
-}
-
-const Field = ({ label, children }: FieldProps) => (
-    <label className="account-field">
-        <span className="account-field-label">{label}</span>
-        {children}
-    </label>
-);
-
-interface ToggleProps {
-    label: string;
-    checked: boolean;
-    onChange: (value: boolean) => void;
-}
-
-const Toggle = ({ label, checked, onChange }: ToggleProps) => (
-    <label className="account-toggle">
-        <input
-            type="checkbox"
-            checked={checked}
-            onChange={(e) => onChange(e.target.checked)}
-        />
-        <span className="account-toggle-track">
-            <span className="account-toggle-thumb" />
-        </span>
-        <span className="account-toggle-label">{label}</span>
-    </label>
-);
 
 export default Account;

@@ -89,24 +89,6 @@
   gap: 14px;
 }
 
-/* Country select still uses Field wrapper + the bare-input look; reuse the
- * InputField bare classes (.input-field-bare / .input-field-bare-input) on
- * the <select> + <Field> markup below. The chevron-icon styling stays here. */
-.account-field {
-  /* Compat alias for the remaining <Field> wrappers (Country select, Notifications group). */
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.account-field-label {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(0, 0, 0, 0.55);
-  font-weight: 600;
-}
-
 .account-select {
   appearance: none;
   -webkit-appearance: none;
@@ -145,60 +127,11 @@
   color: #c0392b;
 }
 
-/* ---------- Toggle ---------- */
+/* Layout container for the Toggle group inside the Notifications field. */
 .account-toggles {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.account-toggle {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.account-toggle input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.account-toggle-track {
-  position: relative;
-  width: 40px;
-  height: 22px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
-  transition: background-color 0.18s ease;
-  flex-shrink: 0;
-}
-
-.account-toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.18s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.account-toggle input:checked + .account-toggle-track {
-  background: theme('colors.primaryGreen');
-}
-
-.account-toggle input:checked + .account-toggle-track .account-toggle-thumb {
-  transform: translateX(18px);
-}
-
-.account-toggle-label {
-  font-size: 0.95rem;
-  color: theme('colors.primary');
 }
 
 /* ---------- Friends ---------- */

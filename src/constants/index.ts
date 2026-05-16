@@ -19,6 +19,15 @@ export const AUTH_MODE = {
     SIGNUP: 'signup',
 } as const;
 
+/** Trip-mode tab/prop value (lowercase state-key, distinct from TRIP_BASIC's
+ *  display names). 'recommend' is the homepage's AI-recommender tab; components
+ *  that only edit a saved trip should narrow this to exclude RECOMMEND. */
+export const TRIP_MODE = {
+    SINGLE: 'single',
+    MULTIPLE: 'multiple',
+    RECOMMEND: 'recommend',
+} as const;
+
 export const AUTH_LABEL = {
     LOGIN: 'Login',
     SIGNUP: 'Sign Up',

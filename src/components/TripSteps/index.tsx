@@ -12,7 +12,7 @@ import { useUser } from 'context/UserContext';
 import { useMyItineraries } from 'api/hooks/useItineraries';
 import { apiToTripState } from 'utils/itineraryAdapter';
 import { status as statusOptions } from 'sample';
-import { TRIP_BASIC, TRIP_STATUS } from 'constants';
+import { TRIP_BASIC, TRIP_MODE, TRIP_STATUS } from 'constants';
 
 const PLANNING_STATUS =
     statusOptions.find((s) => s.name === TRIP_STATUS.PLANNING) ?? statusOptions[0];
@@ -31,12 +31,14 @@ const hashUuid = (s: string): number => {
     return Math.abs(h);
 };
 
-type TripMode = 'single' | 'multiple';
+/** Narrow subset of the shared TripMode — TripSteps edits an existing trip,
+ *  so the 'recommend' tab value (homepage-only) is not valid here. */
+type EditableTripMode = typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE;
 
 interface TripStepsProps {
     title: string;
     containerClassName?: string;
-    currentType: TripMode;
+    currentType: EditableTripMode;
     onBasicChange: (id: string, e: TripChangeEvent) => void;
     onChangePlace: (event: TripPlaceEvent) => void;
     onChangeBudget: (event: TripPlaceEvent) => void;
@@ -122,11 +124,12 @@ const TripSteps = ({
         dispatch(basicInfo({ name: `${firstCountry} trip` }));
     }, [tripInfo.destinations, tripInfo.name, dispatch]);
 
-    const otherMode: TripMode = currentType === 'single' ? 'multiple' : 'single';
+    const otherMode: EditableTripMode =
+        currentType === TRIP_MODE.SINGLE ? TRIP_MODE.MULTIPLE : TRIP_MODE.SINGLE;
     const switchTarget =
-        otherMode === 'single' ? TRIP_BASIC.SINGLE.route : TRIP_BASIC.MULTIPLE.route;
+        otherMode === TRIP_MODE.SINGLE ? TRIP_BASIC.SINGLE.route : TRIP_BASIC.MULTIPLE.route;
     const switchLabel =
-        otherMode === 'single' ? 'Switch to Single Trip' : 'Switch to Multi Trip';
+        otherMode === TRIP_MODE.SINGLE ? 'Switch to Single Trip' : 'Switch to Multi Trip';
 
     const participants = useMemo<Friend[]>(() => {
         const friends = tripInfo.friends || [];

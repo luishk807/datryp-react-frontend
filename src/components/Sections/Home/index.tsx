@@ -6,12 +6,12 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
-import { TRIP_BASIC } from 'constants';
+import { TRIP_BASIC, TRIP_MODE } from 'constants';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
 import { pythonGqlClient } from 'api/pythonGqlClient';
-import type { Country, Destination } from 'types';
+import type { Country, Destination, TripMode } from 'types';
 
 const COUNTRY_LOOKUP_QUERY = gql`
     query CountryLookup($query: String!) {
@@ -72,11 +72,9 @@ const HERO_IMAGES = [
     '/images/sample/vietnam.jpg',
 ];
 
-type TripMode = 'single' | 'multiple' | 'recommend';
-
 const Home = () => {
     const dispatch = useTripDispatch();
-    const [tripMode, setTripMode] = useState<TripMode>('single');
+    const [tripMode, setTripMode] = useState<TripMode>(TRIP_MODE.SINGLE);
     const navigate = useNavigate();
 
     const heroImage = useMemo(
@@ -89,7 +87,7 @@ const Home = () => {
             if (!country?.name) return;
             // 'recommend' mode kicks off a single-trip flow with the chosen destination.
             const type =
-                tripMode === 'multiple' ? TRIP_BASIC.MULTIPLE : TRIP_BASIC.SINGLE;
+                tripMode === TRIP_MODE.MULTIPLE ? TRIP_BASIC.MULTIPLE : TRIP_BASIC.SINGLE;
             const destinations = [{ country }] as Destination[];
 
             dispatch(resetTrip());
@@ -138,31 +136,31 @@ const Home = () => {
                         <span className="hero-option-thumb" aria-hidden="true" />
                         <button
                             role="tab"
-                            aria-selected={tripMode === 'single'}
+                            aria-selected={tripMode === TRIP_MODE.SINGLE}
                             className={classnames('hero-option', {
-                                selected: tripMode === 'single',
+                                selected: tripMode === TRIP_MODE.SINGLE,
                             })}
-                            onClick={() => setTripMode('single')}
+                            onClick={() => setTripMode(TRIP_MODE.SINGLE)}
                         >
                             Single place
                         </button>
                         <button
                             role="tab"
-                            aria-selected={tripMode === 'multiple'}
+                            aria-selected={tripMode === TRIP_MODE.MULTIPLE}
                             className={classnames('hero-option', {
-                                selected: tripMode === 'multiple',
+                                selected: tripMode === TRIP_MODE.MULTIPLE,
                             })}
-                            onClick={() => setTripMode('multiple')}
+                            onClick={() => setTripMode(TRIP_MODE.MULTIPLE)}
                         >
                             Multiple locations
                         </button>
                         <button
                             role="tab"
-                            aria-selected={tripMode === 'recommend'}
+                            aria-selected={tripMode === TRIP_MODE.RECOMMEND}
                             className={classnames('hero-option', 'is-ai', {
-                                selected: tripMode === 'recommend',
+                                selected: tripMode === TRIP_MODE.RECOMMEND,
                             })}
-                            onClick={() => setTripMode('recommend')}
+                            onClick={() => setTripMode(TRIP_MODE.RECOMMEND)}
                         >
                             <AutoAwesomeIcon className="hero-option-icon" />
                             <span>Recommend</span>
@@ -173,7 +171,7 @@ const Home = () => {
                     <div className="home-hero-search">
                         <SearchBar
                             onSelected={handleSearchSelected}
-                            mode={tripMode === 'recommend' ? 'recommend' : 'country'}
+                            mode={tripMode === TRIP_MODE.RECOMMEND ? 'recommend' : 'country'}
                         />
                     </div>
                 </div>

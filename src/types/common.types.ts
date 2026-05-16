@@ -4,6 +4,7 @@ import type {
   BUDGET_STATUS,
   BUTTON_VARIANT,
   ITINERARY_TYPE,
+  TRIP_MODE,
   TRIP_STATUS,
 } from "constants";
 
@@ -12,6 +13,7 @@ export type AuthMode = (typeof AUTH_MODE)[keyof typeof AUTH_MODE];
 export type BudgetStatus = (typeof BUDGET_STATUS)[keyof typeof BUDGET_STATUS];
 export type ButtonVariant = (typeof BUTTON_VARIANT)[keyof typeof BUTTON_VARIANT];
 export type ItineraryTypeName = (typeof ITINERARY_TYPE)[keyof typeof ITINERARY_TYPE];
+export type TripMode = (typeof TRIP_MODE)[keyof typeof TRIP_MODE];
 export type TripStatusName = (typeof TRIP_STATUS)[keyof typeof TRIP_STATUS];
 
 /**
