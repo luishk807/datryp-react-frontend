@@ -45,8 +45,11 @@ const PlaceDetail = () => {
   const { data, isLoading, isError, error } = useSearchPlaces(query, 5);
 
   // Enriched details (foods, places, weather, worst-time). Lazy-fetched,
-  // cached server-side on the same row so a repeat view is instant.
-  const detailsQuery = usePlaceDetails(query, index);
+  // cached server-side on the same row so a repeat view is instant. Gated
+  // on the search query having resolved — `/place-details` reads from the
+  // row that `/place-recommendations` creates, so firing it before the
+  // search lands 404s on direct deep-links.
+  const detailsQuery = usePlaceDetails(query, index, Boolean(data));
 
   const detailUrl =
     typeof window !== "undefined"
