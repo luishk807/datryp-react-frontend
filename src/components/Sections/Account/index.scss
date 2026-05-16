@@ -105,12 +105,6 @@
   margin-top: 6px;
 }
 
-.account-actions button.main-button {
-  width: auto !important;
-  padding: 10px 24px !important;
-  min-width: 170px;
-}
-
 .account-message {
   padding: 10px 14px;
   border-radius: 10px;
@@ -247,7 +241,7 @@
   .account-actions {
     justify-content: stretch;
   }
-  .account-actions button.main-button {
+  .account-actions button.standard-mini {
     width: 100% !important;
   }
   .account-add-friend {

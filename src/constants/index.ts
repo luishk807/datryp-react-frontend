@@ -39,6 +39,7 @@ export const BUTTON_VARIANT = {
     TEXT_PLAIN: 'text-plain',
     STANDARD: 'standard',
     STANDARD_SMALL: 'standard-small',
+    STANDARD_MINI: 'standard-mini',
     LINE: 'line',
     NONE: 'none',
 } as const;

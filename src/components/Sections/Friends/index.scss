@@ -87,11 +87,6 @@
   flex-shrink: 0;
 }
 
-.friends-card-actions button.main-button {
-  width: auto !important;
-  padding: 9px 18px !important;
-  min-width: 140px;
-}
 
 .friends-count {
   flex-shrink: 0;
@@ -289,7 +284,7 @@
   .friends-card-actions {
     justify-content: space-between;
   }
-  .friends-card-actions button.main-button {
+  .friends-card-actions button.standard-mini {
     flex: 1;
     min-width: 0;
   }

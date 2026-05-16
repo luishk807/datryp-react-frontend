@@ -50,6 +50,16 @@
   font-weight: 500;
 }
 
+.standard-mini {
+  padding: 5px 14px;
+  width: auto;
+  background: theme('colors.primaryGreen');
+  color: white;
+  border-radius: 5px;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
 .plain-button {
   padding: 10px 0px;
   width: 100%;

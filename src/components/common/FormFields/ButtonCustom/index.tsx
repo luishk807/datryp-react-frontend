@@ -46,6 +46,7 @@ const ButtonCustom = ({
                 'plain-button': type === BUTTON_VARIANT.PLAIN,
                 'text-button': type === BUTTON_VARIANT.TEXT,
                 'standard-small': type === BUTTON_VARIANT.STANDARD_SMALL,
+                'standard-mini': type === BUTTON_VARIANT.STANDARD_MINI,
                 capitalize: capitalizeType === 'capitalize',
                 lowercase: capitalizeType === 'lowercase',
                 uppercase: capitalizeType === 'uppercase',

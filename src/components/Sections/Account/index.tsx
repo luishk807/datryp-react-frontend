@@ -8,6 +8,7 @@ import Toggle from 'components/common/FormFields/Toggle';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
+import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
 
 const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
@@ -184,7 +185,7 @@ export const Account = () => {
                         />
                         <div className="account-actions">
                             <ButtonCustom
-                                type="standard"
+                                type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
                                 label={profileSaved ? 'Saved' : 'Save profile'}
                                 onClick={handleProfileSave}
@@ -238,7 +239,7 @@ export const Account = () => {
                         )}
                         <div className="account-actions">
                             <ButtonCustom
-                                type="standard"
+                                type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
                                 label="Update password"
                                 onClick={handlePasswordSave}
@@ -292,7 +293,7 @@ export const Account = () => {
                         </Field>
                         <div className="account-actions">
                             <ButtonCustom
-                                type="standard"
+                                type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
                                 label={prefsSaved ? 'Saved' : 'Save preferences'}
                                 onClick={handlePrefsSave}

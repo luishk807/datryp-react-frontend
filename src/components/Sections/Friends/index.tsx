@@ -3,6 +3,7 @@ import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InviteFriendModal from 'components/InviteFriendModal';
 import { useUser } from 'context/UserContext';
+import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
 
 export const Friends = () => {
@@ -43,7 +44,7 @@ export const Friends = () => {
                                 {friends.length === 1 ? 'friend' : 'friends'}
                             </span>
                             <ButtonCustom
-                                type="standard"
+                                type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
                                 label="+ Invite friend"
                                 onClick={() => setInviteOpen(true)}
