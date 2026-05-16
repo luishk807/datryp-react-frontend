@@ -1,0 +1,150 @@
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  list-style: none;
+}
+
+.review-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-card-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.review-card-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.review-card-author-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-card-author-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.review-card-time {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.review-card-text {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.review-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* ── Like button (heart pill with count + friend-likers tooltip) ──────── */
+.review-like-tooltip-wrap {
+  display: inline-flex;
+}
+
+.review-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: #e85a78;
+    color: #e85a78;
+  }
+
+  &.active {
+    background: rgba(232, 90, 120, 0.1);
+    border-color: #e85a78;
+    color: #e85a78;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.review-card-friend-likes {
+  font-size: 0.8rem;
+  color: theme('colors.primaryGreen');
+  font-weight: 600;
+}
+
+/* ── Owner-only Edit + Delete buttons ─────────────────────────────────── */
+.review-card-owner-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.review-card-owner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: theme('colors.primary');
+  }
+
+  &.danger:hover {
+    background: rgba(192, 57, 43, 0.06);
+    color: #c0392b;
+    border-color: rgba(192, 57, 43, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

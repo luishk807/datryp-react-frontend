@@ -17,6 +17,11 @@ export interface ButtonCustomProps {
     className?: string;
     /** Accessible label for buttons whose visible content is non-textual (e.g. an avatar initial or icon). */
     ariaLabel?: string;
+    /** ARIA `role` override — set to `'tab'` when this button is part of a tablist. */
+    role?: string;
+    /** ARIA `aria-selected` — required when `role="tab"` so screen readers
+     *  announce which tab is active. */
+    ariaSelected?: boolean;
     /** The native HTML `type` attribute (`button` / `submit` / `reset`). Distinct from
      *  the visual `type` prop above. Omit to keep the browser default. */
     nativeType?: 'button' | 'submit' | 'reset';
@@ -32,6 +37,8 @@ const ButtonCustom = ({
     disabled = false,
     className,
     ariaLabel,
+    role,
+    ariaSelected,
     nativeType,
 }: ButtonCustomProps) => {
     return (
@@ -40,6 +47,8 @@ const ButtonCustom = ({
             style={style ?? undefined}
             disabled={disabled}
             aria-label={ariaLabel}
+            role={role}
+            aria-selected={ariaSelected}
             className={classNames(className, {
                 'main-button': type === BUTTON_VARIANT.STANDARD,
                 'main-line': type === BUTTON_VARIANT.LINE,

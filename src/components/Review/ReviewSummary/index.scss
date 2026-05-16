@@ -1,0 +1,53 @@
+/* ── Compact summary chip (sits below OpenAI stars in the header).
+ * Visually mirrors `.place-detail-meta` so the two rating rows line up. */
+.review-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.review-summary-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
+/* Pin the star size to 1.25rem so the summary stars match the overall
+ * rating exactly. `StarInput size="md"` defaults to 1.3rem app-wide; here
+ * we tighten it to align with the AI-rating's `.place-detail-star`. */
+.review-summary .rating-stats .star-input.size-md .star-input-star {
+  font-size: 1.25rem !important;
+}
+
+.review-summary-empty {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.review-summary-link {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid theme('colors.primaryGreen');
+  color: theme('colors.primaryGreen');
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+  }
+}

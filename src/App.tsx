@@ -84,9 +84,12 @@ function App() {
                     </Suspense>
                 }/>
                 <Route path='/place' element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated
+                        title="Sign in to view this place"
+                        subtitle="Reviews, bookmarks, and travel info are all tied to your account."
+                    >
                         <PlaceDetail />
-                    </Suspense>
+                    </Gated>
                 }/>
                 <Route path='/history' element={
                     <Gated

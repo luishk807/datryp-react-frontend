@@ -1,0 +1,33 @@
+.star-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  vertical-align: middle;
+
+  &.size-sm .star-input-star {
+    font-size: 1rem !important;
+  }
+  &.size-md .star-input-star {
+    font-size: 1.3rem !important;
+  }
+  &.size-lg .star-input-star {
+    font-size: 1.8rem !important;
+  }
+
+  &:not(.readonly) .star-input-star {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+
+    &:hover {
+      transform: scale(1.08);
+    }
+  }
+}
+
+.star-input-star {
+  color: rgba(0, 0, 0, 0.2);
+
+  &.filled {
+    color: #f5a623;
+  }
+}

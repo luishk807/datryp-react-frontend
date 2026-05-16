@@ -34,6 +34,8 @@ export interface ReviewItem {
     friendLikers: FriendLiker[];
 }
 
+export type ReviewSort = 'recent' | 'highest' | 'lowest';
+
 export interface ReviewsResponse {
     placeKey: string;
     total: number;
@@ -41,6 +43,17 @@ export interface ReviewsResponse {
     ratingCounts: Record<string, number>;
     viewerReviewId: string | null;
     items: ReviewItem[];
+    /** 1-based current page. */
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    sort: ReviewSort;
+}
+
+export interface ReviewQueryParams {
+    page?: number;
+    pageSize?: number;
+    sort?: ReviewSort;
 }
 
 export interface ReviewCreatePayload {
@@ -76,6 +89,10 @@ interface ReviewsResponseRaw {
     rating_counts: Record<string, number>;
     viewer_review_id: string | null;
     items: ReviewItemRaw[];
+    page: number;
+    page_size: number;
+    total_pages: number;
+    sort: ReviewSort;
 }
 
 const toItem = (r: ReviewItemRaw): ReviewItem => ({
@@ -107,10 +124,18 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
     throw new Error(`${label} ${resp.status} ${resp.statusText}${detail ? ` — ${detail}` : ''}`);
 };
 
-export const fetchPlaceReviews = async (placeKey: string): Promise<ReviewsResponse> => {
-    const resp = await fetch(`${API_BASE}/places/${encodeURIComponent(placeKey)}/reviews`, {
-        headers: authHeaders(),
-    });
+export const fetchPlaceReviews = async (
+    placeKey: string,
+    params: ReviewQueryParams = {}
+): Promise<ReviewsResponse> => {
+    const qs = new URLSearchParams();
+    qs.set('page', String(params.page ?? 1));
+    qs.set('page_size', String(params.pageSize ?? 10));
+    qs.set('sort', params.sort ?? 'recent');
+    const resp = await fetch(
+        `${API_BASE}/places/${encodeURIComponent(placeKey)}/reviews?${qs}`,
+        { headers: authHeaders() }
+    );
     if (!resp.ok) await handleError(resp, '/places/:key/reviews');
     const body = (await resp.json()) as ReviewsResponseRaw;
     return {
@@ -120,6 +145,10 @@ export const fetchPlaceReviews = async (placeKey: string): Promise<ReviewsRespon
         ratingCounts: body.rating_counts,
         viewerReviewId: body.viewer_review_id,
         items: body.items.map(toItem),
+        page: body.page,
+        pageSize: body.page_size,
+        totalPages: body.total_pages,
+        sort: body.sort,
     };
 };
 

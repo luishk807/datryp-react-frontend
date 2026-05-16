@@ -1,0 +1,16 @@
+.rating-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rating-stats-avg {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.rating-stats-count {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+}
