@@ -1,0 +1,74 @@
+.error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 48px 24px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.error-page-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(60, 181, 75, 0.08);
+  color: theme('colors.primaryGreen');
+  margin-bottom: 4px;
+}
+
+.error-page-icon-svg {
+  font-size: 40px !important;
+}
+
+.error-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0;
+  line-height: 1.25;
+}
+
+.error-page-description {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.error-page-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.error-page-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: theme('colors.primaryGreen');
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-page {
+    padding: 36px 20px;
+  }
+
+  .error-page-title {
+    font-size: 1.3rem;
+  }
+}

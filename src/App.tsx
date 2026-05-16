@@ -14,6 +14,7 @@ const Friends = lazy(() => import('components/Sections/Friends'));
 const SearchResults = lazy(() => import('components/Sections/SearchResults'));
 const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
+const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
 
@@ -98,6 +99,15 @@ function App() {
                     >
                         <SearchHistoryPage />
                     </Gated>
+                }/>
+                <Route path='*' element={
+                    <Suspense fallback={<>...</>}>
+                        <ErrorPage
+                            pageTitle="Page not found"
+                            title="We can't find that page"
+                            description="The link may be broken, or the page may have moved. Head back to the home page to keep planning."
+                        />
+                    </Suspense>
                 }/>
             </Routes>
         </Router>

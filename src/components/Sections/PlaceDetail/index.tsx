@@ -8,6 +8,7 @@ import HikingRoundedIcon from "@mui/icons-material/HikingRounded";
 import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import Layout from "components/common/Layout/SubLayout";
+import ErrorPage from "components/common/ErrorPage";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
 import Stars from "components/common/Stars";
@@ -61,11 +62,11 @@ const PlaceDetail = () => {
 
   if (!query) {
     return (
-      <Layout title="Place">
-        <p className="place-detail-empty">
-          Missing query — open this page from a search result.
-        </p>
-      </Layout>
+      <ErrorPage
+        pageTitle="Place"
+        title="No place selected"
+        description="Open this page from a search result to see its details."
+      />
     );
   }
 
@@ -79,25 +80,25 @@ const PlaceDetail = () => {
 
   if (isError) {
     return (
-      <Layout title="Error">
-        <p className="place-detail-error" role="alert">
-          Could not load this place:{" "}
-          {error instanceof Error ? error.message : "Unknown error"}
-        </p>
-      </Layout>
+      <ErrorPage
+        pageTitle="Error"
+        title="Could not load this place"
+        description={
+          error instanceof Error ? error.message : 'Something went wrong.'
+        }
+        secondaryAction={{ label: `Back to "${query}"`, to: backUrl }}
+      />
     );
   }
 
   if (!place) {
     return (
-      <Layout title="Not found">
-        <p className="place-detail-empty">
-          No place at position {index + 1} for &ldquo;{query}&rdquo;.
-        </p>
-        <Link to={backUrl} className="place-detail-back-link">
-          <ArrowBackRoundedIcon fontSize="small" /> Back to results
-        </Link>
-      </Layout>
+      <ErrorPage
+        pageTitle="Not found"
+        title="Place not found"
+        description={`No place at position ${index + 1} for "${query}".`}
+        secondaryAction={{ label: 'Back to results', to: backUrl }}
+      />
     );
   }
 
