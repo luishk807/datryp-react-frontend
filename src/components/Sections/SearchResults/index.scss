@@ -1,0 +1,42 @@
+.search-results-page {
+  /* The shared `.homeContainer` parent in SubLayout is display:flex with no
+   * basis, so children collapse to content width unless we explicitly fill. */
+  width: 100%;
+  padding: 20px 0;
+}
+
+.search-results-grid {
+  display: grid;
+  /* Mobile-first: single column (each card spans the full width). */
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* Tablet: 2 columns. */
+@media (min-width: 640px) {
+  .search-results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 4 columns. */
+@media (min-width: 1024px) {
+  .search-results-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.search-results-loading,
+.search-results-empty {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.95rem;
+  padding: 24px 0;
+}
+
+.search-results-error {
+  color: #c0392b;
+  font-size: 0.9rem;
+  padding: 12px 16px;
+  background: rgba(192, 57, 43, 0.06);
+  border-radius: 8px;
+}

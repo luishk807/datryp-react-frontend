@@ -1,0 +1,385 @@
+.place-detail {
+  /* Same width-100% trick as SearchResults — neutralizes the parent
+   * .homeContainer flex-collapse so the article fills the layout container. */
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.place-detail-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: theme('colors.primaryGreen');
+  text-decoration: none;
+  width: fit-content;
+}
+
+.place-detail-back-link:hover {
+  text-decoration: underline;
+}
+
+.place-detail-hero {
+  position: relative;
+  aspect-ratio: 16 / 8;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.place-detail-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.place-detail-hero.is-placeholder {
+  background-image: url('/images/logo-gray.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 50%;
+  opacity: 0.55;
+}
+
+.place-detail-attribution {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  z-index: 1;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  padding: 2px 4px;
+}
+
+.place-detail-attribution a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.place-detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place-detail-name {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0;
+}
+
+.place-detail-location {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin: 0;
+}
+
+.place-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.place-detail-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.place-detail-star {
+  font-size: 1.25rem !important;
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.place-detail-star.filled {
+  color: #f5a623;
+}
+
+.place-detail-rating-num {
+  margin-left: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.place-detail-best-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-best-time-icon {
+  font-size: 1.1rem !important;
+}
+
+.place-detail-description {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Enriched sections (foods, places, weather, worst-time) ──────────────── */
+.place-detail-extras {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+@media (min-width: 768px) {
+  .place-detail-extras {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.place-detail-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
+.place-detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0 0 12px;
+}
+
+.place-detail-section-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-section-icon .MuiSvgIcon-root {
+  font-size: 1.25rem;
+}
+
+.place-detail-tip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-detail-tip-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.place-detail-tip-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.place-detail-tip-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.place-detail-tip-why {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.4;
+}
+
+.place-detail-paragraph {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.55;
+}
+
+.place-detail-paragraph-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Weather widget (minimal, matches the other section cards) ─────────── */
+.place-detail-weather-widget {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.place-detail-weather-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(60, 181, 75, 0.1);
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-weather-icon .MuiSvgIcon-root {
+  font-size: 1.5rem;
+}
+
+.place-detail-weather-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.place-detail-weather-tag {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.1);
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-weather-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* ── 70/30 top layout (hero + side cards) ──────────────────────────────── */
+.place-detail-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .place-detail-top {
+    grid-template-columns: 7fr 3fr;
+    align-items: stretch;
+  }
+  /* Stretch the hero to match the side column's height when the cards make
+   * it taller than the natural aspect-ratio. */
+  .place-detail-top .place-detail-hero {
+    height: 100%;
+  }
+}
+
+.place-detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.place-detail-side .place-detail-section {
+  padding: 14px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.place-detail-side .place-detail-section-title {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.place-detail-side-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ── When-to-visit rows ────────────────────────────────────────────────── */
+.place-detail-when {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-detail-when-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.place-detail-when-label {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.place-detail-when-label.good {
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-when-label.bad {
+  background: rgba(192, 57, 43, 0.1);
+  color: #c0392b;
+}
+
+.place-detail-when-value {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+  min-width: 0;
+  flex: 1;
+}
+
+.place-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.place-detail-loading,
+.place-detail-empty {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.95rem;
+  padding: 24px 0;
+}
+
+.place-detail-error {
+  color: #c0392b;
+  font-size: 0.9rem;
+  padding: 12px 16px;
+  background: rgba(192, 57, 43, 0.06);
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .place-detail-name {
+    font-size: 1.4rem;
+  }
+}

@@ -6,3 +6,6 @@ export * from "./tripState.types";
 export * from "./tripEvent.types";
 export * from "./recommendation.types";
 export * from "./heroImage.types";
+export * from "./placeRecommendation.types";
+export * from "./placeDetails.types";
+export * from "./share.types";

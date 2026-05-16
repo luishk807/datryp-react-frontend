@@ -11,6 +11,8 @@ const Account = lazy(() => import('components/Sections/Account'));
 const Trips = lazy(() => import('components/Sections/Trips'));
 const TripDetail = lazy(() => import('components/Sections/TripDetail'));
 const Friends = lazy(() => import('components/Sections/Friends'));
+const SearchResults = lazy(() => import('components/Sections/SearchResults'));
+const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 
 import { TRIP_BASIC } from 'constants';
 
@@ -74,6 +76,16 @@ function App() {
                     >
                         <Friends />
                     </Gated>
+                }/>
+                <Route path='/search' element={
+                    <Suspense fallback={<>...</>}>
+                        <SearchResults />
+                    </Suspense>
+                }/>
+                <Route path='/place' element={
+                    <Suspense fallback={<>...</>}>
+                        <PlaceDetail />
+                    </Suspense>
                 }/>
             </Routes>
         </Router>

@@ -203,6 +203,9 @@ const Home = () => {
                         <SearchBar
                             onSelected={handleSearchSelected}
                             mode={tripMode === TRIP_MODE.RECOMMEND ? 'recommend' : 'country'}
+                            onAiSearchSubmit={(q) =>
+                                navigate(`/search?q=${encodeURIComponent(q)}`)
+                            }
                         />
                     </div>
                 </div>

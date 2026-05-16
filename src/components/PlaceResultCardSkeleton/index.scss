@@ -1,0 +1,18 @@
+/* Override the card hover lift/shadow while loading — feels weird to interact
+ * with an empty placeholder. The outer `.place-result-card` provides everything else. */
+.place-result-card-skeleton {
+  pointer-events: none;
+}
+
+.place-result-card-skeleton:hover {
+  transform: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Match the real .place-result-card-image aspect ratio (kept in sync with
+ * PlaceResultCard/index.scss) so the grid doesn't jump on load. */
+.place-result-card-skeleton-image {
+  aspect-ratio: 16 / 7;
+  width: 100%;
+  height: auto;
+}

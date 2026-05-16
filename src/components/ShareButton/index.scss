@@ -1,0 +1,51 @@
+.share-button-wrap {
+  display: inline-flex;
+}
+
+/* Circular, soft-gray icon button that lights up primaryGreen on hover.
+ * Subtle by default so it doesn't compete with the card's primary content. */
+.share-button-trigger.MuiIconButton-root {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.share-button-trigger.MuiIconButton-root:hover {
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.35);
+}
+
+.share-button-trigger.MuiIconButton-root:active {
+  transform: translateY(0) scale(1);
+}
+
+.share-button-icon {
+  font-size: 1.05rem !important;
+}
+
+.share-menu .MuiList-root {
+  padding: 4px;
+}
+
+.share-menu-item {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem !important;
+  padding: 8px 14px !important;
+  color: theme('colors.primary') !important;
+}
+
+.share-menu-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}

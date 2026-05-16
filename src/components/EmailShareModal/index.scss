@@ -1,0 +1,52 @@
+.email-share-dialog .MuiDialog-paper {
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.email-share-title {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  color: theme('colors.primary');
+  padding-bottom: 4px !important;
+}
+
+.email-share-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.email-share-subtitle {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.email-share-subtitle strong {
+  color: theme('colors.primary');
+  font-weight: 600;
+}
+
+.email-share-field {
+  width: 100%;
+}
+
+.email-share-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  background: rgba(192, 57, 43, 0.06);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.email-share-success {
+  color: theme('colors.primaryGreen');
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.email-share-actions {
+  padding: 12px 24px 18px !important;
+  gap: 8px;
+}

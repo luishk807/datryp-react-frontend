@@ -1,0 +1,156 @@
+.place-result-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+  /* Click-to-open semantics: card is keyboard-focusable + click-able. */
+  cursor: pointer;
+  border: 0;
+  text-align: left;
+  font-family: inherit;
+}
+
+.place-result-card:focus-visible {
+  outline: 2px solid theme('colors.primaryGreen');
+  outline-offset: 2px;
+}
+
+.place-result-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.place-result-card-image {
+  /* Shorter than before (was 16/10) so the card feels less photo-heavy and
+   * the placeholder logo has a reasonable area to sit in. */
+  position: relative;
+  aspect-ratio: 16 / 7;
+  background: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Unsplash attribution — required by their API terms. Small caption pinned
+ * to the bottom-right of the image, white text over a soft dark gradient. */
+.place-result-card-attribution {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  z-index: 1;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  padding: 2px 4px;
+}
+
+.place-result-card-attribution a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.place-result-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder (no real image) — render the logo as a centered icon via
+ * background-image. background-position: center is rock-solid; no img-in-
+ * flex sizing quirks. The container itself is the icon. */
+.place-result-card-image.is-placeholder {
+  background-image: url('/images/logo-gray.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 65%;
+  opacity: 0.55;
+}
+
+.place-result-card-body {
+  padding: 14px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Stretch to fill the card so `margin-top: auto` on .place-result-card-actions
+   * can pin the share button to the bottom regardless of description length.
+   * Works because the grid stretches sibling cards to equal heights. */
+  flex: 1;
+}
+
+.place-result-card-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0;
+}
+
+.place-result-card-location {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin: 0;
+}
+
+.place-result-card-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.place-result-card-star {
+  font-size: 1.1rem !important;
+  color: rgba(0, 0, 0, 0.2);
+}
+
+.place-result-card-star.filled {
+  color: #f5a623;
+}
+
+.place-result-card-rating-num {
+  margin-left: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.place-result-card-best-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: theme('colors.primaryGreen');
+  margin: 0;
+}
+
+.place-result-card-best-time-icon {
+  font-size: 1rem !important;
+}
+
+.place-result-card-description {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+  margin: 0;
+  /* Truncate to 3 lines with an ellipsis. Keeps card heights uniform across
+   * the grid row even when OpenAI returns descriptions of wildly different
+   * lengths. Phase 3 will let users click the card for the full text. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-result-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  /* `auto` pushes this row to the bottom of the flex-column body, so the
+   * share button is always bottom-right no matter how short/long the
+   * description above it is. */
+  margin-top: auto;
+  padding-top: 10px;
+}

@@ -29,6 +29,9 @@ interface SearchBarProps {
     type?: SearchBarVariant;
     /** Externally controlled mode. Defaults to 'country'. */
     mode?: SearchMode;
+    /** Fired in 'recommend' mode when the user presses Enter on a non-empty
+     *  query. Receives the raw input value (trimmed). */
+    onAiSearchSubmit?: (query: string) => void;
 }
 
 const DEBOUNCE_MS = 500;
@@ -39,6 +42,7 @@ const SearchBar = ({
     className = 'justify-center',
     type = SEARCH_VARIANT.STANDARD,
     mode = SEARCH_MODE.COUNTRY,
+    onAiSearchSubmit,
 }: SearchBarProps) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [selectedDestination, setSelectedDestination] = useState('');
@@ -234,6 +238,18 @@ const SearchBar = ({
             rawQuery.trim().length > 0 &&
             (items.length > 0 || showEmpty || hasRecommendError || showLoading);
 
+        const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key !== 'Enter') return;
+            const value = rawQuery.trim();
+            if (!value) return;
+            e.preventDefault();
+            onAiSearchSubmit?.(value);
+        };
+
+        // When onAiSearchSubmit is wired, the parent handles navigation to
+        // /search?q=... and we suppress the inline dropdown entirely.
+        const useNavigationFlow = Boolean(onAiSearchSubmit);
+
         return (
             <div className="searchbar-recommend">
                 <div className="searchbar-recommend-form">
@@ -245,14 +261,15 @@ const SearchBar = ({
                         placeholder="Try 'beach yoga retreat' or 'ancient ruins'"
                         value={rawQuery}
                         onChange={(e) => setRawQuery(e.target.value)}
+                        onKeyDown={useNavigationFlow ? handleAiKeyDown : undefined}
                         aria-label="Describe what you're looking for"
                     />
-                    {isRecommending && (
+                    {isRecommending && !useNavigationFlow && (
                         <span className="searchbar-recommend-spinner" aria-hidden="true" />
                     )}
                 </div>
 
-                {showDropdown && (
+                {!useNavigationFlow && showDropdown && (
                     <div
                         className={classNames('searchbar-recommend-results', {
                             'is-standard': type === SEARCH_VARIANT.STANDARD,
