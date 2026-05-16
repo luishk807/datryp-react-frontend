@@ -1,0 +1,27 @@
+.detail-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
+.detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0 0 12px;
+}
+
+.detail-section-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.25rem;
+  }
+}

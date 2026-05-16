@@ -1,0 +1,39 @@
+.when-to-visit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.when-to-visit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.when-to-visit-label {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+
+  &.tone-best {
+    background: rgba(60, 181, 75, 0.12);
+    color: theme('colors.primaryGreen');
+  }
+
+  &.tone-worst {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+  }
+}
+
+.when-to-visit-value {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+  min-width: 0;
+  flex: 1;
+}

@@ -1,0 +1,68 @@
+.visa-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  --visa-color: #{theme('colors.primaryGreen')};
+  --visa-bg: rgba(60, 181, 75, 0.12);
+
+  &.status-visa-required {
+    --visa-color: #b8780a;
+    --visa-bg: rgba(245, 166, 35, 0.18);
+  }
+
+  &.status-unknown {
+    --visa-color: rgba(0, 0, 0, 0.55);
+    --visa-bg: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.visa-widget-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visa-widget-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--visa-bg);
+  color: var(--visa-color);
+
+  .MuiSvgIcon-root {
+    font-size: 1.1rem;
+  }
+}
+
+.visa-widget-status {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--visa-color);
+}
+
+.visa-widget-from {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.visa-widget-summary {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+.visa-widget-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}

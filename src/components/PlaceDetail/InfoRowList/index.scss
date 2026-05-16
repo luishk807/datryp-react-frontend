@@ -1,0 +1,79 @@
+.info-rows-list {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .info-rows-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+  }
+}
+
+.info-rows-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 140px) 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  &:last-child,
+  &:nth-last-child(2):nth-child(odd) {
+    // On 2-col layout, the bottom row of each column shouldn't draw a divider.
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .info-rows-row {
+    &:last-child {
+      border-bottom: 0;
+    }
+    &:nth-last-child(2):nth-child(odd) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.info-rows-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.info-rows-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.05rem;
+  }
+}
+
+.info-rows-value {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.5;
+  min-width: 0;
+
+  strong {
+    font-weight: 600;
+    color: theme('colors.primary');
+  }
+}
+
+.info-rows-sub {
+  color: rgba(0, 0, 0, 0.6);
+}

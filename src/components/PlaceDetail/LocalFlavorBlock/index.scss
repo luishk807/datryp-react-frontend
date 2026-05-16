@@ -1,0 +1,136 @@
+.local-flavor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// Fun meter
+.local-flavor-fun {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.local-flavor-fun-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.local-flavor-fun-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.2rem;
+  }
+}
+
+.local-flavor-fun-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.local-flavor-fun-score {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: theme('colors.primaryGreen');
+    margin-right: 2px;
+  }
+}
+
+.local-flavor-fun-score-max {
+  font-size: 0.75rem;
+}
+
+.local-flavor-meter {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.local-flavor-meter-fill {
+  height: 100%;
+  background: theme('colors.primaryGreen');
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.local-flavor-fun-tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+}
+
+// Three short labeled paragraphs (nightlife, liquor, souvenir)
+.local-flavor-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.local-flavor-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+}
+
+.local-flavor-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.local-flavor-row-icon {
+  font-size: 1rem !important;
+  color: theme('colors.primaryGreen');
+}
+
+.local-flavor-row-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.72);
+  line-height: 1.5;
+}
+
+// "Don't leave without..." list
+.local-flavor-mustdo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+}
+
+.local-flavor-mustdo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+}
+

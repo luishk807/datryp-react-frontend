@@ -1,0 +1,43 @@
+.highlights-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.highlights-section-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.highlights-section-label {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  min-width: 90px;
+  justify-content: center;
+
+  &.tier-city {
+    background: rgba(60, 181, 75, 0.12);
+    color: theme('colors.primaryGreen');
+  }
+
+  &.tier-country {
+    background: rgba(245, 166, 35, 0.15);
+    color: #b8780a;
+  }
+}
+
+.highlights-section-value {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+}

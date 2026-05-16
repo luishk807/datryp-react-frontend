@@ -1,0 +1,25 @@
+.lodging-rows-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  &.availability-common {
+    background: rgba(60, 181, 75, 0.12);
+    color: theme('colors.primaryGreen');
+  }
+
+  &.availability-limited {
+    background: rgba(245, 166, 35, 0.15);
+    color: #b8780a;
+  }
+
+  &.availability-none {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+  }
+}

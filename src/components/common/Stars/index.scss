@@ -1,0 +1,21 @@
+.stars-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stars-display-star {
+  font-size: 1.25rem !important;
+  color: rgba(0, 0, 0, 0.2);
+
+  &.filled {
+    color: #f5a623;
+  }
+}
+
+.stars-display-num {
+  margin-left: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}

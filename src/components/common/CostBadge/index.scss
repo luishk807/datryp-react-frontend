@@ -1,0 +1,17 @@
+.cost-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: -0.02em;
+}
+
+.cost-badge-sign {
+  color: rgba(0, 0, 0, 0.18);
+
+  &.filled {
+    color: theme('colors.primaryGreen');
+  }
+}

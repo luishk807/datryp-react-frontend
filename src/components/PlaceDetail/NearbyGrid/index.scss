@@ -1,0 +1,106 @@
+.nearby-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nearby-grid-item {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nearby-grid-item-skeleton {
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.nearby-grid-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 2px 8px rgba(60, 181, 75, 0.12);
+    transform: translateY(-1px);
+
+    .nearby-grid-arrow {
+      transform: translateX(2px);
+      color: theme('colors.primaryGreen');
+    }
+
+    .nearby-grid-name {
+      color: theme('colors.primaryGreen');
+    }
+  }
+}
+
+.nearby-grid-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nearby-grid-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  transition: color 0.15s ease;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nearby-grid-arrow {
+  color: rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.nearby-grid-distance {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-variant-numeric: tabular-nums;
+}
+
+.nearby-grid-meta {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.nearby-grid-why {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+}
