@@ -117,9 +117,22 @@
 .place-detail-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 10px;
   margin-top: 4px;
   align-items: center;
+}
+
+.place-detail-meta-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
 }
 
 .place-detail-stars {

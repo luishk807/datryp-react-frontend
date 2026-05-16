@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import './index.scss';
+import { Tooltip } from '@mui/material';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import StarHalfRoundedIcon from '@mui/icons-material/StarHalfRounded';
@@ -41,6 +42,7 @@ import LocalBarRoundedIcon from '@mui/icons-material/LocalBarRounded';
 import RedeemRoundedIcon from '@mui/icons-material/RedeemRounded';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import SentimentVerySatisfiedRoundedIcon from '@mui/icons-material/SentimentVerySatisfiedRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
@@ -52,6 +54,7 @@ import Layout from 'components/common/Layout/SubLayout';
 import ShareButton from 'components/ShareButton';
 import BookmarkButton from 'components/BookmarkButton';
 import Skeleton from 'components/common/Skeleton';
+import ReviewSection, { ReviewSummary } from 'components/ReviewSection';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { usePlaceDetails } from 'api/hooks/usePlaceDetails';
 import { useUserLocation } from 'hooks/useUserLocation';
@@ -953,8 +956,23 @@ const PlaceDetail = () => {
                         {place.city} · {place.country}
                     </p>
                     <div className="place-detail-meta">
+                        <Tooltip title="Overall rating" arrow>
+                            <span
+                                className="place-detail-meta-icon"
+                                role="img"
+                                aria-label="Overall rating"
+                            >
+                                <PublicRoundedIcon />
+                            </span>
+                        </Tooltip>
                         <Stars rating={place.rating} />
                     </div>
+                    <ReviewSummary
+                        placeName={place.name}
+                        placeCity={place.city}
+                        placeCountry={place.country}
+                        targetId="reviews"
+                    />
                 </header>
 
                 {/* Description on the left; travel + highlights + when-to-visit
@@ -1242,6 +1260,14 @@ const PlaceDetail = () => {
                         </DetailSection>
                     </div>
                 )}
+
+                <div id="reviews">
+                    <ReviewSection
+                        placeName={place.name}
+                        placeCity={place.city}
+                        placeCountry={place.country}
+                    />
+                </div>
 
             </article>
         </Layout>
