@@ -940,6 +940,206 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+/* ── Local flavor (fun meter + nightlife + liquor + souvenir + must-do) ── */
+.place-detail-flavor-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.place-detail-flavor-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-flavor-heading-icon {
+  display: inline-flex;
+  align-items: center;
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
+.place-detail-flavor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Fun meter */
+.place-detail-flavor-fun {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place-detail-flavor-fun-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.place-detail-flavor-fun-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.2rem;
+  }
+}
+
+.place-detail-flavor-fun-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.place-detail-flavor-fun-score {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: theme('colors.primaryGreen');
+    margin-right: 2px;
+  }
+}
+
+.place-detail-flavor-fun-score-max {
+  font-size: 0.75rem;
+}
+
+.place-detail-flavor-meter {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.place-detail-flavor-meter-fill {
+  height: 100%;
+  background: theme('colors.primaryGreen');
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.place-detail-flavor-fun-tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+}
+
+/* Three short labeled paragraphs (nightlife, liquor, souvenir) */
+.place-detail-flavor-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-detail-flavor-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+}
+
+.place-detail-flavor-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.place-detail-flavor-row-icon {
+  font-size: 1rem !important;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-flavor-row-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.72);
+  line-height: 1.5;
+}
+
+/* "Don't leave without..." list */
+.place-detail-flavor-mustdo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+}
+
+.place-detail-flavor-mustdo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.place-detail-flavor-mustdo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-detail-flavor-mustdo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.place-detail-flavor-mustdo-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.place-detail-flavor-mustdo-why {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
 /* ── Nearby destinations (sits in the left content column below Budget) ── */
 .place-detail-nearby {
   margin-top: 18px;

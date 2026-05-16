@@ -42,11 +42,15 @@ export interface VisaInfo {
 
 export type PaymentMethod = 'cash' | 'card' | 'mixed';
 
-export type NearbyKind = 'city' | 'country' | 'region';
+/** Free-form short label for a nearby destination's "type": e.g.
+ *  "city", "region", "country", "district", "park", "neighborhood".
+ *  Kept loose because the backend AI returns context-appropriate values that
+ *  don't always fit a small enum (e.g. Tokyo districts, Kyoto parks). */
+export type NearbyKind = string;
 
-/** A nearby city / region / country worth visiting from the current place.
- *  Rendered as a clickable card linking to `/place?q=<name>&i=0`. lat/lng
- *  feed the distance-from-current-place sort. */
+/** A nearby city / region / country / district / etc. worth visiting from
+ *  the current place. Rendered as a clickable card linking to
+ *  `/place?q=<name>&i=0`. lat/lng feed the distance-from-current-place sort. */
 export interface NearbyDestination {
   name: string;
   country: string;
@@ -54,6 +58,18 @@ export interface NearbyDestination {
   why: string;
   lat: number;
   lng: number;
+}
+
+/** Locale-specific 'don't leave without...' info — fun energy, nightlife,
+ *  signature drink, unique souvenir, and 5 must-do experiences. Mirrors
+ *  backend `LocalFlavor`. */
+export interface LocalFlavor {
+  /** 1 (quiet) – 5 (high-energy party scene). */
+  funLevel: number;
+  nightlife: string;
+  famousLiquor: string;
+  uniqueSouvenir: string;
+  mustDoBeforeLeaving: NamedTip[];
 }
 
 export type Availability = 'common' | 'limited' | 'none';
@@ -103,6 +119,7 @@ export interface PlaceDetails {
   travelBasics: TravelBasics;
   lodging: LodgingInfo;
   nearbyDestinations: NearbyDestination[];
+  localFlavor: LocalFlavor;
   /** 1 (cheapest) – 5 (most expensive). */
   costLevel: number;
   visa: VisaInfo;

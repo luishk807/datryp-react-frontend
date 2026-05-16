@@ -36,6 +36,11 @@ import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import HotelRoundedIcon from '@mui/icons-material/HotelRounded';
 import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
+import NightlifeRoundedIcon from '@mui/icons-material/NightlifeRounded';
+import LocalBarRoundedIcon from '@mui/icons-material/LocalBarRounded';
+import RedeemRoundedIcon from '@mui/icons-material/RedeemRounded';
+import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
+import SentimentVerySatisfiedRoundedIcon from '@mui/icons-material/SentimentVerySatisfiedRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
@@ -53,6 +58,7 @@ import { useUserLocation } from 'hooks/useUserLocation';
 import type {
     Coordinates,
     CurrencyInfo,
+    LocalFlavor,
     LodgingInfo,
     NamedTip,
     NearbyDestination,
@@ -612,11 +618,11 @@ const LodgingSkeleton = () => (
     </div>
 );
 
-const NEARBY_KIND_LABEL: Record<NearbyDestination['kind'], string> = {
-    city: 'City',
-    region: 'Region',
-    country: 'Country',
-};
+/** Titlecase a free-form `kind` value from OpenAI (city / region / district /
+ *  park / neighborhood / …) so the meta line reads naturally regardless of
+ *  what label the model returned. */
+const formatKindLabel = (kind: string): string =>
+    kind.length === 0 ? '' : kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase();
 
 const KM_TO_MI = 0.621371;
 
@@ -656,7 +662,7 @@ const NearbyGrid = ({ items, origin }: NearbyGridProps) => {
                             />
                         </div>
                         <p className="place-detail-nearby-meta">
-                            {d.country} · {NEARBY_KIND_LABEL[d.kind]}
+                            {d.country} · {formatKindLabel(d.kind)}
                         </p>
                         <p className="place-detail-nearby-why">{d.why}</p>
                     </Link>
@@ -665,6 +671,109 @@ const NearbyGrid = ({ items, origin }: NearbyGridProps) => {
         </ul>
     );
 };
+
+const FUN_LEVEL_LABEL: Record<number, string> = {
+    1: 'Very quiet',
+    2: 'Relaxed',
+    3: 'Balanced',
+    4: 'Lively',
+    5: 'High-energy',
+};
+
+const LocalFlavorBlock = ({ flavor }: { flavor: LocalFlavor }) => {
+    const level = Math.max(1, Math.min(5, Math.round(flavor.funLevel)));
+    return (
+        <div className="place-detail-flavor">
+            {/* Fun meter — same visual pattern as the safety meter. */}
+            <div className="place-detail-flavor-fun">
+                <div className="place-detail-flavor-fun-top">
+                    <span className="place-detail-flavor-fun-icon" aria-hidden="true">
+                        <SentimentVerySatisfiedRoundedIcon />
+                    </span>
+                    <span className="place-detail-flavor-fun-label">Fun level</span>
+                    <span className="place-detail-flavor-fun-score">
+                        <strong>{level}</strong>
+                        <span className="place-detail-flavor-fun-score-max">/5</span>
+                    </span>
+                </div>
+                <div
+                    className="place-detail-flavor-meter"
+                    role="meter"
+                    aria-valuemin={1}
+                    aria-valuemax={5}
+                    aria-valuenow={level}
+                    aria-label={`Fun level ${level} out of 5`}
+                >
+                    <div
+                        className="place-detail-flavor-meter-fill"
+                        style={{ width: `${(level / 5) * 100}%` }}
+                    />
+                </div>
+                <span className="place-detail-flavor-fun-tag">{FUN_LEVEL_LABEL[level]}</span>
+            </div>
+
+            {/* Three short labeled paragraphs. */}
+            <div className="place-detail-flavor-rows">
+                <div className="place-detail-flavor-row">
+                    <span className="place-detail-flavor-row-label">
+                        <NightlifeRoundedIcon className="place-detail-flavor-row-icon" />
+                        Nightlife
+                    </span>
+                    <p className="place-detail-flavor-row-text">{flavor.nightlife}</p>
+                </div>
+                <div className="place-detail-flavor-row">
+                    <span className="place-detail-flavor-row-label">
+                        <LocalBarRoundedIcon className="place-detail-flavor-row-icon" />
+                        Famous liquor
+                    </span>
+                    <p className="place-detail-flavor-row-text">{flavor.famousLiquor}</p>
+                </div>
+                <div className="place-detail-flavor-row">
+                    <span className="place-detail-flavor-row-label">
+                        <RedeemRoundedIcon className="place-detail-flavor-row-icon" />
+                        Souvenir
+                    </span>
+                    <p className="place-detail-flavor-row-text">{flavor.uniqueSouvenir}</p>
+                </div>
+            </div>
+
+            {/* Don't-leave-without list. */}
+            <div className="place-detail-flavor-mustdo">
+                <span className="place-detail-flavor-mustdo-label">
+                    <StarsRoundedIcon className="place-detail-flavor-row-icon" />
+                    Don&rsquo;t leave without
+                </span>
+                <ul className="place-detail-flavor-mustdo-list">
+                    {flavor.mustDoBeforeLeaving.map((t, i) => (
+                        <li key={`${t.name}-${i}`} className="place-detail-flavor-mustdo-item">
+                            <span className="place-detail-flavor-mustdo-name">{t.name}</span>
+                            <span className="place-detail-flavor-mustdo-why">{t.why}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+};
+
+const LocalFlavorSkeleton = () => (
+    <div className="place-detail-flavor">
+        <Skeleton width="60%" height={14} radius={4} />
+        <Skeleton width="100%" height={8} radius={999} />
+        {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="place-detail-flavor-row">
+                <Skeleton width="35%" height={12} radius={4} />
+                <Skeleton width="95%" height={14} radius={4} />
+            </div>
+        ))}
+        {Array.from({ length: 5 }).map((_, i) => (
+            <div key={`m-${i}`} className="place-detail-flavor-mustdo-item">
+                <Skeleton width="40%" height={14} radius={4} />
+                <Skeleton width="90%" height={12} radius={4} />
+            </div>
+        ))}
+    </div>
+);
 
 const NearbyGridSkeleton = () => (
     <ul className="place-detail-nearby-grid">
@@ -927,6 +1036,22 @@ const PlaceDetail = () => {
                                     </p>
                                 ) : (
                                     <ParagraphSkeleton lines={6} />
+                                )}
+                            </section>
+                        )}
+
+                        {!detailsQuery.isError && (
+                            <section className="place-detail-flavor-section">
+                                <h3 className="place-detail-flavor-heading">
+                                    <span className="place-detail-flavor-heading-icon" aria-hidden="true">
+                                        <CelebrationRoundedIcon />
+                                    </span>
+                                    Local flavor
+                                </h3>
+                                {detailsQuery.data ? (
+                                    <LocalFlavorBlock flavor={detailsQuery.data.details.localFlavor} />
+                                ) : (
+                                    <LocalFlavorSkeleton />
                                 )}
                             </section>
                         )}

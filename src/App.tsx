@@ -13,6 +13,7 @@ const TripDetail = lazy(() => import('components/Sections/TripDetail'));
 const Friends = lazy(() => import('components/Sections/Friends'));
 const SearchResults = lazy(() => import('components/Sections/SearchResults'));
 const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
+const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
 
 import { TRIP_BASIC } from 'constants';
 
@@ -86,6 +87,14 @@ function App() {
                     <Suspense fallback={<>...</>}>
                         <PlaceDetail />
                     </Suspense>
+                }/>
+                <Route path='/history' element={
+                    <Gated
+                        title="Sign in to see your search history"
+                        subtitle="Your recent searches are tied to your account."
+                    >
+                        <SearchHistoryPage />
+                    </Gated>
                 }/>
             </Routes>
         </Router>

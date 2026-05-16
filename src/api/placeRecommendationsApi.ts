@@ -111,10 +111,18 @@ interface LodgingInfoRaw {
 interface NearbyDestinationRaw {
     name: string;
     country: string;
-    kind: 'city' | 'country' | 'region';
+    kind: string;
     why: string;
     lat: number;
     lng: number;
+}
+
+interface LocalFlavorRaw {
+    fun_level: number;
+    nightlife: string;
+    famous_liquor: string;
+    unique_souvenir: string;
+    must_do_before_leaving: { name: string; why: string }[];
 }
 
 interface PlaceDetailsRaw {
@@ -136,6 +144,7 @@ interface PlaceDetailsRaw {
     travel_basics: TravelBasicsRaw;
     lodging: LodgingInfoRaw;
     nearby_destinations: NearbyDestinationRaw[];
+    local_flavor: LocalFlavorRaw;
     cost_level: number;
     visa: VisaInfoRaw;
 }
@@ -194,6 +203,13 @@ const toDetails = (raw: PlaceDetailsRaw): PlaceDetails => ({
         bookingTip: raw.lodging.booking_tip,
     },
     nearbyDestinations: raw.nearby_destinations,
+    localFlavor: {
+        funLevel: raw.local_flavor.fun_level,
+        nightlife: raw.local_flavor.nightlife,
+        famousLiquor: raw.local_flavor.famous_liquor,
+        uniqueSouvenir: raw.local_flavor.unique_souvenir,
+        mustDoBeforeLeaving: raw.local_flavor.must_do_before_leaving,
+    },
     costLevel: raw.cost_level,
     visa: {
         destinationCountryCode: raw.visa.destination_country_code,

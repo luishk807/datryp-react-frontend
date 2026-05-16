@@ -8,6 +8,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import SearchBar from 'components/SearchBar';
@@ -161,6 +162,13 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     <PeopleOutlineIcon fontSize="small" />
                                     Manage Friends
                                 </MenuItem>
+                                <MenuItem
+                                    onClick={() => handleNavigate('/history')}
+                                    className="user-menu-item"
+                                >
+                                    <HistoryRoundedIcon fontSize="small" />
+                                    Recent searches
+                                </MenuItem>
                                 <Divider className="user-menu-divider" />
                                 <MenuItem
                                     onClick={handleLogout}
@@ -235,6 +243,13 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     className="drawer-link"
                                     label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
+                                    className="drawer-link"
+                                    label="Recent searches"
+                                    onClick={() => handleNavigate('/history')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
