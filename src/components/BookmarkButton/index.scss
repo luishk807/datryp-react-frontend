@@ -1,0 +1,45 @@
+.bookmark-button-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid theme('colors.primaryOrange');
+  background: #fff;
+  color: theme('colors.primaryOrange');
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.bookmark-button-pill:hover {
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.3);
+}
+
+.bookmark-button-pill:active {
+  transform: translateY(0);
+}
+
+.bookmark-button-pill.is-saved {
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(245, 166, 35, 0.25);
+}
+
+.bookmark-button-pill.is-saved:hover {
+  /* On hover when already saved, hint at the un-save action. */
+  background: #fff;
+  color: theme('colors.primaryOrange');
+}
+
+.bookmark-button-icon {
+  font-size: 1.1rem !important;
+}

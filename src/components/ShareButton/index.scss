@@ -33,6 +33,41 @@
   font-size: 1.05rem !important;
 }
 
+/* Prominent pill variant — used on the detail page above the hero. */
+.share-button-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid theme('colors.primaryGreen');
+  background: #fff;
+  color: theme('colors.primaryGreen');
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.share-button-pill:hover {
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.3);
+}
+
+.share-button-pill:active {
+  transform: translateY(0);
+}
+
+.share-button-pill-icon {
+  font-size: 1.05rem !important;
+}
+
 .share-menu .MuiList-root {
   padding: 4px;
 }

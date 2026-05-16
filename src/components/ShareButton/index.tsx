@@ -5,6 +5,7 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import classNames from 'classnames';
 import EmailShareModal from 'components/EmailShareModal';
 import type { PlaceRecommendation } from 'types';
 
@@ -12,12 +13,15 @@ export interface ShareButtonProps {
     place: PlaceRecommendation;
     /** URL of the search results page (used for the share link and email deep-link). */
     searchUrl: string;
+    /** `icon` (default): small circular icon button — used on result cards.
+     *  `pill`: prominent icon+text pill — used as a primary action on the detail page. */
+    variant?: 'icon' | 'pill';
 }
 
 const canNativeShare = (): boolean =>
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
-const ShareButton = ({ place, searchUrl }: ShareButtonProps) => {
+const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) => {
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const [emailOpen, setEmailOpen] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
@@ -53,15 +57,27 @@ const ShareButton = ({ place, searchUrl }: ShareButtonProps) => {
     };
 
     return (
-        <div className="share-button-wrap">
-            <IconButton
-                className="share-button-trigger"
-                aria-label={`Share ${place.name}`}
-                onClick={(e) => setMenuAnchor(e.currentTarget)}
-                size="small"
-            >
-                <IosShareIcon className="share-button-icon" />
-            </IconButton>
+        <div className={classNames('share-button-wrap', `variant-${variant}`)}>
+            {variant === 'pill' ? (
+                <button
+                    type="button"
+                    className="share-button-pill"
+                    aria-label={`Share ${place.name}`}
+                    onClick={(e) => setMenuAnchor(e.currentTarget)}
+                >
+                    <IosShareIcon className="share-button-pill-icon" />
+                    <span>Share</span>
+                </button>
+            ) : (
+                <IconButton
+                    className="share-button-trigger"
+                    aria-label={`Share ${place.name}`}
+                    onClick={(e) => setMenuAnchor(e.currentTarget)}
+                    size="small"
+                >
+                    <IosShareIcon className="share-button-icon" />
+                </IconButton>
+            )}
 
             <Menu
                 anchorEl={menuAnchor}

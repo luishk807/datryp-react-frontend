@@ -1,8 +1,9 @@
 .place-detail {
   /* Same width-100% trick as SearchResults — neutralizes the parent
-   * .homeContainer flex-collapse so the article fills the layout container. */
+   * .homeContainer flex-collapse so the article fills the layout container.
+   * Wider than the original 900px to accommodate the desc | side 2-col layout. */
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 16px 0 40px;
   display: flex;
@@ -26,7 +27,9 @@
 
 .place-detail-hero {
   position: relative;
-  aspect-ratio: 16 / 8;
+  /* 3:2 matches Unsplash's typical landscape aspect — keeps the hero tall
+   * enough to feel prominent while cropping almost nothing off the photo. */
+  aspect-ratio: 3 / 2;
   background: rgba(0, 0, 0, 0.05);
   border-radius: 16px;
   overflow: hidden;
@@ -72,11 +75,37 @@
   gap: 6px;
 }
 
+.place-detail-name-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .place-detail-name {
   font-size: 1.75rem;
   font-weight: 600;
   color: theme('colors.primary');
   margin: 0;
+}
+
+/* ── Cost badge ($ × 5) next to the place name ─────────────────────────── */
+.place-detail-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: -0.02em;
+}
+
+.place-detail-cost-sign {
+  color: rgba(0, 0, 0, 0.18);
+
+  &.filled {
+    color: theme('colors.primaryGreen');
+  }
 }
 
 .place-detail-location {
@@ -134,6 +163,210 @@
   margin: 0;
 }
 
+/* ── "About <country>" block under the place description ──────────────── */
+.place-detail-country {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-detail-country-heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-country-description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.55;
+}
+
+/* ── "Good to know" notes (sits between About-country and Expenses) ───── */
+.place-detail-notes {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-detail-notes-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-notes-icon {
+  display: inline-flex;
+  align-items: center;
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
+.place-detail-notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-detail-notes-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.place-detail-notes-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.place-detail-notes-why {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+/* ── Expenses & budget block (sits below "About the country") ─────────── */
+.place-detail-budget {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-detail-budget-heading {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-budget-icon {
+  display: inline-flex;
+  align-items: center;
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
+.place-detail-budget-heading .place-detail-cost {
+  font-size: 0.95rem;
+  margin-left: auto;
+}
+
+.place-detail-budget-description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.55;
+}
+
+/* ── Visa widget (right column, above Highlights) ──────────────────────── */
+.place-detail-visa-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  --visa-color: #{theme('colors.primaryGreen')};
+  --visa-bg: rgba(60, 181, 75, 0.12);
+
+  &.status-visa-required {
+    --visa-color: #b8780a;
+    --visa-bg: rgba(245, 166, 35, 0.18);
+  }
+
+  &.status-unknown {
+    --visa-color: rgba(0, 0, 0, 0.55);
+    --visa-bg: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.place-detail-visa-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.place-detail-visa-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--visa-bg);
+  color: var(--visa-color);
+
+  .MuiSvgIcon-root {
+    font-size: 1.1rem;
+  }
+}
+
+.place-detail-visa-status {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--visa-color);
+}
+
+.place-detail-visa-from {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.place-detail-visa-summary {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+.place-detail-visa-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
+
 /* ── Enriched sections (foods, places, weather, worst-time) ──────────────── */
 .place-detail-extras {
   display: grid;
@@ -145,6 +378,11 @@
 @media (min-width: 768px) {
   .place-detail-extras {
     grid-template-columns: 1fr 1fr;
+  }
+  /* When the grid holds an odd item (3rd of 3, 5th of 5, ...), span it
+   * full-width so the layout doesn't end with a half-empty row. */
+  .place-detail-extras > :nth-child(odd):last-child {
+    grid-column: 1 / -1;
   }
 }
 
@@ -272,6 +510,310 @@
   color: rgba(0, 0, 0, 0.7);
 }
 
+/* ── Currency widget ───────────────────────────────────────────────────── */
+.place-detail-currency-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.place-detail-currency-rate {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 1rem;
+  color: theme('colors.primary');
+}
+
+.place-detail-currency-from {
+  font-weight: 600;
+}
+
+.place-detail-currency-arrow {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.95rem;
+}
+
+.place-detail-currency-amount {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-currency-code {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: theme('colors.primaryGreen');
+  padding: 2px 6px;
+  background: rgba(60, 181, 75, 0.1);
+  border-radius: 4px;
+}
+
+.place-detail-currency-name {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.place-detail-currency-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
+
+/* ── Safety widget (meter + level + summary) ───────────────────────────── */
+.place-detail-safety-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  /* Color tokens, swapped per level by the parent modifier class. Default to
+   * the "low risk = green" palette so an unknown level still renders. */
+  --safety-color: #{theme('colors.primaryGreen')};
+  --safety-bg: rgba(60, 181, 75, 0.12);
+
+  &.level-moderate {
+    --safety-color: #b8780a;
+    --safety-bg: rgba(245, 166, 35, 0.18);
+  }
+
+  &.level-high {
+    --safety-color: #c0392b;
+    --safety-bg: rgba(192, 57, 43, 0.14);
+  }
+}
+
+.place-detail-safety-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.place-detail-safety-level {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--safety-bg);
+  color: var(--safety-color);
+}
+
+.place-detail-safety-score {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  strong {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--safety-color);
+    margin-right: 2px;
+  }
+}
+
+.place-detail-safety-score-max {
+  font-size: 0.75rem;
+}
+
+.place-detail-safety-meter {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.place-detail-safety-meter-fill {
+  height: 100%;
+  background: var(--safety-color);
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+
+.place-detail-safety-summary {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+.place-detail-safety-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
+
+/* ── Content area: description (left) + travel/highlights/when-to-visit (right) ── */
+.place-detail-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.place-detail-content-main {
+  min-width: 0;
+}
+
+.place-detail-content-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.place-detail-content-side .place-detail-section {
+  padding: 14px 16px;
+}
+
+.place-detail-content-side .place-detail-section-title {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .place-detail-content {
+    grid-template-columns: 7fr 4fr;
+  }
+}
+
+/* ── Travel widget (distance + duration + Google Maps deep link) ───────── */
+.place-detail-travel-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-detail-travel-from {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.place-detail-travel-stats {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: theme('colors.primary');
+}
+
+.place-detail-travel-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
+.place-detail-travel-distance {
+  font-weight: 700;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-travel-dot {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.place-detail-travel-duration {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.place-detail-travel-maps {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.88;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1rem;
+  }
+}
+
+.place-detail-travel-fallback {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.45;
+}
+
+.place-detail-travel-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
+
+/* ── Highlights (city + country biggest draw) ──────────────────────────── */
+.place-detail-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.place-detail-highlight-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.place-detail-highlight-label {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.place-detail-highlight-label.city {
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-highlight-label.country {
+  background: rgba(245, 166, 35, 0.15);
+  color: #b8780a;
+}
+
+.place-detail-highlight-value {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+}
+
 /* ── 70/30 top layout (hero + side cards) ──────────────────────────────── */
 .place-detail-top {
   display: grid;
@@ -284,10 +826,11 @@
     grid-template-columns: 7fr 3fr;
     align-items: stretch;
   }
-  /* Stretch the hero to match the side column's height when the cards make
-   * it taller than the natural aspect-ratio. */
+  /* Stretch the hero to match the aside (Weather + Currency + Safety) on
+   * desktop. Drop the aspect-ratio so it doesn't fight `height: 100%`. */
   .place-detail-top .place-detail-hero {
     height: 100%;
+    aspect-ratio: auto;
   }
 }
 
@@ -314,6 +857,249 @@
   color: #c0392b;
   font-size: 0.85rem;
   margin: 0;
+}
+
+/* ── Travel basics (full-width key/value list) ─────────────────────────── */
+.place-detail-basics-list {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .place-detail-basics-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+  }
+}
+
+.place-detail-basics-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 140px) 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  &:last-child,
+  &:nth-last-child(2):nth-child(odd) {
+    /* On 2-col layout, the bottom row of each column shouldn't draw a divider. */
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .place-detail-basics-row {
+    &:last-child {
+      border-bottom: 0;
+    }
+    &:nth-last-child(2):nth-child(odd) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.place-detail-basics-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.place-detail-basics-icon {
+  display: inline-flex;
+  align-items: center;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.05rem;
+  }
+}
+
+.place-detail-basics-value {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.5;
+  min-width: 0;
+
+  strong {
+    font-weight: 600;
+    color: theme('colors.primary');
+  }
+}
+
+.place-detail-basics-sub {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ── Nearby destinations (sits in the left content column below Budget) ── */
+.place-detail-nearby {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.place-detail-nearby-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: theme('colors.primaryGreen');
+}
+
+.place-detail-nearby-heading-icon {
+  display: inline-flex;
+  align-items: center;
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
+.place-detail-nearby-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-detail-nearby-item {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.place-detail-nearby-item-skeleton {
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.place-detail-nearby-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 2px 8px rgba(60, 181, 75, 0.12);
+    transform: translateY(-1px);
+
+    .place-detail-nearby-arrow {
+      transform: translateX(2px);
+      color: theme('colors.primaryGreen');
+    }
+
+    .place-detail-nearby-name {
+      color: theme('colors.primaryGreen');
+    }
+  }
+}
+
+.place-detail-nearby-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.place-detail-nearby-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  transition: color 0.15s ease;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-detail-nearby-arrow {
+  color: rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.place-detail-nearby-distance {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-variant-numeric: tabular-nums;
+}
+
+.place-detail-nearby-meta {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.place-detail-nearby-why {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+}
+
+/* ── Availability badges used in the Lodging section ───────────────────── */
+.place-detail-lodging-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  &.availability-common {
+    background: rgba(60, 181, 75, 0.12);
+    color: theme('colors.primaryGreen');
+  }
+
+  &.availability-limited {
+    background: rgba(245, 166, 35, 0.15);
+    color: #b8780a;
+  }
+
+  &.availability-none {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+  }
 }
 
 /* ── When-to-visit rows ────────────────────────────────────────────────── */
@@ -357,10 +1143,26 @@
   flex: 1;
 }
 
-.place-detail-actions {
+/* Top toolbar: back link on the left, save + share pill actions on the right. */
+.place-detail-toolbar {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.place-detail-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .place-detail-toolbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .place-detail-loading,
