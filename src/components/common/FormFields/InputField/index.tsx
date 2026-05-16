@@ -6,6 +6,7 @@ import { FormControl, InputLabel, OutlinedInput } from '@mui/material';
 import { TimePicker, DatePicker } from '@mui/x-date-pickers';
 
 type InputFieldType = 'text' | 'number' | 'email' | 'password' | 'date' | 'file' | 'time' | 'tel';
+type InputFieldVariant = 'outlined' | 'bare';
 
 interface ChangeEventLike {
     target: { value: string };
@@ -19,9 +20,20 @@ export interface InputFieldProps {
     onChange?: (e: ChangeEventLike) => void;
     disablePast?: boolean;
     defaultValue?: string;
+    /** Controlled value. When set, parent state drives the input; takes precedence over `defaultValue`. */
+    value?: string;
     type?: InputFieldType;
     disabled?: boolean;
     labelOnTop?: boolean;
+    placeholder?: string;
+    /** Defaults to true to preserve historical behaviour; pass false for optional fields. */
+    required?: boolean;
+    /**
+     * `'outlined'` (default): MUI OutlinedInput with floating notched label.
+     * `'bare'`: stacked label above a plain rounded input — settings-form aesthetic.
+     *           No external `<Field>` wrapper needed; pass the label via `label`.
+     */
+    variant?: InputFieldVariant;
 }
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
@@ -34,12 +46,17 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             onChange,
             disablePast = false,
             defaultValue = '',
+            value,
             type = 'text',
             disabled = false,
             labelOnTop = false,
+            placeholder,
+            required = true,
+            variant = 'outlined',
         },
         ref
     ) => {
+        const isControlled = value !== undefined;
         const [data, setData] = useState('');
         const [imageData, setImageData] = useState<string | null>(null);
 
@@ -110,15 +127,36 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                             inputRef={ref}
                             type={type}
                             disabled={disabled}
-                            value={data}
+                            value={isControlled ? value : data}
                             label={labelText}
+                            placeholder={placeholder}
                             aria-describedby={name}
                             onChange={handleOnChange}
-                            required
+                            required={required}
                         />
                     );
             }
         };
+
+        if (variant === 'bare') {
+            return (
+                <label className="input-field-bare">
+                    {label && <span className="input-field-bare-label">{label}</span>}
+                    <input
+                        ref={ref}
+                        id={name}
+                        name={name}
+                        type={type}
+                        disabled={disabled}
+                        required={required}
+                        placeholder={placeholder}
+                        value={isControlled ? value : data}
+                        onChange={(e) => handleOnChange(e)}
+                        className="input-field-bare-input"
+                    />
+                </label>
+            );
+        }
 
         return (
             <FormControl className="w-full inputFieldCustom">

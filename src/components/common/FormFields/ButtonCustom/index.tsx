@@ -15,6 +15,11 @@ export interface ButtonCustomProps {
     style?: CSSProperties | null;
     disabled?: boolean;
     className?: string;
+    /** Accessible label for buttons whose visible content is non-textual (e.g. an avatar initial or icon). */
+    ariaLabel?: string;
+    /** The native HTML `type` attribute (`button` / `submit` / `reset`). Distinct from
+     *  the visual `type` prop above. Omit to keep the browser default. */
+    nativeType?: 'button' | 'submit' | 'reset';
 }
 
 const ButtonCustom = ({
@@ -26,11 +31,15 @@ const ButtonCustom = ({
     style = null,
     disabled = false,
     className,
+    ariaLabel,
+    nativeType,
 }: ButtonCustomProps) => {
     return (
         <button
+            type={nativeType}
             style={style ?? undefined}
             disabled={disabled}
+            aria-label={ariaLabel}
             className={classNames(className, {
                 'main-button': type === BUTTON_VARIANT.STANDARD,
                 'main-line': type === BUTTON_VARIANT.LINE,

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import InputField from 'components/common/FormFields/InputField';
+import DropDown from 'components/common/FormFields/DropDown';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
@@ -133,58 +135,51 @@ export const Account = () => {
                         </div>
                     </div>
                     <div className="account-form">
-                        <Field label="Full name">
-                            <input
-                                className="account-input"
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Your name"
-                            />
-                        </Field>
-                        <Field label="Email">
-                            <input
-                                className="account-input"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="you@example.com"
-                            />
-                        </Field>
-                        <Field label="Phone">
-                            <input
-                                className="account-input"
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="+1 555 123 4567"
-                            />
-                        </Field>
-                        <Field label="Date of birth">
-                            <input
-                                className="account-input"
-                                type="date"
-                                value={dob}
-                                onChange={(e) => setDob(e.target.value)}
-                            />
-                        </Field>
-                        <Field label="Country of birth">
-                            <select
-                                className="account-input"
-                                value={countryOfBirth}
-                                onChange={(e) => setCountryOfBirth(e.target.value)}
-                                disabled={countriesLoading}
-                            >
-                                <option value="">
-                                    {countriesLoading ? 'Loading countries…' : 'Select a country'}
-                                </option>
-                                {countries.map((c) => (
-                                    <option key={c.code} value={c.code}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
+                        <InputField
+                            variant="bare"
+                            label="Full name"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Your name"
+                            required={false}
+                        />
+                        <InputField
+                            variant="bare"
+                            label="Email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            required={false}
+                        />
+                        <InputField
+                            variant="bare"
+                            label="Phone"
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+1 555 123 4567"
+                            required={false}
+                        />
+                        <InputField
+                            variant="bare"
+                            label="Date of birth"
+                            type="date"
+                            value={dob}
+                            onChange={(e) => setDob(e.target.value)}
+                            required={false}
+                        />
+                        <DropDown
+                            variant="bare"
+                            label="Country of birth"
+                            options={countries}
+                            valueKey="code"
+                            value={countryOfBirth}
+                            placeholder={countriesLoading ? 'Loading countries…' : 'Select a country'}
+                            disabled={countriesLoading}
+                            onChange={(opt) => setCountryOfBirth(opt?.code ?? '')}
+                        />
                         <div className="account-actions">
                             <ButtonCustom
                                 type="standard"
@@ -205,33 +200,33 @@ export const Account = () => {
                         </p>
                     </div>
                     <div className="account-form">
-                        <Field label="Current password">
-                            <input
-                                className="account-input"
-                                type="password"
-                                value={currentPwd}
-                                onChange={(e) => setCurrentPwd(e.target.value)}
-                                placeholder="••••••••"
-                            />
-                        </Field>
-                        <Field label="New password">
-                            <input
-                                className="account-input"
-                                type="password"
-                                value={newPwd}
-                                onChange={(e) => setNewPwd(e.target.value)}
-                                placeholder="••••••••"
-                            />
-                        </Field>
-                        <Field label="Confirm new password">
-                            <input
-                                className="account-input"
-                                type="password"
-                                value={confirmPwd}
-                                onChange={(e) => setConfirmPwd(e.target.value)}
-                                placeholder="••••••••"
-                            />
-                        </Field>
+                        <InputField
+                            variant="bare"
+                            label="Current password"
+                            type="password"
+                            value={currentPwd}
+                            onChange={(e) => setCurrentPwd(e.target.value)}
+                            placeholder="••••••••"
+                            required={false}
+                        />
+                        <InputField
+                            variant="bare"
+                            label="New password"
+                            type="password"
+                            value={newPwd}
+                            onChange={(e) => setNewPwd(e.target.value)}
+                            placeholder="••••••••"
+                            required={false}
+                        />
+                        <InputField
+                            variant="bare"
+                            label="Confirm new password"
+                            type="password"
+                            value={confirmPwd}
+                            onChange={(e) => setConfirmPwd(e.target.value)}
+                            placeholder="••••••••"
+                            required={false}
+                        />
                         {pwdMessage && (
                             <div
                                 className={`account-message account-message-${pwdMessage.type}`}
@@ -259,15 +254,15 @@ export const Account = () => {
                         </p>
                     </div>
                     <div className="account-form">
-                        <Field label="Preferred airport">
-                            <input
-                                className="account-input"
-                                type="text"
-                                value={preferredAirport}
-                                onChange={(e) => setPreferredAirport(e.target.value)}
-                                placeholder="e.g. JFK, SFO, LAX"
-                            />
-                        </Field>
+                        <InputField
+                            variant="bare"
+                            label="Preferred airport"
+                            type="text"
+                            value={preferredAirport}
+                            onChange={(e) => setPreferredAirport(e.target.value)}
+                            placeholder="e.g. JFK, SFO, LAX"
+                            required={false}
+                        />
                         <Field label="Notifications">
                             <div className="account-toggles">
                                 <Toggle

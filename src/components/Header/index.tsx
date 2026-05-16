@@ -111,13 +111,15 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                 <nav className="app-header-nav">
                     {user ? (
                         <>
-                            <button
+                            <ButtonCustom
+                                type={BUTTON_VARIANT.NONE}
+                                capitalizeType="none"
                                 className="app-header-avatar"
+                                ariaLabel={`Account menu for ${user.name}`}
                                 onClick={(e) => setMenuAnchor(e.currentTarget)}
-                                aria-label={`Account menu for ${user.name}`}
                             >
                                 {initial}
-                            </button>
+                            </ButtonCustom>
                             <Menu
                                 anchorEl={menuAnchor}
                                 open={Boolean(menuAnchor)}

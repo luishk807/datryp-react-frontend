@@ -2,13 +2,25 @@ import { useRef, useState, useEffect } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
 import './index.scss';
 import InputField from 'components/common/FormFields/InputField';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import classNames from 'classnames';
 import { useCountries } from 'api/hooks/useCountries';
 import { useCountryRecommendations } from 'api/hooks/useCountryRecommendations';
+import { BUTTON_VARIANT } from 'constants';
 import type { Country, CountryRecommendation } from 'types';
 
-type SearchBarVariant = 'standard' | 'simple';
-export type SearchMode = 'country' | 'recommend';
+const SEARCH_VARIANT = {
+    STANDARD: 'standard',
+    SIMPLE: 'simple',
+} as const;
+
+const SEARCH_MODE = {
+    COUNTRY: 'country',
+    RECOMMEND: 'recommend',
+} as const;
+
+type SearchBarVariant = (typeof SEARCH_VARIANT)[keyof typeof SEARCH_VARIANT];
+export type SearchMode = (typeof SEARCH_MODE)[keyof typeof SEARCH_MODE];
 
 interface SearchBarProps {
     onSelected?: (country: Country) => void;
@@ -25,8 +37,8 @@ const SearchBar = ({
     onSelected,
     defaultValue,
     className = 'justify-center',
-    type = 'standard',
-    mode = 'country',
+    type = SEARCH_VARIANT.STANDARD,
+    mode = SEARCH_MODE.COUNTRY,
 }: SearchBarProps) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [selectedDestination, setSelectedDestination] = useState('');
@@ -41,7 +53,7 @@ const SearchBar = ({
         isFetching: isCountryFetching,
         isError: hasCountryError,
     } = useCountries(submittedQuery, {
-        enabled: mode === 'country' && submittedQuery.length > 0,
+        enabled: mode === SEARCH_MODE.COUNTRY && submittedQuery.length > 0,
         limit: 10,
     });
 
@@ -52,7 +64,7 @@ const SearchBar = ({
         error: recommendError,
     } = useCountryRecommendations(
         { query: submittedQuery, limit: 6 },
-        { enabled: mode === 'recommend' && submittedQuery.length > 0 }
+        { enabled: mode === SEARCH_MODE.RECOMMEND && submittedQuery.length > 0 }
     );
 
     useEffect(() => {
@@ -143,11 +155,11 @@ const SearchBar = ({
             <Grid
                 container
                 className={classNames({
-                    container: type === 'standard',
-                    'container-simple': type === 'simple',
+                    container: type === SEARCH_VARIANT.STANDARD,
+                    'container-simple': type === SEARCH_VARIANT.SIMPLE,
                 })}
             >
-                {type === 'standard' ? (
+                {type === SEARCH_VARIANT.STANDARD ? (
                     <Grid item lg={12} md={12} xs={12} className="inputHolder">
                         <input
                             onChange={(e) => handleKeystroke(e)}
@@ -175,8 +187,8 @@ const SearchBar = ({
                 {showDropdown && (
                     <div
                         className={classNames({
-                            listContainerV2: type === 'standard',
-                            'listContainerV2-simple': type === 'simple',
+                            listContainerV2: type === SEARCH_VARIANT.STANDARD,
+                            'listContainerV2-simple': type === SEARCH_VARIANT.SIMPLE,
                         })}
                     >
                         {hasCountryError && (
@@ -228,7 +240,7 @@ const SearchBar = ({
                     <input
                         type="text"
                         className={classNames('searchbar-recommend-input', {
-                            'is-standard': type === 'standard',
+                            'is-standard': type === SEARCH_VARIANT.STANDARD,
                         })}
                         placeholder="Try 'beach yoga retreat' or 'ancient ruins'"
                         value={rawQuery}
@@ -243,7 +255,7 @@ const SearchBar = ({
                 {showDropdown && (
                     <div
                         className={classNames('searchbar-recommend-results', {
-                            'is-standard': type === 'standard',
+                            'is-standard': type === SEARCH_VARIANT.STANDARD,
                         })}
                     >
                         {hasRecommendError && (
@@ -268,9 +280,11 @@ const SearchBar = ({
                         )}
 
                         {items.map((item) => (
-                            <button
+                            <ButtonCustom
                                 key={item.id}
-                                type="button"
+                                nativeType="button"
+                                type={BUTTON_VARIANT.NONE}
+                                capitalizeType="none"
                                 className="searchbar-recommend-item"
                                 onClick={() => handleRecommendationClick(item)}
                             >
@@ -285,7 +299,7 @@ const SearchBar = ({
                                 <span className="searchbar-recommend-item-score">
                                     {Math.round(item.score * 100)}%
                                 </span>
-                            </button>
+                            </ButtonCustom>
                         ))}
                     </div>
                 )}
@@ -298,16 +312,16 @@ const SearchBar = ({
             <Grid container className={`searchbarMain flex w-full ${className}`}>
                 <Grid
                     item
-                    lg={type === 'standard' ? 10 : 12}
+                    lg={type === SEARCH_VARIANT.STANDARD ? 10 : 12}
                     md={12}
                     xs={12}
                     className={classNames({
-                        holder: type === 'standard' && mode === 'country',
-                        'holder-simple': type === 'simple' && mode === 'country',
-                        'holder-recommend': mode === 'recommend',
+                        holder: type === SEARCH_VARIANT.STANDARD && mode === SEARCH_MODE.COUNTRY,
+                        'holder-simple': type === SEARCH_VARIANT.SIMPLE && mode === SEARCH_MODE.COUNTRY,
+                        'holder-recommend': mode === SEARCH_MODE.RECOMMEND,
                     })}
                 >
-                    {mode === 'country' ? renderCountryMode() : renderRecommendMode()}
+                    {mode === SEARCH_MODE.COUNTRY ? renderCountryMode() : renderRecommendMode()}
                 </Grid>
             </Grid>
         </ClickAwayListener>
