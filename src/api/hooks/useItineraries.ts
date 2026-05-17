@@ -54,6 +54,7 @@ export interface ApiActivity {
     notes: string | null;
     image: string | null;
     budget: number | null;
+    status: { id: string; name: string } | null;
     budgets: ApiActivityBudget[];
 }
 
@@ -105,6 +106,9 @@ export interface ActivityInput {
     notes?: string | null;
     image?: string | null;
     budget?: number | null;
+    /** Backend `trip_statuses.id` UUID. Same lookup as the trip-level status —
+     *  Planning / Confirmed / Completed / Cancelled. Null means unset. */
+    tripStatusId?: string | null;
     budgets?: ActivityBudgetInput[];
 }
 
@@ -208,6 +212,10 @@ const ITINERARY_FIELDS = gql`
                 notes
                 image
                 budget
+                status {
+                    id
+                    name
+                }
                 budgets {
                     id
                     user {

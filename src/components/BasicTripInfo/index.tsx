@@ -9,6 +9,9 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import { Tooltip } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
@@ -23,9 +26,16 @@ import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 interface BasicTripInfoProps {
     data: TripState;
     onChangeStep: (step: number) => void;
-    onStatusChange?: (status: TripStatus) => void;
+    /** Persists the new trip status. Returning a promise keeps the modal
+     *  open with a "Saving…" label until the save round-trips, then it
+     *  closes. The parent owns the actual mutation. */
+    onStatusChange?: (status: TripStatus) => void | Promise<void>;
     onExportExcel?: () => void;
     onSaveTrip?: () => void;
+    /** One-click promote Confirmed → Completed. Does its own save (no
+     *  separate Save Trip click needed), so we hide Save Trip whenever this
+     *  is provided. */
+    onMarkCompleted?: () => void;
     onCancel?: () => void;
     onDeleteTrip?: () => void;
     isSaving?: boolean;
@@ -80,6 +90,7 @@ export const BasicTripInfo = ({
     onStatusChange,
     onExportExcel,
     onSaveTrip,
+    onMarkCompleted,
     onCancel,
     onDeleteTrip,
     isSaving = false,
@@ -128,6 +139,19 @@ export const BasicTripInfo = ({
     const statusName = currentStatus?.name ?? TRIP_STATUS.PLANNING;
     const friends = data.friends ?? [];
 
+    // Mark Completed is a one-click promote that owns its own save (the parent
+    // resolves the Completed UUID and calls saveItinerary directly). When this
+    // prop is provided we hide Save Trip — there's nothing to save at the
+    // activity level once the trip is Confirmed (activities are locked) and
+    // the only legitimate change is the status promotion this button performs.
+    const showMarkCompleted =
+        statusName === TRIP_STATUS.CONFIRMED && !!onMarkCompleted;
+
+    // The right-side pill is the entry point into the status modal — only the
+    // Planning state needs it (to promote to Confirmed). Once Confirmed/Completed/
+    // Cancelled, the inline status next to the title is the canonical display.
+    const showStatusPill = statusName === TRIP_STATUS.PLANNING;
+
     const openStatusModal = () => {
         setDraftStatusId(currentStatus?.id);
         setStatusError(null);
@@ -139,7 +163,7 @@ export const BasicTripInfo = ({
         statusModalRef.current?.closeModal();
     };
 
-    const handleSaveStatus = () => {
+    const handleSaveStatus = async () => {
         const next = statusOptions.find((o) => o.id === draftStatusId);
         if (!next) {
             statusModalRef.current?.closeModal();
@@ -162,8 +186,16 @@ export const BasicTripInfo = ({
             }
         }
         setStatusError(null);
-        onStatusChange?.(next as TripStatus);
-        statusModalRef.current?.closeModal();
+        // Await so the modal stays open until the save round-trips. The
+        // parent surfaces any error via the `saveError` prop, which renders
+        // outside the modal — we only close on success here.
+        try {
+            await onStatusChange?.(next as TripStatus);
+            statusModalRef.current?.closeModal();
+        } catch {
+            // Parent handled the error display; leave the modal open so the
+            // user can retry or cancel.
+        }
     };
 
     return (
@@ -175,7 +207,38 @@ export const BasicTripInfo = ({
                     </span>
                     <div className="trip-name-row">
                         <h2 className="trip-name">{data.name || 'Untitled trip'}</h2>
-                        {!isViewMode && (
+                        {statusName === TRIP_STATUS.CONFIRMED && (
+                            <Tooltip
+                                title="Trip confirmed — places are locked in. Click Mark Completed when the trip is done."
+                                arrow
+                            >
+                                <span
+                                    className="trip-status-inline trip-status-inline-confirmed"
+                                    aria-label={`Trip status: ${statusName}`}
+                                >
+                                    <CheckCircleOutlineRoundedIcon className="trip-status-inline-icon" />
+                                </span>
+                            </Tooltip>
+                        )}
+                        {statusName === TRIP_STATUS.COMPLETED && (
+                            <Tooltip title="Completed" arrow>
+                                <span
+                                    className="trip-status-inline trip-status-inline-completed"
+                                    aria-label={`Trip status: ${statusName}`}
+                                >
+                                    <CheckCircleRoundedIcon className="trip-status-inline-icon" />
+                                </span>
+                            </Tooltip>
+                        )}
+                        {statusName === TRIP_STATUS.CANCELLED && (
+                            <span
+                                className="trip-status-inline trip-status-inline-cancelled"
+                                aria-label={`Trip status: ${statusName}`}
+                            >
+                                ({statusName})
+                            </span>
+                        )}
+                        {!isViewMode && statusName === TRIP_STATUS.PLANNING && (
                             <IconButton
                                 size="small"
                                 aria-label="Edit trip"
@@ -220,11 +283,26 @@ export const BasicTripInfo = ({
                             disabled={!isDirty || isSaving}
                         />
                     )}
+                    {showMarkCompleted && (
+                        <span className="trip-mark-complete-wrapper">
+                            <DialogBox
+                                buttonLabel={isSaving ? 'Saving…' : 'Mark Completed'}
+                                buttonType="line"
+                                title="Mark this trip as completed?"
+                                onConfirm={onMarkCompleted}
+                            >
+                                This marks the trip as completed and locks it
+                                from further changes. The itinerary stays
+                                visible in your list, but you won't be able
+                                to edit places or budgets afterward.
+                            </DialogBox>
+                        </span>
+                    )}
                     {onDeleteTrip && (
                         <span className="trip-delete-wrapper">
                             <DialogBox
                                 buttonLabel={isDeleting ? 'Deleting…' : 'Delete Trip'}
-                                buttonType="text"
+                                buttonType="line"
                                 title="Delete this trip?"
                                 onConfirm={onDeleteTrip}
                             >
@@ -234,17 +312,19 @@ export const BasicTripInfo = ({
                             </DialogBox>
                         </span>
                     )}
-                    <ButtonCustom
-                        type="none"
-                        capitalizeType="none"
-                        className="trip-status-badge"
-                        onClick={openStatusModal}
-                        disabled={isViewMode}
-                    >
-                        <span className="status-dot" />
-                        <span className="status-text">{statusName}</span>
-                        {!isViewMode && <EditOutlinedIcon className="status-edit" />}
-                    </ButtonCustom>
+                    {showStatusPill && (
+                        <ButtonCustom
+                            type="none"
+                            capitalizeType="none"
+                            className="trip-status-badge"
+                            onClick={openStatusModal}
+                            disabled={isViewMode}
+                        >
+                            <span className="status-dot" />
+                            <span className="status-text">{statusName}</span>
+                            {!isViewMode && <EditOutlinedIcon className="status-edit" />}
+                        </ButtonCustom>
+                    )}
                 </div>
             </div>
 
@@ -311,12 +391,14 @@ export const BasicTripInfo = ({
                         capitalizeType="uppercase"
                         label="Cancel"
                         onClick={closeStatusModal}
+                        disabled={isSaving}
                     />
                     <ButtonCustom
                         type="standard"
                         capitalizeType="uppercase"
-                        label="Save"
+                        label={isSaving ? 'Saving…' : 'Save'}
                         onClick={handleSaveStatus}
+                        disabled={isSaving}
                     />
                 </div>
             </ModalButton>

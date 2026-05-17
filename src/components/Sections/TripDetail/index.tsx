@@ -14,19 +14,28 @@ import {
   useMyItineraries,
   useSaveItinerary,
 } from "api/hooks/useItineraries";
+import { useTripStatuses } from "api/hooks/useLookups";
 import {
   apiIsSingleTrip,
   apiToTripState,
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
+import { isSameDay } from "utils";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
-import type { BudgetEntry, TripPlaceEvent, TripState, TripStatus } from "types";
+import type {
+  Activity,
+  BudgetEntry,
+  TripPlaceEvent,
+  TripState,
+  TripStatus,
+} from "types";
 
-// "Confirmed" and beyond are read-only — once a trip is locked in, edits
-// require flipping back to Planning (which itself requires unconfirming
-// every activity, enforced by the status modal).
+// `LOCKED_STATUS_NAMES` gates *activity editing* — once Confirmed, places
+// can't be added/edited/deleted, and budgets become read-only. Trip-level
+// transitions (Confirmed → Completed via the Mark Completed button) are
+// gated separately by `canMarkCompleted`.
 const LOCKED_STATUS_NAMES = new Set<string>([
   TRIP_STATUS.CONFIRMED,
   TRIP_STATUS.COMPLETED,
@@ -71,6 +80,7 @@ export const TripDetail = () => {
 
   const saveItinerary = useSaveItinerary();
   const deleteItinerary = useDeleteItinerary();
+  const { data: tripStatuses = [] } = useTripStatuses();
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Dirty when the user has changed budgets/places (localTripData diverges
@@ -110,6 +120,63 @@ export const TripDetail = () => {
     },
     [],
   );
+
+  // Apply an add/edit/delete from the activity card chain. Mirrors
+  // `handleChangeBudget` — purely local state, picked up by `tripStateToSaveInput`
+  // on the next Save Trip. The Activities row already enforces organizer-only
+  // via `isViewMode` (the toggle button is disabled when view-mode is on), so
+  // we don't re-check permissions here.
+  //
+  // Event shapes (set by `Activities/index.tsx` -> `DestinationDetail`):
+  //  - `add`    : value is a fresh `Activity` draft (no id yet)
+  //  - `edit`   : value is `{ index, value: patchOrDraft }` — when patch carries
+  //               an `id` (status badge toggle) we match by id, otherwise we
+  //               match by positional `index` within the day.
+  //  - `delete` : value is the bare activity id.
+  const handleChangePlace = useCallback((event: TripPlaceEvent) => {
+    const { activity, date } = event;
+    const { type, value, destinationIndx } = activity;
+    const destIndx = destinationIndx ?? 0;
+
+    setLocalTripData((prev) => {
+      if (!prev) return prev;
+      return produce(prev, (draft) => {
+        const dest = draft.destinations?.[destIndx];
+        if (!dest?.itinerary) return;
+        const day = dest.itinerary.find((d) => isSameDay(d.date, date));
+        if (!day) return;
+
+        if (type === "add") {
+          // Local numeric id — `tripStateToSaveInput` ignores it when shaping
+          // the GraphQL payload, and the backend issues real UUIDs on save.
+          const maxId = dest.itinerary.reduce(
+            (m, d) =>
+              Math.max(m, ...(d.activities ?? []).map((a) => Number(a.id) || 0)),
+            0,
+          );
+          const newActivity = { ...(value as Partial<Activity>), id: maxId + 1 } as Activity;
+          day.activities = [...(day.activities ?? []), newActivity];
+        } else if (type === "edit") {
+          const wrapper = value as {
+            index?: number;
+            value?: Partial<Activity>;
+          };
+          const patch = wrapper?.value ?? {};
+          const target =
+            patch.id != null
+              ? day.activities?.find((a) => a.id === patch.id)
+              : typeof wrapper?.index === "number"
+                ? day.activities?.[wrapper.index]
+                : undefined;
+          if (target) Object.assign(target, patch);
+        } else if (type === "delete") {
+          day.activities = (day.activities ?? []).filter(
+            (a) => a.id !== value,
+          );
+        }
+      });
+    });
+  }, []);
 
   const handleSaveTrip = useCallback(async () => {
     if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
@@ -153,14 +220,72 @@ export const TripDetail = () => {
     [apiTrip, currentUser?.id],
   );
 
-  const isLocked = !!(
-    apiTrip?.status?.name && LOCKED_STATUS_NAMES.has(apiTrip.status.name)
+  const persistedStatusName = apiTrip?.status?.name ?? TRIP_STATUS.PLANNING;
+  const isLocked = LOCKED_STATUS_NAMES.has(persistedStatusName);
+
+  // Activity editing (add/edit/delete places, edit budgets) locks at Confirmed.
+  const isViewMode = !isOrganizer || isLocked;
+  // Save Trip only matters while the trip is still in Planning — that's the
+  // one state where activity-level edits can be made. Once Confirmed,
+  // activities lock and the only legitimate trip-level change is the
+  // "Mark Completed" promotion (which owns its own save below).
+  const canSaveTrip =
+    isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING;
+  const canMarkCompleted =
+    isOrganizer && persistedStatusName === TRIP_STATUS.CONFIRMED;
+  const canExport = isLocked;
+
+  // Save the trip with the freshly-picked status. Used by both the status
+  // modal (Planning → Confirmed / Cancelled) and the Mark Completed button.
+  // Builds the save input from current local edits so any pending activity /
+  // budget changes go along for the ride.
+  const handleStatusChange = useCallback(
+    async (next: TripStatus) => {
+      if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
+      setSaveError(null);
+      try {
+        const input = tripStateToSaveInput(tripData, {
+          id: apiTrip.id,
+          interaryTypeId: apiTrip.interaryType.id,
+          tripStatusId: String(next.id),
+        });
+        await saveItinerary.mutateAsync(input);
+        setStatusOverride(null);
+      } catch (err) {
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to update trip status.",
+        );
+        // Re-throw so the modal's await catches and keeps itself open.
+        throw err;
+      }
+    },
+    [apiTrip, tripData, saveItinerary],
   );
 
-  // Owner / organizer can edit while the trip is in Planning. Confirmed and
-  // beyond are read-only for everyone (matches the backend lifecycle).
-  const isViewMode = !isOrganizer || isLocked;
-  const canExport = isLocked;
+  const handleMarkCompleted = useCallback(async () => {
+    if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
+    const completed = tripStatuses.find(
+      (s) => s.name === TRIP_STATUS.COMPLETED,
+    );
+    if (!completed) {
+      setSaveError("Couldn't resolve the Completed status. Try again shortly.");
+      return;
+    }
+    setSaveError(null);
+    try {
+      const input = tripStateToSaveInput(tripData, {
+        id: apiTrip.id,
+        interaryTypeId: apiTrip.interaryType.id,
+        tripStatusId: String(completed.id),
+      });
+      await saveItinerary.mutateAsync(input);
+      setStatusOverride(null);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : "Failed to mark trip completed.",
+      );
+    }
+  }, [apiTrip, tripData, tripStatuses, saveItinerary]);
 
   const handleChangeStep = () => {
     if (!tripData || !apiTrip) return;
@@ -210,9 +335,10 @@ export const TripDetail = () => {
             isViewMode={isViewMode}
             data={tripData}
             onChangeStep={handleChangeStep}
-            onStatusChange={setStatusOverride}
+            onStatusChange={handleStatusChange}
             onExportExcel={canExport ? handleExportExcel : undefined}
-            onSaveTrip={!isViewMode ? handleSaveTrip : undefined}
+            onSaveTrip={canSaveTrip ? handleSaveTrip : undefined}
+            onMarkCompleted={canMarkCompleted ? handleMarkCompleted : undefined}
             onDeleteTrip={isOrganizer ? handleDeleteTrip : undefined}
             isSaving={saveItinerary.isPending}
             isDeleting={deleteItinerary.isPending}
@@ -231,7 +357,7 @@ export const TripDetail = () => {
             participants={participants}
             endDate={tripData.endDate}
             destinations={destinations}
-            onChangePlace={() => {}}
+            onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}
           />
         </Grid>

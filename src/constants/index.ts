@@ -81,6 +81,16 @@ export const TRIP_STATUS = {
     CANCELLED: 'Cancelled',
 } as const;
 
+/** Where a `visited_places` row came from. `MANUAL` = user clicked the
+ *  VisitedButton on a place page. `ITINERARY` = the row was created by the
+ *  cascade that runs when the user marks one of their own itineraries
+ *  complete (the cascade only writes for the completer, never for
+ *  participants — see project memory). */
+export const VISITED_SOURCE = {
+    MANUAL: 'manual',
+    ITINERARY: 'itinerary',
+} as const;
+
 export const TRIP_BASIC = {
     SINGLE: {
         id: 1,

@@ -7,13 +7,6 @@ export const status = [
   { id: 4, name: TRIP_STATUS.CANCELLED },
 ];
 
-export const placeStatus = [
-  { id: 1, name: "Confirmed" },
-  { id: 2, name: "Completed" },
-  { id: 3, name: "Pending" },
-  { id: 4, name: "Cancelled" },
-];
-
 // export const tripType = {
 //     single: {
 //         id: 1,

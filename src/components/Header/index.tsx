@@ -10,6 +10,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import SearchBar from 'components/SearchBar';
@@ -150,6 +151,11 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     onClick={() => handleNavigate('/trips')}
                                 />
                                 <MenuActionItem
+                                    icon={<CheckCircleRoundedIcon />}
+                                    label="Visited Places"
+                                    onClick={() => handleNavigate('/visited')}
+                                />
+                                <MenuActionItem
                                     icon={<PeopleOutlineIcon />}
                                     label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
@@ -225,6 +231,13 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     className="drawer-link"
                                     label="My Trips"
                                     onClick={() => handleNavigate('/trips')}
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
+                                    className="drawer-link"
+                                    label="Visited Places"
+                                    onClick={() => handleNavigate('/visited')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}

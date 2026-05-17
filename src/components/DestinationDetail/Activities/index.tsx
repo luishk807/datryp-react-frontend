@@ -1,4 +1,5 @@
 import './index.scss';
+import { useMemo } from 'react';
 import { reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
@@ -9,9 +10,10 @@ import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
-import { placeStatus } from 'sample';
 import { convertMoney } from 'utils';
 import DialogBox from 'components/common/FormFields/DialogBox';
+import { useTripStatuses } from 'api/hooks/useLookups';
+import { TRIP_STATUS } from 'constants';
 import type { ActionType, Activity, ActivityStatus, Friend } from 'types';
 
 export interface ActivitiesProps {
@@ -23,14 +25,9 @@ export interface ActivitiesProps {
     isViewMode?: boolean;
 }
 
-const CONFIRMED_STATUS: ActivityStatus =
-    placeStatus.find((p) => p.name === 'Confirmed') ?? placeStatus[0];
-const PENDING_STATUS: ActivityStatus =
-    placeStatus.find((p) => p.name === 'Pending') ?? placeStatus[0];
-
 const isConfirmedStatus = (status: Activity['status']): boolean => {
     if (status && typeof status === 'object') {
-        return (status as ActivityStatus).name === 'Confirmed';
+        return (status as ActivityStatus).name === TRIP_STATUS.CONFIRMED;
     }
     return false;
 };
@@ -43,6 +40,23 @@ const Activities = ({
     tripTypeId,
     isViewMode = false,
 }: ActivitiesProps) => {
+    // Activities share the same `trip_statuses` lookup as trips, so toggling
+    // the badge resolves the real backend UUID here. If the lookup hasn't
+    // loaded yet (cold cache, transient network blip), we fall back to a
+    // name-only object — `activityStatusIdOf` in tripMapper just drops the
+    // non-UUID id on save, so this is a safe no-op fallback.
+    const { data: tripStatuses = [] } = useTripStatuses();
+    const { plannedStatus, confirmedStatus } = useMemo(() => {
+        const byName = (n: string): ActivityStatus | undefined => {
+            const row = tripStatuses.find((s) => s.name === n);
+            return row ? { id: row.id, name: row.name } : undefined;
+        };
+        return {
+            plannedStatus: byName(TRIP_STATUS.PLANNING) ?? { id: 0, name: TRIP_STATUS.PLANNING },
+            confirmedStatus: byName(TRIP_STATUS.CONFIRMED) ?? { id: 0, name: TRIP_STATUS.CONFIRMED },
+        };
+    }, [tripStatuses]);
+
     return (
         <>
             {activities &&
@@ -54,6 +68,13 @@ const Activities = ({
                                   .map((item) => `${item.user.label} (${convertMoney(item.budget)})`)
                                   .join(', ')
                             : '';
+                    // Per-activity edit lock. True when the trip is in view-mode
+                    // OR this specific place is already Confirmed — locking
+                    // edit, delete-by-edit, and AddBudget all at once. The
+                    // status pill stays clickable so the user can flip the
+                    // place back to Planning to reopen editing.
+                    const isPlaceLocked =
+                        isViewMode || isConfirmedStatus(activity.status);
                     return (
                         <Grid
                             key={`activity-${indx}`}
@@ -74,8 +95,8 @@ const Activities = ({
                                             {(() => {
                                                 const confirmed = isConfirmedStatus(activity.status);
                                                 const nextStatus = confirmed
-                                                    ? PENDING_STATUS
-                                                    : CONFIRMED_STATUS;
+                                                    ? plannedStatus
+                                                    : confirmedStatus;
                                                 return (
                                                     <button
                                                         type="button"
@@ -84,7 +105,7 @@ const Activities = ({
                                                             (confirmed ? 'is-confirmed' : 'is-pending')
                                                         }
                                                         disabled={isViewMode}
-                                                        aria-label={`Status: ${confirmed ? 'Confirmed' : 'Pending'}. Click to toggle.`}
+                                                        aria-label={`Status: ${confirmed ? 'Confirmed' : 'Planning'}. Click to toggle.`}
                                                         onClick={() =>
                                                             onChangePlace('edit', {
                                                                 index: indx,
@@ -95,7 +116,7 @@ const Activities = ({
                                                             })
                                                         }
                                                     >
-                                                        {confirmed ? 'Confirmed' : 'Pending'}
+                                                        {confirmed ? 'Confirmed' : 'Planning'}
                                                     </button>
                                                 );
                                             })()}
@@ -112,7 +133,7 @@ const Activities = ({
                                                     <ScheduleOutlinedIcon className="meta-icon" />
                                                     <span className="meta-text">{activityTime}</span>
                                                 </div>
-                                                {(budgetList || !isViewMode) && (
+                                                {(budgetList || !isPlaceLocked) && (
                                                     <div className="meta-row">
                                                         <GroupOutlinedIcon className="meta-icon" />
                                                         <span className="meta-text">
@@ -123,7 +144,7 @@ const Activities = ({
                                                             )}
                                                         </span>
                                                         <AddBudget
-                                                            isViewMode={isViewMode}
+                                                            isViewMode={isPlaceLocked}
                                                             budget={activity.budget}
                                                             onSubmit={(e) =>
                                                                 onChangeBudget('add', {
@@ -164,7 +185,7 @@ const Activities = ({
                                                     className="flex justify-end items-start font-medium"
                                                 >
                                                     <AddPlaceBtn
-                                                        isViewMode={isViewMode}
+                                                        isViewMode={isPlaceLocked}
                                                         type="edit"
                                                         data={activity}
                                                         buttonType="text"

@@ -1,7 +1,11 @@
 import type { Friend, ImageRef } from "./common.types";
 
 export interface ActivityStatus {
-  id: number;
+  /** Numeric for legacy sample data; string (UUID) when sourced from the
+   *  backend `trip_statuses` lookup. Activities and itineraries share the
+   *  same lookup table, so a status assigned via `useTripStatuses()` is
+   *  directly persistable on either. */
+  id: number | string;
   name: string;
 }
 

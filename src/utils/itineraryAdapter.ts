@@ -7,9 +7,10 @@
  */
 
 import { addDays, formatDate, isValidDate } from 'utils';
-import type { ApiActivityBudget, ApiItinerary } from 'api/hooks/useItineraries';
+import type { ApiActivity, ApiActivityBudget, ApiItinerary } from 'api/hooks/useItineraries';
 import { ITINERARY_TYPE, TRIP_BASIC, TRIP_STATUS } from 'constants';
 import type {
+    Activity,
     BudgetItem,
     Destination,
     Friend,
@@ -56,6 +57,23 @@ const apiBudgetsToItems = (
         budget: b.amount,
     }));
 };
+
+/** Single source of truth for ApiActivity → Activity mapping. Used by both
+ *  `apiToTripEntry` and `apiToTripState`, and in single + multi branches.
+ *  `status` is preserved as `{id (UUID), name}` so the status toggle on the
+ *  card and `activityToInput` on save both have the real backend identifier. */
+const apiActivityToActivity = (a: ApiActivity): Activity => ({
+    id: uuidToNumericId(a.id),
+    name: a.name,
+    place: a.place ?? undefined,
+    location: a.location ?? undefined,
+    startTime: apiTimeToHHmm(a.startTime),
+    endTime: apiTimeToHHmm(a.endTime),
+    cost: a.cost ?? undefined,
+    note: a.notes ?? undefined,
+    status: a.status ? { id: a.status.id, name: a.status.name } : undefined,
+    budget: apiBudgetsToItems(a.budgets),
+});
 
 const apiUserToFriend = (u: { id: string; name: string | null; email: string }): Friend => ({
     id: uuidToNumericId(u.id),
@@ -119,17 +137,7 @@ export const apiToTripEntry = (
             intenaryDates: it.intenaryDates.map((d) => ({
                 id: uuidToNumericId(d.id),
                 date: d.date,
-                activities: d.activities.map((a) => ({
-                    id: uuidToNumericId(a.id),
-                    name: a.name,
-                    place: a.place ?? undefined,
-                    location: a.location ?? undefined,
-                    startTime: apiTimeToHHmm(a.startTime),
-                    endTime: apiTimeToHHmm(a.endTime),
-                    cost: a.cost ?? undefined,
-                    note: a.notes ?? undefined,
-                    budget: apiBudgetsToItems(a.budgets),
-                })),
+                activities: d.activities.map(apiActivityToActivity),
             })),
         } as unknown as SingleDestination & { apiId: string };
     }
@@ -141,17 +149,7 @@ export const apiToTripEntry = (
             date: d.date,
             country: d.country ?? { id: 0, name: '' },
             flightInfo: d.flightInfo ?? {},
-            activities: d.activities.map((a) => ({
-                id: uuidToNumericId(a.id),
-                name: a.name,
-                place: a.place ?? undefined,
-                location: a.location ?? undefined,
-                startTime: apiTimeToHHmm(a.startTime),
-                endTime: apiTimeToHHmm(a.endTime),
-                cost: a.cost ?? undefined,
-                note: a.notes ?? undefined,
-                budget: apiBudgetsToItems(a.budgets),
-            })),
+            activities: d.activities.map(apiActivityToActivity),
         })),
     } as unknown as MultipleDestinations & { apiId: string };
 };
@@ -172,17 +170,7 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
                 itinerary: it.intenaryDates.map((d) => ({
                     id: uuidToNumericId(d.id),
                     date: d.date,
-                    activities: d.activities.map((a) => ({
-                        id: uuidToNumericId(a.id),
-                        name: a.name,
-                        place: a.place ?? undefined,
-                        location: a.location ?? undefined,
-                        startTime: apiTimeToHHmm(a.startTime),
-                        endTime: apiTimeToHHmm(a.endTime),
-                        cost: a.cost ?? undefined,
-                        note: a.notes ?? undefined,
-                        budget: apiBudgetsToItems(a.budgets),
-                    })),
+                    activities: d.activities.map(apiActivityToActivity),
                 })),
             },
         ];
@@ -204,17 +192,7 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
                     {
                         id: uuidToNumericId(d.id),
                         date: d.date,
-                        activities: d.activities.map((a) => ({
-                            id: uuidToNumericId(a.id),
-                            name: a.name,
-                            place: a.place ?? undefined,
-                            location: a.location ?? undefined,
-                            startTime: apiTimeToHHmm(a.startTime),
-                            endTime: apiTimeToHHmm(a.endTime),
-                            cost: a.cost ?? undefined,
-                            note: a.notes ?? undefined,
-                            budget: apiBudgetsToItems(a.budgets),
-                        })),
+                        activities: d.activities.map(apiActivityToActivity),
                     },
                 ],
             };

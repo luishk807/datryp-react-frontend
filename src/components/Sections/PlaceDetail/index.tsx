@@ -7,10 +7,12 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HikingRoundedIcon from "@mui/icons-material/HikingRounded";
 import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
+import VisitedButton from "components/VisitedButton";
 import Stars from "components/common/Stars";
 import CostBadge from "components/common/CostBadge";
 import ReviewSection from "components/Review/ReviewSection";
@@ -34,6 +36,9 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
 import { usePlaceDetails } from "api/hooks/usePlaceDetails";
+import { useVisitedPlaces } from "api/hooks/useVisitedPlaces";
+import { getPlaceKey } from "utils/placeKey";
+import { formatDate } from "utils/date";
 
 const PlaceDetail = () => {
   const [searchParams] = useSearchParams();
@@ -59,6 +64,16 @@ const PlaceDetail = () => {
   const backUrl = `/search?q=${encodeURIComponent(query)}`;
 
   const place = data?.items[index];
+
+  // Visited-state lookup. Same cached list powers the toolbar button and the
+  // "Visited on …" indicator under the title — single source of truth so the
+  // two never disagree after a mark/unmark.
+  const { data: visitedData } = useVisitedPlaces();
+  const visitedRecord = place
+    ? visitedData?.items.find(
+        (v) => v.placeKey === getPlaceKey(place.name, place.city, place.country)
+      )
+    : undefined;
 
   if (!query) {
     return (
@@ -112,6 +127,11 @@ const PlaceDetail = () => {
           </Link>
           <div className="place-detail-toolbar-actions">
             <BookmarkButton place={place} query={query} index={index} />
+            <VisitedButton
+              place={place}
+              coordinates={detailsQuery.data?.details.coordinates}
+              visa={detailsQuery.data?.details.visa}
+            />
             <ShareButton place={place} searchUrl={detailUrl} variant="pill" />
           </div>
         </div>
@@ -152,6 +172,19 @@ const PlaceDetail = () => {
           <p className="place-detail-location">
             {place.city} · {place.country}
           </p>
+          {visitedRecord && (
+            <p
+              className="place-detail-visited-on"
+              role="status"
+              aria-label="You have visited this place"
+            >
+              <CheckCircleRoundedIcon
+                className="place-detail-visited-on-icon"
+                fontSize="small"
+              />
+              Visited on {formatDate(visitedRecord.visitedAt, "MMM D, YYYY")}
+            </p>
+          )}
           <div className="place-detail-meta">
             <Tooltip title="Overall rating" arrow>
               <span

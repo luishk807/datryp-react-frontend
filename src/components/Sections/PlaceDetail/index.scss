@@ -51,6 +51,24 @@
   margin: 0;
 }
 
+.place-detail-visited-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.1);
+  color: theme('colors.primaryGreen');
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.place-detail-visited-on-icon {
+  font-size: 1rem !important;
+}
+
 .place-detail-meta {
   display: flex;
   flex-wrap: wrap;

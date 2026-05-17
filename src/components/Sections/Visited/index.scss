@@ -1,0 +1,143 @@
+.visited-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.visited-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.visited-page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0;
+}
+
+.visited-page-summary {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+}
+
+.visited-page-msg {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.visited-page-error {
+  color: #c0392b;
+}
+
+.visited-page-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.65);
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: theme('colors.primaryGreen');
+    text-decoration: underline;
+  }
+}
+
+.visited-page-empty-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 2.5rem !important;
+  opacity: 0.6;
+}
+
+.visited-page-empty-hint {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.visited-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.visited-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 2px 8px rgba(60, 181, 75, 0.12);
+  }
+}
+
+.visited-card-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.visited-card-icon {
+  flex-shrink: 0;
+  color: theme('colors.primaryGreen');
+  font-size: 1.4rem !important;
+}
+
+.visited-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.visited-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.visited-card-location {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.visited-card-meta {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: 2px;
+}
+
+.visited-card-actions {
+  flex-shrink: 0;
+}

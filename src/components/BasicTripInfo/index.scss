@@ -54,6 +54,30 @@
   gap: 6px;
 }
 
+/* Inline status next to the trip title once the trip leaves Planning.
+ * Replaces the right-side status pill for Confirmed / Completed / Cancelled.
+ * Completed adds a check icon so it reads as a "trip done" achievement
+ * rather than just another status. */
+.basic-trip-info .trip-status-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: theme('colors.primaryGreen');
+
+  &.trip-status-inline-cancelled {
+    color: #c0392b;
+    text-decoration: line-through;
+  }
+}
+
+.basic-trip-info .trip-status-inline-icon {
+  font-size: 1.05rem !important;
+  color: theme('colors.primaryGreen');
+}
+
 .basic-trip-info .trip-name-edit {
   opacity: 0.7;
 }
@@ -94,6 +118,7 @@
  * one related group rather than three different button systems. */
 .basic-trip-info .trip-save-btn,
 .basic-trip-info .trip-cancel-btn,
+.basic-trip-info .trip-mark-complete-wrapper button,
 .basic-trip-info .trip-delete-wrapper button {
   display: inline-flex !important;
   align-items: center;
@@ -148,6 +173,24 @@
 
 .basic-trip-info .trip-delete-wrapper button:hover {
   background: rgba(192, 57, 43, 0.2) !important;
+}
+
+/* Mark Completed: green pill, sits between Save Trip and Delete. Matches the
+ * "promote to next state" semantic of Save Trip but uses the brand green
+ * since Completed is a positive outcome. Wraps DialogBox so the click
+ * opens a confirm prompt before firing the save. */
+.basic-trip-info .trip-mark-complete-wrapper button {
+  background: rgba(60, 181, 75, 0.12) !important;
+  color: theme('colors.primaryGreen') !important;
+}
+
+.basic-trip-info .trip-mark-complete-wrapper button:hover:not(:disabled) {
+  background: rgba(60, 181, 75, 0.22) !important;
+}
+
+.basic-trip-info .trip-mark-complete-wrapper button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .basic-trip-info .trip-save-error {

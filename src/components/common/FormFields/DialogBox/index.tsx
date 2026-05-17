@@ -9,14 +9,15 @@ import {
 } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { BUTTON_VARIANT } from 'constants';
-
-type DialogButtonType = typeof BUTTON_VARIANT.TEXT | typeof BUTTON_VARIANT.STANDARD;
+import type { ButtonVariant } from 'types';
 
 export interface DialogBoxProps {
     buttonLabel?: string;
     title?: string;
     onConfirm?: () => void;
-    buttonType?: DialogButtonType;
+    /** Any `ButtonCustom` variant — the trigger renders as a ButtonCustom of
+     *  this type. Defaults to `STANDARD`. */
+    buttonType?: ButtonVariant;
     children?: ReactNode;
     isViewMode?: boolean;
 }

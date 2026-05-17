@@ -7,16 +7,10 @@ import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
-import { placeStatus } from 'sample';
 import classNames from 'classnames';
 import { ACTION, BUTTON_VARIANT, TRIP_BASIC } from 'constants';
 import './index.scss';
 import type { Activity, AddEditButtonProps, Friend, ImageRef } from 'types';
-
-// Default status for newly added places. The user toggles between Pending /
-// Confirmed on the place card itself, so the modal no longer asks for it.
-const DEFAULT_PENDING_STATUS: DropdownOption =
-    placeStatus.find((p) => p.name === 'Pending') ?? placeStatus[0];
 
 const PLACE_LABEL = {
     ADD: 'Add Place',
@@ -53,11 +47,13 @@ const AddPlaceBtn = ({
 
     const isAdd = type === ACTION.ADD;
 
-    // Preserve an existing place's status on edit; default to Pending on add.
-    const existingStatus: DropdownOption =
+    // Preserve an existing place's status on edit; leave undefined on add so
+    // the activity card defaults to the "Planning" badge. The toggle on the
+    // card flips to a real UUID-bearing status once the user clicks it.
+    const existingStatus: DropdownOption | undefined =
         data && typeof data.status === 'object' && data.status
             ? (data.status as DropdownOption)
-            : DEFAULT_PENDING_STATUS;
+            : undefined;
 
     const buildInitialPlace = (): PlaceDraft => ({
         startTime: now('HH:mm'),
@@ -127,7 +123,7 @@ const AddPlaceBtn = ({
                 status:
                     data.status && typeof data.status === 'object'
                         ? (data.status as DropdownOption)
-                        : DEFAULT_PENDING_STATUS,
+                        : undefined,
                 image: data.image,
             });
         } else {

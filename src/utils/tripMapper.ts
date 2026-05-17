@@ -101,6 +101,20 @@ const budgetEntriesToInput = (
     return out;
 };
 
+/** Extract the backend `trip_statuses.id` UUID off an activity's local status,
+ *  if it's actually a UUID. Legacy sample-data ids (numbers, or strings that
+ *  don't match the UUID shape) are dropped so the backend doesn't 400 on a
+ *  bad cast — those activities will just save with `trip_status_id = null`.
+ */
+const activityStatusIdOf = (
+    status: Activity['status']
+): string | null => {
+    if (!status || typeof status !== 'object') return null;
+    const id = status.id;
+    if (typeof id !== 'string') return null;
+    return UUID_RE.test(id) ? id : null;
+};
+
 const activityToInput = (
     activity: Activity,
     dayDate?: string
@@ -114,6 +128,7 @@ const activityToInput = (
     notes: activity.note ?? null,
     image: activity.image?.url ?? null,
     budget: sumBudget(activity.budget),
+    tripStatusId: activityStatusIdOf(activity.status),
     budgets: budgetEntriesToInput(activity.budget),
 });
 

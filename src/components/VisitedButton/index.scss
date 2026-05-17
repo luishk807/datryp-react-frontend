@@ -1,0 +1,52 @@
+.visited-button-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid theme('colors.primaryGreen');
+  background: #fff;
+  color: theme('colors.primaryGreen');
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  &.is-visited {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+
+    // On hover when already visited, hint at the un-mark action.
+    &:hover {
+      background: #fff;
+      color: theme('colors.primaryGreen');
+    }
+  }
+}
+
+.visited-button-icon {
+  font-size: 1.1rem !important;
+}

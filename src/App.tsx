@@ -14,6 +14,7 @@ const Friends = lazy(() => import('components/Sections/Friends'));
 const SearchResults = lazy(() => import('components/Sections/SearchResults'));
 const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
+const Visited = lazy(() => import('components/Sections/Visited'));
 const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
@@ -98,6 +99,14 @@ function App() {
                         subtitle="Your recent searches are tied to your account."
                     >
                         <SearchHistoryPage />
+                    </Gated>
+                }/>
+                <Route path='/visited' element={
+                    <Gated
+                        title="Sign in to see your visited places"
+                        subtitle="Your visited list is tied to your account."
+                    >
+                        <Visited />
                     </Gated>
                 }/>
                 <Route path='*' element={

@@ -9,3 +9,4 @@ export * from "./heroImage.types";
 export * from "./placeRecommendation.types";
 export * from "./placeDetails.types";
 export * from "./share.types";
+export * from "./visitedPlace.types";
