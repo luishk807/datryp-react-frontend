@@ -53,13 +53,19 @@ export const TripBox = ({ data, to }: TripBoxProps) => {
     const target = to ?? `/trip-detail?id=${data.id}`;
     const statusKey = data.status.name.toLowerCase();
     const destinationLabel = getDestinationLabel(data);
+    const tripImage = getTripImage(data);
+    const isPlaceholder = tripImage === NO_IMAGE;
 
     return (
         <Link to={target} className="trip-box-link">
             <article className="trip-box">
-                <div className="trip-box-image">
+                <div
+                    className={classnames('trip-box-image', {
+                        'is-placeholder': isPlaceholder,
+                    })}
+                >
                     <img
-                        src={getTripImage(data)}
+                        src={tripImage}
                         alt={destinationLabel}
                         loading="lazy"
                     />

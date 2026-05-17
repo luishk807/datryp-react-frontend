@@ -27,18 +27,32 @@
   height: 180px;
   overflow: hidden;
   background: #1a1a1a;
-}
 
-.trip-box-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.4s ease;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  &.is-placeholder {
+    background: #f4f4f4;
+
+    img {
+      object-fit: contain;
+      padding: 28px;
+      opacity: 0.7;
+    }
+  }
 }
 
 .trip-box:hover .trip-box-image img {
   transform: scale(1.05);
+}
+
+.trip-box:hover .trip-box-image.is-placeholder img {
+  transform: none;
 }
 
 .trip-box-status {
