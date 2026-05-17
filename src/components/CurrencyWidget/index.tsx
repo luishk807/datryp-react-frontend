@@ -1,10 +1,12 @@
 import './index.scss';
+import { useFxRates } from 'api/hooks/useFxRates';
+import { useUserCurrency } from 'api/hooks/useUserCurrency';
 import type { CurrencyInfo } from 'types';
 
 export interface CurrencyWidgetProps {
     /** Currency info for the destination — code, name, and approximate rate
-     *  per USD. Sourced from OpenAI's training data; display as-is with the
-     *  built-in "approximate" disclaimer. */
+     *  per USD. Sourced from OpenAI's training data; used as the
+     *  destination-side rate when Frankfurter doesn't carry that currency. */
     info: CurrencyInfo;
 }
 
@@ -18,24 +20,57 @@ const formatRate = (rate: number): string => {
 };
 
 /**
- * Compact "1 USD ≈ N <CODE>" chip plus the currency's full name and an
- * approximate-rate disclaimer.
+ * Conversion chip: "1 <from> ≈ N <dest>" — defaults `from` to the user's
+ * IP-detected home currency (e.g. PAB for Panama, CNY for China). Falls
+ * back to USD if either the user-currency lookup or the FX rates source
+ * doesn't carry it. Below the chip: destination currency name + a
+ * live-rate badge or fallback disclaimer.
  */
-const CurrencyWidget = ({ info }: CurrencyWidgetProps) => (
-    <div className="currency-widget">
-        <div className="currency-widget-rate">
-            <span className="currency-widget-from">1 USD</span>
-            <span className="currency-widget-arrow" aria-hidden="true">
-                ≈
-            </span>
-            <span className="currency-widget-amount">{formatRate(info.ratePerUsd)}</span>
-            <span className="currency-widget-code">{info.code}</span>
+const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
+    const { data: userCurrency } = useUserCurrency();
+    const { data: fxRates } = useFxRates();
+
+    const userCode = (userCurrency ?? 'USD').toUpperCase();
+    const userRateUsd = fxRates?.[userCode];
+    const destRateUsd = fxRates?.[info.code] ?? info.ratePerUsd;
+
+    // Only swap "1 USD" out for the user's currency if we can actually
+    // convert it. Otherwise the chip still makes sense in USD.
+    const fromCode = userRateUsd && userRateUsd > 0 ? userCode : 'USD';
+    const fromRateUsd = userRateUsd && userRateUsd > 0 ? userRateUsd : 1;
+
+    const rate = destRateUsd / fromRateUsd;
+    const usingLiveRates = Boolean(fxRates);
+    const isHomeCurrency = fromCode === info.code;
+
+    return (
+        <div className="currency-widget">
+            {isHomeCurrency ? (
+                <p className="currency-widget-home">
+                    This is your home currency.
+                </p>
+            ) : (
+                <div className="currency-widget-rate">
+                    <span className="currency-widget-from">1 {fromCode}</span>
+                    <span className="currency-widget-arrow" aria-hidden="true">
+                        ≈
+                    </span>
+                    <span className="currency-widget-amount">
+                        {formatRate(rate)}
+                    </span>
+                    <span className="currency-widget-code">{info.code}</span>
+                </div>
+            )}
+            <p className="currency-widget-name">{info.name}</p>
+            {!isHomeCurrency && (
+                <p className="currency-widget-disclaimer">
+                    {usingLiveRates
+                        ? 'Live rate from the ECB — check before travel.'
+                        : 'Approximate — check before travel.'}
+                </p>
+            )}
         </div>
-        <p className="currency-widget-name">{info.name}</p>
-        <p className="currency-widget-disclaimer">
-            Approximate — check before travel.
-        </p>
-    </div>
-);
+    );
+};
 
 export default CurrencyWidget;

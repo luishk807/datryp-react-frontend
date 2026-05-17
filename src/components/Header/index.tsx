@@ -11,18 +11,18 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import SearchBar from 'components/SearchBar';
 import IconLink from 'components/common/IconLink';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
-import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import type { SignUpForm } from 'components/common/SignUpBtn';
 import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
-import { BUTTON_VARIANT, LOGO_IMAGE, TRIP_BASIC } from 'constants';
-import type { Country, Destination } from 'types';
+import { BUTTON_VARIANT, LOGO_IMAGE } from 'constants';
+import type { Country } from 'types';
 import './index.scss';
 
 interface HeaderProps {
@@ -35,15 +35,15 @@ const Header = ({ withSearch = false }: HeaderProps) => {
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const { user, login, signup, logout } = useUser();
     const navigate = useNavigate();
-    const dispatch = useTripDispatch();
 
     const handleSearchSelected = (country: Country) => {
-        if (!country?.name) return;
-        const type = TRIP_BASIC.SINGLE;
-        const destinations = [{ country }] as Destination[];
-        dispatch(resetTrip());
-        dispatch(basicInfo({ type, destinations }));
-        navigate(type.route, { replace: true });
+        if (!country?.code) return;
+        // Route through the country preview page. The hero search doesn't
+        // expose a mode picker, so hand 'single' as the default — matches
+        // the most common path (single-destination trip).
+        navigate(
+            `/country?code=${encodeURIComponent(country.code)}&mode=single`
+        );
     };
 
     const handleLogin = async (form: LoginForm) => {
@@ -156,6 +156,11 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     onClick={() => handleNavigate('/visited')}
                                 />
                                 <MenuActionItem
+                                    icon={<BookmarkRoundedIcon />}
+                                    label="Saved Places"
+                                    onClick={() => handleNavigate('/saved')}
+                                />
+                                <MenuActionItem
                                     icon={<PeopleOutlineIcon />}
                                     label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
@@ -238,6 +243,13 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     className="drawer-link"
                                     label="Visited Places"
                                     onClick={() => handleNavigate('/visited')}
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
+                                    className="drawer-link"
+                                    label="Saved Places"
+                                    onClick={() => handleNavigate('/saved')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}

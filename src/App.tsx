@@ -15,6 +15,8 @@ const SearchResults = lazy(() => import('components/Sections/SearchResults'));
 const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
 const Visited = lazy(() => import('components/Sections/Visited'));
+const Saved = lazy(() => import('components/Sections/Saved'));
+const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
@@ -93,6 +95,11 @@ function App() {
                         <PlaceDetail />
                     </Gated>
                 }/>
+                <Route path='/country' element={
+                    <Suspense fallback={<>...</>}>
+                        <CountryDetail />
+                    </Suspense>
+                }/>
                 <Route path='/history' element={
                     <Gated
                         title="Sign in to see your search history"
@@ -107,6 +114,14 @@ function App() {
                         subtitle="Your visited list is tied to your account."
                     >
                         <Visited />
+                    </Gated>
+                }/>
+                <Route path='/saved' element={
+                    <Gated
+                        title="Sign in to see your saved places"
+                        subtitle="Your bookmarks are tied to your account."
+                    >
+                        <Saved />
                     </Gated>
                 }/>
                 <Route path='*' element={

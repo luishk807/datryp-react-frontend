@@ -13,6 +13,7 @@ import ErrorPage from "components/common/ErrorPage";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
 import VisitedButton from "components/VisitedButton";
+import AddToItineraryButton from "components/AddToItineraryButton";
 import Stars from "components/common/Stars";
 import CostBadge from "components/common/CostBadge";
 import ReviewSection from "components/Review/ReviewSection";
@@ -126,6 +127,7 @@ const PlaceDetail = () => {
             &rdquo;
           </Link>
           <div className="place-detail-toolbar-actions">
+            <AddToItineraryButton place={place} />
             <BookmarkButton place={place} query={query} index={index} />
             <VisitedButton
               place={place}

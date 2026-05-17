@@ -4,11 +4,18 @@ import type { PlaceRecommendation } from 'types';
 const STORAGE_KEY = 'datryp:bookmarks';
 const STORAGE_EVENT = 'datryp:bookmarks:changed';
 
+export type BookmarkKind = 'place' | 'country';
+
 export interface Bookmark {
-    /** Search query the place was found under — needed to reopen the detail page. */
+    /** Discriminator. Entries persisted before this field existed are
+     *  implicitly treated as 'place'. */
+    kind?: BookmarkKind;
+    /** Place identity: search query + index in cached results. Empty/0 for
+     *  country bookmarks. */
     query: string;
-    /** Index within the cached results for that query. */
     index: number;
+    /** Country identity: ISO 3166-1 alpha-2. Only set when kind === 'country'. */
+    code?: string;
     /** Snapshot of display fields so the bookmarks list can render without
      *  re-hitting the recommender. */
     name: string;
@@ -16,6 +23,12 @@ export interface Bookmark {
     country: string;
     imageUrl: string | null;
     savedAt: number;
+}
+
+export interface CountryBookmarkPayload {
+    code: string;
+    name: string;
+    imageUrl: string | null;
 }
 
 const readAll = (): Bookmark[] => {
@@ -37,8 +50,17 @@ const writeAll = (next: Bookmark[]): void => {
     window.dispatchEvent(new CustomEvent(STORAGE_EVENT));
 };
 
-const keyOf = (query: string, index: number) =>
-    `${query.trim().toLowerCase()}::${index}`;
+const placeKey = (query: string, index: number) =>
+    `place::${query.trim().toLowerCase()}::${index}`;
+
+const countryKey = (code: string) => `country::${code.trim().toLowerCase()}`;
+
+/** Stable identity for a bookmark — discriminates place vs country so a
+ *  search query like "fr" can't collide with the France bookmark. */
+const keyOf = (b: Bookmark): string =>
+    (b.kind ?? 'place') === 'country'
+        ? countryKey(b.code ?? '')
+        : placeKey(b.query, b.index);
 
 /** localStorage-backed bookmarks (no backend yet). Re-renders all subscribers
  *  in the same tab via a `datryp:bookmarks:changed` custom event, and across
@@ -58,8 +80,16 @@ export const useBookmarks = () => {
 
     const isBookmarked = useCallback(
         (query: string, index: number): boolean => {
-            const k = keyOf(query, index);
-            return bookmarks.some((b) => keyOf(b.query, b.index) === k);
+            const k = placeKey(query, index);
+            return bookmarks.some((b) => keyOf(b) === k);
+        },
+        [bookmarks]
+    );
+
+    const isCountryBookmarked = useCallback(
+        (code: string): boolean => {
+            const k = countryKey(code);
+            return bookmarks.some((b) => keyOf(b) === k);
         },
         [bookmarks]
     );
@@ -67,10 +97,11 @@ export const useBookmarks = () => {
     const add = useCallback(
         (place: PlaceRecommendation, query: string, index: number) => {
             const current = readAll();
-            const k = keyOf(query, index);
-            if (current.some((b) => keyOf(b.query, b.index) === k)) return;
+            const k = placeKey(query, index);
+            if (current.some((b) => keyOf(b) === k)) return;
             writeAll([
                 {
+                    kind: 'place',
                     query,
                     index,
                     name: place.name,
@@ -86,15 +117,15 @@ export const useBookmarks = () => {
     );
 
     const remove = useCallback((query: string, index: number) => {
-        const k = keyOf(query, index);
-        writeAll(readAll().filter((b) => keyOf(b.query, b.index) !== k));
+        const k = placeKey(query, index);
+        writeAll(readAll().filter((b) => keyOf(b) !== k));
     }, []);
 
     const toggle = useCallback(
         (place: PlaceRecommendation, query: string, index: number): boolean => {
-            const k = keyOf(query, index);
+            const k = placeKey(query, index);
             const current = readAll();
-            const existing = current.some((b) => keyOf(b.query, b.index) === k);
+            const existing = current.some((b) => keyOf(b) === k);
             if (existing) {
                 remove(query, index);
                 return false;
@@ -105,5 +136,60 @@ export const useBookmarks = () => {
         [add, remove]
     );
 
-    return { bookmarks, isBookmarked, add, remove, toggle };
+    const addCountry = useCallback((payload: CountryBookmarkPayload) => {
+        const code = payload.code.trim().toUpperCase();
+        if (!code) return;
+        const current = readAll();
+        const k = countryKey(code);
+        if (current.some((b) => keyOf(b) === k)) return;
+        writeAll([
+            {
+                kind: 'country',
+                code,
+                // Place-side fields filled with empty/zero so older readers
+                // that ignore `kind` don't crash on missing properties.
+                query: '',
+                index: 0,
+                name: payload.name,
+                city: '',
+                country: payload.name,
+                imageUrl: payload.imageUrl,
+                savedAt: Date.now(),
+            },
+            ...current,
+        ]);
+    }, []);
+
+    const removeCountry = useCallback((code: string) => {
+        const k = countryKey(code);
+        writeAll(readAll().filter((b) => keyOf(b) !== k));
+    }, []);
+
+    const toggleCountry = useCallback(
+        (payload: CountryBookmarkPayload): boolean => {
+            const code = payload.code.trim().toUpperCase();
+            const k = countryKey(code);
+            const current = readAll();
+            const existing = current.some((b) => keyOf(b) === k);
+            if (existing) {
+                removeCountry(code);
+                return false;
+            }
+            addCountry(payload);
+            return true;
+        },
+        [addCountry, removeCountry]
+    );
+
+    return {
+        bookmarks,
+        isBookmarked,
+        isCountryBookmarked,
+        add,
+        remove,
+        toggle,
+        addCountry,
+        removeCountry,
+        toggleCountry,
+    };
 };

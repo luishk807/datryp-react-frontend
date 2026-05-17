@@ -6,8 +6,12 @@ import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import DeleteBtn from 'components/common/DeleteBtn';
 import { useUnmarkVisited, useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
+import {
+    useUnmarkVisitedCountry,
+    useVisitedCountries,
+} from 'api/hooks/useVisitedCountries';
 import { formatDate } from 'utils/date';
-import { BUTTON_VARIANT, VISITED_SOURCE } from 'constants';
+import { BUTTON_VARIANT, NO_IMAGE, VISITED_SOURCE } from 'constants';
 import type { VisitedPlace } from 'types';
 
 const sourceLabel = (source: VisitedPlace['source']): string =>
@@ -15,92 +19,174 @@ const sourceLabel = (source: VisitedPlace['source']): string =>
 
 const Visited = () => {
     const { data, isLoading, isError, error } = useVisitedPlaces();
+    const {
+        data: countriesData,
+        isLoading: countriesLoading,
+        isError: countriesError,
+    } = useVisitedCountries();
     const unmarkVisited = useUnmarkVisited();
+    const unmarkVisitedCountry = useUnmarkVisitedCountry();
 
     const items = data?.items ?? [];
     const total = data?.total ?? 0;
+    const countryItems = countriesData?.items ?? [];
+    const countryTotal = countriesData?.total ?? 0;
 
-    // Distinct countries — drives the small "X countries visited" rollup at
-    // the top. Uses country_code when available (robust); falls back to the
-    // free-string place_country so older rows still count toward the tally.
+    // Distinct countries union: explicit visited-country marks PLUS implicit
+    // country codes derived from visited places. Drives the top rollup.
     const countryCount = useMemo(() => {
         const seen = new Set<string>();
         for (const v of items) seen.add(v.countryCode ?? v.placeCountry);
+        for (const c of countryItems) seen.add(c.countryCode);
         return seen.size;
-    }, [items]);
+    }, [items, countryItems]);
+
+    const anyLoading = isLoading || countriesLoading;
+    const anyError = isError || countriesError;
+    const allEmpty = total === 0 && countryTotal === 0;
 
     return (
         <Layout title="Visited Places">
             <div className="visited-page">
                 <header className="visited-page-header">
                     <h1 className="visited-page-title">Visited Places</h1>
-                    {!isLoading && !isError && total > 0 && (
+                    {!anyLoading && !anyError && !allEmpty && (
                         <p className="visited-page-summary">
-                            {total} place{total === 1 ? '' : 's'} · {countryCount}{' '}
-                            countr{countryCount === 1 ? 'y' : 'ies'}
+                            {countryCount}{' '}
+                            countr{countryCount === 1 ? 'y' : 'ies'} · {total}{' '}
+                            place{total === 1 ? '' : 's'}
                         </p>
                     )}
                 </header>
 
-                {isLoading && <p className="visited-page-msg">Loading…</p>}
+                {anyLoading && <p className="visited-page-msg">Loading…</p>}
 
-                {isError && (
+                {anyError && (
                     <p className="visited-page-msg visited-page-error" role="alert">
                         Could not load your visited list
                         {error instanceof Error ? ` — ${error.message}` : ''}.
                     </p>
                 )}
 
-                {!isLoading && !isError && total === 0 && (
+                {!anyLoading && !anyError && allEmpty && (
                     <div className="visited-page-empty">
                         <CheckCircleRoundedIcon className="visited-page-empty-icon" />
-                        <p>You haven't marked any places as visited yet.</p>
+                        <p>You haven't marked anywhere as visited yet.</p>
                         <p className="visited-page-empty-hint">
-                            Find a place you've been on the{' '}
-                            <Link to="/">home page</Link> and click{' '}
-                            <em>"I've been here"</em>.
+                            Open a country from the{' '}
+                            <Link to="/">home page</Link> and tap{' '}
+                            <em>"I've been here"</em>, or do the same on a
+                            specific place page.
                         </p>
                     </div>
                 )}
 
-                {!isLoading && !isError && total > 0 && (
-                    <ul className="visited-list">
-                        {items.map((v) => (
-                            <li key={v.id} className="visited-card">
-                                <Link
-                                    to={`/place?q=${encodeURIComponent(v.placeName)}&i=0`}
-                                    className="visited-card-main"
-                                >
-                                    <PublicRoundedIcon className="visited-card-icon" />
-                                    <div className="visited-card-text">
-                                        <span className="visited-card-name">
-                                            {v.placeName}
-                                        </span>
-                                        <span className="visited-card-location">
-                                            {v.placeCity} · {v.placeCountry}
-                                        </span>
-                                        <span className="visited-card-meta">
-                                            Visited on{' '}
-                                            {formatDate(v.visitedAt, 'MMM D, YYYY')}
-                                            {' · '}
-                                            {sourceLabel(v.source)}
-                                        </span>
+                {!anyLoading && !anyError && countryTotal > 0 && (
+                    <section className="visited-section">
+                        <h2 className="visited-section-title">
+                            Countries
+                            <span className="visited-section-count">
+                                {countryTotal}
+                            </span>
+                        </h2>
+                        <ul className="visited-list">
+                            {countryItems.map((c) => (
+                                <li key={c.id} className="visited-card">
+                                    <Link
+                                        to={`/country?code=${encodeURIComponent(c.countryCode)}`}
+                                        className="visited-card-main"
+                                    >
+                                        <img
+                                            src={c.countryImage ?? NO_IMAGE}
+                                            alt=""
+                                            loading="lazy"
+                                            className={
+                                                c.countryImage
+                                                    ? 'visited-card-thumb'
+                                                    : 'visited-card-thumb is-placeholder'
+                                            }
+                                        />
+                                        <div className="visited-card-text">
+                                            <span className="visited-card-name">
+                                                {c.countryName}
+                                            </span>
+                                            <span className="visited-card-location">
+                                                {c.countryCode}
+                                            </span>
+                                            <span className="visited-card-meta">
+                                                Visited on{' '}
+                                                {formatDate(
+                                                    c.visitedAt,
+                                                    'MMM D, YYYY'
+                                                )}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                    <div className="visited-card-actions">
+                                        <DeleteBtn
+                                            title="Remove from visited"
+                                            label="Remove"
+                                            targetName={c.countryName}
+                                            buttonType={BUTTON_VARIANT.TEXT}
+                                            onConfirm={() =>
+                                                unmarkVisitedCountry.mutate(
+                                                    c.countryCode
+                                                )
+                                            }
+                                        />
                                     </div>
-                                </Link>
-                                <div className="visited-card-actions">
-                                    <DeleteBtn
-                                        title="Remove from visited"
-                                        label="Remove"
-                                        targetName={v.placeName}
-                                        buttonType={BUTTON_VARIANT.TEXT}
-                                        onConfirm={() =>
-                                            unmarkVisited.mutate(v.placeKey)
-                                        }
-                                    />
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {!anyLoading && !anyError && total > 0 && (
+                    <section className="visited-section">
+                        <h2 className="visited-section-title">
+                            Places
+                            <span className="visited-section-count">
+                                {total}
+                            </span>
+                        </h2>
+                        <ul className="visited-list">
+                            {items.map((v) => (
+                                <li key={v.id} className="visited-card">
+                                    <Link
+                                        to={`/place?q=${encodeURIComponent(v.placeName)}&i=0`}
+                                        className="visited-card-main"
+                                    >
+                                        <PublicRoundedIcon className="visited-card-icon" />
+                                        <div className="visited-card-text">
+                                            <span className="visited-card-name">
+                                                {v.placeName}
+                                            </span>
+                                            <span className="visited-card-location">
+                                                {v.placeCity} · {v.placeCountry}
+                                            </span>
+                                            <span className="visited-card-meta">
+                                                Visited on{' '}
+                                                {formatDate(v.visitedAt, 'MMM D, YYYY')}
+                                                {' · '}
+                                                {sourceLabel(v.source)}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                    <div className="visited-card-actions">
+                                        <DeleteBtn
+                                            title="Remove from visited"
+                                            label="Remove"
+                                            targetName={v.placeName}
+                                            buttonType={BUTTON_VARIANT.TEXT}
+                                            onConfirm={() =>
+                                                unmarkVisited.mutate(v.placeKey)
+                                            }
+                                        />
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
                 )}
             </div>
         </Layout>

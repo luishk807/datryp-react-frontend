@@ -21,19 +21,25 @@ const formatMiles = (mi: number): string => {
 
 export interface NearbyGridProps {
   items: NearbyDestination[];
-  origin: Coordinates;
+  /** When provided, items are sorted by haversine distance from origin and
+   *  each card shows a distance badge. Omit for country-scoped lists where
+   *  a single point doesn't make sense — items render in the server-provided
+   *  order and the distance badge is skipped. */
+  origin?: Coordinates;
 }
 
 const NearbyGrid = ({ items, origin }: NearbyGridProps) => {
-  // Sort nearest-first by the haversine distance from the place currently
-  // being viewed. OpenAI is asked to do this server-side too, but we re-sort
-  // defensively in case the model misorders.
-  const enriched = items
-    .map((d) => ({
-      d,
-      mi: haversineKm(origin, { lat: d.lat, lng: d.lng }) * KM_TO_MI,
-    }))
-    .sort((a, b) => a.mi - b.mi);
+  // With an origin: sort nearest-first by haversine distance (OpenAI orders
+  // server-side too, but we re-sort defensively). Without one: keep the
+  // model's order.
+  const enriched = origin
+    ? items
+        .map((d) => ({
+          d,
+          mi: haversineKm(origin, { lat: d.lat, lng: d.lng }) * KM_TO_MI,
+        }))
+        .sort((a, b) => a.mi - b.mi)
+    : items.map((d) => ({ d, mi: null as number | null }));
 
   return (
     <ul className="nearby-grid">
@@ -45,7 +51,9 @@ const NearbyGrid = ({ items, origin }: NearbyGridProps) => {
           >
             <div className="nearby-grid-head">
               <span className="nearby-grid-name">{d.name}</span>
-              <span className="nearby-grid-distance">{formatMiles(mi)}</span>
+              {mi !== null && (
+                <span className="nearby-grid-distance">{formatMiles(mi)}</span>
+              )}
               <ArrowForwardRoundedIcon
                 className="nearby-grid-arrow"
                 fontSize="small"

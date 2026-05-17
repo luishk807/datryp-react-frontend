@@ -9,8 +9,10 @@ export interface NearbySectionProps {
   /** The resolved list of nearby destinations. Pass `undefined` while the
    *  query is still loading — a `NearbyGridSkeleton` renders instead. */
   items: NearbyDestination[] | undefined;
-  /** Origin coordinates for the distance calculation. Pass `undefined`
-   *  while the query is still loading; the loading state ignores it. */
+  /** Origin coordinates for the distance calculation. Pass `undefined` to
+   *  render the list without distance badges (e.g. on the country page,
+   *  where a single point doesn't make sense). The loading skeleton is
+   *  driven by `items === undefined` alone. */
   origin: Coordinates | undefined;
   /** When true, the whole section renders nothing. Pass the source
    *  query's `isError` flag here instead of wrapping the call site in
@@ -35,7 +37,7 @@ const NearbySection = ({
       icon={<ExploreRoundedIcon />}
       size="md"
     >
-      {items && origin ? (
+      {items ? (
         <NearbyGrid items={items} origin={origin} />
       ) : (
         <NearbyGridSkeleton />

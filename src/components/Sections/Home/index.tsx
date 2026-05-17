@@ -93,37 +93,40 @@ const Home = () => {
     const { data: heroImages } = useHeroImages();
     const heroImage = useMemo(() => pickRandomHero(heroImages), [heroImages]);
 
+    /** SearchBar autocomplete pick — route the user to the country detail
+     *  page (preview-before-commit) and carry the mode they selected on the
+     *  hero tabs so the country CTA can dispatch the right trip type. */
     const handleSearchSelected = useCallback(
         (country: Country) => {
-            if (!country?.name) return;
-            // 'recommend' mode kicks off a single-trip flow with the chosen destination.
-            const type =
-                tripMode === TRIP_MODE.MULTIPLE ? TRIP_BASIC.MULTIPLE : TRIP_BASIC.SINGLE;
-            const destinations = [{ country }] as Destination[];
-
-            dispatch(resetTrip());
-            dispatch(basicInfo({ type, destinations }));
-            navigate(type.route, { replace: true });
+            if (!country?.code) return;
+            // Recommend mode skips the country page — it uses AI search at
+            // /search; the autocomplete pick never hits this branch in that
+            // mode, but guard anyway so an unexpected mode doesn't 404.
+            const mode =
+                tripMode === TRIP_MODE.MULTIPLE ? 'multiple' : 'single';
+            navigate(
+                `/country?code=${encodeURIComponent(country.code)}&mode=${mode}`
+            );
         },
-        [dispatch, tripMode, navigate]
+        [navigate, tripMode]
     );
 
     const handlePlaceClick = async (place: TopPlace) => {
-        // Resolve to the real backend UUID before navigating — the TopPlace
-        // sample data uses numeric IDs that don't exist in the DB.
+        // Resolve to the real backend UUID, then route to the country page.
+        // TopPlaces is a single-destination flow by convention, so we hand
+        // 'single' to the country page regardless of the tab state.
         const country = await resolveCountryByCode(place.country, place.countryCode);
-        if (!country) {
-            // Couldn't resolve (DB not seeded with this country, backend down).
-            // Fall back to letting the user pick a destination on the trip page.
+        if (!country?.code) {
+            // Couldn't resolve (DB not seeded, backend down). Fall back to
+            // the trip page so the user can still pick a destination there.
             dispatch(resetTrip());
             dispatch(basicInfo({ type: TRIP_BASIC.SINGLE, destinations: [] }));
             navigate(TRIP_BASIC.SINGLE.route, { replace: true });
             return;
         }
-        const destinations = [{ country }] as Destination[];
-        dispatch(resetTrip());
-        dispatch(basicInfo({ type: TRIP_BASIC.SINGLE, destinations }));
-        navigate(TRIP_BASIC.SINGLE.route, { replace: true });
+        navigate(
+            `/country?code=${encodeURIComponent(country.code)}&mode=single`
+        );
     };
 
     return (

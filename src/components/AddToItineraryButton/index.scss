@@ -1,0 +1,78 @@
+.add-itinerary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid theme('colors.primaryGreen');
+  background: #fff;
+  color: theme('colors.primaryGreen');
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover:not(.is-disabled) {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(60, 181, 75, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.add-itinerary-icon {
+  font-size: 1.15rem !important;
+}
+
+.add-itinerary-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.add-itinerary-modal-lead {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.95rem;
+  line-height: 1.5;
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+}
+
+.add-itinerary-option {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: #fafafa;
+
+  // Stretch the inner ButtonCustom so it spans the option card.
+  > button {
+    width: 100%;
+  }
+}
+
+.add-itinerary-option-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.4;
+}
