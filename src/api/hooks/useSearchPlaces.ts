@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlaceRecommendations } from 'api/placeRecommendationsApi';
+import { isQueryBlockedError } from 'api/moderationError';
+import { isSearchQuotaExceededError } from 'api/searchQuotaError';
 import type { PlaceRecommendationsResult } from 'types';
 
 /**
@@ -28,6 +30,13 @@ export const useSearchPlaces = (
             fetchPlaceRecommendations(query, limit, trimmedCountry || undefined),
         enabled: query.trim().length > 0,
         staleTime: 60 * 60 * 1000,
-        retry: 1,
+        // Don't retry our gated errors — same input will fail the same way
+        // and just wastes another network round-trip.
+        retry: (failureCount, error) => {
+            if (isQueryBlockedError(error) || isSearchQuotaExceededError(error)) {
+                return false;
+            }
+            return failureCount < 1;
+        },
     });
 };

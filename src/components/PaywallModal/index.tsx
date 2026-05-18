@@ -48,6 +48,17 @@ const PaywallModal = forwardRef<ModalButtonHandle, PaywallModalProps>(
 
                     <PlanCards />
 
+                    <p className="paywall-modal-compare">
+                        Want the full breakdown?{' '}
+                        <Link
+                            to="/membership"
+                            className="paywall-modal-link"
+                            onClick={handleClose}
+                        >
+                            See plan comparison
+                        </Link>
+                    </p>
+
                     <p className="paywall-modal-footnote">
                         By starting a trial you agree to our{' '}
                         <Link to="/terms" className="paywall-modal-link">

@@ -1,11 +1,17 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
+import DropDown from 'components/common/FormFields/DropDown';
 import IconLink from 'components/common/IconLink';
 import { useUser } from 'context/UserContext';
-import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
+import {
+    MAX_BIRTH_YEAR,
+    MIN_BIRTH_YEAR,
+    MIN_SIGNUP_AGE,
+    yearsSinceBirthYear,
+} from 'utils/age';
 import logoUrl from 'assets/logo.svg';
 import { AUTH_MODE } from 'constants';
 import type { AuthMode } from 'types';
@@ -38,8 +44,17 @@ const AuthGate = ({
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-    const [dob, setDob] = useState('');
+    const [birthYear, setBirthYear] = useState<number | ''>('');
+    const [confirmAge13Plus, setConfirmAge13Plus] = useState(false);
     const [phone, setPhone] = useState('');
+
+    const yearOptions = useMemo(() => {
+        const out: { id: number; name: string }[] = [];
+        for (let y = MAX_BIRTH_YEAR; y >= MIN_BIRTH_YEAR; y--) {
+            out.push({ id: y, name: String(y) });
+        }
+        return out;
+    }, []);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -76,13 +91,19 @@ const AuthGate = ({
             setError('Email and password are required.');
             return;
         }
-        if (!dob) {
-            setError('Date of birth is required.');
+        if (typeof birthYear !== 'number') {
+            setError('Please select your year of birth.');
             return;
         }
-        if (yearsSince(dob) < MIN_SIGNUP_AGE) {
+        if (yearsSinceBirthYear(birthYear) < MIN_SIGNUP_AGE) {
             setError(
                 `You must be at least ${MIN_SIGNUP_AGE} years old to create an account.`
+            );
+            return;
+        }
+        if (!confirmAge13Plus) {
+            setError(
+                `Please confirm you are at least ${MIN_SIGNUP_AGE} years old.`
             );
             return;
         }
@@ -91,7 +112,8 @@ const AuthGate = ({
             await signup({
                 email: trimmed,
                 password,
-                dob,
+                birth_year: birthYear,
+                confirm_age_13_plus: confirmAge13Plus,
                 name: name.trim() || undefined,
                 phone: phone.trim() || undefined,
             });
@@ -202,16 +224,37 @@ const AuthGate = ({
                                     />
                                 </div>
                                 <div className="authgate-field">
-                                    <InputField
-                                        name="dob"
-                                        label="Date of birth"
-                                        type="date"
-                                        defaultValue={dob}
-                                        onChange={(e) => {
-                                            setDob(e.target.value);
+                                    <DropDown
+                                        label="Year of birth"
+                                        options={yearOptions}
+                                        valueKey="id"
+                                        value={birthYear === '' ? null : birthYear}
+                                        placeholder="Select a year"
+                                        onChange={(opt) => {
+                                            setBirthYear(
+                                                opt && typeof opt.id === 'number'
+                                                    ? opt.id
+                                                    : ''
+                                            );
                                             resetError();
                                         }}
                                     />
+                                </div>
+                                <div className="authgate-field">
+                                    <label className="authgate-age-confirm">
+                                        <input
+                                            type="checkbox"
+                                            checked={confirmAge13Plus}
+                                            onChange={(e) => {
+                                                setConfirmAge13Plus(e.target.checked);
+                                                resetError();
+                                            }}
+                                        />
+                                        <span>
+                                            I confirm I am at least{' '}
+                                            {MIN_SIGNUP_AGE} years old.
+                                        </span>
+                                    </label>
                                 </div>
                                 <div className="authgate-field">
                                     <InputField

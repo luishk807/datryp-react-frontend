@@ -9,6 +9,8 @@ import type {
     PlaceRecommendationsResult,
 } from 'types';
 import { QueryBlockedError } from 'api/moderationError';
+import { SearchQuotaExceededError } from 'api/searchQuotaError';
+import { getAuthToken } from 'api/authStorage';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -52,7 +54,13 @@ export const fetchPlaceRecommendations = async (
     if (country && country.trim()) {
         params.set('country', country.trim());
     }
-    const resp = await fetch(`${API_BASE}/place-recommendations?${params}`);
+    // /place-recommendations now requires auth — attach the bearer token.
+    // Anonymous calls get 401 from the route and surface here as a thrown
+    // Error; the SearchResults page lifts the user into the login flow.
+    const token = getAuthToken();
+    const resp = await fetch(`${API_BASE}/place-recommendations?${params}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     if (resp.status === 422) {
         // Travel-scope moderation hit. Body shape: `{ detail: { blocked, category } }`.
         // Anything malformed falls through to the generic error branch below.
@@ -65,6 +73,30 @@ export const fetchPlaceRecommendations = async (
             }
         } catch (parseErr) {
             if (parseErr instanceof QueryBlockedError) throw parseErr;
+            // fall through to generic error
+        }
+    }
+    if (resp.status === 402) {
+        // Free-tier daily quota hit. Body shape:
+        // `{ detail: { quota_exceeded, limit, used, resets_at } }`.
+        try {
+            const errBody = (await resp.json()) as {
+                detail?: {
+                    quota_exceeded?: boolean;
+                    limit?: number;
+                    used?: number;
+                    resets_at?: string;
+                };
+            };
+            if (errBody.detail?.quota_exceeded) {
+                throw new SearchQuotaExceededError({
+                    limit: errBody.detail.limit ?? 5,
+                    used: errBody.detail.used ?? 0,
+                    resetsAt: errBody.detail.resets_at ?? null,
+                });
+            }
+        } catch (parseErr) {
+            if (parseErr instanceof SearchQuotaExceededError) throw parseErr;
             // fall through to generic error
         }
     }

@@ -22,7 +22,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import type { SignUpForm } from 'components/common/SignUpBtn';
-import { MIN_SIGNUP_AGE, yearsSince } from 'utils/age';
+import { MIN_SIGNUP_AGE, yearsSinceBirthYear } from 'utils/age';
 import { BUTTON_VARIANT, LOGO_IMAGE } from 'constants';
 import type { Country } from 'types';
 import './index.scss';
@@ -68,22 +68,31 @@ const Header = ({ withSearch = false }: HeaderProps) => {
     const handleSignUp = async (form: SignUpForm) => {
         const email = (form.email || form.username)?.trim();
         const password = form.password ?? '';
-        const dob = form.dob;
+        const birthYear = form.birthYear;
+        const confirmAge = !!form.confirmAge13Plus;
         if (!email || !password) {
             throw new Error('Email and password are required.');
         }
-        if (!dob) {
-            throw new Error('Date of birth is required.');
+        if (birthYear == null) {
+            throw new Error('Please select your year of birth.');
         }
-        if (yearsSince(dob) < MIN_SIGNUP_AGE) {
+        // Client-side mirror of the backend math gate — definite under-13s
+        // never even get a network round-trip.
+        if (yearsSinceBirthYear(birthYear) < MIN_SIGNUP_AGE) {
             throw new Error(
                 `You must be at least ${MIN_SIGNUP_AGE} years old to create an account.`
+            );
+        }
+        if (!confirmAge) {
+            throw new Error(
+                `Please confirm you are at least ${MIN_SIGNUP_AGE} years old.`
             );
         }
         await signup({
             email,
             password,
-            dob,
+            birth_year: birthYear,
+            confirm_age_13_plus: confirmAge,
             name: form.name,
             phone: form.phone,
         });
@@ -158,9 +167,7 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     <MenuActionItem
                                         icon={<StarRoundedIcon />}
                                         label="Upgrade to Pro"
-                                        onClick={() =>
-                                            handleNavigate('/account#subscription')
-                                        }
+                                        onClick={() => handleNavigate('/membership')}
                                     />
                                 )}
                                 {showSubscriptionLink && (
@@ -263,11 +270,7 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                         capitalizeType="none"
                                         className="drawer-link drawer-upgrade"
                                         label="Upgrade to Pro"
-                                        onClick={() =>
-                                            handleNavigate(
-                                                '/account#subscription'
-                                            )
-                                        }
+                                        onClick={() => handleNavigate('/membership')}
                                     />
                                 )}
                                 {showSubscriptionLink && (

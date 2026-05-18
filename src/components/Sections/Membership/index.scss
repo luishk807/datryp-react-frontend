@@ -1,0 +1,172 @@
+.membership-page {
+    width: 100%;
+    max-width: 900px;
+    /* Center within `.homeContainer` (which is `display: flex`). The auto
+     * margins center the article horizontally between the column edges. */
+    margin: 0 auto;
+    padding: 12px 0 60px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.78);
+
+    .membership-hero {
+        text-align: center;
+        margin-bottom: 32px;
+
+        .membership-hero-title {
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 700;
+            color: theme('colors.primary');
+            margin: 0 0 12px;
+        }
+
+        .membership-hero-subtitle {
+            max-width: 640px;
+            margin: 0 auto;
+            font-size: 1rem;
+            color: rgba(0, 0, 0, 0.6);
+        }
+    }
+
+    .membership-plans {
+        margin-bottom: 40px;
+
+        &--bottom {
+            margin-top: 40px;
+            margin-bottom: 0;
+        }
+    }
+
+    .membership-section-title {
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: theme('colors.primary');
+        margin: 0 0 16px;
+    }
+
+    .membership-table-section {
+        margin-bottom: 40px;
+    }
+
+    .membership-table-scroll {
+        /* Horizontal scroll on narrow screens so the table doesn't squeeze
+           into illegible chunks. Wraps cleanly above ~640px. */
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .membership-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        font-size: 0.95rem;
+
+        th,
+        td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.03);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: rgba(0, 0, 0, 0.55);
+        }
+
+        .membership-table-feature {
+            width: 45%;
+        }
+
+        .membership-table-feature-label {
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        .membership-table-feature-note {
+            font-size: 0.85rem;
+            color: rgba(0, 0, 0, 0.5);
+            margin-top: 2px;
+        }
+
+        .membership-table-pro-tag {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0;
+            color: theme('colors.primaryOrange');
+            margin-top: 2px;
+        }
+
+        .membership-table-pro-cell {
+            background: rgba(246, 137, 31, 0.04);
+            font-weight: 500;
+        }
+    }
+
+    .membership-icon {
+        font-size: 1.2rem;
+
+        &--check {
+            color: theme('colors.primaryGreen');
+        }
+
+        &--cross {
+            color: rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    .membership-why {
+        margin-bottom: 40px;
+    }
+
+    .membership-why-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+
+        li {
+            padding: 12px 16px;
+            background: rgba(60, 181, 75, 0.04);
+            border-left: 3px solid theme('colors.primaryGreen');
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+    }
+
+    .membership-faq {
+        margin-bottom: 16px;
+
+        .membership-faq-item {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            h3 {
+                font-size: 1rem;
+                font-weight: 600;
+                color: theme('colors.primary');
+                margin: 0 0 6px;
+            }
+
+            p {
+                margin: 0;
+                font-size: 0.95rem;
+                color: rgba(0, 0, 0, 0.7);
+            }
+        }
+    }
+}

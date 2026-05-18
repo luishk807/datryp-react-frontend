@@ -3,8 +3,10 @@ import './index.scss';
 import Layout from 'components/common/Layout/SubLayout';
 import PlaceResultCard from 'components/PlaceResultCard';
 import PlaceResultCardSkeleton from 'components/PlaceResultCardSkeleton';
+import PlanCards from 'components/PlanCards';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { isQueryBlockedError } from 'api/moderationError';
+import { isSearchQuotaExceededError } from 'api/searchQuotaError';
 
 const SKELETON_COUNT = 4;
 
@@ -58,6 +60,36 @@ const SearchResults = () => {
                         </Link>
                         .
                     </p>
+                );
+            }
+            if (isSearchQuotaExceededError(error)) {
+                return (
+                    <div className="search-results-quota">
+                        <p className="search-results-quota-headline">
+                            You&rsquo;ve used your{' '}
+                            <strong>
+                                {error.used}/{error.limit}
+                            </strong>{' '}
+                            free AI searches for today.
+                        </p>
+                        <p className="search-results-quota-body">
+                            Free searches reset at midnight UTC. Or upgrade to
+                            Pro for unlimited Advanced AI Search and unlimited
+                            saved trips.{' '}
+                            <Link
+                                to="/membership"
+                                className="search-results-quota-link"
+                            >
+                                See plan comparison
+                            </Link>
+                            .
+                        </p>
+                        <div className="search-results-quota-plans">
+                            <PlanCards
+                                showTrialNote={false}
+                            />
+                        </div>
+                    </div>
                 );
             }
             return (

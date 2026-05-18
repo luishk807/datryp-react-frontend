@@ -10,6 +10,7 @@ import SubscriptionSection from './SubscriptionSection';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
+import { MAX_BIRTH_YEAR, MIN_BIRTH_YEAR } from 'utils/age';
 import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
 
@@ -47,7 +48,7 @@ export const Account = () => {
     const [name, setName] = useState(user?.name ?? '');
     const [email, setEmail] = useState(user?.email ?? '');
     const [phone, setPhone] = useState(user?.phone ?? '');
-    const [dob, setDob] = useState(user?.dob ?? '');
+    const [birthYear, setBirthYear] = useState<number | ''>(user?.birthYear ?? '');
     const [countryOfBirth, setCountryOfBirth] = useState(
         user?.countryOfBirth ?? ''
     );
@@ -71,12 +72,22 @@ export const Account = () => {
     );
     const [prefsSaved, setPrefsSaved] = useState(false);
 
+    // Year-of-birth dropdown options, most-recent first (so a 30-year-old
+    // doesn't have to scroll past 1900 to find their year).
+    const yearOptions = useMemo(() => {
+        const out: { id: number; name: string }[] = [];
+        for (let y = MAX_BIRTH_YEAR; y >= MIN_BIRTH_YEAR; y--) {
+            out.push({ id: y, name: String(y) });
+        }
+        return out;
+    }, []);
+
     useEffect(() => {
         if (!user) return;
         setName(user.name);
         setEmail(user.email ?? '');
         setPhone(user.phone ?? '');
-        setDob(user.dob ?? '');
+        setBirthYear(user.birthYear ?? '');
         setCountryOfBirth(user.countryOfBirth ?? '');
         setPreferredAirport(user.preferredAirport ?? '');
         setNotifications(user.notifications ?? DEFAULT_NOTIFICATIONS);
@@ -104,7 +115,7 @@ export const Account = () => {
             name: name.trim(),
             email: email.trim() || undefined,
             phone: phone.trim() || undefined,
-            dob: dob || undefined,
+            birthYear: typeof birthYear === 'number' ? birthYear : undefined,
             countryOfBirth: countryOfBirth.trim() || undefined,
         });
         setProfileSaved(true);
@@ -185,13 +196,20 @@ export const Account = () => {
                             placeholder="+1 555 123 4567"
                             required={false}
                         />
-                        <InputField
+                        <DropDown
                             variant="bare"
-                            label="Date of birth"
-                            type="date"
-                            value={dob}
-                            onChange={(e) => setDob(e.target.value)}
-                            required={false}
+                            label="Year of birth"
+                            options={yearOptions}
+                            valueKey="id"
+                            value={birthYear === '' ? null : birthYear}
+                            placeholder="Select a year"
+                            onChange={(opt) =>
+                                setBirthYear(
+                                    opt && typeof opt.id === 'number'
+                                        ? opt.id
+                                        : ''
+                                )
+                            }
                         />
                         <DropDown
                             variant="bare"

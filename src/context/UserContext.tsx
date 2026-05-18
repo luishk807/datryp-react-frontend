@@ -38,7 +38,10 @@ export interface User {
     name: string;
     email?: string;
     phone?: string;
-    dob?: string;
+    /** Year of birth — replaces the previous full-DOB field. Used only for
+     *  the COPPA gate, never displayed in birthday-style features (we don't
+     *  have any). */
+    birthYear?: number;
     countryOfBirth?: string;
     preferredAirport?: string;
     paymentType?: PaymentType;
@@ -78,7 +81,7 @@ export interface User {
 type LocalOverlay = Pick<
     User,
     | 'phone'
-    | 'dob'
+    | 'birthYear'
     | 'countryOfBirth'
     | 'preferredAirport'
     | 'paymentType'

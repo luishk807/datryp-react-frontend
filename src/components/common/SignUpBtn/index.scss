@@ -22,3 +22,20 @@
   color: rgba(0, 0, 0, 0.6);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+#signup .age-confirm-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+  }
+}

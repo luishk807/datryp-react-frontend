@@ -13,8 +13,13 @@ const API_BASE =
 export interface SignupPayload {
     email: string;
     password: string;
-    /** Required for COPPA age gating (server rejects under-13). */
-    dob: string;
+    /** Year of birth (1900..current year). Server rejects definite under-13s
+     *  via `currentYear - birthYear < 13`; the checkbox below covers the
+     *  one-year ambiguity. */
+    birth_year: number;
+    /** User explicitly attests they're at least 13. Server enforces this is
+     *  true on signup. */
+    confirm_age_13_plus: boolean;
     name?: string;
     phone?: string;
 }

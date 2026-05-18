@@ -180,6 +180,23 @@
   flex-direction: column;
 }
 
+.authgate-age-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+  }
+}
+
 /* Match the inputs to the modal style elsewhere in the app — MUI default
  * spacing is a bit tight for a hero auth form. */
 .authgate-form .MuiFormControl-root,

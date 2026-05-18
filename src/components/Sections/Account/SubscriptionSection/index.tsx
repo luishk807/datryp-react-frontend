@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import PlanCards from 'components/PlanCards';
 import { useOpenBillingPortal } from 'api/hooks/useBilling';
@@ -188,6 +189,14 @@ const SubscriptionSection = () => {
                         : 'Unlimited saved trips, Advanced AI Search, richer recommendations.'
                 }
             />
+
+            <p className="subscription-compare">
+                Want the full feature breakdown?{' '}
+                <Link to="/membership" className="subscription-compare-link">
+                    See plan comparison
+                </Link>
+                .
+            </p>
         </section>
     );
 };

@@ -41,6 +41,42 @@
   border-radius: 8px;
 }
 
+/* Free-tier daily search quota hit. Pushes towards Pro. */
+.search-results-quota {
+  max-width: 720px;
+  padding: 28px 24px;
+  border-radius: 12px;
+  background: rgba(246, 137, 31, 0.06);
+  border: 1px solid rgba(246, 137, 31, 0.25);
+
+  .search-results-quota-headline {
+    font-size: 1.15rem;
+    color: theme('colors.primary');
+    margin: 0 0 8px;
+    line-height: 1.4;
+  }
+
+  .search-results-quota-body {
+    font-size: 0.95rem;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+
+  .search-results-quota-plans {
+    margin-top: 4px;
+  }
+
+  .search-results-quota-link {
+    color: theme('colors.primaryGreen');
+    text-decoration: underline;
+
+    &:hover {
+      color: theme('colors.primaryOrange');
+    }
+  }
+}
+
 /* Travel-scope moderation hit — a soft redirect, not an error. */
 .search-results-blocked {
   color: rgb(120, 53, 15);

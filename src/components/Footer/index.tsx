@@ -13,6 +13,7 @@ interface QuickLink {
 
 const QUICK_LINKS: QuickLink[] = [
   { label: "About Us", href: "#" },
+  { label: "Pricing", href: "/membership", internal: true },
   { label: "Contact Us", href: "#" },
   { label: "Terms of Use", href: "/terms", internal: true },
   { label: "Privacy Policy", href: "#" },

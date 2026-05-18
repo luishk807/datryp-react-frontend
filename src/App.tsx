@@ -19,6 +19,8 @@ const Saved = lazy(() => import('components/Sections/Saved'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const CityDetail = lazy(() => import('components/Sections/CityDetail'));
 const Terms = lazy(() => import('components/Sections/Terms'));
+const Membership = lazy(() => import('components/Sections/Membership'));
+const MembershipWelcome = lazy(() => import('components/Sections/MembershipWelcome'));
 const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
@@ -85,9 +87,12 @@ function App() {
                     </Gated>
                 }/>
                 <Route path='/search' element={
-                    <Suspense fallback={<>...</>}>
+                    <Gated
+                        title="Sign in to use AI search"
+                        subtitle="Free accounts get 5 AI searches per day, with Advanced AI Search for Pro members."
+                    >
                         <SearchResults />
-                    </Suspense>
+                    </Gated>
                 }/>
                 <Route path='/place' element={
                     <Gated
@@ -134,6 +139,16 @@ function App() {
                 <Route path='/terms' element={
                     <Suspense fallback={<>...</>}>
                         <Terms />
+                    </Suspense>
+                }/>
+                <Route path='/membership' element={
+                    <Suspense fallback={<>...</>}>
+                        <Membership />
+                    </Suspense>
+                }/>
+                <Route path='/membership/welcome' element={
+                    <Suspense fallback={<>...</>}>
+                        <MembershipWelcome />
                     </Suspense>
                 }/>
                 <Route path='*' element={
