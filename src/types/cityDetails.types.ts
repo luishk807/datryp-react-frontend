@@ -44,6 +44,10 @@ export interface CitySummary {
     name: string;
     country: string;
     countryCode: string;
+    /** Backend UUID of the city's country, resolved from `countryCode` in
+     *  the catalog. `null` when the country isn't seeded — saving the trip
+     *  then won't link to a country FK. */
+    countryId: string | null;
     imageUrl: string | null;
     photographerName: string | null;
     photographerUrl: string | null;

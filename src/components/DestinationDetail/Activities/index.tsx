@@ -1,5 +1,6 @@
 import './index.scss';
 import { useMemo } from 'react';
+import classNames from 'classnames';
 import { reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
@@ -7,9 +8,15 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
+import { useDroppable } from '@dnd-kit/core';
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
+import DraggableActivity from 'components/DestinationDetail/Activities/DraggableActivity';
 import { convertMoney } from 'utils';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import { useTripStatuses } from 'api/hooks/useLookups';
@@ -23,6 +30,13 @@ export interface ActivitiesProps {
     participants?: Friend[];
     tripTypeId?: number;
     isViewMode?: boolean;
+    /** Source destination index for any activity dragged out of this list.
+     *  Defaults to 0 (single-trip case). */
+    destIdx?: number;
+    /** Date string identifying this day's drop target. Empty string means
+     *  callers haven't wired drag-and-drop yet; the cards still render but
+     *  without sortable/droppable behaviour. */
+    date?: string;
 }
 
 const isConfirmedStatus = (status: Activity['status']): boolean => {
@@ -39,7 +53,24 @@ const Activities = ({
     participants = [],
     tripTypeId,
     isViewMode = false,
+    destIdx = 0,
+    date = '',
 }: ActivitiesProps) => {
+    // Day-level drop target — accepts drops onto empty space when there
+    // are no sortable cards to land on. dnd-kit needs both the sortable
+    // items AND a droppable container to support the empty-day case.
+    const dndEnabled = Boolean(date) && !isViewMode;
+    const { setNodeRef, isOver } = useDroppable({
+        id: `day-${destIdx}-${date}`,
+        data: { type: 'day', destIdx, date },
+        disabled: !dndEnabled,
+    });
+
+    const activityIds = useMemo(
+        () => (activities ?? []).map((a) => `act-${a.id}`),
+        [activities]
+    );
+
     // Activities share the same `trip_statuses` lookup as trips, so toggling
     // the badge resolves the real backend UUID here. If the lookup hasn't
     // loaded yet (cold cache, transient network blip), we fall back to a
@@ -57,8 +88,24 @@ const Activities = ({
         };
     }, [tripStatuses]);
 
+    const isEmpty = !activities || activities.length === 0;
     return (
-        <>
+        <div
+            ref={setNodeRef}
+            className={classNames('activities-droppable', {
+                'is-drop-target': dndEnabled && isOver,
+                'is-empty': isEmpty,
+            })}
+        >
+            {dndEnabled && isEmpty && (
+                <p className="activities-empty-hint">
+                    Drop a place here, or add one below.
+                </p>
+            )}
+            <SortableContext
+                items={activityIds}
+                strategy={verticalListSortingStrategy}
+            >
             {activities &&
                 activities.map((activity, indx) => {
                     const activityTime = `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
@@ -75,9 +122,9 @@ const Activities = ({
                     // place back to Planning to reopen editing.
                     const isPlaceLocked =
                         isViewMode || isConfirmedStatus(activity.status);
-                    return (
+                    const hasImage = Boolean(activity.image?.url);
+                    const card = (
                         <Grid
-                            key={`activity-${indx}`}
                             item
                             lg={12}
                             md={12}
@@ -85,10 +132,18 @@ const Activities = ({
                             className="activity-content-trip border-trip"
                         >
                             <Grid container>
-                                <Grid item lg={2} md={2} xs={12} className="content-image">
-                                    <ImageBlock image={activity.image} />
-                                </Grid>
-                                <Grid item lg={10} md={10} xs={12} className="content-detail">
+                                {hasImage && (
+                                    <Grid item lg={2} md={2} xs={12} className="content-image">
+                                        <ImageBlock image={activity.image} />
+                                    </Grid>
+                                )}
+                                <Grid
+                                    item
+                                    lg={hasImage ? 10 : 12}
+                                    md={hasImage ? 10 : 12}
+                                    xs={12}
+                                    className="content-detail"
+                                >
                                     <Grid container>
                                         <Grid item lg={11} md={11} xs={12} className="info">
                                             <span className="title">{activity.name}</span>
@@ -223,7 +278,19 @@ const Activities = ({
                             </Grid>
                         </Grid>
                     );
+                    return (
+                        <DraggableActivity
+                            key={`activity-${activity.id}`}
+                            activityId={activity.id}
+                            destIdx={destIdx}
+                            date={date}
+                            disabled={!dndEnabled || isPlaceLocked}
+                        >
+                            {card}
+                        </DraggableActivity>
+                    );
                 })}
+            </SortableContext>
             <Grid item lg={12} className="content-trip">
                 <Grid container>
                     <Grid item lg={12} className="add-place-item">
@@ -235,7 +302,7 @@ const Activities = ({
                     </Grid>
                 </Grid>
             </Grid>
-        </>
+        </div>
     );
 };
 

@@ -56,13 +56,19 @@ const CityDetail = () => {
     const startTrip = (cityCountry: {
         name: string;
         countryCode: string;
+        countryId: string | null;
+        countryImage: string | null;
     }) => {
+        // Use the catalog UUID when we have it — the itinerary save mutation
+        // rejects ids that don't match a real countries row, so id=0 would
+        // silently drop the country FK on save.
         const destinations = [
             {
                 country: {
-                    id: 0,
+                    id: cityCountry.countryId ?? 0,
                     name: cityCountry.name,
                     code: cityCountry.countryCode,
+                    image: cityCountry.countryImage ?? undefined,
                 },
             },
         ] as Destination[];
@@ -154,6 +160,8 @@ const CityDetail = () => {
                                 startTrip({
                                     name: city.country,
                                     countryCode: city.countryCode,
+                                    countryId: city.countryId,
+                                    countryImage: city.imageUrl,
                                 })
                             }
                         >

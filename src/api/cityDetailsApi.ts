@@ -107,6 +107,7 @@ interface CitySummaryRaw {
     name: string;
     country: string;
     country_code: string;
+    country_id: string | null;
     image_url: string | null;
     photographer_name: string | null;
     photographer_url: string | null;
@@ -122,6 +123,7 @@ const toCity = (raw: CitySummaryRaw): CitySummary => ({
     name: raw.name,
     country: raw.country,
     countryCode: raw.country_code,
+    countryId: raw.country_id,
     imageUrl: raw.image_url,
     photographerName: raw.photographer_name,
     photographerUrl: raw.photographer_url,

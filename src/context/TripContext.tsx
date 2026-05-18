@@ -68,6 +68,18 @@ interface DeletePlacePayload {
     destinationIndx?: number;
 }
 
+interface MovePlacePayload {
+    /** Activity id to relocate. Identity is stable across renders. */
+    activityId: number;
+    /** Source destination index. */
+    fromDestIndx: number;
+    /** Target destination index. May equal `fromDestIndx` (within-dest move). */
+    toDestIndx: number;
+    /** Target date (any parseable date string). The activity is appended to
+     *  the matching ItineraryDay; a new day row is created if none exists. */
+    toDate: string;
+}
+
 interface AddBudgetPayload {
     value: Array<Omit<BudgetItem, 'id'>>;
     activityId: number;
@@ -82,6 +94,7 @@ export type TripAction =
     | { type: 'addPlace'; payload: AddPlacePayload }
     | { type: 'editPlace'; payload: EditPlacePayload }
     | { type: 'deletePlace'; payload: DeletePlacePayload }
+    | { type: 'movePlace'; payload: MovePlacePayload }
     | { type: 'addBudget'; payload: AddBudgetPayload }
     | { type: 'resetTrip' };
 
@@ -117,6 +130,11 @@ export const editPlace = (payload: EditPlacePayload): TripAction => ({
 
 export const deletePlace = (payload: DeletePlacePayload): TripAction => ({
     type: 'deletePlace',
+    payload,
+});
+
+export const movePlace = (payload: MovePlacePayload): TripAction => ({
+    type: 'movePlace',
     payload,
 });
 
@@ -232,6 +250,51 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                     day.activities.splice(idx, 1);
                     return;
                 }
+            }
+            return;
+        }
+        case 'movePlace': {
+            const { activityId, fromDestIndx, toDestIndx, toDate } =
+                action.payload;
+            const fromDest = draft.destinations[fromDestIndx];
+            if (!fromDest?.itinerary) return;
+
+            // Find + extract the source activity. Splice from its day so
+            // the source itinerary stays consistent.
+            let moved: Activity | null = null;
+            for (const day of fromDest.itinerary) {
+                const idx = day.activities.findIndex((a) => a.id === activityId);
+                if (idx !== -1) {
+                    moved = day.activities.splice(idx, 1)[0];
+                    break;
+                }
+            }
+            if (!moved) return;
+
+            // Auto-create destinations up to `toDestIndx` if missing — same
+            // guard as `addPlace`. Keeps the reducer safe against stale
+            // indexes from rapid UI changes.
+            while (draft.destinations.length <= toDestIndx) {
+                draft.destinations.push({
+                    id: generateId(),
+                    country: { id: 0, name: '' },
+                    itinerary: [],
+                } as Destination);
+            }
+            const toDest = draft.destinations[toDestIndx];
+            if (!toDest.itinerary) toDest.itinerary = [];
+
+            const targetDay = toDest.itinerary.find((d) =>
+                isSameDay(d.date, toDate)
+            );
+            if (targetDay) {
+                targetDay.activities.push(moved);
+            } else {
+                toDest.itinerary.push({
+                    id: generateId(),
+                    date: toDate,
+                    activities: [moved],
+                });
             }
             return;
         }

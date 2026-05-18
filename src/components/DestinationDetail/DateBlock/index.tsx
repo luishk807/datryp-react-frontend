@@ -96,12 +96,14 @@ const DateBlock = ({
                                 participants={participants}
                                 onChangeBudget={onChangeBudget}
                                 trips={trips as Activity[] | null}
+                                date={startDate}
                             />
                         ) : (
                             <MultipleTrips
                                 defaultDate={startDate}
                                 isViewMode={isViewMode}
                                 trips={trips as Destination[] | null}
+                                allDestinations={destinations}
                                 tripMaxDate={tripMaxDate}
                                 onChangePlace={onChangePlace}
                                 onChangeDestination={onChangeDestination}

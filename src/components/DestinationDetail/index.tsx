@@ -1,12 +1,27 @@
 import { useEffect, useState } from 'react';
 import moment from 'moment'; // computeDatesRange iterates moment objects directly (clone/add/isAfter/isBefore); kept on raw moment
-import { Grid } from '@mui/material';
+import { Grid, Snackbar } from '@mui/material';
 import _ from 'lodash';
+import {
+    DndContext,
+    PointerSensor,
+    KeyboardSensor,
+    useSensor,
+    useSensors,
+    closestCenter,
+    type DragEndEvent,
+} from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { formatDate, isAfter, isBefore, isSameDay } from 'utils';
+import {
+    movePlace as movePlaceAction,
+    useTripDispatch,
+} from 'context/TripContext';
 import './index.scss';
 import DateBlock from './DateBlock';
 import type {
     ActionType,
+    Activity,
     Destination,
     Friend,
     TripBasicType,
@@ -98,10 +113,105 @@ const DestinationDetail = ({
     isViewMode = false,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
+    const [dndError, setDndError] = useState<string | null>(null);
+    const dispatch = useTripDispatch();
 
     useEffect(() => {
         setDates(computeDatesRange(startDate, endDate, destinations));
     }, [startDate, endDate, destinations]);
+
+    // PointerSensor with an 8px activation distance — keeps regular clicks
+    // (edit/delete buttons inside cards) from being hijacked as drags.
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
+
+    /** Locate the source destination for a dragged activity by scanning the
+     *  whole tree. Activity ids are unique within a trip. */
+    const findSourceDest = (
+        activityId: number
+    ): { destIdx: number; activity: Activity } | null => {
+        for (let i = 0; i < destinations.length; i++) {
+            const itin = destinations[i]?.itinerary;
+            if (!itin) continue;
+            for (const day of itin) {
+                const found = day.activities.find((a) => a.id === activityId);
+                if (found) return { destIdx: i, activity: found };
+            }
+        }
+        return null;
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        if (isViewMode) return;
+        const { active, over } = event;
+        if (!over) return;
+
+        const activeData = active.data.current;
+        const overData = over.data.current;
+        if (!activeData || activeData.type !== 'activity') return;
+
+        const activityId = Number(activeData.activityId);
+        if (!Number.isFinite(activityId)) return;
+
+        // Resolve target destIdx + date from either a day-droppable or
+        // another activity card (sortable items report their own id when
+        // hovered, the wrapping container reports day-... when not).
+        let toDestIdx: number | undefined;
+        let toDate: string | undefined;
+        if (overData?.type === 'day') {
+            toDestIdx = Number(overData.destIdx);
+            toDate = String(overData.date ?? '');
+        } else if (overData?.type === 'activity') {
+            toDestIdx = Number(overData.destIdx);
+            toDate = String(overData.date ?? '');
+        }
+        if (toDate === undefined || toDestIdx === undefined || !toDate) return;
+
+        const source = findSourceDest(activityId);
+        if (!source) return;
+
+        // Cross-destination guard: target date must fall within target
+        // destination's start..end range. Snap back with a toast otherwise.
+        if (source.destIdx !== toDestIdx) {
+            const toDest = destinations[toDestIdx];
+            const start = toDest?.startDate;
+            const end = toDest?.endDate;
+            const inRange =
+                !!start &&
+                !!end &&
+                !isBefore(toDate, start) &&
+                !isAfter(toDate, end);
+            if (!inRange) {
+                setDndError(
+                    `${toDest?.country?.name ?? 'That destination'} doesn't cover ${formatDate(toDate, 'MMM D')}.`
+                );
+                return;
+            }
+        }
+
+        // No-op if dropped back exactly where it came from.
+        const fromDay = destinations[source.destIdx]?.itinerary?.find((d) =>
+            d.activities.some((a) => a.id === activityId)
+        );
+        if (
+            source.destIdx === toDestIdx &&
+            fromDay &&
+            isSameDay(fromDay.date, toDate)
+        ) {
+            return;
+        }
+
+        dispatch(
+            movePlaceAction({
+                activityId,
+                fromDestIndx: source.destIdx,
+                toDestIndx: toDestIdx,
+                toDate,
+            })
+        );
+    };
 
     const handleChangeDestination = (obj: TripDestinationEvent) => {
         const ignoreId = _.get(obj, 'activity.value.id');
@@ -145,8 +255,13 @@ const DestinationDetail = ({
     };
 
     return (
-        <Grid container>
-            {dates.map((date, indx) => {
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <Grid container>
+                {dates.map((date, indx) => {
                 const dateStr = formatDate(date.startDate);
                 return (
                     <DateBlock
@@ -181,7 +296,15 @@ const DestinationDetail = ({
                     />
                 );
             })}
-        </Grid>
+            </Grid>
+            <Snackbar
+                open={Boolean(dndError)}
+                onClose={() => setDndError(null)}
+                autoHideDuration={2400}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                message={dndError}
+            />
+        </DndContext>
     );
 };
 

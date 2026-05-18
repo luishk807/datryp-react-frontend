@@ -25,6 +25,10 @@ export interface MultipleProps {
     defaultDate?: string;
     tripMaxDate?: string | null;
     trips?: Destination[] | null;
+    /** Full destinations array from TripState, unfiltered. Used to compute
+     *  each filtered trip's real index in the parent state — the index that
+     *  movePlace expects in dnd-kit's drag-end payload. */
+    allDestinations?: Destination[];
     onChangeDestination: (type: ActionType, value: unknown) => void;
     onChangeBudget: (type: ActionType, value: unknown, destinationIndx?: number) => void;
     onChangePlace: (type: ActionType, value: unknown, destinationIndx?: number) => void;
@@ -36,6 +40,7 @@ const Multiple = ({
     defaultDate,
     tripMaxDate,
     trips = [],
+    allDestinations = [],
     onChangeDestination,
     onChangeBudget,
     onChangePlace,
@@ -48,6 +53,18 @@ const Multiple = ({
                     const flightInfo = _.get(trip, 'flightInfo');
                     const country = _.get(trip, 'country.name');
                     const activities = _.get(trip, 'itinerary.0.activities');
+                    // Resolve the destination's real index in the parent
+                    // state — onChangePlace/onChangeBudget already do this
+                    // by date, but drag-and-drop needs it eagerly so the
+                    // droppable's `data` payload carries the right index.
+                    const realDestIdx = (() => {
+                        const byId = allDestinations.findIndex((d) => d.id === trip.id);
+                        if (byId !== -1) return byId;
+                        // Fall back to the filtered-loop index if the
+                        // destination has no id yet (early state during the
+                        // new-trip flow).
+                        return indx;
+                    })();
                     return (
                         <Grid
                             key={`trip-${indx}`}
@@ -141,9 +158,11 @@ const Multiple = ({
                                         isViewMode={isViewMode}
                                         tripTypeId={TRIP_BASIC.MULTIPLE.id}
                                         activities={activities}
-                                        onChangePlace={(type, e) => onChangePlace(type, e, indx)}
+                                        onChangePlace={(type, e) => onChangePlace(type, e, realDestIdx)}
                                         participants={participants}
-                                        onChangeBudget={(type, e) => onChangeBudget(type, e, indx)}
+                                        onChangeBudget={(type, e) => onChangeBudget(type, e, realDestIdx)}
+                                        destIdx={realDestIdx}
+                                        date={trip.startDate ?? defaultDate ?? ''}
                                     />
                                 </Grid>
                             </Grid>
