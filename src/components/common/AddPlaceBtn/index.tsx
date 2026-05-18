@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ComponentType } from 'react';
 import { Grid } from '@mui/material';
 import { now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -6,6 +6,9 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
+import PlaceAutocomplete, {
+    type PlaceSuggestion,
+} from 'components/common/PlaceAutocomplete';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import classNames from 'classnames';
 import { ACTION, BUTTON_VARIANT, TRIP_BASIC } from 'constants';
@@ -13,9 +16,9 @@ import './index.scss';
 import type { Activity, AddEditButtonProps, Friend, ImageRef } from 'types';
 
 const PLACE_LABEL = {
-    ADD: 'Add Place',
+    ADD: 'Add Activity',
     EDIT: 'Edit',
-    SAVE: 'Save Place',
+    SAVE: 'Save Activity',
 } as const;
 
 interface PlaceDraft {
@@ -33,6 +36,16 @@ interface PlaceDraft {
 
 export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activity> {
     tripTypeId?: number;
+    /** Country scope for the AI autocomplete — keeps a Spain trip from
+     *  suggesting the Eiffel Tower. Omit for a global search. */
+    countryScope?: string;
+    /** When set, the modal trigger renders as an icon-only button with
+     *  this icon (no text label). Use for inline edit affordances next to
+     *  an activity title. Falls back to the text/standard button when omitted. */
+    triggerIcon?: ComponentType<{ fontSize?: 'inherit' | 'small' | 'medium' | 'large' }>;
+    /** Optional class for the modal trigger — used by inline edit pencils
+     *  that want compact MUI IconButton-style padding. */
+    triggerClassName?: string;
 }
 
 const AddPlaceBtn = ({
@@ -40,6 +53,9 @@ const AddPlaceBtn = ({
     type = ACTION.ADD,
     data = null,
     tripTypeId,
+    countryScope,
+    triggerIcon,
+    triggerClassName,
     buttonType = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
 }: AddPlaceBtnProps) => {
@@ -78,6 +94,20 @@ const AddPlaceBtn = ({
         });
     };
 
+    /** AI suggestion picked from PlaceAutocomplete — prefill name + location
+     *  + image in one go. The user can still edit any of them before saving. */
+    const handlePlacePicked = (suggestion: PlaceSuggestion) => {
+        setError(null);
+        setPlace((prev) => ({
+            ...prev,
+            name: suggestion.name,
+            location: suggestion.location,
+            image: suggestion.imageUrl
+                ? { url: suggestion.imageUrl, name: suggestion.name }
+                : prev.image,
+        }));
+    };
+
     const handleImageChange = (e: { target: { value: string } } | React.ChangeEvent<HTMLInputElement>) => {
         const target = (e as React.ChangeEvent<HTMLInputElement>).target;
         const file = target.files?.[0];
@@ -92,8 +122,10 @@ const AddPlaceBtn = ({
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const missing: string[] = [];
-        if (!place.name?.trim()) missing.push('name of place');
-        if (!place.location?.trim()) missing.push('location');
+        // Activities don't have to be places — a "checkout at 10am" note is
+        // a valid activity, so location is optional. Only the bare minimum
+        // (name + time window) is required to keep the timeline coherent.
+        if (!place.name?.trim()) missing.push('name');
         if (!place.startTime?.trim()) missing.push('start time');
         if (!place.endTime?.trim()) missing.push('end time');
         if (missing.length) {
@@ -134,48 +166,62 @@ const AddPlaceBtn = ({
 
     if (isViewMode) return null;
 
-    return (
-        <Grid
-            container
-            className={classNames({
-                'add-place-container-standard': buttonType === BUTTON_VARIANT.STANDARD,
-                'add-place-container-simple': buttonType === BUTTON_VARIANT.TEXT,
-            })}
+    const modalElement = (
+        <ModalButton
+            ref={modelRef}
+            title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
+            buttonProps={
+                triggerIcon
+                    ? {
+                          // Icon-only trigger — no text label so it sits
+                          // tight next to an activity title.
+                          title: '',
+                          Icon: triggerIcon,
+                          type: BUTTON_VARIANT.TEXT_PLAIN,
+                          className: triggerClassName,
+                          iconProps: { fontSize: 'small' },
+                          ariaLabel: isAdd
+                              ? PLACE_LABEL.ADD
+                              : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`,
+                      }
+                    : {
+                          title: isAdd ? PLACE_LABEL.ADD : PLACE_LABEL.EDIT,
+                          Icon:
+                              buttonType === BUTTON_VARIANT.STANDARD
+                                  ? AddCircleIcon
+                                  : null,
+                          type: buttonType,
+                      }
+            }
         >
-            <Grid
-                item
-                lg={12}
-                md={12}
-                xs={12}
-                className={classNames({
-                    'place-left': tripTypeId === TRIP_BASIC.MULTIPLE.id,
-                })}
-            >
-                <ModalButton
-                    ref={modelRef}
-                    title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
-                    buttonProps={{
-                        title: isAdd ? PLACE_LABEL.ADD : PLACE_LABEL.EDIT,
-                        Icon: buttonType === BUTTON_VARIANT.STANDARD ? AddCircleIcon : null,
-                        type: buttonType,
-                    }}
-                >
                     <Grid container key={formKey}>
                         <Grid item lg={12} md={12} xs={12} id="add-place-form-container">
                             <Grid container>
                                 <Grid item lg={12} xs={12} className="py-5">
-                                    <InputField
-                                        defaultValue={place.name}
-                                        label="Name of Place"
-                                        name="name"
-                                        onChange={(e) => handleOnChange('name', e.target.value)}
+                                    <PlaceAutocomplete
+                                        value={place.name ?? ''}
+                                        onTextChange={(text) =>
+                                            handleOnChange('name', text)
+                                        }
+                                        onSelect={handlePlacePicked}
+                                        country={countryScope}
+                                        label={
+                                            countryScope
+                                                ? `Activity name (or place in ${countryScope})`
+                                                : 'Activity name'
+                                        }
+                                        placeholder="Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')"
                                     />
                                 </Grid>
                                 <Grid item lg={12} xs={12} className="py-5">
                                     <InputField
-                                        defaultValue={place.location}
+                                        value={place.location ?? ''}
                                         name="location"
-                                        onChange={(e) => handleOnChange('location', e.target.value)}
+                                        label="Location (optional)"
+                                        required={false}
+                                        onChange={(e) =>
+                                            handleOnChange('location', e.target.value)
+                                        }
                                     />
                                 </Grid>
                                 <Grid item lg={12} xs={12} className="py-5">
@@ -187,7 +233,7 @@ const AddPlaceBtn = ({
                                 </Grid>
                                 <Grid item lg={6} xs={12} className="py-5">
                                     <InputField
-                                        defaultValue={place.startTime}
+                                        value={place.startTime ?? ''}
                                         name="startTime"
                                         type="time"
                                         label="Start Time"
@@ -196,7 +242,7 @@ const AddPlaceBtn = ({
                                 </Grid>
                                 <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
                                     <InputField
-                                        defaultValue={place.endTime}
+                                        value={place.endTime ?? ''}
                                         name="endTime"
                                         type="time"
                                         label="End Time"
@@ -235,6 +281,34 @@ const AddPlaceBtn = ({
                         </Grid>
                     </Grid>
                 </ModalButton>
+    );
+
+    // Icon-only trigger: render bare so the trigger sits inline next to
+    // surrounding flex items (e.g. activity title + status pill). The Grid
+    // wrappers used by the standard/text variants force a full-width row
+    // and push the trigger below the title.
+    if (triggerIcon) {
+        return modalElement;
+    }
+
+    return (
+        <Grid
+            container
+            className={classNames({
+                'add-place-container-standard': buttonType === BUTTON_VARIANT.STANDARD,
+                'add-place-container-simple': buttonType === BUTTON_VARIANT.TEXT,
+            })}
+        >
+            <Grid
+                item
+                lg={12}
+                md={12}
+                xs={12}
+                className={classNames({
+                    'place-left': tripTypeId === TRIP_BASIC.MULTIPLE.id,
+                })}
+            >
+                {modalElement}
             </Grid>
         </Grid>
     );

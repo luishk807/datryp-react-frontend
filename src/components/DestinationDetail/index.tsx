@@ -4,7 +4,8 @@ import { Grid, Snackbar } from '@mui/material';
 import _ from 'lodash';
 import {
     DndContext,
-    PointerSensor,
+    MouseSensor,
+    TouchSensor,
     KeyboardSensor,
     useSensor,
     useSensors,
@@ -120,11 +121,21 @@ const DestinationDetail = ({
         setDates(computeDatesRange(startDate, endDate, destinations));
     }, [startDate, endDate, destinations]);
 
-    // PointerSensor with an 8px activation distance — keeps regular clicks
-    // (edit/delete buttons inside cards) from being hijacked as drags.
+    // Split sensors so desktop and mobile both feel right:
+    //   - MouseSensor: 8px distance threshold so clicks on edit/X buttons
+    //     inside a card aren't hijacked as drags.
+    //   - TouchSensor: 200ms press-and-hold delay with a 5px tolerance so a
+    //     casual swipe scrolls the page (cancelling the pending drag), and
+    //     only a deliberate long-press picks up the activity card.
+    //   - KeyboardSensor: arrow-key reordering for accessibility.
     const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+        useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(TouchSensor, {
+            activationConstraint: { delay: 200, tolerance: 5 },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
     );
 
     /** Locate the source destination for a dragged activity by scanning the

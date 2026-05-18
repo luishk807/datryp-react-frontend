@@ -1,0 +1,47 @@
+.place-autocomplete-option {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px !important;
+}
+
+.place-autocomplete-option-thumb {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f4f4f4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.4);
+
+  &.is-placeholder {
+    background: rgba(60, 181, 75, 0.08);
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.place-autocomplete-option-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.place-autocomplete-option-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: theme('colors.primary');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-autocomplete-option-loc {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

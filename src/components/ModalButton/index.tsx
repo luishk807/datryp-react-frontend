@@ -26,6 +26,13 @@ export interface ModalButtonButtonProps {
         | typeof BUTTON_VARIANT.STANDARD
         | typeof BUTTON_VARIANT.TEXT_PLAIN;
     isViewMode?: boolean;
+    /** Optional extra class on the trigger — used by icon-only triggers
+     *  that want compact, IconButton-style padding. */
+    className?: string;
+    /** Props forwarded to the icon component (e.g. `fontSize: 'small'`). */
+    iconProps?: Record<string, unknown>;
+    /** Accessible label for icon-only triggers where `title` is empty. */
+    ariaLabel?: string;
 }
 
 export interface ModalButtonProps {

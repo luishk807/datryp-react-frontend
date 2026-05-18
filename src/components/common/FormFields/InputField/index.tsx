@@ -87,7 +87,15 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
 
         const renderField = () => {
             switch (type) {
-                case 'time':
+                case 'time': {
+                    // Parse the incoming HH:mm string into a moment so the
+                    // picker shows the saved value on edit. Without this the
+                    // picker defaulted to `now()` and the user's saved time
+                    // appeared overwritten the moment the modal opened.
+                    const timeSource = isControlled ? value : defaultValue;
+                    const parsedTime = timeSource
+                        ? moment(timeSource, 'HH:mm')
+                        : moment();
                     return (
                         <TimePicker
                             disablePast={disablePast}
@@ -97,10 +105,16 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                                     target: { value: e ? e.format('HH:mm').toString() : '' },
                                 })
                             }
-                            defaultValue={moment()}
+                            // Use `value` when controlled so external state
+                            // updates reflect; defaultValue otherwise to keep
+                            // legacy uncontrolled call sites working.
+                            {...(isControlled
+                                ? { value: parsedTime.isValid() ? parsedTime : null }
+                                : { defaultValue: parsedTime.isValid() ? parsedTime : moment() })}
                             label={label}
                         />
                     );
+                }
                 case 'date':
                     return (
                         <DatePicker

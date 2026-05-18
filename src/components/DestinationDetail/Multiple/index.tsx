@@ -163,6 +163,7 @@ const Multiple = ({
                                         onChangeBudget={(type, e) => onChangeBudget(type, e, realDestIdx)}
                                         destIdx={realDestIdx}
                                         date={trip.startDate ?? defaultDate ?? ''}
+                                        country={country ?? ''}
                                     />
                                 </Grid>
                             </Grid>

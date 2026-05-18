@@ -44,9 +44,13 @@ const toPlace = (raw: PlaceItemRaw): PlaceRecommendation => ({
 
 export const fetchPlaceRecommendations = async (
     query: string,
-    limit = 2
+    limit = 2,
+    country?: string
 ): Promise<PlaceRecommendationsResult> => {
     const params = new URLSearchParams({ q: query, limit: String(limit) });
+    if (country && country.trim()) {
+        params.set('country', country.trim());
+    }
     const resp = await fetch(`${API_BASE}/place-recommendations?${params}`);
     if (!resp.ok) {
         throw new Error(

@@ -7,9 +7,18 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
+import PlaceAutocomplete, {
+    type PlaceSuggestion,
+} from 'components/common/PlaceAutocomplete';
 import classNames from 'classnames';
 import { ACTION, BUTTON_VARIANT } from 'constants';
-import type { AddEditButtonProps, Country, Destination, FlightInfo } from 'types';
+import type {
+    Activity,
+    AddEditButtonProps,
+    Country,
+    Destination,
+    FlightInfo,
+} from 'types';
 
 const DESTINATION_LABEL = {
     ADD: 'Add Destination',
@@ -42,6 +51,11 @@ const AddDestinationBtn = ({
     const title = useMemo(() => (isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.EDIT), [isAdd]);
 
     const [destination, setDestination] = useState<DestinationDraft>({});
+    /** Optional "first place" seeded from PlaceAutocomplete. Held separately
+     *  from the destination draft because the activity needs a date + id
+     *  that we materialize at submit time. */
+    const [firstPlaceText, setFirstPlaceText] = useState('');
+    const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
     const modelRef = useRef<ModalButtonHandle>(null);
 
     const handleOnFlightInfo = (name: keyof FlightInfo, value: string) => {
@@ -97,11 +111,63 @@ const AddDestinationBtn = ({
     const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         modelRef.current?.closeModal();
-        onChange?.(destination);
+
+        // If the user picked a "first place" suggestion, seed the
+        // destination's itinerary with one activity for the depart day.
+        // The reducer will give it a real id when it lands in state; we use
+        // a placeholder Date.now() so React keys stay stable in the meantime.
+        const seedDate =
+            destination.flightInfo?.departDate ?? isoDate(defaultDate) ?? now();
+        const itineraryWithSeed =
+            firstPlace && seedDate
+                ? [
+                      {
+                          id: Date.now(),
+                          date: seedDate,
+                          activities: [
+                              {
+                                  id: Date.now() + 1,
+                                  name: firstPlace.name,
+                                  location: firstPlace.location,
+                                  image: firstPlace.imageUrl
+                                      ? {
+                                            url: firstPlace.imageUrl,
+                                            name: firstPlace.name,
+                                        }
+                                      : undefined,
+                              } as Activity,
+                          ],
+                      },
+                  ]
+                : destination.itinerary;
+
+        onChange?.({ ...destination, itinerary: itineraryWithSeed });
+
+        // Reset the seed fields so reopening the modal starts fresh.
+        if (type === ACTION.ADD) {
+            setFirstPlace(null);
+            setFirstPlaceText('');
+        }
     };
 
     const handleSelectedDestinationSearch = (country: Country) => {
         setDestination((prev) => ({ ...prev, country }));
+    };
+
+    const handleFirstPlacePicked = (suggestion: PlaceSuggestion) => {
+        setFirstPlace(suggestion);
+        setFirstPlaceText(suggestion.name);
+    };
+
+    const handleFirstPlaceText = (text: string) => {
+        setFirstPlaceText(text);
+        // If the user keeps typing past a picked suggestion, drop the
+        // resolved selection — they're going manual. The text alone isn't
+        // enough to seed an activity since we'd be missing location/image,
+        // so we just don't seed in that case.
+        if (firstPlace && text !== firstPlace.name) {
+            setFirstPlace(null);
+        }
     };
 
     if (isViewMode) return null;
@@ -134,6 +200,33 @@ const AddDestinationBtn = ({
                                         onSelected={handleSelectedDestinationSearch}
                                     />
                                 </Grid>
+                                {type === ACTION.ADD && (
+                                    <Grid
+                                        item
+                                        lg={12}
+                                        md={12}
+                                        xs={12}
+                                        className="py-5"
+                                    >
+                                        <PlaceAutocomplete
+                                            value={firstPlaceText}
+                                            onTextChange={handleFirstPlaceText}
+                                            onSelect={handleFirstPlacePicked}
+                                            country={destination.country?.name}
+                                            label={
+                                                destination.country?.name
+                                                    ? `First place in ${destination.country.name} (optional)`
+                                                    : 'First place to visit (optional)'
+                                            }
+                                            placeholder={
+                                                destination.country?.name
+                                                    ? 'Type a landmark or activity in this country'
+                                                    : 'Pick the country above first to get country-specific suggestions'
+                                            }
+                                            disabled={!destination.country?.name}
+                                        />
+                                    </Grid>
+                                )}
                                 <Grid item lg={12} md={12} xs={12} className="py-5">
                                     <InputField
                                         defaultValue={destination.flightInfo?.flightNumber}

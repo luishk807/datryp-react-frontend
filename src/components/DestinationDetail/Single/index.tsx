@@ -12,6 +12,9 @@ interface SingleProps {
     /** Calendar date this day represents — threaded into Activities so each
      *  card can be dragged out of (and dropped into) the right day. */
     date?: string;
+    /** Country name for the (single) destination — scopes the AddPlace AI
+     *  autocomplete so a Spain trip's suggestions stay in-country. */
+    country?: string;
 }
 
 /** Single-destination day. Always renders Activities (even when empty) so
@@ -24,6 +27,7 @@ const Single = ({
     onChangeBudget,
     isViewMode = false,
     date = '',
+    country = '',
 }: SingleProps) => (
     <Activities
         isViewMode={isViewMode}
@@ -33,6 +37,7 @@ const Single = ({
         participants={participants}
         destIdx={0}
         date={date}
+        country={country}
     />
 );
 

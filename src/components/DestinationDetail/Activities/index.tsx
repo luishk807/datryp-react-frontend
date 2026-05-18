@@ -8,6 +8,8 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import { useDroppable } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -17,8 +19,8 @@ import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import DraggableActivity from 'components/DestinationDetail/Activities/DraggableActivity';
+import IconConfirmButton from 'components/common/IconConfirmButton';
 import { convertMoney } from 'utils';
-import DialogBox from 'components/common/FormFields/DialogBox';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
 import type { ActionType, Activity, ActivityStatus, Friend } from 'types';
@@ -37,6 +39,9 @@ export interface ActivitiesProps {
      *  callers haven't wired drag-and-drop yet; the cards still render but
      *  without sortable/droppable behaviour. */
     date?: string;
+    /** Country name for this day's destination — used to scope the
+     *  AddPlace AI autocomplete so suggestions stay in-country. */
+    country?: string;
 }
 
 const isConfirmedStatus = (status: Activity['status']): boolean => {
@@ -55,6 +60,7 @@ const Activities = ({
     isViewMode = false,
     destIdx = 0,
     date = '',
+    country = '',
 }: ActivitiesProps) => {
     // Day-level drop target — accepts drops onto empty space when there
     // are no sortable cards to land on. dnd-kit needs both the sortable
@@ -123,6 +129,15 @@ const Activities = ({
                     const isPlaceLocked =
                         isViewMode || isConfirmedStatus(activity.status);
                     const hasImage = Boolean(activity.image?.url);
+                    // Cost + budget are coupled: a non-money activity (just
+                    // a note like "checkout at 10am") shouldn't show either
+                    // row. We surface them only when there's an actual cost
+                    // to split (>0). Existing budgetList without a cost is
+                    // still respected so legacy rows don't disappear.
+                    const numericCost = Number(activity.cost);
+                    const hasCost =
+                        Number.isFinite(numericCost) && numericCost !== 0;
+                    const showBudgetRow = Boolean(budgetList) || hasCost;
                     const card = (
                         <Grid
                             item
@@ -131,6 +146,19 @@ const Activities = ({
                             xs={12}
                             className="activity-content-trip border-trip"
                         >
+                            <IconConfirmButton
+                                icon={<CloseRoundedIcon fontSize="small" />}
+                                ariaLabel={`Delete ${activity.name}`}
+                                title="Delete this activity"
+                                onConfirm={() =>
+                                    onChangePlace('delete', activity.id)
+                                }
+                                className="activity-card-close-btn"
+                                isViewMode={isViewMode}
+                            >
+                                You are about to delete {activity.name}. Are
+                                you sure?
+                            </IconConfirmButton>
                             <Grid container>
                                 {hasImage && (
                                     <Grid item lg={2} md={2} xs={12} className="content-image">
@@ -145,36 +173,52 @@ const Activities = ({
                                     className="content-detail"
                                 >
                                     <Grid container>
-                                        <Grid item lg={11} md={11} xs={12} className="info">
-                                            <span className="title">{activity.name}</span>
-                                            {(() => {
-                                                const confirmed = isConfirmedStatus(activity.status);
-                                                const nextStatus = confirmed
-                                                    ? plannedStatus
-                                                    : confirmedStatus;
-                                                return (
-                                                    <button
-                                                        type="button"
-                                                        className={
-                                                            'status-toggle ' +
-                                                            (confirmed ? 'is-confirmed' : 'is-pending')
-                                                        }
-                                                        disabled={isViewMode}
-                                                        aria-label={`Status: ${confirmed ? 'Confirmed' : 'Planning'}. Click to toggle.`}
-                                                        onClick={() =>
-                                                            onChangePlace('edit', {
-                                                                index: indx,
-                                                                value: {
-                                                                    id: activity.id,
-                                                                    status: nextStatus,
-                                                                },
-                                                            })
-                                                        }
-                                                    >
-                                                        {confirmed ? 'Confirmed' : 'Planning'}
-                                                    </button>
-                                                );
-                                            })()}
+                                        <Grid item lg={12} md={12} xs={12} className="info">
+                                            <div className="activity-title-row">
+                                                <span className="title">{activity.name}</span>
+                                                <AddPlaceBtn
+                                                    isViewMode={isPlaceLocked}
+                                                    type="edit"
+                                                    data={activity}
+                                                    countryScope={country}
+                                                    triggerIcon={EditRoundedIcon}
+                                                    triggerClassName="activity-edit-btn"
+                                                    onChange={(e) =>
+                                                        onChangePlace('edit', {
+                                                            index: indx,
+                                                            value: e,
+                                                        })
+                                                    }
+                                                />
+                                                {(() => {
+                                                    const confirmed = isConfirmedStatus(activity.status);
+                                                    const nextStatus = confirmed
+                                                        ? plannedStatus
+                                                        : confirmedStatus;
+                                                    return (
+                                                        <button
+                                                            type="button"
+                                                            className={
+                                                                'status-toggle ' +
+                                                                (confirmed ? 'is-confirmed' : 'is-pending')
+                                                            }
+                                                            disabled={isViewMode}
+                                                            aria-label={`Status: ${confirmed ? 'Confirmed' : 'Planning'}. Click to toggle.`}
+                                                            onClick={() =>
+                                                                onChangePlace('edit', {
+                                                                    index: indx,
+                                                                    value: {
+                                                                        id: activity.id,
+                                                                        status: nextStatus,
+                                                                    },
+                                                                })
+                                                            }
+                                                        >
+                                                            {confirmed ? 'Confirmed' : 'Planning'}
+                                                        </button>
+                                                    );
+                                                })()}
+                                            </div>
                                             <div className="activity-meta">
                                                 {activity.location && (
                                                     <div className="meta-row">
@@ -188,7 +232,7 @@ const Activities = ({
                                                     <ScheduleOutlinedIcon className="meta-icon" />
                                                     <span className="meta-text">{activityTime}</span>
                                                 </div>
-                                                {(budgetList || !isPlaceLocked) && (
+                                                {showBudgetRow && (
                                                     <div className="meta-row">
                                                         <GroupOutlinedIcon className="meta-icon" />
                                                         <span className="meta-text">
@@ -211,8 +255,7 @@ const Activities = ({
                                                         />
                                                     </div>
                                                 )}
-                                                {Number.isFinite(Number(activity.cost)) &&
-                                                    Number(activity.cost) !== 0 && (
+                                                {hasCost && (
                                                         <div className="meta-row">
                                                             <PaymentsOutlinedIcon className="meta-icon" />
                                                             <span className="meta-text">
@@ -229,49 +272,6 @@ const Activities = ({
                                                     </div>
                                                 )}
                                             </div>
-                                        </Grid>
-                                        <Grid item lg={1} md={1} xs={12} className="option">
-                                            <Grid container className="flex h-full">
-                                                <Grid
-                                                    item
-                                                    lg={12}
-                                                    md={12}
-                                                    xs={12}
-                                                    className="flex justify-end items-start font-medium"
-                                                >
-                                                    <AddPlaceBtn
-                                                        isViewMode={isPlaceLocked}
-                                                        type="edit"
-                                                        data={activity}
-                                                        buttonType="text"
-                                                        onChange={(e) =>
-                                                            onChangePlace('edit', {
-                                                                index: indx,
-                                                                value: e,
-                                                            })
-                                                        }
-                                                    />
-                                                </Grid>
-                                                <Grid
-                                                    item
-                                                    lg={12}
-                                                    md={12}
-                                                    xs={12}
-                                                    className="flex justify-end items-end font-medium"
-                                                >
-                                                    <DialogBox
-                                                        isViewMode={isViewMode}
-                                                        title="Delete this place"
-                                                        buttonLabel="Delete"
-                                                        buttonType="text"
-                                                        onConfirm={() =>
-                                                            onChangePlace('delete', activity.id)
-                                                        }
-                                                    >
-                                                        You are about to delete {activity.name}. Are you sure you want to delete this item
-                                                    </DialogBox>
-                                                </Grid>
-                                            </Grid>
                                         </Grid>
                                     </Grid>
                                 </Grid>
@@ -297,6 +297,7 @@ const Activities = ({
                         <AddPlaceBtn
                             isViewMode={isViewMode}
                             tripTypeId={tripTypeId}
+                            countryScope={country}
                             onChange={(e) => onChangePlace('add', e)}
                         />
                     </Grid>

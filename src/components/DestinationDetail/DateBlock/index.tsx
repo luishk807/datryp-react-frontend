@@ -97,6 +97,7 @@ const DateBlock = ({
                                 onChangeBudget={onChangeBudget}
                                 trips={trips as Activity[] | null}
                                 date={startDate}
+                                country={destinations[0]?.country?.name ?? ''}
                             />
                         ) : (
                             <MultipleTrips
