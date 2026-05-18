@@ -1,12 +1,20 @@
 import "./index.scss";
+import { Link } from "react-router-dom";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";
 
-const QUICK_LINKS = [
+interface QuickLink {
+  label: string;
+  href: string;
+  /** When true, render via react-router `<Link>` (internal); otherwise `<a>`. */
+  internal?: boolean;
+}
+
+const QUICK_LINKS: QuickLink[] = [
   { label: "About Us", href: "#" },
   { label: "Contact Us", href: "#" },
-  { label: "Terms of Use", href: "#" },
+  { label: "Terms of Use", href: "/terms", internal: true },
   { label: "Privacy Policy", href: "#" },
 ];
 
@@ -31,7 +39,11 @@ const Footer = () => {
             <ul>
               {QUICK_LINKS.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href}>{link.label}</a>
+                  {link.internal ? (
+                    <Link to={link.href}>{link.label}</Link>
+                  ) : (
+                    <a href={link.href}>{link.label}</a>
+                  )}
                 </li>
               ))}
             </ul>

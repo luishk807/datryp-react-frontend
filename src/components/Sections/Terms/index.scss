@@ -1,0 +1,33 @@
+.terms-page {
+    width: 100%;
+    max-width: 760px;
+    padding: 20px 0 60px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.78);
+
+    .terms-last-updated {
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 24px;
+    }
+
+    .terms-section {
+        margin-bottom: 28px;
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: theme('colors.primary');
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}

@@ -1,11 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
+import { Link } from 'react-router-dom';
 import './index.scss';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import classNames from 'classnames';
 import { useCountries } from 'api/hooks/useCountries';
 import { useCountryRecommendations } from 'api/hooks/useCountryRecommendations';
+import { isQueryBlockedError } from 'api/moderationError';
 import { BUTTON_VARIANT } from 'constants';
 import type { Country, CountryRecommendation } from 'types';
 
@@ -231,6 +233,7 @@ const SearchBar = ({
 
     const renderRecommendMode = () => {
         const items = recommendations?.items ?? [];
+        const isBlocked = isQueryBlockedError(recommendError);
         const showEmpty =
             submittedQuery && !isRecommending && items.length === 0 && !hasRecommendError;
         const showLoading = isRecommending && items.length === 0 && !hasRecommendError;
@@ -275,7 +278,18 @@ const SearchBar = ({
                             'is-standard': type === SEARCH_VARIANT.STANDARD,
                         })}
                     >
-                        {hasRecommendError && (
+                        {isBlocked && (
+                            <p className="searchbar-recommend-blocked">
+                                daTryp is a travel planner — try a search like
+                                &ldquo;beach yoga retreat&rdquo; or
+                                &ldquo;ancient ruins.&rdquo;{' '}
+                                <Link to="/terms" className="searchbar-recommend-blocked-link">
+                                    Learn more
+                                </Link>
+                                .
+                            </p>
+                        )}
+                        {hasRecommendError && !isBlocked && (
                             <p className="searchbar-recommend-error">
                                 Could not reach the recommender service
                                 {recommendError instanceof Error

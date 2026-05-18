@@ -40,3 +40,23 @@
   background: rgba(192, 57, 43, 0.06);
   border-radius: 8px;
 }
+
+/* Travel-scope moderation hit — a soft redirect, not an error. */
+.search-results-blocked {
+  color: rgb(120, 53, 15);
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 16px 20px;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 8px;
+  max-width: 640px;
+
+  .search-results-blocked-link {
+    color: inherit;
+    text-decoration: underline;
+
+    &:hover {
+      color: theme('colors.primaryGreen');
+    }
+  }
+}

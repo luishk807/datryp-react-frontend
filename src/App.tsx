@@ -18,6 +18,7 @@ const Visited = lazy(() => import('components/Sections/Visited'));
 const Saved = lazy(() => import('components/Sections/Saved'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const CityDetail = lazy(() => import('components/Sections/CityDetail'));
+const Terms = lazy(() => import('components/Sections/Terms'));
 const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
@@ -129,6 +130,11 @@ function App() {
                     >
                         <Saved />
                     </Gated>
+                }/>
+                <Route path='/terms' element={
+                    <Suspense fallback={<>...</>}>
+                        <Terms />
+                    </Suspense>
                 }/>
                 <Route path='*' element={
                     <Suspense fallback={<>...</>}>

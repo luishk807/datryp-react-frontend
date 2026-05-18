@@ -1,9 +1,10 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import './index.scss';
 import Layout from 'components/common/Layout/SubLayout';
 import PlaceResultCard from 'components/PlaceResultCard';
 import PlaceResultCardSkeleton from 'components/PlaceResultCardSkeleton';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
+import { isQueryBlockedError } from 'api/moderationError';
 
 const SKELETON_COUNT = 4;
 
@@ -46,6 +47,19 @@ const SearchResults = () => {
             );
         }
         if (isError) {
+            if (isQueryBlockedError(error)) {
+                return (
+                    <p className="search-results-blocked">
+                        daTryp is a travel planner — try a search like
+                        &ldquo;beach yoga retreat&rdquo; or
+                        &ldquo;ancient ruins.&rdquo;{' '}
+                        <Link to="/terms" className="search-results-blocked-link">
+                            Learn more
+                        </Link>
+                        .
+                    </p>
+                );
+            }
             return (
                 <p className="search-results-error" role="alert">
                     Could not load recommendations: {error instanceof Error ? error.message : 'Unknown error'}

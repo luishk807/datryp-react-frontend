@@ -8,6 +8,7 @@ import type {
     PlaceRecommendation,
     PlaceRecommendationsResult,
 } from 'types';
+import { QueryBlockedError } from 'api/moderationError';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -52,6 +53,21 @@ export const fetchPlaceRecommendations = async (
         params.set('country', country.trim());
     }
     const resp = await fetch(`${API_BASE}/place-recommendations?${params}`);
+    if (resp.status === 422) {
+        // Travel-scope moderation hit. Body shape: `{ detail: { blocked, category } }`.
+        // Anything malformed falls through to the generic error branch below.
+        try {
+            const errBody = (await resp.json()) as {
+                detail?: { blocked?: boolean; category?: string };
+            };
+            if (errBody.detail?.blocked) {
+                throw new QueryBlockedError(errBody.detail.category ?? 'other');
+            }
+        } catch (parseErr) {
+            if (parseErr instanceof QueryBlockedError) throw parseErr;
+            // fall through to generic error
+        }
+    }
     if (!resp.ok) {
         throw new Error(
             `/place-recommendations failed: ${resp.status} ${resp.statusText}`

@@ -338,6 +338,27 @@
   font-size: 0.95rem;
 }
 
+/* Travel-scope moderation hit — soft "this isn't travel-related" message.
+   Deliberately muted, not red: not an error, just a redirect. */
+.searchbarMain .searchbar-recommend-blocked {
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(245, 158, 11, 0.08);
+  color: rgb(120, 53, 15);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+
+  .searchbar-recommend-blocked-link {
+    color: inherit;
+    text-decoration: underline;
+
+    &:hover {
+      color: theme('colors.primaryGreen');
+    }
+  }
+}
+
 .searchbarMain .searchbar-recommend-loading {
   margin: 0;
   padding: 10px 12px;
