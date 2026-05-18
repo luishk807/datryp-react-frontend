@@ -442,6 +442,12 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                             <Grid item lg={12} md={12} xs={12}>
                                 <BasicTripInfo
                                     data={data}
+                                    // Lock the status badge while creating a
+                                    // brand-new trip — until the trip is saved
+                                    // and gets an apiId, it stays on Planning.
+                                    // The trip-name pencil + status modal both
+                                    // gate on isViewMode so this disables both.
+                                    isViewMode={!data.apiId}
                                     onChangeStep={handleChangeStep}
                                     onStatusChange={(status) =>
                                         dispatch(basicInfo({ status }))

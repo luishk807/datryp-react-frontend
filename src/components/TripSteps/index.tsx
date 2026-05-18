@@ -77,6 +77,18 @@ const TripSteps = ({
         dispatch(basicInfo(apiToTripState(apiTrip)));
     }, [editingId, apiItineraries, tripInfo.apiId, dispatch]);
 
+    // Clear a stale `apiId` whenever the URL lacks `?id=`. TripContext is
+    // persisted to localStorage, so a previous edit session can leak its
+    // apiId into a brand-new trip flow — which would falsely flip
+    // `!tripInfo.apiId` to false and unlock the activity status pill /
+    // trip status dropdown during creation. Only runs once when the URL
+    // says "new trip" and the context still claims to be an edit.
+    useEffect(() => {
+        if (editingId) return;
+        if (!tripInfo.apiId) return;
+        dispatch(basicInfo({ apiId: undefined }));
+    }, [editingId, tripInfo.apiId, dispatch]);
+
     // Pre-seed the current user as an organizer once per mount. We deliberately
     // don't watch `tripInfo.organizer` here — otherwise removing yourself
     // would trigger this effect and re-add you, making de-select impossible.

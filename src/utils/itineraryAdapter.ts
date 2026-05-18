@@ -71,6 +71,11 @@ const apiActivityToActivity = (a: ApiActivity): Activity => ({
     endTime: apiTimeToHHmm(a.endTime),
     cost: a.cost ?? undefined,
     note: a.notes ?? undefined,
+    // Backend persists `image` as a plain URL string; rehydrate into the
+    // `ImageRef` shape the UI expects ({ url, name }) so saved AI-suggested
+    // photos survive a reload. Without this, the activity card lost its
+    // image after the trip was saved.
+    image: a.image ? { url: a.image, name: a.name } : undefined,
     status: a.status ? { id: a.status.id, name: a.status.name } : undefined,
     budget: apiBudgetsToItems(a.budgets),
 });

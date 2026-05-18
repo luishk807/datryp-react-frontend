@@ -39,6 +39,12 @@ interface BasicTripInfoProps {
     /** Whether the parent is currently in edit mode. Drives the primary
      *  button's label + click target ("Edit Trip" vs "Save Trip"). */
     isEditMode?: boolean;
+    /** Hide the small pencil icon next to the trip name even when
+     *  `isViewMode` is false. Used on `/trip-detail` where the dedicated
+     *  Edit Trip button already covers the same navigation — the pencil
+     *  would be a redundant affordance. The status-badge pencil stays
+     *  gated by `isViewMode` only. */
+    hideEditPencil?: boolean;
     /** One-click promote Confirmed → Completed. Does its own save (no
      *  separate Save Trip click needed), so we hide Save Trip whenever this
      *  is provided. */
@@ -99,6 +105,7 @@ export const BasicTripInfo = ({
     onSaveTrip,
     onEnterEditMode,
     isEditMode = false,
+    hideEditPencil = false,
     onMarkCompleted,
     onCancel,
     onDeleteTrip,
@@ -247,7 +254,7 @@ export const BasicTripInfo = ({
                                 ({statusName})
                             </span>
                         )}
-                        {!isViewMode && statusName === TRIP_STATUS.PLANNING && (
+                        {!isViewMode && !hideEditPencil && statusName === TRIP_STATUS.PLANNING && (
                             <IconButton
                                 size="small"
                                 aria-label="Edit trip"

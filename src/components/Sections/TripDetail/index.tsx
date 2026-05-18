@@ -350,14 +350,17 @@ export const TripDetail = () => {
         <Grid item lg={12} md={12} xs={12}>
           <BasicTripInfo
             isViewMode={isViewMode}
+            // /trip-detail uses the dedicated Edit Trip button as the
+            // single entry point to the editor; the small trip-name
+            // pencil would be a redundant duplicate, so hide it.
+            // Status-badge pencil stays — that's gated by isViewMode.
+            hideEditPencil
             data={tripData}
             onChangeStep={handleChangeStep}
             onStatusChange={handleStatusChange}
             onExportExcel={canExport ? handleExportExcel : undefined}
-            // Edit Trip routes to the dedicated stepper editor — same as
-            // the pencil icon next to the trip name. Trip-detail itself is
-            // read-only; the stepper is where all the activity-card edit
-            // affordances live.
+            // Edit Trip routes to the dedicated stepper editor — that's
+            // where all the activity-card edit affordances live.
             onEnterEditMode={canSaveTrip ? handleChangeStep : undefined}
             onMarkCompleted={canMarkCompleted ? handleMarkCompleted : undefined}
             onDeleteTrip={isOrganizer ? handleDeleteTrip : undefined}
@@ -371,9 +374,14 @@ export const TripDetail = () => {
           <BudgetSummary data={tripData} />
         </Grid>
         <Grid item lg={12}>
+          {/* Activity cards on /trip-detail are read-only by design — the
+              Edit Trip button (and the trip-name pencil) navigate to the
+              stepper editor where the inline edit affordances live.
+              Forcing isViewMode=true regardless of organizer/lock state
+              keeps the trip-detail page calm. */}
           <DestinationDetail
             type={tripData.type}
-            isViewMode={isViewMode}
+            isViewMode={true}
             startDate={tripData.startDate}
             participants={participants}
             endDate={tripData.endDate}
