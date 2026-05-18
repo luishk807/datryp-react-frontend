@@ -44,8 +44,7 @@ const Multiple = ({
 }: MultipleProps) => {
     return (
         <>
-            {trips &&
-                trips.map((trip, indx) => {
+            {(trips ?? []).map((trip, indx) => {
                     const flightInfo = _.get(trip, 'flightInfo');
                     const country = _.get(trip, 'country.name');
                     const activities = _.get(trip, 'itinerary.0.activities');
@@ -151,7 +150,7 @@ const Multiple = ({
                         </Grid>
                     );
                 })}
-            {!trips && (
+            {!isViewMode && (
                 <Grid
                     item
                     lg={12}
