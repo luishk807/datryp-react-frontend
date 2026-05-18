@@ -44,6 +44,9 @@
 /* Free-tier daily search quota hit. Pushes towards Pro. */
 .search-results-quota {
   max-width: 720px;
+  /* Center within the flex parent (`.homeContainer`). Without `margin: auto`
+   * the panel left-hugs the column even though the column itself is centered. */
+  margin: 0 auto;
   padding: 28px 24px;
   border-radius: 12px;
   background: rgba(246, 137, 31, 0.06);
@@ -86,6 +89,7 @@
   background: rgba(245, 158, 11, 0.08);
   border-radius: 8px;
   max-width: 640px;
+  margin: 0 auto;
 
   .search-results-blocked-link {
     color: inherit;
