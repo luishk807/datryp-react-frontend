@@ -2,6 +2,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Grid, IconButton, Tooltip } from '@mui/material';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
+import './index.scss';
 import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
@@ -178,20 +179,33 @@ const TripSteps = ({
         },
     ];
 
+    const isEditing = Boolean(editingId);
+
     return (
         <Layout
             title={title}
             titleAction={
-                <Tooltip title={switchLabel}>
-                    <IconButton
-                        size="small"
-                        aria-label={switchLabel}
-                        onClick={() => navigate(switchTarget)}
-                        sx={{ ml: 1 }}
-                    >
-                        <SyncAltIcon fontSize="small" />
-                    </IconButton>
-                </Tooltip>
+                <>
+                    {isEditing && (
+                        <span
+                            className="trip-steps-edit-mode"
+                            role="status"
+                            aria-label="You are editing an existing trip"
+                        >
+                            (EDIT MODE)
+                        </span>
+                    )}
+                    <Tooltip title={switchLabel}>
+                        <IconButton
+                            size="small"
+                            aria-label={switchLabel}
+                            onClick={() => navigate(switchTarget)}
+                            sx={{ ml: 1 }}
+                        >
+                            <SyncAltIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </>
             }
         >
             <Grid container className={containerClassName}>

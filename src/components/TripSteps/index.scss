@@ -1,0 +1,11 @@
+/* "(EDIT MODE)" hint rendered next to the layout title when the URL
+ * carries an `?id=`. Subtle — just signals the user is on the editor
+ * for an existing trip, not creating a fresh one. */
+.trip-steps-edit-mode {
+  margin-left: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: theme('colors.primaryOrange');
+  vertical-align: middle;
+}
