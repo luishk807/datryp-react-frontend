@@ -1,70 +1,15 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { gql } from 'graphql-request';
 import classnames from 'classnames';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
-import { FALLBACK_HERO_IMAGES, TRIP_BASIC, TRIP_MODE } from 'constants';
-import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
+import { FALLBACK_HERO_IMAGES, TRIP_MODE } from 'constants';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
-import { pythonGqlClient } from 'api/pythonGqlClient';
 import { useHeroImages } from 'api/hooks/useHeroImages';
-import type { Country, Destination, HeroImage, TripMode } from 'types';
-
-const COUNTRY_LOOKUP_QUERY = gql`
-    query CountryLookup($query: String!) {
-        countries(query: $query, limit: 10) {
-            id
-            name
-            code
-            local
-            image
-        }
-    }
-`;
-
-interface CountryLookupResult {
-    countries: Array<{
-        id: string;
-        name: string;
-        code: string;
-        local: string | null;
-        image: string | null;
-    }>;
-}
-
-/**
- * Look up a backend Country UUID by name + ISO code. TopPlaces ships with
- * sample numeric IDs that don't match anything in the DB, so we resolve to
- * the real row before dispatching to TripContext — otherwise the
- * saveItinerary mutation rejects "1" as a malformed UUID.
- */
-const resolveCountryByCode = async (
-    countryName: string,
-    code: string
-): Promise<Country | null> => {
-    try {
-        const result = await pythonGqlClient.request<CountryLookupResult>(
-            COUNTRY_LOOKUP_QUERY,
-            { query: countryName }
-        );
-        const match =
-            result.countries.find((c) => c.code === code) ?? result.countries[0];
-        if (!match) return null;
-        return {
-            id: match.id,
-            name: match.name,
-            code: match.code,
-            local: match.local ?? undefined,
-            image: match.image ?? undefined,
-        };
-    } catch {
-        return null;
-    }
-};
+import type { Country, HeroImage, TripMode } from 'types';
 
 interface SelectedHero {
     url: string;
@@ -86,7 +31,6 @@ const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
 };
 
 const Home = () => {
-    const dispatch = useTripDispatch();
     const [tripMode, setTripMode] = useState<TripMode>(TRIP_MODE.SINGLE);
     const navigate = useNavigate();
 
@@ -111,21 +55,16 @@ const Home = () => {
         [navigate, tripMode]
     );
 
-    const handlePlaceClick = async (place: TopPlace) => {
-        // Resolve to the real backend UUID, then route to the country page.
-        // TopPlaces is a single-destination flow by convention, so we hand
-        // 'single' to the country page regardless of the tab state.
-        const country = await resolveCountryByCode(place.country, place.countryCode);
-        if (!country?.code) {
-            // Couldn't resolve (DB not seeded, backend down). Fall back to
-            // the trip page so the user can still pick a destination there.
-            dispatch(resetTrip());
-            dispatch(basicInfo({ type: TRIP_BASIC.SINGLE, destinations: [] }));
-            navigate(TRIP_BASIC.SINGLE.route, { replace: true });
-            return;
-        }
+    /** TopPlaces card click — route to the city detail page. TopPlace
+     *  already carries the city name + country name + country code, so no
+     *  backend lookup is needed. Single-destination by convention; the
+     *  user can switch to multi from inside the trip-builder. */
+    const handlePlaceClick = (place: TopPlace) => {
         navigate(
-            `/country?code=${encodeURIComponent(country.code)}&mode=single`
+            `/city?name=${encodeURIComponent(place.name)}` +
+                `&country=${encodeURIComponent(place.country)}` +
+                `&code=${encodeURIComponent(place.countryCode)}` +
+                `&mode=single`
         );
     };
 

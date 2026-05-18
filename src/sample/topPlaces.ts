@@ -1,5 +1,7 @@
 export interface TopPlace {
-    id: number;
+    /** Stable key for React's render list. Numeric for the legacy seed
+     *  data, string slug (`name--code`) for live monthly cities. */
+    id: number | string;
     name: string;
     country: string;
     countryCode: string;

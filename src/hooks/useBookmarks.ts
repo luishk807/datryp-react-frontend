@@ -4,21 +4,23 @@ import type { PlaceRecommendation } from 'types';
 const STORAGE_KEY = 'datryp:bookmarks';
 const STORAGE_EVENT = 'datryp:bookmarks:changed';
 
-export type BookmarkKind = 'place' | 'country';
+export type BookmarkKind = 'place' | 'country' | 'city';
 
 export interface Bookmark {
     /** Discriminator. Entries persisted before this field existed are
      *  implicitly treated as 'place'. */
     kind?: BookmarkKind;
     /** Place identity: search query + index in cached results. Empty/0 for
-     *  country bookmarks. */
+     *  country / city bookmarks. */
     query: string;
     index: number;
-    /** Country identity: ISO 3166-1 alpha-2. Only set when kind === 'country'. */
+    /** Country code (ISO 3166-1 alpha-2). Set for country and city bookmarks. */
     code?: string;
     /** Snapshot of display fields so the bookmarks list can render without
      *  re-hitting the recommender. */
     name: string;
+    /** For place bookmarks this is the city the place is in. For city
+     *  bookmarks the city name lives in `name`; `city` stays empty. */
     city: string;
     country: string;
     imageUrl: string | null;
@@ -28,6 +30,16 @@ export interface Bookmark {
 export interface CountryBookmarkPayload {
     code: string;
     name: string;
+    imageUrl: string | null;
+}
+
+export interface CityBookmarkPayload {
+    /** City name, e.g. "Halong Bay". */
+    name: string;
+    /** Country name, e.g. "Vietnam". */
+    country: string;
+    /** ISO 3166-1 alpha-2 of the country, e.g. "VN". */
+    code: string;
     imageUrl: string | null;
 }
 
@@ -55,12 +67,18 @@ const placeKey = (query: string, index: number) =>
 
 const countryKey = (code: string) => `country::${code.trim().toLowerCase()}`;
 
-/** Stable identity for a bookmark — discriminates place vs country so a
- *  search query like "fr" can't collide with the France bookmark. */
-const keyOf = (b: Bookmark): string =>
-    (b.kind ?? 'place') === 'country'
-        ? countryKey(b.code ?? '')
-        : placeKey(b.query, b.index);
+const cityKey = (name: string, code: string) =>
+    `city::${name.trim().toLowerCase()}--${code.trim().toLowerCase()}`;
+
+/** Stable identity for a bookmark — discriminates by kind so a search
+ *  query "fr" can't collide with the France country bookmark, and a
+ *  city "Hanoi" can't collide with a country code. */
+const keyOf = (b: Bookmark): string => {
+    const kind = b.kind ?? 'place';
+    if (kind === 'country') return countryKey(b.code ?? '');
+    if (kind === 'city') return cityKey(b.name, b.code ?? '');
+    return placeKey(b.query, b.index);
+};
 
 /** localStorage-backed bookmarks (no backend yet). Re-renders all subscribers
  *  in the same tab via a `datryp:bookmarks:changed` custom event, and across
@@ -181,15 +199,72 @@ export const useBookmarks = () => {
         [addCountry, removeCountry]
     );
 
+    const isCityBookmarked = useCallback(
+        (name: string, code: string): boolean => {
+            const k = cityKey(name, code);
+            return bookmarks.some((b) => keyOf(b) === k);
+        },
+        [bookmarks]
+    );
+
+    const addCity = useCallback((payload: CityBookmarkPayload) => {
+        const code = payload.code.trim().toUpperCase();
+        const name = payload.name.trim();
+        if (!code || !name) return;
+        const current = readAll();
+        const k = cityKey(name, code);
+        if (current.some((b) => keyOf(b) === k)) return;
+        writeAll([
+            {
+                kind: 'city',
+                code,
+                query: '',
+                index: 0,
+                name,
+                city: '',
+                country: payload.country,
+                imageUrl: payload.imageUrl,
+                savedAt: Date.now(),
+            },
+            ...current,
+        ]);
+    }, []);
+
+    const removeCity = useCallback((name: string, code: string) => {
+        const k = cityKey(name, code);
+        writeAll(readAll().filter((b) => keyOf(b) !== k));
+    }, []);
+
+    const toggleCity = useCallback(
+        (payload: CityBookmarkPayload): boolean => {
+            const code = payload.code.trim().toUpperCase();
+            const name = payload.name.trim();
+            const k = cityKey(name, code);
+            const current = readAll();
+            const existing = current.some((b) => keyOf(b) === k);
+            if (existing) {
+                removeCity(name, code);
+                return false;
+            }
+            addCity(payload);
+            return true;
+        },
+        [addCity, removeCity]
+    );
+
     return {
         bookmarks,
         isBookmarked,
         isCountryBookmarked,
+        isCityBookmarked,
         add,
         remove,
         toggle,
         addCountry,
         removeCountry,
         toggleCountry,
+        addCity,
+        removeCity,
+        toggleCity,
     };
 };

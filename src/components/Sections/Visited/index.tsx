@@ -10,6 +10,10 @@ import {
     useUnmarkVisitedCountry,
     useVisitedCountries,
 } from 'api/hooks/useVisitedCountries';
+import {
+    useUnmarkVisitedCity,
+    useVisitedCities,
+} from 'api/hooks/useVisitedCities';
 import { formatDate } from 'utils/date';
 import { BUTTON_VARIANT, NO_IMAGE, VISITED_SOURCE } from 'constants';
 import type { VisitedPlace } from 'types';
@@ -24,26 +28,36 @@ const Visited = () => {
         isLoading: countriesLoading,
         isError: countriesError,
     } = useVisitedCountries();
+    const {
+        data: citiesData,
+        isLoading: citiesLoading,
+        isError: citiesError,
+    } = useVisitedCities();
     const unmarkVisited = useUnmarkVisited();
     const unmarkVisitedCountry = useUnmarkVisitedCountry();
+    const unmarkVisitedCity = useUnmarkVisitedCity();
 
     const items = data?.items ?? [];
     const total = data?.total ?? 0;
     const countryItems = countriesData?.items ?? [];
     const countryTotal = countriesData?.total ?? 0;
+    const cityItems = citiesData?.items ?? [];
+    const cityTotal = citiesData?.total ?? 0;
 
-    // Distinct countries union: explicit visited-country marks PLUS implicit
-    // country codes derived from visited places. Drives the top rollup.
+    // Distinct countries union: explicit country marks + city marks +
+    // implicit codes derived from visited places. Drives the top rollup.
     const countryCount = useMemo(() => {
         const seen = new Set<string>();
         for (const v of items) seen.add(v.countryCode ?? v.placeCountry);
         for (const c of countryItems) seen.add(c.countryCode);
+        for (const c of cityItems) seen.add(c.countryCode);
         return seen.size;
-    }, [items, countryItems]);
+    }, [items, countryItems, cityItems]);
 
-    const anyLoading = isLoading || countriesLoading;
-    const anyError = isError || countriesError;
-    const allEmpty = total === 0 && countryTotal === 0;
+    const anyLoading = isLoading || countriesLoading || citiesLoading;
+    const anyError = isError || countriesError || citiesError;
+    const allEmpty =
+        total === 0 && countryTotal === 0 && cityTotal === 0;
 
     return (
         <Layout title="Visited Places">
@@ -53,8 +67,9 @@ const Visited = () => {
                     {!anyLoading && !anyError && !allEmpty && (
                         <p className="visited-page-summary">
                             {countryCount}{' '}
-                            countr{countryCount === 1 ? 'y' : 'ies'} · {total}{' '}
-                            place{total === 1 ? '' : 's'}
+                            countr{countryCount === 1 ? 'y' : 'ies'} ·{' '}
+                            {cityTotal} cit{cityTotal === 1 ? 'y' : 'ies'} ·{' '}
+                            {total} place{total === 1 ? '' : 's'}
                         </p>
                     )}
                 </header>
@@ -131,6 +146,62 @@ const Visited = () => {
                                             onConfirm={() =>
                                                 unmarkVisitedCountry.mutate(
                                                     c.countryCode
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {!anyLoading && !anyError && cityTotal > 0 && (
+                    <section className="visited-section">
+                        <h2 className="visited-section-title">
+                            Cities
+                            <span className="visited-section-count">
+                                {cityTotal}
+                            </span>
+                        </h2>
+                        <ul className="visited-list">
+                            {cityItems.map((c) => (
+                                <li key={c.id} className="visited-card">
+                                    <Link
+                                        to={
+                                            `/city?name=${encodeURIComponent(c.cityName)}` +
+                                            `&country=${encodeURIComponent(c.countryName)}` +
+                                            `&code=${encodeURIComponent(c.countryCode)}` +
+                                            `&mode=single`
+                                        }
+                                        className="visited-card-main"
+                                    >
+                                        <PublicRoundedIcon className="visited-card-icon" />
+                                        <div className="visited-card-text">
+                                            <span className="visited-card-name">
+                                                {c.cityName}
+                                            </span>
+                                            <span className="visited-card-location">
+                                                {c.countryName} ({c.countryCode})
+                                            </span>
+                                            <span className="visited-card-meta">
+                                                Visited on{' '}
+                                                {formatDate(
+                                                    c.visitedAt,
+                                                    'MMM D, YYYY'
+                                                )}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                    <div className="visited-card-actions">
+                                        <DeleteBtn
+                                            title="Remove from visited"
+                                            label="Remove"
+                                            targetName={c.cityName}
+                                            buttonType={BUTTON_VARIANT.TEXT}
+                                            onConfirm={() =>
+                                                unmarkVisitedCity.mutate(
+                                                    c.citySlug
                                                 )
                                             }
                                         />

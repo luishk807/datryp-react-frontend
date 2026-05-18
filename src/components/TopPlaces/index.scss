@@ -37,6 +37,16 @@
   gap: 22px;
 }
 
+.top-places-msg {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.55);
+  padding: 24px 0;
+}
+
+.top-places-error {
+  color: #c0392b;
+}
+
 @media (max-width: 1024px) {
   .top-places-grid {
     grid-template-columns: repeat(2, 1fr);

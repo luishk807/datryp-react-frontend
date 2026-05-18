@@ -21,10 +21,39 @@
 }
 
 .place-card-image-wrap {
+  position: relative;
   width: 100%;
   height: 200px;
   overflow: hidden;
   background: #1a1a1a;
+}
+
+.place-card-attribution {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.65rem;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  max-width: calc(100% - 16px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: auto;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  a:hover {
+    color: #fff;
+  }
 }
 
 .place-card-image {

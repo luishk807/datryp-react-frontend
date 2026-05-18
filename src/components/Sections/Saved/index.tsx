@@ -9,17 +9,20 @@ import { formatDate } from 'utils/date';
 import { BUTTON_VARIANT, NO_IMAGE } from 'constants';
 
 const Saved = () => {
-    const { bookmarks, remove, removeCountry } = useBookmarks();
+    const { bookmarks, remove, removeCountry, removeCity } = useBookmarks();
 
-    const { countries, places } = useMemo(() => {
+    const { countries, cities, places } = useMemo(() => {
         const c = bookmarks.filter((b) => b.kind === 'country');
+        const ci = bookmarks.filter((b) => b.kind === 'city');
         const p = bookmarks.filter((b) => (b.kind ?? 'place') === 'place');
-        return { countries: c, places: p };
+        return { countries: c, cities: ci, places: p };
     }, [bookmarks]);
 
     const countryTotal = countries.length;
+    const cityTotal = cities.length;
     const placeTotal = places.length;
-    const allEmpty = countryTotal === 0 && placeTotal === 0;
+    const allEmpty =
+        countryTotal === 0 && cityTotal === 0 && placeTotal === 0;
 
     return (
         <Layout title="Saved">
@@ -29,8 +32,10 @@ const Saved = () => {
                     {!allEmpty && (
                         <p className="saved-page-summary">
                             {countryTotal}{' '}
-                            countr{countryTotal === 1 ? 'y' : 'ies'} · {placeTotal}{' '}
-                            place{placeTotal === 1 ? '' : 's'} bookmarked
+                            countr{countryTotal === 1 ? 'y' : 'ies'} ·{' '}
+                            {cityTotal} cit{cityTotal === 1 ? 'y' : 'ies'} ·{' '}
+                            {placeTotal} place{placeTotal === 1 ? '' : 's'}{' '}
+                            bookmarked
                         </p>
                     )}
                 </header>
@@ -98,6 +103,71 @@ const Saved = () => {
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>
                                                     removeCountry(code)
+                                                }
+                                            />
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </section>
+                )}
+
+                {cityTotal > 0 && (
+                    <section className="saved-section">
+                        <h2 className="saved-section-title">
+                            Cities
+                            <span className="saved-section-count">
+                                {cityTotal}
+                            </span>
+                        </h2>
+                        <ul className="saved-list">
+                            {cities.map((b) => {
+                                const code = b.code ?? '';
+                                const href =
+                                    `/city?name=${encodeURIComponent(b.name)}` +
+                                    `&country=${encodeURIComponent(b.country)}` +
+                                    `&code=${encodeURIComponent(code)}` +
+                                    `&mode=single`;
+                                return (
+                                    <li
+                                        key={`city::${b.name}--${code}`}
+                                        className="saved-card"
+                                    >
+                                        <Link
+                                            to={href}
+                                            className="saved-card-main"
+                                        >
+                                            <img
+                                                src={b.imageUrl ?? NO_IMAGE}
+                                                alt=""
+                                                loading="lazy"
+                                                className="saved-card-image"
+                                            />
+                                            <div className="saved-card-text">
+                                                <span className="saved-card-name">
+                                                    {b.name}
+                                                </span>
+                                                <span className="saved-card-location">
+                                                    {b.country} ({code})
+                                                </span>
+                                                <span className="saved-card-meta">
+                                                    Saved on{' '}
+                                                    {formatDate(
+                                                        b.savedAt,
+                                                        'MMM D, YYYY'
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                        <div className="saved-card-actions">
+                                            <DeleteBtn
+                                                title="Remove from saved"
+                                                label="Remove"
+                                                targetName={b.name}
+                                                buttonType={BUTTON_VARIANT.TEXT}
+                                                onConfirm={() =>
+                                                    removeCity(b.name, code)
                                                 }
                                             />
                                         </div>

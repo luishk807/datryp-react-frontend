@@ -17,6 +17,7 @@ const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPa
 const Visited = lazy(() => import('components/Sections/Visited'));
 const Saved = lazy(() => import('components/Sections/Saved'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
+const CityDetail = lazy(() => import('components/Sections/CityDetail'));
 const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
@@ -98,6 +99,11 @@ function App() {
                 <Route path='/country' element={
                     <Suspense fallback={<>...</>}>
                         <CountryDetail />
+                    </Suspense>
+                }/>
+                <Route path='/city' element={
+                    <Suspense fallback={<>...</>}>
+                        <CityDetail />
                     </Suspense>
                 }/>
                 <Route path='/history' element={

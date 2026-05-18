@@ -246,7 +246,7 @@ const CountryDetail = () => {
               {details.topCities.map((city) => (
                 <li key={city.name} className="country-top-city">
                   <Link
-                    to={`/city?name=${encodeURIComponent(city.name)}&country=${encodeURIComponent(country.name)}`}
+                    to={`/city?name=${encodeURIComponent(city.name)}&country=${encodeURIComponent(country.name)}&code=${encodeURIComponent(country.code)}`}
                     className="country-top-city-link"
                   >
                     <span className="country-top-city-name">{city.name}</span>
