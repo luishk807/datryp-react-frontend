@@ -42,6 +42,10 @@ export interface ActivitiesProps {
     /** Country name for this day's destination — used to scope the
      *  AddPlace AI autocomplete so suggestions stay in-country. */
     country?: string;
+    /** When true, the per-activity status pill (Planning/Confirmed toggle)
+     *  is disabled. Used during new-trip creation so brand-new activities
+     *  stay locked to Planning until the trip is actually saved. */
+    lockActivityStatus?: boolean;
 }
 
 const isConfirmedStatus = (status: Activity['status']): boolean => {
@@ -61,6 +65,7 @@ const Activities = ({
     destIdx = 0,
     date = '',
     country = '',
+    lockActivityStatus = false,
 }: ActivitiesProps) => {
     // Day-level drop target — accepts drops onto empty space when there
     // are no sortable cards to land on. dnd-kit needs both the sortable
@@ -115,12 +120,8 @@ const Activities = ({
             {activities &&
                 activities.map((activity, indx) => {
                     const activityTime = `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
-                    const budgetList =
-                        activity.budget && activity.budget.length
-                            ? activity.budget
-                                  .map((item) => `${item.user.label} (${convertMoney(item.budget)})`)
-                                  .join(', ')
-                            : '';
+                    const budgetEntries = activity.budget ?? [];
+                    const hasBudget = budgetEntries.length > 0;
                     // Per-activity edit lock. True when the trip is in view-mode
                     // OR this specific place is already Confirmed — locking
                     // edit, delete-by-edit, and AddBudget all at once. The
@@ -132,12 +133,12 @@ const Activities = ({
                     // Cost + budget are coupled: a non-money activity (just
                     // a note like "checkout at 10am") shouldn't show either
                     // row. We surface them only when there's an actual cost
-                    // to split (>0). Existing budgetList without a cost is
-                    // still respected so legacy rows don't disappear.
+                    // to split (>0). Existing budget without a cost is still
+                    // respected so legacy rows don't disappear.
                     const numericCost = Number(activity.cost);
                     const hasCost =
                         Number.isFinite(numericCost) && numericCost !== 0;
-                    const showBudgetRow = Boolean(budgetList) || hasCost;
+                    const showBudgetRow = hasBudget || hasCost;
                     const card = (
                         <Grid
                             item
@@ -202,7 +203,7 @@ const Activities = ({
                                                                 'status-toggle ' +
                                                                 (confirmed ? 'is-confirmed' : 'is-pending')
                                                             }
-                                                            disabled={isViewMode}
+                                                            disabled={isViewMode || lockActivityStatus}
                                                             aria-label={`Status: ${confirmed ? 'Confirmed' : 'Planning'}. Click to toggle.`}
                                                             onClick={() =>
                                                                 onChangePlace('edit', {
@@ -233,15 +234,29 @@ const Activities = ({
                                                     <span className="meta-text">{activityTime}</span>
                                                 </div>
                                                 {showBudgetRow && (
-                                                    <div className="meta-row">
+                                                    <div className="meta-row meta-row-budget">
                                                         <GroupOutlinedIcon className="meta-icon" />
-                                                        <span className="meta-text">
-                                                            {budgetList || (
+                                                        <div className="budget-chips">
+                                                            {hasBudget ? (
+                                                                budgetEntries.map((item) => (
+                                                                    <span
+                                                                        key={item.id}
+                                                                        className="budget-chip"
+                                                                    >
+                                                                        <span className="budget-chip-name">
+                                                                            {item.user.label}
+                                                                        </span>
+                                                                        <span className="budget-chip-amount">
+                                                                            {convertMoney(item.budget)}
+                                                                        </span>
+                                                                    </span>
+                                                                ))
+                                                            ) : (
                                                                 <span className="meta-hint">
-                                                                    No one yet
+                                                                    Split with friends
                                                                 </span>
                                                             )}
-                                                        </span>
+                                                        </div>
                                                         <AddBudget
                                                             isViewMode={isPlaceLocked}
                                                             budget={activity.budget}

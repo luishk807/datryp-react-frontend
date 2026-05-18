@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import './index.scss';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { Grid } from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import type { BudgetEntry, BudgetItem, Friend } from 'types';
@@ -54,8 +54,12 @@ export const AddBudget = ({
             ref={modalRef}
             title="Travel Budget"
             buttonProps={{
-                Icon: AddCircleOutlineIcon,
+                Icon: EditOutlinedIcon,
                 type: 'text-plain',
+                className: 'budget-edit-trigger',
+                ariaLabel:
+                    budget.length > 0 ? 'Edit budget' : 'Add who is paying',
+                iconProps: { fontSize: 'small' },
             }}
         >
             <Grid container className="travel-budget">

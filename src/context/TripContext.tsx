@@ -148,6 +148,33 @@ export const resetTrip = (): TripAction => ({ type: 'resetTrip' });
 const tripReducer = produce((draft: TripState, action: TripAction) => {
     switch (action.type) {
         case 'basicInfo': {
+            // Cascade: when the payload shrinks the `friends` array, prune
+            // matching budget entries from every activity. Without this, a
+            // user who was added to an activity split stays on the budget
+            // chips after they're removed from the participant list. We do
+            // this *before* the Object.assign so the comparison uses the
+            // pre-change draft.friends snapshot.
+            const nextFriends = action.payload.friends;
+            if (Array.isArray(nextFriends)) {
+                const newIds = new Set(nextFriends.map((f) => f.id));
+                const removedIds = new Set<number>();
+                for (const f of draft.friends ?? []) {
+                    if (!newIds.has(f.id)) removedIds.add(f.id);
+                }
+                if (removedIds.size > 0) {
+                    for (const dest of draft.destinations) {
+                        if (!dest.itinerary) continue;
+                        for (const day of dest.itinerary) {
+                            for (const activity of day.activities) {
+                                if (!activity.budget) continue;
+                                activity.budget = activity.budget.filter(
+                                    (b) => !removedIds.has(b.user.id)
+                                );
+                            }
+                        }
+                    }
+                }
+            }
             Object.assign(draft, action.payload);
             return;
         }

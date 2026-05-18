@@ -32,6 +32,13 @@ interface BasicTripInfoProps {
     onStatusChange?: (status: TripStatus) => void | Promise<void>;
     onExportExcel?: () => void;
     onSaveTrip?: () => void;
+    /** Flip the page into edit mode (show all activity edit icons, etc.).
+     *  When provided AND `isEditMode` is false, the primary button reads
+     *  "Edit Trip" and clicking calls this instead of `onSaveTrip`. */
+    onEnterEditMode?: () => void;
+    /** Whether the parent is currently in edit mode. Drives the primary
+     *  button's label + click target ("Edit Trip" vs "Save Trip"). */
+    isEditMode?: boolean;
     /** One-click promote Confirmed → Completed. Does its own save (no
      *  separate Save Trip click needed), so we hide Save Trip whenever this
      *  is provided. */
@@ -90,6 +97,8 @@ export const BasicTripInfo = ({
     onStatusChange,
     onExportExcel,
     onSaveTrip,
+    onEnterEditMode,
+    isEditMode = false,
     onMarkCompleted,
     onCancel,
     onDeleteTrip,
@@ -273,7 +282,22 @@ export const BasicTripInfo = ({
                             disabled={isSaving}
                         />
                     )}
-                    {onSaveTrip && (
+                    {/* Trip-detail page wires onEnterEditMode to "navigate to
+                     *  the stepper editor" — same behavior as the trip-name
+                     *  pencil icon, just a more discoverable big-button CTA.
+                     *  The new-trip stepper passes onSaveTrip instead, which
+                     *  is the classic save-this-form button. */}
+                    {onEnterEditMode && !isEditMode && (
+                        <ButtonCustom
+                            type="standard"
+                            capitalizeType="uppercase"
+                            className="trip-save-btn"
+                            label="Edit Trip"
+                            onClick={onEnterEditMode}
+                            disabled={isSaving}
+                        />
+                    )}
+                    {onSaveTrip && (isEditMode || !onEnterEditMode) && (
                         <ButtonCustom
                             type="standard"
                             capitalizeType="uppercase"

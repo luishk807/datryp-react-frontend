@@ -148,11 +148,20 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <DropDown
-                            label="Status"
+                            label={
+                                data?.apiId
+                                    ? 'Status'
+                                    : 'Status (always Planning on create)'
+                            }
                             value={resolvedStatus?.id ?? null}
                             options={tripStatuses}
                             name="status"
                             onChange={handleStatusChange}
+                            // Locked while creating the trip — a brand-new
+                            // itinerary is always Planning. Status becomes
+                            // editable once the trip exists (apiId set) via
+                            // this form OR from /trips / /trip-detail.
+                            disabled={!data?.apiId}
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">

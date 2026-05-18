@@ -223,7 +223,10 @@ export const TripDetail = () => {
   const persistedStatusName = apiTrip?.status?.name ?? TRIP_STATUS.PLANNING;
   const isLocked = LOCKED_STATUS_NAMES.has(persistedStatusName);
 
-  // Activity editing (add/edit/delete places, edit budgets) locks at Confirmed.
+  // BasicTripInfo gates its trip-name pencil + status edit affordances on
+  // this flag (organizer-only, planning-only). Activity-card editing is
+  // intentionally NOT done on this page — clicking Edit Trip / the pencil
+  // routes the user to the dedicated stepper editor.
   const isViewMode = !isOrganizer || isLocked;
   // Save Trip only matters while the trip is still in Planning — that's the
   // one state where activity-level edits can be made. Once Confirmed,
@@ -324,7 +327,21 @@ export const TripDetail = () => {
     );
   }
 
-  const participants = tripData.friends ?? [];
+  // Mirror TripSteps: budget-split participants are friends + organizers,
+  // deduped by id. Otherwise the AddBudget modal only lists invited friends
+  // and silently drops the organizer (the trip owner / current user).
+  const participants = (() => {
+    const friends = tripData.friends ?? [];
+    const organizer = tripData.organizer ?? [];
+    const seen = new Set<number>();
+    const merged: typeof friends = [];
+    for (const entry of [...friends, ...organizer]) {
+      if (seen.has(entry.id)) continue;
+      seen.add(entry.id);
+      merged.push(entry);
+    }
+    return merged;
+  })();
   const destinations = tripData.destinations ?? [];
 
   return (
@@ -337,7 +354,11 @@ export const TripDetail = () => {
             onChangeStep={handleChangeStep}
             onStatusChange={handleStatusChange}
             onExportExcel={canExport ? handleExportExcel : undefined}
-            onSaveTrip={canSaveTrip ? handleSaveTrip : undefined}
+            // Edit Trip routes to the dedicated stepper editor — same as
+            // the pencil icon next to the trip name. Trip-detail itself is
+            // read-only; the stepper is where all the activity-card edit
+            // affordances live.
+            onEnterEditMode={canSaveTrip ? handleChangeStep : undefined}
             onMarkCompleted={canMarkCompleted ? handleMarkCompleted : undefined}
             onDeleteTrip={isOrganizer ? handleDeleteTrip : undefined}
             isSaving={saveItinerary.isPending}

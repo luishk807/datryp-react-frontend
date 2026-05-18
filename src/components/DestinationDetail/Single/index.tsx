@@ -15,6 +15,8 @@ interface SingleProps {
     /** Country name for the (single) destination — scopes the AddPlace AI
      *  autocomplete so a Spain trip's suggestions stay in-country. */
     country?: string;
+    /** Disable the per-activity status pill (new-trip flow only). */
+    lockActivityStatus?: boolean;
 }
 
 /** Single-destination day. Always renders Activities (even when empty) so
@@ -28,6 +30,7 @@ const Single = ({
     isViewMode = false,
     date = '',
     country = '',
+    lockActivityStatus = false,
 }: SingleProps) => (
     <Activities
         isViewMode={isViewMode}
@@ -38,6 +41,7 @@ const Single = ({
         destIdx={0}
         date={date}
         country={country}
+        lockActivityStatus={lockActivityStatus}
     />
 );
 

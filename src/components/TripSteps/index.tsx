@@ -174,6 +174,10 @@ const TripSteps = ({
                     onChangePlace={onChangePlace}
                     onChangeBudget={onChangeBudget}
                     onChangeDestination={onChangeDestination}
+                    // Lock the per-activity Planning/Confirmed pill while
+                    // creating a brand-new trip — activities are always
+                    // Planning until the trip is saved (apiId materializes).
+                    lockActivityStatus={!tripInfo.apiId}
                 />
             ),
         },

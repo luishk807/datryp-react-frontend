@@ -34,6 +34,8 @@ export interface MultipleProps {
     onChangePlace: (type: ActionType, value: unknown, destinationIndx?: number) => void;
     participants?: Friend[];
     isViewMode?: boolean;
+    /** Disable the per-activity status pill (new-trip flow only). */
+    lockActivityStatus?: boolean;
 }
 
 const Multiple = ({
@@ -46,6 +48,7 @@ const Multiple = ({
     onChangePlace,
     participants = [],
     isViewMode = false,
+    lockActivityStatus = false,
 }: MultipleProps) => {
     return (
         <>
@@ -164,6 +167,7 @@ const Multiple = ({
                                         destIdx={realDestIdx}
                                         date={trip.startDate ?? defaultDate ?? ''}
                                         country={country ?? ''}
+                                        lockActivityStatus={lockActivityStatus}
                                     />
                                 </Grid>
                             </Grid>

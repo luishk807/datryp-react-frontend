@@ -45,6 +45,8 @@ interface DestinationDetailProps {
     onChangePlace: (event: TripPlaceEvent) => void;
     onChangeDestination?: (event: TripDestinationEvent) => void;
     isViewMode?: boolean;
+    /** Disable the per-activity status pill (new-trip flow only). */
+    lockActivityStatus?: boolean;
 }
 
 const fmt = (m: moment.Moment) => m.format('MM/DD/YYYY');
@@ -112,6 +114,7 @@ const DestinationDetail = ({
     onChangePlace,
     onChangeDestination = undefined,
     isViewMode = false,
+    lockActivityStatus = false,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
     const [dndError, setDndError] = useState<string | null>(null);
@@ -277,6 +280,7 @@ const DestinationDetail = ({
                 return (
                     <DateBlock
                         isViewMode={isViewMode}
+                        lockActivityStatus={lockActivityStatus}
                         key={indx}
                         index={indx}
                         tripMaxDate={endDate}

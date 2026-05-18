@@ -19,6 +19,8 @@ interface DateBlockProps {
     onChangePlace: (type: ActionType, value: any) => void;
     onChangeDestination?: (type: ActionType, value: any) => void;
     isViewMode?: boolean;
+    /** Disable the per-activity status pill (new-trip flow only). */
+    lockActivityStatus?: boolean;
 }
 
 const DateBlock = ({
@@ -33,6 +35,7 @@ const DateBlock = ({
     onChangePlace,
     onChangeDestination,
     isViewMode = false,
+    lockActivityStatus = false,
 }: DateBlockProps) => {
     const showsRange = useMemo(
         () => !isSameDay(startDate, endDate),
@@ -98,6 +101,7 @@ const DateBlock = ({
                                 trips={trips as Activity[] | null}
                                 date={startDate}
                                 country={destinations[0]?.country?.name ?? ''}
+                                lockActivityStatus={lockActivityStatus}
                             />
                         ) : (
                             <MultipleTrips
@@ -110,6 +114,7 @@ const DateBlock = ({
                                 onChangeDestination={onChangeDestination}
                                 participants={participants}
                                 onChangeBudget={onChangeBudget}
+                                lockActivityStatus={lockActivityStatus}
                             />
                         )}
                     </Grid>
