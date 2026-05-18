@@ -21,6 +21,8 @@ const CityDetail = lazy(() => import('components/Sections/CityDetail'));
 const Terms = lazy(() => import('components/Sections/Terms'));
 const Membership = lazy(() => import('components/Sections/Membership'));
 const MembershipWelcome = lazy(() => import('components/Sections/MembershipWelcome'));
+const ForgotPassword = lazy(() => import('components/Sections/ForgotPassword'));
+const ResetPassword = lazy(() => import('components/Sections/ResetPassword'));
 const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
@@ -149,6 +151,16 @@ function App() {
                 <Route path='/membership/welcome' element={
                     <Suspense fallback={<>...</>}>
                         <MembershipWelcome />
+                    </Suspense>
+                }/>
+                <Route path='/forgot-password' element={
+                    <Suspense fallback={<>...</>}>
+                        <ForgotPassword />
+                    </Suspense>
+                }/>
+                <Route path='/reset-password' element={
+                    <Suspense fallback={<>...</>}>
+                        <ResetPassword />
                     </Suspense>
                 }/>
                 <Route path='*' element={

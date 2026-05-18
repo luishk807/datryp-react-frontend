@@ -1,0 +1,81 @@
+.forgot-password-page {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 0 60px;
+    color: rgba(0, 0, 0, 0.78);
+    line-height: 1.5;
+
+    .forgot-password-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: theme('colors.primary');
+        margin: 0 0 8px;
+    }
+
+    .forgot-password-subtitle {
+        font-size: 0.95rem;
+        color: rgba(0, 0, 0, 0.6);
+        margin: 0 0 24px;
+    }
+
+    .forgot-password-field {
+        margin-bottom: 16px;
+    }
+
+    .forgot-password-error {
+        margin: 12px 0;
+        padding: 10px 12px;
+        background: rgba(192, 57, 43, 0.06);
+        color: #c0392b;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .forgot-password-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .forgot-password-back {
+        font-size: 0.9rem;
+        color: rgba(0, 0, 0, 0.6);
+
+        a {
+            color: theme('colors.primaryGreen');
+            text-decoration: underline;
+        }
+    }
+
+    .forgot-password-confirm {
+        text-align: center;
+
+        h2 {
+            color: theme('colors.primaryGreen');
+            margin: 0 0 12px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 0.95rem;
+            margin: 0 0 12px;
+        }
+    }
+
+    .forgot-password-fineprint {
+        color: rgba(0, 0, 0, 0.55);
+        font-size: 0.85rem;
+    }
+
+    .forgot-password-resend {
+        background: none;
+        border: none;
+        padding: 0;
+        color: theme('colors.primaryGreen');
+        text-decoration: underline;
+        cursor: pointer;
+        font: inherit;
+    }
+}

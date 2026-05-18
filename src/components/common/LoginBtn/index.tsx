@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './index.scss';
 import { Grid } from '@mui/material';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
@@ -22,10 +23,17 @@ export interface LoginBtnProps {
 
 export const LoginBtn = ({ onClick }: LoginBtnProps) => {
     const modelRef = useRef<ModalButtonHandle>(null);
+    const navigate = useNavigate();
     const [form, setForm] = useState<LoginForm>({});
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const label = AUTH_LABEL.LOGIN;
+
+    const handleForgotPassword = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        modelRef.current?.closeModal();
+        navigate('/forgot-password');
+    };
 
     const onChange = (field: keyof LoginForm, e: { target: { value: string } }) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -64,7 +72,9 @@ export const LoginBtn = ({ onClick }: LoginBtnProps) => {
                     <InputField name="password" type="password" onChange={(e) => onChange('password', e)} />
                 </Grid>
                 <Grid item lg={12} xs={12} md={12} className="form-input">
-                    <a href="">Forgot password?</a>
+                    <a href="/forgot-password" onClick={handleForgotPassword}>
+                        Forgot password?
+                    </a>
                 </Grid>
                 {error && (
                     <Grid item lg={12} xs={12} md={12} className="form-input form-error" role="alert">

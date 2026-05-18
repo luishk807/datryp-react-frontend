@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -269,6 +270,14 @@ const AuthGate = ({
                                     />
                                 </div>
                             </>
+                        )}
+
+                        {mode === AUTH_MODE.LOGIN && (
+                            <p className="authgate-forgot">
+                                <Link to="/forgot-password">
+                                    Forgot your password?
+                                </Link>
+                            </p>
                         )}
 
                         {error && (

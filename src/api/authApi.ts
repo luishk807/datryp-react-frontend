@@ -108,6 +108,37 @@ export const login = (payload: LoginPayload): Promise<TokenResponse> =>
         body: JSON.stringify(payload),
     }).then(handleJson<TokenResponse>);
 
+export const requestPasswordReset = (email: string): Promise<void> =>
+    fetch(`${API_BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+    }).then(async (resp) => {
+        // Backend returns 204 even when the email is unknown — same response
+        // shape, no user-list leak. Anything 4xx/5xx surfaces as an error
+        // (validation, network, etc.).
+        if (resp.status === 204) return;
+        let message = `${resp.status} ${resp.statusText}`;
+        try {
+            const body = await resp.json();
+            const formatted = formatDetail(body?.detail);
+            if (formatted) message = formatted;
+        } catch {
+            // ignore
+        }
+        throw new AuthError(message, resp.status);
+    });
+
+export const resetPassword = (
+    token: string,
+    newPassword: string
+): Promise<TokenResponse> =>
+    fetch(`${API_BASE}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, new_password: newPassword }),
+    }).then(handleJson<TokenResponse>);
+
 export const fetchMe = (): Promise<MeResponse> => {
     const token = getAuthToken();
     if (!token) throw new AuthError('Not authenticated', 401);

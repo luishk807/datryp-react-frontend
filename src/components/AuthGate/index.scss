@@ -180,6 +180,21 @@
   flex-direction: column;
 }
 
+.authgate-forgot {
+  margin: -4px 0 12px;
+  font-size: 0.9rem;
+  text-align: right;
+
+  a {
+    color: theme('colors.primaryGreen');
+    text-decoration: underline;
+
+    &:hover {
+      color: theme('colors.primaryOrange');
+    }
+  }
+}
+
 .authgate-age-confirm {
   display: flex;
   align-items: center;
