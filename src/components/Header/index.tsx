@@ -12,6 +12,8 @@ import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
+import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import SearchBar from 'components/SearchBar';
@@ -33,8 +35,15 @@ interface HeaderProps {
 const Header = ({ withSearch = false }: HeaderProps) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-    const { user, login, signup, logout } = useUser();
+    const { user, isAdmin, login, signup, logout } = useUser();
     const navigate = useNavigate();
+
+    // Show "Upgrade to Pro" for free non-admin users so they have a
+    // discoverable, voluntary path to subscribe — not just the reactive
+    // paywall on cap-hit. Paid users see "Subscription" (their management
+    // entry point). Admins get nothing — they bypass paywalls.
+    const showUpgradeLink = !!user && !isAdmin && !user.isPaidMember;
+    const showSubscriptionLink = !!user && !isAdmin && user.isPaidMember;
 
     const handleSearchSelected = (country: Country) => {
         if (!country?.code) return;
@@ -145,6 +154,24 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     label="Account"
                                     onClick={() => handleNavigate('/account')}
                                 />
+                                {showUpgradeLink && (
+                                    <MenuActionItem
+                                        icon={<StarRoundedIcon />}
+                                        label="Upgrade to Pro"
+                                        onClick={() =>
+                                            handleNavigate('/account#subscription')
+                                        }
+                                    />
+                                )}
+                                {showSubscriptionLink && (
+                                    <MenuActionItem
+                                        icon={<WorkspacePremiumRoundedIcon />}
+                                        label="Subscription"
+                                        onClick={() =>
+                                            handleNavigate('/account#subscription')
+                                        }
+                                    />
+                                )}
                                 <MenuActionItem
                                     icon={<FlightTakeoffIcon />}
                                     label="My Trips"
@@ -230,6 +257,32 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     label="Account"
                                     onClick={() => handleNavigate('/account')}
                                 />
+                                {showUpgradeLink && (
+                                    <ButtonCustom
+                                        type={BUTTON_VARIANT.NONE}
+                                        capitalizeType="none"
+                                        className="drawer-link drawer-upgrade"
+                                        label="Upgrade to Pro"
+                                        onClick={() =>
+                                            handleNavigate(
+                                                '/account#subscription'
+                                            )
+                                        }
+                                    />
+                                )}
+                                {showSubscriptionLink && (
+                                    <ButtonCustom
+                                        type={BUTTON_VARIANT.NONE}
+                                        capitalizeType="none"
+                                        className="drawer-link"
+                                        label="Subscription"
+                                        onClick={() =>
+                                            handleNavigate(
+                                                '/account#subscription'
+                                            )
+                                        }
+                                    />
+                                )}
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"

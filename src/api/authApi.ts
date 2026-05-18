@@ -5,6 +5,7 @@
  */
 
 import { getAuthToken } from './authStorage';
+import type { SubscriptionPlan, SubscriptionStatus, UserRole } from 'types';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -33,6 +34,21 @@ export interface MeResponse {
     id: string;
     email: string;
     name: string | null;
+    role: UserRole;
+    /** Wire format uses snake_case to match the Pydantic schema; the
+     *  UserContext re-shapes these into camelCase for UI consumption. */
+    subscription_plan: SubscriptionPlan;
+    subscription_status: SubscriptionStatus;
+    effective_trip_cap: number;
+    is_paid_member: boolean;
+    /** ISO-8601 timestamps from the Stripe webhook. Null when there's no
+     *  active subscription / trial. */
+    trial_ends_at: string | null;
+    current_period_end: string | null;
+    /** True when the user has cancelled via the Customer Portal but the
+     *  current period is still active. UI shows a "cancelling on Y" state
+     *  in that case instead of the normal "Renews on Y" copy. */
+    subscription_cancel_at_period_end: boolean;
 }
 
 class AuthError extends Error {

@@ -33,6 +33,33 @@ export const AUTH_MODE = {
     SIGNUP: 'signup',
 } as const;
 
+/** Role values stored in `users.role` on the Python backend. Admins bypass
+ *  paywalls and tier gates; every check should go through a helper, never
+ *  compare the literal string at a call site. */
+export const USER_ROLE = {
+    USER: 'user',
+    ADMIN: 'admin',
+} as const;
+
+/** Subscription plan values mirrored from the Python backend's
+ *  `users.subscription_plan` column. `'premium'` is reserved for a future
+ *  tier — keep it here so feature gates can be written once. */
+export const SUBSCRIPTION_PLAN = {
+    FREE: 'free',
+    PRO: 'pro',
+    PREMIUM: 'premium',
+} as const;
+
+/** Subscription status mirroring Stripe's lifecycle, normalized to the
+ *  states we act on. `'none'` = never subscribed. */
+export const SUBSCRIPTION_STATUS = {
+    NONE: 'none',
+    TRIALING: 'trialing',
+    ACTIVE: 'active',
+    PAST_DUE: 'past_due',
+    CANCELED: 'canceled',
+} as const;
+
 /** Trip-mode tab/prop value (lowercase state-key, distinct from TRIP_BASIC's
  *  display names). 'recommend' is the homepage's AI-recommender tab; components
  *  that only edit a saved trip should narrow this to exclude RECOMMEND. */

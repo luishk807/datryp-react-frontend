@@ -9,8 +9,9 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { gql } from 'graphql-request';
+import { ClientError, gql } from 'graphql-request';
 import { pythonGqlClient } from 'api/pythonGqlClient';
+import { TripCapReachedError } from 'api/paywallError';
 import { ITINERARY_TYPE } from 'constants';
 
 // ── Types mirroring the GraphQL schema ───────────────────────────────────────
@@ -272,15 +273,39 @@ export const useSaveItinerary = () => {
     const queryClient = useQueryClient();
     return useMutation<ApiItinerary, Error, SaveItineraryInput>({
         mutationFn: async (input) => {
-            const data = await pythonGqlClient.request<{ saveItinerary: ApiItinerary }>(
-                SAVE_ITINERARY_MUTATION,
-                { input }
-            );
-            return data.saveItinerary;
+            try {
+                const data = await pythonGqlClient.request<{ saveItinerary: ApiItinerary }>(
+                    SAVE_ITINERARY_MUTATION,
+                    { input }
+                );
+                return data.saveItinerary;
+            } catch (err) {
+                // Free-tier paywall hit — rethrow as a typed error so the
+                // form can show a paywall modal instead of a save-failed toast.
+                if (err instanceof ClientError) {
+                    const capError = err.response.errors?.find(
+                        (e) => e.extensions?.code === 'TRIP_CAP_REACHED'
+                    );
+                    if (capError) {
+                        const ext = capError.extensions ?? {};
+                        const currentCount =
+                            typeof ext.currentCount === 'number' ? ext.currentCount : 0;
+                        const cap = typeof ext.cap === 'number' ? ext.cap : 1;
+                        throw new TripCapReachedError({
+                            currentCount,
+                            cap,
+                            message: capError.message,
+                        });
+                    }
+                }
+                throw err;
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['myItineraries'] });
         },
+        // Don't retry a paywall hit — same input will block again.
+        retry: (_failureCount, error) => !(error instanceof TripCapReachedError),
     });
 };
 

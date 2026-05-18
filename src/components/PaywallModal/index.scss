@@ -1,0 +1,32 @@
+.paywall-modal {
+    padding: 4px 0 0;
+    color: rgba(0, 0, 0, 0.78);
+    line-height: 1.5;
+
+    .paywall-modal-headline {
+        font-size: 1.05rem;
+        margin-bottom: 12px;
+    }
+
+    .paywall-modal-body {
+        font-size: 0.95rem;
+        margin-bottom: 16px;
+    }
+
+    .paywall-modal-footnote {
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.55);
+        margin: 18px 0;
+    }
+
+    .paywall-modal-link {
+        color: theme('colors.primaryGreen');
+        text-decoration: underline;
+    }
+
+    .paywall-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+}

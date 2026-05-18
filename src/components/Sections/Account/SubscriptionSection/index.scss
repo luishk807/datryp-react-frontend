@@ -1,0 +1,59 @@
+.subscription-status {
+    margin-bottom: 16px;
+
+    .subscription-status-line {
+        margin: 8px 0 0;
+        font-size: 0.95rem;
+        color: rgba(0, 0, 0, 0.78);
+        line-height: 1.5;
+
+        &--warning {
+            color: #b3261e;
+        }
+    }
+}
+
+.subscription-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 999px;
+
+    &--free {
+        background: rgba(0, 0, 0, 0.06);
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    &--active {
+        background: rgba(60, 181, 75, 0.12);
+        color: rgb(20, 100, 30);
+    }
+
+    &--warning {
+        background: rgba(245, 158, 11, 0.16);
+        color: rgb(120, 53, 15);
+    }
+
+    &--admin {
+        background: rgba(99, 102, 241, 0.14);
+        color: rgb(67, 56, 202);
+    }
+}
+
+.subscription-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.subscription-error {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    background: rgba(192, 57, 43, 0.06);
+    color: #c0392b;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}

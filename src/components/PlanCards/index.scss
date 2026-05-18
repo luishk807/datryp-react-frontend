@@ -1,0 +1,125 @@
+.plan-cards {
+    color: rgba(0, 0, 0, 0.78);
+    line-height: 1.5;
+
+    .plan-cards-headline {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: theme('colors.primary');
+        margin: 0 0 8px;
+    }
+
+    .plan-cards-body {
+        font-size: 0.95rem;
+        margin: 0 0 16px;
+    }
+
+    .plan-cards-trial-note {
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.55);
+        margin: 12px 0 0;
+    }
+
+    .plan-cards-error {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        background: rgba(192, 57, 43, 0.06);
+        color: #c0392b;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+}
+
+.plan-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    /* Mobile: stack the two plans full-width. */
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.plan-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 16px 18px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    transition: border-color 120ms ease, transform 120ms ease,
+        box-shadow 120ms ease;
+
+    &:hover:not(:disabled) {
+        border-color: theme('colors.primaryGreen');
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &--featured {
+        border-color: theme('colors.primaryOrange');
+        background: linear-gradient(
+            135deg,
+            rgba(246, 137, 31, 0.04),
+            rgba(246, 137, 31, 0)
+        );
+
+        &:hover:not(:disabled) {
+            border-color: theme('colors.primaryOrange');
+        }
+    }
+
+    .plan-card-badge {
+        position: absolute;
+        top: -10px;
+        right: 12px;
+        background: theme('colors.primaryOrange');
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 3px 8px;
+        border-radius: 999px;
+    }
+
+    .plan-card-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    .plan-card-price {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: theme('colors.primary');
+    }
+
+    .plan-card-cadence {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    .plan-card-fine {
+        font-size: 0.8rem;
+        color: rgba(0, 0, 0, 0.55);
+    }
+}

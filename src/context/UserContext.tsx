@@ -14,6 +14,8 @@ import {
     useSignup,
 } from 'api/hooks/useAuth';
 import type { SignupPayload } from 'api/authApi';
+import { USER_ROLE } from 'constants';
+import type { SubscriptionPlan, SubscriptionStatus, UserRole } from 'types';
 
 export type PaymentType = 'card' | 'paypal' | 'venmo' | 'other';
 
@@ -42,6 +44,30 @@ export interface User {
     paymentType?: PaymentType;
     notifications?: NotificationPrefs;
     friends?: UserFriend[];
+    /** Authoritative role from the backend's `users.role` column. Drives
+     *  admin bypass on paywalls and tier gates — never derive this from the
+     *  client or trust localStorage. */
+    role: UserRole;
+    /** Subscription state, re-shaped to camelCase from the wire format.
+     *  Server-authoritative — the Stripe webhook is the source of truth. */
+    subscriptionPlan: SubscriptionPlan;
+    subscriptionStatus: SubscriptionStatus;
+    /** Free-tier saved-trip ceiling for this user. Paid members and admins
+     *  ignore this — they have no cap. UI should still display it as
+     *  "{tripCount} / {effectiveTripCap}" for free users. */
+    effectiveTripCap: number;
+    /** Server-derived flag — true when the user has an active paid plan and
+     *  a status that warrants paid access (trial / active / past-due grace).
+     *  Prefer this over re-deriving from plan + status on the client. */
+    isPaidMember: boolean;
+    /** ISO-8601 timestamps, set by the Stripe webhook. Null when there's no
+     *  active subscription / trial. Components render them as "trial ends in
+     *  X days" / "renews on Y" — see SubscriptionSection. */
+    trialEndsAt: string | null;
+    currentPeriodEnd: string | null;
+    /** True when the user has cancelled via the Customer Portal but the
+     *  current period is still active. */
+    cancelAtPeriodEnd: boolean;
 }
 
 /**
@@ -63,6 +89,10 @@ type LocalOverlay = Pick<
 interface UserContextValue {
     user: User | null;
     isLoading: boolean;
+    /** True when the authenticated user has admin role. Use this — not a
+     *  direct `user.role === 'admin'` comparison — so the source of truth
+     *  stays one place. */
+    isAdmin: boolean;
     login: (email: string, password: string) => Promise<void>;
     signup: (payload: SignupPayload) => Promise<void>;
     logout: () => void;
@@ -124,9 +154,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             id: me.id,
             name: me.name ?? me.email,
             email: me.email,
+            role: me.role,
+            subscriptionPlan: me.subscription_plan,
+            subscriptionStatus: me.subscription_status,
+            effectiveTripCap: me.effective_trip_cap,
+            isPaidMember: me.is_paid_member,
+            trialEndsAt: me.trial_ends_at,
+            currentPeriodEnd: me.current_period_end,
+            cancelAtPeriodEnd: me.subscription_cancel_at_period_end,
             ...overlay,
         };
     }, [me, overlay]);
+
+    const isAdmin = user?.role === USER_ROLE.ADMIN;
 
     const login = useCallback(
         async (email: string, password: string) => {
@@ -155,6 +195,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         () => ({
             user,
             isLoading,
+            isAdmin,
             login,
             signup,
             logout,
@@ -167,6 +208,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         [
             user,
             isLoading,
+            isAdmin,
             login,
             signup,
             logout,

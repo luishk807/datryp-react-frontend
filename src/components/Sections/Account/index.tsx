@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
 import Field from 'components/common/FormFields/Field';
 import Toggle from 'components/common/FormFields/Toggle';
+import SubscriptionSection from './SubscriptionSection';
 import { useUser } from 'context/UserContext';
 import type { NotificationPrefs } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
@@ -19,9 +21,27 @@ const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
 
 export const Account = () => {
     const { user, updateUser } = useUser();
+    const { hash } = useLocation();
     const { data: countries = [], isLoading: countriesLoading } = useCountries('', {
         limit: 300,
     });
+
+    // Scroll to the section referenced by the URL hash on mount / hash change.
+    // The Header's "Subscription" / "Upgrade to Pro" menu items deep-link via
+    // `/account#subscription`; without this effect React Router would land the
+    // user at the top of the page and force them to hunt.
+    useEffect(() => {
+        if (!hash) return;
+        const id = hash.replace(/^#/, '');
+        const el = document.getElementById(id);
+        if (el) {
+            // requestAnimationFrame so the DOM has finished laying out before
+            // we measure scroll position.
+            requestAnimationFrame(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+    }, [hash]);
 
     // Profile
     const [name, setName] = useState(user?.name ?? '');
@@ -193,6 +213,8 @@ export const Account = () => {
                         </div>
                     </div>
                 </section>
+
+                <SubscriptionSection />
 
                 {/* Password */}
                 <section className="account-card">

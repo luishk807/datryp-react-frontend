@@ -12,9 +12,11 @@ import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
 import TripComplete from 'components/DestinationDetail/Completed';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
+import PaywallModal from 'components/PaywallModal';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useItineraryTypes, useTripStatuses } from 'api/hooks/useLookups';
 import { useSaveItinerary } from 'api/hooks/useItineraries';
+import { isTripCapReachedError } from 'api/paywallError';
 import { useUser } from 'context/UserContext';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
 import { TRIP_STATUS } from 'constants';
@@ -98,6 +100,13 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
+    // Paywall modal state — captures the cap + current count from the
+    // server's TRIP_CAP_REACHED extension so the modal can show "X / Y".
+    const [paywallInfo, setPaywallInfo] = useState<{
+        currentCount: number;
+        cap: number;
+    } | null>(null);
+    const paywallModalRef = useRef<ModalButtonHandle>(null);
 
     // In edit mode the "Describe Your Trip!" form opens as a modal triggered
     // by the pencil-edit icon on BasicTripInfo, rather than appearing inline
@@ -218,6 +227,14 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             }
             setActiveStep((prev) => prev + 1);
         } catch (err) {
+            if (isTripCapReachedError(err)) {
+                // Free-tier paywall — route to the modal, suppress the
+                // generic ErrorAlert (the modal carries the same info).
+                setPaywallInfo({ currentCount: err.currentCount, cap: err.cap });
+                paywallModalRef.current?.openModel();
+                setSaveError(null);
+                return;
+            }
             const message =
                 err instanceof Error ? err.message : 'Failed to save trip.';
             setSaveError(message);
@@ -386,6 +403,14 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                             BasicTripInfo's saveError prop. */}
                     </Grid>
                 )}
+                {paywallInfo && (
+                    <PaywallModal
+                        ref={paywallModalRef}
+                        currentCount={paywallInfo.currentCount}
+                        cap={paywallInfo.cap}
+                        onDismiss={() => setPaywallInfo(null)}
+                    />
+                )}
             </div>
         );
     }
@@ -516,6 +541,14 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                         </div>
                     </Grid>
                 </Grid>
+            )}
+            {paywallInfo && (
+                <PaywallModal
+                    ref={paywallModalRef}
+                    currentCount={paywallInfo.currentCount}
+                    cap={paywallInfo.cap}
+                    onDismiss={() => setPaywallInfo(null)}
+                />
             )}
         </div>
     );
