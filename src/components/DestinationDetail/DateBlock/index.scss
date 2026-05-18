@@ -56,9 +56,54 @@
   border-left: 2px solid rgba(60, 181, 75, 0.3);
 }
 
+/* Day-bottom "Add Activity" affordance — full-width dashed ghost button
+ * so it reads as a soft container action rather than a floating CTA, and
+ * pairs visually with the dashed "Drop a place here" empty-state hint. */
 .date-block .content .add-place-item {
-  display: flex;
-  justify-content: flex-end;
+  width: 100%;
+  margin-top: 10px;
+
+  /* Stretch the AddPlaceBtn Grid wrapper to full width so the inner
+   * trigger can span the container. */
+  .add-place-container-standard {
+    width: 100%;
+  }
+
+  /* Restyle the ButtonIcon trigger as a dashed ghost button. Targeting
+   * `.button-icon` (ButtonIcon's STANDARD class) instead of the wrapper
+   * so only the day-bottom add affordance changes, not the global
+   * standard-button look. */
+  .button-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px dashed rgba(0, 0, 0, 0.18);
+    background: transparent;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease,
+      background-color 0.15s ease;
+
+    .MuiSvgIcon-root {
+      font-size: 1.1rem;
+    }
+
+    &:hover {
+      border-color: theme('colors.primaryGreen');
+      color: theme('colors.primaryGreen');
+      background: rgba(60, 181, 75, 0.04);
+    }
+  }
 }
 
 @media (max-width: 640px) {
