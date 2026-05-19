@@ -1,0 +1,110 @@
+$sidebar-width: 240px;
+$mobile-breakpoint: 768px;
+
+.dashboard-shell {
+    width: 100%;
+    min-height: 100vh;
+    background: #f7f7f8;
+    // Sidebar is `position: fixed` so we reserve its width here as a
+    // left padding on the shell. The main column then takes the rest
+    // of the viewport and scrolls with the page.
+    padding-left: $sidebar-width;
+}
+
+.dashboard-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+// Mobile-only thin top bar holding the hamburger. Hidden on desktop so
+// the content butts right up against the sidebar.
+.dashboard-mobile-bar {
+    display: none;
+    align-items: center;
+    padding: 8px 12px;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-mobile-toggle {
+    // Both `display` and the parent `.dashboard-mobile-bar` flip on at
+    // the mobile breakpoint together.
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.dashboard-main-content {
+    flex: 1;
+    padding: 24px 28px;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+// ---------- Card shells ----------
+
+// Shared by every card section page so the look stays consistent
+// across the four routed sub-pages without each one re-declaring it.
+.dashboard-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 14px;
+    padding: 22px 24px;
+}
+
+.dashboard-card-head {
+    margin-bottom: 16px;
+}
+
+.dashboard-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+    margin: 0 0 4px;
+}
+
+.dashboard-card-subtitle {
+    font-size: 0.88rem;
+    color: rgba(0, 0, 0, 0.55);
+    margin: 0;
+}
+
+.dashboard-card-status {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.9rem;
+}
+
+.dashboard-card-error {
+    color: #c0392b;
+}
+
+.dashboard-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+// ---------- Mobile ----------
+
+@media (max-width: $mobile-breakpoint) {
+    .dashboard-shell {
+        // On mobile the sidebar is a drawer over content, so the main
+        // column reclaims the full viewport width.
+        padding-left: 0;
+    }
+
+    .dashboard-mobile-bar {
+        display: flex;
+    }
+
+    .dashboard-main-content {
+        padding: 16px;
+    }
+
+    .dashboard-card {
+        padding: 16px 14px;
+        border-radius: 12px;
+    }
+}

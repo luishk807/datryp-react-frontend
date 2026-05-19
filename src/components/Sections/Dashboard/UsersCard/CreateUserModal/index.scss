@@ -1,0 +1,22 @@
+.create-user-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 6px !important;
+}
+
+.create-user-dialog-help {
+    margin: 0 0 6px;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.85rem;
+}
+
+.create-user-field {
+    width: 100%;
+}
+
+.create-user-error {
+    margin: 4px 0 0;
+    color: #c0392b;
+    font-size: 0.85rem;
+}

@@ -14,6 +14,7 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import LoginBtn from 'components/common/LoginBtn';
 import SignUp from 'components/common/SignUpBtn';
 import SearchBar from 'components/SearchBar';
@@ -204,6 +205,15 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     label="Recent searches"
                                     onClick={() => handleNavigate('/history')}
                                 />
+                                {isAdmin && (
+                                    <MenuActionItem
+                                        icon={<AdminPanelSettingsRoundedIcon />}
+                                        label="Admin dashboard"
+                                        onClick={() =>
+                                            handleNavigate('/dashboard')
+                                        }
+                                    />
+                                )}
                                 <Divider className="user-menu-divider" />
                                 <MenuActionItem
                                     icon={<LogoutRoundedIcon />}
@@ -321,6 +331,17 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     label="Recent searches"
                                     onClick={() => handleNavigate('/history')}
                                 />
+                                {isAdmin && (
+                                    <ButtonCustom
+                                        type={BUTTON_VARIANT.NONE}
+                                        capitalizeType="none"
+                                        className="drawer-link"
+                                        label="Admin dashboard"
+                                        onClick={() =>
+                                            handleNavigate('/dashboard')
+                                        }
+                                    />
+                                )}
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"

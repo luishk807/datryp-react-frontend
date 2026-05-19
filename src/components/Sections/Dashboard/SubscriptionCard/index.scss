@@ -1,0 +1,80 @@
+.sub-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.sub-section {
+    margin-top: 20px;
+}
+
+.sub-section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+    margin: 0 0 8px;
+}
+
+.sub-bar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sub-bar-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 48px;
+    align-items: center;
+    gap: 12px;
+}
+
+.sub-bar-label {
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.7);
+    text-transform: capitalize;
+}
+
+.sub-bar-track {
+    position: relative;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+// Width is set via inline style — the only truly dynamic value here.
+// Color is per-bucket so it lives in CSS.
+.sub-bar-fill {
+    height: 100%;
+    background: theme('colors.primaryOrange');
+    border-radius: 999px;
+    transition: width 0.4s ease;
+
+    &.sub-bar-fill-free,
+    &.sub-bar-fill-none,
+    &.sub-bar-fill-canceled {
+        background: rgba(0, 0, 0, 0.25);
+    }
+
+    &.sub-bar-fill-pro,
+    &.sub-bar-fill-premium,
+    &.sub-bar-fill-active {
+        background: theme('colors.primaryGreen');
+    }
+
+    &.sub-bar-fill-trialing {
+        background: theme('colors.primaryOrange');
+    }
+
+    &.sub-bar-fill-past_due {
+        background: #e09112;
+    }
+}
+
+.sub-bar-count {
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: theme('colors.primary');
+}

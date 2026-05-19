@@ -2,9 +2,15 @@
 import React from 'react';
 import './App.scss';
 import { lazy, Suspense } from 'react';
-import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
+import { Navigate, Route, Routes, BrowserRouter as Router } from 'react-router-dom';
 import AuthGate from 'components/AuthGate';
+import AdminGate from 'components/AdminGate';
 const Home = lazy(() => import('components/Sections/Home'));
+const Dashboard = lazy(() => import('components/Sections/Dashboard'));
+const DashboardOverview = lazy(() => import('components/Sections/Dashboard/OverviewCard'));
+const DashboardSubscription = lazy(() => import('components/Sections/Dashboard/SubscriptionCard'));
+const DashboardActivity = lazy(() => import('components/Sections/Dashboard/ActivityCard'));
+const DashboardUsers = lazy(() => import('components/Sections/Dashboard/UsersCard'));
 const SingleTrip = lazy(() => import('components/Sections/SingleTrip'));
 const MultipleTrip = lazy(() => import('components/Sections/MultipleTrip'));
 const Account = lazy(() => import('components/Sections/Account'));
@@ -138,6 +144,35 @@ function App() {
                         <Saved />
                     </Gated>
                 }/>
+                <Route path='/dashboard' element={
+                    <AdminGate>
+                        <Suspense fallback={<>...</>}>
+                            <Dashboard />
+                        </Suspense>
+                    </AdminGate>
+                }>
+                    <Route index element={<Navigate to="overview" replace />} />
+                    <Route path='overview' element={
+                        <Suspense fallback={<>...</>}>
+                            <DashboardOverview />
+                        </Suspense>
+                    } />
+                    <Route path='subscription' element={
+                        <Suspense fallback={<>...</>}>
+                            <DashboardSubscription />
+                        </Suspense>
+                    } />
+                    <Route path='activity' element={
+                        <Suspense fallback={<>...</>}>
+                            <DashboardActivity />
+                        </Suspense>
+                    } />
+                    <Route path='users' element={
+                        <Suspense fallback={<>...</>}>
+                            <DashboardUsers />
+                        </Suspense>
+                    } />
+                </Route>
                 <Route path='/terms' element={
                     <Suspense fallback={<>...</>}>
                         <Terms />

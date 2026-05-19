@@ -1,0 +1,39 @@
+.bar-chart-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bar-chart-svg {
+    width: 100%;
+    // SVG viewBox handles the aspect — we let the host control intrinsic
+    // height via container size. `display: block` kills the inline-image
+    // baseline gap. Inheriting the page font means the SVG text reads
+    // the same as nearby DOM text instead of falling back to a serif.
+    display: block;
+    height: auto;
+    font-family: inherit;
+}
+
+.bar-chart-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.bar-chart-legend-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.bar-chart-legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}

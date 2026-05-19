@@ -18,3 +18,4 @@ export * from "./visitedCity.types";
 export * from "./savedPlace.types";
 export * from "./savedCountry.types";
 export * from "./savedCity.types";
+export * from "./admin.types";
