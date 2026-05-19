@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react';
 import {
-    IconButton,
-    Modal,
-    TextField,
-} from '@mui/material';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+    forwardRef,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from 'react';
+import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import InputField from 'components/common/FormFields/InputField';
 import { useUser, type UserFriend } from 'context/UserContext';
+import { inviteFriendByEmail } from 'api/friendsApi';
 import { EMAIL_REGEX } from 'constants';
-import 'components/ModalButton/index.scss';
 import './index.scss';
 
 interface InviteFriendModalProps {
-    open: boolean;
-    onClose: () => void;
+    /** Fires after a successful invite — receives a UserFriend object so the
+     *  parent can drop a pending row into FriendPicker / friends lists
+     *  before the server-side state actually propagates. */
     onInvited?: (friend: UserFriend) => void;
 }
 
@@ -28,99 +30,138 @@ const deriveNameFromEmail = (email: string): string => {
     );
 };
 
-const InviteFriendModal = ({
-    open,
-    onClose,
-    onInvited,
-}: InviteFriendModalProps) => {
-    const { user, updateUser } = useUser();
-    const [email, setEmail] = useState('');
-    const [error, setError] = useState<string | null>(null);
+/**
+ * Email-driven friend invitation modal. Wraps `ModalButton` so it follows
+ * the same imperative open/close pattern as every other modal in the app:
+ * the parent grabs a ref, calls `inviteRef.current?.openModel()` to show it.
+ *
+ * Branch handling happens server-side via `POST /friends/invite-by-email`:
+ * recipient is a daTryp user → friend request + email; not registered →
+ * "Join daTryp" invitation email. Either branch returns a message string
+ * the modal shows inline for a beat before auto-closing.
+ */
+const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
+    ({ onInvited }, ref) => {
+        const modalRef = useRef<ModalButtonHandle>(null);
+        const { user, updateUser } = useUser();
+        const [email, setEmail] = useState('');
+        const [error, setError] = useState<string | null>(null);
+        const [submitting, setSubmitting] = useState(false);
+        const [confirm, setConfirm] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (open) {
-            setEmail('');
+        // Reset state on every parent-triggered open. ModalButton has no
+        // `onOpen` callback, so we intercept the imperative open and clean
+        // state ourselves before delegating to it.
+        useImperativeHandle(ref, () => ({
+            openModel: () => {
+                setEmail('');
+                setError(null);
+                setConfirm(null);
+                modalRef.current?.openModel();
+            },
+            closeModal: () => modalRef.current?.closeModal(),
+        }));
+
+        const handleSend = async () => {
+            if (submitting) return;
+            const trimmed = email.trim().toLowerCase();
+            if (!EMAIL_REGEX.test(trimmed)) {
+                setError('Enter a valid email address.');
+                return;
+            }
             setError(null);
-        }
-    }, [open]);
+            setSubmitting(true);
+            try {
+                const result = await inviteFriendByEmail(trimmed);
 
-    const handleSend = () => {
-        const trimmed = email.trim().toLowerCase();
-        if (!EMAIL_REGEX.test(trimmed)) {
-            setError('Enter a valid email address.');
-            return;
-        }
+                // Optimistic local-friends update so FriendPicker reflects the
+                // pending invite immediately. The Friends section pulls from
+                // the backend directly, so it isn't affected.
+                const friends = user?.friends ?? [];
+                const existing = friends.find(
+                    (f) => f.email?.toLowerCase() === trimmed
+                );
+                const friend: UserFriend = existing ?? {
+                    id: trimmed,
+                    name: deriveNameFromEmail(trimmed),
+                    email: trimmed,
+                    pending: true,
+                };
+                if (!existing) {
+                    updateUser({ friends: [...friends, friend] });
+                }
+                onInvited?.(friend);
 
-        const friends = user?.friends ?? [];
-        const existing = friends.find(
-            (f) => f.email?.toLowerCase() === trimmed
+                setConfirm(result.message);
+                // Brief flash so the user sees confirmation before close.
+                window.setTimeout(() => modalRef.current?.closeModal(), 1400);
+            } catch (err) {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Could not send the invite.'
+                );
+            } finally {
+                setSubmitting(false);
+            }
+        };
+
+        return (
+            <ModalButton ref={modalRef} title="Invite a friend">
+                <div className="invite-friend-content">
+                    {confirm ? (
+                        <p
+                            className="invite-friend-confirm"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            {confirm}
+                        </p>
+                    ) : (
+                        <>
+                            <p className="invite-friend-helper">
+                                If they&rsquo;re already on daTryp,
+                                we&rsquo;ll send them a friend request.
+                                Otherwise we&rsquo;ll email them an invitation
+                                to sign up.
+                            </p>
+                            <InputField
+                                name="email"
+                                type="email"
+                                label="Email"
+                                placeholder="email@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={submitting}
+                                required
+                            />
+                            {error && (
+                                <p
+                                    className="invite-friend-error"
+                                    role="alert"
+                                >
+                                    {error}
+                                </p>
+                            )}
+                            <div className="invite-friend-actions">
+                                <ButtonCustom
+                                    type="standard"
+                                    capitalizeType="uppercase"
+                                    label={
+                                        submitting ? 'Sending…' : 'Send invite'
+                                    }
+                                    onClick={handleSend}
+                                    disabled={submitting}
+                                />
+                            </div>
+                        </>
+                    )}
+                </div>
+            </ModalButton>
         );
+    }
+);
 
-        let friend: UserFriend;
-        if (existing) {
-            friend = existing;
-        } else {
-            friend = {
-                id: trimmed,
-                name: deriveNameFromEmail(trimmed),
-                email: trimmed,
-                pending: true,
-            };
-            updateUser({ friends: [...friends, friend] });
-        }
-
-        onInvited?.(friend);
-        onClose();
-    };
-
-    return (
-        <Modal
-            open={open}
-            onClose={onClose}
-            aria-labelledby="invite-friend-title"
-        >
-            <div className="modalCustom invite-friend-modal">
-                <span className="modalCustom-stripe" aria-hidden="true" />
-                <div className="modalCustom-header">
-                    <h2 id="invite-friend-title" className="modalCustom-title">
-                        Invite a friend
-                    </h2>
-                    <IconButton
-                        className="modalCustom-close"
-                        aria-label="Close"
-                        onClick={onClose}
-                    >
-                        <CloseRoundedIcon />
-                    </IconButton>
-                </div>
-                <div className="modalCustom-content">
-                    <p className="invite-friend-helper">
-                        We'll send them an invite by email.
-                    </p>
-                    <TextField
-                        autoFocus
-                        fullWidth
-                        type="email"
-                        label="Email"
-                        placeholder="email@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        error={!!error}
-                        helperText={error ?? ' '}
-                        sx={{ mt: 1 }}
-                    />
-                    <div className="invite-friend-actions">
-                        <ButtonCustom
-                            type="standard"
-                            capitalizeType="uppercase"
-                            label="Send invite"
-                            onClick={handleSend}
-                        />
-                    </div>
-                </div>
-            </div>
-        </Modal>
-    );
-};
+InviteFriendModal.displayName = 'InviteFriendModal';
 
 export default InviteFriendModal;

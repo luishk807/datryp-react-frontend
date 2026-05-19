@@ -1,5 +1,8 @@
-.invite-friend-modal {
-  width: min(440px, calc(100vw - 32px));
+/* Width is now inherited from `.modalCustom` (ModalButton's shell). The
+ * content wrapper just provides spacing context for child classes below. */
+.invite-friend-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .invite-friend-helper {
@@ -8,10 +11,30 @@
   font-size: 0.92rem;
 }
 
+.invite-friend-error {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  background: rgba(192, 57, 43, 0.06);
+  color: #c0392b;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
 .invite-friend-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
   margin-top: 18px;
+}
+
+.invite-friend-confirm {
+  margin: 8px 0 4px;
+  padding: 14px 16px;
+  background: rgba(60, 181, 75, 0.08);
+  border-left: 3px solid theme('colors.primaryGreen');
+  border-radius: 4px;
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }

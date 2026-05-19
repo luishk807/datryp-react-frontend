@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './index.scss';
 import { Grid } from '@mui/material';
 import PersonAddAlt1OutlinedIcon from '@mui/icons-material/PersonAddAlt1Outlined';
@@ -6,6 +6,7 @@ import Autocomplete, {
     type AutocompleteOption,
 } from 'components/common/FormFields/Autocomplete';
 import InviteFriendModal from 'components/InviteFriendModal';
+import { type ModalButtonHandle } from 'components/ModalButton';
 import { useFriends, type ApiFriend } from 'api/hooks/useFriends';
 import { useUser, type UserFriend } from 'context/UserContext';
 import type { Friend } from 'types';
@@ -78,7 +79,7 @@ const FriendPicker = ({
         return list;
     }, [apiFriends, user]);
 
-    const [inviteOpen, setInviteOpen] = useState(false);
+    const inviteRef = useRef<ModalButtonHandle>(null);
     const [selectedFriendList, setSelectedFriendList] =
         useState<Friend[]>(selectedOptions);
 
@@ -112,7 +113,7 @@ const FriendPicker = ({
 
     const handleOnSelect = (e: FriendOption) => {
         if (e.id === ADD_FRIEND_OPTION_ID) {
-            setInviteOpen(true);
+            inviteRef.current?.openModel();
             return;
         }
         selectFriend(e);
@@ -197,8 +198,7 @@ const FriendPicker = ({
             </Grid>
 
             <InviteFriendModal
-                open={inviteOpen}
-                onClose={() => setInviteOpen(false)}
+                ref={inviteRef}
                 onInvited={handleInvited}
             />
         </>

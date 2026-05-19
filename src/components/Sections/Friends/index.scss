@@ -47,6 +47,11 @@
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
 }
 
+/* Gap between stacked cards (incoming → friends → outgoing). */
+.friends-card + .friends-card {
+  margin-top: 16px;
+}
+
 .friends-card-header {
   display: flex;
   justify-content: space-between;
@@ -179,8 +184,15 @@
   flex-shrink: 0;
 }
 
+/* Wider gap when the row has both Accept (filled button) + Reject (text). */
+.friend-actions--respond {
+  gap: 10px;
+  align-items: center;
+}
+
 .friend-edit,
-.friend-remove {
+.friend-remove,
+.friend-resend {
   padding: 6px 12px;
   background: transparent;
   font-size: 0.75rem;
@@ -189,6 +201,38 @@
   letter-spacing: 0.05em;
   border-radius: 8px;
   transition: background-color 0.15s ease;
+}
+
+.friend-resend {
+  color: theme('colors.primaryGreen');
+}
+
+.friend-resend:hover:not(:disabled) {
+  background: rgba(60, 181, 75, 0.08);
+}
+
+.friend-resend:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.friend-resend-feedback {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.friend-resend-feedback--success {
+  background: rgba(60, 181, 75, 0.08);
+  color: rgb(20, 100, 30);
+  border-left: 3px solid theme('colors.primaryGreen');
+}
+
+.friend-resend-feedback--error {
+  background: rgba(192, 57, 43, 0.06);
+  color: #c0392b;
+  border-left: 3px solid #c0392b;
 }
 
 .friend-edit {
