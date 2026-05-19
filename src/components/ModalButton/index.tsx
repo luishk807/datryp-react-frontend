@@ -39,13 +39,20 @@ export interface ModalButtonProps {
     title?: string;
     children?: ReactNode;
     buttonProps?: ModalButtonButtonProps | null;
+    /** Fires whenever the modal closes — backdrop click, escape, the X
+     *  button, or a programmatic `closeModal()` from the ref. Use this to
+     *  clean up transient form state that should not survive a dismissal. */
+    onClose?: () => void;
 }
 
 const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
-    ({ title = '', children = null, buttonProps = null }, ref) => {
+    ({ title = '', children = null, buttonProps = null, onClose }, ref) => {
         const [open, setOpen] = useState(false);
         const handleOpen = () => setOpen(true);
-        const handleClose = () => setOpen(false);
+        const handleClose = () => {
+            setOpen(false);
+            onClose?.();
+        };
 
         useImperativeHandle(ref, () => ({
             openModel: handleOpen,

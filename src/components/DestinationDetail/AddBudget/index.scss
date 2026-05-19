@@ -28,3 +28,19 @@
   min-height: 200px;
   max-height: 400px;
 }
+
+.travel-budget .payer-search {
+  margin: 8px 0 4px;
+}
+
+.travel-budget .split-toggle {
+  margin: 4px 0 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.travel-budget .total {
+  margin-top: 12px;
+  text-align: right;
+  font-weight: 600;
+}

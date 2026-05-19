@@ -229,7 +229,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  flex: 1;
   min-width: 0;
 }
 
@@ -262,11 +261,10 @@
   white-space: nowrap;
 }
 
-/* Edit pencil at the end of the row — small, subtle, color-shifts on
- * hover so the row stays calm. */
+/* Edit pencil sits immediately after the chip row — no margin-left:auto,
+ * so it doesn't drift to the far right edge of the card. */
 .activity-content-trip .content-detail .info .budget-edit-trigger {
   flex-shrink: 0;
-  margin-left: auto;
   padding: 4px;
   border-radius: 6px;
   color: rgba(0, 0, 0, 0.45);
@@ -281,6 +279,25 @@
   &:hover {
     background: rgba(60, 181, 75, 0.08);
     color: theme('colors.primaryGreen');
+  }
+}
+
+/* Empty-state "Who is paying?" button — replaces the chip list when no
+ * one has been assigned a share yet. */
+.activity-content-trip .content-detail .info .budget-add-trigger {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(60, 181, 75, 0.45);
+  background: rgba(60, 181, 75, 0.06);
+  color: theme('colors.primaryGreen');
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.14);
+    border-color: theme('colors.primaryGreen');
   }
 }
 

@@ -233,12 +233,25 @@ const Activities = ({
                                                     <ScheduleOutlinedIcon className="meta-icon" />
                                                     <span className="meta-text">{activityTime}</span>
                                                 </div>
+                                                {hasCost && (
+                                                    <div className="meta-row">
+                                                        <PaymentsOutlinedIcon className="meta-icon" />
+                                                        <span className="meta-text">
+                                                            {convertMoney(activity.cost)}
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 {showBudgetRow && (
-                                                    <div className="meta-row meta-row-budget">
+                                                    <div
+                                                        className={classNames(
+                                                            'meta-row meta-row-budget',
+                                                            { 'meta-row-budget-empty': !hasBudget }
+                                                        )}
+                                                    >
                                                         <GroupOutlinedIcon className="meta-icon" />
-                                                        <div className="budget-chips">
-                                                            {hasBudget ? (
-                                                                budgetEntries.map((item) => (
+                                                        {hasBudget && (
+                                                            <div className="budget-chips">
+                                                                {budgetEntries.map((item) => (
                                                                     <span
                                                                         key={item.id}
                                                                         className="budget-chip"
@@ -250,16 +263,13 @@ const Activities = ({
                                                                             {convertMoney(item.budget)}
                                                                         </span>
                                                                     </span>
-                                                                ))
-                                                            ) : (
-                                                                <span className="meta-hint">
-                                                                    Split with friends
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                         <AddBudget
                                                             isViewMode={isPlaceLocked}
                                                             budget={activity.budget}
+                                                            cost={activity.cost}
                                                             onSubmit={(e) =>
                                                                 onChangeBudget('add', {
                                                                     activityId: activity.id,
@@ -270,14 +280,6 @@ const Activities = ({
                                                         />
                                                     </div>
                                                 )}
-                                                {hasCost && (
-                                                        <div className="meta-row">
-                                                            <PaymentsOutlinedIcon className="meta-icon" />
-                                                            <span className="meta-text">
-                                                                {convertMoney(activity.cost)}
-                                                            </span>
-                                                        </div>
-                                                    )}
                                                 {activity.note && (
                                                     <div className="meta-row meta-row-note">
                                                         <NotesOutlinedIcon className="meta-icon" />
