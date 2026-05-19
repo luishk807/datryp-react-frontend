@@ -108,6 +108,13 @@ export const login = (payload: LoginPayload): Promise<TokenResponse> =>
         body: JSON.stringify(payload),
     }).then(handleJson<TokenResponse>);
 
+export const googleSignin = (credential: string): Promise<TokenResponse> =>
+    fetch(`${API_BASE}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+    }).then(handleJson<TokenResponse>);
+
 export const requestPasswordReset = (email: string): Promise<void> =>
     fetch(`${API_BASE}/auth/forgot-password`, {
         method: 'POST',

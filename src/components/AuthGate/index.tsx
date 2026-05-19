@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './index.scss';
@@ -6,7 +6,9 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
 import IconLink from 'components/common/IconLink';
+import GoogleSignInButton from 'components/GoogleSignInButton';
 import { useUser } from 'context/UserContext';
+import { useGoogleSignin } from 'api/hooks/useAuth';
 import {
     MAX_BIRTH_YEAR,
     MIN_BIRTH_YEAR,
@@ -41,6 +43,7 @@ const AuthGate = ({
     subtitle = 'Sign in to save trips, invite friends and pick up where you left off.',
 }: AuthGateProps) => {
     const { user, isLoading, login, signup } = useUser();
+    const googleSignin = useGoogleSignin();
     const [mode, setMode] = useState<AuthMode>(AUTH_MODE.LOGIN);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -137,6 +140,25 @@ const AuthGate = ({
         setError(null);
     };
 
+    // Memoized so the GoogleSignInButton effect doesn't reinitialize the
+    // Google client on every render. The mutation surfaces backend errors
+    // (e.g. the 409 "email already has a password account" linking
+    // refusal) into the form's error banner so the user sees one place
+    // for all auth failures.
+    const handleGoogleCredential = useCallback(
+        (credential: string) => {
+            googleSignin.mutate(credential, {
+                onError: (err) =>
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : 'Google sign-in failed.'
+                    ),
+            });
+        },
+        [googleSignin]
+    );
+
     return (
         <div className="authgate-page">
             <aside className="authgate-hero">
@@ -183,6 +205,21 @@ const AuthGate = ({
                             ? 'Sign in with your email and password.'
                             : `Free to use. You must be at least ${MIN_SIGNUP_AGE} years old.`}
                     </p>
+
+                    <div className="authgate-google">
+                        <GoogleSignInButton
+                            text={
+                                mode === AUTH_MODE.LOGIN
+                                    ? 'continue_with'
+                                    : 'signup_with'
+                            }
+                            onCredential={handleGoogleCredential}
+                        />
+                    </div>
+
+                    <div className="authgate-divider">
+                        <span>or</span>
+                    </div>
 
                     <form className="authgate-form" onSubmit={handleSubmit}>
                         <div className="authgate-field">

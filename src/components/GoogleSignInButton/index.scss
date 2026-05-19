@@ -1,0 +1,19 @@
+.google-signin-host {
+    display: flex;
+    justify-content: center;
+}
+
+.google-signin-missing {
+    padding: 10px 14px;
+    border: 1px dashed rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    background: #fafafa;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.82rem;
+
+    code {
+        background: rgba(0, 0, 0, 0.06);
+        padding: 1px 5px;
+        border-radius: 4px;
+    }
+}

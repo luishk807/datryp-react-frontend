@@ -11,6 +11,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     fetchMe,
+    googleSignin as googleSigninRequest,
     login as loginRequest,
     signup as signupRequest,
     type LoginPayload,
@@ -56,6 +57,17 @@ export const useSignup = () => {
     const queryClient = useQueryClient();
     return useMutation<TokenResponse, Error, SignupPayload>({
         mutationFn: signupRequest,
+        onSuccess: (data) => {
+            setAuthToken(data.access_token);
+            queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
+        },
+    });
+};
+
+export const useGoogleSignin = () => {
+    const queryClient = useQueryClient();
+    return useMutation<TokenResponse, Error, string>({
+        mutationFn: googleSigninRequest,
         onSuccess: (data) => {
             setAuthToken(data.access_token);
             queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
