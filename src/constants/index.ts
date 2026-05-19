@@ -118,6 +118,13 @@ export const VISITED_SOURCE = {
     ITINERARY: 'itinerary',
 } as const;
 
+/** Where a `saved_*` row came from. Only `MANUAL` is written today
+ *  (the user clicked the Save button). Reserved for a future cascade
+ *  that auto-bookmarks places added to an itinerary, etc. */
+export const SAVED_SOURCE = {
+    MANUAL: 'manual',
+} as const;
+
 export const TRIP_BASIC = {
     SINGLE: {
         id: 1,

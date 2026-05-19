@@ -15,3 +15,6 @@ export * from "./share.types";
 export * from "./visitedPlace.types";
 export * from "./visitedCountry.types";
 export * from "./visitedCity.types";
+export * from "./savedPlace.types";
+export * from "./savedCountry.types";
+export * from "./savedCity.types";

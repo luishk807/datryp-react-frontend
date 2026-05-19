@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './index.scss';
 import { Snackbar } from '@mui/material';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import classNames from 'classnames';
-import { useBookmarks } from 'hooks/useBookmarks';
+import {
+    useSavedCities,
+    useSaveCity,
+    useUnsaveCity,
+} from 'api/hooks/useSavedCities';
+import { useUser } from 'context/UserContext';
+import { TRIP_BASIC } from 'constants';
 
 export interface BookmarkCityButtonProps {
     cityName: string;
@@ -13,29 +20,62 @@ export interface BookmarkCityButtonProps {
     imageUrl: string | null;
 }
 
+/** Match the backend's `slugify_city`: lowercased name (whitespace
+ *  collapsed) + lowercased code joined by `--`. Same shape used by
+ *  `VisitedCityButton`. */
+const slugifyCity = (name: string, code: string): string => {
+    const cityN = name.trim().toLowerCase().replace(/\s+/g, ' ');
+    const codeN = code.trim().toLowerCase();
+    return `${cityN}--${codeN}`;
+};
+
 const BookmarkCityButton = ({
     cityName,
     countryName,
     countryCode,
     imageUrl,
 }: BookmarkCityButtonProps) => {
-    const { isCityBookmarked, toggleCity } = useBookmarks();
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const { data } = useSavedCities();
+    const saveCity = useSaveCity();
+    const unsaveCity = useUnsaveCity();
     const [toast, setToast] = useState<string | null>(null);
 
-    const saved = isCityBookmarked(cityName, countryCode);
+    const slug = useMemo(
+        () => slugifyCity(cityName, countryCode),
+        [cityName, countryCode]
+    );
+    const saved = Boolean(data?.items.some((b) => b.citySlug === slug));
+    const isPending = saveCity.isPending || unsaveCity.isPending;
 
     const handleClick = () => {
-        const nowSaved = toggleCity({
-            name: cityName,
-            country: countryName,
-            code: countryCode,
-            imageUrl,
-        });
-        setToast(
-            nowSaved
-                ? `Saved ${cityName} to your bookmarks`
-                : `Removed ${cityName} from bookmarks`
-        );
+        if (!user) {
+            navigate(TRIP_BASIC.SINGLE.route);
+            return;
+        }
+        if (isPending) return;
+        if (saved) {
+            unsaveCity.mutate(slug, {
+                onSuccess: () =>
+                    setToast(`Removed ${cityName} from bookmarks`),
+                onError: (err) => setToast(err.message),
+            });
+        } else {
+            saveCity.mutate(
+                {
+                    name: cityName,
+                    country: countryName,
+                    code: countryCode,
+                    imageUrl,
+                },
+                {
+                    onSuccess: () =>
+                        setToast(`Saved ${cityName} to your bookmarks`),
+                    onError: (err) => setToast(err.message),
+                }
+            );
+        }
     };
 
     return (
@@ -51,6 +91,7 @@ const BookmarkCityButton = ({
                         : `Save ${cityName} to bookmarks`
                 }
                 aria-pressed={saved}
+                disabled={isPending}
                 onClick={handleClick}
             >
                 {saved ? (

@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './index.scss';
 import { Snackbar } from '@mui/material';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import classNames from 'classnames';
-import { useBookmarks } from 'hooks/useBookmarks';
+import {
+    useSavedPlaces,
+    useSavePlace,
+    useUnsavePlace,
+} from 'api/hooks/useSavedPlaces';
+import { useUser } from 'context/UserContext';
+import { getPlaceKey } from 'utils/placeKey';
+import { TRIP_BASIC } from 'constants';
 import type { PlaceRecommendation } from 'types';
 
 export interface BookmarkButtonProps {
@@ -16,14 +24,52 @@ export interface BookmarkButtonProps {
 }
 
 const BookmarkButton = ({ place, query, index }: BookmarkButtonProps) => {
-    const { isBookmarked, toggle } = useBookmarks();
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const { data } = useSavedPlaces();
+    const savePlace = useSavePlace();
+    const unsavePlace = useUnsavePlace();
     const [toast, setToast] = useState<string | null>(null);
 
-    const saved = isBookmarked(query, index);
+    const placeKey = useMemo(
+        () => getPlaceKey(place.name, place.city, place.country),
+        [place.name, place.city, place.country]
+    );
+    const saved = Boolean(
+        data?.items.some((b) => b.placeKey === placeKey)
+    );
+    const isPending = savePlace.isPending || unsavePlace.isPending;
 
     const handleClick = () => {
-        const nowSaved = toggle(place, query, index);
-        setToast(nowSaved ? `Saved ${place.name} to your bookmarks` : `Removed ${place.name} from bookmarks`);
+        if (!user) {
+            // Anonymous → send to the gated route that renders AuthGate.
+            navigate(TRIP_BASIC.SINGLE.route);
+            return;
+        }
+        if (isPending) return;
+        if (saved) {
+            unsavePlace.mutate(placeKey, {
+                onSuccess: () =>
+                    setToast(`Removed ${place.name} from bookmarks`),
+                onError: (err) => setToast(err.message),
+            });
+        } else {
+            savePlace.mutate(
+                {
+                    placeName: place.name,
+                    placeCity: place.city,
+                    placeCountry: place.country,
+                    imageUrl: place.imageUrl ?? null,
+                    searchQuery: query,
+                    searchIndex: index,
+                },
+                {
+                    onSuccess: () =>
+                        setToast(`Saved ${place.name} to your bookmarks`),
+                    onError: (err) => setToast(err.message),
+                }
+            );
+        }
     };
 
     return (
@@ -33,6 +79,7 @@ const BookmarkButton = ({ place, query, index }: BookmarkButtonProps) => {
                 className={classNames('bookmark-button-pill', { 'is-saved': saved })}
                 aria-label={saved ? `Remove ${place.name} from bookmarks` : `Save ${place.name} to bookmarks`}
                 aria-pressed={saved}
+                disabled={isPending}
                 onClick={handleClick}
             >
                 {saved ? (

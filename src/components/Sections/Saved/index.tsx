@@ -1,22 +1,28 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './index.scss';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import DeleteBtn from 'components/common/DeleteBtn';
-import { useBookmarks } from 'hooks/useBookmarks';
+import { useSavedPlaces, useUnsavePlace } from 'api/hooks/useSavedPlaces';
+import { useSavedCities, useUnsaveCity } from 'api/hooks/useSavedCities';
+import {
+    useSavedCountries,
+    useUnsaveCountry,
+} from 'api/hooks/useSavedCountries';
 import { formatDate } from 'utils/date';
 import { BUTTON_VARIANT, NO_IMAGE } from 'constants';
 
 const Saved = () => {
-    const { bookmarks, remove, removeCountry, removeCity } = useBookmarks();
+    const { data: placesData } = useSavedPlaces();
+    const { data: citiesData } = useSavedCities();
+    const { data: countriesData } = useSavedCountries();
+    const unsavePlace = useUnsavePlace();
+    const unsaveCity = useUnsaveCity();
+    const unsaveCountry = useUnsaveCountry();
 
-    const { countries, cities, places } = useMemo(() => {
-        const c = bookmarks.filter((b) => b.kind === 'country');
-        const ci = bookmarks.filter((b) => b.kind === 'city');
-        const p = bookmarks.filter((b) => (b.kind ?? 'place') === 'place');
-        return { countries: c, cities: ci, places: p };
-    }, [bookmarks]);
+    const countries = countriesData?.items ?? [];
+    const cities = citiesData?.items ?? [];
+    const places = placesData?.items ?? [];
 
     const countryTotal = countries.length;
     const cityTotal = cities.length;
@@ -62,11 +68,10 @@ const Saved = () => {
                         </h2>
                         <ul className="saved-list">
                             {countries.map((b) => {
-                                const code = b.code ?? '';
-                                const href = `/country?code=${encodeURIComponent(code)}`;
+                                const href = `/country?code=${encodeURIComponent(b.countryCode)}`;
                                 return (
                                     <li
-                                        key={`country::${code}`}
+                                        key={b.id}
                                         className="saved-card"
                                     >
                                         <Link
@@ -74,17 +79,17 @@ const Saved = () => {
                                             className="saved-card-main"
                                         >
                                             <img
-                                                src={b.imageUrl ?? NO_IMAGE}
+                                                src={b.countryImage ?? NO_IMAGE}
                                                 alt=""
                                                 loading="lazy"
                                                 className="saved-card-image"
                                             />
                                             <div className="saved-card-text">
                                                 <span className="saved-card-name">
-                                                    {b.name}
+                                                    {b.countryName}
                                                 </span>
                                                 <span className="saved-card-location">
-                                                    {code}
+                                                    {b.countryCode}
                                                 </span>
                                                 <span className="saved-card-meta">
                                                     Saved on{' '}
@@ -99,10 +104,12 @@ const Saved = () => {
                                             <DeleteBtn
                                                 title="Remove from saved"
                                                 label="Remove"
-                                                targetName={b.name}
+                                                targetName={b.countryName}
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>
-                                                    removeCountry(code)
+                                                    unsaveCountry.mutate(
+                                                        b.countryCode
+                                                    )
                                                 }
                                             />
                                         </div>
@@ -123,15 +130,14 @@ const Saved = () => {
                         </h2>
                         <ul className="saved-list">
                             {cities.map((b) => {
-                                const code = b.code ?? '';
                                 const href =
-                                    `/city?name=${encodeURIComponent(b.name)}` +
-                                    `&country=${encodeURIComponent(b.country)}` +
-                                    `&code=${encodeURIComponent(code)}` +
+                                    `/city?name=${encodeURIComponent(b.cityName)}` +
+                                    `&country=${encodeURIComponent(b.countryName)}` +
+                                    `&code=${encodeURIComponent(b.countryCode)}` +
                                     `&mode=single`;
                                 return (
                                     <li
-                                        key={`city::${b.name}--${code}`}
+                                        key={b.id}
                                         className="saved-card"
                                     >
                                         <Link
@@ -146,10 +152,10 @@ const Saved = () => {
                                             />
                                             <div className="saved-card-text">
                                                 <span className="saved-card-name">
-                                                    {b.name}
+                                                    {b.cityName}
                                                 </span>
                                                 <span className="saved-card-location">
-                                                    {b.country} ({code})
+                                                    {b.countryName} ({b.countryCode})
                                                 </span>
                                                 <span className="saved-card-meta">
                                                     Saved on{' '}
@@ -164,10 +170,12 @@ const Saved = () => {
                                             <DeleteBtn
                                                 title="Remove from saved"
                                                 label="Remove"
-                                                targetName={b.name}
+                                                targetName={b.cityName}
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>
-                                                    removeCity(b.name, code)
+                                                    unsaveCity.mutate(
+                                                        b.citySlug
+                                                    )
                                                 }
                                             />
                                         </div>
@@ -188,10 +196,17 @@ const Saved = () => {
                         </h2>
                         <ul className="saved-list">
                             {places.map((b) => {
-                                const placeHref = `/place?q=${encodeURIComponent(b.query)}&i=${b.index}`;
+                                // Prefer the cached (query, index) re-open so the
+                                // recommender returns instantly. Fall back to a
+                                // name search when the bookmark predates the
+                                // search_query/index columns.
+                                const placeHref =
+                                    b.searchQuery && b.searchIndex !== null
+                                        ? `/place?q=${encodeURIComponent(b.searchQuery)}&i=${b.searchIndex}`
+                                        : `/place?q=${encodeURIComponent(b.placeName)}&i=0`;
                                 return (
                                     <li
-                                        key={`place::${b.query}::${b.index}`}
+                                        key={b.id}
                                         className="saved-card"
                                     >
                                         <Link
@@ -206,10 +221,10 @@ const Saved = () => {
                                             />
                                             <div className="saved-card-text">
                                                 <span className="saved-card-name">
-                                                    {b.name}
+                                                    {b.placeName}
                                                 </span>
                                                 <span className="saved-card-location">
-                                                    {b.city} · {b.country}
+                                                    {b.placeCity} · {b.placeCountry}
                                                 </span>
                                                 <span className="saved-card-meta">
                                                     Saved on{' '}
@@ -224,10 +239,12 @@ const Saved = () => {
                                             <DeleteBtn
                                                 title="Remove from saved"
                                                 label="Remove"
-                                                targetName={b.name}
+                                                targetName={b.placeName}
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>
-                                                    remove(b.query, b.index)
+                                                    unsavePlace.mutate(
+                                                        b.placeKey
+                                                    )
                                                 }
                                             />
                                         </div>

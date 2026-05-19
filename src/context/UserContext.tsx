@@ -7,15 +7,20 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
     useCurrentUser,
     useLogin,
     useLogout,
     useSignup,
 } from 'api/hooks/useAuth';
+import { savedPlacesKey } from 'api/hooks/useSavedPlaces';
+import { savedCitiesKey } from 'api/hooks/useSavedCities';
+import { savedCountriesKey } from 'api/hooks/useSavedCountries';
 import type { SignupPayload } from 'api/authApi';
 import { USER_ROLE } from 'constants';
 import type { SubscriptionPlan, SubscriptionStatus, UserRole } from 'types';
+import { migrateLocalBookmarks } from 'utils/migrateLocalBookmarks';
 
 export type PaymentType = 'card' | 'paypal' | 'venmo' | 'other';
 
@@ -136,6 +141,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const loginMutation = useLogin();
     const signupMutation = useSignup();
     const logoutFn = useLogout();
+    const queryClient = useQueryClient();
 
     const [overlay, setOverlay] = useState<LocalOverlay>({});
 
@@ -150,6 +156,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (me?.id) saveOverlay(me.id, overlay);
     }, [me?.id, overlay]);
+
+    // One-time migration of legacy localStorage bookmarks to the backend.
+    // Runs once per user per browser; subsequent sign-ins are a no-op via
+    // a `datryp:bookmarks:migrated:<userId>` flag. After a successful
+    // migration we invalidate the saved-* queries so the Saved page and
+    // bookmark buttons reflect the freshly-uploaded rows.
+    useEffect(() => {
+        if (!me?.id) return;
+        let cancelled = false;
+        void migrateLocalBookmarks(me.id).then(() => {
+            if (cancelled) return;
+            queryClient.invalidateQueries({ queryKey: savedPlacesKey });
+            queryClient.invalidateQueries({ queryKey: savedCitiesKey });
+            queryClient.invalidateQueries({ queryKey: savedCountriesKey });
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [me?.id, queryClient]);
 
     const user: User | null = useMemo(() => {
         if (!me) return null;

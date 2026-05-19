@@ -1,40 +1,64 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './index.scss';
 import { Snackbar } from '@mui/material';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import classNames from 'classnames';
-import { useBookmarks } from 'hooks/useBookmarks';
+import {
+    useSavedCountries,
+    useSaveCountry,
+    useUnsaveCountry,
+} from 'api/hooks/useSavedCountries';
+import { useUser } from 'context/UserContext';
+import { TRIP_BASIC } from 'constants';
 
 export interface BookmarkCountryButtonProps {
     countryCode: string;
     countryName: string;
-    /** Hero image for the country page — saved with the bookmark so the
-     *  /saved list can render the same thumbnail. Optional. */
-    imageUrl: string | null;
+    /** Hero image for the country page — currently sourced from the
+     *  countries catalog server-side, so this prop is no longer
+     *  persisted. Kept for API compatibility with the previous
+     *  localStorage-backed implementation. */
+    imageUrl?: string | null;
 }
 
 const BookmarkCountryButton = ({
     countryCode,
     countryName,
-    imageUrl,
 }: BookmarkCountryButtonProps) => {
-    const { isCountryBookmarked, toggleCountry } = useBookmarks();
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const { data } = useSavedCountries();
+    const saveCountry = useSaveCountry();
+    const unsaveCountry = useUnsaveCountry();
     const [toast, setToast] = useState<string | null>(null);
 
-    const saved = isCountryBookmarked(countryCode);
+    const normalizedCode = countryCode.trim().toUpperCase();
+    const saved = Boolean(
+        data?.items.some((b) => b.countryCode === normalizedCode)
+    );
+    const isPending = saveCountry.isPending || unsaveCountry.isPending;
 
     const handleClick = () => {
-        const nowSaved = toggleCountry({
-            code: countryCode,
-            name: countryName,
-            imageUrl,
-        });
-        setToast(
-            nowSaved
-                ? `Saved ${countryName} to your bookmarks`
-                : `Removed ${countryName} from bookmarks`
-        );
+        if (!user) {
+            navigate(TRIP_BASIC.SINGLE.route);
+            return;
+        }
+        if (isPending) return;
+        if (saved) {
+            unsaveCountry.mutate(normalizedCode, {
+                onSuccess: () =>
+                    setToast(`Removed ${countryName} from bookmarks`),
+                onError: (err) => setToast(err.message),
+            });
+        } else {
+            saveCountry.mutate(normalizedCode, {
+                onSuccess: () =>
+                    setToast(`Saved ${countryName} to your bookmarks`),
+                onError: (err) => setToast(err.message),
+            });
+        }
     };
 
     return (
@@ -50,6 +74,7 @@ const BookmarkCountryButton = ({
                         : `Save ${countryName} to bookmarks`
                 }
                 aria-pressed={saved}
+                disabled={isPending}
                 onClick={handleClick}
             >
                 {saved ? (
