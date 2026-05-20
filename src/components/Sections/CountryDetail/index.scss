@@ -43,6 +43,51 @@
   gap: 10px;
 }
 
+// Desktop (>640px): toolbar pins to the top of the viewport as the
+// reader scrolls. At rest it's naked; once `is-stuck`, it picks up
+// the floating-chrome styling (translucent bg + blur + shadow).
+@media (min-width: 641px) {
+  .country-detail-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 8px 14px;
+    transition:
+      background-color 0.2s ease,
+      box-shadow 0.2s ease,
+      backdrop-filter 0.2s ease;
+  }
+
+  .country-detail-toolbar.is-stuck {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// Mobile (≤640px): pin the action group to the bottom of the
+// viewport. Back link stays at the top of the page.
+@media (max-width: 640px) {
+  .country-detail {
+    padding-bottom: 96px;
+  }
+
+  .country-detail-toolbar-actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 12px 16px;
+    background: #fff;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    width: 100%;
+    display: flex;
+  }
+}
+
 /* ── Primary "Start planning" CTA ── */
 .country-detail-plan-cta {
   display: inline-flex;
@@ -118,10 +163,9 @@
 }
 
 @media (max-width: 480px) {
-  .country-detail-toolbar-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
+  // `.country-detail-toolbar-actions` is positioned fixed at the
+  // bottom for ≤640px (see rule above) — don't restate width / align
+  // here or it overrides the pinned layout.
   .country-detail-plan-cta {
     padding: 10px 14px;
   }

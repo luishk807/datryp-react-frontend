@@ -6,9 +6,13 @@
   width: 100%;
   background: #fff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  // Previously `position: sticky; top: 0; z-index: 50` — the persistent
+  // header was eating vertical real estate that competes with the
+  // sticky toolbar on detail pages. Letting it scroll away naturally
+  // gives the toolbar the top of the viewport while users can still
+  // reach the nav by scrolling back up.
+  position: relative;
+  z-index: 5;
 }
 
 .app-header-inner {

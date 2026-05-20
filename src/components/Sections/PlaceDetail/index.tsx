@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import classnames from "classnames";
 import "./index.scss";
 import { Tooltip } from "@mui/material";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
@@ -38,6 +39,7 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
 import { usePlaceDetails } from "api/hooks/usePlaceDetails";
+import { useIsStuck } from "hooks/useIsStuck";
 import { useVisitedPlaces } from "api/hooks/useVisitedPlaces";
 import { getPlaceKey } from "utils/placeKey";
 import { formatDate } from "utils/date";
@@ -46,6 +48,8 @@ const PlaceDetail = () => {
   const [searchParams] = useSearchParams();
   const query = (searchParams.get("q") ?? "").trim();
   const index = Number(searchParams.get("i") ?? "0");
+  // Scroll-activated chrome — see useIsStuck.
+  const toolbarIsStuck = useIsStuck();
 
   // Reuses the same cached recommender response — instant if the user just
   // came from the search results page; one OpenAI/Unsplash hit if landing
@@ -122,7 +126,11 @@ const PlaceDetail = () => {
   return (
     <Layout>
       <article className="place-detail">
-        <div className="place-detail-toolbar">
+        <div
+          className={classnames("place-detail-toolbar", {
+            "is-stuck": toolbarIsStuck,
+          })}
+        >
           <Link to={backUrl} className="place-detail-back-link">
             <ArrowBackRoundedIcon fontSize="small" /> Back to &ldquo;{query}
             &rdquo;

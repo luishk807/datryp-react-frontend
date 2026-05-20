@@ -1,4 +1,5 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import classnames from "classnames";
 import "./index.scss";
 import { CircularProgress } from "@mui/material";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
@@ -31,6 +32,7 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetails } from "api/hooks/useCountryDetails";
+import { useIsStuck } from "hooks/useIsStuck";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import { TRIP_BASIC } from "constants";
 import type { Destination } from "types";
@@ -40,6 +42,8 @@ const CountryDetail = () => {
   const navigate = useNavigate();
   const dispatch = useTripDispatch();
   const code = (searchParams.get("code") ?? "").trim().toUpperCase();
+  // Scroll-activated chrome — see useIsStuck.
+  const toolbarIsStuck = useIsStuck();
 
   // Mode the user picked back on Home/Header before searching. We carry it
   // through the country preview so the CTA dispatches the right trip type
@@ -130,7 +134,11 @@ const CountryDetail = () => {
   return (
     <Layout>
       <article className="country-detail">
-        <div className="country-detail-toolbar">
+        <div
+          className={classnames("country-detail-toolbar", {
+            "is-stuck": toolbarIsStuck,
+          })}
+        >
           <button
             type="button"
             onClick={handleBack}

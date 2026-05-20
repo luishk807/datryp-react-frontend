@@ -1,4 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
+import classnames from "classnames";
 import "./index.scss";
 import { CircularProgress, Tooltip } from "@mui/material";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
@@ -35,6 +36,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
+import { useIsStuck } from "hooks/useIsStuck";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import { TRIP_BASIC } from "constants";
 import type { Destination } from "types";
@@ -43,6 +45,10 @@ const CityDetail = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const dispatch = useTripDispatch();
+    // Scroll-activated chrome — toolbar grows a translucent bg + drop
+    // shadow once the user has scrolled past a small threshold, and
+    // reverts to a flat in-flow look when they scroll back to the top.
+    const toolbarIsStuck = useIsStuck();
     const name = (searchParams.get("name") ?? "").trim();
     const country = (searchParams.get("country") ?? "").trim();
     const code = (searchParams.get("code") ?? "").trim().toUpperCase();
@@ -152,7 +158,11 @@ const CityDetail = () => {
     return (
         <Layout>
             <article className="city-detail">
-                <div className="city-detail-toolbar">
+                <div
+                    className={classnames("city-detail-toolbar", {
+                        "is-stuck": toolbarIsStuck,
+                    })}
+                >
                     <button
                         type="button"
                         onClick={handleBack}

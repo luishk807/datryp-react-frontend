@@ -25,5 +25,13 @@
 #root {
   position: relative;
   min-height: 100vh;
-  overflow-x: hidden;
+  // `overflow-x: clip` (not `hidden`) — `hidden` makes the browser
+  // promote the orthogonal axis to `auto`, which creates a scroll
+  // container and breaks `position: sticky` on every descendant
+  // (their sticky reference becomes #root, not the viewport, and
+  // since #root scrolls with the document there's nothing to stick
+  // to). `clip` blocks horizontal overflow without forming a scroll
+  // container — same visual effect, no sticky breakage. Chromium 90+,
+  // Firefox 81+, Safari 16+.
+  overflow-x: clip;
 }
