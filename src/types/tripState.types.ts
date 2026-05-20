@@ -46,6 +46,10 @@ export interface TripState {
   note?: string;
   people?: number;
   status?: number | TripStatus;
+  /** Trip hero image. Set when a trip is started from a city / country
+   * page (the destination's stock photo) and persisted to the backend
+   * as `itineraries.image`. */
+  image?: string;
   destinations: Destination[];
   friends?: Friend[];
 }

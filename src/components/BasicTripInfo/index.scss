@@ -55,6 +55,29 @@
   margin: 0;
 }
 
+// Inline Edit-basic-info row, surfaced only when the header is hoisted
+// out (StepperComp edit mode). Sits at the top of the body section so
+// users can re-open the trip-info modal without scrolling back up.
+.basic-trip-info .trip-edit-basic-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 12px 0;
+}
+
+.basic-trip-info .trip-edit-basic-btn {
+  background: transparent !important;
+  color: theme('colors.primaryOrange') !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+
+  &:hover:not(:disabled) {
+    background: rgba(246, 137, 31, 0.1) !important;
+  }
+}
+
 // Export-trip modal: two stacked option cards (Print, Download
 // Excel). Big tappable rows, icon + 2-line text. Lifts on hover so
 // the affordance reads as a chooser.
@@ -297,44 +320,6 @@
   margin: -4px 0 14px;
 }
 
-/* ---------- Status badge ---------- */
-.basic-trip-info .trip-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 14px;
-  border-radius: 999px;
-  background: rgba(60, 181, 75, 0.1);
-  color: theme('colors.primaryGreen');
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: background-color 0.15s ease;
-  flex-shrink: 0;
-}
-
-.basic-trip-info .trip-status-badge:hover:not(:disabled) {
-  background: rgba(60, 181, 75, 0.18);
-}
-
-.basic-trip-info .trip-status-badge:disabled {
-  cursor: default;
-}
-
-.basic-trip-info .trip-status-badge .status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: theme('colors.primaryGreen');
-  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.15);
-  flex-shrink: 0;
-}
-
-.basic-trip-info .trip-status-badge .status-edit {
-  font-size: 14px !important;
-  opacity: 0.65;
-}
-
 /* ---------- Stat tiles ---------- */
 .basic-trip-info .trip-stats {
   display: grid;
@@ -435,11 +420,6 @@
   .basic-trip-info .trip-name {
     font-size: 1.25rem;
   }
-  .basic-trip-info .trip-status-badge {
-    align-self: flex-start;
-    font-size: 0.78rem;
-    padding: 5px 10px 5px 12px;
-  }
   .basic-trip-info .trip-stats {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -475,30 +455,3 @@
   }
 }
 
-.trip-status-dropdown {
-  margin-top: 8px;
-}
-
-/* Footer actions inside the trip-status modal — laid out to match the
- * other modals (Cancel + primary, right-aligned). */
-.trip-status-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.trip-status-actions button {
-  min-width: 120px;
-  width: auto;
-  padding: 8px 22px !important;
-}
-
-@media (max-width: 480px) {
-  .trip-status-actions {
-    flex-direction: column-reverse;
-  }
-  .trip-status-actions button {
-    width: 100%;
-  }
-}

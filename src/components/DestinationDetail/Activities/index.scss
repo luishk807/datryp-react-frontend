@@ -12,6 +12,14 @@
    * content-width on first paint until something forced a reflow. */
   display: flex;
   flex-direction: column;
+  /* `.activities-droppable` is a direct child of a MUI `<Grid container>`
+   * in DateBlock. As a flex item with default `flex-basis: auto` it would
+   * collapse to its content width — so kinds with no image (note / flight)
+   * shrink to the text width while a place-with-image expands the row.
+   * Force the container itself to fill so all kinds line up. */
+  width: 100%;
+  flex: 1 1 100%;
+  min-width: 0;
   border-radius: 10px;
   padding: 2px;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
@@ -52,6 +60,12 @@
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
+  /* Card has no Grid container ancestor (we wrapped each card in a
+   * DraggableActivity div for dnd-kit), so MUI's `lg-12` `flex-basis`
+   * is inert and content-light kinds (note / flight) shrink to their
+   * content width. Force the card itself to span its parent. */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* X close button pinned to the card's top-right. Sits above the content

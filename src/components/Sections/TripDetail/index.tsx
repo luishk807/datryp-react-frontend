@@ -533,37 +533,21 @@ const TripDetailHeader = ({
     <div className="trip-detail-header">
       <div className="trip-detail-header-title">
         <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
-        {statusName === TRIP_STATUS.CONFIRMED && (
-          <Tooltip
-            title="Trip confirmed — places are locked in. Click Mark Completed when the trip is done."
-            arrow
-          >
-            <span
-              className="trip-detail-status trip-detail-status-confirmed"
-              aria-label={`Trip status: ${statusName}`}
-            >
-              <CheckCircleOutlineRoundedIcon className="trip-detail-status-icon" />
-            </span>
-          </Tooltip>
-        )}
-        {statusName === TRIP_STATUS.COMPLETED && (
-          <Tooltip title="Completed" arrow>
-            <span
-              className="trip-detail-status trip-detail-status-completed"
-              aria-label={`Trip status: ${statusName}`}
-            >
-              <CheckCircleRoundedIcon className="trip-detail-status-icon" />
-            </span>
-          </Tooltip>
-        )}
-        {statusName === TRIP_STATUS.CANCELLED && (
-          <span
-            className="trip-detail-status trip-detail-status-cancelled"
-            aria-label={`Trip status: ${statusName}`}
-          >
-            ({statusName})
-          </span>
-        )}
+        {/* Status pill — visible for every state (Planning included) so the
+            user always knows where the trip is in its lifecycle without
+            having to open the edit screen. */}
+        <span
+          className={`trip-detail-status trip-detail-status-${statusName.toLowerCase()}`}
+          aria-label={`Trip status: ${statusName}`}
+        >
+          {statusName === TRIP_STATUS.CONFIRMED && (
+            <CheckCircleOutlineRoundedIcon className="trip-detail-status-icon" />
+          )}
+          {statusName === TRIP_STATUS.COMPLETED && (
+            <CheckCircleRoundedIcon className="trip-detail-status-icon" />
+          )}
+          {statusName}
+        </span>
       </div>
       <div className="trip-detail-header-actions">
         {canSaveTrip && (

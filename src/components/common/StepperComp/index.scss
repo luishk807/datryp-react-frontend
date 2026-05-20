@@ -7,6 +7,98 @@
   padding: 12px 0 4px;
 }
 
+// Standalone edit-trip header — title + Save / Cancel / Delete row
+// hoisted out of BasicTripInfo. Mirrors the /trip-detail header pattern
+// so edit and view modes feel consistent.
+.edit-trip-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  width: 100%;
+  padding: 12px 8px;
+}
+
+.edit-trip-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.edit-trip-name {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: theme('colors.primary');
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-trip-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.edit-trip-header .edit-trip-cancel-btn,
+.edit-trip-header .edit-trip-save-btn,
+.edit-trip-header .edit-trip-delete-wrapper button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px !important;
+  border-radius: 999px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease;
+  min-width: 0 !important;
+  width: auto !important;
+  text-transform: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.edit-trip-header .edit-trip-cancel-btn {
+  background: transparent !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.18) !important;
+}
+
+.edit-trip-header .edit-trip-cancel-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.edit-trip-header .edit-trip-save-btn {
+  background: rgba(246, 137, 31, 0.12) !important;
+  color: theme('colors.primaryOrange') !important;
+}
+
+.edit-trip-header .edit-trip-save-btn:hover:not(:disabled) {
+  background: rgba(246, 137, 31, 0.22) !important;
+}
+
+.edit-trip-header .edit-trip-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.edit-trip-header .edit-trip-delete-wrapper button {
+  background: rgba(192, 57, 43, 0.1) !important;
+  color: #c0392b !important;
+}
+
+.edit-trip-header .edit-trip-delete-wrapper button:hover {
+  background: rgba(192, 57, 43, 0.2) !important;
+}
+
 /* ---------- Connector styling ---------- */
 .stepperMain .MuiStepConnector-root {
   top: 16px;

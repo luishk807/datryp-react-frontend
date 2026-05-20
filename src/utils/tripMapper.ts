@@ -206,7 +206,7 @@ export const tripStateToSaveInput = (
         startDate: tripState.startDate ?? null,
         endDate: tripState.endDate ?? null,
         budget: toNumber(tripState.budget),
-        image: null,
+        image: tripState.image ?? null,
         tripStatusId: options.tripStatusId ?? null,
         // Picked friends/organizers carry their backend UUID via Friend.userId;
         // legacy mock entries without userId are silently dropped.

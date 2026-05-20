@@ -199,18 +199,14 @@ const TripSteps = ({
 
     return (
         <Layout
-            title={title}
+            // In edit mode the standalone trip header (rendered inside
+            // StepperComp) carries the trip name + actions; suppress
+            // Layout's own title row so the page doesn't carry a
+            // redundant "Single Trip Detail (EDIT MODE)" banner above
+            // the trip header.
+            title={isEditing ? '' : title}
             titleAction={
-                <>
-                    {isEditing && (
-                        <span
-                            className="trip-steps-edit-mode"
-                            role="status"
-                            aria-label="You are editing an existing trip"
-                        >
-                            (EDIT MODE)
-                        </span>
-                    )}
+                isEditing ? null : (
                     <Tooltip title={switchLabel}>
                         <IconButton
                             size="small"
@@ -221,7 +217,7 @@ const TripSteps = ({
                             <SyncAltIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
-                </>
+                )
             }
         >
             <Grid container className={containerClassName}>

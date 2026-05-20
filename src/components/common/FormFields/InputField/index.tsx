@@ -81,10 +81,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         const showInputLabel = type !== 'time';
         const showTopLabel = labelOnTop || type === 'date';
 
-        const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-            e.target.select();
-        };
-
         const renderField = () => {
             switch (type) {
                 case 'time': {
@@ -176,7 +172,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                             id={name}
                             fullWidth
                             className={classNames({ fileStyle: type === 'file' })}
-                            onFocus={handleFocus}
                             inputRef={ref}
                             type={type}
                             disabled={disabled}

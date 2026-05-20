@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react';
 import './index.scss';
 import classnames from 'classnames';
 import { formatDate, isSameDay, isValidDate } from 'utils';
-import _ from 'lodash';
 import IconButton from '@mui/material/IconButton';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
@@ -18,14 +17,14 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import { Tooltip } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ErrorAlert from 'components/common/ErrorAlert';
-import DropDown from 'components/common/FormFields/DropDown';
 import DialogBox from 'components/common/FormFields/DialogBox';
+import TripStatusBadge from 'components/TripStatusBadge';
 import { convertMoney } from 'utils';
-import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
-import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
+import type { TripState, TripStatus } from 'types';
 
 interface BasicTripInfoProps {
     data: TripState;
@@ -82,45 +81,16 @@ interface BasicTripInfoProps {
      *  row at the top and uses this to render the stats/friends body
      *  alone inside the collapsible section below. */
     hideHeader?: boolean;
+    /** Opens the basic-info edit modal — paired with `hideHeader=true`
+     *  so the edit-trip flow can keep the title/actions in a standalone
+     *  header row at the top while the basic-info card itself still
+     *  carries an "Edit basic info" affordance for the stats block. */
+    onEditBasicInfo?: () => void;
 }
 
-const resolveStatus = (
-    raw: TripState['status'],
-    options: Array<{ id: string | number; name: string }>
-): TripStatus | undefined => {
-    if (!raw) return undefined;
-    if (typeof raw === 'number' || typeof raw === 'string') {
-        const match = options.find((o) => o.id === raw);
-        return match as TripStatus | undefined;
-    }
-    // `raw` is an object. The pre-seeded sample option uses a numeric id while
-    // the modal's options come from the backend (UUID). Reconcile by name so
-    // the dropdown shows the correct current selection even across that gap.
-    const byName = options.find((o) => o.name === raw.name);
-    if (byName) return byName as TripStatus;
-    return raw;
-};
-
-const isActivityConfirmed = (status: Activity['status']): boolean => {
-    if (status && typeof status === 'object') {
-        return (status as ActivityStatus).name === TRIP_STATUS.CONFIRMED;
-    }
-    return false;
-};
-
-/** Return names of activities that aren't Confirmed. */
-const findUnconfirmedActivities = (state: TripState): string[] => {
-    const names: string[] = [];
-    for (const dest of state.destinations ?? []) {
-        for (const day of dest.itinerary ?? []) {
-            for (const a of day.activities ?? []) {
-                if (!isActivityConfirmed(a.status)) {
-                    names.push(a.name?.trim() || `Activity on ${day.date}`);
-                }
-            }
-        }
-    }
-    return names;
+const deriveStatusName = (raw: TripState['status']): string => {
+    if (raw && typeof raw === 'object' && raw.name) return raw.name;
+    return TRIP_STATUS.PLANNING;
 };
 
 export const BasicTripInfo = ({
@@ -145,6 +115,7 @@ export const BasicTripInfo = ({
     collapsed: controlledCollapsed,
     hideToggle = false,
     hideHeader = false,
+    onEditBasicInfo,
 }: BasicTripInfoProps) => {
     const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
     // Externally-controlled collapse wins when provided. Falls back to the
@@ -152,23 +123,6 @@ export const BasicTripInfo = ({
     const collapsed =
         controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
     const setCollapsed = (next: boolean) => setInternalCollapsed(next);
-    const { data: tripStatuses = [] } = useTripStatuses();
-
-    const statusOptions = useMemo(
-        () =>
-            tripStatuses.map((s) => ({
-                id: s.id as string | number,
-                name: s.name,
-            })),
-        [tripStatuses]
-    );
-
-    const currentStatus = useMemo(
-        () => resolveStatus(data.status, statusOptions),
-        [data.status, statusOptions]
-    );
-
-    const statusModalRef = useRef<ModalButtonHandle>(null);
     const exportModalRef = useRef<ModalButtonHandle>(null);
 
     /** Native browser print of the current page. Pages that want a
@@ -185,10 +139,6 @@ export const BasicTripInfo = ({
         exportModalRef.current?.closeModal();
         onExportExcel?.();
     };
-    const [draftStatusId, setDraftStatusId] = useState<string | number | undefined>(
-        currentStatus?.id
-    );
-    const [statusError, setStatusError] = useState<string | null>(null);
 
     const tripDate = useMemo(() => {
         if (!isValidDate(data.startDate) || !isValidDate(data.endDate)) return '—';
@@ -215,7 +165,7 @@ export const BasicTripInfo = ({
         return Array.from(new Set(names)).join(', ');
     }, [data.destinations]);
 
-    const statusName = currentStatus?.name ?? TRIP_STATUS.PLANNING;
+    const statusName = deriveStatusName(data.status);
     const friends = data.friends ?? [];
 
     // Mark Completed is a one-click promote that owns its own save (the parent
@@ -229,53 +179,8 @@ export const BasicTripInfo = ({
     // The right-side pill is the entry point into the status modal — only the
     // Planning state needs it (to promote to Confirmed). Once Confirmed/Completed/
     // Cancelled, the inline status next to the title is the canonical display.
-    const showStatusPill = statusName === TRIP_STATUS.PLANNING;
-
-    const openStatusModal = () => {
-        setDraftStatusId(currentStatus?.id);
-        setStatusError(null);
-        statusModalRef.current?.openModel();
-    };
-
-    const closeStatusModal = () => {
-        setStatusError(null);
-        statusModalRef.current?.closeModal();
-    };
-
-    const handleSaveStatus = async () => {
-        const next = statusOptions.find((o) => o.id === draftStatusId);
-        if (!next) {
-            statusModalRef.current?.closeModal();
-            return;
-        }
-        // Trip can only be marked Confirmed when every activity is also Confirmed.
-        if (next.name === TRIP_STATUS.CONFIRMED) {
-            const unconfirmed = findUnconfirmedActivities(data);
-            if (unconfirmed.length) {
-                const preview = unconfirmed.slice(0, 3).join(', ');
-                const extra =
-                    unconfirmed.length > 3
-                        ? ` and ${unconfirmed.length - 3} more`
-                        : '';
-                setStatusError(
-                    `Confirm every activity first (${preview}${extra}). ` +
-                        `Toggle each place to "Confirmed" before promoting the trip.`
-                );
-                return;
-            }
-        }
-        setStatusError(null);
-        // Await so the modal stays open until the save round-trips. The
-        // parent surfaces any error via the `saveError` prop, which renders
-        // outside the modal — we only close on success here.
-        try {
-            await onStatusChange?.(next as TripStatus);
-            statusModalRef.current?.closeModal();
-        } catch {
-            // Parent handled the error display; leave the modal open so the
-            // user can retry or cancel.
-        }
-    };
+    const showStatusPill =
+        statusName === TRIP_STATUS.PLANNING && !!onStatusChange;
 
     return (
         <section
@@ -446,18 +351,13 @@ export const BasicTripInfo = ({
                             </DialogBox>
                         </span>
                     )}
-                    {showStatusPill && (
-                        <ButtonCustom
-                            type="none"
-                            capitalizeType="none"
-                            className="trip-status-badge"
-                            onClick={openStatusModal}
+                    {showStatusPill && onStatusChange && (
+                        <TripStatusBadge
+                            data={data}
+                            onStatusChange={onStatusChange}
+                            isSaving={isSaving}
                             disabled={isViewMode}
-                        >
-                            <span className="status-dot" />
-                            <span className="status-text">{statusName}</span>
-                            {!isViewMode && <EditOutlinedIcon className="status-edit" />}
-                        </ButtonCustom>
+                        />
                     )}
                     {collapsible && !hideToggle && (
                         <IconButton
@@ -490,6 +390,18 @@ export const BasicTripInfo = ({
                 })}
                 aria-hidden={collapsible && collapsed ? true : undefined}
             >
+            {hideHeader && onEditBasicInfo && (
+                <div className="trip-edit-basic-row">
+                    <ButtonIcon
+                        type="text"
+                        title="Edit basic info"
+                        className="trip-edit-basic-btn"
+                        onClick={onEditBasicInfo}
+                        Icon={EditOutlinedIcon}
+                        iconPosition="start"
+                    />
+                </div>
+            )}
             <div className="trip-stats">
                 <div className="trip-stat">
                     <PersonOutlineIcon className="stat-icon" />
@@ -539,37 +451,6 @@ export const BasicTripInfo = ({
                 </div>
             )}
             </div>
-
-            <ModalButton ref={statusModalRef} title="Update trip status">
-                <div className="trip-status-dropdown">
-                    <DropDown
-                        label="Status"
-                        options={statusOptions}
-                        value={draftStatusId ?? null}
-                        onChange={(opt) => {
-                            setDraftStatusId(opt?.id);
-                            setStatusError(null);
-                        }}
-                    />
-                </div>
-                <ErrorAlert>{statusError}</ErrorAlert>
-                <div className="trip-status-actions">
-                    <ButtonCustom
-                        type="line"
-                        capitalizeType="uppercase"
-                        label="Cancel"
-                        onClick={closeStatusModal}
-                        disabled={isSaving}
-                    />
-                    <ButtonCustom
-                        type="standard"
-                        capitalizeType="uppercase"
-                        label={isSaving ? 'Saving…' : 'Save'}
-                        onClick={handleSaveStatus}
-                        disabled={isSaving}
-                    />
-                </div>
-            </ModalButton>
         </section>
     );
 };

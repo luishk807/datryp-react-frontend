@@ -270,6 +270,7 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
             : undefined,
         budget: it.budget ?? undefined,
         total: it.budget ?? undefined,
+        image: it.image ?? undefined,
         destinations,
         organizer,
         friends,

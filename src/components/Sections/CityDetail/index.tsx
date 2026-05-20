@@ -85,7 +85,16 @@ const CityDetail = () => {
             },
         ] as Destination[];
         dispatch(resetTrip());
-        dispatch(basicInfo({ type: tripType, destinations }));
+        // Seed the trip-level image with the city's hero photo so the trip
+        // card has a thumbnail (and the save mutation persists it to
+        // `itineraries.image`).
+        dispatch(
+            basicInfo({
+                type: tripType,
+                destinations,
+                image: cityCountry.countryImage ?? undefined,
+            })
+        );
         navigate(tripType.route, { replace: true });
     };
 

@@ -67,25 +67,37 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.78rem;
+    font-weight: 600;
     line-height: 1;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
   }
 
   .trip-detail-status-icon {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+
+  .trip-detail-status-planning {
+    background: rgba(245, 158, 11, 0.14);
+    color: #b45309;
   }
 
   .trip-detail-status-confirmed {
+    background: rgba(60, 181, 75, 0.14);
     color: theme('colors.primaryGreen');
   }
 
   .trip-detail-status-completed {
+    background: rgba(60, 181, 75, 0.18);
     color: theme('colors.primaryGreen');
   }
 
   .trip-detail-status-cancelled {
-    color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.55);
     font-style: italic;
   }
 

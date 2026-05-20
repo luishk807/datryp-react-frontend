@@ -7,15 +7,17 @@ import { Step, StepLabel, Grid } from '@mui/material';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
+import DialogBox from 'components/common/FormFields/DialogBox';
 import ErrorAlert from 'components/common/ErrorAlert';
 import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
+import TripStatusBadge from 'components/TripStatusBadge';
 import TripComplete from 'components/DestinationDetail/Completed';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import PaywallModal from 'components/PaywallModal';
 import { basicInfo, resetTrip, useTripDispatch } from 'context/TripContext';
 import { useItineraryTypes, useTripStatuses } from 'api/hooks/useLookups';
-import { useSaveItinerary } from 'api/hooks/useItineraries';
+import { useDeleteItinerary, useSaveItinerary } from 'api/hooks/useItineraries';
 import { isTripCapReachedError } from 'api/paywallError';
 import { useUser } from 'context/UserContext';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
@@ -91,6 +93,27 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const { data: itineraryTypes = [] } = useItineraryTypes();
     const { data: tripStatuses = [] } = useTripStatuses();
     const saveItinerary = useSaveItinerary();
+    const deleteItinerary = useDeleteItinerary();
+
+    const handleDeleteTrip = async () => {
+        if (!data?.apiId) return;
+        try {
+            await deleteItinerary.mutateAsync(data.apiId);
+            navigate('/trips');
+        } catch (err) {
+            setSaveError(
+                err instanceof Error ? err.message : 'Failed to delete the trip.'
+            );
+        }
+    };
+
+    const handleCancelEdit = () => {
+        if (data?.apiId) {
+            navigate(`/trip-detail?id=${data.apiId}`);
+        } else {
+            navigate('/trips');
+        }
+    };
 
     // Editing an existing trip when apiId is present (set by apiToTripState
     // via the /single?id=<uuid> hydration in TripSteps). Drives a flat
@@ -312,38 +335,102 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                     <Grid container>
                         {data && (
                             <>
+                                {/* Standalone edit header — title + Save /
+                                    Cancel / Delete Trip. Lives OUTSIDE
+                                    BasicTripInfo so the basic-info card
+                                    only carries the stats (with an inline
+                                    Edit-basic-info button). Mirrors the
+                                    /trip-detail header pattern. */}
+                                <Grid item lg={12} md={12} xs={12}>
+                                    <div className="edit-trip-header">
+                                        <div className="edit-trip-header-title">
+                                            <h2 className="edit-trip-name">
+                                                {data.name || 'Untitled trip'}
+                                            </h2>
+                                            <TripStatusBadge
+                                                data={data}
+                                                onStatusChange={(status) =>
+                                                    dispatch(basicInfo({ status }))
+                                                }
+                                                isSaving={saveItinerary.isPending}
+                                            />
+                                        </div>
+                                        <div className="edit-trip-header-actions">
+                                            <Button
+                                                type="line"
+                                                capitalizeType="uppercase"
+                                                className="edit-trip-cancel-btn"
+                                                label="Cancel"
+                                                onClick={handleCancelEdit}
+                                                disabled={saveItinerary.isPending}
+                                            />
+                                            <Button
+                                                type="standard"
+                                                capitalizeType="uppercase"
+                                                className="edit-trip-save-btn"
+                                                label={
+                                                    saveItinerary.isPending
+                                                        ? 'Saving…'
+                                                        : 'Save Changes'
+                                                }
+                                                onClick={() =>
+                                                    void handleSaveAndAdvance()
+                                                }
+                                                disabled={
+                                                    saveItinerary.isPending ||
+                                                    hasMissingFields
+                                                }
+                                            />
+                                            <span className="edit-trip-delete-wrapper">
+                                                <DialogBox
+                                                    buttonLabel={
+                                                        deleteItinerary.isPending
+                                                            ? 'Deleting…'
+                                                            : 'Delete Trip'
+                                                    }
+                                                    buttonType="line"
+                                                    title="Delete this trip?"
+                                                    onConfirm={handleDeleteTrip}
+                                                >
+                                                    This permanently removes
+                                                    the trip and all its
+                                                    activities. Participants
+                                                    will no longer see it in
+                                                    their list. This cannot
+                                                    be undone.
+                                                </DialogBox>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {(saveError ||
+                                        (hasMissingFields && (
+                                            <ErrorAlert>
+                                                Add {stepMissing.join(', ')} to
+                                                continue.
+                                            </ErrorAlert>
+                                        ))) && saveError ? (
+                                        <ErrorAlert>{saveError}</ErrorAlert>
+                                    ) : null}
+                                    {!saveError && hasMissingFields && (
+                                        <ErrorAlert>
+                                            Add {stepMissing.join(', ')} to continue.
+                                        </ErrorAlert>
+                                    )}
+                                </Grid>
                                 <Grid item lg={12} md={12} xs={12}>
                                     <BasicTripInfo
                                         data={data}
+                                        hideHeader
                                         onChangeStep={() =>
                                             basicInfoModalRef.current?.openModel()
                                         }
                                         onStatusChange={(status) =>
                                             dispatch(basicInfo({ status }))
                                         }
-                                        onSaveTrip={() =>
-                                            void handleSaveAndAdvance()
-                                        }
-                                        onCancel={() =>
-                                            data?.apiId
-                                                ? navigate(
-                                                      `/trip-detail?id=${data.apiId}`
-                                                  )
-                                                : navigate('/trips')
+                                        onEditBasicInfo={() =>
+                                            basicInfoModalRef.current?.openModel()
                                         }
                                         isSaving={saveItinerary.isPending}
-                                        // Always allow save in edit mode —
-                                        // user explicitly came here to edit.
-                                        // Missing fields surface via saveError
-                                        // (merged below) and prevent the call
-                                        // server-side.
-                                        isDirty
-                                        saveError={
-                                            saveError ??
-                                            (hasMissingFields
-                                                ? `Add ${stepMissing.join(', ')} to continue.`
-                                                : null)
-                                        }
                                     />
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12}>
