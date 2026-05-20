@@ -109,6 +109,7 @@ interface CityDetailsRaw {
     cost_level: number;
     visa: VisaInfoRaw;
     airports?: AirportRaw[];
+    tourist_rating?: number;
 }
 
 interface CitySummaryRaw {
@@ -208,6 +209,7 @@ const toDetails = (raw: CityDetailsRaw): CityDetails => ({
         distanceKm: a.distance_km,
         international: a.international,
     })),
+    touristRating: raw.tourist_rating ?? 0,
 });
 
 export const fetchCityDetails = async (

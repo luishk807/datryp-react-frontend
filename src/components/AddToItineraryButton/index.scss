@@ -1,40 +1,65 @@
+// Filled-green primary CTA — same visual weight as the "Start planning"
+// pill on the city/country detail pages. Anchors the toolbar row on the
+// right so the user sees a single, obvious "do the thing" target next
+// to the icon-only save/visited/share trio.
 .add-itinerary-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 10px 18px;
   border-radius: 999px;
   border: 1px solid theme('colors.primaryGreen');
-  background: #fff;
-  color: theme('colors.primaryGreen');
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    theme('colors.primaryGreen') 0%,
+    #2e9a3d 100%
+  );
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
+  box-shadow: 0 3px 10px rgba(60, 181, 75, 0.28);
   transition:
-    background-color 0.18s ease,
-    color 0.18s ease,
     transform 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
 
   &:hover:not(.is-disabled) {
-    background: theme('colors.primaryGreen');
-    color: #fff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(60, 181, 75, 0.3);
+    box-shadow: 0 8px 22px rgba(60, 181, 75, 0.42);
+    filter: brightness(1.04);
   }
 
   &:active {
     transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(60, 181, 75, 0.32);
   }
 
   &.is-disabled {
     opacity: 0.55;
     cursor: not-allowed;
+    box-shadow: none;
   }
 }
 
 .add-itinerary-icon {
-  font-size: 1.15rem !important;
+  font-size: 1.25rem !important;
+  flex-shrink: 0;
+}
+
+// Mobile: keep the CTA visible but shrink to icon-only so the toolbar
+// doesn't overflow the viewport. The filled gradient keeps it visually
+// dominant even without the label.
+@media (max-width: 640px) {
+  .add-itinerary-pill {
+    padding: 10px;
+    gap: 0;
+  }
+
+  .add-itinerary-pill > span {
+    display: none;
+  }
 }
 
 .add-itinerary-modal {

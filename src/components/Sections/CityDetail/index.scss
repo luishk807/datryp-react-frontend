@@ -16,6 +16,13 @@
   color: theme('colors.primaryGreen');
   text-decoration: none;
   width: fit-content;
+  // Reset native button chrome — the back affordance is now a
+  // <button onClick={navigate(-1)}>, not a Link.
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 
   &:hover {
     text-decoration: underline;
@@ -151,6 +158,31 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+// Mirrors `.place-detail-meta` on PlaceDetail — small green-globe icon
+// next to the AI-curated 0-5 rating. Stays inline-flex so a ReviewSummary
+// can sit right after it on the same row when the viewport is wide
+// enough.
+.city-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.city-detail-meta-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
 }
 
 .city-detail-name-row {

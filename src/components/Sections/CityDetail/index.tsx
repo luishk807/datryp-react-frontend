@@ -1,6 +1,7 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "./index.scss";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Tooltip } from "@mui/material";
+import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -11,6 +12,9 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
 import CostBadge from "components/common/CostBadge";
+import Stars from "components/common/Stars";
+import ReviewSection from "components/Review/ReviewSection";
+import ReviewSummary from "components/Review/ReviewSummary";
 import BookmarkCityButton from "components/BookmarkCityButton";
 import VisitedCityButton from "components/VisitedCityButton";
 import ShareButton from "components/ShareButton";
@@ -132,17 +136,30 @@ const CityDetail = () => {
     const { city, details } = data;
     const placeForGetting = `${city.name}, ${city.country}`;
 
+    // Smart back: use the browser history when the user actually
+    // navigated into this page (search, country list, etc.); fall back
+    // to home for direct visits (pasted URLs, shared links) where
+    // navigate(-1) would otherwise drop them off-app or onto a blank
+    // tab state.
+    const handleBack = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate("/");
+        }
+    };
+
     return (
-        <Layout title={city.name}>
+        <Layout>
             <article className="city-detail">
                 <div className="city-detail-toolbar">
-                    <Link
-                        to={`/country?code=${encodeURIComponent(city.countryCode)}`}
+                    <button
+                        type="button"
+                        onClick={handleBack}
                         className="city-detail-back-link"
                     >
-                        <ArrowBackRoundedIcon fontSize="small" /> Back to{" "}
-                        {city.country}
-                    </Link>
+                        <ArrowBackRoundedIcon fontSize="small" /> Back
+                    </button>
                     <div className="city-detail-toolbar-actions">
                         <BookmarkCityButton
                             cityName={city.name}
@@ -242,6 +259,26 @@ const CityDetail = () => {
                     <p className="city-detail-highlight">
                         {details.cityHighlight}
                     </p>
+                    {details.touristRating > 0 && (
+                        <div className="city-detail-meta">
+                            <Tooltip title="Overall rating" arrow>
+                                <span
+                                    className="city-detail-meta-icon"
+                                    role="img"
+                                    aria-label="Overall rating"
+                                >
+                                    <PublicRoundedIcon />
+                                </span>
+                            </Tooltip>
+                            <Stars rating={details.touristRating} />
+                        </div>
+                    )}
+                    <ReviewSummary
+                        placeName={city.name}
+                        placeCity={city.name}
+                        placeCountry={city.country}
+                        targetId="city-reviews"
+                    />
                 </header>
 
                 <div className="city-detail-content">
@@ -327,6 +364,14 @@ const CityDetail = () => {
                         title="Top 5 photo spots"
                         icon={<PhotoCameraRoundedIcon />}
                         items={details.photoSpots}
+                    />
+                </div>
+
+                <div id="city-reviews">
+                    <ReviewSection
+                        placeName={city.name}
+                        placeCity={city.name}
+                        placeCountry={city.country}
                     />
                 </div>
             </article>

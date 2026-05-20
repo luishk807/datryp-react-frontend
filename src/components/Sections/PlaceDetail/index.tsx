@@ -120,7 +120,7 @@ const PlaceDetail = () => {
   }
 
   return (
-    <Layout title={place.name}>
+    <Layout>
       <article className="place-detail">
         <div className="place-detail-toolbar">
           <Link to={backUrl} className="place-detail-back-link">
@@ -128,7 +128,6 @@ const PlaceDetail = () => {
             &rdquo;
           </Link>
           <div className="place-detail-toolbar-actions">
-            <AddToItineraryButton place={place} />
             <BookmarkButton place={place} query={query} index={index} />
             <VisitedButton
               place={place}
@@ -148,6 +147,10 @@ const PlaceDetail = () => {
                 image_url: place.imageUrl,
               }}
             />
+            {/* Primary CTA — placed last so it visually anchors the
+                action row on the right, mirroring "Start planning" on
+                the city / country detail pages. */}
+            <AddToItineraryButton place={place} />
           </div>
         </div>
 

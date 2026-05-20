@@ -117,13 +117,27 @@ const CountryDetail = () => {
 
   const { country, details } = data;
 
+  // Smart back: prefer the browser history (search results, top cities
+  // grid, etc.) and fall back to home for direct visits.
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
-    <Layout title={country.name}>
+    <Layout>
       <article className="country-detail">
         <div className="country-detail-toolbar">
-          <Link to="/" className="country-detail-back-link">
-            <ArrowBackRoundedIcon fontSize="small" /> Back to home
-          </Link>
+          <button
+            type="button"
+            onClick={handleBack}
+            className="country-detail-back-link"
+          >
+            <ArrowBackRoundedIcon fontSize="small" /> Back
+          </button>
           <div className="country-detail-toolbar-actions">
             <BookmarkCountryButton
               countryCode={country.code}
