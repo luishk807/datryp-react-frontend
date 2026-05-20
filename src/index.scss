@@ -14,3 +14,159 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+// ── Print stylesheet ────────────────────────────────────────────────────────
+// Triggered by window.print() from the Download → Print option on
+// /trip-detail. Strips app chrome (header, footer, action buttons, modals,
+// drag handles, edit affordances) and lays out the itinerary as a clean,
+// single-column document. Tested via Chromium's print preview.
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm 18mm;
+  }
+
+  // Universal reset: no shadows, no rounded corners (ink waste), white
+  // background with black text. Forces print color management to honor
+  // explicit colors we set below.
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  // Hide app chrome (header / footer / nav). The trip detail page lives
+  // inside `.page-shell > main` so we keep `main` visible and hide the
+  // siblings.
+  .page-shell > header,
+  .page-shell > footer {
+    display: none !important;
+  }
+
+  // Strip layout container backgrounds so the page reads as plain paper.
+  .page-shell,
+  .page-shell > main,
+  #layout,
+  #root,
+  .layout-container,
+  .homeContainer {
+    background: #fff !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  // Trip-detail action buttons (Edit / Download / Mark Completed /
+  // Delete) are interactive — useless in a printout. The trip title +
+  // status stay visible.
+  .trip-detail-header-actions,
+  .trip-detail-toggle-row,
+  .add-place-item,
+  .add-place-container-standard,
+  .add-place-container-simple {
+    display: none !important;
+  }
+
+  // Activity card affordances: edit pencil, delete X, complete tick,
+  // drag handles, status toggle, AddBudget pencil, etc.
+  .activity-card-close-btn,
+  .activity-card-complete-btn,
+  .activity-edit-btn,
+  .status-toggle,
+  .budget-edit-trigger,
+  .budget-add-trigger,
+  .activities-empty-hint,
+  .trip-detail-empty {
+    display: none !important;
+  }
+
+  // MUI Snackbar + Modal nodes occasionally render into the DOM even
+  // when closed — they don't belong on paper.
+  .MuiSnackbar-root,
+  .MuiModal-root,
+  .MuiBackdrop-root,
+  .MuiTooltip-popper {
+    display: none !important;
+  }
+
+  // Section cards lose their rounded card chrome and stack cleanly.
+  .basic-trip-info,
+  .budget-summary,
+  .activity-content-trip,
+  .date-block,
+  .country-detail {
+    background: #fff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 0 8pt !important;
+    padding: 0 !important;
+  }
+
+  // Trip header — keep it as the document title.
+  .trip-detail-header {
+    border-bottom: 1px solid #000;
+    padding-bottom: 6pt !important;
+    margin-bottom: 10pt !important;
+  }
+
+  .trip-detail-name {
+    font-size: 18pt !important;
+    font-weight: 700;
+  }
+
+  // Force any collapsible bodies open — the user explicitly requested
+  // a print, so they want to see everything.
+  .trip-collapsible-body {
+    display: block !important;
+    max-height: none !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+  }
+  .trip-collapsible-body.is-collapsed {
+    display: block !important;
+  }
+
+  // Keep an activity card together on one page when possible.
+  .activity-content-trip {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border-top: 1px solid #ddd !important;
+    padding-top: 8pt !important;
+  }
+
+  // Drop the image column in print — most flights/notes have no image,
+  // and the image-bearing places print cleaner without a thumbnail
+  // hogging the left rail.
+  .content-image,
+  .activity-image {
+    display: none !important;
+  }
+
+  // Each day starts on a fresh visual block. Avoid breaking the
+  // day-title from its first activity.
+  .date-block,
+  .date-block-header,
+  .country-detail-header {
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+
+  // Form/edit views don't print — if the user prints from the stepper,
+  // there's nothing useful to show.
+  .stepperMain {
+    display: none !important;
+  }
+}

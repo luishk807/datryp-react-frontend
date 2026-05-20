@@ -115,6 +115,19 @@ const activityStatusIdOf = (
     return UUID_RE.test(id) ? id : null;
 };
 
+const flightSegmentsToInput = (
+    segments: Activity['flightSegments']
+): FlightInfoInput[] => {
+    if (!segments?.length) return [];
+    return segments.map((seg) => ({
+        departDate: combineDateTime(seg.departDate, seg.departTime),
+        arrivalDate: combineDateTime(seg.arrivalDate, seg.arrivalTime),
+        flightNumber: seg.flightNumber ?? null,
+        departAirport: seg.departAirport ?? null,
+        arrivalAirport: seg.arrivalAirport ?? null,
+    }));
+};
+
 const activityToInput = (
     activity: Activity,
     dayDate?: string
@@ -130,6 +143,8 @@ const activityToInput = (
     budget: sumBudget(activity.budget),
     tripStatusId: activityStatusIdOf(activity.status),
     budgets: budgetEntriesToInput(activity.budget),
+    kind: activity.kind ?? null,
+    flightSegments: flightSegmentsToInput(activity.flightSegments),
 });
 
 export interface MapTripOptions {

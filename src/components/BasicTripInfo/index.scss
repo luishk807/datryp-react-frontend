@@ -48,9 +48,9 @@
   transform: rotate(-90deg);
 }
 
-// Body-only mode: the trip header has been hoisted out into a
-// separate always-visible block above this card (see TripDetail).
-// Drop the outer margin since the parent now controls spacing.
+// Body-only mode (TripDetail hoists the header into its own always-
+// visible row above this card). Drop the header-side padding/margins
+// so the section reads as a "stats only" panel.
 .basic-trip-info.is-body-only {
   margin: 0;
 }

@@ -74,10 +74,13 @@ interface BasicTripInfoProps {
      *  ONE Show/Hide detail button governing both BasicTripInfo and
      *  BudgetSummary together. */
     collapsed?: boolean;
+    /** Hide the internal chevron toggle. Pair with controlled
+     *  `collapsed` when the parent renders its own single toggle. */
+    hideToggle?: boolean;
     /** Hide the header chunk (trip name + status badge + action
-     *  buttons). TripDetail uses this to hoist the trip header out into
-     *  its own always-visible row at the top, then renders this
-     *  component body-only inside the shared accordion below. */
+     *  buttons). TripDetail hoists those into its own always-visible
+     *  row at the top and uses this to render the stats/friends body
+     *  alone inside the collapsible section below. */
     hideHeader?: boolean;
 }
 
@@ -140,6 +143,7 @@ export const BasicTripInfo = ({
     collapsible = false,
     defaultCollapsed = false,
     collapsed: controlledCollapsed,
+    hideToggle = false,
     hideHeader = false,
 }: BasicTripInfoProps) => {
     const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
@@ -330,14 +334,14 @@ export const BasicTripInfo = ({
                         <span className="trip-export-wrapper">
                             <ModalButton
                                 ref={exportModalRef}
-                                title="Export trip"
+                                title="Download trip"
                                 buttonProps={{
                                     type: 'standard',
                                     className: 'trip-export-btn',
                                     Icon: IosShareIcon,
                                     iconProps: { fontSize: 'small' },
-                                    title: 'Export',
-                                    ariaLabel: 'Export trip',
+                                    title: 'Download',
+                                    ariaLabel: 'Download trip',
                                 }}
                             >
                                 <div className="trip-export-options">
@@ -455,7 +459,7 @@ export const BasicTripInfo = ({
                             {!isViewMode && <EditOutlinedIcon className="status-edit" />}
                         </ButtonCustom>
                     )}
-                    {collapsible && (
+                    {collapsible && !hideToggle && (
                         <IconButton
                             size="small"
                             className={classnames('trip-collapse-toggle', {

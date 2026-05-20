@@ -150,16 +150,14 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
-  transition: background-color 0.15s ease, color 0.15s ease,
-    box-shadow 0.15s ease, transform 0.15s ease;
+  box-shadow: none;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
   z-index: 2;
 }
 
 .activity-content-trip .activity-card-complete-btn.MuiIconButton-root:hover {
   background: theme('colors.primaryGreen');
   color: #fff;
-  box-shadow: 0 4px 10px rgba(60, 181, 75, 0.32);
   transform: translateY(-1px);
 }
 
@@ -274,6 +272,11 @@
 .activity-content-trip .content-detail .info .meta-text.location {
   color: theme('colors.primary');
   font-weight: 500;
+}
+
+.activity-content-trip .content-detail .info .meta-text.flight-number {
+  font-weight: 600;
+  color: theme('colors.primary');
 }
 
 /* ── Budget row: chips per contributor + a subtle edit pencil ─────────── */

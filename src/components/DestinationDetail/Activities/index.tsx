@@ -117,9 +117,41 @@ const Activities = ({
         disabled: !dndEnabled,
     });
 
+    // Auto-sort timed activities by start time within the day. Notes
+    // are timeless, so they keep the exact index the user dragged them
+    // to — the sort fills the remaining slots with the timed activities
+    // in chronological order. Flight activities sort by the first
+    // segment's depart time (currently `flightInfo.departTime`).
+    const sortedActivities = useMemo(() => {
+        if (!activities?.length) return activities ?? [];
+        const startTimeOf = (a: Activity): string | undefined =>
+            a.kind === ACTIVITY_KIND.FLIGHT
+                ? a.flightSegments?.[0]?.departTime
+                : a.startTime;
+        const timed = activities
+            .map((a, originalIndex) => ({ a, originalIndex }))
+            .filter(({ a }) => a.kind !== ACTIVITY_KIND.NOTE)
+            .sort((x, y) => {
+                const tx = startTimeOf(x.a) ?? '99:99';
+                const ty = startTimeOf(y.a) ?? '99:99';
+                if (tx === ty) return x.originalIndex - y.originalIndex;
+                return tx.localeCompare(ty);
+            })
+            .map(({ a }) => a);
+        const result: Activity[] = new Array(activities.length);
+        activities.forEach((a, i) => {
+            if (a.kind === ACTIVITY_KIND.NOTE) result[i] = a;
+        });
+        let ti = 0;
+        for (let i = 0; i < result.length; i++) {
+            if (!result[i]) result[i] = timed[ti++];
+        }
+        return result;
+    }, [activities]);
+
     const activityIds = useMemo(
-        () => (activities ?? []).map((a) => `act-${a.id}`),
-        [activities]
+        () => sortedActivities.map((a) => `act-${a.id}`),
+        [sortedActivities]
     );
 
     // Activities share the same `trip_statuses` lookup as trips, so toggling
@@ -158,16 +190,21 @@ const Activities = ({
                 items={activityIds}
                 strategy={verticalListSortingStrategy}
             >
-            {activities &&
-                activities.map((activity, indx) => {
+            {sortedActivities.map((activity, indx) => {
                     const activityKind = activity.kind ?? ACTIVITY_KIND.PLACE;
                     const isNote = activityKind === ACTIVITY_KIND.NOTE;
                     const isFlight = activityKind === ACTIVITY_KIND.FLIGHT;
                     // Notes are timeless; flights show their depart→arrival
                     // datetime as the schedule row. Places use start/end as
                     // before.
+                    // Flight schedule spans the FIRST segment's depart →
+                    // LAST segment's arrival, regardless of how many
+                    // stopovers in between.
+                    const flightSegments = activity.flightSegments ?? [];
+                    const firstSeg = flightSegments[0];
+                    const lastSeg = flightSegments[flightSegments.length - 1];
                     const activityTime = isFlight
-                        ? `${reformatDate(activity.flightInfo?.departTime, 'HH:mm', 'LT')} → ${reformatDate(activity.flightInfo?.arrivalTime, 'HH:mm', 'LT')}`
+                        ? `${reformatDate(firstSeg?.departTime, 'HH:mm', 'LT')} → ${reformatDate(lastSeg?.arrivalTime, 'HH:mm', 'LT')}`
                         : `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
                     const showTimeRow = !isNote;
                     const budgetEntries = activity.budget ?? [];
@@ -185,6 +222,15 @@ const Activities = ({
                         isActivityCompleted;
                     const hasImage = Boolean(activity.image?.url);
                     const TitleIcon = titleIconFor(activity);
+                    // Icon for the location/meta row at the top of the
+                    // activity body. For flights we swap the pin for a
+                    // plane; for notes we use a note icon; otherwise
+                    // the default location pin.
+                    const LocationIcon = isFlight
+                        ? FlightTakeoffOutlinedIcon
+                        : isNote
+                          ? NotesOutlinedIcon
+                          : LocationOnOutlinedIcon;
                     // Cost + budget are coupled: a non-money activity (just
                     // a note like "checkout at 10am") shouldn't show either
                     // row. We surface them only when there's an actual cost
@@ -318,26 +364,36 @@ const Activities = ({
                                             <div className="activity-meta">
                                                 {activity.location && (
                                                     <div className="meta-row">
-                                                        <LocationOnOutlinedIcon className="meta-icon" />
+                                                        <LocationIcon className="meta-icon" />
                                                         <span className="meta-text location">
                                                             {activity.location}
                                                         </span>
                                                     </div>
                                                 )}
-                                                {isFlight && activity.flightInfo?.flightNumber && (
-                                                    <div className="meta-row">
-                                                        <FlightTakeoffOutlinedIcon className="meta-icon" />
-                                                        <span className="meta-text">
-                                                            {`Flight ${activity.flightInfo.flightNumber}`}
-                                                            {activity.flightInfo.departAirport &&
-                                                                activity.flightInfo.arrivalAirport && (
-                                                                    <>
-                                                                        {` · ${activity.flightInfo.departAirport} → ${activity.flightInfo.arrivalAirport}`}
-                                                                    </>
-                                                                )}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                {isFlight &&
+                                                    flightSegments.map((seg, segIdx) => {
+                                                        if (!seg.flightNumber) return null;
+                                                        const route =
+                                                            seg.departAirport && seg.arrivalAirport
+                                                                ? `${seg.departAirport} → ${seg.arrivalAirport}`
+                                                                : '';
+                                                        return (
+                                                            <div
+                                                                key={segIdx}
+                                                                className="meta-row"
+                                                            >
+                                                                <NotesOutlinedIcon className="meta-icon" />
+                                                                <span className="meta-text flight-number">
+                                                                    {`Flight ${seg.flightNumber}`}
+                                                                    {route && (
+                                                                        <span className="flight-segment-route">
+                                                                            {` · ${route}`}
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 {showTimeRow && (
                                                     <div className="meta-row">
                                                         <ScheduleOutlinedIcon className="meta-icon" />

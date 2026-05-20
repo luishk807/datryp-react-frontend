@@ -11,13 +11,16 @@ import type { ApiActivity, ApiActivityBudget, ApiItinerary } from 'api/hooks/use
 import { ITINERARY_TYPE, TRIP_BASIC, TRIP_STATUS } from 'constants';
 import type {
     Activity,
+    ActivityKind,
     BudgetItem,
     Destination,
+    FlightInfo,
     Friend,
     MultipleDestinations,
     SingleDestination,
     TripState,
 } from 'types';
+import { ACTIVITY_KIND } from 'constants';
 
 /** Cheap stable hash so UUID strings can still be used where a numeric id is expected. */
 const uuidToNumericId = (uuid: string): number => {
@@ -58,12 +61,54 @@ const apiBudgetsToItems = (
     }));
 };
 
+/** Split a backend combined ISO datetime back into the form FlightInfo
+ *  expects on the frontend (date = YYYY-MM-DD, time = HH:mm). The form
+ *  fields are split and tripMapper recombines them on save — passing the
+ *  full ISO back through would double-prepend the date. */
+const splitDateTime = (
+    iso: string | null | undefined
+): { date?: string; time?: string } => {
+    if (!iso || !isValidDate(iso)) return {};
+    return {
+        date: formatDate(iso, 'YYYY-MM-DD'),
+        time: formatDate(iso, 'HH:mm'),
+    };
+};
+
+const apiFlightSegmentToFlightInfo = (s: {
+    departDate: string | null;
+    arrivalDate: string | null;
+    flightNumber: string | null;
+    departAirport: string | null;
+    arrivalAirport: string | null;
+}): FlightInfo => {
+    const dep = splitDateTime(s.departDate);
+    const arr = splitDateTime(s.arrivalDate);
+    return {
+        departDate: dep.date,
+        departTime: dep.time,
+        arrivalDate: arr.date,
+        arrivalTime: arr.time,
+        flightNumber: s.flightNumber ?? undefined,
+        departAirport: s.departAirport ?? undefined,
+        arrivalAirport: s.arrivalAirport ?? undefined,
+    };
+};
+
+const normalizeKind = (k: string | null | undefined): ActivityKind | undefined => {
+    if (k === ACTIVITY_KIND.FLIGHT) return ACTIVITY_KIND.FLIGHT;
+    if (k === ACTIVITY_KIND.NOTE) return ACTIVITY_KIND.NOTE;
+    if (k === ACTIVITY_KIND.PLACE) return ACTIVITY_KIND.PLACE;
+    return undefined;
+};
+
 /** Single source of truth for ApiActivity → Activity mapping. Used by both
  *  `apiToTripEntry` and `apiToTripState`, and in single + multi branches.
  *  `status` is preserved as `{id (UUID), name}` so the status toggle on the
  *  card and `activityToInput` on save both have the real backend identifier. */
 const apiActivityToActivity = (a: ApiActivity): Activity => ({
     id: uuidToNumericId(a.id),
+    kind: normalizeKind(a.kind),
     name: a.name,
     place: a.place ?? undefined,
     location: a.location ?? undefined,
@@ -78,6 +123,9 @@ const apiActivityToActivity = (a: ApiActivity): Activity => ({
     image: a.image ? { url: a.image, name: a.name } : undefined,
     status: a.status ? { id: a.status.id, name: a.status.name } : undefined,
     budget: apiBudgetsToItems(a.budgets),
+    flightSegments: a.flightSegments?.length
+        ? a.flightSegments.map(apiFlightSegmentToFlightInfo)
+        : undefined,
 });
 
 const apiUserToFriend = (u: { id: string; name: string | null; email: string }): Friend => ({

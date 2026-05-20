@@ -42,8 +42,12 @@ export interface Activity {
   shareCost?: ShareCostEntry[];
   people?: string | number;
   /** Only set when `kind === 'flight'`. The form populates depart /
-   *  arrival airports + datetimes; other kinds ignore this field. */
-  flightInfo?: FlightInfo;
+   *  arrival airports + datetimes; other kinds ignore this field.
+   *  Single-segment flights (no layover) carry just one entry; flights
+   *  with stopovers carry one entry per leg. The first segment's
+   *  depart and the last segment's arrival drive the day-row time
+   *  display and sort order. */
+  flightSegments?: FlightInfo[];
 }
 
 export interface ItineraryDay {

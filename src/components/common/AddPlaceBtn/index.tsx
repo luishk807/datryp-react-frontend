@@ -46,9 +46,13 @@ interface PlaceDraft {
     status?: DropdownOption;
     image?: ImageRef;
     friends?: Friend[];
-    /** Only populated when `kind === 'flight'`. */
-    flightInfo?: FlightInfo;
+    /** One entry per flight leg. Always present (with a single empty
+     *  entry) once the kind toggle picks Flight, so the form has
+     *  somewhere to write into. */
+    flightSegments?: FlightInfo[];
 }
+
+const emptySegment = (): FlightInfo => ({});
 
 export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activity> {
     tripTypeId?: number;
@@ -117,17 +121,45 @@ const AddPlaceBtn = ({
         });
     };
 
-    /** Update one field on the nested FlightInfo. Creates the object on
-     *  first edit so we don't churn it for non-flight kinds. */
-    const handleFlightField = <K extends keyof FlightInfo>(
+    /** Update one field on segment `index`. Initializes `flightSegments`
+     *  with a single entry if it hasn't been populated yet (defensive —
+     *  the kind toggle should already have done that). */
+    const handleSegmentField = <K extends keyof FlightInfo>(
+        index: number,
         name: K,
         value: FlightInfo[K]
     ) => {
         setError(null);
+        setPlace((prev) => {
+            const segments = prev.flightSegments?.length
+                ? [...prev.flightSegments]
+                : [emptySegment()];
+            segments[index] = { ...segments[index], [name]: value };
+            return { ...prev, flightSegments: segments };
+        });
+    };
+
+    const handleAddSegment = () => {
+        setError(null);
         setPlace((prev) => ({
             ...prev,
-            flightInfo: { ...(prev.flightInfo ?? {}), [name]: value },
+            flightSegments: [
+                ...(prev.flightSegments ?? []),
+                emptySegment(),
+            ],
         }));
+    };
+
+    const handleRemoveSegment = (index: number) => {
+        setError(null);
+        setPlace((prev) => {
+            const segments = prev.flightSegments ?? [];
+            if (segments.length <= 1) return prev;
+            return {
+                ...prev,
+                flightSegments: segments.filter((_, i) => i !== index),
+            };
+        });
     };
 
     /** Kind toggle handler — only callable from the ADD flow (the
@@ -149,7 +181,12 @@ const AddPlaceBtn = ({
                 next === ACTIVITY_KIND.NOTE ? undefined : prev.startTime ?? now('HH:mm'),
             endTime:
                 next === ACTIVITY_KIND.NOTE ? undefined : prev.endTime ?? now('HH:mm'),
-            flightInfo: next === ACTIVITY_KIND.FLIGHT ? prev.flightInfo ?? {} : undefined,
+            flightSegments:
+                next === ACTIVITY_KIND.FLIGHT
+                    ? prev.flightSegments?.length
+                        ? prev.flightSegments
+                        : [emptySegment()]
+                    : undefined,
         }));
     };
 
@@ -190,12 +227,21 @@ const AddPlaceBtn = ({
             if (!place.name?.trim()) missing.push('title');
             if (!place.note?.trim()) missing.push('note text');
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
-            const f = place.flightInfo ?? {};
-            if (!f.flightNumber?.trim()) missing.push('flight number');
-            if (!f.departAirport?.trim()) missing.push('depart airport');
-            if (!f.arrivalAirport?.trim()) missing.push('arrival airport');
-            if (!f.departDate?.trim()) missing.push('depart date');
-            if (!f.departTime?.trim()) missing.push('depart time');
+            const segments = place.flightSegments ?? [];
+            if (!segments.length) missing.push('a flight segment');
+            segments.forEach((seg, i) => {
+                const label = segments.length > 1 ? ` (segment ${i + 1})` : '';
+                if (!seg.flightNumber?.trim())
+                    missing.push(`flight number${label}`);
+                if (!seg.departAirport?.trim())
+                    missing.push(`depart airport${label}`);
+                if (!seg.arrivalAirport?.trim())
+                    missing.push(`arrival airport${label}`);
+                if (!seg.departDate?.trim())
+                    missing.push(`depart date${label}`);
+                if (!seg.departTime?.trim())
+                    missing.push(`depart time${label}`);
+            });
         } else {
             if (!place.name?.trim()) missing.push('name');
             if (!place.startTime?.trim()) missing.push('start time');
@@ -209,15 +255,21 @@ const AddPlaceBtn = ({
         setError(null);
         modelRef.current?.closeModal();
 
-        // For a flight, synthesize a sensible name from the airports so
-        // the timeline card has something to render — `flight number`
-        // alone reads as a bare code.
+        // For a flight, synthesize a sensible name from the airport
+        // chain (first → last segment). Bare flight number reads as a
+        // code without context, so default to e.g. "JFK → ATL → NRT".
         const finalName =
             kind === ACTIVITY_KIND.FLIGHT
                 ? place.name?.trim() ||
-                  `${place.flightInfo?.departAirport ?? ''} → ${
-                      place.flightInfo?.arrivalAirport ?? ''
-                  }`.trim()
+                  (() => {
+                      const segs = place.flightSegments ?? [];
+                      if (!segs.length) return '';
+                      const chain = [
+                          segs[0]?.departAirport ?? '',
+                          ...segs.map((s) => s.arrivalAirport ?? ''),
+                      ];
+                      return chain.filter(Boolean).join(' → ');
+                  })()
                 : place.name;
 
         onChange?.({ ...place, kind, name: finalName });
@@ -255,9 +307,11 @@ const AddPlaceBtn = ({
                         ? (data.status as DropdownOption)
                         : undefined,
                 image: data.image,
-                flightInfo:
+                flightSegments:
                     dataKind === ACTIVITY_KIND.FLIGHT
-                        ? data.flightInfo ?? {}
+                        ? data.flightSegments?.length
+                            ? data.flightSegments
+                            : [emptySegment()]
                         : undefined,
             });
         } else {
@@ -455,104 +509,151 @@ const AddPlaceBtn = ({
 
                             {place.kind === ACTIVITY_KIND.FLIGHT && (
                                 <Grid container>
+                                    {(place.flightSegments ?? [emptySegment()]).map(
+                                        (segment, segIdx, allSegs) => (
+                                            <Grid
+                                                key={segIdx}
+                                                item
+                                                lg={12}
+                                                xs={12}
+                                                className="flight-segment-block"
+                                            >
+                                                <div className="flight-segment-header">
+                                                    <span className="flight-segment-label">
+                                                        {`Segment ${segIdx + 1}`}
+                                                    </span>
+                                                    {allSegs.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            className="flight-segment-remove"
+                                                            onClick={() =>
+                                                                handleRemoveSegment(segIdx)
+                                                            }
+                                                            aria-label={`Remove segment ${segIdx + 1}`}
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <Grid container>
+                                                    <Grid item lg={12} xs={12} className="py-5">
+                                                        <InputField
+                                                            value={segment.flightNumber ?? ''}
+                                                            name={`flightNumber-${segIdx}`}
+                                                            label="Flight number"
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'flightNumber',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                    <Grid item lg={6} xs={12} className="py-5">
+                                                        <InputField
+                                                            value={segment.departAirport ?? ''}
+                                                            name={`departAirport-${segIdx}`}
+                                                            label="Depart airport (IATA)"
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'departAirport',
+                                                                    e.target.value.toUpperCase()
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
+                                                        <InputField
+                                                            value={segment.arrivalAirport ?? ''}
+                                                            name={`arrivalAirport-${segIdx}`}
+                                                            label="Arrival airport (IATA)"
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'arrivalAirport',
+                                                                    e.target.value.toUpperCase()
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                    <Grid item lg={6} xs={12} className="py-5">
+                                                        <InputField
+                                                            value={segment.departDate ?? ''}
+                                                            name={`departDate-${segIdx}`}
+                                                            type="date"
+                                                            label="Depart date"
+                                                            labelOnTop
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'departDate',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
+                                                        <InputField
+                                                            value={segment.departTime ?? ''}
+                                                            name={`departTime-${segIdx}`}
+                                                            type="time"
+                                                            label="Depart time"
+                                                            labelOnTop
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'departTime',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                    <Grid item lg={6} xs={12} className="py-5">
+                                                        <InputField
+                                                            value={segment.arrivalDate ?? ''}
+                                                            name={`arrivalDate-${segIdx}`}
+                                                            type="date"
+                                                            label="Arrival date"
+                                                            labelOnTop
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'arrivalDate',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
+                                                        <InputField
+                                                            value={segment.arrivalTime ?? ''}
+                                                            name={`arrivalTime-${segIdx}`}
+                                                            type="time"
+                                                            label="Arrival time"
+                                                            labelOnTop
+                                                            onChange={(e) =>
+                                                                handleSegmentField(
+                                                                    segIdx,
+                                                                    'arrivalTime',
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                        )
+                                    )}
                                     <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.flightInfo?.flightNumber ?? ''}
-                                            name="flightNumber"
-                                            label="Flight number"
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'flightNumber',
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.flightInfo?.departAirport ?? ''}
-                                            name="departAirport"
-                                            label="Depart airport (IATA)"
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'departAirport',
-                                                    e.target.value.toUpperCase()
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                        <InputField
-                                            value={place.flightInfo?.arrivalAirport ?? ''}
-                                            name="arrivalAirport"
-                                            label="Arrival airport (IATA)"
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'arrivalAirport',
-                                                    e.target.value.toUpperCase()
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.flightInfo?.departDate ?? ''}
-                                            name="departDate"
-                                            type="date"
-                                            label="Depart date"
-                                            labelOnTop
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'departDate',
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                        <InputField
-                                            value={place.flightInfo?.departTime ?? ''}
-                                            name="departTime"
-                                            type="time"
-                                            label="Depart time"
-                                            labelOnTop
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'departTime',
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.flightInfo?.arrivalDate ?? ''}
-                                            name="arrivalDate"
-                                            type="date"
-                                            label="Arrival date"
-                                            labelOnTop
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'arrivalDate',
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                        <InputField
-                                            value={place.flightInfo?.arrivalTime ?? ''}
-                                            name="arrivalTime"
-                                            type="time"
-                                            label="Arrival time"
-                                            labelOnTop
-                                            onChange={(e) =>
-                                                handleFlightField(
-                                                    'arrivalTime',
-                                                    e.target.value
-                                                )
-                                            }
-                                        />
+                                        <button
+                                            type="button"
+                                            className="flight-segment-add"
+                                            onClick={handleAddSegment}
+                                        >
+                                            + Add segment (stopover)
+                                        </button>
                                     </Grid>
                                 </Grid>
                             )}

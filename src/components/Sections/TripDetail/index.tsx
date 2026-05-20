@@ -1,12 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { produce } from "immer";
 import "./index.scss";
-import { Grid } from "@mui/material";
+import { Grid, Tooltip } from "@mui/material";
+import IosShareIcon from "@mui/icons-material/IosShare";
+import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
+import TableChartOutlinedIcon from "@mui/icons-material/TableChartOutlined";
+import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
 import DestinationDetail from "components/DestinationDetail";
+import ButtonCustom from "components/common/FormFields/ButtonCustom";
+import DialogBox from "components/common/FormFields/DialogBox";
+import ModalButton, {
+  type ModalButtonHandle,
+} from "components/ModalButton";
 import { useUser } from "context/UserContext";
 import { basicInfo, useTripDispatch } from "context/TripContext";
 import {
@@ -285,6 +295,19 @@ export const TripDetail = () => {
     isOrganizer && persistedStatusName === TRIP_STATUS.CONFIRMED;
   const canExport = isLocked;
 
+  // Once the trip is past Planning, both the basic-info stats and the
+  // budget bar collapse behind a SINGLE Show/Hide detail button driven
+  // here — the trip-header (name + action buttons) stays visible at
+  // the top regardless. While editing (Planning), the cards stay open
+  // so the user has the overview at a glance.
+  const [detailsCollapsed, setDetailsCollapsed] = useState(isLocked);
+  // Re-sync the collapse state when the persisted status flips
+  // (e.g. user marks a Planning trip Confirmed; we want it to snap to
+  // the post-planning collapsed default).
+  useEffect(() => {
+    setDetailsCollapsed(isLocked);
+  }, [isLocked]);
+
   // Save the trip with the freshly-picked status. Used by both the status
   // modal (Planning → Confirmed / Cancelled) and the Mark Completed button.
   // Builds the save input from current local edits so any pending activity /
@@ -391,49 +414,30 @@ export const TripDetail = () => {
   })();
   const destinations = tripData.destinations ?? [];
 
-  // Once the trip is past Planning, both the basic-info stats and the
-  // budget bar collapse behind a SINGLE Show/Hide detail button driven
-  // here — the trip-header (name + action buttons) stays visible at
-  // the top regardless. While editing (Planning), the cards stay open
-  // so the user has the overview at a glance.
-  const [detailsCollapsed, setDetailsCollapsed] = useState(isLocked);
-  // Re-sync the collapse state when the persisted status flips
-  // (e.g. user marks a Planning trip Confirmed; we want it to snap to
-  // the post-planning collapsed default).
-  useEffect(() => {
-    setDetailsCollapsed(isLocked);
-  }, [isLocked]);
-
-  const sharedBasicProps = {
-    isViewMode,
-    hideEditPencil: true,
-    data: tripData,
-    onChangeStep: handleChangeStep,
-    onStatusChange: handleStatusChange,
-    onExportExcel: canExport ? handleExportExcel : undefined,
-    onEnterEditMode: canSaveTrip ? handleChangeStep : undefined,
-    onMarkCompleted: canMarkCompleted ? handleMarkCompleted : undefined,
-    onDeleteTrip: isOrganizer ? handleDeleteTrip : undefined,
-    isSaving: saveItinerary.isPending,
-    isDeleting: deleteItinerary.isPending,
-    isDirty,
-    saveError,
-  } as const;
-
   return (
     <Layout hideHeaderSearchOnMobile>
       <Grid container>
-        {/* Header instance: trip name + status badge + action buttons.
-            Always visible. The body section (stats + friends) is
-            suppressed here via the `collapsed` prop locked to true. */}
+        {/* Standalone trip header — title + action buttons. Lives
+            OUTSIDE BasicTripInfo so Hide detail can unmount the basic-
+            info + budget cards without taking the title/buttons with
+            them. */}
         <Grid item lg={12} md={12} xs={12}>
-          <BasicTripInfo
-            {...sharedBasicProps}
-            collapsible={false}
-            collapsed={true}
+          <TripDetailHeader
+            tripName={tripData.name}
+            statusName={persistedStatusName}
+            canSaveTrip={canSaveTrip}
+            canExport={canExport}
+            canMarkCompleted={canMarkCompleted}
+            isOrganizer={isOrganizer}
+            isSaving={saveItinerary.isPending}
+            isDeleting={deleteItinerary.isPending}
+            onEditTrip={handleChangeStep}
+            onPrint={() => window.print()}
+            onDownloadExcel={handleExportExcel}
+            onMarkCompleted={handleMarkCompleted}
+            onDeleteTrip={handleDeleteTrip}
           />
         </Grid>
-        {/* Single Show/Hide detail toggle wires both cards below. */}
         <Grid item lg={12} md={12} xs={12} className="trip-detail-toggle-row">
           <button
             type="button"
@@ -444,28 +448,28 @@ export const TripDetail = () => {
             {detailsCollapsed ? "Show detail" : "Hide detail"}
           </button>
         </Grid>
-        <Grid item lg={12} md={12} xs={12}>
-          <BasicTripInfo
-            {...sharedBasicProps}
-            hideHeader
-            collapsible
-            collapsed={detailsCollapsed}
-          />
-        </Grid>
-        <Grid item lg={12} md={12} xs={12}>
-          <BudgetSummary
-            data={tripData}
-            collapsible
-            hideToggle
-            collapsed={detailsCollapsed}
-          />
-        </Grid>
+        {!detailsCollapsed && (
+          <>
+            <Grid item lg={12} md={12} xs={12}>
+              <BasicTripInfo
+                data={tripData}
+                onChangeStep={handleChangeStep}
+                onStatusChange={handleStatusChange}
+                isViewMode={isViewMode}
+                hideHeader
+                isSaving={saveItinerary.isPending}
+                saveError={saveError}
+              />
+            </Grid>
+            <Grid item lg={12} md={12} xs={12}>
+              <BudgetSummary data={tripData} />
+            </Grid>
+          </>
+        )}
         <Grid item lg={12}>
           {/* Activity cards on /trip-detail are read-only by design — the
               Edit Trip button (and the trip-name pencil) navigate to the
-              stepper editor where the inline edit affordances live.
-              Forcing isViewMode=true regardless of organizer/lock state
-              keeps the trip-detail page calm. */}
+              stepper editor where the inline edit affordances live. */}
           <DestinationDetail
             type={tripData.type}
             isViewMode={true}
@@ -480,6 +484,174 @@ export const TripDetail = () => {
         </Grid>
       </Grid>
     </Layout>
+  );
+};
+
+interface TripDetailHeaderProps {
+  tripName?: string;
+  statusName: string;
+  canSaveTrip: boolean;
+  canExport: boolean;
+  canMarkCompleted: boolean;
+  isOrganizer: boolean;
+  isSaving: boolean;
+  isDeleting: boolean;
+  onEditTrip: () => void;
+  onPrint: () => void;
+  onDownloadExcel: () => void;
+  onMarkCompleted: () => void | Promise<void>;
+  onDeleteTrip: () => void | Promise<void>;
+}
+
+const TripDetailHeader = ({
+  tripName,
+  statusName,
+  canSaveTrip,
+  canExport,
+  canMarkCompleted,
+  isOrganizer,
+  isSaving,
+  isDeleting,
+  onEditTrip,
+  onPrint,
+  onDownloadExcel,
+  onMarkCompleted,
+  onDeleteTrip,
+}: TripDetailHeaderProps) => {
+  const exportModalRef = useRef<ModalButtonHandle>(null);
+
+  const handlePrint = () => {
+    exportModalRef.current?.closeModal();
+    onPrint();
+  };
+  const handleDownloadExcel = () => {
+    exportModalRef.current?.closeModal();
+    onDownloadExcel();
+  };
+
+  return (
+    <div className="trip-detail-header">
+      <div className="trip-detail-header-title">
+        <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
+        {statusName === TRIP_STATUS.CONFIRMED && (
+          <Tooltip
+            title="Trip confirmed — places are locked in. Click Mark Completed when the trip is done."
+            arrow
+          >
+            <span
+              className="trip-detail-status trip-detail-status-confirmed"
+              aria-label={`Trip status: ${statusName}`}
+            >
+              <CheckCircleOutlineRoundedIcon className="trip-detail-status-icon" />
+            </span>
+          </Tooltip>
+        )}
+        {statusName === TRIP_STATUS.COMPLETED && (
+          <Tooltip title="Completed" arrow>
+            <span
+              className="trip-detail-status trip-detail-status-completed"
+              aria-label={`Trip status: ${statusName}`}
+            >
+              <CheckCircleRoundedIcon className="trip-detail-status-icon" />
+            </span>
+          </Tooltip>
+        )}
+        {statusName === TRIP_STATUS.CANCELLED && (
+          <span
+            className="trip-detail-status trip-detail-status-cancelled"
+            aria-label={`Trip status: ${statusName}`}
+          >
+            ({statusName})
+          </span>
+        )}
+      </div>
+      <div className="trip-detail-header-actions">
+        {canSaveTrip && (
+          <ButtonCustom
+            type="standard"
+            capitalizeType="uppercase"
+            className="trip-detail-edit-btn"
+            label="Edit Trip"
+            onClick={onEditTrip}
+            disabled={isSaving}
+          />
+        )}
+        {canExport && (
+          <ModalButton
+            ref={exportModalRef}
+            title="Download trip"
+            buttonProps={{
+              type: "standard",
+              className: "trip-detail-download-btn",
+              Icon: IosShareIcon,
+              iconProps: { fontSize: "small" },
+              title: "Download",
+              ariaLabel: "Download trip",
+            }}
+          >
+            <div className="trip-export-options">
+              <button
+                type="button"
+                className="trip-export-option"
+                onClick={handlePrint}
+              >
+                <PrintOutlinedIcon className="trip-export-option-icon" />
+                <span className="trip-export-option-text">
+                  <span className="trip-export-option-title">Print</span>
+                  <span className="trip-export-option-hint">
+                    Opens your browser's print preview — save as PDF or send
+                    to a printer.
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="trip-export-option"
+                onClick={handleDownloadExcel}
+              >
+                <TableChartOutlinedIcon className="trip-export-option-icon" />
+                <span className="trip-export-option-text">
+                  <span className="trip-export-option-title">
+                    Download Excel
+                  </span>
+                  <span className="trip-export-option-hint">
+                    Day-by-day .xlsx with activities, times, and budget.
+                  </span>
+                </span>
+              </button>
+            </div>
+          </ModalButton>
+        )}
+        {canMarkCompleted && (
+          <span className="trip-detail-mark-complete-wrapper">
+            <DialogBox
+              buttonLabel={isSaving ? "Saving…" : "Mark Completed"}
+              buttonType="line"
+              title="Mark this trip as completed?"
+              onConfirm={onMarkCompleted}
+            >
+              This marks the trip as completed and locks it from further
+              changes. The itinerary stays visible in your list, but you
+              won't be able to edit places or budgets afterward.
+            </DialogBox>
+          </span>
+        )}
+        {isOrganizer && (
+          <span className="trip-detail-delete-wrapper">
+            <DialogBox
+              buttonLabel={isDeleting ? "Deleting…" : "Delete Trip"}
+              buttonType="line"
+              title="Delete this trip?"
+              onConfirm={onDeleteTrip}
+            >
+              This permanently removes the trip and all its activities.
+              Participants will no longer see it in their list. This
+              cannot be undone.
+            </DialogBox>
+          </span>
+        )}
+      </div>
+    </div>
   );
 };
 

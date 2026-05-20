@@ -31,3 +31,138 @@
   background: rgba(60, 181, 75, 0.08);
   color: theme('colors.primary');
 }
+
+// Standalone trip-detail header — title row + main action buttons
+// hoisted out of BasicTripInfo so that Hide detail can unmount the
+// basic-info + budget cards without losing the title/buttons.
+.trip-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  width: 100%;
+  padding: 12px 8px;
+
+  .trip-detail-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .trip-detail-name {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: theme('colors.primary');
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .trip-detail-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .trip-detail-status-icon {
+    font-size: 1.1rem;
+  }
+
+  .trip-detail-status-confirmed {
+    color: theme('colors.primaryGreen');
+  }
+
+  .trip-detail-status-completed {
+    color: theme('colors.primaryGreen');
+  }
+
+  .trip-detail-status-cancelled {
+    color: rgba(0, 0, 0, 0.5);
+    font-style: italic;
+  }
+
+  .trip-detail-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+}
+
+// Pill-style action buttons in the standalone trip-detail header.
+// Matches the cluster shape already used inside BasicTripInfo so the
+// header reads as one related group regardless of where it's rendered.
+.trip-detail-header .trip-detail-edit-btn,
+.trip-detail-header .trip-detail-download-btn,
+.trip-detail-header .trip-detail-mark-complete-wrapper button,
+.trip-detail-header .trip-detail-delete-wrapper button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px !important;
+  border-radius: 999px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease;
+  min-width: 0 !important;
+  width: auto !important;
+  text-transform: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.trip-detail-header .trip-detail-edit-btn {
+  background: rgba(246, 137, 31, 0.12) !important;
+  color: theme('colors.primaryOrange') !important;
+}
+
+.trip-detail-header .trip-detail-edit-btn:hover:not(:disabled) {
+  background: rgba(246, 137, 31, 0.22) !important;
+}
+
+.trip-detail-header .trip-detail-edit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.trip-detail-header .trip-detail-download-btn {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: rgba(0, 0, 0, 0.75) !important;
+}
+
+.trip-detail-header .trip-detail-download-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.12) !important;
+}
+
+.trip-detail-header .trip-detail-mark-complete-wrapper button {
+  background: rgba(60, 181, 75, 0.12) !important;
+  color: theme('colors.primaryGreen') !important;
+}
+
+.trip-detail-header .trip-detail-mark-complete-wrapper button:hover:not(:disabled) {
+  background: rgba(60, 181, 75, 0.22) !important;
+}
+
+.trip-detail-header .trip-detail-mark-complete-wrapper button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.trip-detail-header .trip-detail-delete-wrapper button {
+  background: rgba(192, 57, 43, 0.1) !important;
+  color: #c0392b !important;
+}
+
+.trip-detail-header .trip-detail-delete-wrapper button:hover {
+  background: rgba(192, 57, 43, 0.2) !important;
+}

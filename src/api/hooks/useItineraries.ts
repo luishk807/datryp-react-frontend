@@ -57,6 +57,11 @@ export interface ApiActivity {
     budget: number | null;
     status: { id: string; name: string } | null;
     budgets: ApiActivityBudget[];
+    /** `'place' | 'note' | 'flight'`. Null on rows persisted before
+     *  the kind column shipped; frontend defaults those to `'place'`. */
+    kind: string | null;
+    /** One row per flight leg. Empty for non-flight activities. */
+    flightSegments: ApiFlightInfo[];
 }
 
 export interface ApiItineraryDate {
@@ -111,6 +116,10 @@ export interface ActivityInput {
      *  Planning / Confirmed / Completed / Cancelled. Null means unset. */
     tripStatusId?: string | null;
     budgets?: ActivityBudgetInput[];
+    /** `'place' | 'note' | 'flight'`. */
+    kind?: string | null;
+    /** Flight legs, in chronological depart order. Empty for non-flight. */
+    flightSegments?: FlightInfoInput[];
 }
 
 export interface ItineraryDayInput {
@@ -225,6 +234,14 @@ const ITINERARY_FIELDS = gql`
                         name
                     }
                     amount
+                }
+                kind
+                flightSegments {
+                    departDate
+                    arrivalDate
+                    flightNumber
+                    departAirport
+                    arrivalAirport
                 }
             }
         }
