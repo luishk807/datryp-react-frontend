@@ -50,3 +50,14 @@
 .visited-button-icon {
   font-size: 1.1rem !important;
 }
+
+@media (max-width: 640px) {
+  .visited-button-pill {
+    padding: 8px;
+    gap: 0;
+  }
+
+  .visited-button-pill > span {
+    display: none;
+  }
+}

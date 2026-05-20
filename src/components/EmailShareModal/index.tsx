@@ -13,11 +13,15 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { useShareEmail } from 'api/hooks/useShareEmail';
 import { useUser } from 'context/UserContext';
 import { EMAIL_REGEX } from 'constants';
-import type { PlaceRecommendation } from 'types';
+import type { SharePlacePayload } from 'types';
 
 export interface EmailShareModalProps {
-    place: PlaceRecommendation;
-    /** Full URL of the search page to deep-link the recipient back to. */
+    /** Wire-shaped share payload — same fields the backend SendGrid
+     *  template renders. `city` may be empty for shares that aren't
+     *  city-scoped (e.g. a country share); `description` may be empty
+     *  when the source page doesn't expose a one-line summary. */
+    place: SharePlacePayload;
+    /** Full URL the recipient should land on. */
     searchUrl: string;
 }
 
@@ -62,13 +66,7 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
             mutate(
                 {
                     to,
-                    place: {
-                        name: place.name,
-                        city: place.city,
-                        country: place.country,
-                        description: place.description,
-                        image_url: place.imageUrl,
-                    },
+                    place,
                     search_url: searchUrl,
                     sender_name: user?.name ?? null,
                     personal_message: message.trim() || null,
@@ -94,7 +92,9 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                                     {place.name}
                                 </span>
                                 <span className="email-share-context-location">
-                                    {place.city} · {place.country}
+                                    {[place.city, place.country]
+                                        .filter(Boolean)
+                                        .join(' · ')}
                                 </span>
                             </div>
                         </div>

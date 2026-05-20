@@ -78,6 +78,13 @@ interface LocalFlavorRaw {
     must_do_before_leaving: NamedTipRaw[];
 }
 
+interface AirportRaw {
+    iata_code: string;
+    name: string;
+    distance_km: number;
+    international: boolean;
+}
+
 interface CityDetailsRaw {
     long_description: string;
     country_description: string;
@@ -101,6 +108,7 @@ interface CityDetailsRaw {
     local_flavor: LocalFlavorRaw;
     cost_level: number;
     visa: VisaInfoRaw;
+    airports?: AirportRaw[];
 }
 
 interface CitySummaryRaw {
@@ -191,6 +199,15 @@ const toDetails = (raw: CityDetailsRaw): CityDetails => ({
         visaOnArrivalCountries: raw.visa.visa_on_arrival_countries,
         summary: raw.visa.summary,
     },
+    // Optional on the wire so cache rows from before this field shipped
+    // still deserialize. UI degrades to an "Airport info unavailable"
+    // message until the row gets refreshed.
+    airports: (raw.airports ?? []).map((a) => ({
+        iataCode: a.iata_code,
+        name: a.name,
+        distanceKm: a.distance_km,
+        international: a.international,
+    })),
 });
 
 export const fetchCityDetails = async (

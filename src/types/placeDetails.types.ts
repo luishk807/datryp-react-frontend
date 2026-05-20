@@ -99,6 +99,17 @@ export interface TravelBasics {
   ageRecommendation: string;
 }
 
+/** One airport that serves a destination. AI-populated alongside the
+ *  rest of the detail-page payload. IATA code is what travelers
+ *  actually book with; `international` flags hub airports vs. small
+ *  regional fields. */
+export interface Airport {
+  iataCode: string;
+  name: string;
+  distanceKm: number;
+  international: boolean;
+}
+
 /** Enriched detail-page info. Lazy-fetched per place from `/place-details`. */
 export interface PlaceDetails {
   longDescription: string;
@@ -123,6 +134,9 @@ export interface PlaceDetails {
   /** 1 (cheapest) – 5 (most expensive). */
   costLevel: number;
   visa: VisaInfo;
+  /** Airports serving the place. Sorted by usefulness (largest hub
+   *  first). May be empty for rows cached before this field shipped. */
+  airports: Airport[];
 }
 
 export interface PlaceDetailsResult {

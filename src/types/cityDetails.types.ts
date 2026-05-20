@@ -3,6 +3,7 @@
  *  whole country). Reuses the shared sub-types from placeDetails since
  *  most are city-level under the hood. */
 import type {
+    Airport,
     Coordinates,
     CurrencyInfo,
     LocalFlavor,
@@ -38,6 +39,9 @@ export interface CityDetails {
     /** 1 (cheapest) – 5 (most expensive). */
     costLevel: number;
     visa: VisaInfo;
+    /** Airports serving the city. Empty for cache rows from before
+     *  this field shipped — UI degrades gracefully. */
+    airports: Airport[];
 }
 
 export interface CitySummary {

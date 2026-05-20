@@ -13,6 +13,7 @@ import ErrorPage from "components/common/ErrorPage";
 import CostBadge from "components/common/CostBadge";
 import BookmarkCityButton from "components/BookmarkCityButton";
 import VisitedCityButton from "components/VisitedCityButton";
+import ShareButton from "components/ShareButton";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
 import WeatherSection from "components/PlaceDetail/WeatherSection";
 import CurrencySection from "components/PlaceDetail/CurrencySection";
@@ -28,6 +29,7 @@ import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
 import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
+import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import { TRIP_BASIC } from "constants";
@@ -153,6 +155,29 @@ const CityDetail = () => {
                             countryName={city.country}
                             countryCode={city.countryCode}
                         />
+                        <ShareButton
+                            title={city.name}
+                            subtitle={city.country}
+                            url={
+                                typeof window !== "undefined"
+                                    ? window.location.href
+                                    : `/city?name=${encodeURIComponent(
+                                          city.name
+                                      )}&country=${encodeURIComponent(
+                                          city.country
+                                      )}&code=${encodeURIComponent(
+                                          city.countryCode
+                                      )}`
+                            }
+                            variant="pill"
+                            emailPayload={{
+                                name: city.name,
+                                city: city.name,
+                                country: city.country,
+                                description: "",
+                                image_url: city.imageUrl,
+                            }}
+                        />
                         <button
                             type="button"
                             className="city-detail-plan-cta"
@@ -262,6 +287,8 @@ const CityDetail = () => {
                             coordinates={details.coordinates}
                             isError={false}
                         />
+
+                        <AirportsSection airports={details.airports} />
 
                         <VisaSection visa={details.visa} isError={false} />
 

@@ -122,7 +122,18 @@ const PlaceResultCard = ({ place, query, index }: PlaceResultCardProps) => {
                 </p>
                 <p className="place-result-card-description">{place.description}</p>
                 <div className="place-result-card-actions" onClick={stopProp}>
-                    <ShareButton place={place} searchUrl={sharePlaceUrl} />
+                    <ShareButton
+                        title={place.name}
+                        subtitle={`${place.city} · ${place.country}`}
+                        url={sharePlaceUrl}
+                        emailPayload={{
+                            name: place.name,
+                            city: place.city,
+                            country: place.country,
+                            description: place.description,
+                            image_url: place.imageUrl,
+                        }}
+                    />
                 </div>
             </div>
         </article>

@@ -43,3 +43,14 @@
 .bookmark-button-icon {
   font-size: 1.1rem !important;
 }
+
+@media (max-width: 640px) {
+  .bookmark-button-pill {
+    padding: 8px;
+    gap: 0;
+  }
+
+  .bookmark-button-pill > span {
+    display: none;
+  }
+}

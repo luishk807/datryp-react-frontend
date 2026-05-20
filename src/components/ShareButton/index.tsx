@@ -10,21 +10,37 @@ import classNames from 'classnames';
 import EmailShareModal, {
     type EmailShareModalHandle,
 } from 'components/EmailShareModal';
-import type { PlaceRecommendation } from 'types';
+import type { SharePlacePayload } from 'types';
 
 export interface ShareButtonProps {
-    place: PlaceRecommendation;
-    /** URL of the search results page (used for the share link and email deep-link). */
-    searchUrl: string;
+    /** What the user is sharing (city name, place name, country name, …). */
+    title: string;
+    /** Optional secondary line (e.g. "Vancouver · Canada"). Used in the
+     *  native share sheet's `text` slot when present. */
+    subtitle?: string;
+    /** Canonical URL the recipient should land on. */
+    url: string;
     /** `icon` (default): small circular icon button — used on result cards.
-     *  `pill`: prominent icon+text pill — used as a primary action on the detail page. */
+     *  `pill`: prominent icon+text pill — used as a primary action on the
+     *  detail page. */
     variant?: 'icon' | 'pill';
+    /** Payload for the SendGrid email template. When provided, the menu
+     *  shows an "Email" option that opens the EmailShareModal. Omit on
+     *  surfaces where an email share doesn't make sense (or until we
+     *  generalize the email template). */
+    emailPayload?: SharePlacePayload;
 }
 
 const canNativeShare = (): boolean =>
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
-const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) => {
+const ShareButton = ({
+    title,
+    subtitle,
+    url,
+    variant = 'icon',
+    emailPayload,
+}: ShareButtonProps) => {
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const [toast, setToast] = useState<string | null>(null);
     const emailModalRef = useRef<EmailShareModalHandle>(null);
@@ -35,9 +51,11 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
         closeMenu();
         try {
             await navigator.share({
-                title: place.name,
-                text: `Check out ${place.name} on daTryp`,
-                url: searchUrl,
+                title,
+                text: subtitle
+                    ? `${title} — ${subtitle}`
+                    : `Check out ${title} on daTryp`,
+                url,
             });
         } catch {
             // User cancelled the share sheet or it's unsupported — silent.
@@ -47,7 +65,7 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
     const handleCopy = async () => {
         closeMenu();
         try {
-            await navigator.clipboard.writeText(searchUrl);
+            await navigator.clipboard.writeText(url);
             setToast('Link copied to clipboard');
         } catch {
             setToast('Could not copy link');
@@ -65,7 +83,7 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
                 <button
                     type="button"
                     className="share-button-pill"
-                    aria-label={`Share ${place.name}`}
+                    aria-label={`Share ${title}`}
                     onClick={(e) => setMenuAnchor(e.currentTarget)}
                 >
                     <IosShareIcon className="share-button-pill-icon" />
@@ -74,7 +92,7 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
             ) : (
                 <IconButton
                     className="share-button-trigger"
-                    aria-label={`Share ${place.name}`}
+                    aria-label={`Share ${title}`}
                     onClick={(e) => setMenuAnchor(e.currentTarget)}
                     size="small"
                 >
@@ -95,18 +113,22 @@ const ShareButton = ({ place, searchUrl, variant = 'icon' }: ShareButtonProps) =
                     label="Copy link"
                     onClick={handleCopy}
                 />
-                <MenuActionItem
-                    icon={<EmailRoundedIcon />}
-                    label="Email"
-                    onClick={handleEmail}
-                />
+                {emailPayload && (
+                    <MenuActionItem
+                        icon={<EmailRoundedIcon />}
+                        label="Email"
+                        onClick={handleEmail}
+                    />
+                )}
             </Menu>
 
-            <EmailShareModal
-                ref={emailModalRef}
-                place={place}
-                searchUrl={searchUrl}
-            />
+            {emailPayload && (
+                <EmailShareModal
+                    ref={emailModalRef}
+                    place={emailPayload}
+                    searchUrl={url}
+                />
+            )}
 
             <Snackbar
                 open={Boolean(toast)}

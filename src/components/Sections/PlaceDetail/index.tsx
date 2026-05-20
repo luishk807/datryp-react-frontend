@@ -25,6 +25,7 @@ import WeatherSection from "components/PlaceDetail/WeatherSection";
 import CurrencySection from "components/PlaceDetail/CurrencySection";
 import SafetySection from "components/PlaceDetail/SafetySection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
+import AirportsSection from "components/PlaceDetail/AirportsSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import BudgetSection from "components/PlaceDetail/BudgetSection";
@@ -134,7 +135,19 @@ const PlaceDetail = () => {
               coordinates={detailsQuery.data?.details.coordinates}
               visa={detailsQuery.data?.details.visa}
             />
-            <ShareButton place={place} searchUrl={detailUrl} variant="pill" />
+            <ShareButton
+              title={place.name}
+              subtitle={`${place.city} · ${place.country}`}
+              url={detailUrl}
+              variant="pill"
+              emailPayload={{
+                name: place.name,
+                city: place.city,
+                country: place.country,
+                description: place.description,
+                image_url: place.imageUrl,
+              }}
+            />
           </div>
         </div>
 
@@ -250,6 +263,11 @@ const PlaceDetail = () => {
             <GettingThereSection
               placeName={`${place.name}, ${place.city}`}
               coordinates={detailsQuery.data?.details.coordinates}
+              isError={detailsQuery.isError}
+            />
+
+            <AirportsSection
+              airports={detailsQuery.data?.details.airports}
               isError={detailsQuery.isError}
             />
 

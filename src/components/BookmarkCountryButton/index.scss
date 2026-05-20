@@ -42,3 +42,14 @@
 .bookmark-country-icon {
   font-size: 1.1rem !important;
 }
+
+@media (max-width: 640px) {
+  .bookmark-country-pill {
+    padding: 8px;
+    gap: 0;
+  }
+
+  .bookmark-country-pill > span {
+    display: none;
+  }
+}

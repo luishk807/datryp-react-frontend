@@ -42,3 +42,16 @@
 .bookmark-city-icon {
   font-size: 1.1rem !important;
 }
+
+// Mobile: icon-only. Hides the label, tightens to a square pill that
+// reads as a round chip thanks to the parent's `border-radius: 999px`.
+@media (max-width: 640px) {
+  .bookmark-city-pill {
+    padding: 8px;
+    gap: 0;
+  }
+
+  .bookmark-city-pill > span {
+    display: none;
+  }
+}

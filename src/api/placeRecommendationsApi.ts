@@ -177,6 +177,13 @@ interface LocalFlavorRaw {
     must_do_before_leaving: { name: string; why: string }[];
 }
 
+interface AirportRaw {
+    iata_code: string;
+    name: string;
+    distance_km: number;
+    international: boolean;
+}
+
 interface PlaceDetailsRaw {
     long_description: string;
     country_description: string;
@@ -199,6 +206,7 @@ interface PlaceDetailsRaw {
     local_flavor: LocalFlavorRaw;
     cost_level: number;
     visa: VisaInfoRaw;
+    airports?: AirportRaw[];
 }
 
 interface PlaceDetailsResponseRaw {
@@ -269,6 +277,12 @@ const toDetails = (raw: PlaceDetailsRaw): PlaceDetails => ({
         visaOnArrivalCountries: raw.visa.visa_on_arrival_countries,
         summary: raw.visa.summary,
     },
+    airports: (raw.airports ?? []).map((a) => ({
+        iataCode: a.iata_code,
+        name: a.name,
+        distanceKm: a.distance_km,
+        international: a.international,
+    })),
 });
 
 export const fetchPlaceDetails = async (

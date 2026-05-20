@@ -49,3 +49,14 @@
 .visited-city-icon {
   font-size: 1.1rem !important;
 }
+
+@media (max-width: 640px) {
+  .visited-city-pill {
+    padding: 8px;
+    gap: 0;
+  }
+
+  .visited-city-pill > span {
+    display: none;
+  }
+}

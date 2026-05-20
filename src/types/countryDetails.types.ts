@@ -3,6 +3,7 @@
  *  (already country-level under the hood), drops city-specific fields, and
  *  adds `topCities` + `capitalCity` + `bestTimeToVisit`. */
 import type {
+    Airport,
     CurrencyInfo,
     LocalFlavor,
     LodgingInfo,
@@ -35,6 +36,9 @@ export interface CountryDetails {
     /** 1 (cheapest) – 5 (most expensive). */
     costLevel: number;
     visa: VisaInfo;
+    /** Major international airports serving the country. Empty for
+     *  cache rows from before this field shipped. */
+    airports: Airport[];
 }
 
 export interface CountrySummary {
