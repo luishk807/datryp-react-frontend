@@ -89,13 +89,15 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             switch (type) {
                 case 'time': {
                     // Parse the incoming HH:mm string into a moment so the
-                    // picker shows the saved value on edit. Without this the
-                    // picker defaulted to `now()` and the user's saved time
-                    // appeared overwritten the moment the modal opened.
+                    // picker shows the saved value on edit. Empty source
+                    // → null so an unset time renders as a blank picker
+                    // (NOT today's `now()` — that masks "no time selected"
+                    // and made saved flight times look like they'd been
+                    // silently overwritten).
                     const timeSource = isControlled ? value : defaultValue;
                     const parsedTime = timeSource
                         ? moment(timeSource, 'HH:mm')
-                        : moment();
+                        : null;
                     return (
                         <TimePicker
                             disablePast={disablePast}
@@ -109,13 +111,37 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                             // updates reflect; defaultValue otherwise to keep
                             // legacy uncontrolled call sites working.
                             {...(isControlled
-                                ? { value: parsedTime.isValid() ? parsedTime : null }
-                                : { defaultValue: parsedTime.isValid() ? parsedTime : moment() })}
-                            label={label}
+                                ? {
+                                      value:
+                                          parsedTime && parsedTime.isValid()
+                                              ? parsedTime
+                                              : null,
+                                  }
+                                : {
+                                      defaultValue:
+                                          parsedTime && parsedTime.isValid()
+                                              ? parsedTime
+                                              : moment(),
+                                  })}
+                            // Suppress the picker's internal floating label
+                            // when the caller asked for a stacked top label
+                            // — otherwise time fields render two labels and
+                            // misalign next to `type="date"` (which always
+                            // stacks).
+                            label={labelOnTop ? undefined : label}
                         />
                     );
                 }
-                case 'date':
+                case 'date': {
+                    // Mirror the time branch's controlled/uncontrolled
+                    // handling. Without this, callers passing `value=...`
+                    // (e.g. the edit-an-activity flow hydrating saved
+                    // flight dates) were ignored — the picker only read
+                    // `defaultValue` and silently fell back to today.
+                    const dateSource = isControlled ? value : defaultValue;
+                    const parsedDate = dateSource
+                        ? moment(dateSource, 'YYYY-MM-DD')
+                        : null;
                     return (
                         <DatePicker
                             disablePast={disablePast}
@@ -125,12 +151,25 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                                     target: { value: e ? e.format('YYYY-MM-DD').toString() : '' },
                                 })
                             }
-                            defaultValue={defaultValue ? moment(defaultValue) : moment()}
+                            {...(isControlled
+                                ? {
+                                      value:
+                                          parsedDate && parsedDate.isValid()
+                                              ? parsedDate
+                                              : null,
+                                  }
+                                : {
+                                      defaultValue:
+                                          parsedDate && parsedDate.isValid()
+                                              ? parsedDate
+                                              : moment(),
+                                  })}
                             label={labelText}
                             {...(minDate ? { minDate: moment(minDate) } : {})}
                             {...(maxDate ? { maxDate: moment(maxDate) } : {})}
                         />
                     );
+                }
                 default:
                     return (
                         <OutlinedInput

@@ -1,16 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import './index.scss';
 import classNames from 'classnames';
+import { IconButton } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { convertMoney } from 'utils';
 import { BUDGET_STATUS } from 'constants';
 import type { BudgetStatus, Destination, TripState } from 'types';
 
 interface BudgetSummaryProps {
     data: TripState;
+    /** When true the bar + status footer collapse behind a toggle.
+     *  The header (eyebrow + amounts) stays visible so the user can
+     *  see the totals at a glance. Matches the pattern in
+     *  `BasicTripInfo` so the two sections feel consistent. */
+    collapsible?: boolean;
+    defaultCollapsed?: boolean;
+    /** Externally-controlled collapse state — overrides the internal
+     *  toggle. Used by `/trip-detail` to drive ONE Show/Hide detail
+     *  button governing both BasicTripInfo and BudgetSummary together. */
+    collapsed?: boolean;
+    /** Hide the internal chevron toggle. Pair with controlled
+     *  `collapsed` when the parent renders its own single toggle. */
+    hideToggle?: boolean;
 }
 
 const toNumber = (v?: string | number): number => {
@@ -31,7 +46,17 @@ const sumActivityCosts = (destinations: Destination[] = []): number => {
     return total;
 };
 
-const BudgetSummary = ({ data }: BudgetSummaryProps) => {
+const BudgetSummary = ({
+    data,
+    collapsible = false,
+    defaultCollapsed = false,
+    collapsed: controlledCollapsed,
+    hideToggle = false,
+}: BudgetSummaryProps) => {
+    const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+    const collapsed =
+        controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+    const setCollapsed = (next: boolean) => setInternalCollapsed(next);
     const { spent, budget, percent, status, remaining } = useMemo(() => {
         const spent = sumActivityCosts(data.destinations);
         const budget = toNumber(data.budget);
@@ -61,9 +86,30 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
                             <span className="budget-total">{convertMoney(budget)}</span>
                         </>
                     )}
+                    {collapsible && !hideToggle && (
+                        <IconButton
+                            size="small"
+                            className={classNames('budget-collapse-toggle', {
+                                'is-collapsed': collapsed,
+                            })}
+                            aria-label={
+                                collapsed ? 'Show budget details' : 'Hide budget details'
+                            }
+                            aria-expanded={!collapsed}
+                            onClick={() => setCollapsed(!collapsed)}
+                        >
+                            <ExpandMoreRoundedIcon />
+                        </IconButton>
+                    )}
                 </div>
             </div>
 
+            <div
+                className={classNames('budget-collapsible-body', {
+                    'is-collapsed': collapsible && collapsed,
+                })}
+                aria-hidden={collapsible && collapsed ? true : undefined}
+            >
             {status !== BUDGET_STATUS.EMPTY && (
                 <div className="budget-bar">
                     <div
@@ -106,6 +152,7 @@ const BudgetSummary = ({ data }: BudgetSummaryProps) => {
                 {status !== BUDGET_STATUS.EMPTY && (
                     <span className="budget-percent">{percent.toFixed(0)}%</span>
                 )}
+            </div>
             </div>
         </section>
     );

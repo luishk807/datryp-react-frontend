@@ -1,4 +1,4 @@
-import type { Friend, ImageRef } from "./common.types";
+import type { ActivityKind, FlightInfo, Friend, ImageRef } from "./common.types";
 
 export interface ActivityStatus {
   /** Numeric for legacy sample data; string (UUID) when sourced from the
@@ -25,6 +25,10 @@ export type BudgetEntry = Omit<BudgetItem, "id">;
 
 export interface Activity {
   id: number;
+  /** What kind of entry this is on the day timeline. Locked at create
+   *  time — editing can't change it. Missing/undefined is treated as
+   *  `'place'` so pre-existing activities keep rendering as before. */
+  kind?: ActivityKind;
   name?: string;
   place?: string;
   location?: string;
@@ -37,6 +41,9 @@ export interface Activity {
   budget?: BudgetItem[];
   shareCost?: ShareCostEntry[];
   people?: string | number;
+  /** Only set when `kind === 'flight'`. The form populates depart /
+   *  arrival airports + datetimes; other kinds ignore this field. */
+  flightInfo?: FlightInfo;
 }
 
 export interface ItineraryDay {

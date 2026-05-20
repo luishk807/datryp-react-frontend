@@ -7,11 +7,14 @@
     type ReactNode,
 } from 'react';
 import { produce } from 'immer';
+import moment from 'moment';
 import { isSameDay } from 'utils';
+import { TRIP_BASIC } from 'constants';
 import type {
     Activity,
     BudgetItem,
     Destination,
+    ItineraryDay,
     TripState,
 } from 'types';
 import { emptyTripState } from 'types';
@@ -176,6 +179,58 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                 }
             }
             Object.assign(draft, action.payload);
+
+            // Re-anchor orphan activities after a single-trip date change.
+            // The "/place → Add to itinerary → start fresh trip" flow stamps
+            // a place activity at today before the user picks real dates;
+            // once they pick dates that exclude today, the activity would
+            // otherwise vanish. Sweep up any single-trip itinerary day whose
+            // date falls outside [startDate, endDate] and re-park its
+            // activities on startDate so they remain on day 1.
+            const dateChanged =
+                'startDate' in action.payload || 'endDate' in action.payload;
+            if (
+                dateChanged &&
+                draft.type?.id === TRIP_BASIC.SINGLE.id &&
+                draft.startDate &&
+                draft.endDate
+            ) {
+                const start = moment(draft.startDate);
+                const end = moment(draft.endDate);
+                const dest = draft.destinations[0];
+                const itin = dest?.itinerary;
+                if (start.isValid() && end.isValid() && itin && itin.length > 0) {
+                    const orphans: Activity[] = [];
+                    const kept: ItineraryDay[] = [];
+                    for (const day of itin) {
+                        const d = moment(day.date);
+                        if (
+                            !d.isValid() ||
+                            d.isBefore(start, 'day') ||
+                            d.isAfter(end, 'day')
+                        ) {
+                            orphans.push(...day.activities);
+                        } else {
+                            kept.push(day);
+                        }
+                    }
+                    if (orphans.length > 0) {
+                        let targetDay = kept.find((day) =>
+                            isSameDay(day.date, draft.startDate)
+                        );
+                        if (!targetDay) {
+                            targetDay = {
+                                id: generateId(),
+                                date: draft.startDate,
+                                activities: [],
+                            };
+                            kept.push(targetDay);
+                        }
+                        targetDay.activities.push(...orphans);
+                        dest.itinerary = kept;
+                    }
+                }
+            }
             return;
         }
         case 'addDestination': {

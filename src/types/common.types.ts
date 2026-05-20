@@ -1,5 +1,6 @@
 import type {
   ACTION,
+  ACTIVITY_KIND,
   AUTH_MODE,
   BUDGET_STATUS,
   BUTTON_VARIANT,
@@ -12,6 +13,7 @@ import type {
 } from "constants";
 
 export type ActionType = (typeof ACTION)[keyof typeof ACTION];
+export type ActivityKind = (typeof ACTIVITY_KIND)[keyof typeof ACTIVITY_KIND];
 export type AuthMode = (typeof AUTH_MODE)[keyof typeof AUTH_MODE];
 export type BudgetStatus = (typeof BUDGET_STATUS)[keyof typeof BUDGET_STATUS];
 export type ButtonVariant = (typeof BUTTON_VARIANT)[keyof typeof BUTTON_VARIANT];

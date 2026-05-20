@@ -354,9 +354,13 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                         {/* Skip steps 0 (BasicInfo) and 1 (Participants) —
                             they live inside the trip-info modal triggered by
                             the BasicTripInfo edit pencil. Only the activities
-                            section (steps[2], "Finish") stays inline because
-                            it's the bulky part the user actually scrolls
-                            through. */}
+                            section (steps[2], the "Finish" step from the
+                            new-trip flow) stays inline because it's the bulky
+                            part the user actually scrolls through. The step
+                            label ("Finish") isn't rendered in edit mode —
+                            once you're editing an existing trip, calling the
+                            activities section "Finish" makes no sense and
+                            the date blocks already title themselves. */}
                         {steps.slice(2).map((step, idx) => (
                             <Grid
                                 item
@@ -365,7 +369,6 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                 xs={12}
                                 key={`edit-step-${idx + 2}`}
                             >
-                                <h2 className="step-heading">{step.label}</h2>
                                 {step.comp}
                             </Grid>
                         ))}

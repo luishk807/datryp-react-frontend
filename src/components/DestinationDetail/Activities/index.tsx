@@ -2,14 +2,19 @@ import './index.scss';
 import { useMemo } from 'react';
 import classNames from 'classnames';
 import { reformatDate } from 'utils';
-import { Grid } from '@mui/material';
+import { Grid, IconButton } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
+import FlightTakeoffOutlinedIcon from '@mui/icons-material/FlightTakeoffOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
+import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
+import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import { useDroppable } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -22,7 +27,7 @@ import DraggableActivity from 'components/DestinationDetail/Activities/Draggable
 import IconConfirmButton from 'components/common/IconConfirmButton';
 import { convertMoney } from 'utils';
 import { useTripStatuses } from 'api/hooks/useLookups';
-import { TRIP_STATUS } from 'constants';
+import { ACTIVITY_KIND, TRIP_STATUS } from 'constants';
 import type { ActionType, Activity, ActivityStatus, Friend } from 'types';
 
 export interface ActivitiesProps {
@@ -46,6 +51,12 @@ export interface ActivitiesProps {
      *  is disabled. Used during new-trip creation so brand-new activities
      *  stay locked to Planning until the trip is actually saved. */
     lockActivityStatus?: boolean;
+    /** Current trip status name. When `'confirmed'`, the activity card
+     *  switches into post-planning UI: status pill is hidden, the X
+     *  delete button is replaced with a "Complete" button, and
+     *  activities with their own `'completed'` status render dimmed +
+     *  non-interactive. */
+    tripStatusName?: string;
 }
 
 const isConfirmedStatus = (status: Activity['status']): boolean => {
@@ -53,6 +64,29 @@ const isConfirmedStatus = (status: Activity['status']): boolean => {
         return (status as ActivityStatus).name === TRIP_STATUS.CONFIRMED;
     }
     return false;
+};
+
+const isCompletedStatus = (status: Activity['status']): boolean => {
+    if (status && typeof status === 'object') {
+        return (status as ActivityStatus).name === TRIP_STATUS.COMPLETED;
+    }
+    return false;
+};
+
+/** Icon to show on the left of an activity title, based on its kind:
+ *   - flight → angled takeoff plane (reads as "flight" at a glance)
+ *   - note → lined notepad (reads as "note" — a sticky-note icon is
+ *     too generic to differentiate)
+ *   - place WITHOUT an image → map pin (the image was the visual cue
+ *     for places; without one the icon takes over)
+ *   - place WITH an image → no icon (the thumbnail says "place")
+ *  Returns `null` when no icon should render. */
+const titleIconFor = (a: Activity) => {
+    const kind = a.kind ?? ACTIVITY_KIND.PLACE;
+    if (kind === ACTIVITY_KIND.FLIGHT) return FlightTakeoffRoundedIcon;
+    if (kind === ACTIVITY_KIND.NOTE) return EditNoteRoundedIcon;
+    if (!a.image?.url) return PlaceRoundedIcon;
+    return null;
 };
 
 const Activities = ({
@@ -66,7 +100,13 @@ const Activities = ({
     date = '',
     country = '',
     lockActivityStatus = false,
+    tripStatusName,
 }: ActivitiesProps) => {
+    // Post-planning UI: once the trip itself is Confirmed (or beyond),
+    // each activity gets a "Complete" button instead of delete and
+    // the status pill is hidden. After Completed/Cancelled the actions
+    // disappear entirely — the trip is locked in.
+    const isTripConfirmed = tripStatusName === TRIP_STATUS.CONFIRMED;
     // Day-level drop target — accepts drops onto empty space when there
     // are no sortable cards to land on. dnd-kit needs both the sortable
     // items AND a droppable container to support the empty-day case.
@@ -88,7 +128,7 @@ const Activities = ({
     // name-only object — `activityStatusIdOf` in tripMapper just drops the
     // non-UUID id on save, so this is a safe no-op fallback.
     const { data: tripStatuses = [] } = useTripStatuses();
-    const { plannedStatus, confirmedStatus } = useMemo(() => {
+    const { plannedStatus, confirmedStatus, completedStatus } = useMemo(() => {
         const byName = (n: string): ActivityStatus | undefined => {
             const row = tripStatuses.find((s) => s.name === n);
             return row ? { id: row.id, name: row.name } : undefined;
@@ -96,6 +136,7 @@ const Activities = ({
         return {
             plannedStatus: byName(TRIP_STATUS.PLANNING) ?? { id: 0, name: TRIP_STATUS.PLANNING },
             confirmedStatus: byName(TRIP_STATUS.CONFIRMED) ?? { id: 0, name: TRIP_STATUS.CONFIRMED },
+            completedStatus: byName(TRIP_STATUS.COMPLETED) ?? { id: 0, name: TRIP_STATUS.COMPLETED },
         };
     }, [tripStatuses]);
 
@@ -119,17 +160,31 @@ const Activities = ({
             >
             {activities &&
                 activities.map((activity, indx) => {
-                    const activityTime = `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
+                    const activityKind = activity.kind ?? ACTIVITY_KIND.PLACE;
+                    const isNote = activityKind === ACTIVITY_KIND.NOTE;
+                    const isFlight = activityKind === ACTIVITY_KIND.FLIGHT;
+                    // Notes are timeless; flights show their depart→arrival
+                    // datetime as the schedule row. Places use start/end as
+                    // before.
+                    const activityTime = isFlight
+                        ? `${reformatDate(activity.flightInfo?.departTime, 'HH:mm', 'LT')} → ${reformatDate(activity.flightInfo?.arrivalTime, 'HH:mm', 'LT')}`
+                        : `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
+                    const showTimeRow = !isNote;
                     const budgetEntries = activity.budget ?? [];
                     const hasBudget = budgetEntries.length > 0;
+                    const isActivityCompleted = isCompletedStatus(activity.status);
                     // Per-activity edit lock. True when the trip is in view-mode
                     // OR this specific place is already Confirmed — locking
-                    // edit, delete-by-edit, and AddBudget all at once. The
-                    // status pill stays clickable so the user can flip the
-                    // place back to Planning to reopen editing.
+                    // edit, delete-by-edit, and AddBudget all at once. Also
+                    // locked when the activity itself is Completed (post-
+                    // confirmation tick): clicking edit on a done activity
+                    // shouldn't reopen the modal.
                     const isPlaceLocked =
-                        isViewMode || isConfirmedStatus(activity.status);
+                        isViewMode ||
+                        isConfirmedStatus(activity.status) ||
+                        isActivityCompleted;
                     const hasImage = Boolean(activity.image?.url);
+                    const TitleIcon = titleIconFor(activity);
                     // Cost + budget are coupled: a non-money activity (just
                     // a note like "checkout at 10am") shouldn't show either
                     // row. We surface them only when there's an actual cost
@@ -145,21 +200,54 @@ const Activities = ({
                             lg={12}
                             md={12}
                             xs={12}
-                            className="activity-content-trip border-trip"
-                        >
-                            <IconConfirmButton
-                                icon={<CloseRoundedIcon fontSize="small" />}
-                                ariaLabel={`Delete ${activity.name}`}
-                                title="Delete this activity"
-                                onConfirm={() =>
-                                    onChangePlace('delete', activity.id)
+                            className={classNames(
+                                'activity-content-trip border-trip',
+                                {
+                                    'is-completed': isActivityCompleted,
+                                    [`kind-${activityKind}`]: true,
                                 }
-                                className="activity-card-close-btn"
-                                isViewMode={isViewMode}
-                            >
-                                You are about to delete {activity.name}. Are
-                                you sure?
-                            </IconConfirmButton>
+                            )}
+                            aria-disabled={isActivityCompleted || undefined}
+                        >
+                            {isTripConfirmed && !isActivityCompleted ? (
+                                // Trip is past planning — replace the X
+                                // delete with a Complete tick. Marks the
+                                // activity's own status to Completed, which
+                                // dims the card via `.is-completed`.
+                                <IconButton
+                                    size="small"
+                                    className="activity-card-complete-btn"
+                                    aria-label={`Mark ${activity.name} as completed`}
+                                    title="Mark as completed"
+                                    onClick={() =>
+                                        onChangePlace('edit', {
+                                            index: indx,
+                                            value: {
+                                                id: activity.id,
+                                                status: completedStatus,
+                                            },
+                                        })
+                                    }
+                                >
+                                    <TaskAltRoundedIcon fontSize="small" />
+                                </IconButton>
+                            ) : (
+                                <IconConfirmButton
+                                    icon={<CloseRoundedIcon fontSize="small" />}
+                                    ariaLabel={`Delete ${activity.name}`}
+                                    title="Delete this activity"
+                                    onConfirm={() =>
+                                        onChangePlace('delete', activity.id)
+                                    }
+                                    className="activity-card-close-btn"
+                                    isViewMode={
+                                        isViewMode || isActivityCompleted
+                                    }
+                                >
+                                    You are about to delete {activity.name}. Are
+                                    you sure?
+                                </IconConfirmButton>
+                            )}
                             <Grid container>
                                 {hasImage && (
                                     <Grid item lg={2} md={2} xs={12} className="content-image">
@@ -176,6 +264,9 @@ const Activities = ({
                                     <Grid container>
                                         <Grid item lg={12} md={12} xs={12} className="info">
                                             <div className="activity-title-row">
+                                                {TitleIcon && (
+                                                    <TitleIcon className="activity-title-icon" />
+                                                )}
                                                 <span className="title">{activity.name}</span>
                                                 <AddPlaceBtn
                                                     isViewMode={isPlaceLocked}
@@ -191,7 +282,11 @@ const Activities = ({
                                                         })
                                                     }
                                                 />
-                                                {(() => {
+                                                {/* Status pill is hidden once the trip is past
+                                                    Planning — no purpose toggling an
+                                                    activity's "Confirmed" once the whole
+                                                    trip is locked. */}
+                                                {!isTripConfirmed && (() => {
                                                     const confirmed = isConfirmedStatus(activity.status);
                                                     const nextStatus = confirmed
                                                         ? plannedStatus
@@ -229,10 +324,26 @@ const Activities = ({
                                                         </span>
                                                     </div>
                                                 )}
-                                                <div className="meta-row">
-                                                    <ScheduleOutlinedIcon className="meta-icon" />
-                                                    <span className="meta-text">{activityTime}</span>
-                                                </div>
+                                                {isFlight && activity.flightInfo?.flightNumber && (
+                                                    <div className="meta-row">
+                                                        <FlightTakeoffOutlinedIcon className="meta-icon" />
+                                                        <span className="meta-text">
+                                                            {`Flight ${activity.flightInfo.flightNumber}`}
+                                                            {activity.flightInfo.departAirport &&
+                                                                activity.flightInfo.arrivalAirport && (
+                                                                    <>
+                                                                        {` · ${activity.flightInfo.departAirport} → ${activity.flightInfo.arrivalAirport}`}
+                                                                    </>
+                                                                )}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {showTimeRow && (
+                                                    <div className="meta-row">
+                                                        <ScheduleOutlinedIcon className="meta-icon" />
+                                                        <span className="meta-text">{activityTime}</span>
+                                                    </div>
+                                                )}
                                                 {hasCost && (
                                                     <div className="meta-row">
                                                         <PaymentsOutlinedIcon className="meta-icon" />

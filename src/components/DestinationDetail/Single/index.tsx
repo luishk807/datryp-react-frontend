@@ -17,6 +17,8 @@ interface SingleProps {
     country?: string;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Forwarded to Activities so post-planning UI can render. */
+    tripStatusName?: string;
 }
 
 /** Single-destination day. Always renders Activities (even when empty) so
@@ -31,6 +33,7 @@ const Single = ({
     date = '',
     country = '',
     lockActivityStatus = false,
+    tripStatusName,
 }: SingleProps) => (
     <Activities
         isViewMode={isViewMode}
@@ -42,6 +45,7 @@ const Single = ({
         date={date}
         country={country}
         lockActivityStatus={lockActivityStatus}
+        tripStatusName={tripStatusName}
     />
 );
 

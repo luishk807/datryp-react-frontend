@@ -39,6 +39,11 @@ export interface CountryDetails {
     /** Major international airports serving the country. Empty for
      *  cache rows from before this field shipped. */
     airports: Airport[];
+    /** AI-curated 0-5 overall tourist rating. Pairs with the
+     *  crowdsourced review average to give the country header both a
+     *  "global rating" and a "user rating". 0 = unavailable
+     *  (pre-existing cache rows from before this field shipped). */
+    touristRating: number;
 }
 
 export interface CountrySummary {

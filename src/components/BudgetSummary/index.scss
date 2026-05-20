@@ -13,6 +13,42 @@
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05);
 }
 
+// Collapsible body (bar + status footer). Same pattern as
+// `.basic-trip-info .trip-collapsible-body` — header stays visible,
+// only the supporting detail collapses.
+.budget-summary .budget-collapsible-body {
+  overflow: hidden;
+  max-height: 600px;
+  opacity: 1;
+  transition: max-height 0.28s ease, opacity 0.18s ease;
+}
+
+.budget-summary .budget-collapsible-body.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.budget-summary .budget-collapse-toggle {
+  color: rgba(0, 0, 0, 0.55) !important;
+  transition: transform 0.2s ease, background-color 0.15s ease;
+  margin-left: 4px;
+}
+
+.budget-summary .budget-collapse-toggle:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: theme('colors.primary') !important;
+}
+
+.budget-summary .budget-collapse-toggle.is-collapsed {
+  transform: rotate(-90deg);
+}
+
+// When collapsed, drop the header's bottom margin so the section
+// hugs to a tight chip-style row instead of leaving dead space.
+.budget-summary:has(.budget-collapsible-body.is-collapsed) .budget-header {
+  margin-bottom: 0;
+}
+
 /* ---------- Header ---------- */
 .budget-summary .budget-header {
   display: flex;

@@ -1,7 +1,8 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import classnames from "classnames";
 import "./index.scss";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Tooltip } from "@mui/material";
+import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -12,6 +13,9 @@ import LocationCityRoundedIcon from "@mui/icons-material/LocationCityRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
 import CostBadge from "components/common/CostBadge";
+import Stars from "components/common/Stars";
+import ReviewSection from "components/Review/ReviewSection";
+import ReviewSummary from "components/Review/ReviewSummary";
 import VisitedCountryButton from "components/VisitedCountryButton";
 import BookmarkCountryButton from "components/BookmarkCountryButton";
 import ShareButton from "components/ShareButton";
@@ -229,6 +233,26 @@ const CountryDetail = () => {
               <strong>Language:</strong> {details.travelBasics.language}
             </span>
           </p>
+          {details.touristRating > 0 && (
+            <div className="country-detail-rating">
+              <Tooltip title="Overall rating" arrow>
+                <span
+                  className="country-detail-rating-icon"
+                  role="img"
+                  aria-label="Overall rating"
+                >
+                  <PublicRoundedIcon />
+                </span>
+              </Tooltip>
+              <Stars rating={details.touristRating} />
+            </div>
+          )}
+          <ReviewSummary
+            placeName={country.name}
+            placeCity={country.name}
+            placeCountry={country.name}
+            targetId="country-reviews"
+          />
         </header>
 
         <div className="country-detail-content">
@@ -313,6 +337,14 @@ const CountryDetail = () => {
             title="Top 5 photo spots"
             icon={<PhotoCameraRoundedIcon />}
             items={details.photoSpots}
+          />
+        </div>
+
+        <div id="country-reviews">
+          <ReviewSection
+            placeName={country.name}
+            placeCity={country.name}
+            placeCountry={country.name}
           />
         </div>
       </article>

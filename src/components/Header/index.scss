@@ -104,6 +104,18 @@
   max-width: 360px;
 }
 
+// Page-level opt-in: hide the search bar on mobile when the page
+// passes `hideHeaderSearchOnMobile` to SubLayout. Search competes for
+// vertical real estate against long content (trip detail, etc.) and
+// users on phones aren't typically searching mid-flow.
+.page-shell.hide-header-search-mobile {
+  @media (max-width: 640px) {
+    .app-header-search {
+      display: none;
+    }
+  }
+}
+
 .app-header-search .searchbarMain .holder-simple {
   background: #f6f6f6;
   border: 1px solid rgba(0, 0, 0, 0.08);

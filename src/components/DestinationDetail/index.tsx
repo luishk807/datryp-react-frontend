@@ -47,6 +47,11 @@ interface DestinationDetailProps {
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Current trip status name (e.g. "confirmed", "completed"). Drives
+     *  the activity card's post-planning UI: when the trip is Confirmed
+     *  each activity gets a "Complete" button in place of delete and
+     *  the per-activity status pill is hidden. */
+    tripStatusName?: string;
 }
 
 const fmt = (m: moment.Moment) => m.format('MM/DD/YYYY');
@@ -115,6 +120,7 @@ const DestinationDetail = ({
     onChangeDestination = undefined,
     isViewMode = false,
     lockActivityStatus = false,
+    tripStatusName,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
     const [dndError, setDndError] = useState<string | null>(null);
@@ -281,6 +287,7 @@ const DestinationDetail = ({
                     <DateBlock
                         isViewMode={isViewMode}
                         lockActivityStatus={lockActivityStatus}
+                        tripStatusName={tripStatusName}
                         key={indx}
                         index={indx}
                         tripMaxDate={endDate}

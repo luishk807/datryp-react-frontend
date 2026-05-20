@@ -261,6 +261,30 @@
   }
 }
 
+// AI-curated 0-5 tourist rating — mirrors `.city-detail-meta` /
+// `.place-detail-meta`. A green globe icon followed by the Stars
+// component.
+.country-detail-rating {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.country-detail-rating-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: theme('colors.primaryGreen');
+
+  .MuiSvgIcon-root {
+    font-size: 1.15rem;
+  }
+}
+
 @media (max-width: 640px) {
   .country-detail-name {
     font-size: 1.4rem;

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import './index.scss';
+import classnames from 'classnames';
 import { formatDate, isSameDay, isValidDate } from 'utils';
 import _ from 'lodash';
 import IconButton from '@mui/material/IconButton';
@@ -8,12 +9,15 @@ import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
+import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import IosShareIcon from '@mui/icons-material/IosShare';
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import { Tooltip } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ErrorAlert from 'components/common/ErrorAlert';
 import DropDown from 'components/common/FormFields/DropDown';
@@ -56,6 +60,25 @@ interface BasicTripInfoProps {
     isDirty?: boolean;
     saveError?: string | null;
     isViewMode?: boolean;
+    /** When true, the stats row + friends chip list collapse behind a
+     *  toggle button. The header (trip name + status + action buttons)
+     *  stays visible regardless. Used on /trip-detail post-confirmation
+     *  where the user mostly wants to see activities and only
+     *  occasionally needs the overview. */
+    collapsible?: boolean;
+    /** Initial collapse state when `collapsible` is true. Defaults to
+     *  `false` (stats visible). */
+    defaultCollapsed?: boolean;
+    /** Externally-controlled collapse state. When provided, overrides
+     *  the internal toggle button — used by `/trip-detail` which drives
+     *  ONE Show/Hide detail button governing both BasicTripInfo and
+     *  BudgetSummary together. */
+    collapsed?: boolean;
+    /** Hide the header chunk (trip name + status badge + action
+     *  buttons). TripDetail uses this to hoist the trip header out into
+     *  its own always-visible row at the top, then renders this
+     *  component body-only inside the shared accordion below. */
+    hideHeader?: boolean;
 }
 
 const resolveStatus = (
@@ -114,7 +137,17 @@ export const BasicTripInfo = ({
     isDirty = false,
     saveError = null,
     isViewMode = false,
+    collapsible = false,
+    defaultCollapsed = false,
+    collapsed: controlledCollapsed,
+    hideHeader = false,
 }: BasicTripInfoProps) => {
+    const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+    // Externally-controlled collapse wins when provided. Falls back to the
+    // internal state machine for self-managed call sites.
+    const collapsed =
+        controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+    const setCollapsed = (next: boolean) => setInternalCollapsed(next);
     const { data: tripStatuses = [] } = useTripStatuses();
 
     const statusOptions = useMemo(
@@ -132,6 +165,22 @@ export const BasicTripInfo = ({
     );
 
     const statusModalRef = useRef<ModalButtonHandle>(null);
+    const exportModalRef = useRef<ModalButtonHandle>(null);
+
+    /** Native browser print of the current page. Pages that want a
+     *  proper print stylesheet can add `@media print` rules; for now we
+     *  hand off to the browser's built-in print preview. */
+    const handlePrint = () => {
+        exportModalRef.current?.closeModal();
+        if (typeof window !== 'undefined') {
+            window.print();
+        }
+    };
+
+    const handleDownloadExcel = () => {
+        exportModalRef.current?.closeModal();
+        onExportExcel?.();
+    };
     const [draftStatusId, setDraftStatusId] = useState<string | number | undefined>(
         currentStatus?.id
     );
@@ -151,6 +200,16 @@ export const BasicTripInfo = ({
                 .join(', '),
         [data]
     );
+
+    // Destination country/countries — deduped (helps when a multi-destination
+    // trip has two stops in the same country). Single trip → single value;
+    // multi → comma-joined list.
+    const destinationLabel = useMemo(() => {
+        const names = (data.destinations ?? [])
+            .map((d) => d.country?.name)
+            .filter((name): name is string => Boolean(name));
+        return Array.from(new Set(names)).join(', ');
+    }, [data.destinations]);
 
     const statusName = currentStatus?.name ?? TRIP_STATUS.PLANNING;
     const friends = data.friends ?? [];
@@ -215,12 +274,12 @@ export const BasicTripInfo = ({
     };
 
     return (
-        <section className="basic-trip-info">
+        <section
+            className={`basic-trip-info${hideHeader ? ' is-body-only' : ''}`}
+        >
+            {!hideHeader && (
             <div className="trip-header">
                 <div className="trip-header-left">
-                    <span className="trip-eyebrow">
-                        Trip · {_.get(data, 'type.name', 'Custom')}
-                    </span>
                     <div className="trip-name-row">
                         <h2 className="trip-name">{data.name || 'Untitled trip'}</h2>
                         {statusName === TRIP_STATUS.CONFIRMED && (
@@ -268,16 +327,56 @@ export const BasicTripInfo = ({
                 </div>
                 <div className="trip-header-right">
                     {onExportExcel && (
-                        <ButtonIcon
-                            type="standard"
-                            className="trip-export-btn"
-                            Icon={FileDownloadOutlinedIcon}
-                            iconProps={{ fontSize: 'small' }}
-                            iconPosition="start"
-                            title="Excel"
-                            ariaLabel="Download as Excel"
-                            onClick={onExportExcel}
-                        />
+                        <span className="trip-export-wrapper">
+                            <ModalButton
+                                ref={exportModalRef}
+                                title="Export trip"
+                                buttonProps={{
+                                    type: 'standard',
+                                    className: 'trip-export-btn',
+                                    Icon: IosShareIcon,
+                                    iconProps: { fontSize: 'small' },
+                                    title: 'Export',
+                                    ariaLabel: 'Export trip',
+                                }}
+                            >
+                                <div className="trip-export-options">
+                                    <button
+                                        type="button"
+                                        className="trip-export-option"
+                                        onClick={handlePrint}
+                                    >
+                                        <PrintOutlinedIcon className="trip-export-option-icon" />
+                                        <span className="trip-export-option-text">
+                                            <span className="trip-export-option-title">
+                                                Print
+                                            </span>
+                                            <span className="trip-export-option-hint">
+                                                Opens your browser's print
+                                                preview — save as PDF or send
+                                                to a printer.
+                                            </span>
+                                        </span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="trip-export-option"
+                                        onClick={handleDownloadExcel}
+                                    >
+                                        <TableChartOutlinedIcon className="trip-export-option-icon" />
+                                        <span className="trip-export-option-text">
+                                            <span className="trip-export-option-title">
+                                                Download Excel
+                                            </span>
+                                            <span className="trip-export-option-hint">
+                                                Day-by-day .xlsx with
+                                                activities, times, and budget.
+                                            </span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </ModalButton>
+                        </span>
                     )}
                     {onCancel && (
                         <ButtonCustom
@@ -356,13 +455,37 @@ export const BasicTripInfo = ({
                             {!isViewMode && <EditOutlinedIcon className="status-edit" />}
                         </ButtonCustom>
                     )}
+                    {collapsible && (
+                        <IconButton
+                            size="small"
+                            className={classnames('trip-collapse-toggle', {
+                                'is-collapsed': collapsed,
+                            })}
+                            aria-label={
+                                collapsed
+                                    ? 'Show trip details'
+                                    : 'Hide trip details'
+                            }
+                            aria-expanded={!collapsed}
+                            onClick={() => setCollapsed(!collapsed)}
+                        >
+                            <ExpandMoreRoundedIcon />
+                        </IconButton>
+                    )}
                 </div>
             </div>
+            )}
 
-            {saveError && (
+            {saveError && !hideHeader && (
                 <ErrorAlert className="trip-save-error">{saveError}</ErrorAlert>
             )}
 
+            <div
+                className={classnames('trip-collapsible-body', {
+                    'is-collapsed': collapsible && collapsed,
+                })}
+                aria-hidden={collapsible && collapsed ? true : undefined}
+            >
             <div className="trip-stats">
                 <div className="trip-stat">
                     <PersonOutlineIcon className="stat-icon" />
@@ -371,6 +494,15 @@ export const BasicTripInfo = ({
                         <span className="stat-value">{organizer || '—'}</span>
                     </div>
                 </div>
+                {destinationLabel && (
+                    <div className="trip-stat">
+                        <PublicOutlinedIcon className="stat-icon" />
+                        <div className="stat-text">
+                            <span className="stat-label">Where</span>
+                            <span className="stat-value">{destinationLabel}</span>
+                        </div>
+                    </div>
+                )}
                 <div className="trip-stat">
                     <EventOutlinedIcon className="stat-icon" />
                     <div className="stat-text">
@@ -402,6 +534,7 @@ export const BasicTripInfo = ({
                     </div>
                 </div>
             )}
+            </div>
 
             <ModalButton ref={statusModalRef} title="Update trip status">
                 <div className="trip-status-dropdown">

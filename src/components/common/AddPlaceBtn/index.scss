@@ -6,13 +6,94 @@
   width: auto !important;
 }
 
+// Lock the form area to a height that fits the tallest variant
+// (the Place form). The Note form (just 2 fields) and the Flight
+// form (~6 fields) render in the same envelope so toggling between
+// kinds doesn't make the modal hop in size. The container scrolls
+// internally past `max-height` for unusually long content.
 #add-place-form-container {
-  min-height: 200px;
-  max-height: 700px;
+  min-height: 540px;
+  max-height: min(700px, 70vh);
   overflow-y: auto;
 }
 
 .place-left {
   justify-content: end;
   display: flex;
+}
+
+// Three-way segmented toggle that picks the activity kind (place /
+// note / flight) on ADD. Locked + hidden on EDIT — the activity's
+// kind is fixed at create time.
+//
+// Mirrors the sliding-thumb pattern from `.home-hero-options` (Trip
+// type toggle on Home): an absolutely-positioned thumb behind the
+// buttons that translates between positions based on an `is-{kind}`
+// modifier on the container. Adapted for a light (modal) background —
+// the thumb is filled-orange like the Home toggle, with subtler chrome
+// since it sits over white rather than over a hero image.
+.add-place-kind-toggle {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 9999px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+
+.add-place-kind-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(33.3333% - 4px);
+  background: theme('colors.primaryOrange');
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.32);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.add-place-kind-toggle.is-note .add-place-kind-thumb {
+  transform: translateX(100%);
+}
+
+.add-place-kind-toggle.is-flight .add-place-kind-thumb {
+  transform: translateX(200%);
+}
+
+.add-place-kind-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  color: rgba(0, 0, 0, 0.6);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.18s ease;
+  white-space: nowrap;
+}
+
+.add-place-kind-btn:hover {
+  color: theme('colors.primary');
+}
+
+.add-place-kind-btn.selected {
+  color: #fff;
+  font-weight: 600;
+}
+
+.add-place-kind-icon {
+  font-size: 1.05rem !important;
 }

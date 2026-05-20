@@ -13,6 +13,106 @@
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05);
 }
 
+// Collapsible stats/friends section. The header (trip name + buttons)
+// stays visible; this body collapses to zero height when the toggle is
+// flipped. `overflow: hidden` traps the friends/chips visual; the
+// transition is on max-height with a generous ceiling so any reasonable
+// content height animates smoothly.
+.basic-trip-info .trip-collapsible-body {
+  overflow: hidden;
+  max-height: 1200px;
+  opacity: 1;
+  transition: max-height 0.28s ease, opacity 0.18s ease;
+}
+
+.basic-trip-info .trip-collapsible-body.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+// Chevron toggle that lives in the header right-side action row.
+// Rotates 180° when expanded so the affordance matches its current
+// state.
+.basic-trip-info .trip-collapse-toggle {
+  color: rgba(0, 0, 0, 0.55) !important;
+  transition: transform 0.2s ease, background-color 0.15s ease;
+  margin-left: 4px;
+}
+
+.basic-trip-info .trip-collapse-toggle:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: theme('colors.primary') !important;
+}
+
+.basic-trip-info .trip-collapse-toggle.is-collapsed {
+  transform: rotate(-90deg);
+}
+
+// Body-only mode: the trip header has been hoisted out into a
+// separate always-visible block above this card (see TripDetail).
+// Drop the outer margin since the parent now controls spacing.
+.basic-trip-info.is-body-only {
+  margin: 0;
+}
+
+// Export-trip modal: two stacked option cards (Print, Download
+// Excel). Big tappable rows, icon + 2-line text. Lifts on hover so
+// the affordance reads as a chooser.
+.trip-export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.trip-export-option {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.trip-export-option:hover {
+  border-color: theme('colors.primaryGreen');
+  box-shadow: 0 4px 14px rgba(60, 181, 75, 0.16);
+  transform: translateY(-1px);
+}
+
+.trip-export-option-icon {
+  flex-shrink: 0;
+  color: theme('colors.primaryGreen');
+  font-size: 1.6rem !important;
+}
+
+.trip-export-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.trip-export-option-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.trip-export-option-hint {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.35;
+}
+
 /* ---------- Header ---------- */
 .basic-trip-info .trip-header {
   display: flex;

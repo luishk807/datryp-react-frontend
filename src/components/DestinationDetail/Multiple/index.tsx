@@ -36,6 +36,8 @@ export interface MultipleProps {
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Forwarded to Activities so post-planning UI can render. */
+    tripStatusName?: string;
 }
 
 const Multiple = ({
@@ -49,6 +51,7 @@ const Multiple = ({
     participants = [],
     isViewMode = false,
     lockActivityStatus = false,
+    tripStatusName,
 }: MultipleProps) => {
     return (
         <>
@@ -168,6 +171,7 @@ const Multiple = ({
                                         date={trip.startDate ?? defaultDate ?? ''}
                                         country={country ?? ''}
                                         lockActivityStatus={lockActivityStatus}
+                                        tripStatusName={tripStatusName}
                                     />
                                 </Grid>
                             </Grid>

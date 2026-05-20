@@ -69,6 +69,20 @@ export const TRIP_MODE = {
     RECOMMEND: 'recommend',
 } as const;
 
+/** What kind of entry an activity is on the day-by-day timeline. Set on
+ *  creation in the activity modal and locked thereafter — editing an
+ *  activity can't change its kind (delete + recreate instead).
+ *
+ *  - `place` (default): a real activity with location/cost/time
+ *  - `note`: a free-text reminder pinned to a day, no time slot
+ *  - `flight`: a flight entry with depart/arrival airports + datetimes
+ */
+export const ACTIVITY_KIND = {
+    PLACE: 'place',
+    NOTE: 'note',
+    FLIGHT: 'flight',
+} as const;
+
 export const AUTH_LABEL = {
     LOGIN: 'Login',
     SIGNUP: 'Sign Up',

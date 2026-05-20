@@ -116,6 +116,68 @@
   letter-spacing: -0.005em;
 }
 
+// Kind icon that sits to the LEFT of the activity title. Rendered for
+// flights, notes, and places without an image (where the image
+// thumbnail would otherwise be the visual cue). Order matters — the
+// icon is the first flex child so it lands before the title.
+.activity-content-trip .content-detail .info .activity-title-row .activity-title-icon {
+  flex-shrink: 0;
+  color: theme('colors.primaryOrange');
+  font-size: 1.25rem !important;
+}
+
+// Per-kind tints so glance-scanning the day shows the entry shape.
+.activity-content-trip.kind-flight .activity-title-icon {
+  color: theme('colors.primaryGreen');
+}
+
+.activity-content-trip.kind-note .activity-title-icon {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+// "Mark completed" tick replaces the X delete button once the trip is
+// Confirmed. Same absolute placement as `.activity-card-close-btn` so
+// the position is stable. Solid white background + soft drop-shadow
+// so it stays legible when the card has a hero image behind it
+// (mobile shows the image full-width, which used to swallow the
+// faint-green chip).
+.activity-content-trip .activity-card-complete-btn.MuiIconButton-root {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #fff;
+  color: theme('colors.primaryGreen');
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  transition: background-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.15s ease;
+  z-index: 2;
+}
+
+.activity-content-trip .activity-card-complete-btn.MuiIconButton-root:hover {
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(60, 181, 75, 0.32);
+  transform: translateY(-1px);
+}
+
+// Completed activity — the user ticked the Complete button. The card
+// fades + becomes non-interactive (no hover, no clicks on inner
+// affordances). Pure visual signal that the trip moment is "done".
+.activity-content-trip.is-completed {
+  opacity: 0.55;
+  pointer-events: none;
+  filter: saturate(0.8);
+}
+
+// Keep the Complete tick clickable (we still want users to be able to
+// un-mark if they tapped it by mistake)... actually NO — once
+// completed the card is locked. The complete button doesn't render on
+// completed cards (see the JSX `&& !isActivityCompleted`) so we don't
+// need to override here.
+
 /* Compact pencil-icon trigger for the edit modal — drops MUI text-button
  * padding so it sits flush next to the activity name. */
 .activity-content-trip .activity-edit-btn {

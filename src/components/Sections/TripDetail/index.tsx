@@ -26,6 +26,7 @@ import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
 import type {
   Activity,
+  ActivityStatus,
   BudgetEntry,
   TripPlaceEvent,
   TripState,
@@ -88,6 +89,10 @@ export const TripDetail = () => {
   const isDirty =
     (!!baseTripData && localTripData !== baseTripData) || statusOverride !== null;
 
+  // Hoisted early so callbacks below can reference it in their deps
+  // arrays without tripping a TDZ error.
+  const persistedStatusName = apiTrip?.status?.name ?? TRIP_STATUS.PLANNING;
+
   const handleChangeBudget = useCallback(
     (event: TripPlaceEvent) => {
       const { activity } = event;
@@ -133,14 +138,31 @@ export const TripDetail = () => {
   //               an `id` (status badge toggle) we match by id, otherwise we
   //               match by positional `index` within the day.
   //  - `delete` : value is the bare activity id.
-  const handleChangePlace = useCallback((event: TripPlaceEvent) => {
-    const { activity, date } = event;
-    const { type, value, destinationIndx } = activity;
-    const destIndx = destinationIndx ?? 0;
+  // Detect an "activity marked Completed" edit. Used to fire an auto-save
+  // when the trip is already Confirmed — the Complete tick on the card
+  // should be a one-tap action, not "mark then click Save Trip".
+  const isMarkActivityCompletedEvent = (event: TripPlaceEvent): boolean => {
+    const { activity } = event;
+    if (activity.type !== "edit") return false;
+    const wrapper = activity.value as
+      | { value?: Partial<Activity> }
+      | undefined;
+    const status = wrapper?.value?.status as ActivityStatus | undefined;
+    return (
+      !!status &&
+      typeof status === "object" &&
+      status.name === TRIP_STATUS.COMPLETED
+    );
+  };
 
-    setLocalTripData((prev) => {
-      if (!prev) return prev;
-      return produce(prev, (draft) => {
+  const handleChangePlace = useCallback(
+    (event: TripPlaceEvent) => {
+      const { activity, date } = event;
+      const { type, value, destinationIndx } = activity;
+      const destIndx = destinationIndx ?? 0;
+
+      if (!localTripData) return;
+      const next = produce(localTripData, (draft) => {
         const dest = draft.destinations?.[destIndx];
         if (!dest?.itinerary) return;
         const day = dest.itinerary.find((d) => isSameDay(d.date, date));
@@ -175,8 +197,34 @@ export const TripDetail = () => {
           );
         }
       });
-    });
-  }, []);
+      setLocalTripData(next);
+
+      // One-shot persist when the user taps the Complete tick on an
+      // activity while the trip is already Confirmed. No separate Save
+      // Trip click needed — the activity transitions to Completed and
+      // is saved to the backend in a single tap.
+      if (
+        apiTrip &&
+        apiTrip.interaryType?.id &&
+        persistedStatusName === TRIP_STATUS.CONFIRMED &&
+        isMarkActivityCompletedEvent(event)
+      ) {
+        const input = tripStateToSaveInput(next, {
+          id: apiTrip.id,
+          interaryTypeId: apiTrip.interaryType.id,
+          tripStatusId: apiTrip.status?.id ?? null,
+        });
+        void saveItinerary.mutateAsync(input).catch((err: unknown) => {
+          setSaveError(
+            err instanceof Error
+              ? err.message
+              : "Failed to mark the activity completed.",
+          );
+        });
+      }
+    },
+    [localTripData, apiTrip, persistedStatusName, saveItinerary],
+  );
 
   const handleSaveTrip = useCallback(async () => {
     if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
@@ -220,7 +268,6 @@ export const TripDetail = () => {
     [apiTrip, currentUser?.id],
   );
 
-  const persistedStatusName = apiTrip?.status?.name ?? TRIP_STATUS.PLANNING;
   const isLocked = LOCKED_STATUS_NAMES.has(persistedStatusName);
 
   // BasicTripInfo gates its trip-name pencil + status edit affordances on
@@ -309,7 +356,7 @@ export const TripDetail = () => {
 
   if (isLoading) {
     return (
-      <Layout title="Trip Detail">
+      <Layout hideHeaderSearchOnMobile>
         <div className="trip-detail-empty">
           <p>Loading trip…</p>
         </div>
@@ -319,7 +366,7 @@ export const TripDetail = () => {
 
   if (!apiTrip || !tripData) {
     return (
-      <Layout title="Trip Detail">
+      <Layout hideHeaderSearchOnMobile>
         <div className="trip-detail-empty">
           <p>Trip not found.</p>
         </div>
@@ -344,34 +391,74 @@ export const TripDetail = () => {
   })();
   const destinations = tripData.destinations ?? [];
 
+  // Once the trip is past Planning, both the basic-info stats and the
+  // budget bar collapse behind a SINGLE Show/Hide detail button driven
+  // here — the trip-header (name + action buttons) stays visible at
+  // the top regardless. While editing (Planning), the cards stay open
+  // so the user has the overview at a glance.
+  const [detailsCollapsed, setDetailsCollapsed] = useState(isLocked);
+  // Re-sync the collapse state when the persisted status flips
+  // (e.g. user marks a Planning trip Confirmed; we want it to snap to
+  // the post-planning collapsed default).
+  useEffect(() => {
+    setDetailsCollapsed(isLocked);
+  }, [isLocked]);
+
+  const sharedBasicProps = {
+    isViewMode,
+    hideEditPencil: true,
+    data: tripData,
+    onChangeStep: handleChangeStep,
+    onStatusChange: handleStatusChange,
+    onExportExcel: canExport ? handleExportExcel : undefined,
+    onEnterEditMode: canSaveTrip ? handleChangeStep : undefined,
+    onMarkCompleted: canMarkCompleted ? handleMarkCompleted : undefined,
+    onDeleteTrip: isOrganizer ? handleDeleteTrip : undefined,
+    isSaving: saveItinerary.isPending,
+    isDeleting: deleteItinerary.isPending,
+    isDirty,
+    saveError,
+  } as const;
+
   return (
-    <Layout title="Trip Detail">
+    <Layout hideHeaderSearchOnMobile>
       <Grid container>
+        {/* Header instance: trip name + status badge + action buttons.
+            Always visible. The body section (stats + friends) is
+            suppressed here via the `collapsed` prop locked to true. */}
         <Grid item lg={12} md={12} xs={12}>
           <BasicTripInfo
-            isViewMode={isViewMode}
-            // /trip-detail uses the dedicated Edit Trip button as the
-            // single entry point to the editor; the small trip-name
-            // pencil would be a redundant duplicate, so hide it.
-            // Status-badge pencil stays — that's gated by isViewMode.
-            hideEditPencil
-            data={tripData}
-            onChangeStep={handleChangeStep}
-            onStatusChange={handleStatusChange}
-            onExportExcel={canExport ? handleExportExcel : undefined}
-            // Edit Trip routes to the dedicated stepper editor — that's
-            // where all the activity-card edit affordances live.
-            onEnterEditMode={canSaveTrip ? handleChangeStep : undefined}
-            onMarkCompleted={canMarkCompleted ? handleMarkCompleted : undefined}
-            onDeleteTrip={isOrganizer ? handleDeleteTrip : undefined}
-            isSaving={saveItinerary.isPending}
-            isDeleting={deleteItinerary.isPending}
-            isDirty={isDirty}
-            saveError={saveError}
+            {...sharedBasicProps}
+            collapsible={false}
+            collapsed={true}
+          />
+        </Grid>
+        {/* Single Show/Hide detail toggle wires both cards below. */}
+        <Grid item lg={12} md={12} xs={12} className="trip-detail-toggle-row">
+          <button
+            type="button"
+            className="trip-detail-toggle"
+            aria-expanded={!detailsCollapsed}
+            onClick={() => setDetailsCollapsed((c) => !c)}
+          >
+            {detailsCollapsed ? "Show detail" : "Hide detail"}
+          </button>
+        </Grid>
+        <Grid item lg={12} md={12} xs={12}>
+          <BasicTripInfo
+            {...sharedBasicProps}
+            hideHeader
+            collapsible
+            collapsed={detailsCollapsed}
           />
         </Grid>
         <Grid item lg={12} md={12} xs={12}>
-          <BudgetSummary data={tripData} />
+          <BudgetSummary
+            data={tripData}
+            collapsible
+            hideToggle
+            collapsed={detailsCollapsed}
+          />
         </Grid>
         <Grid item lg={12}>
           {/* Activity cards on /trip-detail are read-only by design — the
@@ -388,6 +475,7 @@ export const TripDetail = () => {
             destinations={destinations}
             onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}
+            tripStatusName={persistedStatusName}
           />
         </Grid>
       </Grid>

@@ -21,6 +21,9 @@ interface DateBlockProps {
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Forwarded to Activities so post-planning UI (Complete button,
+     *  hidden status pill, dim-when-completed cards) can light up. */
+    tripStatusName?: string;
 }
 
 const DateBlock = ({
@@ -36,6 +39,7 @@ const DateBlock = ({
     onChangeDestination,
     isViewMode = false,
     lockActivityStatus = false,
+    tripStatusName,
 }: DateBlockProps) => {
     const showsRange = useMemo(
         () => !isSameDay(startDate, endDate),
@@ -102,6 +106,7 @@ const DateBlock = ({
                                 date={startDate}
                                 country={destinations[0]?.country?.name ?? ''}
                                 lockActivityStatus={lockActivityStatus}
+                                tripStatusName={tripStatusName}
                             />
                         ) : (
                             <MultipleTrips
@@ -115,6 +120,7 @@ const DateBlock = ({
                                 participants={participants}
                                 onChangeBudget={onChangeBudget}
                                 lockActivityStatus={lockActivityStatus}
+                                tripStatusName={tripStatusName}
                             />
                         )}
                     </Grid>

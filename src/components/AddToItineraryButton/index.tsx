@@ -128,19 +128,22 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
 
     const startFreshTrip = () => {
         if (!country) return;
+        const today = now();
         dispatch(resetTrip());
         dispatch(
             basicInfo({
                 type: TRIP_BASIC.SINGLE,
                 name: `Trip to ${country.name}`,
                 destinations: [{ country }] as Destination[],
+                startDate: today,
+                endDate: today,
             })
         );
         dispatch(
             addPlace({
                 value: placeToActivity(place),
                 index: 0,
-                date: now(),
+                date: today,
                 destinationIndx: 0,
             })
         );
