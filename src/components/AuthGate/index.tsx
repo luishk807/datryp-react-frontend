@@ -213,6 +213,7 @@ const AuthGate = ({
                                     ? 'continue_with'
                                     : 'signup_with'
                             }
+                            width={380}
                             onCredential={handleGoogleCredential}
                         />
                     </div>

@@ -7,3 +7,68 @@
   font-size: 0.875rem;
   padding: 4px 0;
 }
+
+.login-google {
+  display: flex;
+  justify-content: center;
+}
+
+.login-email-cta {
+  display: flex;
+  justify-content: center;
+}
+
+.login-provider-btn {
+  width: 320px;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+}
+
+.login-back {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 4px !important;
+}
+
+.login-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  color: rgba(0, 0, 0, 0.65);
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.9);
+  }
+}
+
+.login-switch {
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+// Inline-link styling: wins over ButtonCustom's `.text-button` defaults
+// so the "Sign up" reads like a link rather than a block button.
+.login-switch .login-switch-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: theme('colors.primaryGreen');
+  font: inherit;
+  font-weight: 500;
+  width: auto;
+  display: inline;
+  cursor: pointer;
+}
+
+.login-switch .login-switch-link:hover {
+  color: theme('colors.primaryOrange');
+  text-decoration: underline;
+  background: transparent;
+}

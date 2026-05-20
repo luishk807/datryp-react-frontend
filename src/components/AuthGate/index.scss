@@ -244,6 +244,18 @@
   background: #fff;
 }
 
+// Taller inputs and submit button — more breathing room than MUI's
+// default 16.5px input padding / our 10px button padding.
+.authgate-form .MuiOutlinedInput-input {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.authgate-form .main-button {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
 .authgate-error {
   margin: 0;
   padding: 10px 12px;

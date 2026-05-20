@@ -1,0 +1,20 @@
+.signup-age-field {
+  max-width: 280px;
+}
+
+.signup-age-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+  }
+}

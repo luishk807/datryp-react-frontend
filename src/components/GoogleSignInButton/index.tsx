@@ -45,6 +45,10 @@ export interface GoogleSignInButtonProps {
     onCredential: (credential: string) => void;
     /** Override the button's prompt text. Default: "continue_with". */
     text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+    /** Pixel width passed to Google's `renderButton`. Google clamps to
+     *  the 200..400 range; values outside that are ignored. Default 320
+     *  matches the original AuthGate width. */
+    width?: number;
 }
 
 /** Lazy-loads Google Identity Services and renders Google's official
@@ -58,6 +62,7 @@ export interface GoogleSignInButtonProps {
 const GoogleSignInButton = ({
     onCredential,
     text = 'continue_with',
+    width = 320,
 }: GoogleSignInButtonProps) => {
     const hostRef = useRef<HTMLDivElement | null>(null);
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as
@@ -87,7 +92,7 @@ const GoogleSignInButton = ({
                 size: 'large',
                 text,
                 shape: 'rectangular',
-                width: 320,
+                width,
             });
         };
 
@@ -104,7 +109,7 @@ const GoogleSignInButton = ({
         script.defer = true;
         script.onload = init;
         document.head.appendChild(script);
-    }, [clientId, onCredential, text]);
+    }, [clientId, onCredential, text, width]);
 
     if (!clientId) {
         return (

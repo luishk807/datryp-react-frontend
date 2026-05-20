@@ -1,0 +1,200 @@
+.bucket-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bucket-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bucket-page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  margin: 0;
+}
+
+.bucket-page-subtitle {
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+  max-width: 60ch;
+  line-height: 1.45;
+}
+
+.bucket-add {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+
+  // The bare-variant wrapper is `.input-field-bare`; it stacks a label
+  // above an input, but we pass `label={null}` so it collapses to just
+  // the input — perfect for matching the button's height on this row.
+  .input-field-bare {
+    flex: 1;
+    // Override the default 6px gap (label↔input) since there's no label
+    // to space from — keeps the input aligned to the button visually.
+    gap: 0;
+  }
+}
+
+// Beat `.main-button { width: 100%; padding: 10px 0px; }` from
+// ButtonCustom — without these overrides the button would consume the
+// row and have zero horizontal padding, while the input collapses to
+// its content width. Heights are matched by giving the button the same
+// vertical padding (11px) as the bare input.
+.bucket-add-btn.bucket-add-btn {
+  flex-shrink: 0;
+  flex-grow: 0;
+  width: auto;
+  min-width: 120px;
+  padding: 11px 24px;
+}
+
+.bucket-error {
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(179, 38, 30, 0.08);
+  border-left: 3px solid #b3261e;
+  color: #b3261e;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.bucket-loading {
+  margin: 12px 0;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.9rem;
+}
+
+.bucket-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 16px;
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.65);
+
+  p {
+    margin: 0;
+  }
+}
+
+.bucket-empty-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 2.5rem !important;
+  opacity: 0.6;
+}
+
+.bucket-empty-hint {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.5);
+  max-width: 50ch;
+}
+
+.bucket-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bucket-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryOrange');
+    box-shadow: 0 2px 8px rgba(243, 142, 64, 0.12);
+  }
+}
+
+.bucket-card-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bucket-card-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: theme('colors.primary');
+  overflow-wrap: anywhere;
+}
+
+.bucket-card-meta {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.bucket-card-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// Pill-shaped primary-orange CTA — the "magic moment" affordance that
+// turns a bucket-list goal into a real trip. Built on type="none" so
+// `.main-line` / `.main-button` width-100% rules don't fight us; we
+// own the look here.
+.bucket-card-cta.bucket-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 7px 16px;
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  border: 1px solid theme('colors.primaryOrange');
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.bucket-card-cta.bucket-card-cta:hover {
+  background: #d97208;
+  border-color: #d97208;
+  box-shadow: 0 4px 10px rgba(246, 137, 31, 0.28);
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.bucket-card-cta .MuiSvgIcon-root {
+  font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+  .bucket-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bucket-card-actions {
+    justify-content: space-between;
+  }
+}

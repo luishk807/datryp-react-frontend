@@ -1,0 +1,11 @@
+.signup-google-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.signup-google-pending {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+}

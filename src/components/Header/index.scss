@@ -69,12 +69,16 @@
 }
 
 .app-header .auth-cta button,
-.app-header-drawer .drawer-auth.signup button {
+.app-header .auth-cta .auth-cta-link,
+.app-header-drawer .drawer-auth.signup button,
+.app-header-drawer .drawer-auth.signup .auth-cta-link {
+  display: inline-block;
   background: theme('colors.primaryOrange') !important;
   color: #fff !important;
   font-weight: 600;
   font-size: 0.95rem;
   text-transform: none;
+  text-decoration: none;
   padding: 8px 20px;
   border-radius: 9999px;
   transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
@@ -82,7 +86,9 @@
 }
 
 .app-header .auth-cta button:hover,
-.app-header-drawer .drawer-auth.signup button:hover {
+.app-header .auth-cta .auth-cta-link:hover,
+.app-header-drawer .drawer-auth.signup button:hover,
+.app-header-drawer .drawer-auth.signup .auth-cta-link:hover {
   background: #db7710 !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(246, 137, 31, 0.25);

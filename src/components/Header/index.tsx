@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton } from '@mui/material';
 import Menu, { MenuActionItem } from 'components/common/Menu';
 import classnames from 'classnames';
@@ -12,18 +12,16 @@ import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import LoginBtn from 'components/common/LoginBtn';
-import SignUp from 'components/common/SignUpBtn';
 import SearchBar from 'components/SearchBar';
 import IconLink from 'components/common/IconLink';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
-import type { SignUpForm } from 'components/common/SignUpBtn';
-import { MIN_SIGNUP_AGE, yearsSinceBirthYear } from 'utils/age';
 import { BUTTON_VARIANT, LOGO_IMAGE } from 'constants';
 import type { Country } from 'types';
 import './index.scss';
@@ -36,8 +34,13 @@ interface HeaderProps {
 const Header = ({ withSearch = false }: HeaderProps) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-    const { user, isAdmin, login, signup, logout } = useUser();
+    const { user, isAdmin, login, logout } = useUser();
     const navigate = useNavigate();
+    // The header's signup affordance is now a navigation link to the
+    // dedicated `/signup` page (multi-step + onboarding inline). Both
+    // LoginBtn's bottom "Sign up" link and the standalone header CTA
+    // share this single handler.
+    const goToSignup = () => navigate('/signup');
 
     // Show "Upgrade to Pro" for free non-admin users so they have a
     // discoverable, voluntary path to subscribe — not just the reactive
@@ -64,39 +67,6 @@ const Header = ({ withSearch = false }: HeaderProps) => {
             throw new Error('Email and password are required.');
         }
         await login(email, password);
-    };
-
-    const handleSignUp = async (form: SignUpForm) => {
-        const email = (form.email || form.username)?.trim();
-        const password = form.password ?? '';
-        const birthYear = form.birthYear;
-        const confirmAge = !!form.confirmAge13Plus;
-        if (!email || !password) {
-            throw new Error('Email and password are required.');
-        }
-        if (birthYear == null) {
-            throw new Error('Please select your year of birth.');
-        }
-        // Client-side mirror of the backend math gate — definite under-13s
-        // never even get a network round-trip.
-        if (yearsSinceBirthYear(birthYear) < MIN_SIGNUP_AGE) {
-            throw new Error(
-                `You must be at least ${MIN_SIGNUP_AGE} years old to create an account.`
-            );
-        }
-        if (!confirmAge) {
-            throw new Error(
-                `Please confirm you are at least ${MIN_SIGNUP_AGE} years old.`
-            );
-        }
-        await signup({
-            email,
-            password,
-            birth_year: birthYear,
-            confirm_age_13_plus: confirmAge,
-            name: form.name,
-            phone: form.phone,
-        });
     };
 
     const handleMenuClose = () => setMenuAnchor(null);
@@ -196,6 +166,11 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     onClick={() => handleNavigate('/saved')}
                                 />
                                 <MenuActionItem
+                                    icon={<AutoAwesomeRoundedIcon />}
+                                    label="Bucket list"
+                                    onClick={() => handleNavigate('/bucket-list')}
+                                />
+                                <MenuActionItem
                                     icon={<PeopleOutlineIcon />}
                                     label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
@@ -226,10 +201,12 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                     ) : (
                         <>
                             <span className="auth-link">
-                                <LoginBtn onClick={handleLogin} />
+                                <LoginBtn onClick={handleLogin} onSwitchToSignup={goToSignup} />
                             </span>
                             <span className="auth-cta">
-                                <SignUp onClick={handleSignUp} />
+                                <Link to="/signup" className="auth-cta-link">
+                                    Sign Up
+                                </Link>
                             </span>
                         </>
                     )}
@@ -321,6 +298,13 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
+                                    label="Bucket list"
+                                    onClick={() => handleNavigate('/bucket-list')}
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
+                                    className="drawer-link"
                                     label="Manage Friends"
                                     onClick={() => handleNavigate('/friends')}
                                 />
@@ -354,10 +338,16 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                         ) : (
                             <>
                                 <div className="drawer-auth">
-                                    <LoginBtn onClick={handleLogin} />
+                                    <LoginBtn onClick={handleLogin} onSwitchToSignup={goToSignup} />
                                 </div>
                                 <div className="drawer-auth signup">
-                                    <SignUp onClick={handleSignUp} />
+                                    <Link
+                                        to="/signup"
+                                        className="drawer-link auth-cta-link"
+                                        onClick={() => setDrawerOpen(false)}
+                                    >
+                                        Sign Up
+                                    </Link>
                                 </div>
                             </>
                         )}

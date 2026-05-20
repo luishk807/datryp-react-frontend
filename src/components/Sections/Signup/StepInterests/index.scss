@@ -1,0 +1,36 @@
+.signup-interests-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.signup-interest-chip {
+  appearance: none;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease,
+    color 0.12s ease, transform 0.12s ease;
+}
+
+.signup-interest-chip:hover {
+  border-color: theme('colors.primaryGreen');
+  color: theme('colors.primary');
+  transform: translateY(-1px);
+}
+
+.signup-interest-chip.is-active {
+  background: theme('colors.primaryGreen');
+  border-color: theme('colors.primaryGreen');
+  color: #fff;
+}
+
+.signup-interest-chip.is-active:hover {
+  background: theme('colors.primary');
+  border-color: theme('colors.primary');
+}

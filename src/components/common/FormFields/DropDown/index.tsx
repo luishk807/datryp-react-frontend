@@ -98,19 +98,30 @@ const DropdownCustom = <T extends DropdownOption = DropdownOption>({
         onChange?.(selected);
     };
 
+    // When `displayEmpty` is on (we render a placeholder MenuItem for the
+    // empty state), MUI's floating label doesn't auto-shrink because the
+    // Select is technically "showing a value" (the empty option). Force
+    // both `shrink` on the label and `notched` on the outline so the
+    // label sits in its notch above the field instead of overlapping
+    // the placeholder text.
+    const showsPlaceholder = placeholder !== undefined;
+
     return (
         <FormControl fullWidth className="custom-dropdown" disabled={disabled}>
-            <InputLabel id={labelId}>{label}</InputLabel>
+            <InputLabel id={labelId} shrink={showsPlaceholder || undefined}>
+                {label}
+            </InputLabel>
             <Select
                 labelId={labelId}
                 name={name}
                 label={label}
                 disabled={disabled}
                 value={selectedRaw}
-                displayEmpty={placeholder !== undefined}
+                displayEmpty={showsPlaceholder}
+                notched={showsPlaceholder || undefined}
                 onChange={handleChange}
             >
-                {placeholder !== undefined && (
+                {showsPlaceholder && (
                     <MenuItem value="">{placeholder}</MenuItem>
                 )}
                 {options.map((option) => {

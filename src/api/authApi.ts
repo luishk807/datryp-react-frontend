@@ -54,6 +54,13 @@ export interface MeResponse {
      *  current period is still active. UI shows a "cancelling on Y" state
      *  in that case instead of the normal "Renews on Y" copy. */
     subscription_cancel_at_period_end: boolean;
+    /** Onboarding state — embedded here so the UserContext can decide
+     *  whether to auto-launch the wizard without an extra `/me/preferences`
+     *  round-trip on every page load. Null `onboarding_completed_at` means
+     *  the wizard hasn't been finished (or explicitly skipped) yet. */
+    country_of_birth_code: string | null;
+    interests: string[];
+    onboarding_completed_at: string | null;
 }
 
 class AuthError extends Error {

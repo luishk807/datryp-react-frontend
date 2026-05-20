@@ -1,0 +1,27 @@
+.signup-password-wrap {
+  position: relative;
+}
+
+// Leave room for the show/hide eye icon button so the value doesn't
+// slide under it.
+.signup-password-input {
+  padding-right: 50px;
+}
+
+.signup-password-toggle.signup-password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.signup-password-toggle.signup-password-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: theme('colors.primary');
+}
+
+.signup-password-hint {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+}

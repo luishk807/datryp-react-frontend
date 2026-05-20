@@ -22,6 +22,8 @@ const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
 const Visited = lazy(() => import('components/Sections/Visited'));
 const Saved = lazy(() => import('components/Sections/Saved'));
+const BucketList = lazy(() => import('components/Sections/BucketList'));
+const Signup = lazy(() => import('components/Sections/Signup'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const CityDetail = lazy(() => import('components/Sections/CityDetail'));
 const Terms = lazy(() => import('components/Sections/Terms'));
@@ -144,6 +146,14 @@ function App() {
                         <Saved />
                     </Gated>
                 }/>
+                <Route path='/bucket-list' element={
+                    <Gated
+                        title="Sign in to see your bucket list"
+                        subtitle="Travel goals you want to check off, in one place."
+                    >
+                        <BucketList />
+                    </Gated>
+                }/>
                 <Route path='/dashboard' element={
                     <AdminGate>
                         <Suspense fallback={<>...</>}>
@@ -186,6 +196,11 @@ function App() {
                 <Route path='/membership/welcome' element={
                     <Suspense fallback={<>...</>}>
                         <MembershipWelcome />
+                    </Suspense>
+                }/>
+                <Route path='/signup' element={
+                    <Suspense fallback={<>...</>}>
+                        <Signup />
                     </Suspense>
                 }/>
                 <Route path='/forgot-password' element={

@@ -1,0 +1,71 @@
+.signup-fav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.signup-fav-empty {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.9rem;
+}
+
+.signup-fav-card {
+  position: relative;
+  appearance: none;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.signup-fav-card:hover {
+  border-color: theme('colors.primaryOrange');
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.signup-fav-card.is-active {
+  border-color: theme('colors.primaryGreen');
+  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.18);
+}
+
+.signup-fav-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+  background: #eee;
+}
+
+.signup-fav-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px 10px;
+}
+
+.signup-fav-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.signup-fav-country {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.signup-fav-check.signup-fav-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: theme('colors.primaryGreen');
+  background: #fff;
+  border-radius: 50%;
+}

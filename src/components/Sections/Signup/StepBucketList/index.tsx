@@ -1,0 +1,124 @@
+/**
+ * Step 8 — Bucket list. Free-text travel goals; each row POSTs through
+ * the server's moderation gate (drugs / self-harm / weapons are caught
+ * before persistence). Finishing this step flips
+ * `onboarding_completed_at` and exits to `/`.
+ */
+import { useState } from 'react';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import { IconButton } from '@mui/material';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import { BucketListBlockedError } from 'api/bucketListApi';
+import {
+    useAddBucketListItem,
+    useBucketList,
+    useDeleteBucketListItem,
+} from 'api/hooks/useBucketList';
+import './index.scss';
+
+export interface StepBucketListProps {
+    onFinish: () => void;
+    onSkip: () => void;
+}
+
+const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
+    const { data: items = [] } = useBucketList();
+    const add = useAddBucketListItem();
+    const remove = useDeleteBucketListItem();
+    const [draft, setDraft] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
+    const handleAdd = async () => {
+        const text = draft.trim();
+        if (!text) return;
+        setError(null);
+        try {
+            await add.mutateAsync(text);
+            setDraft('');
+        } catch (err) {
+            if (err instanceof BucketListBlockedError) {
+                setError(err.message);
+            } else {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Could not add that one.'
+                );
+            }
+        }
+    };
+
+    return (
+        <>
+            <h1 className="signup-step-title">On your bucket list?</h1>
+            <p className="signup-step-subtitle">
+                A few travel goals — phrase them like you'd tell a friend.
+                You can always add more later.
+            </p>
+
+            <div className="signup-bucket-add">
+                <input
+                    className="signup-step-input"
+                    type="text"
+                    placeholder="e.g. Watch an FC Barcelona game at Camp Nou"
+                    value={draft}
+                    onChange={(e) => {
+                        setDraft(e.target.value);
+                        if (error) setError(null);
+                    }}
+                    maxLength={280}
+                />
+                <ButtonCustom
+                    type="none"
+                    capitalizeType="none"
+                    className="signup-primary-btn signup-bucket-add-btn"
+                    label={add.isPending ? 'Saving…' : 'Add'}
+                    onClick={handleAdd}
+                    disabled={add.isPending || !draft.trim()}
+                />
+            </div>
+
+            {items.length > 0 && (
+                <ul className="signup-bucket-list">
+                    {items.map((item) => (
+                        <li key={item.id} className="signup-bucket-row">
+                            <span>{item.text}</span>
+                            <IconButton
+                                size="small"
+                                aria-label={`Remove "${item.text}"`}
+                                onClick={() => void remove.mutateAsync(item.id)}
+                            >
+                                <DeleteOutlineRoundedIcon fontSize="small" />
+                            </IconButton>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {error && (
+                <p className="signup-error" role="alert">
+                    {error}
+                </p>
+            )}
+
+            <div className="signup-step-actions">
+                <ButtonCustom
+                    type="none"
+                    capitalizeType="none"
+                    className="signup-primary-btn"
+                    label="Finish"
+                    onClick={onFinish}
+                />
+                <button
+                    type="button"
+                    className="signup-skip-link"
+                    onClick={onSkip}
+                >
+                    Skip the rest
+                </button>
+            </div>
+        </>
+    );
+};
+
+export default StepBucketList;

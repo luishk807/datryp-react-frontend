@@ -19,3 +19,5 @@ export * from "./savedPlace.types";
 export * from "./savedCountry.types";
 export * from "./savedCity.types";
 export * from "./admin.types";
+export * from "./preferences.types";
+export * from "./bucketList.types";

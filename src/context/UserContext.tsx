@@ -76,6 +76,17 @@ export interface User {
     /** True when the user has cancelled via the Customer Portal but the
      *  current period is still active. */
     cancelAtPeriodEnd: boolean;
+    /** Server-authoritative ISO-2 country code from `/me/preferences`. The
+     *  Account page also keeps a localStorage `countryOfBirth` overlay for
+     *  legacy users; prefer this field when set. */
+    countryOfBirthCode: string | null;
+    /** Interest slugs the user picked during onboarding (or later on the
+     *  Account page). Empty array = none chosen yet. */
+    interests: string[];
+    /** ISO-8601 timestamp marking when the user finished or explicitly
+     *  skipped the onboarding wizard. Null means "needs the wizard" — the
+     *  auto-launcher in App reads this. */
+    onboardingCompletedAt: string | null;
 }
 
 /**
@@ -190,6 +201,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             trialEndsAt: me.trial_ends_at,
             currentPeriodEnd: me.current_period_end,
             cancelAtPeriodEnd: me.subscription_cancel_at_period_end,
+            countryOfBirthCode: me.country_of_birth_code,
+            interests: me.interests ?? [],
+            onboardingCompletedAt: me.onboarding_completed_at,
             ...overlay,
         };
     }, [me, overlay]);
