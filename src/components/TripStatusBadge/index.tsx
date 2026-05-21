@@ -1,50 +1,35 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import classnames from 'classnames';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+} from '@mui/material';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
-import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 
 interface TripStatusBadgeProps {
     data: TripState;
-    /** Persists the new trip status. Returning a promise keeps the modal
-     *  open with a "Saving…" label until the save round-trips, then it
-     *  closes. The parent owns the actual mutation. */
+    /** Persists the new trip status. Awaited so the dialog can show
+     *  "Saving…" until the parent's mutation settles. */
     onStatusChange: (status: TripStatus) => void | Promise<void>;
     isSaving?: boolean;
-    /** Hides the pencil affordance and turns the pill into a static label. */
+    /** Hides the button entirely. Used for non-organizers or while
+     *  another save is in flight. */
     disabled?: boolean;
     className?: string;
 }
 
-// Canonical lifecycle order — Planning → Confirmed → Completed → Cancelled.
-// The backend lookup returns rows alphabetically (Cancelled / Completed /
-// Confirmed / Planning), which reads backwards in the modal.
-const STATUS_ORDER: Record<string, number> = {
-    [TRIP_STATUS.PLANNING]: 0,
-    [TRIP_STATUS.CONFIRMED]: 1,
-    [TRIP_STATUS.COMPLETED]: 2,
-    [TRIP_STATUS.CANCELLED]: 3,
-};
-
-const resolveStatus = (
-    raw: TripState['status'],
-    options: Array<{ id: string | number; name: string }>
-): TripStatus | undefined => {
-    if (!raw) return undefined;
-    if (typeof raw === 'number' || typeof raw === 'string') {
-        const match = options.find((o) => o.id === raw);
-        return match as TripStatus | undefined;
-    }
-    // Pre-seeded sample uses numeric ids; backend options use UUIDs.
-    // Reconcile by name so the current selection survives that gap.
-    const byName = options.find((o) => o.name === raw.name);
-    if (byName) return byName as TripStatus;
-    return raw;
+const deriveStatusName = (raw: TripState['status']): string => {
+    if (raw && typeof raw === 'object' && raw.name) return raw.name;
+    return TRIP_STATUS.PLANNING;
 };
 
 const isActivityConfirmed = (status: Activity['status']): boolean => {
@@ -68,6 +53,23 @@ const findUnconfirmedActivities = (state: TripState): string[] => {
     return names;
 };
 
+/**
+ * "Promote trip" button. Label + target are derived from the current
+ * status:
+ *
+ * - Planning   → "Confirm trip"   (saves as Confirmed; gated by all
+ *                                  activities being Confirmed first)
+ * - Confirmed  → "Mark complete"  (saves as Completed)
+ * - Else       → renders nothing.
+ *
+ * Clicking the button:
+ *   1. Validates (Planning → Confirmed needs every activity Confirmed)
+ *   2. On pass, opens a confirm Dialog with action-specific copy
+ *   3. On confirm, calls `onStatusChange` and the parent owns the save
+ *
+ * Validation failures surface inline below the button — the dialog only
+ * opens when the action can actually succeed.
+ */
 export const TripStatusBadge = ({
     data,
     onStatusChange,
@@ -76,51 +78,49 @@ export const TripStatusBadge = ({
     className,
 }: TripStatusBadgeProps) => {
     const { data: tripStatuses = [] } = useTripStatuses();
-    const modalRef = useRef<ModalButtonHandle>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
-    const statusOptions = useMemo(
-        () =>
-            tripStatuses
-                .map((s) => ({ id: s.id as string | number, name: s.name }))
-                .sort(
-                    (a, b) =>
-                        (STATUS_ORDER[a.name] ?? 99) -
-                        (STATUS_ORDER[b.name] ?? 99)
-                ),
-        [tripStatuses]
-    );
+    const statusName = deriveStatusName(data.status);
 
-    const currentStatus = useMemo(
-        () => resolveStatus(data.status, statusOptions),
-        [data.status, statusOptions]
-    );
+    const target = useMemo(() => {
+        if (statusName === TRIP_STATUS.PLANNING) {
+            return {
+                next: tripStatuses.find((s) => s.name === TRIP_STATUS.CONFIRMED),
+                label: 'Confirm trip',
+                Icon: CheckCircleOutlineRoundedIcon,
+                requiresActivitiesConfirmed: true,
+                dialogTitle: 'Confirm this trip?',
+                dialogBody:
+                    "Confirming locks the itinerary — you won't be able to add or edit places afterward. Participants will be notified if the bell is on.",
+                confirmLabel: 'Confirm trip',
+            };
+        }
+        if (statusName === TRIP_STATUS.CONFIRMED) {
+            return {
+                next: tripStatuses.find((s) => s.name === TRIP_STATUS.COMPLETED),
+                label: 'Mark complete',
+                Icon: CheckCircleRoundedIcon,
+                requiresActivitiesConfirmed: false,
+                dialogTitle: 'Mark this trip as completed?',
+                dialogBody:
+                    "Once completed the trip is read-only. It stays in your list as a record of where you've been.",
+                confirmLabel: 'Mark complete',
+            };
+        }
+        return null;
+    }, [statusName, tripStatuses]);
 
-    const statusName = currentStatus?.name ?? TRIP_STATUS.PLANNING;
-    const [draftStatusId, setDraftStatusId] = useState<string | number | undefined>(
-        currentStatus?.id
-    );
-    const [statusError, setStatusError] = useState<string | null>(null);
+    if (disabled || !target) return null;
 
-    const openModal = () => {
-        if (disabled) return;
-        setDraftStatusId(currentStatus?.id);
-        setStatusError(null);
-        modalRef.current?.openModel();
-    };
-
-    const closeModal = () => {
-        setStatusError(null);
-        modalRef.current?.closeModal();
-    };
-
-    const handleSave = async () => {
-        const next = statusOptions.find((o) => o.id === draftStatusId);
-        if (!next) {
-            modalRef.current?.closeModal();
+    const handleClick = () => {
+        if (!target.next) {
+            setError(
+                "Couldn't resolve the next trip status. Try again shortly."
+            );
             return;
         }
-        // Trip can only promote to Confirmed when every activity is also Confirmed.
-        if (next.name === TRIP_STATUS.CONFIRMED) {
+        if (target.requiresActivitiesConfirmed) {
             const unconfirmed = findUnconfirmedActivities(data);
             if (unconfirmed.length) {
                 const preview = unconfirmed.slice(0, 3).join(', ');
@@ -128,87 +128,79 @@ export const TripStatusBadge = ({
                     unconfirmed.length > 3
                         ? ` and ${unconfirmed.length - 3} more`
                         : '';
-                setStatusError(
+                setError(
                     `Confirm every activity first (${preview}${extra}). ` +
                         `Toggle each place to "Confirmed" before promoting the trip.`
                 );
                 return;
             }
         }
-        setStatusError(null);
+        setError(null);
+        setConfirmOpen(true);
+    };
+
+    const handleConfirm = async () => {
+        if (!target.next) return;
         try {
-            await onStatusChange(next as TripStatus);
-            modalRef.current?.closeModal();
+            await onStatusChange(target.next as TripStatus);
+            setConfirmOpen(false);
         } catch {
-            // Parent surfaced the error elsewhere; leave the modal open.
+            // Parent surfaces save errors; keep dialog open so the user
+            // can retry or close.
         }
     };
 
-    return (
-        <>
-            <ButtonCustom
-                type="none"
-                capitalizeType="none"
-                className={classnames('trip-status-badge', className)}
-                onClick={openModal}
-                disabled={disabled}
-            >
-                <span className="status-dot" />
-                <span className="status-text">{statusName}</span>
-                {!disabled && <EditOutlinedIcon className="status-edit" />}
-            </ButtonCustom>
+    const handleClose = () => {
+        if (isSaving) return;
+        setConfirmOpen(false);
+    };
 
-            <ModalButton ref={modalRef} title="Update trip status">
-                <div
-                    className="trip-status-radio-group"
-                    role="radiogroup"
-                    aria-label="Trip status"
-                >
-                    {statusOptions.map((opt) => {
-                        const selected = opt.id === draftStatusId;
-                        return (
-                            <button
-                                key={String(opt.id)}
-                                type="button"
-                                role="radio"
-                                aria-checked={selected}
-                                className={classnames(
-                                    'trip-status-radio',
-                                    `is-${opt.name.toLowerCase()}`,
-                                    { selected }
-                                )}
-                                onClick={() => {
-                                    setDraftStatusId(opt.id);
-                                    setStatusError(null);
-                                }}
-                            >
-                                <span className="trip-status-radio-dot" />
-                                <span className="trip-status-radio-label">
-                                    {opt.name}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-                <ErrorAlert>{statusError}</ErrorAlert>
-                <div className="trip-status-actions">
+    const { label, Icon, dialogTitle, dialogBody, confirmLabel } = target;
+
+    return (
+        <span className={classnames('trip-status-badge-wrapper', className)}>
+            <ButtonCustom
+                type="standard"
+                capitalizeType="none"
+                className="trip-status-badge"
+                onClick={handleClick}
+                disabled={isSaving}
+            >
+                <Icon className="trip-status-badge-icon" />
+                <span className="trip-status-badge-label">{label}</span>
+            </ButtonCustom>
+            {error && (
+                <ErrorAlert className="trip-status-badge-error">{error}</ErrorAlert>
+            )}
+
+            <Dialog
+                open={confirmOpen}
+                onClose={handleClose}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>{dialogTitle}</DialogTitle>
+                <DialogContent>
+                    <p>{dialogBody}</p>
+                </DialogContent>
+                <DialogActions>
                     <ButtonCustom
                         type="line"
                         capitalizeType="uppercase"
                         label="Cancel"
-                        onClick={closeModal}
+                        onClick={handleClose}
                         disabled={isSaving}
                     />
                     <ButtonCustom
                         type="standard"
                         capitalizeType="uppercase"
-                        label={isSaving ? 'Saving…' : 'Save'}
-                        onClick={handleSave}
+                        label={isSaving ? 'Saving…' : confirmLabel}
+                        onClick={handleConfirm}
                         disabled={isSaving}
                     />
-                </div>
-            </ModalButton>
-        </>
+                </DialogActions>
+            </Dialog>
+        </span>
     );
 };
 

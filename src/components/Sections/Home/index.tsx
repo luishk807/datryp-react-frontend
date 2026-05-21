@@ -2,14 +2,17 @@ import { useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
-import { FALLBACK_HERO_IMAGES, TRIP_MODE } from 'constants';
+import { FALLBACK_HERO_IMAGES } from 'constants';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
 import { useHeroImages } from 'api/hooks/useHeroImages';
-import type { Country, HeroImage, TripMode } from 'types';
+import type { Country, HeroImage } from 'types';
+
+type HomeMode = 'country' | 'ai';
 
 interface SelectedHero {
     url: string;
@@ -31,28 +34,23 @@ const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
 };
 
 const Home = () => {
-    const [tripMode, setTripMode] = useState<TripMode>(TRIP_MODE.SINGLE);
+    const [homeMode, setHomeMode] = useState<HomeMode>('country');
     const navigate = useNavigate();
 
     const { data: heroImages } = useHeroImages();
     const heroImage = useMemo(() => pickRandomHero(heroImages), [heroImages]);
 
     /** SearchBar autocomplete pick — route the user to the country detail
-     *  page (preview-before-commit) and carry the mode they selected on the
-     *  hero tabs so the country CTA can dispatch the right trip type. */
+     *  page (preview-before-commit). Single vs multi is no longer chosen
+     *  here; the trip-builder's first step lets them pick the mode. */
     const handleSearchSelected = useCallback(
         (country: Country) => {
             if (!country?.code) return;
-            // Recommend mode skips the country page — it uses AI search at
-            // /search; the autocomplete pick never hits this branch in that
-            // mode, but guard anyway so an unexpected mode doesn't 404.
-            const mode =
-                tripMode === TRIP_MODE.MULTIPLE ? 'multiple' : 'single';
             navigate(
-                `/country?code=${encodeURIComponent(country.code)}&mode=${mode}`
+                `/country?code=${encodeURIComponent(country.code)}&mode=single`
             );
         },
-        [navigate, tripMode]
+        [navigate]
     );
 
     /** TopPlaces card click — route to the city detail page. TopPlace
@@ -98,53 +96,45 @@ const Home = () => {
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">Where to next?</h1>
                     <p className="home-hero-subtitle">
-                        Plan a single getaway, a multi-stop journey, or let AI find your match.
+                        Search for a country, or let our AI pick the right one
+                        for you.
                     </p>
 
                     <div
                         role="tablist"
-                        aria-label="Trip type"
-                        className={classnames('home-hero-options', `is-${tripMode}`)}
+                        aria-label="Search mode"
+                        className={classnames('home-hero-options', `is-${homeMode}`)}
                     >
                         <span className="hero-option-thumb" aria-hidden="true" />
                         <button
                             role="tab"
-                            aria-selected={tripMode === TRIP_MODE.SINGLE}
+                            aria-selected={homeMode === 'country'}
                             className={classnames('hero-option', {
-                                selected: tripMode === TRIP_MODE.SINGLE,
+                                selected: homeMode === 'country',
                             })}
-                            onClick={() => setTripMode(TRIP_MODE.SINGLE)}
+                            onClick={() => setHomeMode('country')}
                         >
-                            Single place
+                            <PublicRoundedIcon className="hero-option-icon" />
+                            <span>Search by country</span>
                         </button>
                         <button
                             role="tab"
-                            aria-selected={tripMode === TRIP_MODE.MULTIPLE}
-                            className={classnames('hero-option', {
-                                selected: tripMode === TRIP_MODE.MULTIPLE,
-                            })}
-                            onClick={() => setTripMode(TRIP_MODE.MULTIPLE)}
-                        >
-                            Multiple locations
-                        </button>
-                        <button
-                            role="tab"
-                            aria-selected={tripMode === TRIP_MODE.RECOMMEND}
+                            aria-selected={homeMode === 'ai'}
                             className={classnames('hero-option', 'is-ai', {
-                                selected: tripMode === TRIP_MODE.RECOMMEND,
+                                selected: homeMode === 'ai',
                             })}
-                            onClick={() => setTripMode(TRIP_MODE.RECOMMEND)}
+                            onClick={() => setHomeMode('ai')}
                         >
                             <AutoAwesomeIcon className="hero-option-icon" />
-                            <span>Recommend</span>
-                            <span className="hero-option-ai-badge">AI</span>
+                            <span>AI</span>
+                            <span className="hero-option-ai-badge">Beta</span>
                         </button>
                     </div>
 
                     <div className="home-hero-search">
                         <SearchBar
                             onSelected={handleSearchSelected}
-                            mode={tripMode === TRIP_MODE.RECOMMEND ? 'recommend' : 'country'}
+                            mode={homeMode === 'ai' ? 'recommend' : 'country'}
                             onAiSearchSubmit={(q) =>
                                 navigate(`/search?q=${encodeURIComponent(q)}`)
                             }

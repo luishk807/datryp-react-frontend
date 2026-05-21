@@ -1,17 +1,37 @@
-import { useRef, useState, type ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import moment from 'moment'; // iteration loop in buildExpectedDates uses moment object mutation directly
 import { formatDate, isValidDate } from 'utils';
 import './index.scss';
-import { Step, StepLabel, Grid } from '@mui/material';
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    Step,
+    StepLabel,
+    Grid,
+} from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded';
+import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
-import DialogBox from 'components/common/FormFields/DialogBox';
 import ErrorAlert from 'components/common/ErrorAlert';
+import Menu, { MenuActionItem } from 'components/common/Menu';
 import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
 import TripStatusBadge from 'components/TripStatusBadge';
+import NotifyParticipantsCheckbox from 'components/NotifyParticipantsCheckbox';
 import TripComplete from 'components/DestinationDetail/Completed';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import PaywallModal from 'components/PaywallModal';
@@ -81,6 +101,21 @@ export interface StepperStep {
     comp: ReactNode;
 }
 
+interface StepperAdvanceContextValue {
+    onAdvance: () => void;
+}
+
+const StepperAdvanceContext = createContext<StepperAdvanceContextValue>({
+    onAdvance: () => {},
+});
+
+/** Step components that want to fire the wizard's "Next" imperatively
+ *  (e.g. the mode picker auto-advances on click) read this hook. Outside
+ *  of StepperComp the default is a no-op, so the hook is safe to call
+ *  unconditionally. */
+export const useStepperAdvance = (): StepperAdvanceContextValue =>
+    useContext(StepperAdvanceContext);
+
 interface StepperCompProps {
     steps?: StepperStep[];
     data?: TripState;
@@ -95,10 +130,21 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const saveItinerary = useSaveItinerary();
     const deleteItinerary = useDeleteItinerary();
 
+    // Edit-mode kebab menu state (Cancel trip / Delete trip).
+    const [editMenuAnchor, setEditMenuAnchor] = useState<HTMLElement | null>(
+        null
+    );
+    const [editConfirm, setEditConfirm] = useState<null | 'cancel' | 'delete'>(
+        null
+    );
+
     const handleDeleteTrip = async () => {
         if (!data?.apiId) return;
         try {
-            await deleteItinerary.mutateAsync(data.apiId);
+            await deleteItinerary.mutateAsync({
+                id: data.apiId,
+                notifyParticipants,
+            });
             navigate('/trips');
         } catch (err) {
             setSaveError(
@@ -115,6 +161,51 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         }
     };
 
+    // Mark the trip as Cancelled from edit mode — saves the current
+    // form state with status=Cancelled and routes back to the trip view.
+    const handleCancelTripFromEdit = async () => {
+        if (!data?.apiId) return;
+        const interaryTypeId = resolveInteraryTypeId(data, itineraryTypes);
+        if (!interaryTypeId) {
+            setSaveError(
+                'Could not resolve trip type. Try again in a moment.'
+            );
+            return;
+        }
+        const cancelledRow = tripStatuses.find(
+            (s) => s.name === TRIP_STATUS.CANCELLED
+        );
+        if (!cancelledRow) {
+            setSaveError(
+                "Couldn't resolve the Cancelled status. Try again shortly."
+            );
+            return;
+        }
+        try {
+            const input = tripStateToSaveInput(data, {
+                id: data.apiId,
+                interaryTypeId,
+                tripStatusId: cancelledRow.id,
+                notifyParticipants,
+            });
+            await saveItinerary.mutateAsync(input);
+            navigate(`/trip-detail?id=${data.apiId}`);
+        } catch (err) {
+            setSaveError(
+                err instanceof Error ? err.message : 'Failed to cancel the trip.'
+            );
+        }
+    };
+
+    const handleEditConfirm = async () => {
+        if (editConfirm === 'cancel') {
+            await handleCancelTripFromEdit();
+        } else if (editConfirm === 'delete') {
+            await handleDeleteTrip();
+        }
+        setEditConfirm(null);
+    };
+
     // Editing an existing trip when apiId is present (set by apiToTripState
     // via the /single?id=<uuid> hydration in TripSteps). Drives a flat
     // single-page edit layout instead of the new-trip wizard.
@@ -123,6 +214,22 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const [activeStep, setActiveStep] = useState(0);
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
+    // Per-save opt-out for participant notifications. Defaults ON;
+    // displayed only when there's actually someone else to notify.
+    const [notifyParticipants, setNotifyParticipants] = useState(true);
+    const otherMemberCount = useMemo(() => {
+        const friends = data?.friends ?? [];
+        const organizers = data?.organizer ?? [];
+        const ids = new Set<string | number>();
+        for (const f of [...friends, ...organizers]) {
+            if (f.userId) ids.add(f.userId);
+        }
+        return ids.size;
+    }, [data?.friends, data?.organizer]);
+    // Subtract one for the actor; if anyone remains the toggle is useful.
+    // The 'finish' / save path always uses the actor's identity so they
+    // never count as a recipient.
+    const showNotifyToggle = otherMemberCount > 1;
     // Paywall modal state — captures the cap + current count from the
     // server's TRIP_CAP_REACHED extension so the modal can show "X / Y".
     const [paywallInfo, setPaywallInfo] = useState<{
@@ -140,29 +247,34 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const isStepSkipped = (step: number) => skipped.has(step);
     const isLastStep = activeStep === steps.length - 1;
 
-    // Required-field check for the current step.
-    // - Step 0 (basic info): name + dates.
-    // - Step 1 (participants): at least one participant.
-    // - Last step (or edit mode, which shows everything at once): all of the above.
+    // Required-field check for the current step. Matched by step *label*
+    // rather than index because the create flow conditionally inserts a
+    // 'Destination' step (single-trip-only, when no country was preset).
+    // Labels mirror the entries in `TripSteps`.
+    const activeLabel = steps[activeStep]?.label;
     const stepMissing: string[] = [];
     if (data) {
-        if (!isEditing && activeStep === 0) {
-            if (!data.name?.trim()) stepMissing.push('trip name');
+        if (!isEditing && activeLabel === 'Trip type') {
+            if (!data.type?.id) stepMissing.push('a trip type');
+        }
+        if (!isEditing && activeLabel === 'Destination') {
+            if (!data.destinations?.[0]?.country?.id) {
+                stepMissing.push('a destination country');
+            }
+        }
+        if (!isEditing && activeLabel === 'Dates') {
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
         }
-        if (!isEditing && activeStep === 1) {
-            if (!(data.friends ?? []).some((f) => f.userId)) {
-                stepMissing.push('at least one participant');
+        if (!isEditing && activeLabel === 'Organizers') {
+            if (!(data.organizer ?? []).some((o) => o.userId)) {
+                stepMissing.push('at least one organizer');
             }
         }
         if (isEditing || isLastStep) {
             if (!data.name?.trim()) stepMissing.push('trip name');
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
-            if (!(data.friends ?? []).some((f) => f.userId)) {
-                stepMissing.push('at least one participant');
-            }
             if (!(data.organizer ?? []).some((o) => o.userId)) {
                 stepMissing.push('at least one organizer');
             }
@@ -200,12 +312,11 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         if (!data.name?.trim()) missing.push('trip name');
         if (!data.startDate) missing.push('start date');
         if (!data.endDate) missing.push('end date');
-        if (!(data.friends ?? []).some((f) => f.userId)) {
-            missing.push('at least one participant');
-        }
         if (!(data.organizer ?? []).some((o) => o.userId)) {
             missing.push('at least one organizer');
         }
+        // Participants are optional — solo trips are valid. Only the
+        // organizer is mandatory (it's the seeded current user).
         const { expected, missing: emptyDates } = inspectDays(data);
         if (expected.length === 0) {
             missing.push('at least one place');
@@ -234,6 +345,7 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             id: data.apiId,
             interaryTypeId,
             tripStatusId,
+            notifyParticipants,
         });
         // Note: the creator is always implicitly the owner (`user_id`) and can
         // edit regardless of organizer status, so we respect their choice to
@@ -279,6 +391,18 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         setSaveError(null);
     };
 
+    // `useStepperAdvance` lets a step component fire the wizard's "Next"
+    // imperatively (e.g. TripModeStep auto-advances when the user picks a
+    // card so they don't have to hit Next). The provider wraps the step
+    // body below.
+    const stepperAdvanceValue = useMemo(
+        () => ({ onAdvance: handleNext }),
+        // handleNext is stable enough — it closes over state but is
+        // recreated each render, and we re-run the memo each render anyway.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [activeStep, isLastStep]
+    );
+
     const handleBack = () => {
         setActiveStep((prev) => prev - 1);
         setSaveError(null);
@@ -289,9 +413,13 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     };
 
     const handleReset = () => {
+        // Plan-another should land on the home page so the user can either
+        // search a country or use AI — those ARE the "where are you going?"
+        // entry points. Resetting in-place dropped them on the Trip-type
+        // step which assumes we already know the destination.
         dispatch(resetTrip());
-        setActiveStep(0);
         setSaveError(null);
+        navigate('/');
     };
 
     // Edit mode: skip the wizard, render every section stacked with a single
@@ -381,25 +509,56 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                                     hasMissingFields
                                                 }
                                             />
-                                            <span className="edit-trip-delete-wrapper">
-                                                <DialogBox
-                                                    buttonLabel={
+                                            {showNotifyToggle && (
+                                                <NotifyParticipantsCheckbox
+                                                    checked={notifyParticipants}
+                                                    onChange={setNotifyParticipants}
+                                                    disabled={
+                                                        saveItinerary.isPending ||
                                                         deleteItinerary.isPending
-                                                            ? 'Deleting…'
-                                                            : 'Delete Trip'
                                                     }
-                                                    buttonType="line"
-                                                    title="Delete this trip?"
-                                                    onConfirm={handleDeleteTrip}
-                                                >
-                                                    This permanently removes
-                                                    the trip and all its
-                                                    activities. Participants
-                                                    will no longer see it in
-                                                    their list. This cannot
-                                                    be undone.
-                                                </DialogBox>
-                                            </span>
+                                                />
+                                            )}
+                                            <IconButton
+                                                className="edit-trip-menu-btn"
+                                                aria-label="More actions"
+                                                onClick={(e) =>
+                                                    setEditMenuAnchor(
+                                                        e.currentTarget
+                                                    )
+                                                }
+                                                disabled={
+                                                    saveItinerary.isPending ||
+                                                    deleteItinerary.isPending
+                                                }
+                                                size="small"
+                                            >
+                                                <MoreVertIcon fontSize="small" />
+                                            </IconButton>
+                                            <Menu
+                                                anchorEl={editMenuAnchor}
+                                                onClose={() =>
+                                                    setEditMenuAnchor(null)
+                                                }
+                                            >
+                                                <MenuActionItem
+                                                    icon={<EventBusyRoundedIcon />}
+                                                    label="Cancel trip"
+                                                    onClick={() => {
+                                                        setEditMenuAnchor(null);
+                                                        setEditConfirm('cancel');
+                                                    }}
+                                                />
+                                                <MenuActionItem
+                                                    icon={<DeleteOutlineRoundedIcon />}
+                                                    label="Delete trip"
+                                                    onClick={() => {
+                                                        setEditMenuAnchor(null);
+                                                        setEditConfirm('delete');
+                                                    }}
+                                                    tone="danger"
+                                                />
+                                            </Menu>
                                         </div>
                                     </div>
                                     {(saveError ||
@@ -501,12 +660,70 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                         onDismiss={() => setPaywallInfo(null)}
                     />
                 )}
+                <Dialog
+                    open={editConfirm !== null}
+                    onClose={() => setEditConfirm(null)}
+                    maxWidth="xs"
+                    fullWidth
+                >
+                    <DialogTitle>
+                        {editConfirm === 'cancel'
+                            ? 'Cancel this trip?'
+                            : 'Delete this trip?'}
+                    </DialogTitle>
+                    <DialogContent>
+                        {editConfirm === 'cancel' ? (
+                            <p>
+                                The trip moves to Cancelled status.
+                                Participants will see it as cancelled but the
+                                itinerary stays viewable. This can be reversed
+                                later by an organizer.
+                            </p>
+                        ) : (
+                            <p>
+                                This permanently removes the trip and all its
+                                activities. Participants will no longer see it
+                                in their list. This cannot be undone.
+                            </p>
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            type="line"
+                            capitalizeType="uppercase"
+                            label="Keep trip"
+                            onClick={() => setEditConfirm(null)}
+                            disabled={
+                                saveItinerary.isPending ||
+                                deleteItinerary.isPending
+                            }
+                        />
+                        <Button
+                            type="standard"
+                            capitalizeType="uppercase"
+                            label={
+                                editConfirm === 'delete'
+                                    ? deleteItinerary.isPending
+                                        ? 'Deleting…'
+                                        : 'Delete'
+                                    : saveItinerary.isPending
+                                    ? 'Saving…'
+                                    : 'Cancel trip'
+                            }
+                            onClick={handleEditConfirm}
+                            disabled={
+                                saveItinerary.isPending ||
+                                deleteItinerary.isPending
+                            }
+                        />
+                    </DialogActions>
+                </Dialog>
             </div>
         );
     }
 
     return (
-        <div className="stepperMain">
+        <div className="stepperMain stepperMain--create">
             <Stepper activeStep={activeStep}>
                 {steps.map((step, index) => {
                     const stepProps: { completed?: boolean } = {};
@@ -517,6 +734,15 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                         </Step>
                     );
                 })}
+                {/* Trailing "Finish" indicator — purely visual. The save
+                 *  happens when the user clicks Finish on the last real
+                 *  step; activeStep then ticks one past steps.length and
+                 *  the TripComplete body renders below. Without this dot
+                 *  the stepper looks "stuck" on the last real step even
+                 *  after the trip saved. */}
+                <Step key="__finish__">
+                    <StepLabel StepIconComponent={StepIcon}>Finish</StepLabel>
+                </Step>
             </Stepper>
             {activeStep === steps.length ? (
                 <TripComplete onReset={handleReset} />
@@ -552,7 +778,7 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                 </div>
             ) : (
                 <Grid container>
-                    {activeStep >= 2 && data && (
+                    {isLastStep && data && (
                         <>
                             <Grid item lg={12} md={12} xs={12}>
                                 <BasicTripInfo
@@ -581,7 +807,9 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                         </h2>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12}>
-                        {steps[activeStep]?.comp}
+                        <StepperAdvanceContext.Provider value={stepperAdvanceValue}>
+                            {steps[activeStep]?.comp}
+                        </StepperAdvanceContext.Provider>
                     </Grid>
                     {saveError && (
                         <Grid item lg={12} md={12} xs={12}>
@@ -613,6 +841,14 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                     label="Back"
                                 />
                             )}
+                            {isLastStep && showNotifyToggle && (
+                                <NotifyParticipantsCheckbox
+                                    checked={notifyParticipants}
+                                    onChange={setNotifyParticipants}
+                                    disabled={saveItinerary.isPending}
+                                />
+                            )}
+                            {activeLabel !== 'Trip type' && (
                             <Button
                                 type="standard"
                                 onClick={handleNext}
@@ -628,6 +864,7 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                     (isLastStep && saveItinerary.isPending)
                                 }
                             />
+                            )}
                         </div>
                     </Grid>
                 </Grid>

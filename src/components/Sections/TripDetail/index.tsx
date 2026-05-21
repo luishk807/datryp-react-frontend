@@ -2,21 +2,33 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { produce } from "immer";
 import "./index.scss";
-import { Grid, Tooltip } from "@mui/material";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+} from "@mui/material";
+import Menu, { MenuActionItem } from "components/common/Menu";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import TableChartOutlinedIcon from "@mui/icons-material/TableChartOutlined";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
 import DestinationDetail from "components/DestinationDetail";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
-import DialogBox from "components/common/FormFields/DialogBox";
 import ModalButton, {
   type ModalButtonHandle,
 } from "components/ModalButton";
+import NotifyParticipantsCheckbox from "components/NotifyParticipantsCheckbox";
+import TripStatusBadge from "components/TripStatusBadge";
 import { useUser } from "context/UserContext";
 import { basicInfo, useTripDispatch } from "context/TripContext";
 import {
@@ -93,6 +105,10 @@ export const TripDetail = () => {
   const deleteItinerary = useDeleteItinerary();
   const { data: tripStatuses = [] } = useTripStatuses();
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Per-save opt-out for the participant notification fan-out. Defaults
+  // ON; one checkbox in the header controls every save / status change /
+  // mark-completed / delete on this page.
+  const [notifyParticipants, setNotifyParticipants] = useState(true);
 
   // Dirty when the user has changed budgets/places (localTripData diverges
   // from the server-derived baseTripData) or picked a new status badge.
@@ -223,6 +239,7 @@ export const TripDetail = () => {
           id: apiTrip.id,
           interaryTypeId: apiTrip.interaryType.id,
           tripStatusId: apiTrip.status?.id ?? null,
+          notifyParticipants,
         });
         void saveItinerary.mutateAsync(input).catch((err: unknown) => {
           setSaveError(
@@ -233,7 +250,13 @@ export const TripDetail = () => {
         });
       }
     },
-    [localTripData, apiTrip, persistedStatusName, saveItinerary],
+    [
+      localTripData,
+      apiTrip,
+      persistedStatusName,
+      saveItinerary,
+      notifyParticipants,
+    ],
   );
 
   const handleSaveTrip = useCallback(async () => {
@@ -246,6 +269,7 @@ export const TripDetail = () => {
         tripStatusId: statusOverride?.id
           ? String(statusOverride.id)
           : apiTrip.status?.id ?? null,
+        notifyParticipants,
       });
       await saveItinerary.mutateAsync(input);
       // Cache invalidation triggers a refetch; baseTripData updates and the
@@ -257,13 +281,16 @@ export const TripDetail = () => {
         err instanceof Error ? err.message : "Failed to save the trip.",
       );
     }
-  }, [apiTrip, tripData, statusOverride, saveItinerary]);
+  }, [apiTrip, tripData, statusOverride, saveItinerary, notifyParticipants]);
 
   const handleDeleteTrip = useCallback(async () => {
     if (!apiTrip) return;
     setSaveError(null);
     try {
-      await deleteItinerary.mutateAsync(apiTrip.id);
+      await deleteItinerary.mutateAsync({
+        id: apiTrip.id,
+        notifyParticipants,
+      });
       // Trip is gone — drop the user back at the trips list.
       navigate("/trips");
     } catch (err) {
@@ -271,7 +298,7 @@ export const TripDetail = () => {
         err instanceof Error ? err.message : "Failed to delete the trip.",
       );
     }
-  }, [apiTrip, deleteItinerary, navigate]);
+  }, [apiTrip, deleteItinerary, navigate, notifyParticipants]);
 
   const isOrganizer = useMemo(
     () => isCurrentUserOrganizer(apiTrip, currentUser?.id),
@@ -288,11 +315,19 @@ export const TripDetail = () => {
   // Save Trip only matters while the trip is still in Planning — that's the
   // one state where activity-level edits can be made. Once Confirmed,
   // activities lock and the only legitimate trip-level change is the
-  // "Mark Completed" promotion (which owns its own save below).
+  // "Mark complete" promotion (handled by TripStatusBadge).
   const canSaveTrip =
     isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING;
-  const canMarkCompleted =
-    isOrganizer && persistedStatusName === TRIP_STATUS.CONFIRMED;
+  // TripStatusBadge shows "Confirm trip" in Planning and "Mark complete" in
+  // Confirmed — those are the only states with a forward move.
+  const canPromoteStatus =
+    isOrganizer &&
+    (persistedStatusName === TRIP_STATUS.PLANNING ||
+      persistedStatusName === TRIP_STATUS.CONFIRMED);
+  const canCancelTrip =
+    isOrganizer &&
+    (persistedStatusName === TRIP_STATUS.PLANNING ||
+      persistedStatusName === TRIP_STATUS.CONFIRMED);
   const canExport = isLocked;
 
   // Once the trip is past Planning, both the basic-info stats and the
@@ -321,6 +356,7 @@ export const TripDetail = () => {
           id: apiTrip.id,
           interaryTypeId: apiTrip.interaryType.id,
           tripStatusId: String(next.id),
+          notifyParticipants,
         });
         await saveItinerary.mutateAsync(input);
         setStatusOverride(null);
@@ -332,16 +368,16 @@ export const TripDetail = () => {
         throw err;
       }
     },
-    [apiTrip, tripData, saveItinerary],
+    [apiTrip, tripData, saveItinerary, notifyParticipants],
   );
 
-  const handleMarkCompleted = useCallback(async () => {
+  const handleCancelTrip = useCallback(async () => {
     if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
-    const completed = tripStatuses.find(
-      (s) => s.name === TRIP_STATUS.COMPLETED,
+    const cancelled = tripStatuses.find(
+      (s) => s.name === TRIP_STATUS.CANCELLED,
     );
-    if (!completed) {
-      setSaveError("Couldn't resolve the Completed status. Try again shortly.");
+    if (!cancelled) {
+      setSaveError("Couldn't resolve the Cancelled status. Try again shortly.");
       return;
     }
     setSaveError(null);
@@ -349,16 +385,17 @@ export const TripDetail = () => {
       const input = tripStateToSaveInput(tripData, {
         id: apiTrip.id,
         interaryTypeId: apiTrip.interaryType.id,
-        tripStatusId: String(completed.id),
+        tripStatusId: String(cancelled.id),
+        notifyParticipants,
       });
       await saveItinerary.mutateAsync(input);
       setStatusOverride(null);
     } catch (err) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to mark trip completed.",
+        err instanceof Error ? err.message : "Failed to cancel the trip.",
       );
     }
-  }, [apiTrip, tripData, tripStatuses, saveItinerary]);
+  }, [apiTrip, tripData, tripStatuses, saveItinerary, notifyParticipants]);
 
   const handleChangeStep = () => {
     if (!tripData || !apiTrip) return;
@@ -423,19 +460,27 @@ export const TripDetail = () => {
             them. */}
         <Grid item lg={12} md={12} xs={12}>
           <TripDetailHeader
-            tripName={tripData.name}
+            tripData={tripData}
             statusName={persistedStatusName}
             canSaveTrip={canSaveTrip}
             canExport={canExport}
-            canMarkCompleted={canMarkCompleted}
+            canPromoteStatus={canPromoteStatus}
+            canCancelTrip={canCancelTrip}
             isOrganizer={isOrganizer}
             isSaving={saveItinerary.isPending}
             isDeleting={deleteItinerary.isPending}
             onEditTrip={handleChangeStep}
             onPrint={() => window.print()}
             onDownloadExcel={handleExportExcel}
-            onMarkCompleted={handleMarkCompleted}
+            onStatusChange={handleStatusChange}
+            onCancelTrip={handleCancelTrip}
             onDeleteTrip={handleDeleteTrip}
+            showNotifyToggle={
+              isOrganizer &&
+              (apiTrip.friends.length + apiTrip.organizers.length) > 1
+            }
+            notifyParticipants={notifyParticipants}
+            onChangeNotifyParticipants={setNotifyParticipants}
           />
         </Grid>
         <Grid item lg={12} md={12} xs={12} className="trip-detail-toggle-row">
@@ -488,37 +533,53 @@ export const TripDetail = () => {
 };
 
 interface TripDetailHeaderProps {
-  tripName?: string;
+  tripData: TripState;
   statusName: string;
   canSaveTrip: boolean;
   canExport: boolean;
-  canMarkCompleted: boolean;
+  canPromoteStatus: boolean;
+  canCancelTrip: boolean;
   isOrganizer: boolean;
   isSaving: boolean;
   isDeleting: boolean;
   onEditTrip: () => void;
   onPrint: () => void;
   onDownloadExcel: () => void;
-  onMarkCompleted: () => void | Promise<void>;
+  onStatusChange: (next: TripStatus) => void | Promise<void>;
+  onCancelTrip: () => void | Promise<void>;
   onDeleteTrip: () => void | Promise<void>;
+  /** Only true for organizers on trips with other participants. Solo
+   *  trips don't render the toggle at all — there's nobody to notify. */
+  showNotifyToggle: boolean;
+  notifyParticipants: boolean;
+  onChangeNotifyParticipants: (next: boolean) => void;
 }
 
 const TripDetailHeader = ({
-  tripName,
+  tripData,
   statusName,
   canSaveTrip,
   canExport,
-  canMarkCompleted,
+  canPromoteStatus,
+  canCancelTrip,
   isOrganizer,
   isSaving,
   isDeleting,
   onEditTrip,
   onPrint,
   onDownloadExcel,
-  onMarkCompleted,
+  onStatusChange,
+  onCancelTrip,
   onDeleteTrip,
+  showNotifyToggle,
+  notifyParticipants,
+  onChangeNotifyParticipants,
 }: TripDetailHeaderProps) => {
   const exportModalRef = useRef<ModalButtonHandle>(null);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<
+    null | "cancel" | "delete"
+  >(null);
 
   const handlePrint = () => {
     exportModalRef.current?.closeModal();
@@ -529,13 +590,30 @@ const TripDetailHeader = ({
     onDownloadExcel();
   };
 
+  const closeMenu = () => setMenuAnchor(null);
+  const openConfirm = (kind: "cancel" | "delete") => {
+    closeMenu();
+    setConfirmDialog(kind);
+  };
+  const closeConfirm = () => setConfirmDialog(null);
+
+  const handleConfirm = async () => {
+    if (confirmDialog === "cancel") {
+      await onCancelTrip();
+    } else if (confirmDialog === "delete") {
+      await onDeleteTrip();
+    }
+    closeConfirm();
+  };
+
+  const tripName = tripData.name;
+
   return (
     <div className="trip-detail-header">
       <div className="trip-detail-header-title">
         <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
-        {/* Status pill — visible for every state (Planning included) so the
-            user always knows where the trip is in its lifecycle without
-            having to open the edit screen. */}
+        {/* Status pill — visible for every state so the user always knows
+            where the trip is in its lifecycle. */}
         <span
           className={`trip-detail-status trip-detail-status-${statusName.toLowerCase()}`}
           aria-label={`Trip status: ${statusName}`}
@@ -558,6 +636,13 @@ const TripDetailHeader = ({
             label="Edit Trip"
             onClick={onEditTrip}
             disabled={isSaving}
+          />
+        )}
+        {canPromoteStatus && (
+          <TripStatusBadge
+            data={tripData}
+            onStatusChange={onStatusChange}
+            isSaving={isSaving}
           />
         )}
         {canExport && (
@@ -606,35 +691,94 @@ const TripDetailHeader = ({
             </div>
           </ModalButton>
         )}
-        {canMarkCompleted && (
-          <span className="trip-detail-mark-complete-wrapper">
-            <DialogBox
-              buttonLabel={isSaving ? "Saving…" : "Mark Completed"}
-              buttonType="line"
-              title="Mark this trip as completed?"
-              onConfirm={onMarkCompleted}
-            >
-              This marks the trip as completed and locks it from further
-              changes. The itinerary stays visible in your list, but you
-              won't be able to edit places or budgets afterward.
-            </DialogBox>
-          </span>
+        {showNotifyToggle && (
+          <NotifyParticipantsCheckbox
+            checked={notifyParticipants}
+            onChange={onChangeNotifyParticipants}
+            disabled={isSaving || isDeleting}
+          />
         )}
         {isOrganizer && (
-          <span className="trip-detail-delete-wrapper">
-            <DialogBox
-              buttonLabel={isDeleting ? "Deleting…" : "Delete Trip"}
-              buttonType="line"
-              title="Delete this trip?"
-              onConfirm={onDeleteTrip}
+          <>
+            <IconButton
+              className="trip-detail-menu-btn"
+              aria-label="More actions"
+              onClick={(e) => setMenuAnchor(e.currentTarget)}
+              disabled={isSaving || isDeleting}
+              size="small"
             >
-              This permanently removes the trip and all its activities.
-              Participants will no longer see it in their list. This
-              cannot be undone.
-            </DialogBox>
-          </span>
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+            <Menu anchorEl={menuAnchor} onClose={closeMenu}>
+              {canCancelTrip && (
+                <MenuActionItem
+                  icon={<EventBusyRoundedIcon />}
+                  label="Cancel trip"
+                  onClick={() => openConfirm("cancel")}
+                />
+              )}
+              <MenuActionItem
+                icon={<DeleteOutlineRoundedIcon />}
+                label="Delete trip"
+                onClick={() => openConfirm("delete")}
+                tone="danger"
+              />
+            </Menu>
+          </>
         )}
       </div>
+
+      <Dialog
+        open={confirmDialog !== null}
+        onClose={closeConfirm}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          {confirmDialog === "cancel"
+            ? "Cancel this trip?"
+            : "Delete this trip?"}
+        </DialogTitle>
+        <DialogContent>
+          {confirmDialog === "cancel" ? (
+            <p>
+              The trip moves to Cancelled status. Participants will see it as
+              cancelled but the itinerary stays viewable. This can be reversed
+              later by an organizer.
+            </p>
+          ) : (
+            <p>
+              This permanently removes the trip and all its activities.
+              Participants will no longer see it in their list. This cannot
+              be undone.
+            </p>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <ButtonCustom
+            type="line"
+            capitalizeType="uppercase"
+            label="Keep trip"
+            onClick={closeConfirm}
+            disabled={isSaving || isDeleting}
+          />
+          <ButtonCustom
+            type="standard"
+            capitalizeType="uppercase"
+            label={
+              confirmDialog === "delete"
+                ? isDeleting
+                  ? "Deleting…"
+                  : "Delete"
+                : isSaving
+                ? "Saving…"
+                : "Cancel trip"
+            }
+            onClick={handleConfirm}
+            disabled={isSaving || isDeleting}
+          />
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

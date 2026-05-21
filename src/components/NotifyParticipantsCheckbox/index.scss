@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Bell IconButton — sits inline with the other header action buttons.
+// Filled green when notifications are on; muted grey when off. The
+// wrapper span is just a tooltip anchor for disabled states.
+.notify-participants-bell-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.notify-participants-bell {
+  // Sized to sit comfortably alongside text-button pills in the action
+  // cluster — slightly bigger than a default 24px MUI small button so
+  // the bell glyph reads, but no larger than the kebab icon next to it.
+  width: 30px !important;
+  height: 30px !important;
+  padding: 5px !important;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &.is-on {
+    color: theme('colors.primaryGreen') !important;
+    background-color: rgba(60, 181, 75, 0.1) !important;
+
+    &:hover:not(:disabled) {
+      background-color: rgba(60, 181, 75, 0.2) !important;
+    }
+  }
+
+  &.is-off {
+    color: rgba(0, 0, 0, 0.4) !important;
+    background-color: rgba(0, 0, 0, 0.04) !important;
+
+    &:hover:not(:disabled) {
+      background-color: rgba(0, 0, 0, 0.08) !important;
+      color: rgba(0, 0, 0, 0.65) !important;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

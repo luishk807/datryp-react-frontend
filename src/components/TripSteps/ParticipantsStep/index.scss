@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-participants-step {
+  padding: 16px 4px 28px;
+  max-width: 640px;
+  margin: 0 auto;
+}

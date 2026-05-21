@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-dates-step {
+  padding: 16px 4px 28px;
+}
+
+.trip-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.trip-dates-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trip-dates-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+
+  svg {
+    font-size: 1.05rem;
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.trip-dates-summary {
+  margin: 18px auto 0;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: theme('colors.primaryOrange');
+}
+
+@media (max-width: 560px) {
+  .trip-dates-grid {
+    grid-template-columns: 1fr;
+  }
+}

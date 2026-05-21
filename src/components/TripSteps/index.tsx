@@ -1,13 +1,18 @@
 ﻿import { useEffect, useMemo, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Grid, IconButton, Tooltip } from '@mui/material';
-import SyncAltIcon from '@mui/icons-material/SyncAlt';
+import { useSearchParams } from 'react-router-dom';
+import { Grid } from '@mui/material';
 import './index.scss';
+
 import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
-import FriendPicker from 'components/DestinationDetail/FriendPicker';
+import TripModeStep from 'components/TripSteps/TripModeStep';
+import DestinationStep from 'components/TripSteps/DestinationStep';
+import DatesStep from 'components/TripSteps/DatesStep';
+import BudgetStep from 'components/TripSteps/BudgetStep';
+import OrganizerStep from 'components/TripSteps/OrganizerStep';
+import ParticipantsStep from 'components/TripSteps/ParticipantsStep';
 import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
 import { useMyItineraries } from 'api/hooks/useItineraries';
@@ -58,7 +63,6 @@ const TripSteps = ({
     const tripInfo = useTripState();
     const dispatch = useTripDispatch();
     const { user } = useUser();
-    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const editingId = searchParams.get('id');
 
@@ -119,6 +123,22 @@ const TripSteps = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Seed `tripInfo.type` from the URL the user entered on (/single or
+    // /multiple), but only if context doesn't already have a type. The
+    // mode picker on step 1 can override this freely.
+    const typeSeededRef = useRef(false);
+    useEffect(() => {
+        if (typeSeededRef.current) return;
+        typeSeededRef.current = true;
+        if (tripInfo.type) return;
+        const seed =
+            currentType === TRIP_MODE.SINGLE
+                ? TRIP_BASIC.SINGLE
+                : TRIP_BASIC.MULTIPLE;
+        dispatch(basicInfo({ type: seed }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Auto-fill the trip name to "<Country> trip" once — the first time a
     // country is picked and the name is empty. After that, the user fully
     // owns the field (clearing it stays cleared, typing custom stays custom).
@@ -137,12 +157,23 @@ const TripSteps = ({
         dispatch(basicInfo({ name: `${firstCountry} trip` }));
     }, [tripInfo.destinations, tripInfo.name, dispatch]);
 
-    const otherMode: EditableTripMode =
-        currentType === TRIP_MODE.SINGLE ? TRIP_MODE.MULTIPLE : TRIP_MODE.SINGLE;
-    const switchTarget =
-        otherMode === TRIP_MODE.SINGLE ? TRIP_BASIC.SINGLE.route : TRIP_BASIC.MULTIPLE.route;
-    const switchLabel =
-        otherMode === TRIP_MODE.SINGLE ? 'Switch to Single Trip' : 'Switch to Multi Trip';
+    const isEditing = Boolean(editingId);
+
+    // Whether the wizard entered with a country already saved (set by AI
+    // search / top-place / country-detail entry points). Snapshotted at
+    // mount so picking a country later doesn't make the destination step
+    // vanish under the user. Edit mode never shows the step at all.
+    const enteredWithCountryRef = useRef<boolean | null>(null);
+    if (enteredWithCountryRef.current === null) {
+        enteredWithCountryRef.current = Boolean(
+            tripInfo.destinations?.[0]?.country?.id ||
+                tripInfo.destinations?.[0]?.country?.name
+        );
+    }
+    const needsDestinationStep =
+        !isEditing &&
+        !enteredWithCountryRef.current &&
+        tripInfo.type?.id === TRIP_BASIC.SINGLE.id;
 
     const participants = useMemo<Friend[]>(() => {
         const friends = tripInfo.friends || [];
@@ -158,44 +189,110 @@ const TripSteps = ({
         return unique;
     }, [tripInfo]);
 
-    const steps = [
-        {
-            label: 'Describe Your Trip!',
-            comp: <BasicInfo data={tripInfo} onChange={onBasicChange} />,
-        },
-        {
-            label: 'Participants',
-            comp: (
-                <FriendPicker
-                    name="friends"
-                    title="participants"
-                    selectedOptions={tripInfo.friends}
-                    onChange={onBasicChange}
-                />
-            ),
-        },
-        {
-            label: 'Finish',
-            comp: (
-                <DestinationDetail
-                    type={tripInfo.type}
-                    startDate={tripInfo.startDate}
-                    participants={participants}
-                    endDate={tripInfo.endDate}
-                    destinations={tripInfo.destinations}
-                    onChangePlace={onChangePlace}
-                    onChangeBudget={onChangeBudget}
-                    onChangeDestination={onChangeDestination}
-                    // Lock the per-activity Planning/Confirmed pill while
-                    // creating a brand-new trip — activities are always
-                    // Planning until the trip is saved (apiId materializes).
-                    lockActivityStatus={!tripInfo.apiId}
-                />
-            ),
-        },
-    ];
-
-    const isEditing = Boolean(editingId);
+    // New 6-step create flow. Index meanings are referenced by
+    // StepperComp's per-step validation rules — keep this lineup in sync
+    // with the missing-field map there.
+    const steps = isEditing
+        ? // Edit mode renders the legacy "Describe Your Trip" + Participants
+          // forms inside a modal triggered by BasicTripInfo's edit pencil,
+          // and shows the activities section inline. StepperComp slices
+          // [0, 1] for the modal and [2..] for inline rendering — so we
+          // keep the original 3-step shape for edits.
+          [
+              {
+                  label: 'Describe Your Trip!',
+                  comp: <BasicInfo data={tripInfo} onChange={onBasicChange} />,
+              },
+              {
+                  label: 'Participants',
+                  comp: (
+                      <ParticipantsStep
+                          data={tripInfo}
+                          onChange={onBasicChange}
+                      />
+                  ),
+              },
+              {
+                  label: 'Activities',
+                  comp: (
+                      <DestinationDetail
+                          type={tripInfo.type}
+                          startDate={tripInfo.startDate}
+                          participants={participants}
+                          endDate={tripInfo.endDate}
+                          destinations={tripInfo.destinations}
+                          onChangePlace={onChangePlace}
+                          onChangeBudget={onChangeBudget}
+                          onChangeDestination={onChangeDestination}
+                          lockActivityStatus={!tripInfo.apiId}
+                      />
+                  ),
+              },
+          ]
+        : [
+              {
+                  label: 'Trip type',
+                  comp: <TripModeStep data={tripInfo} />,
+              },
+              // Single-trip destination — inserted only when the wizard
+              // entered without a country pre-saved (AI search / top-place
+              // entries preset it). Skipped for multi-trips entirely;
+              // multi picks destinations per-day inside the Itinerary step.
+              ...(needsDestinationStep
+                  ? [
+                        {
+                            label: 'Destination',
+                            comp: <DestinationStep data={tripInfo} />,
+                        },
+                    ]
+                  : []),
+              {
+                  label: 'Dates',
+                  comp: <DatesStep data={tripInfo} onChange={onBasicChange} />,
+              },
+              {
+                  label: 'Budget',
+                  comp: <BudgetStep data={tripInfo} onChange={onBasicChange} />,
+              },
+              {
+                  label: 'Organizers',
+                  comp: (
+                      <OrganizerStep
+                          data={tripInfo}
+                          onChange={onBasicChange}
+                      />
+                  ),
+              },
+              {
+                  label: 'Participants',
+                  comp: (
+                      <ParticipantsStep
+                          data={tripInfo}
+                          onChange={onBasicChange}
+                      />
+                  ),
+              },
+              {
+                  label: 'Itinerary',
+                  comp: (
+                      <DestinationDetail
+                          type={tripInfo.type}
+                          startDate={tripInfo.startDate}
+                          participants={participants}
+                          endDate={tripInfo.endDate}
+                          destinations={tripInfo.destinations}
+                          onChangePlace={onChangePlace}
+                          onChangeBudget={onChangeBudget}
+                          onChangeDestination={onChangeDestination}
+                          // Lock the per-activity Planning/Confirmed pill
+                          // while creating a brand-new trip — activities
+                          // are always Planning until the trip is saved
+                          // (apiId materializes).
+                          lockActivityStatus={!tripInfo.apiId}
+                      />
+                  ),
+              },
+          ];
 
     return (
         <Layout
@@ -205,20 +302,6 @@ const TripSteps = ({
             // redundant "Single Trip Detail (EDIT MODE)" banner above
             // the trip header.
             title={isEditing ? '' : title}
-            titleAction={
-                isEditing ? null : (
-                    <Tooltip title={switchLabel}>
-                        <IconButton
-                            size="small"
-                            aria-label={switchLabel}
-                            onClick={() => navigate(switchTarget)}
-                            sx={{ ml: 1 }}
-                        >
-                            <SyncAltIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                )
-            }
         >
             <Grid container className={containerClassName}>
                 <Grid item lg={12} md={12} xs={12}>

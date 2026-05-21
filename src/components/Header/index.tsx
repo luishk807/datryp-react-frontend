@@ -10,6 +10,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
@@ -20,6 +21,7 @@ import LoginBtn from 'components/common/LoginBtn';
 import SearchBar from 'components/SearchBar';
 import IconLink from 'components/common/IconLink';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import NotificationBell from 'components/NotificationBell';
 import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import { BUTTON_VARIANT, LOGO_IMAGE } from 'constants';
@@ -103,6 +105,7 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                 <nav className="app-header-nav">
                     {user ? (
                         <>
+                            <NotificationBell />
                             <ButtonCustom
                                 type={BUTTON_VARIANT.NONE}
                                 capitalizeType="none"
@@ -179,6 +182,11 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     icon={<HistoryRoundedIcon />}
                                     label="Recent searches"
                                     onClick={() => handleNavigate('/history')}
+                                />
+                                <MenuActionItem
+                                    icon={<NotificationsNoneRoundedIcon />}
+                                    label="Notifications"
+                                    onClick={() => handleNavigate('/notifications')}
                                 />
                                 {isAdmin && (
                                     <MenuActionItem
@@ -314,6 +322,13 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     className="drawer-link"
                                     label="Recent searches"
                                     onClick={() => handleNavigate('/history')}
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
+                                    className="drawer-link"
+                                    label="Notifications"
+                                    onClick={() => handleNavigate('/notifications')}
                                 />
                                 {isAdmin && (
                                     <ButtonCustom

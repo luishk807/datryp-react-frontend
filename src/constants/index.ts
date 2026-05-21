@@ -122,6 +122,21 @@ export const TRIP_STATUS = {
     CANCELLED: 'Cancelled',
 } as const;
 
+/** Notification `kind` strings. The backend writes these literal strings to
+ *  `notifications.kind`; the inbox UI keys icon + copy off of them. Renaming
+ *  any key is a breaking change for already-persisted rows — add a new kind
+ *  rather than renaming. Mirrors the KIND_* constants in
+ *  `app/services/notifications.py`. */
+export const NOTIFICATION_KIND = {
+    TRIP_CREATED: 'trip_created',
+    TRIP_STATUS_CHANGED: 'trip_status_changed',
+    TRIP_UPDATED: 'trip_updated',
+    TRIP_COMPLETED: 'trip_completed',
+    TRIP_CANCELLED: 'trip_cancelled',
+    TRIP_DELETED: 'trip_deleted',
+    TRIP_STARTING_SOON: 'trip_starting_soon',
+} as const;
+
 /** Where a `visited_places` row came from. `MANUAL` = user clicked the
  *  VisitedButton on a place page. `ITINERARY` = the row was created by the
  *  cascade that runs when the user marks one of their own itineraries

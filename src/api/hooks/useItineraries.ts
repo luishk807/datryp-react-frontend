@@ -145,6 +145,15 @@ export interface SaveItineraryInput {
     countryId?: string | null;
     flightInfo?: FlightInfoInput | null;
     days: ItineraryDayInput[];
+    /** Per-save opt-out: when false, the backend skips both the email and
+     *  the in-app notification fan-out for this save. Defaults to true so
+     *  the silence has to be explicit. */
+    notifyParticipants?: boolean;
+}
+
+export interface DeleteItineraryArgs {
+    id: string;
+    notifyParticipants?: boolean;
 }
 
 // ── Queries / mutations ──────────────────────────────────────────────────────
@@ -269,8 +278,8 @@ const SAVE_ITINERARY_MUTATION = gql`
 `;
 
 const DELETE_ITINERARY_MUTATION = gql`
-    mutation DeleteItinerary($id: ID!) {
-        deleteItinerary(id: $id)
+    mutation DeleteItinerary($id: ID!, $notifyParticipants: Boolean) {
+        deleteItinerary(id: $id, notifyParticipants: $notifyParticipants)
     }
 `;
 
@@ -320,6 +329,7 @@ export const useSaveItinerary = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['myItineraries'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
         },
         // Don't retry a paywall hit — same input will block again.
         retry: (_failureCount, error) => !(error instanceof TripCapReachedError),
@@ -328,16 +338,27 @@ export const useSaveItinerary = () => {
 
 export const useDeleteItinerary = () => {
     const queryClient = useQueryClient();
-    return useMutation<boolean, Error, string>({
-        mutationFn: async (id) => {
+    return useMutation<boolean, Error, DeleteItineraryArgs | string>({
+        mutationFn: async (input) => {
+            // Accept both legacy `mutate(id)` and new `mutate({ id,
+            // notifyParticipants })` shapes so callers can migrate at
+            // their own pace.
+            const variables =
+                typeof input === 'string'
+                    ? { id: input, notifyParticipants: true }
+                    : {
+                          id: input.id,
+                          notifyParticipants: input.notifyParticipants ?? true,
+                      };
             const data = await pythonGqlClient.request<{ deleteItinerary: boolean }>(
                 DELETE_ITINERARY_MUTATION,
-                { id }
+                variables
             );
             return data.deleteItinerary;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['myItineraries'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
         },
     });
 };

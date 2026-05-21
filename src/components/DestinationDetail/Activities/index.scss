@@ -175,20 +175,32 @@
   transform: translateY(-1px);
 }
 
-// Completed activity — the user ticked the Complete button. The card
-// fades + becomes non-interactive (no hover, no clicks on inner
-// affordances). Pure visual signal that the trip moment is "done".
+// Checked variant — filled green tick, signals "done, click to undo".
+.activity-content-trip .activity-card-complete-btn.is-checked.MuiIconButton-root {
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(60, 181, 75, 0.35);
+
+  &:hover {
+    background: theme('colors.primaryOrange');
+    transform: translateY(-1px) scale(1.05);
+  }
+}
+
+// Completed activity — faded card so the user sees at a glance which
+// items are done. Inner content is non-interactive, but the tick button
+// stays clickable so the user can uncheck an accidental tap (the
+// `pointer-events: auto` override below restores it).
 .activity-content-trip.is-completed {
   opacity: 0.55;
   pointer-events: none;
   filter: saturate(0.8);
 }
 
-// Keep the Complete tick clickable (we still want users to be able to
-// un-mark if they tapped it by mistake)... actually NO — once
-// completed the card is locked. The complete button doesn't render on
-// completed cards (see the JSX `&& !isActivityCompleted`) so we don't
-// need to override here.
+.activity-content-trip.is-completed .activity-card-complete-btn {
+  pointer-events: auto;
+  opacity: 1;
+}
 
 /* Compact pencil-icon trigger for the edit modal — drops MUI text-button
  * padding so it sits flush next to the activity name. */

@@ -15,6 +15,7 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { useDroppable } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -255,28 +256,51 @@ const Activities = ({
                             )}
                             aria-disabled={isActivityCompleted || undefined}
                         >
-                            {isTripConfirmed && !isActivityCompleted ? (
+                            {isTripConfirmed ? (
                                 // Trip is past planning — replace the X
-                                // delete with a Complete tick. Marks the
-                                // activity's own status to Completed, which
-                                // dims the card via `.is-completed`.
-                                <IconButton
-                                    size="small"
-                                    className="activity-card-complete-btn"
-                                    aria-label={`Mark ${activity.name} as completed`}
-                                    title="Mark as completed"
-                                    onClick={() =>
-                                        onChangePlace('edit', {
-                                            index: indx,
-                                            value: {
-                                                id: activity.id,
-                                                status: completedStatus,
-                                            },
-                                        })
-                                    }
-                                >
-                                    <TaskAltRoundedIcon fontSize="small" />
-                                </IconButton>
+                                // delete with a tick toggle. Outlined tick
+                                // when the activity is still actionable;
+                                // filled tick when it's already completed.
+                                // Clicking the filled tick reverts the
+                                // activity back to Confirmed so the user
+                                // can undo an accidental check.
+                                isActivityCompleted ? (
+                                    <IconButton
+                                        size="small"
+                                        className="activity-card-complete-btn is-checked"
+                                        aria-label={`Uncheck ${activity.name} (reverts to Confirmed)`}
+                                        title="Uncheck — reverts to Confirmed"
+                                        onClick={() =>
+                                            onChangePlace('edit', {
+                                                index: indx,
+                                                value: {
+                                                    id: activity.id,
+                                                    status: confirmedStatus,
+                                                },
+                                            })
+                                        }
+                                    >
+                                        <CheckCircleRoundedIcon fontSize="small" />
+                                    </IconButton>
+                                ) : (
+                                    <IconButton
+                                        size="small"
+                                        className="activity-card-complete-btn"
+                                        aria-label={`Mark ${activity.name} as completed`}
+                                        title="Mark as completed"
+                                        onClick={() =>
+                                            onChangePlace('edit', {
+                                                index: indx,
+                                                value: {
+                                                    id: activity.id,
+                                                    status: completedStatus,
+                                                },
+                                            })
+                                        }
+                                    >
+                                        <TaskAltRoundedIcon fontSize="small" />
+                                    </IconButton>
+                                )
                             ) : (
                                 <IconConfirmButton
                                     icon={<CloseRoundedIcon fontSize="small" />}

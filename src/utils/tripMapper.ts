@@ -154,6 +154,8 @@ export interface MapTripOptions {
     tripStatusId?: string | null;
     /** Existing itinerary id when updating, omit when creating. */
     id?: string | null;
+    /** Per-save opt-out for the notification fan-out (default true). */
+    notifyParticipants?: boolean;
 }
 
 export const tripStateToSaveInput = (
@@ -217,6 +219,7 @@ export const tripStateToSaveInput = (
             ? null
             : flightToInput(rootDest?.flightInfo, tripState.startDate),
         days,
+        notifyParticipants: options.notifyParticipants ?? true,
     };
 };
 

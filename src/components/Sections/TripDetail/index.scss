@@ -156,25 +156,32 @@
   background: rgba(0, 0, 0, 0.12) !important;
 }
 
-.trip-detail-header .trip-detail-mark-complete-wrapper button {
-  background: rgba(60, 181, 75, 0.12) !important;
-  color: theme('colors.primaryGreen') !important;
+// Kebab menu trigger — sits at the end of the action cluster. Houses
+// Cancel trip + Delete trip, both behind a confirm dialog.
+.trip-detail-header .trip-detail-menu-btn {
+  color: rgba(0, 0, 0, 0.55) !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    color: theme('colors.primary') !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
 }
 
-.trip-detail-header .trip-detail-mark-complete-wrapper button:hover:not(:disabled) {
-  background: rgba(60, 181, 75, 0.22) !important;
+.trip-detail-menu-icon {
+  font-size: 1.1rem !important;
+  margin-right: 8px;
+  color: inherit;
 }
 
-.trip-detail-header .trip-detail-mark-complete-wrapper button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.trip-detail-header .trip-detail-delete-wrapper button {
-  background: rgba(192, 57, 43, 0.1) !important;
+.trip-detail-menu-item-danger {
   color: #c0392b !important;
-}
 
-.trip-detail-header .trip-detail-delete-wrapper button:hover {
-  background: rgba(192, 57, 43, 0.2) !important;
+  &:hover {
+    background-color: rgba(192, 57, 43, 0.08) !important;
+  }
 }

@@ -9,7 +9,11 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 16px;
   padding: 22px 24px;
-  margin: 0 0 24px;
+  // Top margin gives breathing room between this card and the one
+  // above (BasicTripInfo on /trip-detail, the inline edit header on
+  // /single?id=). Both upstream cards have margin: 0 in body-only
+  // mode so the gap has to live here.
+  margin: 20px 0 24px;
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05);
 }
 

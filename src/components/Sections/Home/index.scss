@@ -81,7 +81,7 @@
   margin: 0 0 28px;
 }
 
-/* ---------- Trip type toggle (3 options: Single / Multiple / Recommend AI) ---------- */
+/* ---------- Search mode toggle (Search by country / AI) ---------- */
 .home-hero-options {
   position: relative;
   display: inline-flex;
@@ -92,7 +92,7 @@
   margin-bottom: 22px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  min-width: 480px;
+  min-width: 360px;
 }
 
 .home-hero-options .hero-option-thumb {
@@ -100,7 +100,8 @@
   top: 4px;
   bottom: 4px;
   left: 4px;
-  width: calc(33.3333% - 4px);
+  // Two-tab layout — the thumb covers half the pill.
+  width: calc(50% - 4px);
   background: theme('colors.primaryOrange');
   border-radius: 9999px;
   box-shadow: 0 2px 8px rgba(246, 137, 31, 0.4);
@@ -109,12 +110,8 @@
   z-index: 0;
 }
 
-.home-hero-options.is-multiple .hero-option-thumb {
+.home-hero-options.is-ai .hero-option-thumb {
   transform: translateX(100%);
-}
-
-.home-hero-options.is-recommend .hero-option-thumb {
-  transform: translateX(200%);
   background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
   box-shadow: 0 2px 14px rgba(124, 58, 237, 0.5);
 }

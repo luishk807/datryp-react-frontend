@@ -17,6 +17,7 @@ const Account = lazy(() => import('components/Sections/Account'));
 const Trips = lazy(() => import('components/Sections/Trips'));
 const TripDetail = lazy(() => import('components/Sections/TripDetail'));
 const Friends = lazy(() => import('components/Sections/Friends'));
+const Notifications = lazy(() => import('components/Sections/Notifications'));
 const SearchResults = lazy(() => import('components/Sections/SearchResults'));
 const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
@@ -94,6 +95,14 @@ function App() {
                         subtitle="Invite friends, accept requests, plan together."
                     >
                         <Friends />
+                    </Gated>
+                }/>
+                <Route path='/notifications' element={
+                    <Gated
+                        title="Sign in to see your notifications"
+                        subtitle="Trip invites, status changes, and reminders show up here."
+                    >
+                        <Notifications />
                     </Gated>
                 }/>
                 <Route path='/search' element={

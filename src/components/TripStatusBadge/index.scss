@@ -2,153 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-// Pill-shaped status indicator that doubles as the trigger for the
-// Update-trip-status modal. Sized to sit alongside other action chips
-// (Save, Cancel, Mark Completed) in a trip header — pill background +
-// dot + capitalized status name + edit pencil when interactive.
-.trip-status-badge {
+// Promote button — the "Confirm trip" / "Mark complete" CTA. Sits inline
+// with the other header action buttons (Edit Trip, Save Changes, kebab
+// menu), so it shares their pill shape, weight, and letter-spacing.
+// Wrapper holds the optional inline ErrorAlert directly underneath so a
+// validation failure stays attached to the action that produced it.
+.trip-status-badge-wrapper {
   display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.trip-status-badge {
+  display: inline-flex !important;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 14px;
-  border-radius: 999px;
-  background: rgba(60, 181, 75, 0.1);
-  color: theme('colors.primaryGreen');
-  font-size: 0.85rem;
-  font-weight: 600;
+  gap: 6px;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(60, 181, 75, 0.12) !important;
+  color: theme('colors.primaryGreen') !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
   letter-spacing: 0.02em;
   transition: background-color 0.15s ease;
-  flex-shrink: 0;
-  text-transform: capitalize;
-  min-width: 0;
-  width: auto;
-  border: none;
-  box-shadow: none;
-}
+  min-width: 0 !important;
+  width: auto !important;
+  text-transform: none !important;
+  border: none !important;
+  box-shadow: none !important;
 
-.trip-status-badge:hover:not(:disabled) {
-  background: rgba(60, 181, 75, 0.18);
-}
+  &:hover:not(:disabled) {
+    background: rgba(60, 181, 75, 0.22) !important;
+  }
 
-.trip-status-badge:disabled {
-  cursor: default;
-}
-
-.trip-status-badge .status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: theme('colors.primaryGreen');
-  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.15);
-  flex-shrink: 0;
-}
-
-.trip-status-badge .status-edit {
-  font-size: 14px !important;
-  opacity: 0.65;
-}
-
-@media (max-width: 768px) {
-  .trip-status-badge {
-    align-self: flex-start;
-    font-size: 0.78rem;
-    padding: 5px 10px 5px 12px;
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 
-// Status modal radio group — one tappable card per state, ordered
-// Planning → Confirmed → Completed → Cancelled. Large hit target with a
-// colored dot keyed to the lifecycle stage.
-.trip-status-radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
+.trip-status-badge-icon {
+  font-size: 1.05rem !important;
 }
 
-.trip-status-radio {
-  appearance: none;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease,
-    box-shadow 0.15s ease;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.03);
-  }
-
-  &.selected {
-    border-color: theme('colors.primaryGreen');
-    background: rgba(60, 181, 75, 0.06);
-    box-shadow: 0 0 0 2px rgba(60, 181, 75, 0.18);
-  }
+.trip-status-badge-label {
+  white-space: nowrap;
 }
 
-.trip-status-radio-dot {
-  flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.25);
-  background: transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.trip-status-radio.is-planning .trip-status-radio-dot {
-  border-color: #b45309;
-}
-
-.trip-status-radio.is-confirmed .trip-status-radio-dot,
-.trip-status-radio.is-completed .trip-status-radio-dot {
-  border-color: theme('colors.primaryGreen');
-}
-
-.trip-status-radio.is-cancelled .trip-status-radio-dot {
-  border-color: rgba(0, 0, 0, 0.4);
-}
-
-.trip-status-radio.selected .trip-status-radio-dot {
-  background: theme('colors.primaryGreen');
-  border-color: theme('colors.primaryGreen');
-  box-shadow: inset 0 0 0 3px #fff;
-}
-
-.trip-status-radio-label {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: theme('colors.primary');
-  text-transform: capitalize;
-  letter-spacing: 0.01em;
-}
-
-// Footer actions inside the modal — laid out to match other modals
-// (Cancel + primary, right-aligned).
-.trip-status-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.trip-status-actions button {
-  min-width: 120px;
-  width: auto;
-  padding: 8px 22px !important;
+.trip-status-badge-error {
+  margin: 0 !important;
+  max-width: 320px;
 }
 
 @media (max-width: 480px) {
-  .trip-status-actions {
-    flex-direction: column-reverse;
-  }
-  .trip-status-actions button {
-    width: 100%;
+  .trip-status-badge {
+    padding: 5px 12px !important;
+    font-size: 0.78rem !important;
   }
 }

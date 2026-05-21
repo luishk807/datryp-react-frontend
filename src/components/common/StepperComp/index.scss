@@ -7,6 +7,21 @@
   padding: 12px 0 4px;
 }
 
+// Create-mode wizard — give the page enough vertical room so the short
+// steps (Trip type, Dates, Budget…) don't collapse to a tiny strip on
+// big screens. The MUI Stepper sits at the top, the body grows to fill,
+// and the action row pins to the bottom.
+.stepperMain--create {
+  min-height: calc(100vh - 240px);
+  display: flex;
+  flex-direction: column;
+
+  > .MuiGrid-container {
+    flex: 1 1 auto;
+    align-content: flex-start;
+  }
+}
+
 // Standalone edit-trip header — title + Save / Cancel / Delete row
 // hoisted out of BasicTripInfo. Mirrors the /trip-detail header pattern
 // so edit and view modes feel consistent.
@@ -98,6 +113,23 @@
 .edit-trip-header .edit-trip-delete-wrapper button:hover {
   background: rgba(192, 57, 43, 0.2) !important;
 }
+
+// Kebab trigger in edit mode — mirrors the trip-detail header's menu
+// button so the two pages feel consistent.
+.edit-trip-header .edit-trip-menu-btn {
+  color: rgba(0, 0, 0, 0.55) !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    color: theme('colors.primary') !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
 
 /* ---------- Connector styling ---------- */
 .stepperMain .MuiStepConnector-root {

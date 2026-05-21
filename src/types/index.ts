@@ -21,3 +21,4 @@ export * from "./savedCity.types";
 export * from "./admin.types";
 export * from "./preferences.types";
 export * from "./bucketList.types";
+export * from "./notification.types";
