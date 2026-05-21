@@ -99,9 +99,37 @@
 }
 
 /* ---------- Compact search (subheader) ---------- */
+// Single rounded pill with a leading search icon and the input flush
+// against it. The icon lives ON the pill (not next to it) — it's
+// positioned absolutely so the input fills the full pill width and the
+// icon sits in the left padding.
 .app-header-search {
+  position: relative;
   flex: 1 1 auto;
-  max-width: 360px;
+  max-width: 380px;
+  display: flex;
+  align-items: center;
+}
+
+.app-header-search .app-header-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem !important;
+  color: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 1;
+  transition: color 0.18s ease;
+}
+
+.app-header-search:focus-within .app-header-search-icon {
+  color: theme('colors.primaryGreen');
+}
+
+.app-header-search .searchbarMain {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 // Page-level opt-in: hide the search bar on mobile when the page
@@ -120,17 +148,23 @@
   background: #f6f6f6;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 9999px;
-  padding: 2px 10px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  padding: 0;
+  transition: border-color 0.18s ease, background-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .app-header-search .searchbarMain .holder-simple:focus-within {
   background: #fff;
   border-color: theme('colors.primaryGreen');
+  box-shadow: 0 0 0 4px rgba(60, 181, 75, 0.12);
 }
 
 .app-header-search .MuiOutlinedInput-root {
   font-size: 0.9rem;
+  // Padding-left makes room for the absolutely-positioned search icon
+  // so the placeholder text doesn't run under it.
+  padding-left: 36px !important;
+  padding-right: 14px !important;
 }
 
 .app-header-search .MuiOutlinedInput-notchedOutline {

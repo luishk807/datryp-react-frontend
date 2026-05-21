@@ -38,6 +38,15 @@ interface SearchBarProps {
 
 const DEBOUNCE_MS = 500;
 
+/** Two-letter ISO 3166-1 alpha-2 country code → Unicode flag emoji.
+ *  Falls back to a globe icon if the code is missing/malformed. */
+const flagEmoji = (code?: string | null): string => {
+    const c = (code ?? '').trim().toUpperCase();
+    if (c.length !== 2) return '🌐';
+    const a = 0x1f1e6 - 65;
+    return String.fromCodePoint(c.charCodeAt(0) + a, c.charCodeAt(1) + a);
+};
+
 const SearchBar = ({
     onSelected,
     defaultValue,
@@ -184,7 +193,7 @@ const SearchBar = ({
                         <InputField
                             ref={inputRef}
                             defaultValue={selectedDestination}
-                            label="Search Destination"
+                            placeholder="Search a country"
                             onChange={handleKeystroke}
                         />
                     </Grid>
@@ -211,16 +220,34 @@ const SearchBar = ({
                             </p>
                         )}
                         {!!items.length && (
-                            <ul>
+                            <ul className="searchbar-country-list">
                                 {items.map((item) => (
                                     <li
                                         onClick={() => handleCountryClick(item)}
                                         onMouseEnter={() => handleListHover(item.name)}
                                         key={item.id}
-                                        className="item"
+                                        className="item searchbar-country-item"
                                     >
-                                        {item.name}, {item.code}
-                                        {item.local ? `, ${item.local}` : ''}
+                                        <span
+                                            className="searchbar-country-flag"
+                                            aria-hidden="true"
+                                        >
+                                            {flagEmoji(item.code)}
+                                        </span>
+                                        <span className="searchbar-country-text">
+                                            <span className="searchbar-country-name">
+                                                {item.name}
+                                            </span>
+                                            {item.local &&
+                                                item.local !== item.name && (
+                                                    <span className="searchbar-country-local">
+                                                        {item.local}
+                                                    </span>
+                                                )}
+                                        </span>
+                                        <span className="searchbar-country-code">
+                                            {item.code}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>

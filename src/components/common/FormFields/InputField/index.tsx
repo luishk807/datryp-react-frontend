@@ -209,7 +209,9 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         return (
             <FormControl className="w-full inputFieldCustom">
                 {showTopLabel && <div>{label}</div>}
-                {showInputLabel && <InputLabel htmlFor={name}>{labelText}</InputLabel>}
+                {showInputLabel && labelText && (
+                    <InputLabel htmlFor={name}>{labelText}</InputLabel>
+                )}
                 {type === 'file' && imageData && (
                     <div className="image-container">{imageData}</div>
                 )}

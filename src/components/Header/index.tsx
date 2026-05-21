@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton } from '@mui/material';
+import SearchBarIcon from '@mui/icons-material/SearchRounded';
 import Menu, { MenuActionItem } from 'components/common/Menu';
 import classnames from 'classnames';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
@@ -98,7 +99,11 @@ const Header = ({ withSearch = false }: HeaderProps) => {
 
                 {withSearch && (
                     <div className="app-header-search">
-                        <SearchBar type="simple" onSelected={handleSearchSelected} />
+                        <SearchBarIcon className="app-header-search-icon" />
+                        <SearchBar
+                            type="simple"
+                            onSelected={handleSearchSelected}
+                        />
                     </div>
                 )}
 
