@@ -3,6 +3,8 @@ import {
     addBucketListItem,
     deleteBucketListItem,
     fetchBucketList,
+    generateTripFromBucket,
+    type BucketTripGenerationResult,
 } from 'api/bucketListApi';
 import { useUser } from 'context/UserContext';
 import type { BucketListItem } from 'types';
@@ -39,6 +41,19 @@ export const useDeleteBucketListItem = () => {
         mutationFn: (id: string) => deleteBucketListItem(id),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: bucketListKey });
+        },
+    });
+};
+
+/** POST /me/bucket-list/{id}/itinerary — kicks off the OpenAI plan and
+ *  the trip save. Invalidates the itineraries cache so /trips shows the
+ *  fresh row when the user navigates back. */
+export const useGenerateTripFromBucket = () => {
+    const qc = useQueryClient();
+    return useMutation<BucketTripGenerationResult, Error, string>({
+        mutationFn: (id: string) => generateTripFromBucket(id),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['myItineraries'] });
         },
     });
 };

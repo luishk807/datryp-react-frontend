@@ -107,3 +107,46 @@ export const deleteBucketListItem = async (id: string): Promise<void> => {
     );
     if (!resp.ok) await handleError(resp, 'delete bucket-list item');
 };
+
+export interface BucketTripGenerationResult {
+    itineraryId: string;
+    tripType: 'single' | 'multi';
+    tripName: string;
+    countryName: string;
+    durationDays: number;
+    rationale: string;
+}
+
+interface BucketTripGenerationRaw {
+    itinerary_id: string;
+    trip_type: 'single' | 'multi';
+    trip_name: string;
+    country_name: string;
+    duration_days: number;
+    rationale: string;
+}
+
+/** POST /me/bucket-list/{id}/itinerary — kicks off the AI-driven plan +
+ *  save. Returns the new trip's id and shape so the caller can navigate
+ *  the user straight into edit mode of the just-saved trip. */
+export const generateTripFromBucket = async (
+    itemId: string
+): Promise<BucketTripGenerationResult> => {
+    const resp = await fetch(
+        `${API_BASE}/me/bucket-list/${encodeURIComponent(itemId)}/itinerary`,
+        {
+            method: 'POST',
+            headers: authHeaders(),
+        }
+    );
+    if (!resp.ok) await handleError(resp, 'generate trip from bucket-list');
+    const body = (await resp.json()) as BucketTripGenerationRaw;
+    return {
+        itineraryId: body.itinerary_id,
+        tripType: body.trip_type,
+        tripName: body.trip_name,
+        countryName: body.country_name,
+        durationDays: body.duration_days,
+        rationale: body.rationale,
+    };
+};

@@ -189,6 +189,36 @@
   font-size: 1rem;
 }
 
+// Trash icon for removing a bucket-list item. Neutral chip at rest so
+// it doesn't pull focus from the orange Create-trip CTA; turns red only
+// on hover/focus to signal destructive intent.
+.bucket-card-delete.MuiIconButton-root {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.45);
+  transition: background-color 0.15s ease, color 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+    transform: scale(1.05);
+  }
+
+  &:focus-visible {
+    background: rgba(192, 57, 43, 0.1);
+    color: #c0392b;
+    outline: 2px solid rgba(192, 57, 43, 0.35);
+    outline-offset: 2px;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1.05rem;
+  }
+}
+
 @media (max-width: 600px) {
   .bucket-card {
     flex-direction: column;
