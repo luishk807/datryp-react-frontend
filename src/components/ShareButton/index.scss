@@ -248,6 +248,7 @@
     border-color: rgba(24, 119, 242, 0.4);
     .share-channel-icon {
       background: #1877f2;
+      color: #fff;
     }
   }
 }
@@ -261,6 +262,7 @@
     border-color: rgba(0, 0, 0, 0.35);
     .share-channel-icon {
       background: #000;
+      color: #fff;
     }
   }
 }
@@ -274,11 +276,12 @@
     border-color: rgba(37, 211, 102, 0.4);
     .share-channel-icon {
       background: #25d366;
+      color: #fff;
     }
   }
 }
 
-/* Email + Copy + More use daTryp's own palette so they read as
+/* Email + Copy + More use DaTryp.com's own palette so they read as
    first-party actions, not a foreign social channel. Email = orange
    accent; Copy + More = green primary. */
 .share-channel.is-email {
@@ -290,6 +293,7 @@
     border-color: rgba(246, 137, 31, 0.4);
     .share-channel-icon {
       background: theme('colors.primaryOrange');
+      color: #fff;
     }
   }
 }
@@ -303,6 +307,7 @@
     border-color: rgba(60, 181, 75, 0.4);
     .share-channel-icon {
       background: theme('colors.primaryGreen');
+      color: #fff;
     }
   }
 }
@@ -316,6 +321,7 @@
     border-color: rgba(0, 0, 0, 0.2);
     .share-channel-icon {
       background: rgba(0, 0, 0, 0.65);
+      color: #fff;
     }
   }
 }
