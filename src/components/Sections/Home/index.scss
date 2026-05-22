@@ -303,6 +303,14 @@
     display: none;
   }
 
+  /* No hero image on mobile → nothing to attribute. Unsplash's terms
+     only require photographer credit when their photo is actually
+     displayed, and the credit looked stranded floating over an empty
+     section. */
+  .home-hero-attribution {
+    display: none;
+  }
+
   .home-hero-content {
     padding: 32px 16px 24px;
     color: theme('colors.primary');

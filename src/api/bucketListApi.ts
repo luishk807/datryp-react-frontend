@@ -44,6 +44,34 @@ export class BucketListBlockedError extends Error {
     }
 }
 
+/** 402 Payment Required from the bucket-list endpoints. `kind` tells the
+ *  caller which paywall scenario to surface — `bucket_list_cap` for "free
+ *  user hit the 10-item limit on add", `bucket_list_generate` for "free
+ *  user tried to Create trip from a bucket-list row". */
+export type BucketListPaywallKind =
+    | 'bucket_list_cap'
+    | 'bucket_list_generate';
+
+export class BucketListPaywallError extends Error {
+    kind: BucketListPaywallKind;
+    /** Free-tier cap. Only set for `bucket_list_cap`. */
+    cap?: number;
+    /** Items the user currently has. Only set for `bucket_list_cap`. */
+    currentCount?: number;
+    constructor(detail: {
+        kind: BucketListPaywallKind;
+        message: string;
+        cap?: number;
+        current_count?: number;
+    }) {
+        super(detail.message);
+        this.kind = detail.kind;
+        this.cap = detail.cap;
+        this.currentCount = detail.current_count;
+        this.name = 'BucketListPaywallError';
+    }
+}
+
 const handleError = async (resp: Response, label: string): Promise<never> => {
     let detail: unknown;
     try {
@@ -51,6 +79,24 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
         detail = body?.detail;
     } catch {
         /* ignore */
+    }
+    // 402 = paywall. Detail is a structured object — surface as a typed
+    // error so the page can open the upgrade modal without string-sniffing.
+    if (
+        resp.status === 402 &&
+        detail &&
+        typeof detail === 'object' &&
+        'kind' in (detail as Record<string, unknown>) &&
+        'message' in (detail as Record<string, unknown>)
+    ) {
+        throw new BucketListPaywallError(
+            detail as {
+                kind: BucketListPaywallKind;
+                message: string;
+                cap?: number;
+                current_count?: number;
+            }
+        );
     }
     // 422 from POST means the moderation gate fired — the FastAPI detail
     // is an object {message, category}, not a string. Surface it as a

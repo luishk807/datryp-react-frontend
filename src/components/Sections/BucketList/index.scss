@@ -29,6 +29,49 @@
   line-height: 1.45;
 }
 
+// "X / 10 free slots used" meter — only shown to free users. Turns
+// orange + locked when the user has hit the cap so the cue is visible
+// before they try to add an 11th item.
+.bucket-cap-meter {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+
+  &.is-full {
+    color: theme('colors.primaryOrange');
+  }
+}
+
+.bucket-cap-icon {
+  color: theme('colors.primaryOrange');
+}
+
+.bucket-cap-upgrade {
+  // Inline text-button — matches the surrounding paragraph weight but
+  // underlines like a link so it reads as the obvious next action.
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: theme('colors.primaryOrange');
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:hover {
+    color: #d97208;
+  }
+}
+
 .bucket-add {
   display: flex;
   align-items: stretch;
@@ -187,6 +230,41 @@
 
 .bucket-card-cta .MuiSvgIcon-root {
   font-size: 1rem;
+}
+
+// Pro-locked variant — visually distinct from the active orange CTA so
+// free users see it's gated, but still inviting (it's the wedge that
+// sells the upgrade, not a punishment). Lavender → orange on hover
+// because tapping it still does something useful (opens the paywall).
+.bucket-card-cta.is-pro-locked.bucket-card-cta {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.4);
+
+  &:hover {
+    background: theme('colors.primaryOrange');
+    border-color: theme('colors.primaryOrange');
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(246, 137, 31, 0.28);
+  }
+}
+
+.bucket-card-pro-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  margin-left: 4px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+}
+
+.bucket-card-cta.is-pro-locked:hover .bucket-card-pro-tag {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 // Trash icon for removing a bucket-list item. Neutral chip at rest so

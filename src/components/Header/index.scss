@@ -189,12 +189,26 @@
   font-size: 1rem;
   letter-spacing: 0.02em;
   cursor: pointer;
+  // Hide the bit of the uploaded photo that would otherwise spill past
+  // the circle boundary (object-fit: cover already crops, this catches
+  // any sub-pixel anti-aliasing).
+  overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .app-header-avatar:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(60, 181, 75, 0.35);
+}
+
+// Uploaded profile photo inside any of the header avatar slots. Cover
+// + the parent's `overflow: hidden` guarantees a clean circle without
+// distorting the user's face.
+.app-header-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* ---------- User dropdown menu ----------
@@ -230,6 +244,7 @@
   background: theme('colors.primaryGreen');
   color: #fff;
   font-weight: 700;
+  overflow: hidden;
   font-size: 1.15rem;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(60, 181, 75, 0.3);

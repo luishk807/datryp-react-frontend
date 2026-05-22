@@ -63,7 +63,7 @@ const Visited = () => {
         <Layout title="Visited Places">
             <div className="visited-page">
                 <header className="visited-page-header">
-                    <h1 className="visited-page-title">Visited Places</h1>
+                    <h1 className="visited-page-title">Where you've been</h1>
                     {!anyLoading && !anyError && !allEmpty && (
                         <p className="visited-page-summary">
                             {countryCount}{' '}

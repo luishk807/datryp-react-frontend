@@ -1,0 +1,117 @@
+.searchable-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+
+    &.is-disabled {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .searchable-picker-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.78);
+    }
+
+    .searchable-picker-search {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .searchable-picker-search-icon {
+            position: absolute;
+            left: 10px;
+            color: rgba(0, 0, 0, 0.45);
+            pointer-events: none;
+        }
+
+        input {
+            width: 100%;
+            padding: 9px 12px 9px 34px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
+            transition: border-color 120ms ease, box-shadow 120ms ease;
+
+            &:focus {
+                outline: none;
+                border-color: theme('colors.primaryGreen');
+                box-shadow: 0 0 0 3px rgba(80, 160, 110, 0.18);
+            }
+        }
+    }
+
+    .searchable-picker-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.015);
+        overflow-y: auto;
+    }
+
+    .searchable-picker-pill {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: white;
+        color: rgba(0, 0, 0, 0.72);
+        border: 1px solid rgba(0, 0, 0, 0.14);
+        font-size: 0.9rem;
+        font-weight: 500;
+        line-height: 1.2;
+        cursor: pointer;
+        transition: background-color 120ms ease, border-color 120ms ease,
+            color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+
+        &:hover:not(:disabled) {
+            border-color: theme('colors.primaryGreen');
+            color: theme('colors.primaryGreen');
+            transform: translateY(-1px);
+        }
+
+        // Selected = green pill. Click again to remove (cursor stays
+        // a pointer; the `title` flips to "Remove X" so the affordance
+        // is obvious on hover).
+        &.is-active {
+            background: theme('colors.primaryGreen');
+            color: white;
+            border-color: theme('colors.primaryGreen');
+            box-shadow: 0 2px 6px rgba(80, 160, 110, 0.25);
+
+            &:hover {
+                background: #3f8a5b;
+                border-color: #3f8a5b;
+                color: white;
+                transform: translateY(-1px);
+            }
+        }
+
+        // Past the selection cap, unselected pills dim out so the user
+        // sees they can't pick more without removing one first.
+        &.is-locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+
+    .searchable-picker-empty {
+        margin: 0;
+        padding: 6px 4px;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 0.9rem;
+    }
+
+    .searchable-picker-helper {
+        margin: 0;
+        font-size: 0.82rem;
+        color: rgba(0, 0, 0, 0.55);
+    }
+}

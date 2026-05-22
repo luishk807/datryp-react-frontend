@@ -26,7 +26,7 @@ const SearchHistoryPage = () => {
                         <HistoryRoundedIcon />
                     </span>
                     <div>
-                        <h1 className="search-history-page-title">Recent searches</h1>
+                        <h1 className="search-history-page-title">Your recent searches</h1>
                         <p className="search-history-page-subtitle">
                             Your 10 most-recent searches. Click any to rerun it.
                         </p>

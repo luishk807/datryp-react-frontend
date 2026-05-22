@@ -28,6 +28,7 @@ const Signup = lazy(() => import('components/Sections/Signup'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const CityDetail = lazy(() => import('components/Sections/CityDetail'));
 const Terms = lazy(() => import('components/Sections/Terms'));
+const Privacy = lazy(() => import('components/Sections/Privacy'));
 const About = lazy(() => import('components/Sections/About'));
 const Contact = lazy(() => import('components/Sections/Contact'));
 const Membership = lazy(() => import('components/Sections/Membership'));
@@ -197,6 +198,11 @@ function App() {
                 <Route path='/terms' element={
                     <Suspense fallback={<>...</>}>
                         <Terms />
+                    </Suspense>
+                }/>
+                <Route path='/privacy' element={
+                    <Suspense fallback={<>...</>}>
+                        <Privacy />
                     </Suspense>
                 }/>
                 <Route path='/about' element={

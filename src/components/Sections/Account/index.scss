@@ -4,12 +4,81 @@
 
 .account-page {
   width: 100%;
-  padding: 8px;
+  padding: 8px 16px;
+  max-width: 1120px;
+  margin: 0 auto;
+  // Desktop: left rail + content. Mobile drops the rail, surfaces the
+  // chip strip instead (see media queries below).
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.account-content {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-width: 760px;
-  margin: 0 auto;
+  min-width: 0;
+}
+
+/* ---------- Section nav (sidebar — desktop) ---------- */
+.account-nav {
+  position: sticky;
+  // Sit just below the Layout header so scrolling content slips under it
+  // rather than under the nav.
+  top: 92px;
+  align-self: start;
+}
+
+.account-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+}
+
+.account-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: rgba(0, 0, 0, 0.68);
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: theme('colors.primary');
+  }
+
+  &.is-active {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(80, 160, 110, 0.22);
+
+    .account-nav-icon {
+      color: #fff;
+    }
+  }
+}
+
+.account-nav-icon {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Section nav (chip strip — mobile / tablet) ---------- */
+.account-nav-mobile {
+  display: none;
 }
 
 /* ---------- Logged-out state ---------- */
@@ -46,19 +115,131 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.account-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.account-avatar-file {
+  display: none;
+}
+
+// Click-target for the avatar — wraps either the uploaded image or the
+// initial-letter fallback. Hovering surfaces the camera overlay so the
+// affordance is obvious without an extra "Upload" button beside it.
 .account-avatar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
+  border: none;
   border-radius: 50%;
   background: theme('colors.primaryGreen');
   color: #fff;
   font-weight: 700;
-  font-size: 1.5rem;
-  flex-shrink: 0;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
   box-shadow: 0 6px 18px rgba(60, 181, 75, 0.3);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    box-shadow: 0 8px 22px rgba(60, 181, 75, 0.45);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(80, 160, 110, 0.35);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+}
+
+.account-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.account-avatar-initial {
+  line-height: 1;
+}
+
+// Camera-icon overlay — invisible at rest, slides up on hover/focus to
+// signal that the avatar is clickable for upload.
+.account-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+
+  .MuiSvgIcon-root {
+    font-size: 1.6rem;
+  }
+}
+
+.account-avatar:hover .account-avatar-overlay,
+.account-avatar:focus-visible .account-avatar-overlay {
+  opacity: 1;
+}
+
+// Secondary text actions ("Change picture" / "Remove"). Lives next to
+// the heading so the avatar circle stays clean.
+.account-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.account-avatar-link {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: #3f8a5b;
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
+  &.is-destructive {
+    color: #c0392b;
+
+    &:hover:not(:disabled) {
+      color: #962a1f;
+    }
+  }
+}
+
+.account-avatar-error {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: #c0392b;
 }
 
 .account-card-headings {
@@ -105,6 +286,12 @@
   margin-top: 6px;
 }
 
+/* Travel-preferences card stacks three SearchablePicker fields with a bit
+   more breathing room than the default account-form layout. */
+.account-travel-prefs {
+  gap: 22px;
+}
+
 .account-message {
   padding: 10px 14px;
   border-radius: 10px;
@@ -119,13 +306,6 @@
 .account-message-error {
   background: rgba(192, 57, 43, 0.08);
   color: #c0392b;
-}
-
-/* Layout container for the Toggle group inside the Notifications field. */
-.account-toggles {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 /* ---------- Friends ---------- */
@@ -220,6 +400,73 @@
 }
 
 /* ---------- Responsive ---------- */
+/* ≤960px: collapse the 2-col grid; replace the rail with a sticky
+   horizontal chip strip pinned just below the Layout header. */
+@media (max-width: 960px) {
+  .account-page {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .account-nav {
+    display: none;
+  }
+
+  .account-nav-mobile {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 4px;
+    margin: -4px -4px 4px;
+    // Sticky chip strip so the nav follows the user as they scroll
+    // through long sections.
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+    background: linear-gradient(
+      180deg,
+      #fff 0%,
+      #fff 75%,
+      rgba(255, 255, 255, 0.85) 100%
+    );
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .account-nav-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &.is-active {
+      background: theme('colors.primaryGreen');
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(80, 160, 110, 0.22);
+    }
+  }
+
+  .account-nav-chip-icon {
+    font-size: 1rem !important;
+  }
+}
+
 @media (max-width: 640px) {
   .account-card {
     padding: 20px 18px;
@@ -231,9 +478,9 @@
     margin-bottom: 16px;
   }
   .account-avatar {
-    width: 54px;
-    height: 54px;
-    font-size: 1.3rem;
+    width: 64px;
+    height: 64px;
+    font-size: 1.4rem;
   }
   .account-card-title {
     font-size: 1.1rem;

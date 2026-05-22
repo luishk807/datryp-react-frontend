@@ -5,7 +5,13 @@
  * into camelCase to match the rest of the frontend.
  */
 import { getAuthToken } from './authStorage';
-import type { InterestOption, Preferences, PreferencesUpdate } from 'types';
+import type {
+    CatalogOption,
+    InterestOption,
+    Preferences,
+    PreferencesUpdate,
+    TravelerStyleOption,
+} from 'types';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -13,11 +19,17 @@ const API_BASE =
 interface PreferencesRaw {
     country_of_birth_code: string | null;
     interests: string[];
+    traveler_styles: string[];
+    dream_destinations: string[];
     onboarding_completed_at: string | null;
 }
 
 interface InterestsCatalogRaw {
     interests: InterestOption[];
+}
+
+interface TravelerStylesCatalogRaw {
+    traveler_styles: TravelerStyleOption[];
 }
 
 const authHeaders = (): Record<string, string> => {
@@ -41,6 +53,8 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
 const toPreferences = (r: PreferencesRaw): Preferences => ({
     countryOfBirthCode: r.country_of_birth_code,
     interests: r.interests ?? [],
+    travelerStyles: r.traveler_styles ?? [],
+    dreamDestinations: r.dream_destinations ?? [],
     onboardingCompletedAt: r.onboarding_completed_at,
 });
 
@@ -64,6 +78,12 @@ export const updateMyPreferences = async (
     if (payload.interests !== undefined) {
         body.interests = payload.interests;
     }
+    if (payload.travelerStyles !== undefined) {
+        body.traveler_styles = payload.travelerStyles;
+    }
+    if (payload.dreamDestinations !== undefined) {
+        body.dream_destinations = payload.dreamDestinations;
+    }
     if (payload.markComplete !== undefined) {
         body.mark_complete = payload.markComplete;
     }
@@ -86,3 +106,14 @@ export const fetchInterestsCatalog = async (): Promise<InterestOption[]> => {
     const body = (await resp.json()) as InterestsCatalogRaw;
     return body.interests;
 };
+
+export const fetchTravelerStylesCatalog = async (): Promise<TravelerStyleOption[]> => {
+    const resp = await fetch(`${API_BASE}/me/traveler-styles-catalog`);
+    if (!resp.ok) await handleError(resp, '/me/traveler-styles-catalog');
+    const body = (await resp.json()) as TravelerStylesCatalogRaw;
+    return body.traveler_styles;
+};
+
+// Type re-export keeps the import surface tidy for callers that only need
+// the slug/label shape and don't care whether it's an interest or a style.
+export type { CatalogOption };

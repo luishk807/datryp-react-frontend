@@ -16,7 +16,7 @@ const QUICK_LINKS: QuickLink[] = [
   { label: "Pricing", href: "/membership", internal: true },
   { label: "Contact Us", href: "/contact", internal: true },
   { label: "Terms of Use", href: "/terms", internal: true },
-  { label: "Privacy Policy", href: "#" },
+  { label: "Privacy Policy", href: "/privacy", internal: true },
 ];
 
 const Footer = () => {

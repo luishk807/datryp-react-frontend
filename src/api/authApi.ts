@@ -60,7 +60,10 @@ export interface MeResponse {
      *  the wizard hasn't been finished (or explicitly skipped) yet. */
     country_of_birth_code: string | null;
     interests: string[];
+    traveler_styles: string[];
+    dream_destinations: string[];
     onboarding_completed_at: string | null;
+    profile_image_url: string | null;
 }
 
 class AuthError extends Error {

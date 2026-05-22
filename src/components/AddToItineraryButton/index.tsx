@@ -1,96 +1,30 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { gql } from 'graphql-request';
 import classNames from 'classnames';
 import { Snackbar } from '@mui/material';
 import PlaylistAddRoundedIcon from '@mui/icons-material/PlaylistAddRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import { pythonGqlClient } from 'api/pythonGqlClient';
 import {
-    addDestination,
-    addPlace,
-    basicInfo,
-    resetTrip,
     useTripDispatch,
     useTripState,
 } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
+import {
+    dispatchAddToCurrentTrip,
+    dispatchStartFreshTrip,
+    findMatchingDestinationIndex,
+    lookupCountry,
+    tripHasContent,
+} from 'utils/addPlaceToItinerary';
 import { BUTTON_VARIANT, TRIP_BASIC } from 'constants';
-import { now } from 'utils';
-import type {
-    Activity,
-    Country,
-    Destination,
-    PlaceRecommendation,
-} from 'types';
+import type { PlaceRecommendation } from 'types';
 import './index.scss';
 
 export interface AddToItineraryButtonProps {
     place: PlaceRecommendation;
 }
-
-const COUNTRY_LOOKUP_QUERY = gql`
-    query AddToItineraryCountry($query: String!) {
-        countries(query: $query, limit: 5) {
-            id
-            name
-            code
-            local
-            image
-        }
-    }
-`;
-
-interface CountryLookupResult {
-    countries: Array<{
-        id: string;
-        name: string;
-        code: string;
-        local: string | null;
-        image: string | null;
-    }>;
-}
-
-const lookupCountry = async (name: string): Promise<Country | null> => {
-    const result = await pythonGqlClient.request<CountryLookupResult>(
-        COUNTRY_LOOKUP_QUERY,
-        { query: name }
-    );
-    const exact = result.countries.find(
-        (c) => c.name.toLowerCase() === name.toLowerCase()
-    );
-    const match = exact ?? result.countries[0];
-    if (!match) return null;
-    return {
-        id: match.id,
-        name: match.name,
-        code: match.code,
-        local: match.local ?? undefined,
-        image: match.image ?? undefined,
-    };
-};
-
-const placeToActivity = (place: PlaceRecommendation): Omit<Activity, 'id'> => ({
-    name: place.name,
-    location: `${place.city}, ${place.country}`,
-    note: place.description,
-    ...(place.imageUrl
-        ? { image: { url: place.imageUrl, name: place.name } }
-        : {}),
-});
-
-const earliestDateOf = (dest: Destination, tripStart?: string): string => {
-    const dayDates = (dest.itinerary ?? [])
-        .map((d) => d.date)
-        .filter((d): d is string => Boolean(d));
-    if (dayDates.length > 0) {
-        // YYYY-MM-DD sorts lexicographically.
-        return [...dayDates].sort()[0];
-    }
-    return dest.startDate ?? tripStart ?? now();
-};
 
 const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
     const { user } = useUser();
@@ -107,18 +41,15 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
         enabled: Boolean(user),
     });
 
-    const hasOngoingTrip =
-        (trip.destinations?.length ?? 0) > 0 || Boolean(trip.type);
+    const hasOngoingTrip = tripHasContent(trip);
     const isMultiTrip = trip.type?.id === TRIP_BASIC.MULTIPLE.id;
-
-    const matchingDestinationIndex = useMemo(() => {
-        if (!hasOngoingTrip) return -1;
-        const target = place.country.toLowerCase();
-        return trip.destinations.findIndex(
-            (d) => d.country?.name?.toLowerCase() === target
-        );
-    }, [hasOngoingTrip, trip.destinations, place.country]);
-
+    const matchingDestinationIndex = useMemo(
+        () =>
+            hasOngoingTrip
+                ? findMatchingDestinationIndex(trip, place.country)
+                : -1,
+        [hasOngoingTrip, trip, place.country]
+    );
     const hasMatchingDestination = matchingDestinationIndex !== -1;
 
     if (!user) return null;
@@ -126,83 +57,31 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
     const country = countryQuery.data ?? null;
     const isDisabled = countryQuery.isLoading || !country;
 
-    const startFreshTrip = () => {
+    const startFresh = () => {
         if (!country) return;
-        const today = now();
-        dispatch(resetTrip());
-        dispatch(
-            basicInfo({
-                type: TRIP_BASIC.SINGLE,
-                name: `Trip to ${country.name}`,
-                destinations: [{ country }] as Destination[],
-                startDate: today,
-                endDate: today,
-            })
-        );
-        dispatch(
-            addPlace({
-                value: placeToActivity(place),
-                index: 0,
-                date: today,
-                destinationIndx: 0,
-            })
-        );
+        dispatchStartFreshTrip(place, country, dispatch);
         setToast(`Started a new trip with ${place.name}`);
         navigate(TRIP_BASIC.SINGLE.route);
     };
 
-    const addToCurrentTrip = () => {
+    const addToCurrent = () => {
         if (!country) return;
-
-        if (hasMatchingDestination) {
-            // Single-same-country (or multi-same-country) → add as activity
-            // to the destination's earliest existing day.
-            const dest = trip.destinations[matchingDestinationIndex];
-            const date = earliestDateOf(dest, trip.startDate);
-            dispatch(
-                addPlace({
-                    value: placeToActivity(place),
-                    index: 0,
-                    date,
-                    destinationIndx: matchingDestinationIndex,
-                })
-            );
-            const route = trip.type?.route ?? TRIP_BASIC.SINGLE.route;
-            setToast(`Added ${place.name} to ${trip.name ?? 'your trip'}`);
-            navigate(route);
-            return;
-        }
-
-        // No matching destination — append a new one. If currently single,
-        // promote to multi so the type reflects reality.
-        if (!isMultiTrip) {
-            dispatch(basicInfo({ type: TRIP_BASIC.MULTIPLE }));
-        }
-
-        const newDestinationIndex = trip.destinations.length;
-        dispatch(
-            addDestination({
-                value: { country },
-                startDate: trip.startDate,
-                endDate: trip.endDate,
-            })
+        const { route } = dispatchAddToCurrentTrip(
+            place,
+            country,
+            trip,
+            matchingDestinationIndex,
+            dispatch
         );
-        dispatch(
-            addPlace({
-                value: placeToActivity(place),
-                index: 0,
-                date: trip.startDate ?? now(),
-                destinationIndx: newDestinationIndex,
-            })
-        );
-        setToast(`Added ${country.name} to ${trip.name ?? 'your trip'}`);
-        navigate(TRIP_BASIC.MULTIPLE.route);
+        const target = hasMatchingDestination ? place.name : country.name;
+        setToast(`Added ${target} to ${trip.name ?? 'your trip'}`);
+        navigate(route);
     };
 
     const handleClick = () => {
         if (isDisabled) return;
         if (!hasOngoingTrip) {
-            startFreshTrip();
+            startFresh();
             return;
         }
         modalRef.current?.openModel();
@@ -210,12 +89,12 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
 
     const handleAddToCurrent = () => {
         modalRef.current?.closeModal();
-        addToCurrentTrip();
+        addToCurrent();
     };
 
     const handleStartFresh = () => {
         modalRef.current?.closeModal();
-        startFreshTrip();
+        startFresh();
     };
 
     const tripLabel = trip.name?.trim() || 'your current trip';

@@ -5,6 +5,8 @@
 export interface Preferences {
     countryOfBirthCode: string | null;
     interests: string[];
+    travelerStyles: string[];
+    dreamDestinations: string[];
     onboardingCompletedAt: string | null;
 }
 
@@ -14,12 +16,18 @@ export interface Preferences {
 export interface PreferencesUpdate {
     countryOfBirthCode?: string | null;
     interests?: string[];
+    travelerStyles?: string[];
+    dreamDestinations?: string[];
     markComplete?: boolean;
 }
 
-/** One row in the interest chip catalog (`GET /me/interests-catalog`).
- *  Slugs match the backend `INTERESTS` tuple; labels are display-only. */
-export interface InterestOption {
+/** One row in a slug-based catalog (interests, traveler styles).
+ *  Slugs match the backend tuples; labels are display-only. */
+export interface CatalogOption {
     slug: string;
     label: string;
 }
+
+/** Back-compat alias — older callsites import `InterestOption`. */
+export type InterestOption = CatalogOption;
+export type TravelerStyleOption = CatalogOption;

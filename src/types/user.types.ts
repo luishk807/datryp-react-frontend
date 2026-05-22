@@ -12,6 +12,5 @@ export interface User {
   email: string;
   dob: string;
   countryOfBirth: Country;
-  preferredAirport?: string;
   gender: Gender;
 }

@@ -86,6 +86,19 @@ const Header = ({ withSearch = false }: HeaderProps) => {
     };
 
     const initial = user?.name.charAt(0).toUpperCase() ?? '?';
+    const profileImg = user?.profileImageUrl ?? null;
+    // Re-usable contents for any circular avatar in this header. When the
+    // user has uploaded a profile picture we render it; otherwise we fall
+    // back to the initial-letter chip.
+    const avatarContent = profileImg ? (
+        <img
+            src={profileImg}
+            alt=""
+            className="app-header-avatar-img"
+        />
+    ) : (
+        initial
+    );
 
     return (
         <header className="app-header">
@@ -118,7 +131,7 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                 ariaLabel={`Account menu for ${user.name}`}
                                 onClick={(e) => setMenuAnchor(e.currentTarget)}
                             >
-                                {initial}
+                                {avatarContent}
                             </ButtonCustom>
                             <Menu
                                 anchorEl={menuAnchor}
@@ -126,7 +139,9 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                 paperClassName="user-menu"
                             >
                                 <div className="user-menu-header">
-                                    <span className="user-menu-avatar">{initial}</span>
+                                    <span className="user-menu-avatar">
+                                        {avatarContent}
+                                    </span>
                                     <div className="user-menu-info">
                                         <span className="user-menu-name">{user.name}</span>
                                         {user.email && (
@@ -253,7 +268,7 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                             <>
                                 <div className="drawer-user">
                                     <span className="app-header-avatar drawer-avatar">
-                                        {initial}
+                                        {avatarContent}
                                     </span>
                                     <span className="drawer-user-name">{user.name}</span>
                                 </div>

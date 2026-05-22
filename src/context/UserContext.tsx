@@ -24,12 +24,6 @@ import { migrateLocalBookmarks } from 'utils/migrateLocalBookmarks';
 
 export type PaymentType = 'card' | 'paypal' | 'venmo' | 'other';
 
-export interface NotificationPrefs {
-    email: boolean;
-    sms: boolean;
-    push: boolean;
-}
-
 export interface UserFriend {
     id: string;
     name: string;
@@ -48,9 +42,7 @@ export interface User {
      *  have any). */
     birthYear?: number;
     countryOfBirth?: string;
-    preferredAirport?: string;
     paymentType?: PaymentType;
-    notifications?: NotificationPrefs;
     friends?: UserFriend[];
     /** Authoritative role from the backend's `users.role` column. Drives
      *  admin bypass on paywalls and tier gates — never derive this from the
@@ -83,10 +75,20 @@ export interface User {
     /** Interest slugs the user picked during onboarding (or later on the
      *  Account page). Empty array = none chosen yet. */
     interests: string[];
+    /** Traveler-style slugs from the same onboarding step. Powers the
+     *  personalized "Places you might love" homepage section. */
+    travelerStyles: string[];
+    /** ISO-2 country codes the user flagged as dream destinations. Same
+     *  source as `interests` — drives personalized recommendations. */
+    dreamDestinations: string[];
     /** ISO-8601 timestamp marking when the user finished or explicitly
      *  skipped the onboarding wizard. Null means "needs the wizard" — the
      *  auto-launcher in App reads this. */
     onboardingCompletedAt: string | null;
+    /** Public CloudFront URL of the user's profile picture, or null if
+     *  they haven't uploaded one. Drives the circle avatar on the
+     *  Account page and in the Header. */
+    profileImageUrl: string | null;
 }
 
 /**
@@ -99,9 +101,7 @@ type LocalOverlay = Pick<
     | 'phone'
     | 'birthYear'
     | 'countryOfBirth'
-    | 'preferredAirport'
     | 'paymentType'
-    | 'notifications'
     | 'friends'
 >;
 
@@ -203,7 +203,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             cancelAtPeriodEnd: me.subscription_cancel_at_period_end,
             countryOfBirthCode: me.country_of_birth_code,
             interests: me.interests ?? [],
+            travelerStyles: me.traveler_styles ?? [],
+            dreamDestinations: me.dream_destinations ?? [],
             onboardingCompletedAt: me.onboarding_completed_at,
+            profileImageUrl: me.profile_image_url,
             ...overlay,
         };
     }, [me, overlay]);

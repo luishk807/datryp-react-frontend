@@ -1,0 +1,167 @@
+.places-you-might-love {
+    width: 100%;
+
+    .pyml-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .pyml-title {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 700;
+        color: theme('colors.primary');
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+
+    .pyml-subtitle {
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .pyml-status {
+        font-size: 0.95rem;
+        color: rgba(0, 0, 0, 0.55);
+        padding: 24px 0;
+    }
+
+    /* ────── Home variant — mirrors TopPlaces for visual consistency ────── */
+    &.is-home {
+        max-width: 1280px;
+        margin: 0 auto 56px;
+        padding: 32px 24px 0;
+
+        .pyml-grid-home {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+        }
+
+        @media (max-width: 1024px) {
+            .pyml-grid-home {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            padding: 16px 16px 0;
+            margin-bottom: 40px;
+
+            .pyml-grid-home {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+    }
+
+    /* ────── Empty-trips variant — kept as the previous in-page card layout ────── */
+    &.is-empty-trips {
+        // Extra top margin so the section breathes away from the dashed
+        // `.trips-empty` box that sits directly above it.
+        margin-top: 32px;
+        padding: 8px 0 32px;
+
+        .pyml-header {
+            margin-bottom: 14px;
+        }
+
+        // The empty-trips variant lives below a small dashed empty-state
+        // box, so the homepage-scale title feels heavy here. Tighten it
+        // closer to a card-header size.
+        .pyml-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .pyml-subtitle {
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.88rem;
+        }
+
+        .pyml-grid {
+            display: grid;
+            // 4 cards: 4 columns on desktop, falling back to 2 then 1.
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .pyml-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pyml-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pyml-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding: 0;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 160ms ease, box-shadow 160ms ease;
+
+            &:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            }
+        }
+
+        .pyml-card-img {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .pyml-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 14px 16px;
+        }
+
+        .pyml-card-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        .pyml-card-country {
+            font-size: 0.85rem;
+            color: rgba(0, 0, 0, 0.55);
+        }
+
+        .pyml-card-why {
+            margin: 6px 0 0;
+            font-size: 0.88rem;
+            color: rgba(0, 0, 0, 0.7);
+            line-height: 1.4;
+            // Clamp at 3 lines so cards stay roughly the same height.
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    }
+}

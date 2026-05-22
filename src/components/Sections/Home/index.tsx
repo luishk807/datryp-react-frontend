@@ -9,6 +9,7 @@ import Layout from 'components/common/Layout';
 import { FALLBACK_HERO_IMAGES } from 'constants';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
+import PlacesYouMightLove from 'components/PlacesYouMightLove';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import type { Country, HeroImage } from 'types';
 
@@ -143,6 +144,7 @@ const Home = () => {
                 </div>
             </section>
 
+            <PlacesYouMightLove variant="home" />
             <TopPlaces onPlaceClick={handlePlaceClick} />
         </Layout>
     );

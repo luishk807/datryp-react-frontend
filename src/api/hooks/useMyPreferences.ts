@@ -2,11 +2,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     fetchInterestsCatalog,
     fetchMyPreferences,
+    fetchTravelerStylesCatalog,
     updateMyPreferences,
 } from 'api/preferencesApi';
 import { useUser } from 'context/UserContext';
 import { queryKeys } from 'api/queryKeys';
-import type { InterestOption, Preferences, PreferencesUpdate } from 'types';
+import type {
+    InterestOption,
+    Preferences,
+    PreferencesUpdate,
+    TravelerStyleOption,
+} from 'types';
 
 /** Query key for the standalone `/me/preferences` query. Listed in
  *  `queryKeys` for consistency, but exported here for callers that need
@@ -16,6 +22,8 @@ export const preferencesKey = ['me', 'preferences'] as const;
 /** Static-ish chip catalog. Cached for the session — the underlying list
  *  is a hard-coded constant on the backend, so once is enough. */
 export const interestsCatalogKey = ['me', 'interests-catalog'] as const;
+
+export const travelerStylesCatalogKey = ['me', 'traveler-styles-catalog'] as const;
 
 export const useMyPreferences = () => {
     const { user } = useUser();
@@ -33,6 +41,14 @@ export const useInterestsCatalog = () =>
         queryFn: fetchInterestsCatalog,
         // Effectively immutable — the catalog only changes when the backend
         // constant is edited and the app is redeployed.
+        staleTime: Infinity,
+        retry: 1,
+    });
+
+export const useTravelerStylesCatalog = () =>
+    useQuery<TravelerStyleOption[]>({
+        queryKey: travelerStylesCatalogKey,
+        queryFn: fetchTravelerStylesCatalog,
         staleTime: Infinity,
         retry: 1,
     });

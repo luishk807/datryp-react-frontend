@@ -20,9 +20,9 @@ export const yearsSinceBirthYear = (birthYear: number | null | undefined): numbe
 };
 
 /** Year-of-birth range we accept on the signup form. Earliest is 1900 (no
- *  practical reason to allow older), latest is the current year (somebody
- *  born this year is obviously under 13, but the form-level check will reject
- *  them — we keep the dropdown range generous so a busy user typing the
- *  wrong year doesn't see an immediate validation flicker). */
+ *  practical reason to allow older), latest is `currentYear - MIN_SIGNUP_AGE`
+ *  so the dropdown can't suggest a year that would make the user under 13.
+ *  Picking a more recent year would have failed `yearsSinceBirthYear` anyway,
+ *  but exposing it in the picker was misleading UX. */
 export const MIN_BIRTH_YEAR = 1900;
-export const MAX_BIRTH_YEAR = new Date().getFullYear();
+export const MAX_BIRTH_YEAR = new Date().getFullYear() - MIN_SIGNUP_AGE;

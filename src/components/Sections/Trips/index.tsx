@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import Layout from 'components/common/Layout/SubLayout';
 import TripBox, { type TripBoxData } from 'components/common/TripBox';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import PlacesYouMightLove from 'components/PlacesYouMightLove';
 import { useMyItineraries } from 'api/hooks/useItineraries';
 import { apiToTripEntry } from 'utils/itineraryAdapter';
 import './index.scss';
@@ -111,9 +112,17 @@ export const Trips = () => {
                         <p>Couldn't load your trips. Is the backend running?</p>
                     </div>
                 ) : filteredTrips.length === 0 ? (
-                    <div className="trips-empty">
-                        <p>No trips in this category yet.</p>
-                    </div>
+                    <>
+                        <div className="trips-empty">
+                            <p>No trips in this category yet.</p>
+                        </div>
+                        {/* When the user is fully tripless (not just filtered to
+                            an empty bucket), surface the personalized
+                            recommendations so they have something to act on. */}
+                        {allTrips.length === 0 && (
+                            <PlacesYouMightLove variant="empty-trips" />
+                        )}
+                    </>
                 ) : (
                     <Grid container id="trip-container">
                         {filteredTrips.map((trip) => (

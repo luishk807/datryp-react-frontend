@@ -19,7 +19,6 @@ const me: User = {
     name: "United States",
     code: "US",
   },
-  preferredAirport: "JFK",
   gender: {
     id: 1,
     name: "Male",
@@ -37,7 +36,6 @@ const joanna: User = {
     name: "United States",
     code: "US",
   },
-  preferredAirport: "JFK",
   gender: {
     id: 1,
     name: "Male",
@@ -55,7 +53,6 @@ const alberto: User = {
     name: "United States",
     code: "US",
   },
-  preferredAirport: "JFK",
   gender: {
     id: 1,
     name: "Male",
@@ -73,7 +70,6 @@ const jessica: User = {
     name: "United States",
     code: "US",
   },
-  preferredAirport: "JFK",
   gender: {
     id: 1,
     name: "Male",
@@ -91,7 +87,6 @@ const chris: User = {
     name: "United States",
     code: "US",
   },
-  preferredAirport: "JFK",
   gender: {
     id: 1,
     name: "Male",
@@ -109,7 +104,6 @@ const leon: User = {
     name: "United States",
     code: "US",
   },
-  preferredAirport: "JFK",
   gender: {
     id: 1,
     name: "Male",

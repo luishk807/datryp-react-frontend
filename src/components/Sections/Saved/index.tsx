@@ -34,7 +34,7 @@ const Saved = () => {
         <Layout title="Saved">
             <div className="saved-page">
                 <header className="saved-page-header">
-                    <h1 className="saved-page-title">Saved</h1>
+                    <h1 className="saved-page-title">Your bookmarks</h1>
                     {!allEmpty && (
                         <p className="saved-page-summary">
                             {countryTotal}{' '}
