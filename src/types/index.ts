@@ -11,6 +11,7 @@ export * from "./placeDetails.types";
 export * from "./countryDetails.types";
 export * from "./cityDetails.types";
 export * from "./monthlyTopCity.types";
+export * from "./topPlace.types";
 export * from "./share.types";
 export * from "./visitedPlace.types";
 export * from "./visitedCountry.types";

@@ -8,12 +8,14 @@ export const PAGE_TITLE = "DaTryp.com";
  *  "enter a valid email" UX in forms. */
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Local hero images shown on the homepage when `/hero-images` is empty or unreachable. */
+/** Hero images shown on the homepage when `/hero-images` is empty or
+ *  unreachable. Points at the same S3/CloudFront origin the backend
+ *  uploads to, so we don't have to ship any local image binaries. */
 export const FALLBACK_HERO_IMAGES = [
-  "/images/sample/iceland.jpg",
-  "/images/sample/china1.jpg",
-  "/images/sample/china2.jpg",
-  "/images/sample/vietnam.jpg",
+  "https://d111x5lpaimz3o.cloudfront.net/hero/sydney-australia.jpg",
+  "https://d111x5lpaimz3o.cloudfront.net/hero/new-york-city-usa.jpg",
+  "https://d111x5lpaimz3o.cloudfront.net/hero/cape-town-south-africa.jpg",
+  "https://d111x5lpaimz3o.cloudfront.net/hero/tokyo-japan.jpg",
 ] as const;
 
 export const ACTION = {

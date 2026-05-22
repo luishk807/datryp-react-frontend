@@ -7,7 +7,7 @@ import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
 import { FALLBACK_HERO_IMAGES } from 'constants';
-import type { TopPlace } from 'sample/topPlaces';
+import type { TopPlace } from 'types';
 import TopPlaces from 'components/TopPlaces';
 import PlacesYouMightLove from 'components/PlacesYouMightLove';
 import UpcomingHoliday from 'components/UpcomingHoliday';

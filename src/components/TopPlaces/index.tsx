@@ -3,7 +3,7 @@ import PlaceCard from 'components/common/PlaceCard';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import { useMonthlyTopCities } from 'api/hooks/useMonthlyTopCities';
 import { NO_IMAGE } from 'constants';
-import type { TopPlace } from 'sample/topPlaces';
+import type { TopPlace } from 'types';
 
 export interface TopPlacesProps {
     /** Card click handler — receives the same `TopPlace` shape Home expects,
