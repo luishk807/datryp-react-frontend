@@ -7,6 +7,7 @@
 import { getAuthToken } from './authStorage';
 import type {
     CatalogOption,
+    GenderOption,
     InterestOption,
     Preferences,
     PreferencesUpdate,
@@ -18,6 +19,7 @@ const API_BASE =
 
 interface PreferencesRaw {
     country_of_birth_code: string | null;
+    gender_id: string | null;
     interests: string[];
     traveler_styles: string[];
     dream_destinations: string[];
@@ -30,6 +32,10 @@ interface InterestsCatalogRaw {
 
 interface TravelerStylesCatalogRaw {
     traveler_styles: TravelerStyleOption[];
+}
+
+interface GendersCatalogRaw {
+    genders: GenderOption[];
 }
 
 const authHeaders = (): Record<string, string> => {
@@ -52,6 +58,7 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
 
 const toPreferences = (r: PreferencesRaw): Preferences => ({
     countryOfBirthCode: r.country_of_birth_code,
+    genderId: r.gender_id,
     interests: r.interests ?? [],
     travelerStyles: r.traveler_styles ?? [],
     dreamDestinations: r.dream_destinations ?? [],
@@ -74,6 +81,9 @@ export const updateMyPreferences = async (
     const body: Record<string, unknown> = {};
     if (payload.countryOfBirthCode !== undefined) {
         body.country_of_birth_code = payload.countryOfBirthCode;
+    }
+    if (payload.genderId !== undefined) {
+        body.gender_id = payload.genderId;
     }
     if (payload.interests !== undefined) {
         body.interests = payload.interests;
@@ -112,6 +122,15 @@ export const fetchTravelerStylesCatalog = async (): Promise<TravelerStyleOption[
     if (!resp.ok) await handleError(resp, '/me/traveler-styles-catalog');
     const body = (await resp.json()) as TravelerStylesCatalogRaw;
     return body.traveler_styles;
+};
+
+export const fetchGendersCatalog = async (): Promise<GenderOption[]> => {
+    const resp = await fetch(`${API_BASE}/me/genders-catalog`, {
+        headers: authHeaders(),
+    });
+    if (!resp.ok) await handleError(resp, '/me/genders-catalog');
+    const body = (await resp.json()) as GendersCatalogRaw;
+    return body.genders;
 };
 
 // Type re-export keeps the import surface tidy for callers that only need

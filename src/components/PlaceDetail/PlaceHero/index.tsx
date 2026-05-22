@@ -6,7 +6,7 @@ export interface PlaceHeroProps {
    *  `aria-label` when only the placeholder logo is shown. */
   name: string;
   /** Unsplash photo URL. When missing/empty the hero renders the gray
-   *  daTryp logo placeholder. */
+   *  DaTryp.com logo placeholder. */
   imageUrl?: string | null;
   /** Unsplash photographer name — only rendered when `imageUrl` is set. */
   photographerName?: string | null;
@@ -19,7 +19,7 @@ export interface PlaceHeroProps {
 
 /**
  * The big rounded-corner photo at the top of the place-detail page.
- * Falls back to a centered daTryp logo when no image URL is available,
+ * Falls back to a centered DaTryp.com logo when no image URL is available,
  * and overlays the Unsplash photo attribution in the bottom-right.
  */
 const PlaceHero = ({

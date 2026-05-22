@@ -52,7 +52,7 @@ const SearchResults = () => {
             if (isQueryBlockedError(error)) {
                 return (
                     <p className="search-results-blocked">
-                        daTryp is a travel planner — try a search like
+                        DaTryp.com is a travel planner — try a search like
                         &ldquo;beach yoga retreat&rdquo; or
                         &ldquo;ancient ruins.&rdquo;{' '}
                         <Link to="/terms" className="search-results-blocked-link">

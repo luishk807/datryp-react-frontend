@@ -10,6 +10,9 @@ import { FALLBACK_HERO_IMAGES } from 'constants';
 import type { TopPlace } from 'sample/topPlaces';
 import TopPlaces from 'components/TopPlaces';
 import PlacesYouMightLove from 'components/PlacesYouMightLove';
+import UpcomingHoliday from 'components/UpcomingHoliday';
+import WorldEvent from 'components/WorldEvent';
+import MonthlyBestPlace from 'components/MonthlyBestPlace';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import type { Country, HeroImage } from 'types';
 
@@ -145,6 +148,9 @@ const Home = () => {
             </section>
 
             <PlacesYouMightLove variant="home" />
+            <MonthlyBestPlace />
+            <UpcomingHoliday />
+            <WorldEvent />
             <TopPlaces onPlaceClick={handlePlaceClick} />
         </Layout>
     );

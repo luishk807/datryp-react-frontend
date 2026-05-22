@@ -162,6 +162,9 @@ const CountryDetail = () => {
             />
             <ShareButton
               title={country.name}
+              subtitle="Country"
+              imageUrl={country.image}
+              description={details.countryHighlight}
               url={
                 typeof window !== "undefined"
                   ? window.location.href
@@ -172,7 +175,7 @@ const CountryDetail = () => {
                 name: country.name,
                 city: "",
                 country: country.name,
-                description: "",
+                description: details.countryHighlight ?? "",
                 image_url: country.image,
               }}
             />

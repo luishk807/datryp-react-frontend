@@ -307,7 +307,7 @@ const SearchBar = ({
                     >
                         {isBlocked && (
                             <p className="searchbar-recommend-blocked">
-                                daTryp is a travel planner — try a search like
+                                DaTryp.com is a travel planner — try a search like
                                 &ldquo;beach yoga retreat&rdquo; or
                                 &ldquo;ancient ruins.&rdquo;{' '}
                                 <Link to="/terms" className="searchbar-recommend-blocked-link">

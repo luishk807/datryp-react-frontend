@@ -53,7 +53,7 @@ const MembershipWelcome = () => {
                         aria-hidden="true"
                     />
                     <h1 className="welcome-hero-title">
-                        You&rsquo;re in. Welcome to daTryp Pro.
+                        You&rsquo;re in. Welcome to DaTryp.com Pro.
                     </h1>
                     <p className="welcome-hero-subtitle">
                         Your 30-day free trial has started. No charge until

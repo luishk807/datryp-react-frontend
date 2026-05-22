@@ -47,7 +47,7 @@ const ForgotPassword = () => {
                     <div className="forgot-password-confirm">
                         <h2>Check your inbox</h2>
                         <p>
-                            If <strong>{email}</strong> is a registered daTryp
+                            If <strong>{email}</strong> is a registered DaTryp.com
                             account, we&rsquo;ve emailed you a link to reset
                             your password. The link expires in 60 minutes.
                         </p>
@@ -70,7 +70,7 @@ const ForgotPassword = () => {
                             Reset your password
                         </h2>
                         <p className="forgot-password-subtitle">
-                            Enter the email tied to your daTryp account and
+                            Enter the email tied to your DaTryp.com account and
                             we&rsquo;ll send you a link to choose a new
                             password.
                         </p>

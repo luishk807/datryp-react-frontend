@@ -1,7 +1,7 @@
 import Layout from 'components/common/Layout/SubLayout';
 import './index.scss';
 
-const LAST_UPDATED = 'May 21, 2026';
+const LAST_UPDATED = 'May 22, 2026';
 
 const Privacy = () => (
     <Layout title="Privacy Policy">
@@ -11,7 +11,7 @@ const Privacy = () => (
             <section className="privacy-section">
                 <h2>The short version</h2>
                 <p>
-                    daTryp keeps the data we need to run the product and nothing
+                    DaTryp.com keeps the data we need to run the product and nothing
                     else. We don&rsquo;t sell your information. The sections below
                     spell out what we collect, how we use it, and the choices you
                     have.
@@ -29,7 +29,7 @@ const Privacy = () => (
                     password.
                 </p>
                 <p>
-                    <strong>Travel data</strong> you create inside daTryp: trips,
+                    <strong>Travel data</strong> you create inside DaTryp.com: trips,
                     itineraries, activities, saved places, visited places, bucket
                     list entries, reviews, and search history.
                 </p>
@@ -62,20 +62,52 @@ const Privacy = () => (
             </section>
 
             <section className="privacy-section">
-                <h2>AI search</h2>
+                <h2>AI personalization &amp; what we send to OpenAI</h2>
                 <p>
-                    When you use AI search or AI itinerary suggestions, the text
-                    of your query is sent to our AI provider (currently OpenAI)
-                    to generate a response. We don&rsquo;t send your account
-                    profile, your friends list, or other identifying information
-                    along with the query.
+                    Some AI features (AI search, AI itinerary suggestions,
+                    bucket-list trip generation) only send the text of your
+                    query — nothing from your profile travels with it.
+                </p>
+                <p>
+                    A few personalized features send a small set of
+                    profile fields to our AI provider (currently OpenAI)
+                    so the recommendation can match your situation:
+                </p>
+                <ul>
+                    <li>
+                        <strong>Places you might love</strong> sends your
+                        chosen interests, traveler styles, and dream
+                        destinations (labels only, not your name or email).
+                    </li>
+                    <li>
+                        <strong>Upcoming holiday</strong> sends the name
+                        of your country of birth so the holiday picks
+                        match what you celebrate.
+                    </li>
+                    <li>
+                        <strong>Your monthly top pick (Pro)</strong> sends
+                        your approximate age (derived from your birth
+                        year), your country of birth, your gender (if you
+                        chose to share one), and your interests/traveler
+                        styles. We never send your name, email, friends
+                        list, payment info, or any other directly
+                        identifying field.
+                    </li>
+                </ul>
+                <p>
+                    OpenAI processes these inputs only to generate that
+                    single response; per their API terms, they don&rsquo;t
+                    use the data to train their models. You can clear or
+                    change any of these fields any time from the Account
+                    page — doing so wipes our cached recommendation and
+                    regenerates it next time you visit.
                 </p>
             </section>
 
             <section className="privacy-section">
                 <h2>Who else handles your data</h2>
                 <p>
-                    A small set of trusted services help us run daTryp:
+                    A small set of trusted services help us run DaTryp.com:
                 </p>
                 <ul>
                     <li>
@@ -162,7 +194,7 @@ const Privacy = () => (
             <section className="privacy-section">
                 <h2>Children</h2>
                 <p>
-                    daTryp isn&rsquo;t intended for children under 13. If we
+                    DaTryp.com isn&rsquo;t intended for children under 13. If we
                     learn we&rsquo;ve collected data from a child under 13,
                     we&rsquo;ll delete it.
                 </p>

@@ -166,7 +166,7 @@ const AuthGate = ({
                     <IconLink
                         to="/"
                         icon={<img src={logoUrl} alt="" />}
-                        ariaLabel="daTryp home"
+                        ariaLabel="DaTryp.com home"
                         className="authgate-brand"
                     />
                     <h1 className="authgate-hero-title">{title}</h1>
@@ -194,7 +194,7 @@ const AuthGate = ({
                     <IconLink
                         to="/"
                         icon={<img src={logoUrl} alt="" />}
-                        ariaLabel="daTryp home"
+                        ariaLabel="DaTryp.com home"
                         className="authgate-brand authgate-brand-mobile"
                     />
                     <h2 className="authgate-form-title">
@@ -346,7 +346,7 @@ const AuthGate = ({
                     <p className="authgate-toggle">
                         {mode === AUTH_MODE.LOGIN ? (
                             <>
-                                New to daTryp?{' '}
+                                New to DaTryp.com?{' '}
                                 <ButtonCustom
                                     type="text"
                                     capitalizeType="none"

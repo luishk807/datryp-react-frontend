@@ -95,7 +95,7 @@ const SubscriptionSection = () => {
                             cancelling || isPastDue ? 'warning' : 'active'
                         }`}
                     >
-                        {cancelling ? 'daTryp Pro — Cancelling' : 'daTryp Pro'}
+                        {cancelling ? 'DaTryp.com Pro — Cancelling' : 'DaTryp.com Pro'}
                     </span>
                     {cancelling && accessEndsOn && (
                         <p className="subscription-status-line subscription-status-line--warning">

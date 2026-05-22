@@ -42,7 +42,7 @@ const StepAge = ({
         <>
             <h1 className="signup-step-title">When were you born?</h1>
             <p className="signup-step-subtitle">
-                You must be at least {MIN_SIGNUP_AGE} years old to use daTryp.
+                You must be at least {MIN_SIGNUP_AGE} years old to use DaTryp.com.
                 Year only — we don't ask for your full birthday.
             </p>
             <div className="signup-age-field">

@@ -1,7 +1,7 @@
 /**
  * Fetch wrapper for the public contact-form endpoint.
  *
- * The backend (FastAPI) at POST /contact relays the message to the daTryp
+ * The backend (FastAPI) at POST /contact relays the message to the DaTryp.com
  * inbox via SendGrid. Returns 503 when SendGrid isn't configured — the
  * caller renders that as an "email isn't set up yet" message instead of a
  * generic save-failed toast.

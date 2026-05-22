@@ -1,12 +1,15 @@
 import { useRef, useState } from 'react';
 import './index.scss';
 import { IconButton, Snackbar } from '@mui/material';
-import Menu, { MenuActionItem } from 'components/common/Menu';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
-import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import XIcon from '@mui/icons-material/X';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import classNames from 'classnames';
+import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import EmailShareModal, {
     type EmailShareModalHandle,
 } from 'components/EmailShareModal';
@@ -15,55 +18,113 @@ import type { SharePlacePayload } from 'types';
 export interface ShareButtonProps {
     /** What the user is sharing (city name, place name, country name, …). */
     title: string;
-    /** Optional secondary line (e.g. "Vancouver · Canada"). Used in the
-     *  native share sheet's `text` slot when present. */
+    /** Optional secondary line (e.g. "Vancouver · Canada"). Surfaces in
+     *  the share-preview card AND in the native share sheet's `text`
+     *  slot. */
     subtitle?: string;
     /** Canonical URL the recipient should land on. */
     url: string;
+    /** Hero image of the thing being shared — drives the preview card
+     *  in the modal so the user can SEE what they're about to share. */
+    imageUrl?: string | null;
+    /** 1–2 sentence pitch for what's at the URL. Used in the modal
+     *  preview body and prepended to WhatsApp/email/native share text
+     *  so the recipient knows why they got the link. */
+    description?: string;
     /** `icon` (default): small circular icon button — used on result cards.
      *  `pill`: prominent icon+text pill — used as a primary action on the
      *  detail page. */
     variant?: 'icon' | 'pill';
-    /** Payload for the SendGrid email template. When provided, the menu
-     *  shows an "Email" option that opens the EmailShareModal. Omit on
-     *  surfaces where an email share doesn't make sense (or until we
-     *  generalize the email template). */
+    /** Payload for the SendGrid email template. When provided, the modal
+     *  shows the "Email" channel; omit on surfaces where email sharing
+     *  doesn't apply. */
     emailPayload?: SharePlacePayload;
 }
 
 const canNativeShare = (): boolean =>
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
+/** Body text used by social/email intent URLs. Includes the title +
+ *  subtitle and (optionally) the description so the recipient gets a
+ *  proper pitch — not just a bare URL. Same string we hand to the
+ *  native share sheet for consistency across channels. */
+const buildShareText = (
+    title: string,
+    subtitle?: string,
+    description?: string
+): string => {
+    const head = subtitle ? `${title} — ${subtitle}` : title;
+    const body = description?.trim();
+    return body ? `${head}: ${body}` : `Check out ${head} on DaTryp.com`;
+};
+
+const openIntent = (intentUrl: string) => {
+    // `noopener,noreferrer` keeps the share target from grabbing our
+    // window.opener handle.
+    window.open(intentUrl, '_blank', 'noopener,noreferrer');
+};
+
 const ShareButton = ({
     title,
     subtitle,
     url,
+    imageUrl,
+    description,
     variant = 'icon',
     emailPayload,
 }: ShareButtonProps) => {
-    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-    const [toast, setToast] = useState<string | null>(null);
+    const modalRef = useRef<ModalButtonHandle>(null);
     const emailModalRef = useRef<EmailShareModalHandle>(null);
+    const [toast, setToast] = useState<string | null>(null);
 
-    const closeMenu = () => setMenuAnchor(null);
+    const openShare = () => modalRef.current?.openModel();
+    const closeShare = () => modalRef.current?.closeModal();
 
-    const handleNativeShare = async () => {
-        closeMenu();
-        try {
-            await navigator.share({
-                title,
-                text: subtitle
-                    ? `${title} — ${subtitle}`
-                    : `Check out ${title} on daTryp`,
-                url,
-            });
-        } catch {
-            // User cancelled the share sheet or it's unsupported — silent.
-        }
+    // Long form for WhatsApp / Email / native share — they support
+    // multi-line bodies so we can include the description.
+    const longShareText = buildShareText(title, subtitle, description);
+    // Short headline for Twitter — strict char budget, skip the body.
+    const shortShareText = subtitle
+        ? `${title} — ${subtitle}`
+        : `Check out ${title} on DaTryp.com`;
+    const encodedUrl = encodeURIComponent(url);
+    const encodedShortText = encodeURIComponent(shortShareText);
+    const encodedLongTextWithUrl = encodeURIComponent(
+        `${longShareText} ${url}`
+    );
+
+    const handleFacebook = () => {
+        closeShare();
+        openIntent(
+            `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
+        );
+    };
+
+    const handleTwitter = () => {
+        closeShare();
+        // X (formerly Twitter) intent — short headline only because of
+        // the character budget; the URL gets its own line and renders
+        // as a card if OG meta is set up.
+        openIntent(
+            `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedShortText}`
+        );
+    };
+
+    const handleWhatsApp = () => {
+        closeShare();
+        // `wa.me` works on web + deep-links into the WhatsApp app on
+        // mobile when installed. Full pitch text since WhatsApp has
+        // no length limit.
+        openIntent(`https://wa.me/?text=${encodedLongTextWithUrl}`);
+    };
+
+    const handleEmail = () => {
+        closeShare();
+        emailModalRef.current?.open();
     };
 
     const handleCopy = async () => {
-        closeMenu();
+        closeShare();
         try {
             await navigator.clipboard.writeText(url);
             setToast('Link copied to clipboard');
@@ -72,9 +133,17 @@ const ShareButton = ({
         }
     };
 
-    const handleEmail = () => {
-        closeMenu();
-        emailModalRef.current?.open();
+    const handleNativeShare = async () => {
+        closeShare();
+        try {
+            await navigator.share({
+                title,
+                text: longShareText,
+                url,
+            });
+        } catch {
+            // User dismissed the share sheet — silent.
+        }
     };
 
     return (
@@ -84,7 +153,7 @@ const ShareButton = ({
                     type="button"
                     className="share-button-pill"
                     aria-label={`Share ${title}`}
-                    onClick={(e) => setMenuAnchor(e.currentTarget)}
+                    onClick={openShare}
                 >
                     <IosShareIcon className="share-button-pill-icon" />
                     <span>Share</span>
@@ -93,34 +162,124 @@ const ShareButton = ({
                 <IconButton
                     className="share-button-trigger"
                     aria-label={`Share ${title}`}
-                    onClick={(e) => setMenuAnchor(e.currentTarget)}
+                    onClick={openShare}
                     size="small"
                 >
                     <IosShareIcon className="share-button-icon" />
                 </IconButton>
             )}
 
-            <Menu anchorEl={menuAnchor} onClose={closeMenu}>
-                {canNativeShare() && (
-                    <MenuActionItem
-                        icon={<ShareRoundedIcon />}
-                        label="Share…"
-                        onClick={handleNativeShare}
-                    />
-                )}
-                <MenuActionItem
-                    icon={<ContentCopyRoundedIcon />}
-                    label="Copy link"
-                    onClick={handleCopy}
-                />
-                {emailPayload && (
-                    <MenuActionItem
-                        icon={<EmailRoundedIcon />}
-                        label="Email"
-                        onClick={handleEmail}
-                    />
-                )}
-            </Menu>
+            <ModalButton ref={modalRef} title="Share">
+                <div className="share-modal">
+                    {/* Preview card — mirrors the rough shape of what a
+                        social-link unfurl will look like once the URL is
+                        shared. Image + title + subtitle + description so
+                        the sender sees exactly what they're about to send. */}
+                    <div className="share-modal-preview">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt=""
+                                className="share-modal-preview-img"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="share-modal-preview-img is-placeholder" />
+                        )}
+                        <div className="share-modal-preview-body">
+                            <span className="share-modal-preview-title">
+                                {title}
+                            </span>
+                            {subtitle && (
+                                <span className="share-modal-preview-subtitle">
+                                    {subtitle}
+                                </span>
+                            )}
+                            {description && (
+                                <p className="share-modal-preview-description">
+                                    {description}
+                                </p>
+                            )}
+                            <span className="share-modal-preview-domain">
+                                datryp.com
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="share-modal-channels">
+                        <button
+                            type="button"
+                            className="share-channel is-facebook"
+                            onClick={handleFacebook}
+                            aria-label="Share on Facebook"
+                        >
+                            <span className="share-channel-icon">
+                                <FacebookIcon />
+                            </span>
+                            <span>Facebook</span>
+                        </button>
+                        <button
+                            type="button"
+                            className="share-channel is-x"
+                            onClick={handleTwitter}
+                            aria-label="Share on X"
+                        >
+                            <span className="share-channel-icon">
+                                <XIcon />
+                            </span>
+                            <span>X</span>
+                        </button>
+                        <button
+                            type="button"
+                            className="share-channel is-whatsapp"
+                            onClick={handleWhatsApp}
+                            aria-label="Share on WhatsApp"
+                        >
+                            <span className="share-channel-icon">
+                                <WhatsAppIcon />
+                            </span>
+                            <span>WhatsApp</span>
+                        </button>
+                        {emailPayload && (
+                            <button
+                                type="button"
+                                className="share-channel is-email"
+                                onClick={handleEmail}
+                                aria-label="Share via email"
+                            >
+                                <span className="share-channel-icon">
+                                    <EmailRoundedIcon />
+                                </span>
+                                <span>Email</span>
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className="share-channel is-copy"
+                            onClick={handleCopy}
+                            aria-label="Copy link"
+                        >
+                            <span className="share-channel-icon">
+                                <ContentCopyRoundedIcon />
+                            </span>
+                            <span>Copy link</span>
+                        </button>
+                        {canNativeShare() && (
+                            <button
+                                type="button"
+                                className="share-channel is-more"
+                                onClick={handleNativeShare}
+                                aria-label="More sharing options"
+                            >
+                                <span className="share-channel-icon">
+                                    <MoreHorizRoundedIcon />
+                                </span>
+                                <span>More</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </ModalButton>
 
             {emailPayload && (
                 <EmailShareModal

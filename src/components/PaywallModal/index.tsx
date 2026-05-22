@@ -50,7 +50,7 @@ const PaywallModal = forwardRef<ModalButtonHandle, PaywallModalProps>(
             </>
         );
         const defaultBody =
-            'daTryp Pro removes the limit so you can plan as many trips as you like, plus Advanced AI Search for richer recommendations.';
+            'DaTryp.com Pro removes the limit so you can plan as many trips as you like, plus Advanced AI Search for richer recommendations.';
 
         return (
             <ModalButton ref={ref} title={title ?? 'Trip Limit Reached'}>

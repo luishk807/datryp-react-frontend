@@ -46,6 +46,24 @@ const FEATURE_ROWS: FeatureRow[] = [
         pro: 'Unlimited',
     },
     {
+        label: 'Bucket list',
+        free: '10 entries',
+        pro: 'Unlimited',
+        note: 'Save the places you dream about and come back when you’re ready.',
+    },
+    {
+        label: 'Turn a bucket-list goal into a trip',
+        free: false,
+        pro: true,
+        note: 'One click → AI builds a full itinerary (country, days, activities) you can edit and save.',
+    },
+    {
+        label: 'Personalized "Places you might love"',
+        free: true,
+        pro: true,
+        note: 'Picks tied to your interests, travel style, and dream destinations.',
+    },
+    {
         label: 'Trip collaboration with friends',
         free: true,
         pro: true,
@@ -96,9 +114,9 @@ const Membership = () => (
                 </h1>
                 <p className="membership-hero-subtitle">
                     Free works for casual trips. Pro is for travelers who want
-                    deeper recommendations and unlimited saved itineraries.
-                    Try Pro free for 30 days — no charge until day 31, cancel
-                    anytime.
+                    deeper recommendations, unlimited saved itineraries, and a
+                    bucket list that builds the trip for them. Try Pro free for
+                    30 days — no charge until day 31, cancel anytime.
                 </p>
             </header>
 
@@ -164,6 +182,13 @@ const Membership = () => (
                         searches a day. Pro doesn&rsquo;t count.
                     </li>
                     <li>
+                        <strong>Bucket list, unlocked.</strong> Free keeps the
+                        first 10 entries; Pro is unlimited. Tap{' '}
+                        <em>Create trip</em> on any entry and Pro&rsquo;s AI
+                        turns the goal into a planned itinerary, ready to
+                        edit and save.
+                    </li>
+                    <li>
                         <strong>Try before you commit.</strong> 30-day free
                         trial, card upfront so the rollover is automatic if
                         you love it. Cancel any time in the billing portal —
@@ -211,7 +236,7 @@ const Membership = () => (
                 <div className="membership-faq-item">
                     <h3>Is my data used to train AI?</h3>
                     <p>
-                        No. Your searches and trips are stored on daTryp for
+                        No. Your searches and trips are stored on DaTryp.com for
                         you to use, not handed to anyone else to train on.
                         Each AI search call goes to the recommendation
                         provider just to answer that single query, and

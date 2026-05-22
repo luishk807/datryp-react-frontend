@@ -92,8 +92,7 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
         if (error) setError(null);
     };
 
-    const handleLogin = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+    const handleLogin = async () => {
         if (submitting) return;
         setError(null);
         setSubmitting(true);
@@ -105,6 +104,14 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    // Wrap the email-form view in a <form> so pressing Enter inside
+    // any input naturally submits via this handler — same UX as
+    // clicking the Sign-in button.
+    const handleLoginSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        void handleLogin();
     };
 
     return (
@@ -158,57 +165,62 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
                     )}
                 </Grid>
             ) : (
-                <Grid container>
-                    <Grid item lg={12} xs={12} md={12} className="form-input login-back">
-                        <ButtonCustom
-                            type="text"
-                            capitalizeType="none"
-                            className="login-back-btn"
-                            onClick={() => {
-                                setError(null);
-                                setView('choose');
-                            }}
-                        >
-                            <ArrowBackIcon fontSize="small" />
-                            <span>Back</span>
-                        </ButtonCustom>
-                    </Grid>
-                    <Grid item lg={12} xs={12} md={12} className="form-input">
-                        <InputField name="username" onChange={(e) => onChange('username', e)} />
-                    </Grid>
-                    <Grid item lg={12} xs={12} md={12} className="form-input">
-                        <InputField name="password" type="password" onChange={(e) => onChange('password', e)} />
-                    </Grid>
-                    <Grid item lg={12} xs={12} md={12} className="form-input">
-                        <a href="/forgot-password" onClick={handleForgotPassword}>
-                            Forgot password?
-                        </a>
-                    </Grid>
-                    {error && (
-                        <Grid item lg={12} xs={12} md={12} className="form-input form-error" role="alert">
-                            {error}
-                        </Grid>
-                    )}
-                    <Grid item lg={12} xs={12} md={12} className="form-input">
-                        <ButtonCustom
-                            label={submitting ? 'Signing in…' : label}
-                            capitalizeType="uppercase"
-                            onClick={handleLogin}
-                        />
-                    </Grid>
-                    {onSwitchToSignup && (
-                        <Grid item lg={12} xs={12} md={12} className="form-input login-switch">
-                            Don't have an account?{' '}
+                <form onSubmit={handleLoginSubmit}>
+                    <Grid container>
+                        <Grid item lg={12} xs={12} md={12} className="form-input login-back">
                             <ButtonCustom
                                 type="text"
                                 capitalizeType="none"
-                                className="login-switch-link"
-                                label="Sign up"
-                                onClick={handleSwitchToSignup}
+                                className="login-back-btn"
+                                nativeType="button"
+                                onClick={() => {
+                                    setError(null);
+                                    setView('choose');
+                                }}
+                            >
+                                <ArrowBackIcon fontSize="small" />
+                                <span>Back</span>
+                            </ButtonCustom>
+                        </Grid>
+                        <Grid item lg={12} xs={12} md={12} className="form-input">
+                            <InputField name="username" onChange={(e) => onChange('username', e)} />
+                        </Grid>
+                        <Grid item lg={12} xs={12} md={12} className="form-input">
+                            <InputField name="password" type="password" onChange={(e) => onChange('password', e)} />
+                        </Grid>
+                        <Grid item lg={12} xs={12} md={12} className="form-input">
+                            <a href="/forgot-password" onClick={handleForgotPassword}>
+                                Forgot password?
+                            </a>
+                        </Grid>
+                        {error && (
+                            <Grid item lg={12} xs={12} md={12} className="form-input form-error" role="alert">
+                                {error}
+                            </Grid>
+                        )}
+                        <Grid item lg={12} xs={12} md={12} className="form-input">
+                            <ButtonCustom
+                                label={submitting ? 'Signing in…' : label}
+                                capitalizeType="uppercase"
+                                nativeType="submit"
+                                disabled={submitting}
                             />
                         </Grid>
-                    )}
-                </Grid>
+                        {onSwitchToSignup && (
+                            <Grid item lg={12} xs={12} md={12} className="form-input login-switch">
+                                Don't have an account?{' '}
+                                <ButtonCustom
+                                    type="text"
+                                    capitalizeType="none"
+                                    className="login-switch-link"
+                                    label="Sign up"
+                                    nativeType="button"
+                                    onClick={handleSwitchToSignup}
+                                />
+                            </Grid>
+                        )}
+                    </Grid>
+                </form>
             )}
         </ModalButton>
     );

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+    fetchGendersCatalog,
     fetchInterestsCatalog,
     fetchMyPreferences,
     fetchTravelerStylesCatalog,
@@ -8,6 +9,7 @@ import {
 import { useUser } from 'context/UserContext';
 import { queryKeys } from 'api/queryKeys';
 import type {
+    GenderOption,
     InterestOption,
     Preferences,
     PreferencesUpdate,
@@ -24,6 +26,8 @@ export const preferencesKey = ['me', 'preferences'] as const;
 export const interestsCatalogKey = ['me', 'interests-catalog'] as const;
 
 export const travelerStylesCatalogKey = ['me', 'traveler-styles-catalog'] as const;
+
+export const gendersCatalogKey = ['me', 'genders-catalog'] as const;
 
 export const useMyPreferences = () => {
     const { user } = useUser();
@@ -49,6 +53,16 @@ export const useTravelerStylesCatalog = () =>
     useQuery<TravelerStyleOption[]>({
         queryKey: travelerStylesCatalogKey,
         queryFn: fetchTravelerStylesCatalog,
+        staleTime: Infinity,
+        retry: 1,
+    });
+
+export const useGendersCatalog = () =>
+    useQuery<GenderOption[]>({
+        queryKey: gendersCatalogKey,
+        queryFn: fetchGendersCatalog,
+        // Catalog is seeded, never grows at runtime — cache for the
+        // session.
         staleTime: Infinity,
         retry: 1,
     });

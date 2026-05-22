@@ -29,7 +29,7 @@ const Footer = () => {
           <div className="footer-brand">
             <img
               src="/images/logoWhite.svg"
-              alt="daTryp"
+              alt="DaTryp.com"
               className="footer-logo"
             />
             <p className="footer-tagline">Plan trips that feel effortless.</p>
@@ -68,7 +68,7 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <span className="footer-copy">
-            &copy; {year} daTryp. All rights reserved.
+            &copy; {year} DaTryp.com. All rights reserved.
           </span>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import {
     forwardRef,
     useImperativeHandle,
+    useMemo,
     useRef,
     useState,
 } from 'react';
@@ -32,11 +33,39 @@ export interface EmailShareModalHandle {
     close: () => void;
 }
 
+/**
+ * Parse the comma/whitespace-separated "to" input into a deduplicated
+ * list of valid addresses. Invalid tokens are returned separately so
+ * the UI can flag them to the sender without dropping the field's text.
+ */
+const parseRecipients = (
+    raw: string
+): { valid: string[]; invalid: string[] } => {
+    const seen = new Set<string>();
+    const valid: string[] = [];
+    const invalid: string[] = [];
+    raw
+        .split(/[,;\s]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((token) => {
+            const lower = token.toLowerCase();
+            if (seen.has(lower)) return;
+            seen.add(lower);
+            if (EMAIL_REGEX.test(token)) {
+                valid.push(token);
+            } else {
+                invalid.push(token);
+            }
+        });
+    return { valid, invalid };
+};
+
 const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
     ({ place, searchUrl }, ref) => {
         const modalRef = useRef<ModalButtonHandle>(null);
         const { user } = useUser();
-        const [recipient, setRecipient] = useState('');
+        const [recipients, setRecipients] = useState('');
         const [message, setMessage] = useState('');
         const [error, setError] = useState<string | null>(null);
 
@@ -44,9 +73,7 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
 
         useImperativeHandle(ref, () => ({
             open: () => {
-                // Reset form state for a clean share — same effect the old
-                // `open` prop + useEffect achieved.
-                setRecipient('');
+                setRecipients('');
                 setMessage('');
                 setError(null);
                 reset();
@@ -55,17 +82,30 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
             close: () => modalRef.current?.closeModal(),
         }));
 
+        // Live parse — drives the helper hint under the input and the
+        // disabled state of the Send button without forcing the user
+        // to blur the field first.
+        const parsed = useMemo(
+            () => parseRecipients(recipients),
+            [recipients]
+        );
+
         const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
-            const to = recipient.trim();
-            if (!EMAIL_REGEX.test(to)) {
-                setError('Enter a valid email address.');
+            if (parsed.invalid.length > 0) {
+                setError(
+                    `Not a valid email: ${parsed.invalid.join(', ')}.`
+                );
+                return;
+            }
+            if (parsed.valid.length === 0) {
+                setError('Enter at least one email address.');
                 return;
             }
             setError(null);
             mutate(
                 {
-                    to,
+                    to: parsed.valid,
                     place,
                     search_url: searchUrl,
                     sender_name: user?.name ?? null,
@@ -73,13 +113,21 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                 },
                 {
                     onSuccess: () => {
-                        // Brief success state then close.
                         setTimeout(() => modalRef.current?.closeModal(), 900);
                     },
                     onError: (err) => setError(err.message),
                 }
             );
         };
+
+        const recipientHint =
+            parsed.valid.length > 0 || parsed.invalid.length > 0
+                ? `${parsed.valid.length} valid${
+                      parsed.invalid.length > 0
+                          ? `, ${parsed.invalid.length} invalid`
+                          : ''
+                  }`
+                : 'Separate multiple emails with commas or spaces.';
 
         return (
             <ModalButton ref={modalRef} title="Email this place">
@@ -101,13 +149,14 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                     </Grid>
                     <Grid item lg={12} xs={12} md={12} className="form-input">
                         <InputField
-                            label="Recipient email"
-                            type="email"
-                            value={recipient}
-                            onChange={(e) => setRecipient(e.target.value)}
-                            placeholder="friend@example.com"
+                            label="Recipient email(s)"
+                            type="text"
+                            value={recipients}
+                            onChange={(e) => setRecipients(e.target.value)}
+                            placeholder="alex@example.com, jamie@example.com"
                             required={false}
                         />
+                        <p className="email-share-hint">{recipientHint}</p>
                     </Grid>
                     <Grid item lg={12} xs={12} md={12} className="form-input">
                         <InputField
@@ -140,7 +189,11 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                             className="form-input email-share-success"
                             role="status"
                         >
-                            Email sent.
+                            Email sent to {parsed.valid.length}{' '}
+                            {parsed.valid.length === 1
+                                ? 'recipient'
+                                : 'recipients'}
+                            .
                         </Grid>
                     )}
                     <Grid item lg={12} xs={12} md={12} className="form-input">
@@ -148,7 +201,12 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                             label={isPending ? 'Sending…' : 'Send'}
                             onClick={handleSubmit}
                             capitalizeType="uppercase"
-                            disabled={isPending || isSuccess}
+                            disabled={
+                                isPending ||
+                                isSuccess ||
+                                parsed.valid.length === 0 ||
+                                parsed.invalid.length > 0
+                            }
                         />
                     </Grid>
                 </Grid>

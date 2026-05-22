@@ -8,6 +8,9 @@ const API_BASE =
 
 export interface ShareEmailResponse {
     sent: boolean;
+    /** Count of recipients the backend actually sent to. Used for the
+     *  "Sent to N recipients" success copy. */
+    recipients?: number;
 }
 
 interface FastAPIDetailItem {

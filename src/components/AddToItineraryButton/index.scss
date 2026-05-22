@@ -62,42 +62,5 @@
   }
 }
 
-.add-itinerary-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.add-itinerary-modal-lead {
-  margin: 0;
-  color: rgba(0, 0, 0, 0.7);
-  font-size: 0.95rem;
-  line-height: 1.5;
-
-  strong {
-    color: theme('colors.primary');
-    font-weight: 600;
-  }
-}
-
-.add-itinerary-option {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  background: #fafafa;
-
-  // Stretch the inner ButtonCustom so it spans the option card.
-  > button {
-    width: 100%;
-  }
-}
-
-.add-itinerary-option-hint {
-  margin: 0;
-  font-size: 0.8rem;
-  color: rgba(0, 0, 0, 0.55);
-  line-height: 1.4;
-}
+// Modal styles moved to `components/AddToItineraryModal/index.scss`
+// (shared with PlacesYouMightLove).

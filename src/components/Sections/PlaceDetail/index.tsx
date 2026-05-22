@@ -145,6 +145,8 @@ const PlaceDetail = () => {
             <ShareButton
               title={place.name}
               subtitle={`${place.city} · ${place.country}`}
+              imageUrl={place.imageUrl}
+              description={place.description}
               url={detailUrl}
               variant="pill"
               emailPayload={{

@@ -41,7 +41,7 @@ const GSI_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 export interface GoogleSignInButtonProps {
     /** Called with the Google-issued ID token (JWT) once the user
      *  completes the popup. The caller is expected to POST this to
-     *  `/auth/google` to exchange it for a daTryp JWT. */
+     *  `/auth/google` to exchange it for a DaTryp.com JWT. */
     onCredential: (credential: string) => void;
     /** Override the button's prompt text. Default: "continue_with". */
     text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';

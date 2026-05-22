@@ -81,6 +81,10 @@ export interface User {
     /** ISO-2 country codes the user flagged as dream destinations. Same
      *  source as `interests` — drives personalized recommendations. */
     dreamDestinations: string[];
+    /** UUID of the row in the `genders` catalog (Male / Female /
+     *  Non-binary / Prefer not to say). Null when unset. Powers the
+     *  Pro "best place this month" recommender. */
+    genderId: string | null;
     /** ISO-8601 timestamp marking when the user finished or explicitly
      *  skipped the onboarding wizard. Null means "needs the wizard" — the
      *  auto-launcher in App reads this. */
@@ -205,6 +209,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             interests: me.interests ?? [],
             travelerStyles: me.traveler_styles ?? [],
             dreamDestinations: me.dream_destinations ?? [],
+            genderId: me.gender_id,
             onboardingCompletedAt: me.onboarding_completed_at,
             profileImageUrl: me.profile_image_url,
             ...overlay,

@@ -65,13 +65,13 @@ const paywallCopy = (
                     free plan.
                 </>
             ),
-            body: 'daTryp Pro removes the limit so you can keep dreaming. Pro also unlocks "Create trip" — turn any bucket-list goal into a real itinerary with AI.',
+            body: 'DaTryp.com Pro removes the limit so you can keep dreaming. Pro also unlocks "Create trip" — turn any bucket-list goal into a real itinerary with AI.',
         };
     }
     return {
         title: 'Pro feature',
         headline: <>Turning a bucket-list goal into a real trip is a Pro feature.</>,
-        body: 'daTryp Pro builds an AI itinerary from any of your bucket-list entries — picking a country, planning days, suggesting activities — saved as a draft trip ready for you to tweak.',
+        body: 'DaTryp.com Pro builds an AI itinerary from any of your bucket-list entries — picking a country, planning days, suggesting activities — saved as a draft trip ready for you to tweak.',
     };
 };
 

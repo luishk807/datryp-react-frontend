@@ -23,7 +23,7 @@ const REASONS = [
     {
         Icon: LightbulbRoundedIcon,
         title: 'Feature ideas',
-        body: 'Something you wish daTryp did? We read every suggestion and ship the good ones.',
+        body: 'Something you wish DaTryp.com did? We read every suggestion and ship the good ones.',
     },
     {
         Icon: BugReportRoundedIcon,

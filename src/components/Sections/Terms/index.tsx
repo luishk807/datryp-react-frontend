@@ -9,9 +9,9 @@ const Terms = () => (
             <p className="terms-last-updated">Last updated: {LAST_UPDATED}</p>
 
             <section className="terms-section">
-                <h2>What daTryp is</h2>
+                <h2>What DaTryp.com is</h2>
                 <p>
-                    daTryp is a travel-planning tool. It helps you discover
+                    DaTryp.com is a travel-planning tool. It helps you discover
                     destinations, build itineraries, save the places you want to
                     visit, and share trips with friends. Some features use AI to
                     suggest places and activities based on what you type.
@@ -25,7 +25,7 @@ const Terms = () => (
                     destinations, places, and activities. Searches that aren&rsquo;t
                     about travel — for example, requests involving weapons, drugs,
                     sexual content, or self-harm — may not return results. This
-                    isn&rsquo;t a punishment; it just isn&rsquo;t what daTryp is for.
+                    isn&rsquo;t a punishment; it just isn&rsquo;t what DaTryp.com is for.
                     Try a different search.
                 </p>
                 <p>
@@ -38,7 +38,7 @@ const Terms = () => (
             <section className="terms-section">
                 <h2>Your account</h2>
                 <p>
-                    You must be at least 13 years old to use daTryp. You&rsquo;re
+                    You must be at least 13 years old to use DaTryp.com. You&rsquo;re
                     responsible for keeping your sign-in details safe and for the
                     activity that happens under your account.
                 </p>
@@ -48,7 +48,7 @@ const Terms = () => (
                 <h2>Content you create</h2>
                 <p>
                     Trips, reviews, and notes you write stay yours. By posting them
-                    on daTryp, you let us display them inside the product (for
+                    on DaTryp.com, you let us display them inside the product (for
                     example, in your itinerary or in places you&rsquo;ve marked as
                     visited). Don&rsquo;t post content that&rsquo;s illegal, hateful,
                     or that you don&rsquo;t have the right to share.
@@ -58,7 +58,7 @@ const Terms = () => (
             <section className="terms-section">
                 <h2>Service availability</h2>
                 <p>
-                    daTryp is offered as-is. We try hard to keep things working, but
+                    DaTryp.com is offered as-is. We try hard to keep things working, but
                     we can&rsquo;t guarantee the service will be uninterrupted, or
                     that the recommendations are perfectly accurate. Confirm
                     important details (visas, opening hours, prices, safety
@@ -71,7 +71,7 @@ const Terms = () => (
                 <p>
                     We may update these terms as the product evolves. When we do,
                     we&rsquo;ll change the &ldquo;Last updated&rdquo; date at the
-                    top of this page. Continuing to use daTryp after a change means
+                    top of this page. Continuing to use DaTryp.com after a change means
                     you&rsquo;re fine with the updated terms.
                 </p>
             </section>

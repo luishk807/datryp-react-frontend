@@ -45,3 +45,12 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+// Live recipient-count hint under the email input. Shows "Separate
+// multiple emails…" when empty, and "N valid (, M invalid)" as the
+// user types so they know the parse caught what they meant.
+.email-share-hint {
+  margin: 6px 4px 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+}

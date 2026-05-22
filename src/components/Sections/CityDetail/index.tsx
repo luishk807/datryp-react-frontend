@@ -37,7 +37,14 @@ import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
 import { useIsStuck } from "hooks/useIsStuck";
-import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
+import {
+    addPlace,
+    basicInfo,
+    resetTrip,
+    useTripDispatch,
+} from "context/TripContext";
+import { placeToActivity } from "utils/addPlaceToItinerary";
+import { now } from "utils";
 import { TRIP_BASIC } from "constants";
 import type { Destination } from "types";
 
@@ -65,11 +72,12 @@ const CityDetail = () => {
         code
     );
 
-    const startTrip = (cityCountry: {
-        name: string;
+    const startTrip = (args: {
+        countryName: string;
         countryCode: string;
         countryId: string | null;
-        countryImage: string | null;
+        cityName: string;
+        cityImage: string | null;
     }) => {
         // Use the catalog UUID when we have it — the itinerary save mutation
         // rejects ids that don't match a real countries row, so id=0 would
@@ -77,13 +85,14 @@ const CityDetail = () => {
         const destinations = [
             {
                 country: {
-                    id: cityCountry.countryId ?? 0,
-                    name: cityCountry.name,
-                    code: cityCountry.countryCode,
-                    image: cityCountry.countryImage ?? undefined,
+                    id: args.countryId ?? 0,
+                    name: args.countryName,
+                    code: args.countryCode,
+                    image: args.cityImage ?? undefined,
                 },
             },
         ] as Destination[];
+        const today = now();
         dispatch(resetTrip());
         // Seed the trip-level image with the city's hero photo so the trip
         // card has a thumbnail (and the save mutation persists it to
@@ -92,7 +101,25 @@ const CityDetail = () => {
             basicInfo({
                 type: tripType,
                 destinations,
-                image: cityCountry.countryImage ?? undefined,
+                startDate: today,
+                endDate: today,
+                image: args.cityImage ?? undefined,
+            })
+        );
+        // Also stamp the city itself as activity #1 with its image —
+        // without this the user lands on the trip-builder with the
+        // country destination but no record of WHY they got there.
+        dispatch(
+            addPlace({
+                value: placeToActivity({
+                    name: args.cityName,
+                    city: args.cityName,
+                    country: args.countryName,
+                    imageUrl: args.cityImage,
+                }),
+                index: 0,
+                date: today,
+                destinationIndx: 0,
             })
         );
         navigate(tripType.route, { replace: true });
@@ -194,6 +221,8 @@ const CityDetail = () => {
                         <ShareButton
                             title={city.name}
                             subtitle={city.country}
+                            imageUrl={city.imageUrl}
+                            description={details.cityHighlight}
                             url={
                                 typeof window !== "undefined"
                                     ? window.location.href
@@ -210,7 +239,7 @@ const CityDetail = () => {
                                 name: city.name,
                                 city: city.name,
                                 country: city.country,
-                                description: "",
+                                description: details.cityHighlight ?? "",
                                 image_url: city.imageUrl,
                             }}
                         />
@@ -219,10 +248,11 @@ const CityDetail = () => {
                             className="city-detail-plan-cta"
                             onClick={() =>
                                 startTrip({
-                                    name: city.country,
+                                    countryName: city.country,
                                     countryCode: city.countryCode,
                                     countryId: city.countryId,
-                                    countryImage: city.imageUrl,
+                                    cityName: city.name,
+                                    cityImage: city.imageUrl,
                                 })
                             }
                         >

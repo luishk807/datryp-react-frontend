@@ -4,6 +4,10 @@
  *  auto-launch the wizard without an extra round-trip. */
 export interface Preferences {
     countryOfBirthCode: string | null;
+    /** UUID of the row in the `genders` catalog. Null when the user
+     *  hasn't picked one (or chose to skip). Powers the personalized
+     *  "best place this month" recommender. */
+    genderId: string | null;
     interests: string[];
     travelerStyles: string[];
     dreamDestinations: string[];
@@ -15,6 +19,7 @@ export interface Preferences {
  *  unchanged); pass `null` to explicitly clear a field. */
 export interface PreferencesUpdate {
     countryOfBirthCode?: string | null;
+    genderId?: string | null;
     interests?: string[];
     travelerStyles?: string[];
     dreamDestinations?: string[];
@@ -26,6 +31,14 @@ export interface PreferencesUpdate {
 export interface CatalogOption {
     slug: string;
     label: string;
+}
+
+/** One row in the genders catalog. UUID-keyed because it's a real DB
+ *  table (`genders`), unlike the slug-based interest / traveler-style
+ *  catalogs which are hard-coded constants. */
+export interface GenderOption {
+    id: string;
+    name: string;
 }
 
 /** Back-compat alias — older callsites import `InterestOption`. */

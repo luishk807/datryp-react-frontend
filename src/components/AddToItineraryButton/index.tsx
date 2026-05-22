@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { Snackbar } from '@mui/material';
 import PlaylistAddRoundedIcon from '@mui/icons-material/PlaylistAddRounded';
-import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
-import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import AddToItineraryModal from 'components/AddToItineraryModal';
+import type { ModalButtonHandle } from 'components/ModalButton';
 import {
     useTripDispatch,
     useTripState,
@@ -18,7 +18,7 @@ import {
     lookupCountry,
     tripHasContent,
 } from 'utils/addPlaceToItinerary';
-import { BUTTON_VARIANT, TRIP_BASIC } from 'constants';
+import { TRIP_BASIC } from 'constants';
 import type { PlaceRecommendation } from 'types';
 import './index.scss';
 
@@ -97,13 +97,6 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
         startFresh();
     };
 
-    const tripLabel = trip.name?.trim() || 'your current trip';
-    const currentTripBlurb = hasMatchingDestination
-        ? `${place.name} will be added under ${trip.destinations[matchingDestinationIndex]?.country.name} in ${tripLabel}.`
-        : isMultiTrip
-            ? `${place.country} will be added to ${tripLabel} as a new stop.`
-            : `${place.country} will be added to ${tripLabel} as a new stop. Your trip becomes multi-destination.`;
-
     return (
         <>
             <button
@@ -121,43 +114,20 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
                 </span>
             </button>
 
-            <ModalButton ref={modalRef} title="Add to your itinerary">
-                <div className="add-itinerary-modal">
-                    <p className="add-itinerary-modal-lead">
-                        You already have <strong>{tripLabel}</strong> in
-                        progress. What would you like to do with{' '}
-                        <strong>{place.name}</strong>?
-                    </p>
-
-                    <div className="add-itinerary-option">
-                        <ButtonCustom
-                            type={BUTTON_VARIANT.STANDARD}
-                            capitalizeType="none"
-                            onClick={handleAddToCurrent}
-                            label={
-                                hasMatchingDestination
-                                    ? `Add to ${tripLabel}`
-                                    : `Add ${place.country} to ${tripLabel}`
-                            }
-                        />
-                        <p className="add-itinerary-option-hint">
-                            {currentTripBlurb}
-                        </p>
-                    </div>
-
-                    <div className="add-itinerary-option">
-                        <ButtonCustom
-                            type={BUTTON_VARIANT.LINE}
-                            capitalizeType="none"
-                            onClick={handleStartFresh}
-                            label={`Start a fresh trip to ${place.country}`}
-                        />
-                        <p className="add-itinerary-option-hint">
-                            Replaces your current draft with a new single-destination trip.
-                        </p>
-                    </div>
-                </div>
-            </ModalButton>
+            <AddToItineraryModal
+                ref={modalRef}
+                place={{ name: place.name, country: place.country }}
+                tripName={trip.name}
+                matchingDestinationCountryName={
+                    hasMatchingDestination
+                        ? trip.destinations[matchingDestinationIndex]
+                              ?.country.name
+                        : null
+                }
+                isMultiTrip={isMultiTrip}
+                onAddToCurrent={handleAddToCurrent}
+                onStartFresh={handleStartFresh}
+            />
 
             <Snackbar
                 open={Boolean(toast)}

@@ -1,0 +1,337 @@
+// Container styling matches TopPlaces + PlacesYouMightLove so the
+// homepage's vertical rhythm stays consistent.
+.upcoming-holiday {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto 56px;
+    padding: 32px 24px 0;
+
+    /* ─── Hero card ───────────────────────────────────────────────────
+       Anchors the section. When the API returns a hero photo we drop
+       the Unsplash image behind the content + a dark scrim for legibility;
+       otherwise we fall back to a festive gradient. Eyebrow pill → big
+       holiday name → description on the left; structured date card +
+       countdown chip on the right. */
+    .upcoming-holiday-hero {
+        position: relative;
+        margin-bottom: 28px;
+        padding: 26px 28px 28px;
+        border-radius: 20px;
+        overflow: hidden;
+        color: #fff;
+        isolation: isolate;
+        min-height: 220px;
+    }
+
+    .upcoming-holiday-hero-bg {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background:
+            radial-gradient(
+                circle at 15% 15%,
+                rgba(255, 255, 255, 0.18) 0%,
+                rgba(255, 255, 255, 0) 45%
+            ),
+            radial-gradient(
+                circle at 85% 90%,
+                rgba(255, 255, 255, 0.12) 0%,
+                rgba(255, 255, 255, 0) 50%
+            ),
+            linear-gradient(
+                135deg,
+                #5b21b6 0%,
+                #7c3aed 45%,
+                #2563eb 100%
+            );
+    }
+
+    .upcoming-holiday-hero-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -2;
+    }
+
+    /* Two-stop gradient scrim: heavier at the bottom-left where the
+       title sits so the headline always passes contrast checks against
+       a busy photo, lighter at the top so the photo still reads. */
+    .upcoming-holiday-hero-scrim {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+            linear-gradient(
+                115deg,
+                rgba(0, 0, 0, 0.7) 0%,
+                rgba(0, 0, 0, 0.5) 40%,
+                rgba(0, 0, 0, 0.25) 70%,
+                rgba(0, 0, 0, 0.45) 100%
+            );
+    }
+
+    /* Photo background brings its own contrast story — keep the date
+       card readable by punching up its shadow a touch. */
+    .upcoming-holiday-hero.has-photo .upcoming-holiday-date-card {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Bottom-right Unsplash credit. Compliant (always present + working
+       links) but visually dialed back — small, dim, underline only on
+       link hover. */
+    .upcoming-holiday-attribution {
+        position: absolute;
+        bottom: 8px;
+        right: 12px;
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.55);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #fff;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+    }
+
+    .upcoming-holiday-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 11px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 16px;
+    }
+
+    .upcoming-holiday-eyebrow-icon {
+        font-size: 0.95rem !important;
+    }
+
+    .upcoming-holiday-hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .upcoming-holiday-hero-text {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .upcoming-holiday-name {
+        margin: 0;
+        font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: #fff;
+    }
+
+    .upcoming-holiday-country {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.78);
+        font-weight: 500;
+
+        .MuiSvgIcon-root {
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+    }
+
+    .upcoming-holiday-description {
+        margin: 4px 0 0;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.55;
+        max-width: 60ch;
+    }
+
+    /* Right column: date card stacked above a countdown chip. */
+    .upcoming-holiday-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .upcoming-holiday-date-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 14px 18px;
+        min-width: 96px;
+        background: rgba(255, 255, 255, 0.96);
+        color: theme('colors.primary');
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .upcoming-holiday-date-weekday {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: theme('colors.primaryOrange');
+    }
+
+    .upcoming-holiday-date-day {
+        font-size: 2.25rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    .upcoming-holiday-date-month {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.55);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .upcoming-holiday-countdown {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #fff;
+    }
+
+    .upcoming-holiday-loading {
+        margin: 8px 0 0;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .upcoming-holiday-section-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: rgba(0, 0, 0, 0.55);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0 0 12px;
+    }
+
+    .upcoming-holiday-activities {
+        margin-bottom: 28px;
+    }
+
+    .upcoming-holiday-activity-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .upcoming-holiday-activity {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 14px 16px;
+        background: rgba(124, 58, 237, 0.05);
+        border: 1px solid rgba(124, 58, 237, 0.18);
+        border-radius: 12px;
+    }
+
+    .upcoming-holiday-activity-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: theme('colors.primary');
+    }
+
+    .upcoming-holiday-activity-description {
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.65);
+        line-height: 1.45;
+    }
+
+    .upcoming-holiday-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+    }
+
+    @media (max-width: 1024px) {
+        .upcoming-holiday-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .upcoming-holiday-activity-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        padding: 16px 16px 0;
+        margin-bottom: 40px;
+
+        .upcoming-holiday-hero {
+            padding: 22px 20px 24px;
+            border-radius: 18px;
+        }
+
+        // Stack the date card under the headline on phones — keeping it
+        // floating beside the title leaves the title at ~half-width and
+        // makes the hero feel cramped.
+        .upcoming-holiday-hero-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        // Switch the date row to a horizontal layout so it occupies one
+        // tidy line above the description instead of stacking two giant
+        // blocks vertically.
+        .upcoming-holiday-meta {
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+        }
+
+        .upcoming-holiday-date-card {
+            flex-direction: row;
+            align-items: baseline;
+            gap: 8px;
+            padding: 10px 14px;
+            min-width: 0;
+        }
+
+        .upcoming-holiday-date-day {
+            font-size: 1.5rem;
+        }
+
+        .upcoming-holiday-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+    }
+}

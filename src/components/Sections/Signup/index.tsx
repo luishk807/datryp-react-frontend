@@ -36,12 +36,13 @@ import StepEmail from './StepEmail';
 import StepPassword from './StepPassword';
 import StepAge from './StepAge';
 import StepCountry from './StepCountry';
+import StepGender from './StepGender';
 import StepInterests from './StepInterests';
 import StepFavorites from './StepFavorites';
 import StepBucketList from './StepBucketList';
 import './index.scss';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 interface DraftAccount {
     name: string;
@@ -78,11 +79,30 @@ const Signup = () => {
         }
     }, [user, navigate]);
 
-    // Rotate the hero image as the user advances. Falls back to the same
-    // photo across steps if the monthly list is short or still loading.
+    // Hero photo rotates WEEKLY through the month's top cities (not per
+    // signup step). Same visitor sees the same hero throughout a
+    // session, and across sessions within the same ISO week — feels
+    // editorial, not random. Index = ISO-week-of-year mod cities.length
+    // so the pick is deterministic and stable across page reloads.
     const cities = monthly?.cities ?? [];
+    const isoWeekOfYear = (() => {
+        const d = new Date();
+        // ISO-week calculation (Mon-based): copy date, shift to Thursday
+        // of current week, find first Thursday of year, count weeks.
+        const target = new Date(
+            Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())
+        );
+        const dayNum = (target.getUTCDay() + 6) % 7;
+        target.setUTCDate(target.getUTCDate() - dayNum + 3);
+        const firstThursday = new Date(
+            Date.UTC(target.getUTCFullYear(), 0, 4)
+        );
+        return Math.ceil(
+            ((target.getTime() - firstThursday.getTime()) / 86_400_000 + 1) / 7
+        );
+    })();
     const heroIndex =
-        cities.length > 0 ? (step - 1) % cities.length : 0;
+        cities.length > 0 ? isoWeekOfYear % cities.length : 0;
     const hero = cities[heroIndex];
 
     const setDraftField = <K extends keyof DraftAccount>(
@@ -210,10 +230,12 @@ const Signup = () => {
             case 5:
                 return <StepCountry onContinue={goNext} onSkip={goNext} />;
             case 6:
-                return <StepInterests onContinue={goNext} onSkip={goNext} />;
+                return <StepGender onContinue={goNext} onSkip={goNext} />;
             case 7:
-                return <StepFavorites cities={cities} onContinue={goNext} onSkip={goNext} />;
+                return <StepInterests onContinue={goNext} onSkip={goNext} />;
             case 8:
+                return <StepFavorites cities={cities} onContinue={goNext} onSkip={goNext} />;
+            case 9:
                 return (
                     <StepBucketList
                         onFinish={finishOnboarding}
@@ -252,7 +274,7 @@ const Signup = () => {
                     <IconLink
                         to="/"
                         icon={<img src={logoUrl} alt="" />}
-                        ariaLabel="daTryp home"
+                        ariaLabel="DaTryp.com home"
                         className="signup-hero-brand"
                     />
                     <div className="signup-hero-copy">

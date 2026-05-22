@@ -6,7 +6,7 @@ import {
 } from 'api/contactApi';
 
 /**
- * Mutation: relay a contact-form submission to the daTryp inbox.
+ * Mutation: relay a contact-form submission to the DaTryp.com inbox.
  *
  * Public endpoint — no auth required. Backend uses SendGrid; if SendGrid
  * isn't configured the call returns 503 with a clean message which the

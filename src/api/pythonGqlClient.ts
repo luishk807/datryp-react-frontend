@@ -2,7 +2,7 @@ import { GraphQLClient } from 'graphql-request';
 import { getAuthToken, subscribeAuthToken } from './authStorage';
 
 /**
- * GraphQL client for the daTryp Python backend (recommender, ML, analytics,
+ * GraphQL client for the DaTryp.com Python backend (recommender, ML, analytics,
  * auth-gated queries like `friends` and `myItineraries`).
  *
  * The existing `graphqlClient` in this folder targets the Node backend at

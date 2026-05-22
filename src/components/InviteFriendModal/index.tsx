@@ -36,8 +36,8 @@ const deriveNameFromEmail = (email: string): string => {
  * the parent grabs a ref, calls `inviteRef.current?.openModel()` to show it.
  *
  * Branch handling happens server-side via `POST /friends/invite-by-email`:
- * recipient is a daTryp user → friend request + email; not registered →
- * "Join daTryp" invitation email. Either branch returns a message string
+ * recipient is a DaTryp.com user → friend request + email; not registered →
+ * "Join DaTryp.com" invitation email. Either branch returns a message string
  * the modal shows inline for a beat before auto-closing.
  */
 const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
@@ -120,7 +120,7 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
                     ) : (
                         <>
                             <p className="invite-friend-helper">
-                                If they&rsquo;re already on daTryp,
+                                If they&rsquo;re already on DaTryp.com,
                                 we&rsquo;ll send them a friend request.
                                 Otherwise we&rsquo;ll email them an invitation
                                 to sign up.

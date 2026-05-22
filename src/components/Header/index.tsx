@@ -106,7 +106,7 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                 <IconLink
                     to="/"
                     icon={<img src={LOGO_IMAGE} alt="" />}
-                    ariaLabel="daTryp home"
+                    ariaLabel="DaTryp.com home"
                     className="app-header-logo"
                 />
 

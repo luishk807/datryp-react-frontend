@@ -13,7 +13,7 @@ const API_BASE =
 export type InviteByEmailKind = 'friend_request' | 'join_invitation';
 
 export interface InviteByEmailResponse {
-    /** `friend_request` → the recipient was a daTryp user and a friend
+    /** `friend_request` → the recipient was a DaTryp.com user and a friend
      *  request was created. `join_invitation` → the recipient isn't
      *  registered; we sent them a signup email instead. */
     kind: InviteByEmailKind;

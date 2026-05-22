@@ -29,14 +29,14 @@ const FEATURES = [
 ];
 
 const About = () => (
-    <Layout title="About daTryp">
+    <Layout title="About DaTryp.com">
         <article className="about-page">
             <section className="about-hero">
                 <h1 className="about-hero-title">
                     Plan trips that feel effortless.
                 </h1>
                 <p className="about-hero-lede">
-                    daTryp helps travelers go from a vague idea to a real
+                    DaTryp.com helps travelers go from a vague idea to a real
                     itinerary — quickly, beautifully, and with the people they
                     love. Whether it's a weekend in a neighbor city or a
                     six-country tour, we keep the planning fun and the
@@ -57,7 +57,7 @@ const About = () => (
             <section className="about-section">
                 <h2>Our story</h2>
                 <p>
-                    daTryp started with a frustration most travelers know: trip
+                    DaTryp.com started with a frustration most travelers know: trip
                     planning lives across a dozen tabs, group chats, and
                     half-finished spreadsheets. We wanted one calm place — one
                     that asks the right questions, suggests good answers, and
@@ -66,7 +66,7 @@ const About = () => (
                 <p>
                     We're a small team that loves maps, layovers, and the
                     moment a tentative plan becomes a real ticket. We build
-                    daTryp for travelers like us.
+                    DaTryp.com for travelers like us.
                 </p>
             </section>
 

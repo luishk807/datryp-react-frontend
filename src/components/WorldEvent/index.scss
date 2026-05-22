@@ -1,0 +1,345 @@
+// Section wrapper mirrors the homepage's other section containers so
+// vertical rhythm stays consistent with TopPlaces / PlacesYouMightLove /
+// UpcomingHoliday.
+.world-event {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto 56px;
+    padding: 32px 24px 0;
+}
+
+.world-event-card {
+    display: grid;
+    // Photo column is generous on desktop so the event hero reads as a
+    // proper poster; right column gets the rest for the title + details
+    // + 2×2 place grid.
+    grid-template-columns: 1.05fr 1.4fr;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* ───── LEFT half — event hero photo ───── */
+.world-event-photo-wrap {
+    position: relative;
+    min-height: 420px;
+    background: #1a1a1a;
+}
+
+.world-event-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.world-event-photo-fallback {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        135deg,
+        theme('colors.primaryOrange') 0%,
+        #c2410c 60%,
+        #7c2d12 100%
+    );
+}
+
+.world-event-photo-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0.15) 40%,
+        rgba(0, 0, 0, 0) 70%
+    );
+}
+
+// Compliant (always present + working links) but dialed back so it
+// doesn't compete with the hero photo. Small, dim, underline only on
+// link hover.
+.world-event-attribution {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: #fff;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+}
+
+/* ───── RIGHT half — title + details + 2×2 places ───── */
+.world-event-body {
+    padding: 28px 30px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.world-event-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: linear-gradient(
+        135deg,
+        rgba(246, 137, 31, 0.15) 0%,
+        rgba(194, 65, 12, 0.15) 100%
+    );
+    color: #c2410c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.world-event-eyebrow-icon {
+    font-size: 0.95rem !important;
+}
+
+.world-event-name {
+    margin: 4px 0 0;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: theme('colors.primary');
+}
+
+.world-event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+.world-event-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: theme('colors.primaryOrange');
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    box-shadow: 0 2px 8px rgba(246, 137, 31, 0.32);
+}
+
+.world-event-meta-host {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 500;
+
+    .MuiSvgIcon-root {
+        font-size: 1rem;
+        color: rgba(0, 0, 0, 0.45);
+    }
+}
+
+// The hype tagline is OpenAI's persuasive 1-liner. Pulled left with a
+// colored bar so it reads as a quote / pull-quote rather than another
+// body line.
+.world-event-hype {
+    margin: 8px 0 0;
+    padding: 6px 0 6px 14px;
+    border-left: 3px solid theme('colors.primaryOrange');
+    font-size: 1rem;
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.world-event-description {
+    margin: 0;
+    font-size: 0.92rem;
+    color: rgba(0, 0, 0, 0.65);
+    line-height: 1.55;
+    max-width: 60ch;
+}
+
+.world-event-places-label {
+    margin: 14px 0 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.world-event-places {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    // 2×2 grid on desktop — four cards fit cleanly in the right column.
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.world-event-place {
+    display: flex;
+}
+
+.world-event-place-btn {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px 8px 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background: #fafafa;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease,
+        box-shadow 0.15s ease, background-color 0.15s ease;
+
+    &:hover:not(:disabled) {
+        border-color: theme('colors.primaryOrange');
+        background: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(246, 137, 31, 0.18);
+    }
+
+    &:disabled {
+        cursor: progress;
+        opacity: 0.65;
+    }
+}
+
+.world-event-place-img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.world-event-place-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.world-event-place-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.world-event-place-country {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.55);
+    line-height: 1.2;
+}
+
+/* ───── Loading skeleton ───── */
+.world-event-card-loading {
+    .world-event-loading-photo {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            115deg,
+            rgba(0, 0, 0, 0.06) 0%,
+            rgba(0, 0, 0, 0.12) 50%,
+            rgba(0, 0, 0, 0.06) 100%
+        );
+    }
+
+    // Inherit the body layout. The shimmers stack as flex children with
+    // the same `gap: 12px` the real body uses, so the heights align.
+    .world-event-body {
+        gap: 10px;
+    }
+
+    .world-event-loading-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 2px;
+    }
+
+    .world-event-loading-places-label {
+        margin-top: 12px;
+    }
+
+    .world-event-place-loading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 12px 8px 8px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        background: #fafafa;
+    }
+
+    .world-event-place-loading-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+/* ───── Responsive ───── */
+@media (max-width: 1024px) {
+    .world-event-card {
+        grid-template-columns: 1fr;
+    }
+
+    .world-event-photo-wrap {
+        min-height: 280px;
+    }
+
+    .world-event-card-loading .world-event-loading-photo {
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 640px) {
+    .world-event {
+        padding: 16px 16px 0;
+        margin-bottom: 40px;
+    }
+
+    .world-event-body {
+        padding: 22px 22px;
+    }
+
+    .world-event-places {
+        // On phones a single-column list reads better — the place cards
+        // are too narrow at half-width to fit name + country comfortably.
+        grid-template-columns: 1fr;
+    }
+}

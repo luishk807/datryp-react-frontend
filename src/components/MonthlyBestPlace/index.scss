@@ -1,0 +1,244 @@
+// Section wrapper mirrors the other homepage section containers.
+.monthly-best-place {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto 56px;
+    padding: 32px 24px 0;
+}
+
+// Split card: image on the left, AI pitch + highlights on the right.
+// The whole card is the click target → opens /city. Hover lifts the
+// card so it feels like a single interactive surface.
+.monthly-best-place-card {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12);
+    }
+
+    &:focus-visible {
+        outline: 3px solid theme('colors.primaryGreen');
+        outline-offset: 3px;
+    }
+}
+
+/* ───── LEFT half — place photo ───── */
+.monthly-best-place-photo-wrap {
+    position: relative;
+    min-height: 380px;
+    background: #1a1a1a;
+}
+
+.monthly-best-place-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.monthly-best-place-photo-fallback {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        135deg,
+        #7c3aed 0%,
+        theme('colors.primaryGreen') 100%
+    );
+}
+
+.monthly-best-place-photo-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.45) 0%,
+        rgba(0, 0, 0, 0.1) 35%,
+        rgba(0, 0, 0, 0) 65%
+    );
+}
+
+.monthly-best-place-attribution {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: #fff;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+}
+
+/* ───── RIGHT half — pitch + highlights ───── */
+.monthly-best-place-body {
+    padding: 26px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.monthly-best-place-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: linear-gradient(
+        135deg,
+        rgba(124, 58, 237, 0.14) 0%,
+        rgba(60, 181, 75, 0.14) 100%
+    );
+    color: #6d28d9;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.monthly-best-place-eyebrow-icon {
+    font-size: 0.95rem !important;
+}
+
+.monthly-best-place-name {
+    margin: 4px 0 0;
+    font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: theme('colors.primary');
+}
+
+.monthly-best-place-country {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 500;
+
+    .MuiSvgIcon-root {
+        font-size: 1rem;
+        color: rgba(0, 0, 0, 0.45);
+    }
+}
+
+// Pull-quote-style tagline so the AI's pitch reads as a quote rather
+// than another body paragraph.
+.monthly-best-place-tagline {
+    margin: 8px 0 0;
+    padding: 6px 0 6px 14px;
+    border-left: 3px solid theme('colors.primaryGreen');
+    font-size: 1rem;
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.monthly-best-place-why {
+    margin: 0;
+    font-size: 0.92rem;
+    color: rgba(0, 0, 0, 0.65);
+    line-height: 1.55;
+    max-width: 65ch;
+}
+
+.monthly-best-place-highlights {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.monthly-best-place-highlight {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 12px;
+    background: rgba(60, 181, 75, 0.06);
+    border: 1px solid rgba(60, 181, 75, 0.16);
+    border-radius: 10px;
+}
+
+.monthly-best-place-highlight-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+}
+
+.monthly-best-place-highlight-description {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.6);
+    line-height: 1.4;
+}
+
+/* ───── Loading skeleton ───── */
+.monthly-best-place-card-loading {
+    cursor: default;
+
+    &:hover {
+        transform: none;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    .monthly-best-place-loading-photo {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            115deg,
+            rgba(0, 0, 0, 0.06) 0%,
+            rgba(0, 0, 0, 0.12) 50%,
+            rgba(0, 0, 0, 0.06) 100%
+        );
+    }
+}
+
+/* ───── Responsive ───── */
+@media (max-width: 1024px) {
+    .monthly-best-place-card {
+        grid-template-columns: 1fr;
+    }
+
+    .monthly-best-place-photo-wrap {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 640px) {
+    .monthly-best-place {
+        padding: 16px 16px 0;
+        margin-bottom: 40px;
+    }
+
+    .monthly-best-place-body {
+        padding: 22px 22px;
+    }
+
+    .monthly-best-place-highlights {
+        grid-template-columns: 1fr;
+    }
+}

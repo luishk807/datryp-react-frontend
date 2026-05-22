@@ -1,5 +1,6 @@
 import './index.scss';
 import PlaceCard from 'components/common/PlaceCard';
+import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import { useMonthlyTopCities } from 'api/hooks/useMonthlyTopCities';
 import { NO_IMAGE } from 'constants';
 import type { TopPlace } from 'sample/topPlaces';
@@ -49,7 +50,9 @@ const TopPlaces = ({
             </div>
 
             {isLoading && (
-                <p className="top-places-msg">Loading this month's picks…</p>
+                <div className="top-places-grid" aria-live="polite">
+                    <PlaceCardSkeleton count={6} />
+                </div>
             )}
 
             {isError && (

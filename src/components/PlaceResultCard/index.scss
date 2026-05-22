@@ -35,20 +35,26 @@
   justify-content: center;
 }
 
-/* Unsplash attribution — required by their API terms. Small caption pinned
- * to the bottom-right of the image, white text over a soft dark gradient. */
+/* Unsplash attribution — required by their API terms. Compliant
+ * (always present + working links) but dialed back so the card's photo
+ * carries the visual weight. */
 .place-result-card-attribution {
   position: absolute;
   bottom: 4px;
   right: 6px;
   z-index: 1;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.55);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   padding: 2px 4px;
 }
 
 .place-result-card-attribution a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.place-result-card-attribution a:hover {
   color: #fff;
   text-decoration: underline;
 }

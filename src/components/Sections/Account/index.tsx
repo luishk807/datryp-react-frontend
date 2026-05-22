@@ -14,6 +14,7 @@ import SubscriptionSection from './SubscriptionSection';
 import { useUser } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
 import {
+    useGendersCatalog,
     useInterestsCatalog,
     useTravelerStylesCatalog,
     useUpdateMyPreferences,
@@ -33,6 +34,7 @@ export const Account = () => {
     const { data: countries = [], isLoading: countriesLoading } = useCountries('', {
         limit: 300,
     });
+    const { data: genders = [], isLoading: gendersLoading } = useGendersCatalog();
 
     // Scroll to the section referenced by the URL hash on mount / hash change.
     // The Header's "Subscription" / "Upgrade to Pro" menu items deep-link via
@@ -59,6 +61,7 @@ export const Account = () => {
     const [countryOfBirth, setCountryOfBirth] = useState(
         user?.countryOfBirth ?? ''
     );
+    const [genderId, setGenderId] = useState<string>(user?.genderId ?? '');
     const [profileSaved, setProfileSaved] = useState(false);
 
     // Password
@@ -105,6 +108,7 @@ export const Account = () => {
         setPhone(user.phone ?? '');
         setBirthYear(user.birthYear ?? '');
         setCountryOfBirth(user.countryOfBirth ?? '');
+        setGenderId(user.genderId ?? '');
         setInterests(user.interests ?? []);
         setTravelerStyles(user.travelerStyles ?? []);
         setDreamDestinations(user.dreamDestinations ?? []);
@@ -187,7 +191,7 @@ export const Account = () => {
     }
 
     // ---- Handlers ----
-    const handleProfileSave = () => {
+    const handleProfileSave = async () => {
         if (!name.trim()) return;
         updateUser({
             name: name.trim(),
@@ -196,6 +200,19 @@ export const Account = () => {
             birthYear: typeof birthYear === 'number' ? birthYear : undefined,
             countryOfBirth: countryOfBirth.trim() || undefined,
         });
+        // Gender persists on the server (drives the monthly best-place
+        // recommender + invalidates its cache) so it goes through the
+        // preferences mutation, not the local-only updateUser overlay.
+        if ((genderId || null) !== (user?.genderId ?? null)) {
+            try {
+                await updatePrefs.mutateAsync({
+                    genderId: genderId || null,
+                });
+            } catch {
+                /* surface via the travel-prefs message slot below if it
+                   ever matters; profile save remains optimistic */
+            }
+        }
         setProfileSaved(true);
         setTimeout(() => setProfileSaved(false), 2000);
     };
@@ -516,6 +533,26 @@ export const Account = () => {
                             placeholder={countriesLoading ? 'Loading countries…' : 'Select a country'}
                             disabled={countriesLoading}
                             onChange={(opt) => setCountryOfBirth(opt?.code ?? '')}
+                        />
+                        <DropDown
+                            variant="bare"
+                            label="Gender"
+                            options={genders}
+                            valueKey="id"
+                            value={genderId || null}
+                            placeholder={
+                                gendersLoading
+                                    ? 'Loading…'
+                                    : 'Select an option'
+                            }
+                            disabled={gendersLoading}
+                            onChange={(opt) =>
+                                setGenderId(
+                                    typeof opt?.id === 'string'
+                                        ? opt.id
+                                        : ''
+                                )
+                            }
                         />
                         <div className="account-actions">
                             <ButtonCustom
