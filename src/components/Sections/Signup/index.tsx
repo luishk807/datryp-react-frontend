@@ -196,6 +196,8 @@ const Signup = () => {
                         value={draft.name}
                         onChange={(v) => setDraftField('name', v)}
                         onContinue={goNext}
+                        onGoogleCredential={handleGoogleCredential}
+                        googlePending={googleSignin.isPending}
                     />
                 );
             case 2:
