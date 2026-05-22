@@ -1,3 +1,31 @@
+# robots.txt for DaTryp.com
 # https://www.robotstxt.org/robotstxt.html
+#
+# Allow indexing of public content + marketing pages (home, about,
+# privacy/terms, city/country/place detail). Block user-specific and
+# auth-token pages — they have no SEO value and could leak PII or
+# expose reset tokens via search-engine caches.
+
 User-agent: *
-Disallow:
+
+# User-specific pages — gated behind login, never useful to index
+Disallow: /account
+Disallow: /trips
+Disallow: /trip-detail
+Disallow: /friends
+Disallow: /notifications
+Disallow: /history
+Disallow: /visited
+Disallow: /saved
+Disallow: /bucket-list
+Disallow: /dashboard
+
+# Trip-builder wizards — in-progress drafts, not standalone content
+Disallow: /single
+Disallow: /multiple
+
+# Auth flows — tokens in URLs (reset-password) or post-signup state
+# (membership/welcome) shouldn't end up in Google's cache
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /membership/welcome

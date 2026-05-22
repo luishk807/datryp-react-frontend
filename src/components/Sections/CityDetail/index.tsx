@@ -152,8 +152,10 @@ const CityDetail = () => {
                         Loading {name} details…
                     </p>
                     <p className="city-detail-loading-hint">
-                        First-time look-ups take a few seconds while we gather
-                        travel info.
+                        This city is new to us — gathering detailed travel
+                        info takes about a minute on first visit. Every
+                        future visit (yours and anyone else's) will be
+                        instant.
                     </p>
                 </div>
             </Layout>
