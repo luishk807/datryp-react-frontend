@@ -161,6 +161,29 @@
   transition: transform 0.18s ease;
 }
 
+// Tighter on mobile — toolbar real estate is tight when Bookmark /
+// Visited / Share are siblings, so shrink the CTA in lockstep.
+@media (max-width: 640px) {
+  .country-detail-plan-cta {
+    padding: 7px 14px;
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+  .country-detail-plan-cta-icon {
+    font-size: 0.95rem !important;
+  }
+  .country-detail-plan-cta-label,
+  .country-detail-plan-cta-target {
+    font-size: 0.82rem;
+  }
+  .country-detail-plan-cta-target {
+    max-width: 110px;
+  }
+  .country-detail-plan-cta-arrow {
+    font-size: 0.9rem !important;
+  }
+}
+
 @media (max-width: 480px) {
   // `.country-detail-toolbar-actions` is positioned fixed at the
   // bottom for ≤640px (see rule above) — don't restate width / align

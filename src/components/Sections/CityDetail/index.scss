@@ -173,6 +173,29 @@
   transition: transform 0.18s ease;
 }
 
+// Tighter on mobile — the toolbar gets crowded with Back / Share /
+// Bookmark / Visited and a full-sized CTA pushes content off-screen.
+@media (max-width: 640px) {
+  .city-detail-plan-cta {
+    padding: 7px 14px;
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+  .city-detail-plan-cta-icon {
+    font-size: 0.95rem !important;
+  }
+  .city-detail-plan-cta-label,
+  .city-detail-plan-cta-target {
+    font-size: 0.82rem;
+  }
+  .city-detail-plan-cta-target {
+    max-width: 110px;
+  }
+  .city-detail-plan-cta-arrow {
+    font-size: 0.9rem !important;
+  }
+}
+
 /* ── 70/30 top layout (hero + side cards) ── */
 .city-detail-top {
   display: grid;
