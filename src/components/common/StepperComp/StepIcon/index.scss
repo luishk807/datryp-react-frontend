@@ -1,7 +1,12 @@
+// Compact colored dot. Pending = soft gray. Active = orange with a
+// glow ring (the ring on a 14px dot is bigger than the dot itself, so
+// it reads as a clear "you are here"). Completed = green with a small
+// white check inside.
+
 .StepIconCustom {
-  background: rgba(0, 0, 0, 0.08);
-  height: 32px;
-  width: 32px;
+  background: rgba(0, 0, 0, 0.18);
+  height: 14px;
+  width: 14px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -9,33 +14,19 @@
   transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.StepIconCustom .label {
-  color: rgba(0, 0, 0, 0.5);
-  font-weight: 600;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .StepIconCustom.active {
   background: theme('colors.primaryOrange');
-  box-shadow: 0 0 0 4px rgba(246, 137, 31, 0.18);
-  transform: scale(1.05);
-}
-
-.StepIconCustom.active .label {
-  color: #fff;
+  box-shadow: 0 0 0 5px rgba(246, 137, 31, 0.22);
+  transform: scale(1.15);
 }
 
 .StepIconCustom.completed {
   background: theme('colors.primaryGreen');
-}
-
-.StepIconCustom.completed .label {
-  color: #fff;
+  height: 18px;
+  width: 18px;
 }
 
 .StepIconCustom .check-icon {
-  font-size: 18px !important;
+  font-size: 12px !important;
+  color: #fff;
 }

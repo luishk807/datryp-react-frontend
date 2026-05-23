@@ -43,10 +43,9 @@ import {
     resetTrip,
     useTripDispatch,
 } from "context/TripContext";
-import { placeToActivity } from "utils/addPlaceToItinerary";
 import { now } from "utils";
-import { TRIP_BASIC } from "constants";
-import type { Destination } from "types";
+import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
+import type { Activity, Destination } from "types";
 
 const CityDetail = () => {
     const [searchParams] = useSearchParams();
@@ -78,6 +77,9 @@ const CityDetail = () => {
         countryId: string | null;
         cityName: string;
         cityImage: string | null;
+        /** Best-guess primary airport for the destination. Used to
+         *  pre-fill the arrival airport on the seeded flight. */
+        arrivalAirportCode: string | null;
     }) => {
         // Use the catalog UUID when we have it — the itinerary save mutation
         // rejects ids that don't match a real countries row, so id=0 would
@@ -106,17 +108,27 @@ const CityDetail = () => {
                 image: args.cityImage ?? undefined,
             })
         );
-        // Also stamp the city itself as activity #1 with its image —
-        // without this the user lands on the trip-builder with the
-        // country destination but no record of WHY they got there.
+        // Seed activity #1 as a *flight* to the destination — adding the
+        // city itself as a place activity reads weirdly ("Visit Kyoto?
+        // I'm already there"). A flight gives the trip a natural starting
+        // event and pre-fills the arrival airport from the city-details
+        // catalog. Departure airport is left blank for the user.
+        const flightActivity: Omit<Activity, "id"> = {
+            kind: ACTIVITY_KIND.FLIGHT,
+            name: `Flight to ${args.cityName}`,
+            location: `${args.cityName}, ${args.countryName}`,
+            flightSegments: [
+                args.arrivalAirportCode
+                    ? { arrivalAirport: args.arrivalAirportCode }
+                    : {},
+            ],
+            ...(args.cityImage
+                ? { image: { url: args.cityImage, name: args.cityName } }
+                : {}),
+        };
         dispatch(
             addPlace({
-                value: placeToActivity({
-                    name: args.cityName,
-                    city: args.cityName,
-                    country: args.countryName,
-                    imageUrl: args.cityImage,
-                }),
+                value: flightActivity,
                 index: 0,
                 date: today,
                 destinationIndx: 0,
@@ -255,6 +267,8 @@ const CityDetail = () => {
                                     countryId: city.countryId,
                                     cityName: city.name,
                                     cityImage: city.imageUrl,
+                                    arrivalAirportCode:
+                                        details.airports?.[0]?.iataCode ?? null,
                                 })
                             }
                         >
