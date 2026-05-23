@@ -24,9 +24,21 @@ interface SelectedHero {
     attribution?: { name: string; profileUrl: string };
 }
 
+/** Hostnames whose `/hero/*` paths are known to serve HTML (the SPA's
+ *  index.html) instead of actual JPGs. The DB still references these
+ *  from an older seed run; until those rows get re-seeded against a
+ *  real image origin, we filter them out client-side so a successful
+ *  `/hero-images` response doesn't paint the homepage black. Drop
+ *  entries from this list as the backend gets fixed. */
+const KNOWN_BROKEN_HERO_HOSTS = ['d111x5lpaimz3o.cloudfront.net'];
+
+const isUsableHeroUrl = (url: string): boolean =>
+    !KNOWN_BROKEN_HERO_HOSTS.some((host) => url.includes(host));
+
 const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
-    if (heroes && heroes.length > 0) {
-        const pick = heroes[Math.floor(Math.random() * heroes.length)];
+    const usable = (heroes ?? []).filter((h) => isUsableHeroUrl(h.imageUrl));
+    if (usable.length > 0) {
+        const pick = usable[Math.floor(Math.random() * usable.length)];
         return {
             url: pick.imageUrl,
             attribution: { name: pick.photographerName, profileUrl: pick.photographerUrl },
@@ -72,10 +84,32 @@ const Home = () => {
 
     return (
         <Layout>
-            <section
-                className="home-hero"
-                style={{ backgroundImage: `url(${heroImage.url})` }}
-            >
+            <section className="home-hero">
+                {/* Photo layer — rendered as an actual <img> so we can
+                    catch load failures via onError and fall back to
+                    the gradient backdrop (set in SCSS on .home-hero
+                    itself). Using a real element instead of a CSS
+                    `background-image: url(...)` means a 404 / wrong
+                    content-type can't silently leave the section
+                    blank — the img simply hides and the gradient
+                    underneath stays visible.
+
+                    `key={heroImage.url}` forces React to remount the
+                    <img> when the URL changes (e.g. initial fallback
+                    → API-resolved Unsplash URL). Otherwise the
+                    imperative `style.display = 'none'` set by a
+                    previous onError sticks through the URL swap and
+                    hides the new (working) image. */}
+                <img
+                    key={heroImage.url}
+                    className="home-hero-bg-photo"
+                    src={heroImage.url}
+                    alt=""
+                    aria-hidden="true"
+                    onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                    }}
+                />
                 <div className="home-hero-overlay" />
                 {heroImage.attribution && (
                     <span className="home-hero-attribution">

@@ -13,13 +13,21 @@ export const PAGE_TITLE = "DaTryp.com";
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Hero images shown on the homepage when `/hero-images` is empty or
- *  unreachable. Points at the same S3/CloudFront origin the backend
- *  uploads to, so we don't have to ship any local image binaries. */
+ *  unreachable. Self-hosted under `public/images/heroes/` so they're
+ *  served by the SPA directly — no CDN dependency, no risk of the
+ *  CloudFront distribution serving `index.html` for these paths
+ *  (which used to happen with the old `d111x5...cloudfront.net/hero/*`
+ *  URLs and produced a black homepage hero on prod).
+ *
+ *  To swap a photo: drop a 1920x1080 (or wider) JPG at the path below
+ *  with the matching filename. The list is sampled at random on each
+ *  page load, so just adding more entries makes the hero rotation
+ *  richer. */
 export const FALLBACK_HERO_IMAGES = [
-  "https://d111x5lpaimz3o.cloudfront.net/hero/sydney-australia.jpg",
-  "https://d111x5lpaimz3o.cloudfront.net/hero/new-york-city-usa.jpg",
-  "https://d111x5lpaimz3o.cloudfront.net/hero/cape-town-south-africa.jpg",
-  "https://d111x5lpaimz3o.cloudfront.net/hero/tokyo-japan.jpg",
+  "/images/heroes/sydney.jpg",
+  "/images/heroes/new-york.jpg",
+  "/images/heroes/cape-town.jpg",
+  "/images/heroes/tokyo.jpg",
 ] as const;
 
 export const ACTION = {
