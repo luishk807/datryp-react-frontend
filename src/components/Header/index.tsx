@@ -25,7 +25,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import NotificationBell from 'components/NotificationBell';
 import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
-import { BUTTON_VARIANT, LOGO_IMAGE } from 'constants';
+import { BUTTON_VARIANT, LOGO_ICON_IMAGE, LOGO_IMAGE } from 'constants';
 import type { Country } from 'types';
 import './index.scss';
 
@@ -105,7 +105,20 @@ const Header = ({ withSearch = false }: HeaderProps) => {
             <div className={classnames('app-header-inner', { 'with-search': withSearch })}>
                 <IconLink
                     to="/"
-                    icon={<img src={LOGO_IMAGE} alt="" />}
+                    icon={
+                        <>
+                            <img
+                                src={LOGO_IMAGE}
+                                alt=""
+                                className="app-header-logo-full"
+                            />
+                            <img
+                                src={LOGO_ICON_IMAGE}
+                                alt=""
+                                className="app-header-logo-icon"
+                            />
+                        </>
+                    }
                     ariaLabel="DaTryp.com home"
                     className="app-header-logo"
                 />

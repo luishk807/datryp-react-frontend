@@ -832,17 +832,18 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                             </ErrorAlert>
                         </Grid>
                     )}
-                    {isLastStep && showNotifyToggle && (
-                        <Grid item lg={12} md={12} xs={12}>
-                            <div className="step-actions-notify">
-                                <NotifyParticipantsCheckbox
-                                    checked={notifyParticipants}
-                                    onChange={setNotifyParticipants}
-                                    disabled={saveItinerary.isPending}
-                                />
-                            </div>
-                        </Grid>
-                    )}
+                    {/*
+                      NotifyParticipantsCheckbox intentionally hidden from
+                      the wizard's last step entirely. Previous iteration
+                      tried two layouts (sandwiched between Back/Finish,
+                      then in its own row above) — both crowded the action
+                      buttons. `notifyParticipants` defaults to true in
+                      this component's state so participants still get an
+                      email invite on first save. The toggle UI will
+                      return on the TripDetail "share to missed
+                      participants" surface (see memory:
+                      project_edit_trip_share_to_participants).
+                    */}
                     <Grid item lg={12} md={12} xs={12}>
                         <div className="step-actions">
                             {activeStep > 0 && (

@@ -93,13 +93,16 @@
 .home-hero-options {
   position: relative;
   display: inline-flex;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  // Solid-white pill so unselected text has consistent contrast on
+  // any hero photo. Previously a glassy translucent pill let the
+  // photo bleed through and made the unselected label nearly
+  // invisible on bright backgrounds.
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 9999px;
   padding: 4px;
   margin-bottom: 22px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   min-width: 360px;
 }
 
@@ -131,7 +134,8 @@
   padding: 8px 18px;
   border-radius: 9999px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.75);
+  // Dark text on white pill — guaranteed contrast against any photo.
+  color: rgba(0, 0, 0, 0.7);
   font-weight: 500;
   font-size: 0.9rem;
   transition: color 0.18s ease;
@@ -143,9 +147,11 @@
 }
 
 .home-hero-options .hero-option:hover {
-  color: #fff;
+  color: theme('colors.primary');
 }
 
+// Selected tab: thumb covers it with brand color, text inverts to
+// white. The thumb's box-shadow provides the depth cue.
 .home-hero-options .hero-option.selected {
   color: #fff;
   font-weight: 600;
@@ -158,8 +164,10 @@
 }
 
 .home-hero-options .hero-option.is-ai:not(.selected) .hero-option-icon {
-  color: #c4b5fd;
-  filter: drop-shadow(0 0 4px rgba(124, 58, 237, 0.4));
+  // Soft purple tint on the AI tab's icon when not selected — hints
+  // at the brand color of the AI mode without overpowering the dark
+  // text label next to it.
+  color: #7c3aed;
 }
 
 .home-hero-options .hero-option-ai-badge {
@@ -337,27 +345,19 @@
     color: rgba(0, 0, 0, 0.6);
   }
 
+  // Mobile pill — inherits the white solid background from the
+  // desktop rule above (no longer needs to fight a dark photo
+  // backdrop). Only the size + spacing are adjusted here.
   .home-hero-options {
     margin-bottom: 18px;
-    background: rgba(0, 0, 0, 0.04);
-    border-color: rgba(0, 0, 0, 0.1);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    min-width: 420px;
+    min-width: 0;
+    width: 100%;
+    max-width: 360px;
   }
 
   .home-hero-options .hero-option {
     padding: 8px 12px;
-    font-size: 0.8rem;
-    color: rgba(0, 0, 0, 0.55);
-  }
-
-  .home-hero-options .hero-option:hover {
-    color: theme('colors.primary');
-  }
-
-  .home-hero-options .hero-option.selected {
-    color: #fff;
+    font-size: 0.85rem;
   }
 
   /* Stack input over CREATE button on phones */

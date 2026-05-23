@@ -29,11 +29,18 @@
   display: inline-flex;
   flex-shrink: 0;
 }
-.app-header-logo img,
-.app-header-logo .icon-link-adornment img {
+.app-header-logo .app-header-logo-full {
   width: 130px;
   height: auto;
   display: block;
+}
+// Icon-only logo lives in the DOM at all sizes; CSS toggles which is
+// visible. Keeps the rendered tree stable across breakpoints so React
+// doesn't re-key on a resize.
+.app-header-logo .app-header-logo-icon {
+  display: none;
+  width: 36px;
+  height: 36px;
 }
 
 .app-header-nav {
@@ -303,16 +310,32 @@
 .app-header-drawer .drawer-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 4px;
+  padding: 4px 0;
 }
 
-.app-header-drawer .drawer-auth button {
+// Logged-out auth section in the drawer — both buttons full-width,
+// vertically stacked with breathing room. The two are visually
+// differentiated (line vs filled) but otherwise identical sizing so
+// they read as a paired auth choice rather than mismatched
+// affordances.
+.app-header-drawer .drawer-auth {
+  width: 100%;
+  margin: 0 0 10px;
+}
+
+.app-header-drawer .drawer-auth button,
+.app-header-drawer .drawer-auth .auth-cta-link {
   width: 100%;
   text-align: center;
   display: block;
-  padding: 12px 20px;
+  padding: 14px 20px;
   font-size: 1rem;
+  border-radius: 12px;
+}
+
+.app-header-drawer .drawer-auth.signup {
+  margin-bottom: 8px;
 }
 
 .app-header-drawer .drawer-user {
@@ -365,13 +388,21 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .app-header-inner {
-    padding: 10px 16px;
-    gap: 12px;
+    padding: 10px 12px;
+    gap: 10px;
+    // No-wrap: logo + search + burger stay on one row at all mobile
+    // widths. The search is the flex-grow target and shrinks to fit
+    // whatever space remains.
+    flex-wrap: nowrap;
   }
 
-  .app-header-logo img,
-  .app-header-logo .icon-link-adornment img {
-    width: 110px;
+  // Swap to icon-only logo so the full wordmark doesn't crowd out the
+  // searchbar on the same row.
+  .app-header-logo .app-header-logo-full {
+    display: none;
+  }
+  .app-header-logo .app-header-logo-icon {
+    display: block;
   }
 
   .app-header-nav {
@@ -380,16 +411,33 @@
 
   .app-header-burger {
     display: inline-flex !important;
+    flex-shrink: 0;
   }
 
-  .app-header-inner.with-search {
-    flex-wrap: wrap;
-  }
-
+  // Inline search on mobile — sits between the icon logo and the
+  // burger. flex-grow lets it fill remaining space; max-width caps it
+  // on tablet widths so it doesn't dominate.
   .app-header-search {
-    order: 3;
-    flex-basis: 100%;
+    order: 0;
+    flex: 1 1 auto;
+    min-width: 0;
     max-width: 100%;
-    margin-top: 4px;
+    margin: 0;
+  }
+
+  .app-header-search .MuiOutlinedInput-root {
+    font-size: 0.85rem;
+    padding-left: 32px !important;
+    padding-right: 10px !important;
+  }
+
+  .app-header-search .MuiOutlinedInput-root input {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .app-header-search .app-header-search-icon {
+    left: 10px;
+    font-size: 1rem !important;
   }
 }
