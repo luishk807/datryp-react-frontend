@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.latest-news {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.latest-news-lead {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.4;
+}
+
+.latest-news-region {
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.latest-news-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.95) 0%,
+    rgba(60, 181, 75, 1) 100%
+  );
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(60, 181, 75, 0.35);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.latest-news-cta-icon {
+  font-size: 1rem !important;
+}
+
+.latest-news-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}

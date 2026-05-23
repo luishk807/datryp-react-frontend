@@ -32,7 +32,12 @@ export interface PlaceAutocompleteProps {
 }
 
 const MIN_CHARS = 3;
-const DEBOUNCE_MS = 800;
+// Cut from 800ms → 350ms — typing felt sluggish because the user paused
+// nearly a full second between last keystroke and "Searching…" UI. 350ms
+// is the typical autocomplete debounce floor that still groups bursty
+// typing into one request. Backend caches by normalized query so the
+// extra-keystroke cost is bounded.
+const DEBOUNCE_MS = 350;
 const LIMIT = 5;
 
 /** Free-text input with AI-suggested places in a dropdown. Backend caches

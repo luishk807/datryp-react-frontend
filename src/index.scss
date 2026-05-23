@@ -23,32 +23,33 @@ code {
 
 // ── Print stylesheet ────────────────────────────────────────────────────────
 // Triggered by window.print() from the Download → Print option on
-// /trip-detail. Goal: a plain, dense, no-color document — black text on
-// white paper, no borders, no icons, no chips, no decorative chrome. Just
-// trip name, dates, organizer, friends, budget, and a tight day-by-day
-// list of activities. Optimized to fit as much of the trip as possible
-// onto each printed page.
+// /trip-detail. Goal: a readable, well-typeset trip dossier — branded
+// header band, day banners with subtle green accent, activity rows with
+// a left accent rule, and a tight typography scale that still fits a
+// long trip onto a few A4 pages. Color is restrained (green accents +
+// black body) so it works on both color and B&W printers.
+$print-green: #3cb54b;
+$print-green-soft: #e9f6ec;
+$print-ink: #1a1a1a;
+$print-ink-soft: #555;
+$print-rule: #d8d8d8;
+
 @media print {
   @page {
     size: A4;
-    margin: 10mm 10mm 12mm;
+    margin: 12mm 12mm 14mm;
   }
 
-  // Universal reset — strip ALL color, decoration, spacing, and motion.
-  // Everything below is plain black text unless explicitly re-styled.
+  // Universal reset — strip motion, shadows, and reset spacing, but
+  // KEEP color so the branded accents below can paint. Individual
+  // selectors below restore the structural styling for the printable
+  // sections.
   *,
   *::before,
   *::after {
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
-    color: #000 !important;
-    border: none !important;
     box-shadow: none !important;
     text-shadow: none !important;
-    border-radius: 0 !important;
     filter: none !important;
-    opacity: 1 !important;
     transition: none !important;
     transform: none !important;
     -webkit-print-color-adjust: exact !important;
@@ -58,10 +59,10 @@ code {
   html,
   body {
     background: #fff !important;
-    color: #000 !important;
-    font-family: 'Signika', 'Helvetica', Arial, sans-serif;
+    color: $print-ink !important;
+    font-family: 'Inter', 'Signika', 'Helvetica', Arial, sans-serif;
     font-size: 9.5pt;
-    line-height: 1.25;
+    line-height: 1.35;
     font-weight: 400;
   }
 
@@ -79,11 +80,12 @@ code {
     width: 100% !important;
     max-width: 100% !important;
     flex-basis: auto !important;
+    background: transparent !important;
   }
 
   // Drop everything interactive / decorative — nav, footer, buttons,
-  // modals, status pills, status badges, edit / delete affordances,
-  // toggle chips, snackbars, tooltips, kind-icon thumbnails, etc.
+  // modals, status pills, edit / delete affordances, toggle chips,
+  // snackbars, tooltips, photos, progress bars, etc.
   .page-shell > header,
   .page-shell > footer,
   .trip-detail-header-actions,
@@ -99,15 +101,9 @@ code {
   .budget-add-trigger,
   .activities-empty-hint,
   .trip-detail-empty,
-  .trip-status-badge,
   .trip-status-inline,
-  .trip-detail-status,
   .trip-collapse-toggle,
   .trip-name-edit,
-  .stat-icon,
-  .meta-icon,
-  .budget-eyebrow-icon,
-  .activity-title-icon,
   .activity-image,
   .content-image,
   .budget-bar,
@@ -118,7 +114,6 @@ code {
   .budget-meter,
   .budget-footer,
   .date-block .header .dot,
-  .MuiSvgIcon-root,
   .MuiSnackbar-root,
   .MuiModal-root,
   .MuiBackdrop-root,
@@ -127,21 +122,8 @@ code {
     display: none !important;
   }
 
-  // Title block — single line, bold, sits at the top.
-  .trip-detail-header {
-    display: block !important;
-    margin: 0 0 4pt !important;
-    padding: 0 !important;
-  }
-  .trip-detail-name {
-    font-size: 15pt !important;
-    font-weight: 700;
-    margin: 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  // Force any collapsible bodies open — the user explicitly asked for a
-  // printout, so they want to see everything.
+  // Force any collapsible bodies open — the user explicitly asked for
+  // a printout, so they want to see everything.
   .trip-collapsible-body,
   .trip-collapsible-body.is-collapsed {
     display: block !important;
@@ -149,10 +131,57 @@ code {
     overflow: visible !important;
   }
 
-  // Basic info → flat inline list: "Organizer: X · Where: Y · When: Z · Budget: $N"
+  // ── Trip name header — branded green band sitting at the top of
+  // page 1. Reads like a cover slug rather than a naked H1.
+  .trip-detail-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12pt;
+    margin: 0 0 8pt !important;
+    padding: 6pt 8pt !important;
+    background: $print-green-soft !important;
+    border-left: 3pt solid $print-green !important;
+    border-radius: 2pt !important;
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+  .trip-detail-name {
+    font-size: 16pt !important;
+    font-weight: 700 !important;
+    color: $print-ink !important;
+    margin: 0 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.01em;
+  }
+
+  // Keep the status badge — it tells the reader at a glance whether
+  // this is a Planning / Confirmed / Cancelled trip. Render it as a
+  // small green chip on the right of the header band.
+  .trip-detail-header .trip-status-badge {
+    display: inline-flex !important;
+    align-items: center;
+    padding: 2pt 6pt !important;
+    background: #fff !important;
+    border: 0.5pt solid $print-green !important;
+    border-radius: 999pt !important;
+    color: $print-green !important;
+    font-size: 8pt !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  // Basic info → 4-column inline list: "Organizer: X | Where: Y |
+  // When: Z | Budget: $N". Border on top for separation from the
+  // header band; muted icons retained so each row carries an anchor.
   .basic-trip-info {
-    margin: 0 0 3pt !important;
-    padding: 0 !important;
+    margin: 0 0 6pt !important;
+    padding: 4pt 8pt !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 0.5pt solid $print-rule !important;
+    border-radius: 0 !important;
   }
   .trip-stats {
     display: block !important;
@@ -162,25 +191,33 @@ code {
     display: inline !important;
     margin: 0 !important;
     padding: 0 !important;
+    color: $print-ink !important;
   }
   .trip-stat + .trip-stat::before {
-    content: '  ·  ';
+    content: '  •  ';
+    color: $print-green !important;
+    font-weight: 700;
   }
   .trip-stat .stat-text,
   .trip-stat .stat-text * {
     display: inline !important;
   }
+  .trip-stat .stat-icon {
+    display: none !important;
+  }
   .trip-stat .stat-label {
     font-weight: 600;
+    color: $print-ink-soft !important;
   }
   .trip-stat .stat-label::after {
     content: ': ';
   }
 
-  // Friends → "Who's going: Alice, Bob, Carol" on one line.
+  // Friends → "Who's going: Alice, Bob, Carol".
   .trip-friends {
     display: block !important;
-    margin: 0 0 4pt !important;
+    margin: 0 0 6pt !important;
+    padding: 0 8pt !important;
   }
   .trip-friends-header,
   .friend-chips,
@@ -188,9 +225,13 @@ code {
     display: inline !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    color: $print-ink !important;
   }
   .trip-friends-header .stat-label {
     font-weight: 600;
+    color: $print-ink-soft !important;
   }
   .trip-friends-header .stat-label::after {
     content: ': ';
@@ -199,47 +240,64 @@ code {
     content: ', ';
   }
 
-  // Budget summary → one tiny line. Bar + status chip are hidden above.
+  // Budget summary → "Budget: $X spent of $Y (Z%)".
   .budget-summary {
-    margin: 0 0 6pt !important;
-    padding: 0 !important;
+    margin: 0 0 8pt !important;
+    padding: 0 8pt !important;
+    background: transparent !important;
+    border: none !important;
   }
   .budget-header,
   .budget-header * {
     display: inline !important;
+    color: $print-ink !important;
   }
   .budget-eyebrow {
     font-weight: 600;
+    color: $print-ink-soft !important;
   }
   .budget-eyebrow::after {
     content: ': ';
   }
+  .budget-eyebrow-icon {
+    display: none !important;
+  }
 
-  // Day blocks — compact, no rules / underlines.
+  // ── Day banners — colored bar with the date, day number, and
+  // destination. Keeps the reader's eye anchored as they flip pages.
   .date-block {
-    margin: 0 0 2pt !important;
+    margin: 0 0 4pt !important;
     padding: 0 !important;
     page-break-inside: auto;
   }
-  .date-block .header,
-  .date-block .header * {
-    font-weight: 700;
-    font-size: 10.5pt !important;
-  }
   .date-block .header {
     display: block !important;
-    margin: 6pt 0 1pt !important;
-    padding: 0 !important;
+    margin: 8pt 0 3pt !important;
+    padding: 3pt 8pt !important;
+    background: $print-green !important;
+    color: #fff !important;
+    border-radius: 2pt !important;
     page-break-after: avoid;
     break-after: avoid-page;
   }
+  .date-block .header,
+  .date-block .header * {
+    font-weight: 700 !important;
+    font-size: 10.5pt !important;
+    color: #fff !important;
+    letter-spacing: 0.01em;
+  }
 
-  // Activity rows — tight, no separators. Title bold inline with the
-  // first meta row to save vertical space.
+  // ── Activity rows — a left accent rule + slight indent so each
+  // activity reads as its own block. Title bold, meta dimmed.
   .activity-content-trip,
   .activity-content-trip.border-trip {
-    margin: 0 !important;
-    padding: 1pt 0 !important;
+    margin: 2pt 0 !important;
+    padding: 2pt 6pt !important;
+    border: none !important;
+    border-left: 1.5pt solid $print-green !important;
+    background: transparent !important;
+    border-radius: 0 !important;
     overflow: visible !important;
     page-break-inside: avoid;
     break-inside: avoid;
@@ -254,12 +312,13 @@ code {
   }
   .activity-content-trip .activity-title-row .title {
     font-size: 10pt !important;
-    font-weight: 700;
+    font-weight: 700 !important;
+    color: $print-ink !important;
     text-transform: none !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
   }
   .activity-content-trip .activity-meta {
-    margin: 0 0 0 8pt !important;
+    margin: 1pt 0 0 0 !important;
     padding: 0 !important;
     gap: 0 !important;
     display: block !important;
@@ -268,24 +327,48 @@ code {
     display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-    line-height: 1.25 !important;
+    line-height: 1.3 !important;
+    color: $print-ink-soft !important;
   }
   .activity-content-trip .meta-text {
     font-weight: 400 !important;
+    color: $print-ink-soft !important;
   }
   .activity-content-trip .meta-text.flight-number {
     font-weight: 600;
+    color: $print-ink !important;
+  }
+  // Icons inside the meta rows — keep them visible at a small size as
+  // visual anchors (time clock, pin, dollar sign).
+  .activity-content-trip .meta-icon,
+  .activity-content-trip .activity-title-icon {
+    display: inline-flex !important;
+    width: 8pt !important;
+    height: 8pt !important;
+    color: $print-green !important;
+    margin-right: 2pt;
+    vertical-align: -1pt;
+  }
+  .activity-content-trip .meta-icon .MuiSvgIcon-root,
+  .activity-content-trip .activity-title-icon .MuiSvgIcon-root {
+    font-size: 8pt !important;
   }
 
-  // Per-activity budget breakdown → inline plain list "Alice: $50, Bob: $50".
+  // Per-activity budget breakdown → inline "Alice: $50, Bob: $50".
   .activity-content-trip .budget-chips,
   .activity-content-trip .budget-chip {
     display: inline !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    color: $print-ink !important;
   }
   .activity-content-trip .budget-chip + .budget-chip::before {
     content: ', ';
+  }
+  .activity-content-trip .budget-chip-name {
+    color: $print-ink-soft !important;
   }
   .activity-content-trip .budget-chip-name::after {
     content: ': ';
@@ -293,11 +376,24 @@ code {
   .activity-content-trip .budget-chip-amount {
     padding: 0 !important;
     margin: 0 !important;
+    font-weight: 600;
   }
 
   // Completed activities should remain fully legible.
   .activity-content-trip.is-completed {
     opacity: 1 !important;
     filter: none !important;
+  }
+
+  // Footer slug — "Planned with daTryp" — anchored at the bottom of
+  // each printed page via running content. Subtle so it doesn't
+  // distract from the itinerary.
+  @page {
+    @bottom-right {
+      content: 'Planned with daTryp · Page ' counter(page);
+      font-family: 'Inter', 'Signika', 'Helvetica', Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #888;
+    }
   }
 }

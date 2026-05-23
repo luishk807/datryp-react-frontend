@@ -155,14 +155,49 @@
   }
 }
 
-/* ── 70/30 top layout (hero + side cards) ──────────────────────────────── */
+/* ── Top layout (hero + side cards) ────────────────────────────────────── */
+/* Three breakpoints:
+ *   mobile (<640px):  single column, hero stacked above side cards.
+ *   tablet (640–1023px / iPad): hero full-width on top, side cards in a
+ *     row of 3 below. Image is wider so it gets the visual weight, and
+ *     the 3 stat cards (weather / currency / safety) sit on one tidy
+ *     row below — matches the "image full width, widgets in a row"
+ *     layout request.
+ *   desktop (≥1024px): classic 70/30 split, hero left + side stack
+ *     right at full hero height.
+ */
 .place-detail-top {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
-@media (min-width: 640px) {
+/* Tablet / iPad — hero full-width, side cards in a 3-col row below. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .place-detail-top {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'hero'
+      'side';
+  }
+  .place-detail-top .place-hero {
+    grid-area: hero;
+    width: 100%;
+    /* Slightly wider/shorter crop so the photo fills the page without
+     * dominating it. object-fit: cover (set on the img) keeps the
+     * subject centered even at this aspect. */
+    aspect-ratio: 16 / 9;
+    max-height: 420px;
+  }
+  .place-detail-side {
+    grid-area: side;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
   .place-detail-top {
     grid-template-columns: 7fr 3fr;
     align-items: stretch;

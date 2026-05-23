@@ -7,11 +7,8 @@ import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
-import TripModeStep from 'components/TripSteps/TripModeStep';
-import DestinationStep from 'components/TripSteps/DestinationStep';
-import DatesStep from 'components/TripSteps/DatesStep';
-import BudgetStep from 'components/TripSteps/BudgetStep';
-import OrganizerStep from 'components/TripSteps/OrganizerStep';
+import BasicsStep from 'components/TripSteps/BasicsStep';
+import PeopleStep from 'components/TripSteps/PeopleStep';
 import ParticipantsStep from 'components/TripSteps/ParticipantsStep';
 import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
@@ -189,16 +186,12 @@ const TripSteps = ({
         return unique;
     }, [tripInfo]);
 
-    // New 6-step create flow. Index meanings are referenced by
-    // StepperComp's per-step validation rules — keep this lineup in sync
-    // with the missing-field map there.
+    // New 3-step create flow: Basics (mode + destination + dates + budget),
+    // People (organizers + participants), Itinerary. Edit mode still uses
+    // the legacy 3-step shape because StepperComp slices [0, 1] into the
+    // edit-modal and [2..] inline — keep those indices stable.
     const steps = isEditing
-        ? // Edit mode renders the legacy "Describe Your Trip" + Participants
-          // forms inside a modal triggered by BasicTripInfo's edit pencil,
-          // and shows the activities section inline. StepperComp slices
-          // [0, 1] for the modal and [2..] for inline rendering — so we
-          // keep the original 3-step shape for edits.
-          [
+        ? [
               {
                   label: 'Describe Your Trip!',
                   comp: <BasicInfo data={tripInfo} onChange={onBasicChange} />,
@@ -231,42 +224,19 @@ const TripSteps = ({
           ]
         : [
               {
-                  label: 'Trip type',
-                  comp: <TripModeStep data={tripInfo} />,
-              },
-              // Single-trip destination — inserted only when the wizard
-              // entered without a country pre-saved (AI search / top-place
-              // entries preset it). Skipped for multi-trips entirely;
-              // multi picks destinations per-day inside the Itinerary step.
-              ...(needsDestinationStep
-                  ? [
-                        {
-                            label: 'Destination',
-                            comp: <DestinationStep data={tripInfo} />,
-                        },
-                    ]
-                  : []),
-              {
-                  label: 'Dates',
-                  comp: <DatesStep data={tripInfo} onChange={onBasicChange} />,
-              },
-              {
-                  label: 'Budget',
-                  comp: <BudgetStep data={tripInfo} onChange={onBasicChange} />,
-              },
-              {
-                  label: 'Organizers',
+                  label: 'Trip basics',
                   comp: (
-                      <OrganizerStep
+                      <BasicsStep
                           data={tripInfo}
                           onChange={onBasicChange}
+                          showDestination={needsDestinationStep}
                       />
                   ),
               },
               {
-                  label: 'Participants',
+                  label: 'People',
                   comp: (
-                      <ParticipantsStep
+                      <PeopleStep
                           data={tripInfo}
                           onChange={onBasicChange}
                       />

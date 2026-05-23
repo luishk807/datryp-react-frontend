@@ -36,7 +36,11 @@ interface SearchBarProps {
     onAiSearchSubmit?: (query: string) => void;
 }
 
-const DEBOUNCE_MS = 500;
+// Country lookup is a cheap DB query (no OpenAI); 500ms felt sluggish on
+// the AddDestination modal where users expect the dropdown to pop fast.
+// 250ms still groups bursty typing into one request without overloading
+// the /countries endpoint.
+const DEBOUNCE_MS = 250;
 
 /** Two-letter ISO 3166-1 alpha-2 country code → Unicode flag emoji.
  *  Falls back to a globe icon if the code is missing/malformed. */
