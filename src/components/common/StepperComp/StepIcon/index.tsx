@@ -1,15 +1,21 @@
 import classnames from 'classnames';
-import type { ReactNode } from 'react';
 import CheckIcon from '@mui/icons-material/Check';
 import './index.scss';
 
 export interface StepIconProps {
     active?: boolean;
     completed?: boolean;
-    icon?: ReactNode;
 }
 
-const StepIcon = ({ active, completed, icon }: StepIconProps) => {
+/**
+ * Compact colored-circle step indicator. Color carries the meaning —
+ * gray=pending, orange=active (with a subtle glow), green=completed
+ * (with a check). Numbers were removed because long wizards (7-9
+ * steps) felt cluttered with all the digits across the top; the colors
+ * + check still give clear "where am I / how much is done" without the
+ * visual noise.
+ */
+const StepIcon = ({ active, completed }: StepIconProps) => {
     return (
         <div
             className={classnames('StepIconCustom', {
@@ -17,9 +23,7 @@ const StepIcon = ({ active, completed, icon }: StepIconProps) => {
                 completed,
             })}
         >
-            <div className="label">
-                {completed ? <CheckIcon className="check-icon" /> : icon}
-            </div>
+            {completed && <CheckIcon className="check-icon" />}
         </div>
     );
 };

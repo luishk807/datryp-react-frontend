@@ -185,6 +185,17 @@
 }
 
 /* ---------- Action buttons ---------- */
+
+// Last-step "notify participants by email" checkbox lives in its own
+// row above the action buttons. Sandwiching it between Back and
+// Finish made it read as a button affordance instead of an
+// independent decision the user makes before saving.
+.step-actions-notify {
+  display: flex;
+  justify-content: flex-end;
+  margin: 16px 0 4px;
+}
+
 .step-actions {
   display: flex;
   justify-content: flex-start;

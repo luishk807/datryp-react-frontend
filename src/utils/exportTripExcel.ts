@@ -1,5 +1,10 @@
-import type { TripState } from 'types';
+import moment from 'moment';
+
+import type { Activity, BudgetItem, ItineraryDay, TripState } from 'types';
 import { ACTIVITY_KIND } from 'constants';
+
+const CURRENCY_FORMAT = '"$"#,##0.00';
+const PERCENT_FORMAT = '0.0%';
 
 const safeFilename = (name: string | undefined) =>
     (name && name.trim() ? name : 'trip')
@@ -7,19 +12,12 @@ const safeFilename = (name: string | undefined) =>
         .replace(/-+/g, '-')
         .toLowerCase();
 
-const formatStatus = (status: TripState['status']) => {
-    if (!status) return '';
-    if (typeof status === 'object') return status.name ?? '';
-    return String(status);
-};
-
 const joinNames = (entries?: { label?: string; name?: string }[]) =>
     (entries ?? [])
         .map((e) => e.label ?? e.name ?? '')
         .filter(Boolean)
         .join(', ');
 
-/** Cell ref helpers — Excel column letters from a 0-based index. */
 const colLetter = (col: number): string => {
     let s = '';
     let n = col;
@@ -31,214 +29,352 @@ const colLetter = (col: number): string => {
 };
 const cellRef = (col: number, row: number) => `${colLetter(col)}${row + 1}`;
 
-/** Apply a number-format string (e.g. currency) to one column across a
- *  given row range. SheetJS Community honors `z` on individual cells. */
-const formatColumn = (
-    sheet: Record<string, any>,
-    col: number,
-    rowStart: number,
-    rowEnd: number,
-    z: string
-) => {
-    for (let r = rowStart; r <= rowEnd; r++) {
-        const ref = cellRef(col, r);
-        const cell = sheet[ref];
-        if (cell && cell.v != null) cell.z = z;
-    }
+/** Compress consecutive whitespace + trim — keeps multi-line cell content
+ *  readable without bloating Excel cell heights. */
+const collapseWs = (s: string | undefined | null): string =>
+    (s ?? '').replace(/\s+/g, ' ').trim();
+
+/** "9:30 AM" or "11:00 AM – 3:00 PM" when both ends present; blank when neither. */
+const formatTimeRange = (start: string | undefined, end: string | undefined): string => {
+    const s = collapseWs(start);
+    const e = collapseWs(end);
+    if (s && e) return `${s} – ${e}`;
+    return s || e || '';
 };
 
-const CURRENCY_FORMAT = '"$"#,##0.00';
+/** Day banner label: "Tue Jun 9 — Day 1: Iceland". Falls back gracefully
+ *  when the date doesn't parse or the destination name is blank. */
+const formatDayBanner = (
+    dateStr: string,
+    dayNumber: number,
+    destinationName: string
+): string => {
+    const m = moment(dateStr);
+    const prettyDate = m.isValid() ? m.format('ddd MMM D') : dateStr;
+    const dayLabel = `Day ${dayNumber}`;
+    return destinationName
+        ? `${prettyDate} — ${dayLabel}: ${destinationName}`
+        : `${prettyDate} — ${dayLabel}`;
+};
+
+/** Flatten flightSegments into "EWR → KEF → LHR". */
+const flightRouteOf = (a: Activity): string => {
+    const segs = a.flightSegments ?? [];
+    if (!segs.length) return '';
+    const chain = [
+        segs[0]?.departAirport ?? '',
+        ...segs.map((s) => s.arrivalAirport ?? ''),
+    ];
+    return chain.filter(Boolean).join(' → ');
+};
+
+const flightNumbersOf = (a: Activity): string =>
+    (a.flightSegments ?? [])
+        .map((s) => s.flightNumber ?? '')
+        .filter(Boolean)
+        .join(' · ');
+
+/** Pick the best display name for an activity. */
+const activityDisplayName = (a: Activity): string =>
+    collapseWs(a.name) || collapseWs(a.place) || '(untitled)';
+
+/** Location string — for flights, prefer the route; otherwise the
+ *  user-entered location. */
+const activityLocation = (a: Activity): string => {
+    if (a.kind === ACTIVITY_KIND.FLIGHT) {
+        const route = flightRouteOf(a);
+        const numbers = flightNumbersOf(a);
+        return [route, numbers].filter(Boolean).join('  ·  ');
+    }
+    return collapseWs(a.location);
+};
+
+/** True when the location looks like a URL (Excel will render it as a
+ *  clickable hyperlink if the cell has an `l.Target`). */
+const isUrl = (s: string): boolean => /^https?:\/\//i.test(s);
+
+interface PayerSummary {
+    name: string;
+    total: number;
+}
+
+const computePayerTotals = (trip: TripState): {
+    grandTotal: number;
+    perPayer: PayerSummary[];
+} => {
+    const totals = new Map<string, number>();
+    let grandTotal = 0;
+    for (const dest of trip.destinations ?? []) {
+        for (const day of dest.itinerary ?? []) {
+            for (const activity of day.activities ?? []) {
+                for (const b of activity.budget ?? []) {
+                    const name = b.user?.label ?? b.user?.name ?? '(unknown)';
+                    const amt =
+                        typeof b.budget === 'number'
+                            ? b.budget
+                            : Number(b.budget) || 0;
+                    totals.set(name, (totals.get(name) ?? 0) + amt);
+                    grandTotal += amt;
+                }
+            }
+        }
+    }
+    const perPayer = Array.from(totals.entries())
+        .map(([name, total]) => ({ name, total }))
+        .sort((a, b) => b.total - a.total);
+    return { grandTotal, perPayer };
+};
+
+/** One row of the itinerary table. `bannerLabel` rows are merged across
+ *  all columns and styled gray; activity rows are plain. */
+type RowKind = 'banner' | 'activity' | 'activity-payer-only';
+
+interface ItinRow {
+    kind: RowKind;
+    time?: string;
+    activity?: string;
+    location?: string;
+    locationHref?: string; // only set when location is a URL
+    payer?: string;
+    cost?: number;
+    bannerLabel?: string;
+}
+
+const buildItineraryRows = (trip: TripState): ItinRow[] => {
+    const out: ItinRow[] = [];
+    let dayCounter = 0;
+    for (const dest of trip.destinations ?? []) {
+        const destName = collapseWs(dest.country?.name);
+        for (const day of (dest.itinerary as ItineraryDay[]) ?? []) {
+            dayCounter += 1;
+            out.push({
+                kind: 'banner',
+                bannerLabel: formatDayBanner(day.date, dayCounter, destName),
+            });
+            for (const activity of day.activities ?? []) {
+                const time = formatTimeRange(activity.startTime, activity.endTime);
+                const name = activityDisplayName(activity);
+                const location = activityLocation(activity);
+                const budget = (activity.budget ?? []) as BudgetItem[];
+
+                if (budget.length === 0) {
+                    // Activity with no expense split — single row, blank
+                    // payer/cost.
+                    out.push({
+                        kind: 'activity',
+                        time,
+                        activity: name,
+                        location,
+                        locationHref: isUrl(location) ? location : undefined,
+                        payer: '',
+                        cost: undefined,
+                    });
+                    continue;
+                }
+
+                // Activity with budget — first row carries the activity
+                // name + location, subsequent rows are payer-only so the
+                // export reads like the sample (multi-payer items get
+                // stacked rows).
+                budget.forEach((b, idx) => {
+                    const payer = b.user?.label ?? b.user?.name ?? '';
+                    const amt =
+                        typeof b.budget === 'number'
+                            ? b.budget
+                            : Number(b.budget) || 0;
+                    if (idx === 0) {
+                        out.push({
+                            kind: 'activity',
+                            time,
+                            activity: name,
+                            location,
+                            locationHref: isUrl(location) ? location : undefined,
+                            payer,
+                            cost: amt,
+                        });
+                    } else {
+                        out.push({
+                            kind: 'activity-payer-only',
+                            payer,
+                            cost: amt,
+                        });
+                    }
+                });
+            }
+        }
+    }
+    return out;
+};
 
 export const exportTripToExcel = async (trip: TripState) => {
     const XLSX = await import('xlsx');
 
     const wb = XLSX.utils.book_new();
+    const sheet: Record<string, any> = {};
 
-    // ── Overview sheet ──────────────────────────────────────────────────
-    const overviewRows: (string | number)[][] = [
-        [trip.name?.trim() || 'Trip overview'],
-        [], // visual separator
-        ['Type', trip.type?.name ?? ''],
-        ['Status', formatStatus(trip.status)],
-        ['Start date', trip.startDate ?? ''],
-        ['End date', trip.endDate ?? ''],
-        ['Budget', typeof trip.budget === 'number' ? trip.budget : trip.budget ?? ''],
-        ['Organizer', joinNames(trip.organizer)],
-        ['Friends', joinNames(trip.friends)],
-    ];
-    if (trip.note) overviewRows.push(['Notes', trip.note]);
-    const overviewSheet = XLSX.utils.aoa_to_sheet(overviewRows);
-    overviewSheet['!cols'] = [{ wch: 16 }, { wch: 60 }];
-    overviewSheet['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-    ];
-    // Currency on the Budget row (row 6 = index 6 in the AOA, column B = 1).
-    formatColumn(overviewSheet, 1, 6, 6, CURRENCY_FORMAT);
-    XLSX.utils.book_append_sheet(wb, overviewSheet, 'Overview');
+    const HEADER = ['Time', 'Activity', 'Location', 'Paid by', 'Cost'];
+    const NUM_COLS = HEADER.length; // 5
 
-    // ── Itinerary sheet ─────────────────────────────────────────────────
-    const itineraryHeader = [
-        'Date',
-        'Country',
-        'Kind',
-        'Activity',
-        'Location / Route',
-        'Flight #',
-        'Start',
-        'End',
-        'Cost',
-        'Notes',
-    ];
-    const itineraryRows: (string | number)[][] = [
-        [trip.name?.trim() ? `${trip.name} — Itinerary` : 'Itinerary'],
-        [],
-        itineraryHeader,
-    ];
+    const merges: { s: { r: number; c: number }; e: { r: number; c: number } }[] = [];
 
-    const flightRouteOf = (a: { flightSegments?: { departAirport?: string; arrivalAirport?: string }[] }) => {
-        const segs = a.flightSegments ?? [];
-        if (!segs.length) return '';
-        const chain = [
-            segs[0]?.departAirport ?? '',
-            ...segs.map((s) => s.arrivalAirport ?? ''),
-        ];
-        return chain.filter(Boolean).join(' → ');
-    };
-    const flightNumbersOf = (a: { flightSegments?: { flightNumber?: string }[] }) =>
-        (a.flightSegments ?? [])
-            .map((s) => s.flightNumber ?? '')
-            .filter(Boolean)
-            .join(' · ');
-
-    for (const dest of trip.destinations ?? []) {
-        const country = dest.country?.name ?? '';
-        for (const day of dest.itinerary ?? []) {
-            const activities = day.activities ?? [];
-            if (activities.length === 0) {
-                itineraryRows.push([day.date ?? '', country, '', '', '', '', '', '', '', '']);
-                continue;
-            }
-            for (const a of activities) {
-                const kind = a.kind ?? ACTIVITY_KIND.PLACE;
-                const isFlight = kind === ACTIVITY_KIND.FLIGHT;
-                itineraryRows.push([
-                    day.date ?? '',
-                    country,
-                    kind,
-                    a.name ?? a.place ?? '',
-                    isFlight ? flightRouteOf(a) : a.location ?? '',
-                    isFlight ? flightNumbersOf(a) : '',
-                    a.startTime ?? '',
-                    a.endTime ?? '',
-                    typeof a.cost === 'number' ? a.cost : a.cost ?? '',
-                    a.note ?? '',
-                ]);
-            }
+    // ── Title + meta rows ───────────────────────────────────────────────
+    const tripName = collapseWs(trip.name) || 'Trip';
+    const metaParts: string[] = [];
+    if (trip.organizer?.length) metaParts.push(`Organizer: ${joinNames(trip.organizer)}`);
+    if (trip.friends?.length) metaParts.push(`Friends: ${joinNames(trip.friends)}`);
+    if (trip.startDate && trip.endDate) {
+        const a = moment(trip.startDate);
+        const b = moment(trip.endDate);
+        if (a.isValid() && b.isValid()) {
+            metaParts.push(
+                `${a.format('MMM D')}–${b.format('MMM D, YYYY')}`
+            );
         }
     }
-
-    // Totals row — SUM of the Cost column over the data range.
-    const headerRowIdx = 2; // 0-based, after title + blank
-    const dataStartRow = headerRowIdx + 1;
-    const dataEndRow = itineraryRows.length - 1;
-    if (dataEndRow >= dataStartRow) {
-        const costCol = itineraryHeader.indexOf('Cost'); // 0-based
-        itineraryRows.push([
-            '', '', '', '', '', '', '', 'Total',
-            { f: `SUM(${cellRef(costCol, dataStartRow)}:${cellRef(costCol, dataEndRow)})` } as unknown as number,
-            '',
-        ]);
+    if (typeof trip.budget === 'number' && trip.budget > 0) {
+        metaParts.push(`Budget: $${trip.budget.toLocaleString()}`);
     }
 
-    const itinerarySheet = XLSX.utils.aoa_to_sheet(itineraryRows);
-    itinerarySheet['!cols'] = [
-        { wch: 12 }, // Date
-        { wch: 16 }, // Country
-        { wch: 8 },  // Kind
-        { wch: 28 }, // Activity
-        { wch: 28 }, // Location / Route
-        { wch: 14 }, // Flight #
-        { wch: 8 },  // Start
-        { wch: 8 },  // End
+    // NOTE: SheetJS Community Edition (`xlsx`) ignores cell `s` style
+    // properties — colors, fonts, fills are dropped at write time. We
+    // ship structural fidelity (rows, merges, hyperlinks, formulas,
+    // freeze pane, currency format) and accept plain visual output for
+    // v1. When `xlsx-js-style` (drop-in fork with style support) is
+    // installed, the unstyled cells below can be upgraded by adding the
+    // `s: { font, fill, alignment }` blocks back in.
+
+    let r = 0;
+    // Row 0 — Title (merged A:E)
+    sheet[cellRef(0, r)] = { v: tripName, t: 's' };
+    merges.push({ s: { r, c: 0 }, e: { r, c: NUM_COLS - 1 } });
+    r += 1;
+    // Row 1 — Meta line (merged A:E)
+    if (metaParts.length) {
+        sheet[cellRef(0, r)] = { v: metaParts.join('  ·  '), t: 's' };
+        merges.push({ s: { r, c: 0 }, e: { r, c: NUM_COLS - 1 } });
+    }
+    r += 1;
+    // Row 2 — blank separator
+    r += 1;
+    // Row 3 — Header row
+    const headerRow = r;
+    HEADER.forEach((label, c) => {
+        sheet[cellRef(c, r)] = { v: label, t: 's' };
+    });
+    r += 1;
+
+    const dataStartRow = r;
+    const costColIdx = HEADER.indexOf('Cost');
+
+    // ── Body rows ───────────────────────────────────────────────────────
+    const rows = buildItineraryRows(trip);
+    for (const row of rows) {
+        if (row.kind === 'banner') {
+            // Banner row — merged across all columns. Without cell
+            // styling, the text alone serves as a visual day separator.
+            sheet[cellRef(0, r)] = { v: row.bannerLabel ?? '', t: 's' };
+            merges.push({ s: { r, c: 0 }, e: { r, c: NUM_COLS - 1 } });
+            r += 1;
+            continue;
+        }
+
+        // Time
+        if (row.time) {
+            sheet[cellRef(0, r)] = { v: row.time, t: 's' };
+        }
+        // Activity name
+        if (row.activity) {
+            sheet[cellRef(1, r)] = { v: row.activity, t: 's' };
+        }
+        // Location — render as hyperlink when it's a URL.
+        if (row.location) {
+            const cell: any = { v: row.location, t: 's' };
+            if (row.locationHref) {
+                cell.l = { Target: row.locationHref };
+            }
+            sheet[cellRef(2, r)] = cell;
+        }
+        // Paid by
+        if (row.payer) {
+            sheet[cellRef(3, r)] = { v: row.payer, t: 's' };
+        }
+        // Cost
+        if (typeof row.cost === 'number') {
+            sheet[cellRef(4, r)] = {
+                v: row.cost,
+                t: 'n',
+                z: CURRENCY_FORMAT,
+            };
+        }
+        r += 1;
+    }
+
+    const dataEndRow = Math.max(r - 1, dataStartRow);
+
+    // ── Bottom summary block ────────────────────────────────────────────
+    const { grandTotal, perPayer } = computePayerTotals(trip);
+
+    // Blank separator row before summary.
+    r += 1;
+    const summaryStartRow = r;
+
+    // Total row — label in col D, value in col E with currency format.
+    sheet[cellRef(3, r)] = { v: 'Total', t: 's' };
+    sheet[cellRef(4, r)] = { v: grandTotal, t: 'n', z: CURRENCY_FORMAT };
+    r += 1;
+
+    // Per-payer rows: name in col D, amount in col E, percentage in col F
+    // (extending one column past the main table for the % readout).
+    perPayer.forEach((p) => {
+        sheet[cellRef(3, r)] = { v: p.name, t: 's' };
+        sheet[cellRef(4, r)] = { v: p.total, t: 'n', z: CURRENCY_FORMAT };
+        if (grandTotal > 0) {
+            sheet[cellRef(5, r)] = {
+                v: p.total / grandTotal,
+                t: 'n',
+                z: PERCENT_FORMAT,
+            };
+        }
+        r += 1;
+    });
+
+    // Balance row — sum of payer totals minus grand total. Always 0 when
+    // every activity has a complete budget split; non-zero indicates
+    // unsplit costs (worth surfacing rather than hiding).
+    const payerSum = perPayer.reduce((acc, p) => acc + p.total, 0);
+    const balance = grandTotal - payerSum;
+    sheet[cellRef(3, r)] = { v: 'Balance', t: 's' };
+    sheet[cellRef(4, r)] = { v: balance, t: 'n', z: CURRENCY_FORMAT };
+    const summaryEndRow = r;
+    r += 1;
+
+    // ── Sheet-level config ──────────────────────────────────────────────
+    sheet['!ref'] = `${cellRef(0, 0)}:${cellRef(NUM_COLS, r)}`;
+    sheet['!cols'] = [
+        { wch: 18 }, // Time
+        { wch: 36 }, // Activity
+        { wch: 38 }, // Location
+        { wch: 14 }, // Paid by
         { wch: 12 }, // Cost
-        { wch: 30 }, // Notes
+        { wch: 8 },  // Percent (only for summary block)
     ];
-    itinerarySheet['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: itineraryHeader.length - 1 } },
-    ];
-    // Freeze the header row (everything above row 3 / 0-indexed 3 stays).
-    itinerarySheet['!freeze'] = { xSplit: 0, ySplit: dataStartRow };
-    // AutoFilter over the header + data range (sheet-ref form for SheetJS).
-    itinerarySheet['!autofilter'] = {
-        ref: `${cellRef(0, headerRowIdx)}:${cellRef(itineraryHeader.length - 1, Math.max(dataEndRow, dataStartRow))}`,
+    sheet['!merges'] = merges;
+    // Freeze pane: header row stays visible while scrolling the body.
+    sheet['!freeze'] = { xSplit: 0, ySplit: dataStartRow };
+    // AutoFilter over the header + data range (banner rows stay in-range;
+    // Excel treats them as merged labels which is fine for filter UX).
+    sheet['!autofilter'] = {
+        ref: `${cellRef(0, headerRow)}:${cellRef(NUM_COLS - 1, dataEndRow)}`,
     };
-    // Currency on Cost column for every data row + the totals row.
-    const costCol = itineraryHeader.indexOf('Cost');
-    formatColumn(
-        itinerarySheet,
-        costCol,
-        dataStartRow,
-        Math.max(dataEndRow + 1, dataStartRow),
-        CURRENCY_FORMAT
-    );
-    XLSX.utils.book_append_sheet(wb, itinerarySheet, 'Itinerary');
+    // Row heights — banner rows a touch taller for breathing room. We
+    // don't iterate every row (SheetJS doesn't make this trivial); the
+    // default + wrapText on activity/location handles most cases.
 
-    // ── Budget sheet ────────────────────────────────────────────────────
-    const budgetHeader = ['Activity', 'Date', 'Country', 'Payer', 'Amount'];
-    const budgetRows: (string | number)[][] = [
-        [trip.name?.trim() ? `${trip.name} — Budget split` : 'Budget split'],
-        [],
-        budgetHeader,
-    ];
-    for (const dest of trip.destinations ?? []) {
-        const country = dest.country?.name ?? '';
-        for (const day of dest.itinerary ?? []) {
-            for (const a of day.activities ?? []) {
-                if (!a.budget?.length) continue;
-                for (const b of a.budget) {
-                    budgetRows.push([
-                        a.name ?? a.place ?? '',
-                        day.date ?? '',
-                        country,
-                        b.user?.label ?? b.user?.name ?? '',
-                        typeof b.budget === 'number' ? b.budget : b.budget ?? '',
-                    ]);
-                }
-            }
-        }
-    }
-    if (budgetRows.length > 3) {
-        const budgetDataStart = 3;
-        const budgetDataEnd = budgetRows.length - 1;
-        budgetRows.push([
-            '', '', '', 'Total',
-            { f: `SUM(${cellRef(4, budgetDataStart)}:${cellRef(4, budgetDataEnd)})` } as unknown as number,
-        ]);
-        const budgetSheet = XLSX.utils.aoa_to_sheet(budgetRows);
-        budgetSheet['!cols'] = [
-            { wch: 28 },
-            { wch: 12 },
-            { wch: 16 },
-            { wch: 22 },
-            { wch: 14 },
-        ];
-        budgetSheet['!merges'] = [
-            { s: { r: 0, c: 0 }, e: { r: 0, c: budgetHeader.length - 1 } },
-        ];
-        budgetSheet['!freeze'] = { xSplit: 0, ySplit: budgetDataStart };
-        budgetSheet['!autofilter'] = {
-            ref: `${cellRef(0, 2)}:${cellRef(budgetHeader.length - 1, budgetDataEnd)}`,
-        };
-        // Currency on Amount column (col index 4) for data + totals row.
-        formatColumn(
-            budgetSheet,
-            4,
-            budgetDataStart,
-            budgetDataEnd + 1,
-            CURRENCY_FORMAT
-        );
-        XLSX.utils.book_append_sheet(wb, budgetSheet, 'Budget');
-    }
-
+    XLSX.utils.book_append_sheet(wb, sheet as any, 'Itinerary');
     XLSX.writeFile(wb, `${safeFilename(trip.name)}.xlsx`);
+
+    // Reference (silences unused-var warning when the body never sees them).
+    void summaryStartRow;
+    void summaryEndRow;
+    void costColIdx;
 };

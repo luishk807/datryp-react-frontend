@@ -832,6 +832,17 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                             </ErrorAlert>
                         </Grid>
                     )}
+                    {isLastStep && showNotifyToggle && (
+                        <Grid item lg={12} md={12} xs={12}>
+                            <div className="step-actions-notify">
+                                <NotifyParticipantsCheckbox
+                                    checked={notifyParticipants}
+                                    onChange={setNotifyParticipants}
+                                    disabled={saveItinerary.isPending}
+                                />
+                            </div>
+                        </Grid>
+                    )}
                     <Grid item lg={12} md={12} xs={12}>
                         <div className="step-actions">
                             {activeStep > 0 && (
@@ -839,13 +850,6 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                     type="line"
                                     onClick={handleBack}
                                     label="Back"
-                                />
-                            )}
-                            {isLastStep && showNotifyToggle && (
-                                <NotifyParticipantsCheckbox
-                                    checked={notifyParticipants}
-                                    onChange={setNotifyParticipants}
-                                    disabled={saveItinerary.isPending}
                                 />
                             )}
                             {activeLabel !== 'Trip type' && (
