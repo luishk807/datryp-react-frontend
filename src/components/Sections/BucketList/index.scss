@@ -72,6 +72,91 @@
   }
 }
 
+// Three-step "how it works" explainer that sits between the header and
+// the add-form. Tells new users what the bucket list is, what tapping
+// "AI-build trip" actually does, and that nothing is locked in until they
+// confirm — answering the three questions the page would otherwise raise.
+.bucket-howto {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.06) 0%,
+    rgba(246, 137, 31, 0.06) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+}
+
+.bucket-howto-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.bucket-howto-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: #fff;
+  color: theme('colors.primaryGreen');
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  .MuiSvgIcon-root {
+    font-size: 1.25rem;
+  }
+
+  &.is-ai {
+    color: theme('colors.primaryOrange');
+  }
+}
+
+.bucket-howto-content {
+  h3 {
+    margin: 0 0 2px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.62);
+  }
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 700px) {
+  .bucket-howto {
+    grid-template-columns: 1fr;
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .bucket-howto-step {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .bucket-howto-icon {
+    flex-shrink: 0;
+  }
+}
+
 .bucket-add {
   display: flex;
   align-items: stretch;

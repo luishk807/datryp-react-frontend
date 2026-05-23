@@ -165,9 +165,11 @@ const buildMetaBlock = (trip: TripState): Content => {
 };
 
 /** Activity cell — just the activity name (bold) + the location /
- *  flight number line. Participants moved out to their own column;
- *  notes are now rendered as a follow-up row spanning the Activity
- *  column only. Matches the mockup's compact layout. */
+ *  flight number line. Notes are rendered as a follow-up row spanning
+ *  the Activity column only. Matches the mockup's compact layout.
+ *  Per-activity participants are no longer shown in the itinerary
+ *  table; the full participant list lives in the header block at the
+ *  top of the page. */
 const buildActivityCell = (row: ItineraryRow): TableCell => {
     const stack: Content[] = [];
     stack.push({
@@ -178,11 +180,6 @@ const buildActivityCell = (row: ItineraryRow): TableCell => {
     if (loc) stack.push({ text: loc });
     return { stack };
 };
-
-/** Comma-separated participant names, derived from the budget split. */
-const buildParticipantsCell = (row: ItineraryRow): TableCell => ({
-    text: row.participants.join(', '),
-});
 
 /** Total cost of the activity. Prefer the per-row sum of budget splits
  *  (matches what the user actually allocated); fall back to
@@ -210,7 +207,7 @@ const buildPaidByCell = (row: ItineraryRow): TableCell => {
 const buildItineraryTable = (rows: ItineraryRow[]): Content => {
     const tableBody: TableCell[][] = [];
     // Header
-    const HEADERS = ['Date', 'Time', 'Activity', 'Participants', 'Cost', 'Paid By'];
+    const HEADERS = ['Date', 'Time', 'Activity', 'Cost', 'Paid By'];
     tableBody.push(
         HEADERS.map((label) => ({
             text: label,
@@ -254,7 +251,6 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
                 dateCell,
                 { text: formatTimeRange(r.activity.startTime, r.activity.endTime) },
                 buildActivityCell(r),
-                buildParticipantsCell(r),
                 buildCostCell(r),
                 buildPaidByCell(r),
             ]);
@@ -269,7 +265,6 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
                         italics: true,
                         color: COLORS.muted,
                     },
-                    { text: '' }, // participants
                     { text: '' }, // cost
                     { text: '' }, // paid by
                 ]);
@@ -282,9 +277,8 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
         table: {
             headerRows: 1,
             // Date/Time/Cost compact; Activity/Paid By get the flex
-            // space; Participants sits at auto to wrap on its own
-            // length.
-            widths: ['auto', 'auto', '*', 'auto', 'auto', '*'],
+            // space.
+            widths: ['auto', 'auto', '*', 'auto', '*'],
             body: tableBody,
             dontBreakRows: true,
         },
@@ -484,6 +478,7 @@ const buildPageHeader = (right: Content): Content => ({
 const buildTripDocDefinition = (trip: TripState): TDocumentDefinitions => {
     const rows = walkItinerary(trip);
     const organizers = joinNames(trip.organizer) || '—';
+    const participants = joinNames(trip.friends) || '—';
     const tripName = collapseWs(trip.name) || 'My Trip';
 
     return {
@@ -501,7 +496,13 @@ const buildTripDocDefinition = (trip: TripState): TDocumentDefinitions => {
                 bold: true,
                 margin: [0, 18, 0, 2],
             },
-            { text: organizers, margin: [0, 0, 0, 16] },
+            { text: organizers, margin: [0, 0, 0, 8] },
+            {
+                text: 'Participants:',
+                bold: true,
+                margin: [0, 0, 0, 2],
+            },
+            { text: participants, margin: [0, 0, 0, 16] },
             {
                 text: [
                     { text: 'Name: ', bold: true },

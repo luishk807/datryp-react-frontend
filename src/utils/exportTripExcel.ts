@@ -4,12 +4,14 @@
  *
  *   1. Overview        — embedded logo + key/value summary (trip
  *                        name, dates, organizer, participants, budget).
- *   2. Itinerary       — embedded logo + Date | Time | Activity | Who
- *                        is Going | Cost | Who is Paying. Column-header
- *                        row uses solid black fill with white bold
- *                        text. Date column is merged across activities
- *                        sharing a day; notes get their own row
- *                        directly under the activity they annotate.
+ *   2. Itinerary       — embedded logo + Date | Time | Activity | Cost
+ *                        | Who is Paying. Column-header row uses solid
+ *                        black fill with white bold text. Date column
+ *                        is merged across activities sharing a day;
+ *                        notes get their own row directly under the
+ *                        activity they annotate. (Per-activity
+ *                        participants live on the Overview tab now;
+ *                        the itinerary stays compact.)
  *   3. Expense Report  — embedded logo + Date | Item | Total table,
  *                        Paid By / Total breakdown, Subtotal +
  *                        Grand Total summary. Section header rows use
@@ -177,19 +179,6 @@ const payerCellLines = (budgetItems: BudgetItem[]): string =>
         })
         .join('\n');
 
-const participantNames = (budgetItems: BudgetItem[]): string => {
-    const seen = new Set<string>();
-    const out: string[] = [];
-    for (const b of budgetItems) {
-        const name = b.user?.label ?? b.user?.name ?? '';
-        if (name && !seen.has(name)) {
-            seen.add(name);
-            out.push(name);
-        }
-    }
-    return out.join(', ');
-};
-
 const activityCost = (a: Activity, budgetItems: BudgetItem[]): number => {
     if (budgetItems.length > 0) {
         return budgetItems.reduce(
@@ -287,7 +276,12 @@ const buildOverviewSheet = async (
     ): void => {
         const labelCell = ws.getCell(r, 1);
         labelCell.value = label;
-        styleBoldBodyCell(labelCell);
+        // Label column on the Overview sheet uses the same black-fill /
+        // white-bold treatment as the section headers on the other
+        // sheets — it acts as a row header for the value alongside it.
+        labelCell.font = HEADER_FONT;
+        labelCell.fill = HEADER_FILL;
+        labelCell.alignment = { vertical: 'top', wrapText: true };
 
         const valueCell = ws.getCell(r, 2);
         if (value === null) {
@@ -320,7 +314,6 @@ interface ItineraryWriteRow {
     isNoteOnly: boolean;
     time: string;
     activityCell: string;
-    whoIsGoing: string;
     cost: number | null;
     whoIsPaying: string;
 }
@@ -338,7 +331,6 @@ const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
                     isNoteOnly: false,
                     time: formatTimeRange(activity.startTime, activity.endTime),
                     activityCell: activityCellLines(activity),
-                    whoIsGoing: participantNames(budgetItems),
                     cost: activityCost(activity, budgetItems),
                     whoIsPaying: payerCellLines(budgetItems),
                 });
@@ -350,7 +342,6 @@ const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
                         isNoteOnly: true,
                         time: '',
                         activityCell: `Note: ${note}`,
-                        whoIsGoing: '',
                         cost: null,
                         whoIsPaying: '',
                     });
@@ -371,7 +362,6 @@ const buildItinerarySheet = async (
         { width: 12 }, // Date
         { width: 18 }, // Time
         { width: 36 }, // Activity (multi-line)
-        { width: 22 }, // Who is Going
         { width: 12 }, // Cost
         { width: 26 }, // Who is Paying
     ];
@@ -383,7 +373,6 @@ const buildItinerarySheet = async (
         'Date',
         'Time',
         'Activity',
-        'Who is Going',
         'Cost',
         'Who is Paying',
     ];
@@ -443,19 +432,14 @@ const buildItinerarySheet = async (
             // real activities.
             activityCell.font = { italic: true, color: { argb: 'FF666666' } };
         }
-        if (row.whoIsGoing) {
-            const c = ws.getCell(r, 4);
-            c.value = row.whoIsGoing;
-            styleBodyCell(c);
-        }
         if (row.cost !== null) {
-            const c = ws.getCell(r, 5);
+            const c = ws.getCell(r, 4);
             c.value = row.cost;
             c.numFmt = CURRENCY_FORMAT;
             styleBodyCell(c);
         }
         if (row.whoIsPaying) {
-            const c = ws.getCell(r, 6);
+            const c = ws.getCell(r, 5);
             c.value = row.whoIsPaying;
             styleBodyCell(c);
         }

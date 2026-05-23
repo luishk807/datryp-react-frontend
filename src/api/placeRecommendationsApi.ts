@@ -290,7 +290,13 @@ export const fetchPlaceDetails = async (
     index: number
 ): Promise<PlaceDetailsResult> => {
     const params = new URLSearchParams({ q: query, i: String(index) });
-    const resp = await fetch(`${API_BASE}/place-details?${params}`);
+    // /place-details requires auth on the backend (`Depends(get_current_user)`);
+    // forward the same bearer token used by /place-recommendations or the
+    // request gets rejected as anonymous.
+    const token = getAuthToken();
+    const resp = await fetch(`${API_BASE}/place-details?${params}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     if (!resp.ok) {
         throw new Error(
             `/place-details failed: ${resp.status} ${resp.statusText}`

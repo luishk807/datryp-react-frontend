@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
+import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
+import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import { IconButton } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -178,8 +180,11 @@ const BucketList = () => {
                 <header className="bucket-page-header">
                     <h1 className="bucket-page-title">Your travel goals</h1>
                     <p className="bucket-page-subtitle">
-                        Travel goals you want to check off. Add a few — we'll
-                        turn them into trips when you're ready.
+                        Your bucket list is the wishlist of things you want to
+                        experience while traveling — a concert, a stadium, a
+                        hike, a meal, a festival. Keep them here, and when
+                        you&rsquo;re ready, turn any goal into a full trip in
+                        one tap.
                     </p>
                     {!isPro && (
                         <p
@@ -224,6 +229,53 @@ const BucketList = () => {
                         </p>
                     )}
                 </header>
+
+                <section
+                    className="bucket-howto"
+                    aria-label="How the bucket list works"
+                >
+                    <div className="bucket-howto-step">
+                        <span className="bucket-howto-icon">
+                            <EditNoteRoundedIcon />
+                        </span>
+                        <div className="bucket-howto-content">
+                            <h3>1. Capture the dream</h3>
+                            <p>
+                                Jot down anything you want to experience — a
+                                stadium match, a hike, a tasting menu, a
+                                festival. Phrase it like you&rsquo;d tell a
+                                friend.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="bucket-howto-step">
+                        <span className="bucket-howto-icon is-ai">
+                            <AutoAwesomeRoundedIcon />
+                        </span>
+                        <div className="bucket-howto-content">
+                            <h3>2. AI builds the trip</h3>
+                            <p>
+                                Tap <strong>AI-build trip</strong> on any
+                                goal. Our AI picks the destination, plans
+                                days and activities around it, and saves it
+                                as a draft Planning trip.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="bucket-howto-step">
+                        <span className="bucket-howto-icon">
+                            <FlightTakeoffRoundedIcon />
+                        </span>
+                        <div className="bucket-howto-content">
+                            <h3>3. Tweak &amp; go</h3>
+                            <p>
+                                Review the draft, swap activities, invite
+                                friends, then confirm when you&rsquo;re ready.
+                                Nothing is locked in until you say so.
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
                 {/* Wrap in <form> so Enter inside the input submits naturally
                     via the browser's default form behavior — no manual
