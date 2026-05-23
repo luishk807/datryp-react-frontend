@@ -6,6 +6,7 @@ import React, {
     type CSSProperties,
     type ReactNode,
 } from 'react';
+import classNames from 'classnames';
 import './index.scss';
 import { IconButton, Modal } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -43,10 +44,24 @@ export interface ModalButtonProps {
      *  button, or a programmatic `closeModal()` from the ref. Use this to
      *  clean up transient form state that should not survive a dismissal. */
     onClose?: () => void;
+    /** Optional extra class on the modal container (`.modalCustom`).
+     *  Lets a specific consumer scope its own size / shape overrides —
+     *  for example, AddPlaceBtn flips its modal to a full-viewport
+     *  sheet on mobile without affecting other modals. */
+    containerClassName?: string;
 }
 
 const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
-    ({ title = '', children = null, buttonProps = null, onClose }, ref) => {
+    (
+        {
+            title = '',
+            children = null,
+            buttonProps = null,
+            onClose,
+            containerClassName,
+        },
+        ref
+    ) => {
         const [open, setOpen] = useState(false);
         const handleOpen = () => setOpen(true);
         const handleClose = () => {
@@ -68,7 +83,7 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                     onClose={handleClose}
                     aria-labelledby="modal-modal-title"
                 >
-                    <div className="modalCustom">
+                    <div className={classNames('modalCustom', containerClassName)}>
                         <span className="modalCustom-stripe" aria-hidden="true" />
                         <div className="modalCustom-header">
                             <h2

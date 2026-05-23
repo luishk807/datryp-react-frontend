@@ -1,3 +1,28 @@
+// On phones the activity form is content-heavy and the centered
+// modal is uncomfortable to fight with — flip to a full-viewport
+// white sheet that fills the screen. Desktop behavior is unchanged
+// (centered 560px-wide card via the default ModalButton styles).
+@media (max-width: 600px) {
+  .modalCustom.add-place-modal {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .modalCustom.add-place-modal .modalCustom-header {
+    padding: 16px 18px 12px;
+  }
+  .modalCustom.add-place-modal .modalCustom-content {
+    flex: 1;
+    padding: 14px 18px 24px;
+  }
+}
+
 .add-place-container-standard {
   width: 100%
 }
@@ -6,15 +31,15 @@
   width: auto !important;
 }
 
-// Lock the form area to a height that fits the tallest variant
-// (the Place form). The Note form (just 2 fields) and the Flight
-// form (~6 fields) render in the same envelope so toggling between
-// kinds doesn't make the modal hop in size. The container scrolls
-// internally past `max-height` for unusually long content.
+// Lock the form area to a minimum height that fits a typical Place
+// form so the Note form (just 2 fields) doesn't make the modal feel
+// awkwardly short on toggle. Past that, the modal's own
+// `.modalCustom-content` scroll handles overflow — we no longer
+// nest an additional `overflow-y: auto` here because that produced
+// two visible scrollbars on tall kinds (Ground with multiple legs,
+// Hotel with the side toggle + segments). One scroll surface only.
 #add-place-form-container {
   min-height: 540px;
-  max-height: min(700px, 70vh);
-  overflow-y: auto;
 }
 
 .place-left {
@@ -22,49 +47,101 @@
   display: flex;
 }
 
-// Three-way segmented toggle that picks the activity kind (place /
-// note / flight) on ADD. Locked + hidden on EDIT — the activity's
-// kind is fixed at create time.
+// Activity-kind picker on ADD — chip group rendered as wrapping flex
+// row so the 7 kinds (Place, Note, Flight, Hotel check-in, Hotel
+// check-out, Train, Bus) fit on desktop in a single line and wrap on
+// narrow modals. Locked + hidden on EDIT.
 //
-// Mirrors the sliding-thumb pattern from `.home-hero-options` (Trip
-// type toggle on Home): an absolutely-positioned thumb behind the
-// buttons that translates between positions based on an `is-{kind}`
-// modifier on the container. Adapted for a light (modal) background —
-// the thumb is filled-orange like the Home toggle, with subtler chrome
-// since it sits over white rather than over a hero image.
+// Previously a 3-segment sliding-pill toggle; switched to chips when
+// the option count grew past what fits a single-row pill. Each chip
+// owns its own pill background so layout works under flex-wrap without
+// the thumb-position math the old sliding pill needed.
 .add-place-kind-toggle {
-  position: relative;
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   width: 100%;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 9999px;
-  padding: 4px;
   margin-bottom: 18px;
 }
 
-.add-place-kind-thumb {
+.add-place-kind-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  color: rgba(0, 0, 0, 0.65);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.add-place-kind-btn:hover {
+  background: rgba(246, 137, 31, 0.08);
+  border-color: rgba(246, 137, 31, 0.35);
+  color: theme('colors.primary');
+}
+
+.add-place-kind-btn.selected {
+  background: theme('colors.primaryOrange');
+  border-color: theme('colors.primaryOrange');
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(246, 137, 31, 0.28);
+}
+
+.add-place-kind-icon {
+  font-size: 1.05rem !important;
+}
+
+// In-form sub-toggle inside the Hotel section — switches the activity
+// kind between HOTEL_CHECKIN and HOTEL_CHECKOUT without leaving the
+// shared hotel form. Sliding-thumb segmented control: cleaner visual
+// language than a chip pair for a binary choice, and the thumb
+// animating between the two positions makes the toggle feel like a
+// deliberate decision rather than a checkbox.
+.hotel-side-toggle {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+// Sliding pill behind the buttons. Two-position toggle so the math
+// stays simple: starts at 0 (Check-in / Train) and translates 100%
+// across to the second side when the container carries the
+// `is-checkout` / `is-bus` modifier.
+.hotel-side-thumb {
   position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(33.3333% - 4px);
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
   background: theme('colors.primaryOrange');
   border-radius: 9999px;
-  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.32);
+  box-shadow: 0 2px 6px rgba(246, 137, 31, 0.28);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
 }
 
-.add-place-kind-toggle.is-note .add-place-kind-thumb {
+.hotel-side-toggle.is-checkout .hotel-side-thumb,
+.hotel-side-toggle.is-bus .hotel-side-thumb {
   transform: translateX(100%);
 }
 
-.add-place-kind-toggle.is-flight .add-place-kind-thumb {
-  transform: translateX(200%);
-}
-
-.add-place-kind-btn {
+.hotel-side-btn {
   position: relative;
   z-index: 1;
   flex: 1 1 0;
@@ -72,30 +149,33 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 10px;
+  padding: 6px 12px;
   background: transparent;
   border: none;
   border-radius: 9999px;
   color: rgba(0, 0, 0, 0.6);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: color 0.18s ease;
   white-space: nowrap;
 }
 
-.add-place-kind-btn:hover {
+.hotel-side-btn:hover {
   color: theme('colors.primary');
 }
 
-.add-place-kind-btn.selected {
+.hotel-side-btn.selected {
   color: #fff;
   font-weight: 600;
 }
 
-.add-place-kind-icon {
+.hotel-side-icon {
   font-size: 1.05rem !important;
+  // Keep the icon's color in step with the label — turns white on
+  // the active button by inheriting from the parent's `color`.
+  color: currentColor;
 }
 
 // Flight form: one labeled block per segment so stopovers read as

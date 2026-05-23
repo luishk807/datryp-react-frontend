@@ -65,6 +65,29 @@ export interface FlightInfo {
   arrivalAirport?: string;
 }
 
+/** One leg of a ground-transport (train / bus) activity. Mirrors
+ *  `FlightInfo` but with stations instead of airports and an
+ *  `operator` for the carrier (Renfe, JR, FlixBus, etc.). Optional
+ *  `classOrSeat` covers train class / seat number / bus seat all in
+ *  one freeform field — keeps the form short.
+ *
+ *  Currently frontend-only; the backend `activities` table doesn't
+ *  yet have a join-table equivalent of `activity_flight_segments`
+ *  for transit, so structured station info won't round-trip a save
+ *  until that ships. The kind + name + cost + times will persist
+ *  via the standard Activity columns. */
+export interface TransitInfo {
+  operator?: string;
+  number?: string;
+  departStation?: string;
+  arrivalStation?: string;
+  departDate?: string;
+  departTime?: string;
+  arrivalDate?: string;
+  arrivalTime?: string;
+  classOrSeat?: string;
+}
+
 export interface ImageRef {
   url: string;
   name: string;

@@ -1,0 +1,73 @@
+// Soft warm callout that sits under the About paragraph on detail
+// pages. Uses the brand orange at low saturation so it reads as a
+// friendly heads-up rather than a hard warning — the content is
+// orienting info, not a hazard.
+.cultural-shock-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 16px 0 8px;
+  padding: 16px 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(246, 137, 31, 0.08) 0%,
+    rgba(247, 198, 26, 0.08) 100%
+  );
+  border: 1px solid rgba(246, 137, 31, 0.22);
+  border-left: 4px solid theme('colors.primaryOrange');
+  border-radius: 12px;
+}
+
+.cultural-shock-callout-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: #fff;
+  color: theme('colors.primaryOrange');
+  border: 1px solid rgba(246, 137, 31, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  .MuiSvgIcon-root {
+    font-size: 1.25rem;
+  }
+}
+
+.cultural-shock-callout-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cultural-shock-callout-eyebrow {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: theme('colors.primaryOrange');
+  margin-bottom: 2px;
+}
+
+.cultural-shock-callout-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.cultural-shock-callout-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+@media (max-width: 600px) {
+  .cultural-shock-callout {
+    padding: 14px;
+    gap: 12px;
+  }
+}

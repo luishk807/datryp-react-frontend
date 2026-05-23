@@ -1,4 +1,10 @@
-import type { ActivityKind, FlightInfo, Friend, ImageRef } from "./common.types";
+import type {
+  ActivityKind,
+  FlightInfo,
+  Friend,
+  ImageRef,
+  TransitInfo,
+} from "./common.types";
 
 export interface ActivityStatus {
   /** Numeric for legacy sample data; string (UUID) when sourced from the
@@ -48,6 +54,19 @@ export interface Activity {
    *  depart and the last segment's arrival drive the day-row time
    *  display and sort order. */
   flightSegments?: FlightInfo[];
+  /** Only set when `kind === 'train' | 'bus'`. Mirrors the
+   *  multi-segment shape of flights so a train with a transfer can
+   *  carry two legs. Currently frontend-only — see TransitInfo doc
+   *  for the backend-persistence caveat. */
+  transitSegments?: TransitInfo[];
+  /** Only set when `kind === 'hotel_checkin' | 'hotel_checkout'`.
+   *  Holds the structured hotel fields that don't have an obvious
+   *  home on the flat Activity columns — specifically the
+   *  confirmation number. Name, address, time, and cost ride on
+   *  `name` / `location` / `startTime` / `cost` as usual. */
+  hotelInfo?: {
+    confirmationNumber?: string;
+  };
 }
 
 export interface ItineraryDay {

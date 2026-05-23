@@ -1,8 +1,17 @@
 /** A name + 1-sentence "why" — used for foods, places-to-visit, and
- *  things-to-do on the detail page. Mirrors backend `NamedTip`. */
+ *  things-to-do on the detail page. Mirrors backend `NamedTip`.
+ *
+ *  The three image fields (`imageUrl`, `photographerName`,
+ *  `photographerUrl`) are optional and only populated for the first-N
+ *  `thingsToDo` entries used by the Pro "Experience Highlights" image
+ *  strip. All other consumers (foods, photoSpots, notesToKnow,
+ *  placesToVisit, topCities, topPlaces) leave them undefined. */
 export interface NamedTip {
   name: string;
   why: string;
+  imageUrl?: string | null;
+  photographerName?: string | null;
+  photographerUrl?: string | null;
 }
 
 /** Approximate FX rate sourced from OpenAI's training data — display with
@@ -110,6 +119,20 @@ export interface Airport {
   international: boolean;
 }
 
+export type PopularityTrend = 'rising' | 'steady' | 'falling';
+
+/** Rough traveler-popularity read for the place this year. `score` is
+ *  0-100 (100 = top-tier bucket-list destination right now); `trend` is the
+ *  year-over-year direction (rendered as an arrow in the UI); `summary` is
+ *  one-line context on what's driving it. Mirrors backend `PopularityInfo`.
+ *  Optional because rows cached before this field shipped don't have it —
+ *  the UI hides the widget when undefined. */
+export interface PopularityInfo {
+  score: number;
+  trend: PopularityTrend;
+  summary: string;
+}
+
 /** Enriched detail-page info. Lazy-fetched per place from `/place-details`. */
 export interface PlaceDetails {
   longDescription: string;
@@ -137,6 +160,13 @@ export interface PlaceDetails {
   /** Airports serving the place. Sorted by usefulness (largest hub
    *  first). May be empty for rows cached before this field shipped. */
   airports: Airport[];
+  /** Year-current traveler-popularity read. Optional for rows cached
+   *  before this field shipped — UI hides the meter widget when absent. */
+  popularity?: PopularityInfo;
+  /** Heads-up on cultural-shock moments a first-time visitor might
+   *  experience. Optional for rows cached before this field shipped —
+   *  the UI hides the callout when absent. */
+  culturalShock?: string;
 }
 
 export interface PlaceDetailsResult {

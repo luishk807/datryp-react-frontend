@@ -1,0 +1,166 @@
+.popularity-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  /* Color tokens, swapped per band by the parent modifier class. Defaults
+   * to the "hot = orange/red" palette so any unknown level still renders. */
+  --popularity-color: #{theme('colors.primaryOrange')};
+  --popularity-bg: rgba(246, 137, 31, 0.14);
+  --popularity-gradient-from: #f6891f;
+  --popularity-gradient-to: #ef4444;
+
+  &.level-popular {
+    --popularity-color: #{theme('colors.primaryGreen')};
+    --popularity-bg: rgba(60, 181, 75, 0.12);
+    --popularity-gradient-from: #3eb549;
+    --popularity-gradient-to: #f7c61a;
+  }
+
+  &.level-niche {
+    --popularity-color: #4b6bff;
+    --popularity-bg: rgba(75, 107, 255, 0.1);
+    --popularity-gradient-from: #6b8cff;
+    --popularity-gradient-to: #a78bfa;
+  }
+}
+
+.popularity-widget-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.popularity-widget-level {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--popularity-bg);
+  color: var(--popularity-color);
+}
+
+.popularity-widget-score {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  strong {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--popularity-color);
+    margin-right: 2px;
+    /* Score number ticks up alongside the bar so the entrance feels like a
+     * single coordinated reveal rather than the number popping in cold. */
+    animation: popularity-score-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  }
+}
+
+.popularity-widget-score-max {
+  font-size: 0.75rem;
+}
+
+.popularity-widget-meter {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.popularity-widget-meter-fill {
+  height: 100%;
+  /* Brand-gradient fill so the meter reads as the same "AI-powered" visual
+   * vocabulary used by the bucket-list CTA. Per-level palette swaps the
+   * gradient endpoints via the custom properties above. */
+  background: linear-gradient(
+    90deg,
+    var(--popularity-gradient-from) 0%,
+    var(--popularity-gradient-to) 100%
+  );
+  border-radius: inherit;
+  width: 0;
+  /* The actual fill is animated on mount via the keyframe below — width
+   * resolves to `var(--popularity-target)` set inline per-instance. The
+   * `both` keeps the end frame after animation completes. */
+  animation: popularity-fill 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+  /* Subtle highlight stripe for a polished "fresh paint" feel as the bar
+   * fills. Layered as a semi-transparent gradient via box-shadow inset on
+   * the same element to avoid an extra DOM node. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+@keyframes popularity-fill {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: var(--popularity-target, 0%);
+  }
+}
+
+@keyframes popularity-score-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popularity-widget-meter-fill {
+    animation: none;
+    width: var(--popularity-target, 0%);
+  }
+  .popularity-widget-score strong {
+    animation: none;
+  }
+}
+
+.popularity-widget-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--popularity-color);
+}
+
+.popularity-widget-trend-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* Falling trend reads as a "cooling" signal — desaturate the trend chip so
+ * it doesn't visually fight a still-high score (you can be popular AND
+ * fading). Rising/steady keep the band's full accent color. */
+.popularity-widget.trend-falling .popularity-widget-trend {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.popularity-widget-summary {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+.popularity-widget-disclaimer {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}

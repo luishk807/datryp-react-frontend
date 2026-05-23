@@ -23,6 +23,9 @@ import PlaceHero from "components/PlaceDetail/PlaceHero";
 import WeatherSection from "components/PlaceDetail/WeatherSection";
 import CurrencySection from "components/PlaceDetail/CurrencySection";
 import SafetySection from "components/PlaceDetail/SafetySection";
+import PopularitySection from "components/PlaceDetail/PopularitySection";
+import CulturalShockCallout from "components/PlaceDetail/CulturalShockCallout";
+import ExperienceHighlights from "components/PlaceDetail/ExperienceHighlights";
 import ParagraphSection from "components/PlaceDetail/ParagraphSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
 import BudgetSection from "components/PlaceDetail/BudgetSection";
@@ -361,6 +364,11 @@ const CityDetail = () => {
                             isError={false}
                         />
 
+                        <CulturalShockCallout
+                            text={details.culturalShock}
+                            subjectLabel={city.country}
+                        />
+
                         <NotesSection
                             items={details.notesToKnow}
                             isError={false}
@@ -385,6 +393,11 @@ const CityDetail = () => {
                     </div>
 
                     <aside className="city-detail-content-side">
+                        <PopularitySection
+                            popularity={details.popularity}
+                            isError={false}
+                        />
+
                         <GettingThereSection
                             placeName={placeForGetting}
                             coordinates={details.coordinates}
@@ -407,6 +420,8 @@ const CityDetail = () => {
                         />
                     </aside>
                 </div>
+
+                <ExperienceHighlights things={details.thingsToDo} />
 
                 <TravelBasicsSection
                     basics={details.travelBasics}

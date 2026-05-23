@@ -12,6 +12,10 @@ interface FrankfurterResponse {
  * supports CORS). Returns a map `{ [code]: rate_per_usd }` covering ~30 major
  * currencies plus USD itself (rate = 1).
  *
+ * Endpoint moved from `api.frankfurter.app` → `api.frankfurter.dev/v1/...`;
+ * the old host now 301-redirects, and the redirect response carries no CORS
+ * headers, so the browser blocks it. Pinned to the new host explicitly.
+ *
  * Cached for 6h client-side — rates only change once a day and we don't
  * need second-by-second accuracy for travel previews. Failures are
  * tolerated by the consumer (CurrencyWidget falls back to the OpenAI-derived
@@ -22,7 +26,7 @@ export const useFxRates = () =>
         queryKey: ['fx-rates'],
         queryFn: async () => {
             const resp = await fetch(
-                'https://api.frankfurter.app/latest?from=USD'
+                'https://api.frankfurter.dev/v1/latest?from=USD'
             );
             if (!resp.ok) {
                 throw new Error(`FX fetch failed: ${resp.status}`);

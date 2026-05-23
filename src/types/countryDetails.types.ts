@@ -9,6 +9,7 @@ import type {
     LodgingInfo,
     NamedTip,
     NearbyDestination,
+    PopularityInfo,
     SafetyInfo,
     TravelBasics,
     VisaInfo,
@@ -44,6 +45,12 @@ export interface CountryDetails {
      *  "global rating" and a "user rating". 0 = unavailable
      *  (pre-existing cache rows from before this field shipped). */
     touristRating: number;
+    /** Year-current traveler-popularity read. Optional for rows cached
+     *  before this field shipped — the UI hides the meter when absent. */
+    popularity?: PopularityInfo;
+    /** Heads-up on cultural-shock moments a first-time visitor might
+     *  experience. Optional for rows cached before this field shipped. */
+    culturalShock?: string;
 }
 
 export interface CountrySummary {

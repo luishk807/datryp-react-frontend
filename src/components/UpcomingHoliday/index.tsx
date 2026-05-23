@@ -2,61 +2,30 @@
  * "Upcoming holiday" homepage section — Pro feature.
  *
  * Shows the next major holiday in the user's country of birth, six
- * cities to celebrate it in, and four things-to-do suggestions. Place
- * cards reuse the same trip-mutation helpers + `AddToItineraryModal`
- * as `PlacesYouMightLove`, so:
- *   - Clicking a card adds it as an activity to the itinerary (not just
- *     navigates to a city detail page).
- *   - The hero image is saved on BOTH the trip-level thumbnail and the
- *     activity image.
- *   - Conflict resolution (Add to current / Start fresh) flows through
- *     the shared modal.
+ * cities to celebrate it in, and four things-to-do suggestions.
  *
- * Free users see a Pro teaser card instead — the query hook is gated on
+ * Card behavior: clicking a "Places to celebrate it" card navigates the
+ * user to that city's detail page (`/city?name=...&country=...&code=...
+ * &mode=single`) — matching how `WorldEvent` and `PlacesYouMightLove`
+ * place cards behave. The previous "add directly to itinerary on click"
+ * flow was removed: it was confusing alongside the rest of the homepage
+ * (which previews the destination first), and there's an Add to
+ * Itinerary affordance on the city detail page itself anyway.
+ *
+ * Free users see no section — the query hook is gated on Pro
  * entitlement so the backend never gets called for non-Pro users.
  */
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Snackbar } from '@mui/material';
 import EventRoundedIcon from '@mui/icons-material/EventRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import { useNavigate } from 'react-router-dom';
 import Skeleton from 'components/common/Skeleton';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
-import AddToItineraryModal from 'components/AddToItineraryModal';
-import type { ModalButtonHandle } from 'components/ModalButton';
 import PlaceCard from 'components/common/PlaceCard';
 import type { HolidayPlace } from 'api/holidaySuggestionsApi';
 import { useHolidaySuggestions } from 'api/hooks/useHolidaySuggestions';
 import { useUser } from 'context/UserContext';
-import {
-    useTripDispatch,
-    useTripState,
-} from 'context/TripContext';
-import {
-    dispatchAddToCurrentTrip,
-    dispatchStartFreshTrip,
-    findMatchingDestinationIndex,
-    lookupCountry,
-    tripHasContent,
-    type AddablePlace,
-} from 'utils/addPlaceToItinerary';
-import { NO_IMAGE, TRIP_BASIC } from 'constants';
-import type { Country } from 'types';
+import { NO_IMAGE } from 'constants';
 import './index.scss';
-
-interface PendingAdd {
-    place: HolidayPlace;
-    country: Country;
-    matchingDestinationIndex: number;
-}
-
-const toAddable = (place: HolidayPlace): AddablePlace => ({
-    name: place.name,
-    city: place.name,
-    country: place.country,
-    description: place.why,
-    imageUrl: place.imageUrl,
-});
 
 interface HolidayDateParts {
     /** Short weekday — "Mon". */
@@ -114,14 +83,6 @@ const parseHolidayDate = (iso: string): HolidayDateParts | null => {
 
 const UpcomingHoliday = () => {
     const { user, isAdmin } = useUser();
-    const navigate = useNavigate();
-    const trip = useTripState();
-    const dispatch = useTripDispatch();
-    const modalRef = useRef<ModalButtonHandle>(null);
-    const [toast, setToast] = useState<string | null>(null);
-    const [resolving, setResolving] = useState<string | null>(null);
-    const [pending, setPending] = useState<PendingAdd | null>(null);
-
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
 
     // Hidden completely for signed-out + free-tier users. We deliberately
@@ -129,114 +90,26 @@ const UpcomingHoliday = () => {
     // members without advertising itself to everyone else.
     if (!user || !isPro) return null;
 
-    return <UpcomingHolidayActive
-        modalRef={modalRef}
-        navigate={navigate}
-        trip={trip}
-        dispatch={dispatch}
-        toast={toast}
-        setToast={setToast}
-        resolving={resolving}
-        setResolving={setResolving}
-        pending={pending}
-        setPending={setPending}
-    />;
+    return <UpcomingHolidayActive />;
 };
 
 // Pro path lives in its own component so the conditional `useQuery`
 // pattern doesn't violate the rules of hooks — `UpcomingHoliday`
 // returns early for free users before this is rendered.
-interface ActiveProps {
-    modalRef: React.RefObject<ModalButtonHandle>;
-    navigate: ReturnType<typeof useNavigate>;
-    trip: ReturnType<typeof useTripState>;
-    dispatch: ReturnType<typeof useTripDispatch>;
-    toast: string | null;
-    setToast: (t: string | null) => void;
-    resolving: string | null;
-    setResolving: (s: string | null) => void;
-    pending: PendingAdd | null;
-    setPending: (p: PendingAdd | null) => void;
-}
-
-const UpcomingHolidayActive = ({
-    modalRef,
-    navigate,
-    trip,
-    dispatch,
-    toast,
-    setToast,
-    resolving,
-    setResolving,
-    pending,
-    setPending,
-}: ActiveProps) => {
+const UpcomingHolidayActive = () => {
+    const navigate = useNavigate();
     const { data, isLoading, isError } = useHolidaySuggestions();
 
     const cardKey = (place: HolidayPlace) =>
         `${place.name}--${place.countryCode}`;
 
-    const handleCardClick = async (place: HolidayPlace) => {
-        const key = cardKey(place);
-        if (resolving === key) return;
-        setResolving(key);
-        try {
-            const country = await lookupCountry(place.country);
-            if (!country) {
-                setToast(
-                    `Couldn't match ${place.country} in our country catalog.`
-                );
-                return;
-            }
-            const addable = toAddable(place);
-            const matchingDestinationIndex = findMatchingDestinationIndex(
-                trip,
-                place.country
-            );
-            const onGoingTrip = tripHasContent(trip);
-
-            if (!onGoingTrip) {
-                dispatchStartFreshTrip(addable, country, dispatch);
-                setToast(`Started a new trip with ${place.name}`);
-                navigate(TRIP_BASIC.SINGLE.route);
-                return;
-            }
-            setPending({ place, country, matchingDestinationIndex });
-            modalRef.current?.openModel();
-        } finally {
-            setResolving(null);
-        }
-    };
-
-    const closePendingModal = () => {
-        modalRef.current?.closeModal();
-        setPending(null);
-    };
-
-    const handleAddToCurrent = () => {
-        if (!pending) return;
-        const { place, country, matchingDestinationIndex } = pending;
-        const { route } = dispatchAddToCurrentTrip(
-            toAddable(place),
-            country,
-            trip,
-            matchingDestinationIndex,
-            dispatch
+    const goToCity = (place: HolidayPlace) => {
+        navigate(
+            `/city?name=${encodeURIComponent(place.name)}` +
+                `&country=${encodeURIComponent(place.country)}` +
+                `&code=${encodeURIComponent(place.countryCode)}` +
+                `&mode=single`
         );
-        const target =
-            matchingDestinationIndex !== -1 ? place.name : country.name;
-        setToast(`Added ${target} to ${trip.name ?? 'your trip'}`);
-        closePendingModal();
-        navigate(route);
-    };
-
-    const handleStartFresh = () => {
-        if (!pending) return;
-        const { place, country } = pending;
-        dispatchStartFreshTrip(toAddable(place), country, dispatch);
-        setToast(`Started a new trip with ${place.name}`);
-        closePendingModal();
-        navigate(TRIP_BASIC.SINGLE.route);
     };
 
     if (isLoading) {
@@ -309,12 +182,6 @@ const UpcomingHolidayActive = ({
     if (isError || !data) return null;
 
     const { holiday, places, activities } = data;
-    const isMultiTrip = trip.type?.id === TRIP_BASIC.MULTIPLE.id;
-    const matchingCountryName =
-        pending && pending.matchingDestinationIndex !== -1
-            ? trip.destinations[pending.matchingDestinationIndex]?.country
-                  .name ?? null
-            : null;
 
     const dateParts = parseHolidayDate(holiday.date);
     const currentYear = new Date().getFullYear().toString();
@@ -469,37 +336,12 @@ const UpcomingHolidayActive = ({
                                     photographerName: place.photographerName,
                                     photographerUrl: place.photographerUrl,
                                 }}
-                                onClick={() => void handleCardClick(place)}
+                                onClick={() => goToCity(place)}
                             />
                         ))}
                     </div>
                 </div>
             )}
-
-            <AddToItineraryModal
-                ref={modalRef}
-                place={
-                    pending
-                        ? {
-                              name: pending.place.name,
-                              country: pending.place.country,
-                          }
-                        : { name: '', country: '' }
-                }
-                tripName={trip.name}
-                matchingDestinationCountryName={matchingCountryName}
-                isMultiTrip={isMultiTrip}
-                onAddToCurrent={handleAddToCurrent}
-                onStartFresh={handleStartFresh}
-            />
-
-            <Snackbar
-                open={Boolean(toast)}
-                onClose={() => setToast(null)}
-                autoHideDuration={2200}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                message={toast}
-            />
         </section>
     );
 };

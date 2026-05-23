@@ -74,6 +74,30 @@ const FEATURE_ROWS: FeatureRow[] = [
         pro: true,
     },
     {
+        label: 'Cultural-shock heads-up',
+        free: true,
+        pro: true,
+        note: 'AI-flagged norms, etiquette, taboos and surprises — on every place, city, and country page.',
+    },
+    {
+        label: 'Popularity meter (year-current)',
+        free: false,
+        pro: true,
+        note: 'Animated 0-100 popularity score with a rising / steady / cooling trend, on every detail page.',
+    },
+    {
+        label: 'Experience-highlight images',
+        free: false,
+        pro: true,
+        note: 'Photo strip of the top 4 things to do at any destination, above the Travel Basics section.',
+    },
+    {
+        label: 'Best places this month',
+        free: false,
+        pro: true,
+        note: 'Six seasonal homepage picks — where the weather, festivals, or natural moments line up right now.',
+    },
+    {
         label: 'Saved & visited places',
         free: true,
         pro: true,
@@ -187,6 +211,12 @@ const Membership = () => (
                         <em>Create trip</em> on any entry and Pro&rsquo;s AI
                         turns the goal into a planned itinerary, ready to
                         edit and save.
+                    </li>
+                    <li>
+                        <strong>Popularity at a glance.</strong> Pro detail
+                        pages show a year-current popularity meter with a
+                        rising / steady / cooling trend so you can tell at
+                        a glance whether a destination is having a moment.
                     </li>
                     <li>
                         <strong>Try before you commit.</strong> 30-day free

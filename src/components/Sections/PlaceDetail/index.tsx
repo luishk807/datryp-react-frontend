@@ -26,6 +26,9 @@ import WeatherSection from "components/PlaceDetail/WeatherSection";
 import CurrencySection from "components/PlaceDetail/CurrencySection";
 import SafetySection from "components/PlaceDetail/SafetySection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
+import PopularitySection from "components/PlaceDetail/PopularitySection";
+import CulturalShockCallout from "components/PlaceDetail/CulturalShockCallout";
+import ExperienceHighlights from "components/PlaceDetail/ExperienceHighlights";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
@@ -250,6 +253,11 @@ const PlaceDetail = () => {
               isError={detailsQuery.isError}
             />
 
+            <CulturalShockCallout
+              text={detailsQuery.data?.details.culturalShock}
+              subjectLabel={place.country}
+            />
+
             <NotesSection
               items={detailsQuery.data?.details.notesToKnow}
               isError={detailsQuery.isError}
@@ -274,6 +282,11 @@ const PlaceDetail = () => {
           </div>
 
           <aside className="place-detail-content-side">
+            <PopularitySection
+              popularity={detailsQuery.data?.details.popularity}
+              isError={detailsQuery.isError}
+            />
+
             <GettingThereSection
               placeName={`${place.name}, ${place.city}`}
               coordinates={detailsQuery.data?.details.coordinates}
@@ -310,6 +323,10 @@ const PlaceDetail = () => {
             />
           </aside>
         </div>
+
+        <ExperienceHighlights
+          things={detailsQuery.data?.details.thingsToDo}
+        />
 
         <TravelBasicsSection
           basics={detailsQuery.data?.details.travelBasics}

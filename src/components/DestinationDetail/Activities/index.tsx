@@ -14,6 +14,10 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
+import HotelRoundedIcon from '@mui/icons-material/HotelRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
+import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { useDroppable } from '@dnd-kit/core';
@@ -76,6 +80,10 @@ const isCompletedStatus = (status: Activity['status']): boolean => {
 
 /** Icon to show on the left of an activity title, based on its kind:
  *   - flight → angled takeoff plane (reads as "flight" at a glance)
+ *   - hotel check-in → bed icon
+ *   - hotel check-out → outbound-arrow (departure) icon
+ *   - train → transit/train icon
+ *   - bus → bus icon
  *   - note → lined notepad (reads as "note" — a sticky-note icon is
  *     too generic to differentiate)
  *   - place WITHOUT an image → map pin (the image was the visual cue
@@ -85,6 +93,10 @@ const isCompletedStatus = (status: Activity['status']): boolean => {
 const titleIconFor = (a: Activity) => {
     const kind = a.kind ?? ACTIVITY_KIND.PLACE;
     if (kind === ACTIVITY_KIND.FLIGHT) return FlightTakeoffRoundedIcon;
+    if (kind === ACTIVITY_KIND.HOTEL_CHECKIN) return HotelRoundedIcon;
+    if (kind === ACTIVITY_KIND.HOTEL_CHECKOUT) return LogoutRoundedIcon;
+    if (kind === ACTIVITY_KIND.TRAIN) return DirectionsTransitRoundedIcon;
+    if (kind === ACTIVITY_KIND.BUS) return DirectionsBusRoundedIcon;
     if (kind === ACTIVITY_KIND.NOTE) return EditNoteRoundedIcon;
     if (!a.image?.url) return PlaceRoundedIcon;
     return null;
@@ -195,18 +207,38 @@ const Activities = ({
                     const activityKind = activity.kind ?? ACTIVITY_KIND.PLACE;
                     const isNote = activityKind === ACTIVITY_KIND.NOTE;
                     const isFlight = activityKind === ACTIVITY_KIND.FLIGHT;
-                    // Notes are timeless; flights show their depart→arrival
-                    // datetime as the schedule row. Places use start/end as
-                    // before.
+                    const isTransit =
+                        activityKind === ACTIVITY_KIND.TRAIN ||
+                        activityKind === ACTIVITY_KIND.BUS;
+                    const isHotel =
+                        activityKind === ACTIVITY_KIND.HOTEL_CHECKIN ||
+                        activityKind === ACTIVITY_KIND.HOTEL_CHECKOUT;
+                    // Notes are timeless; flights and transit show their
+                    // depart→arrival datetime; hotel check-in/out show a
+                    // single time (the check-in or check-out time). Places
+                    // use start/end as before.
                     // Flight schedule spans the FIRST segment's depart →
                     // LAST segment's arrival, regardless of how many
                     // stopovers in between.
                     const flightSegments = activity.flightSegments ?? [];
                     const firstSeg = flightSegments[0];
                     const lastSeg = flightSegments[flightSegments.length - 1];
-                    const activityTime = isFlight
-                        ? `${reformatDate(firstSeg?.departTime, 'HH:mm', 'LT')} → ${reformatDate(lastSeg?.arrivalTime, 'HH:mm', 'LT')}`
-                        : `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
+                    const transitSegments = activity.transitSegments ?? [];
+                    const firstTransit = transitSegments[0];
+                    const lastTransit =
+                        transitSegments[transitSegments.length - 1];
+                    let activityTime: string;
+                    if (isFlight) {
+                        activityTime = `${reformatDate(firstSeg?.departTime, 'HH:mm', 'LT')} → ${reformatDate(lastSeg?.arrivalTime, 'HH:mm', 'LT')}`;
+                    } else if (isTransit) {
+                        activityTime = `${reformatDate(firstTransit?.departTime ?? activity.startTime, 'HH:mm', 'LT')} → ${reformatDate(lastTransit?.arrivalTime ?? activity.endTime, 'HH:mm', 'LT')}`;
+                    } else if (isHotel) {
+                        // Single timestamp — the check-in OR check-out
+                        // time. Top-level startTime carries it.
+                        activityTime = reformatDate(activity.startTime, 'HH:mm', 'LT');
+                    } else {
+                        activityTime = `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
+                    }
                     const showTimeRow = !isNote;
                     const budgetEntries = activity.budget ?? [];
                     const hasBudget = budgetEntries.length > 0;

@@ -1,0 +1,83 @@
+// Container styling matches TopPlaces / PlacesYouMightLove / UpcomingHoliday
+// so the homepage's vertical rhythm stays consistent. No gradient wrapper —
+// the section sits on the page background just like the others, and the
+// eyebrow chip + section title carry the visual identity.
+.seasonal-best-places {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto 56px;
+  padding: 32px 24px 0;
+}
+
+.seasonal-best-places-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.seasonal-best-places-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.12) 0%,
+    rgba(246, 137, 31, 0.12) 100%
+  );
+  color: theme('colors.primaryGreen');
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.seasonal-best-places-eyebrow-icon {
+  font-size: 0.95rem !important;
+  color: theme('colors.primaryOrange');
+}
+
+// Title matches the `.pyml-title` scale on PlacesYouMightLove — keeps
+// the section weight in line with its siblings on the homepage.
+.seasonal-best-places-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: theme('colors.primary');
+  line-height: 1.2;
+}
+
+.seasonal-best-places-subtitle {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.seasonal-best-places-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+@media (max-width: 1024px) {
+  .seasonal-best-places-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .seasonal-best-places {
+    padding: 16px 16px 0;
+    margin-bottom: 40px;
+  }
+  .seasonal-best-places-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

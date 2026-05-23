@@ -91,11 +91,25 @@ export const TRIP_MODE = {
  *  - `place` (default): a real activity with location/cost/time
  *  - `note`: a free-text reminder pinned to a day, no time slot
  *  - `flight`: a flight entry with depart/arrival airports + datetimes
+ *  - `hotel_checkin` / `hotel_checkout`: bookend events for a hotel
+ *    stay. Two-event model so the timeline shows the check-in on the
+ *    arrival day and check-out on the departure day. Uses the standard
+ *    Activity columns (name → hotel name, location → address,
+ *    startTime → check-in/out time, notes → confirmation #, cost →
+ *    nightly or total price).
+ *  - `train` / `bus`: ground-transport entries with operator, number,
+ *    depart/arrive stations, and times. Frontend models them as a
+ *    `transitSegments` array (mirrors `flightSegments`); the structured
+ *    station fields are client-side until backend persistence ships.
  */
 export const ACTIVITY_KIND = {
   PLACE: "place",
   NOTE: "note",
   FLIGHT: "flight",
+  HOTEL_CHECKIN: "hotel_checkin",
+  HOTEL_CHECKOUT: "hotel_checkout",
+  TRAIN: "train",
+  BUS: "bus",
 } as const;
 
 export const AUTH_LABEL = {

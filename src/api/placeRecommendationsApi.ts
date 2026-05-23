@@ -27,6 +27,25 @@ interface PlaceItemRaw {
     photographer_url: string | null;
 }
 
+/** Mirrors backend NamedTip — name + 1-sentence why, plus the optional
+ *  Unsplash enrichment trio that's only populated for the first-N
+ *  `things_to_do` entries (Pro "Experience Highlights" image strip). */
+interface NamedTipRawWithImage {
+    name: string;
+    why: string;
+    image_url?: string | null;
+    photographer_name?: string | null;
+    photographer_url?: string | null;
+}
+
+const toNamedTip = (raw: NamedTipRawWithImage) => ({
+    name: raw.name,
+    why: raw.why,
+    imageUrl: raw.image_url ?? undefined,
+    photographerName: raw.photographer_name ?? undefined,
+    photographerUrl: raw.photographer_url ?? undefined,
+});
+
 interface PlaceRecommendationsResponseRaw {
     query: string;
     cached: boolean;
@@ -184,17 +203,23 @@ interface AirportRaw {
     international: boolean;
 }
 
+interface PopularityInfoRaw {
+    score: number;
+    trend: 'rising' | 'steady' | 'falling';
+    summary: string;
+}
+
 interface PlaceDetailsRaw {
     long_description: string;
     country_description: string;
     budget_description: string;
     city_highlight: string;
     country_highlight: string;
-    foods: { name: string; why: string }[];
-    places_to_visit: { name: string; why: string }[];
-    things_to_do: { name: string; why: string }[];
-    photo_spots: { name: string; why: string }[];
-    notes_to_know: { name: string; why: string }[];
+    foods: NamedTipRawWithImage[];
+    places_to_visit: NamedTipRawWithImage[];
+    things_to_do: NamedTipRawWithImage[];
+    photo_spots: NamedTipRawWithImage[];
+    notes_to_know: NamedTipRawWithImage[];
     worst_time_to_visit: string;
     weather: string;
     currency: CurrencyInfoRaw;
@@ -207,6 +232,8 @@ interface PlaceDetailsRaw {
     cost_level: number;
     visa: VisaInfoRaw;
     airports?: AirportRaw[];
+    popularity?: PopularityInfoRaw | null;
+    cultural_shock?: string | null;
 }
 
 interface PlaceDetailsResponseRaw {
@@ -222,11 +249,11 @@ const toDetails = (raw: PlaceDetailsRaw): PlaceDetails => ({
     budgetDescription: raw.budget_description,
     cityHighlight: raw.city_highlight,
     countryHighlight: raw.country_highlight,
-    foods: raw.foods,
-    placesToVisit: raw.places_to_visit,
-    thingsToDo: raw.things_to_do,
-    photoSpots: raw.photo_spots,
-    notesToKnow: raw.notes_to_know,
+    foods: raw.foods.map(toNamedTip),
+    placesToVisit: raw.places_to_visit.map(toNamedTip),
+    thingsToDo: raw.things_to_do.map(toNamedTip),
+    photoSpots: raw.photo_spots.map(toNamedTip),
+    notesToKnow: raw.notes_to_know.map(toNamedTip),
     worstTimeToVisit: raw.worst_time_to_visit,
     weather: raw.weather,
     currency: {
@@ -283,6 +310,14 @@ const toDetails = (raw: PlaceDetailsRaw): PlaceDetails => ({
         distanceKm: a.distance_km,
         international: a.international,
     })),
+    popularity: raw.popularity
+        ? {
+              score: raw.popularity.score,
+              trend: raw.popularity.trend,
+              summary: raw.popularity.summary,
+          }
+        : undefined,
+    culturalShock: raw.cultural_shock ?? undefined,
 });
 
 export const fetchPlaceDetails = async (

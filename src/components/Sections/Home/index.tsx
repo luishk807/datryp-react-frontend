@@ -13,6 +13,7 @@ import PlacesYouMightLove from 'components/PlacesYouMightLove';
 import UpcomingHoliday from 'components/UpcomingHoliday';
 import WorldEvent from 'components/WorldEvent';
 import MonthlyBestPlace from 'components/MonthlyBestPlace';
+import SeasonalBestPlaces from 'components/SeasonalBestPlaces';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import type { Country, HeroImage } from 'types';
 
@@ -183,6 +184,7 @@ const Home = () => {
 
             <PlacesYouMightLove variant="home" />
             <MonthlyBestPlace />
+            <SeasonalBestPlaces />
             <UpcomingHoliday />
             <WorldEvent />
             <TopPlaces onPlaceClick={handlePlaceClick} />

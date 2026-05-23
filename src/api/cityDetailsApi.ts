@@ -14,7 +14,20 @@ const API_BASE =
 interface NamedTipRaw {
     name: string;
     why: string;
+    // Optional Unsplash enrichment — only populated for the first 4
+    // `things_to_do` entries (Pro "Experience Highlights" strip).
+    image_url?: string | null;
+    photographer_name?: string | null;
+    photographer_url?: string | null;
 }
+
+const toNamedTip = (raw: NamedTipRaw) => ({
+    name: raw.name,
+    why: raw.why,
+    imageUrl: raw.image_url ?? undefined,
+    photographerName: raw.photographer_name ?? undefined,
+    photographerUrl: raw.photographer_url ?? undefined,
+});
 
 interface CurrencyInfoRaw {
     code: string;
@@ -110,6 +123,12 @@ interface CityDetailsRaw {
     visa: VisaInfoRaw;
     airports?: AirportRaw[];
     tourist_rating?: number;
+    popularity?: {
+        score: number;
+        trend: 'rising' | 'steady' | 'falling';
+        summary: string;
+    } | null;
+    cultural_shock?: string | null;
 }
 
 interface CitySummaryRaw {
@@ -144,11 +163,11 @@ const toDetails = (raw: CityDetailsRaw): CityDetails => ({
     budgetDescription: raw.budget_description,
     cityHighlight: raw.city_highlight,
     countryHighlight: raw.country_highlight,
-    topPlaces: raw.top_places,
-    foods: raw.foods,
-    thingsToDo: raw.things_to_do,
-    photoSpots: raw.photo_spots,
-    notesToKnow: raw.notes_to_know,
+    topPlaces: raw.top_places.map(toNamedTip),
+    foods: raw.foods.map(toNamedTip),
+    thingsToDo: raw.things_to_do.map(toNamedTip),
+    photoSpots: raw.photo_spots.map(toNamedTip),
+    notesToKnow: raw.notes_to_know.map(toNamedTip),
     bestTimeToVisit: raw.best_time_to_visit,
     worstTimeToVisit: raw.worst_time_to_visit,
     weather: raw.weather,
@@ -210,6 +229,14 @@ const toDetails = (raw: CityDetailsRaw): CityDetails => ({
         international: a.international,
     })),
     touristRating: raw.tourist_rating ?? 0,
+    popularity: raw.popularity
+        ? {
+              score: raw.popularity.score,
+              trend: raw.popularity.trend,
+              summary: raw.popularity.summary,
+          }
+        : undefined,
+    culturalShock: raw.cultural_shock ?? undefined,
 });
 
 export const fetchCityDetails = async (
