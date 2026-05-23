@@ -5,7 +5,10 @@
  * interests + traveler styles. Renders as a split-card with the place
  * photo on the left and the AI-written pitch + highlights on the right.
  *
- * Card click → /city detail page (same pattern as PYML and WorldEvent).
+ * Card click → /country detail page with `?seed=monthly-best-place` so
+ * the country page can offer a "plan trip with these picks" CTA that
+ * auto-seeds the 4 highlights as activities (saves the user from
+ * guessing what to add).
  *
  * Hidden entirely for signed-out + free-tier users (Pro-only, no teaser
  * — matches the silent-surprise pattern we use for Holiday).
@@ -28,15 +31,18 @@ const monthLabel = (monthKey: string): string => {
     return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
 };
 
-const goToCity = (
+const goToCountryWithSeed = (
     navigate: (to: string) => void,
     place: MonthlyBestPlaceInfo
 ) => {
+    // `?seed=monthly-best-place` tells the country page to surface the
+    // auto-add CTA that pre-seeds the 4 highlight activities into the
+    // new trip. Without the seed param, the country page renders the
+    // normal "Start planning" flow.
     navigate(
-        `/city?name=${encodeURIComponent(place.name)}` +
-            `&country=${encodeURIComponent(place.country)}` +
-            `&code=${encodeURIComponent(place.countryCode)}` +
-            `&mode=single`
+        `/country?code=${encodeURIComponent(place.countryCode)}` +
+            `&mode=single` +
+            `&seed=monthly-best-place`
     );
 };
 
@@ -93,13 +99,13 @@ const MonthlyBestPlaceActive = () => {
         <section className="monthly-best-place">
             <article
                 className="monthly-best-place-card"
-                onClick={() => goToCity(navigate, place)}
+                onClick={() => goToCountryWithSeed(navigate, place)}
                 role="link"
                 tabIndex={0}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        goToCity(navigate, place);
+                        goToCountryWithSeed(navigate, place);
                     }
                 }}
                 aria-label={`Open ${place.name}, ${place.country}`}
