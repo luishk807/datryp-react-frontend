@@ -28,3 +28,7 @@ yarn-error.log*
 # Claude Code (local only — let collaborators use their own AI tools)
 /.claude/
 /CLAUDE.md
+
+# Design/spec samples kept locally for export-format reference but not
+# checked in (binary, evolves, not a build artifact).
+# /datryp_sample.xlsx

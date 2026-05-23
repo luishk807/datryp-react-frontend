@@ -1,238 +1,497 @@
+/**
+ * `exportTripToExcel(trip)` — produces a 3-sheet .xlsx workbook
+ * matching `datryp_sample.xlsx`:
+ *
+ *   1. Overview        — embedded logo + key/value summary (trip
+ *                        name, dates, organizer, participants, budget).
+ *   2. Itinerary       — embedded logo + Date | Time | Activity | Who
+ *                        is Going | Cost | Who is Paying. Column-header
+ *                        row uses solid black fill with white bold
+ *                        text. Date column is merged across activities
+ *                        sharing a day; notes get their own row
+ *                        directly under the activity they annotate.
+ *   3. Expense Report  — embedded logo + Date | Item | Total table,
+ *                        Paid By / Total breakdown, Subtotal +
+ *                        Grand Total summary. Section header rows use
+ *                        the same black-fill / white-bold treatment.
+ *
+ * Library: ExcelJS. Switched from `xlsx-js-style` (which couldn't
+ * embed images) so the actual daTryp logo renders as a real PNG image
+ * at the top of every sheet instead of a styled text wordmark. The
+ * logo lives as `assets/logo.svg` and is rasterized to PNG via a
+ * browser canvas at export time — no PNG asset needs to be checked
+ * in. Same `exportTripToExcel(trip)` signature; share-modal wiring
+ * unchanged.
+ */
 import moment from 'moment';
 
-import type { Activity, BudgetItem, ItineraryDay, TripState } from 'types';
+import logoSvgRaw from 'assets/logo.svg?raw';
 import { ACTIVITY_KIND } from 'constants';
+import type { Activity, BudgetItem, TripState } from 'types';
+import {
+    activityDisplayName,
+    activityLocation,
+    collapseWs,
+    computePayerTotals,
+    formatTimeRange,
+    joinNames,
+    safeFilename,
+    tripBudgetTotal,
+} from 'utils/tripExportShared';
 
 const CURRENCY_FORMAT = '"$"#,##0.00';
-const PERCENT_FORMAT = '0.0%';
+const DATE_FORMAT = 'mm/dd/yyyy';
 
-const safeFilename = (name: string | undefined) =>
-    (name && name.trim() ? name : 'trip')
-        .replace(/[^a-z0-9-_]+/gi, '-')
-        .replace(/-+/g, '-')
-        .toLowerCase();
+// Brand palette. Excel ARGB format: 'FF' alpha + 6-digit RGB.
+const ARGB = {
+    headerFillBlack: 'FF000000',
+    headerTextWhite: 'FFFFFFFF',
+    borderGray: 'FFCCCCCC',
+} as const;
 
-const joinNames = (entries?: { label?: string; name?: string }[]) =>
-    (entries ?? [])
-        .map((e) => e.label ?? e.name ?? '')
-        .filter(Boolean)
-        .join(', ');
+const HEADER_FILL = {
+    type: 'pattern' as const,
+    pattern: 'solid' as const,
+    fgColor: { argb: ARGB.headerFillBlack },
+};
+const HEADER_FONT = {
+    bold: true,
+    color: { argb: ARGB.headerTextWhite },
+};
 
-const colLetter = (col: number): string => {
-    let s = '';
-    let n = col;
-    while (n >= 0) {
-        s = String.fromCharCode((n % 26) + 65) + s;
-        n = Math.floor(n / 26) - 1;
+// Logo render size (in pixels). 526:319.3 native viewBox aspect → use
+// proportional render to keep the wordmark crisp at retina-equivalent
+// scaling. Excel embeds this PNG and the `ext` block below positions
+// it.
+const LOGO_RENDER_PX = { w: 526, h: 319 };
+const LOGO_DISPLAY_PX = { w: 132, h: 80 };
+
+// ── SVG → PNG (browser) ─────────────────────────────────────────────────────
+//
+// ExcelJS embeds images as PNG/JPEG/GIF buffers, not SVG. We convert
+// `logo.svg` to PNG once per export via an off-DOM canvas. Two
+// quirks worth knowing:
+//   1. Adobe-Illustrator SVG uses `<style>.st0{fill:#3EB549}</style>`
+//      with class selectors. Browsers WILL honor that styling when
+//      the SVG is rasterized via <img>, but only if the <style>
+//      block is self-contained — which Illustrator's output is. So
+//      unlike pdfmake (which strips <style>), we can feed the raw
+//      SVG directly here.
+//   2. SVGs containing external references would tripped CORS taint
+//      and `canvas.toDataURL()` would throw. Our logo is fully
+//      inlined, so no taint.
+
+let cachedLogoPngBase64: string | null = null;
+
+const svgToPngBase64 = (
+    svgString: string,
+    pixelW: number,
+    pixelH: number,
+): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const svgBlob = new Blob([svgString], {
+            type: 'image/svg+xml;charset=utf-8',
+        });
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = pixelW;
+                canvas.height = pixelH;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('canvas 2D context unavailable'));
+                    return;
+                }
+                ctx.drawImage(img, 0, 0, pixelW, pixelH);
+                const dataUrl = canvas.toDataURL('image/png');
+                // Strip the "data:image/png;base64," prefix — ExcelJS
+                // wants just the base64 payload.
+                const base64 = dataUrl.split(',', 2)[1] ?? '';
+                URL.revokeObjectURL(url);
+                resolve(base64);
+            } catch (err) {
+                URL.revokeObjectURL(url);
+                reject(err);
+            }
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('SVG image failed to load'));
+        };
+        img.src = url;
+    });
+};
+
+const getLogoPng = async (): Promise<string> => {
+    if (cachedLogoPngBase64 !== null) return cachedLogoPngBase64;
+    try {
+        cachedLogoPngBase64 = await svgToPngBase64(
+            logoSvgRaw,
+            LOGO_RENDER_PX.w,
+            LOGO_RENDER_PX.h,
+        );
+    } catch {
+        // Best-effort: if the conversion fails for any reason (older
+        // browser, CSP, headless test env), fall back to no logo
+        // rather than blowing up the entire export.
+        cachedLogoPngBase64 = '';
     }
-    return s;
-};
-const cellRef = (col: number, row: number) => `${colLetter(col)}${row + 1}`;
-
-/** Compress consecutive whitespace + trim — keeps multi-line cell content
- *  readable without bloating Excel cell heights. */
-const collapseWs = (s: string | undefined | null): string =>
-    (s ?? '').replace(/\s+/g, ' ').trim();
-
-/** "9:30 AM" or "11:00 AM – 3:00 PM" when both ends present; blank when neither. */
-const formatTimeRange = (start: string | undefined, end: string | undefined): string => {
-    const s = collapseWs(start);
-    const e = collapseWs(end);
-    if (s && e) return `${s} – ${e}`;
-    return s || e || '';
+    return cachedLogoPngBase64;
 };
 
-/** Day banner label: "Tue Jun 9 — Day 1: Iceland". Falls back gracefully
- *  when the date doesn't parse or the destination name is blank. */
-const formatDayBanner = (
-    dateStr: string,
-    dayNumber: number,
-    destinationName: string
-): string => {
-    const m = moment(dateStr);
-    const prettyDate = m.isValid() ? m.format('ddd MMM D') : dateStr;
-    const dayLabel = `Day ${dayNumber}`;
-    return destinationName
-        ? `${prettyDate}  —  ${dayLabel}: ${destinationName}`
-        : `${prettyDate}  —  ${dayLabel}`;
-};
+// ── Activity-row helpers (library-agnostic) ─────────────────────────────────
 
-/** Flatten flightSegments into "EWR → KEF → LHR". */
-const flightRouteOf = (a: Activity): string => {
-    const segs = a.flightSegments ?? [];
-    if (!segs.length) return '';
-    const chain = [
-        segs[0]?.departAirport ?? '',
-        ...segs.map((s) => s.arrivalAirport ?? ''),
-    ];
-    return chain.filter(Boolean).join(' → ');
-};
-
-const flightNumbersOf = (a: Activity): string =>
-    (a.flightSegments ?? [])
-        .map((s) => s.flightNumber ?? '')
-        .filter(Boolean)
-        .join(' · ');
-
-/** Pick the best display name for an activity. */
-const activityDisplayName = (a: Activity): string =>
-    collapseWs(a.name) || collapseWs(a.place) || '(untitled)';
-
-/** Location string — for flights, prefer the route; otherwise the
- *  user-entered location. */
-const activityLocation = (a: Activity): string => {
+/** Multi-line cell content describing a single activity:
+ *    Line 1 — activity name (always)
+ *    Line 2 — location or address (if any)
+ *    Line 3 — flight number (only for flight kinds)
+ *  Joined with `\n` so Excel renders multi-line when wrap-text is
+ *  enabled. */
+const activityCellLines = (a: Activity): string => {
+    const lines: string[] = [activityDisplayName(a)];
+    const loc = activityLocation(a);
+    if (loc) lines.push(loc);
     if (a.kind === ACTIVITY_KIND.FLIGHT) {
-        const route = flightRouteOf(a);
-        const numbers = flightNumbersOf(a);
-        return [route, numbers].filter(Boolean).join('  ·  ');
+        const numbers = (a.flightSegments ?? [])
+            .map((s) => s.flightNumber ?? '')
+            .filter(Boolean);
+        if (numbers.length) {
+            lines.push(`Flight No: ${numbers.join(' / ')}`);
+        }
     }
-    return collapseWs(a.location);
+    return lines.join('\n');
 };
 
-/** Human label for the activity-kind column. */
-const activityTypeLabel = (a: Activity): string => {
-    switch (a.kind) {
-        case ACTIVITY_KIND.FLIGHT:
-            return 'Flight';
-        case ACTIVITY_KIND.NOTE:
-            return 'Note';
-        case ACTIVITY_KIND.PLACE:
-            return 'Place';
-        default:
-            return 'Place';
+const payerCellLines = (budgetItems: BudgetItem[]): string =>
+    budgetItems
+        .map((b) => {
+            const name = b.user?.label ?? b.user?.name ?? '(unknown)';
+            const amt =
+                typeof b.budget === 'number'
+                    ? b.budget
+                    : Number(b.budget) || 0;
+            return `${name}: $${amt.toFixed(2)}`;
+        })
+        .join('\n');
+
+const participantNames = (budgetItems: BudgetItem[]): string => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const b of budgetItems) {
+        const name = b.user?.label ?? b.user?.name ?? '';
+        if (name && !seen.has(name)) {
+            seen.add(name);
+            out.push(name);
+        }
     }
+    return out.join(', ');
 };
 
-/** Human label for the activity status, or blank when none set. */
-const activityStatusLabel = (a: Activity): string => {
-    const status = a.status as
-        | { name?: string; label?: string }
-        | string
-        | undefined;
-    if (!status) return '';
-    if (typeof status === 'string') return status;
-    return status.label ?? status.name ?? '';
+const activityCost = (a: Activity, budgetItems: BudgetItem[]): number => {
+    if (budgetItems.length > 0) {
+        return budgetItems.reduce(
+            (acc, b) =>
+                acc +
+                (typeof b.budget === 'number' ? b.budget : Number(b.budget) || 0),
+            0
+        );
+    }
+    const raw = a.cost;
+    if (typeof raw === 'number') return raw;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
 };
 
-/** True when the location looks like a URL (Excel will render it as a
- *  clickable hyperlink if the cell has an `l.Target`). */
-const isUrl = (s: string): boolean => /^https?:\/\//i.test(s);
+const parseDate = (raw: string | undefined | null): Date | null => {
+    if (!raw) return null;
+    const m = moment(raw);
+    return m.isValid() ? m.toDate() : null;
+};
 
-interface PayerSummary {
-    name: string;
-    total: number;
+// ── ExcelJS helpers ─────────────────────────────────────────────────────────
+
+// Loose type aliases — we use unknown for the lazy-loaded ExcelJS so
+// our top-level imports stay clean. Cast at call sites where helpful.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EWorkbook = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EWorksheet = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ECell = any;
+
+const styleHeaderCell = (cell: ECell): void => {
+    cell.font = HEADER_FONT;
+    cell.fill = HEADER_FILL;
+    cell.alignment = { vertical: 'middle', wrapText: true };
+};
+
+const styleBodyCell = (cell: ECell): void => {
+    cell.alignment = { vertical: 'top', wrapText: true };
+};
+
+const styleBoldBodyCell = (cell: ECell): void => {
+    cell.font = { bold: true };
+    cell.alignment = { vertical: 'top', wrapText: true };
+};
+
+/** Embed the daTryp logo at A1 of the given sheet and reserve row
+ *  height for it. The image is anchored by top-left = (col 0, row 0)
+ *  with a fixed display size. The first row's height is bumped to
+ *  match the logo height so subsequent rows aren't pushed up under
+ *  the image. */
+const addLogo = async (
+    workbook: EWorkbook,
+    sheet: EWorksheet,
+): Promise<void> => {
+    const pngBase64 = await getLogoPng();
+    if (!pngBase64) return;
+    const imageId = workbook.addImage({
+        base64: pngBase64,
+        extension: 'png',
+    });
+    sheet.addImage(imageId, {
+        tl: { col: 0, row: 0 },
+        ext: { width: LOGO_DISPLAY_PX.w, height: LOGO_DISPLAY_PX.h },
+    });
+    // 1pt ≈ 1.333px → bump the first row by enough pts to clear the
+    // logo. A little extra margin (8pt) makes the next row breathe.
+    sheet.getRow(1).height = LOGO_DISPLAY_PX.h * 0.78;
+};
+
+// ── Sheet 1: Overview ───────────────────────────────────────────────────────
+
+const buildOverviewSheet = async (
+    workbook: EWorkbook,
+    trip: TripState,
+): Promise<void> => {
+    const ws = workbook.addWorksheet('Overview');
+
+    ws.columns = [
+        { header: '', key: 'label', width: 18 },
+        { header: '', key: 'value', width: 40 },
+    ];
+
+    await addLogo(workbook, ws);
+
+    // Row 2 is the spacer between the logo image (anchored at row 1)
+    // and the actual key/value rows. ExcelJS row indexes are 1-based.
+    let r = 3;
+
+    const writeRow = (
+        label: string,
+        value: string | number | Date | null,
+        numFmt?: string,
+    ): void => {
+        const labelCell = ws.getCell(r, 1);
+        labelCell.value = label;
+        styleBoldBodyCell(labelCell);
+
+        const valueCell = ws.getCell(r, 2);
+        if (value === null) {
+            valueCell.value = '';
+        } else {
+            valueCell.value = value;
+        }
+        if (numFmt) valueCell.numFmt = numFmt;
+        styleBodyCell(valueCell);
+        r += 1;
+    };
+
+    writeRow('Trip name', collapseWs(trip.name) || 'Trip');
+    writeRow('From Date:', parseDate(trip.startDate), DATE_FORMAT);
+    writeRow('To Date', parseDate(trip.endDate), DATE_FORMAT);
+    writeRow('Organizer', joinNames(trip.organizer));
+    writeRow('Participants', joinNames(trip.friends));
+    writeRow('Budget', tripBudgetTotal(trip), CURRENCY_FORMAT);
+};
+
+// ── Sheet 2: Itinerary ──────────────────────────────────────────────────────
+
+interface ItineraryWriteRow {
+    /** Excel JS Date for the activity's day. Repeated within the
+     *  group; only the first row of the group writes the value, the
+     *  others get merged into it. */
+    date: Date | null;
+    /** Plain ISO YYYY-MM-DD for grouping. */
+    dateIso: string;
+    isNoteOnly: boolean;
+    time: string;
+    activityCell: string;
+    whoIsGoing: string;
+    cost: number | null;
+    whoIsPaying: string;
 }
 
-const computePayerTotals = (trip: TripState): {
-    grandTotal: number;
-    perPayer: PayerSummary[];
-} => {
-    const totals = new Map<string, number>();
-    let grandTotal = 0;
+const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
+    const out: ItineraryWriteRow[] = [];
     for (const dest of trip.destinations ?? []) {
         for (const day of dest.itinerary ?? []) {
+            const date = parseDate(day.date);
             for (const activity of day.activities ?? []) {
-                for (const b of activity.budget ?? []) {
-                    const name = b.user?.label ?? b.user?.name ?? '(unknown)';
-                    const amt =
-                        typeof b.budget === 'number'
-                            ? b.budget
-                            : Number(b.budget) || 0;
-                    totals.set(name, (totals.get(name) ?? 0) + amt);
-                    grandTotal += amt;
+                const budgetItems = (activity.budget ?? []) as BudgetItem[];
+                out.push({
+                    date,
+                    dateIso: day.date,
+                    isNoteOnly: false,
+                    time: formatTimeRange(activity.startTime, activity.endTime),
+                    activityCell: activityCellLines(activity),
+                    whoIsGoing: participantNames(budgetItems),
+                    cost: activityCost(activity, budgetItems),
+                    whoIsPaying: payerCellLines(budgetItems),
+                });
+                const note = collapseWs(activity.note);
+                if (note) {
+                    out.push({
+                        date,
+                        dateIso: day.date,
+                        isNoteOnly: true,
+                        time: '',
+                        activityCell: `Note: ${note}`,
+                        whoIsGoing: '',
+                        cost: null,
+                        whoIsPaying: '',
+                    });
                 }
             }
         }
     }
-    const perPayer = Array.from(totals.entries())
-        .map(([name, total]) => ({ name, total }))
-        .sort((a, b) => b.total - a.total);
-    return { grandTotal, perPayer };
+    return out;
 };
 
-/** One row of the itinerary table. `bannerLabel` rows are merged across
- *  all columns and styled gray; activity rows are plain. */
-type RowKind = 'banner' | 'activity' | 'activity-payer-only';
+const buildItinerarySheet = async (
+    workbook: EWorkbook,
+    trip: TripState,
+): Promise<void> => {
+    const ws = workbook.addWorksheet('Itinerary');
 
-interface ItinRow {
-    kind: RowKind;
-    time?: string;
-    type?: string;
-    activity?: string;
-    location?: string;
-    locationHref?: string; // only set when location is a URL
-    notes?: string;
-    status?: string;
-    payer?: string;
-    cost?: number;
-    bannerLabel?: string;
+    ws.columns = [
+        { width: 12 }, // Date
+        { width: 18 }, // Time
+        { width: 36 }, // Activity (multi-line)
+        { width: 22 }, // Who is Going
+        { width: 12 }, // Cost
+        { width: 26 }, // Who is Paying
+    ];
+
+    // Per the sample, Itinerary has no logo at the top — column
+    // headers sit at row 1, data immediately below. The Overview
+    // sheet carries the logo for the whole workbook.
+    const HEADER = [
+        'Date',
+        'Time',
+        'Activity',
+        'Who is Going',
+        'Cost',
+        'Who is Paying',
+    ];
+    const headerRowIdx = 1;
+    const headerRow = ws.getRow(headerRowIdx);
+    HEADER.forEach((label, i) => {
+        const cell = headerRow.getCell(i + 1);
+        cell.value = label;
+        styleHeaderCell(cell);
+    });
+    headerRow.height = 22;
+
+    // Freeze the header row + the logo strip so they stay visible while
+    // the user scrolls the activities.
+    ws.views = [{ state: 'frozen', ySplit: headerRowIdx }];
+
+    const rows = collectItineraryRows(trip);
+
+    let r = headerRowIdx + 1;
+    let groupStart = -1;
+    let groupDateIso = '';
+    const flushGroup = (endRow: number): void => {
+        if (groupStart >= 0 && endRow > groupStart) {
+            ws.mergeCells(groupStart, 1, endRow, 1);
+            // Center the merged date vertically within the block.
+            ws.getCell(groupStart, 1).alignment = {
+                vertical: 'top',
+                wrapText: true,
+            };
+        }
+        groupStart = -1;
+        groupDateIso = '';
+    };
+
+    for (const row of rows) {
+        if (row.dateIso !== groupDateIso) {
+            flushGroup(r - 1);
+            groupDateIso = row.dateIso;
+            groupStart = r;
+            if (row.date) {
+                const dateCell = ws.getCell(r, 1);
+                dateCell.value = row.date;
+                dateCell.numFmt = DATE_FORMAT;
+                styleBodyCell(dateCell);
+            }
+        }
+        if (row.time) {
+            const c = ws.getCell(r, 2);
+            c.value = row.time;
+            styleBodyCell(c);
+        }
+        const activityCell = ws.getCell(r, 3);
+        activityCell.value = row.activityCell;
+        styleBodyCell(activityCell);
+        if (row.isNoteOnly) {
+            // Italicize note rows so they're visually distinct from
+            // real activities.
+            activityCell.font = { italic: true, color: { argb: 'FF666666' } };
+        }
+        if (row.whoIsGoing) {
+            const c = ws.getCell(r, 4);
+            c.value = row.whoIsGoing;
+            styleBodyCell(c);
+        }
+        if (row.cost !== null) {
+            const c = ws.getCell(r, 5);
+            c.value = row.cost;
+            c.numFmt = CURRENCY_FORMAT;
+            styleBodyCell(c);
+        }
+        if (row.whoIsPaying) {
+            const c = ws.getCell(r, 6);
+            c.value = row.whoIsPaying;
+            styleBodyCell(c);
+        }
+        r += 1;
+    }
+    flushGroup(r - 1);
+
+    if (rows.length > 0) {
+        ws.autoFilter = {
+            from: { row: headerRowIdx, column: 1 },
+            to: { row: r - 1, column: HEADER.length },
+        };
+    }
+};
+
+// ── Sheet 3: Expense Report ─────────────────────────────────────────────────
+
+interface ExpenseItemRow {
+    date: Date | null;
+    dateIso: string;
+    item: string;
+    total: number;
 }
 
-const buildItineraryRows = (trip: TripState): ItinRow[] => {
-    const out: ItinRow[] = [];
-    let dayCounter = 0;
+const collectExpenseItems = (trip: TripState): ExpenseItemRow[] => {
+    const out: ExpenseItemRow[] = [];
     for (const dest of trip.destinations ?? []) {
-        const destName = collapseWs(dest.country?.name);
-        for (const day of (dest.itinerary as ItineraryDay[]) ?? []) {
-            dayCounter += 1;
-            out.push({
-                kind: 'banner',
-                bannerLabel: formatDayBanner(day.date, dayCounter, destName),
-            });
+        for (const day of dest.itinerary ?? []) {
+            const date = parseDate(day.date);
             for (const activity of day.activities ?? []) {
-                const time = formatTimeRange(activity.startTime, activity.endTime);
-                const name = activityDisplayName(activity);
-                const location = activityLocation(activity);
-                const type = activityTypeLabel(activity);
-                const status = activityStatusLabel(activity);
-                const notes = collapseWs(activity.note);
-                const budget = (activity.budget ?? []) as BudgetItem[];
-
-                if (budget.length === 0) {
-                    out.push({
-                        kind: 'activity',
-                        time,
-                        type,
-                        activity: name,
-                        location,
-                        locationHref: isUrl(location) ? location : undefined,
-                        notes,
-                        status,
-                        payer: '',
-                        cost: undefined,
-                    });
-                    continue;
-                }
-
-                // Activity with budget — first row carries the activity
-                // name/location/notes, subsequent rows are payer-only so
-                // multi-payer items get stacked rows.
-                budget.forEach((b, idx) => {
-                    const payer = b.user?.label ?? b.user?.name ?? '';
-                    const amt =
-                        typeof b.budget === 'number'
-                            ? b.budget
-                            : Number(b.budget) || 0;
-                    if (idx === 0) {
-                        out.push({
-                            kind: 'activity',
-                            time,
-                            type,
-                            activity: name,
-                            location,
-                            locationHref: isUrl(location) ? location : undefined,
-                            notes,
-                            status,
-                            payer,
-                            cost: amt,
-                        });
-                    } else {
-                        out.push({
-                            kind: 'activity-payer-only',
-                            payer,
-                            cost: amt,
-                        });
-                    }
+                const budgetItems = (activity.budget ?? []) as BudgetItem[];
+                out.push({
+                    date,
+                    dateIso: day.date,
+                    item: activityDisplayName(activity),
+                    total: activityCost(activity, budgetItems),
                 });
             }
         }
@@ -240,251 +499,169 @@ const buildItineraryRows = (trip: TripState): ItinRow[] => {
     return out;
 };
 
-/** Build the primary "Itinerary" sheet. Returns the sheet object so it
- *  can be appended to the workbook by the caller. */
-const buildItinerarySheet = (trip: TripState) => {
-    const sheet: Record<string, any> = {};
+const buildExpenseSheet = async (
+    workbook: EWorkbook,
+    trip: TripState,
+): Promise<void> => {
+    const ws = workbook.addWorksheet('Expense Report');
 
-    const HEADER = [
-        'Time',
-        'Type',
-        'Activity',
-        'Location',
-        'Notes',
-        'Status',
-        'Paid by',
-        'Cost',
+    ws.columns = [
+        { width: 12 }, // Date
+        { width: 26 }, // Item / label
+        { width: 16 }, // Total
     ];
-    const NUM_COLS = HEADER.length; // 8
 
-    const merges: { s: { r: number; c: number }; e: { r: number; c: number } }[] = [];
-
-    // ── Title + multi-row meta block ──────────────────────────────────────
-    const tripName = collapseWs(trip.name) || 'Trip';
-    const dateRange = (() => {
-        if (!trip.startDate || !trip.endDate) return '';
-        const a = moment(trip.startDate);
-        const b = moment(trip.endDate);
-        if (!a.isValid() || !b.isValid()) return '';
-        return `${a.format('ddd MMM D')} – ${b.format('ddd MMM D, YYYY')}`;
-    })();
-    const nights = (() => {
-        if (!trip.startDate || !trip.endDate) return '';
-        const a = moment(trip.startDate);
-        const b = moment(trip.endDate);
-        if (!a.isValid() || !b.isValid()) return '';
-        const diff = b.diff(a, 'days');
-        if (!Number.isFinite(diff) || diff < 0) return '';
-        return diff === 0 ? 'Day trip' : `${diff} night${diff === 1 ? '' : 's'}`;
-    })();
-    const organizers = joinNames(trip.organizer);
-    const participants = joinNames(trip.friends);
-    const totalBudget =
-        typeof trip.budget === 'number' && trip.budget > 0
-            ? `$${trip.budget.toLocaleString()}`
-            : '';
-
-    const metaRows: { label: string; value: string }[] = [];
-    if (dateRange)
-        metaRows.push({
-            label: 'Dates',
-            value: nights ? `${dateRange}  (${nights})` : dateRange,
-        });
-    if (organizers) metaRows.push({ label: 'Organizers', value: organizers });
-    if (participants) metaRows.push({ label: 'Participants', value: participants });
-    if (totalBudget) metaRows.push({ label: 'Budget', value: totalBudget });
-    metaRows.push({
-        label: 'Generated',
-        value: moment().format('MMM D, YYYY h:mm A'),
+    // Per the sample, Expense Report has no logo at the top — the
+    // section header sits at row 1.
+    let r = 1;
+    const itemHeaderRow = ws.getRow(r);
+    ['Date', 'Item', 'Total'].forEach((label, i) => {
+        const c = itemHeaderRow.getCell(i + 1);
+        c.value = label;
+        styleHeaderCell(c);
     });
-
-    let r = 0;
-    // Row 0 — Trip name (merged across all columns).
-    sheet[cellRef(0, r)] = { v: tripName, t: 's' };
-    merges.push({ s: { r, c: 0 }, e: { r, c: NUM_COLS - 1 } });
+    itemHeaderRow.height = 22;
     r += 1;
 
-    // Meta block — one row per label/value. Label in col A, value
-    // spanning B..end. Reads top-to-bottom like a dossier intro.
-    for (const meta of metaRows) {
-        sheet[cellRef(0, r)] = { v: meta.label, t: 's' };
-        sheet[cellRef(1, r)] = { v: meta.value, t: 's' };
-        merges.push({ s: { r, c: 1 }, e: { r, c: NUM_COLS - 1 } });
-        r += 1;
-    }
-
-    // Blank separator before the table.
-    r += 1;
-
-    // Header row.
-    const headerRow = r;
-    HEADER.forEach((label, c) => {
-        sheet[cellRef(c, r)] = { v: label, t: 's' };
-    });
-    r += 1;
-
-    const dataStartRow = r;
-
-    // ── Body rows ────────────────────────────────────────────────────────
-    const rows = buildItineraryRows(trip);
-    for (const row of rows) {
-        if (row.kind === 'banner') {
-            sheet[cellRef(0, r)] = { v: row.bannerLabel ?? '', t: 's' };
-            merges.push({ s: { r, c: 0 }, e: { r, c: NUM_COLS - 1 } });
-            r += 1;
-            continue;
-        }
-
-        if (row.time) sheet[cellRef(0, r)] = { v: row.time, t: 's' };
-        if (row.type) sheet[cellRef(1, r)] = { v: row.type, t: 's' };
-        if (row.activity) sheet[cellRef(2, r)] = { v: row.activity, t: 's' };
-        if (row.location) {
-            const cell: any = { v: row.location, t: 's' };
-            if (row.locationHref) cell.l = { Target: row.locationHref };
-            sheet[cellRef(3, r)] = cell;
-        }
-        if (row.notes) sheet[cellRef(4, r)] = { v: row.notes, t: 's' };
-        if (row.status) sheet[cellRef(5, r)] = { v: row.status, t: 's' };
-        if (row.payer) sheet[cellRef(6, r)] = { v: row.payer, t: 's' };
-        if (typeof row.cost === 'number') {
-            sheet[cellRef(7, r)] = {
-                v: row.cost,
-                t: 'n',
-                z: CURRENCY_FORMAT,
+    // Item rows with date-column merges.
+    const items = collectExpenseItems(trip);
+    let groupStart = -1;
+    let groupDateIso = '';
+    const flushGroup = (endRow: number): void => {
+        if (groupStart >= 0 && endRow > groupStart) {
+            ws.mergeCells(groupStart, 1, endRow, 1);
+            ws.getCell(groupStart, 1).alignment = {
+                vertical: 'top',
+                wrapText: true,
             };
         }
-        r += 1;
-    }
-
-    const dataEndRow = Math.max(r - 1, dataStartRow);
-
-    // ── Inline footer total — the full breakdown lives on sheet 2,
-    // but a one-line "Grand total" keeps the itinerary sheet
-    // self-summarizing.
-    const { grandTotal } = computePayerTotals(trip);
-    r += 1;
-    sheet[cellRef(6, r)] = { v: 'Grand total', t: 's' };
-    sheet[cellRef(7, r)] = { v: grandTotal, t: 'n', z: CURRENCY_FORMAT };
-    r += 1;
-
-    // ── Sheet-level config ──────────────────────────────────────────────
-    sheet['!ref'] = `${cellRef(0, 0)}:${cellRef(NUM_COLS - 1, r)}`;
-    sheet['!cols'] = [
-        { wch: 18 }, // Time
-        { wch: 8 },  // Type
-        { wch: 34 }, // Activity
-        { wch: 32 }, // Location
-        { wch: 30 }, // Notes
-        { wch: 12 }, // Status
-        { wch: 14 }, // Paid by
-        { wch: 12 }, // Cost
-    ];
-    sheet['!merges'] = merges;
-    sheet['!freeze'] = { xSplit: 0, ySplit: dataStartRow };
-    sheet['!autofilter'] = {
-        ref: `${cellRef(0, headerRow)}:${cellRef(NUM_COLS - 1, dataEndRow)}`,
+        groupStart = -1;
+        groupDateIso = '';
     };
 
-    return sheet;
-};
+    for (const it of items) {
+        if (it.dateIso !== groupDateIso) {
+            flushGroup(r - 1);
+            groupDateIso = it.dateIso;
+            groupStart = r;
+            if (it.date) {
+                const dateCell = ws.getCell(r, 1);
+                dateCell.value = it.date;
+                dateCell.numFmt = DATE_FORMAT;
+                styleBodyCell(dateCell);
+            }
+        }
+        const itemCell = ws.getCell(r, 2);
+        itemCell.value = it.item;
+        styleBodyCell(itemCell);
+        const totalCell = ws.getCell(r, 3);
+        totalCell.value = it.total;
+        totalCell.numFmt = CURRENCY_FORMAT;
+        styleBodyCell(totalCell);
+        r += 1;
+    }
+    flushGroup(r - 1);
 
-/** Build the "Budget Summary" sheet — clean payer breakdown with totals
- *  and per-payer percentages. Lives on its own sheet so heavy travelers
- *  can copy/sort/filter without touching the itinerary. */
-const buildBudgetSheet = (trip: TripState) => {
-    const sheet: Record<string, any> = {};
-    const merges: { s: { r: number; c: number }; e: { r: number; c: number } }[] = [];
-    const HEADER = ['Person', 'Amount', '% of total'];
-    const NUM_COLS = HEADER.length;
+    // Two blank spacer rows between the items table and the Paid By
+    // section — matches the sample's visual breathing room.
+    r += 2;
 
-    const tripName = collapseWs(trip.name) || 'Trip';
+    // Paid By / Total sub-header. Col A stays blank — labels go in B,
+    // totals in C, matching the sample.
+    const paidByHeaderRow = ws.getRow(r);
+    const paidByLabelCell = paidByHeaderRow.getCell(2);
+    paidByLabelCell.value = 'Paid By';
+    styleHeaderCell(paidByLabelCell);
+    const paidByTotalCell = paidByHeaderRow.getCell(3);
+    paidByTotalCell.value = 'Total';
+    styleHeaderCell(paidByTotalCell);
+    paidByHeaderRow.height = 22;
+    r += 1;
+
     const { grandTotal, perPayer } = computePayerTotals(trip);
-    const payerSum = perPayer.reduce((acc, p) => acc + p.total, 0);
-    const balance = grandTotal - payerSum;
-
-    let r = 0;
-    // Row 0 — title.
-    sheet[cellRef(0, r)] = { v: `${tripName} — Budget Summary`, t: 's' };
-    merges.push({ s: { r, c: 0 }, e: { r, c: NUM_COLS - 1 } });
-    r += 1;
-    // Row 1 — total budget line (if set).
-    if (typeof trip.budget === 'number' && trip.budget > 0) {
-        sheet[cellRef(0, r)] = { v: 'Planned budget', t: 's' };
-        sheet[cellRef(1, r)] = { v: trip.budget, t: 'n', z: CURRENCY_FORMAT };
-        const used = grandTotal / trip.budget;
-        sheet[cellRef(2, r)] = { v: used, t: 'n', z: PERCENT_FORMAT };
+    for (const p of perPayer) {
+        const nameCell = ws.getCell(r, 2);
+        nameCell.value = p.name;
+        styleBodyCell(nameCell);
+        const totalCell = ws.getCell(r, 3);
+        totalCell.value = p.total;
+        totalCell.numFmt = CURRENCY_FORMAT;
+        styleBodyCell(totalCell);
         r += 1;
     }
-    sheet[cellRef(0, r)] = { v: 'Total spent', t: 's' };
-    sheet[cellRef(1, r)] = { v: grandTotal, t: 'n', z: CURRENCY_FORMAT };
+
+    // One blank spacer row before the Subtotal / Grand Total summary
+    // — matches the sample.
     r += 1;
 
-    // Blank separator.
-    r += 1;
-
-    // Header row.
-    const headerRow = r;
-    HEADER.forEach((label, c) => {
-        sheet[cellRef(c, r)] = { v: label, t: 's' };
-    });
-    r += 1;
-
-    const dataStartRow = r;
-
-    // Per-payer rows.
-    perPayer.forEach((p) => {
-        sheet[cellRef(0, r)] = { v: p.name, t: 's' };
-        sheet[cellRef(1, r)] = { v: p.total, t: 'n', z: CURRENCY_FORMAT };
-        if (grandTotal > 0) {
-            sheet[cellRef(2, r)] = {
-                v: p.total / grandTotal,
-                t: 'n',
-                z: PERCENT_FORMAT,
-            };
-        }
+    // Subtotal + Grand Total summary. The earlier Budget + Remaining
+    // rows were dropped to match the updated sample.
+    const writeSummaryRow = (label: string, value: number): void => {
+        const labelCell = ws.getCell(r, 2);
+        labelCell.value = label;
+        styleBoldBodyCell(labelCell);
+        const valueCell = ws.getCell(r, 3);
+        valueCell.value = value;
+        valueCell.numFmt = CURRENCY_FORMAT;
+        styleBoldBodyCell(valueCell);
         r += 1;
-    });
-
-    const dataEndRow = Math.max(r - 1, dataStartRow);
-
-    // Balance row.
-    r += 1;
-    sheet[cellRef(0, r)] = { v: 'Balance', t: 's' };
-    sheet[cellRef(1, r)] = { v: balance, t: 'n', z: CURRENCY_FORMAT };
-    r += 1;
-
-    sheet['!ref'] = `${cellRef(0, 0)}:${cellRef(NUM_COLS - 1, r)}`;
-    sheet['!cols'] = [
-        { wch: 24 }, // Person
-        { wch: 14 }, // Amount
-        { wch: 12 }, // % of total
-    ];
-    sheet['!merges'] = merges;
-    sheet['!freeze'] = { xSplit: 0, ySplit: dataStartRow };
-    sheet['!autofilter'] = {
-        ref: `${cellRef(0, headerRow)}:${cellRef(NUM_COLS - 1, dataEndRow)}`,
     };
-
-    return sheet;
+    writeSummaryRow('Subtotal', grandTotal);
+    writeSummaryRow('Grand Total', grandTotal);
 };
 
-export const exportTripToExcel = async (trip: TripState) => {
-    const XLSX = await import('xlsx');
+// ── Public entry ────────────────────────────────────────────────────────────
 
-    // NOTE: SheetJS Community Edition (`xlsx`) ignores cell `s` style
-    // properties — colors, fonts, fills are dropped at write time. We
-    // ship structural fidelity (rich header rows, day banners, hyperlinks,
-    // freeze pane, autofilter, currency formatting, dedicated budget
-    // sheet) and accept plain visual output for v1. Drop-in upgrade to
-    // `xlsx-js-style` (style-aware fork) would let the same data carry
-    // bold headers, banded rows, and green day banners with zero data
-    // changes — only the import line.
+export const exportTripToExcel = async (trip: TripState): Promise<void> => {
+    try {
+        // Lazy-import — ExcelJS adds ~600KB to the bundle and we
+        // only want that cost paid when someone actually clicks
+        // Download Excel. Handle both ESM and CJS-interop shapes
+        // (Vite resolves `exceljs` to its UMD browser bundle, which
+        // depending on bundler config can surface the `Workbook`
+        // ctor on the module namespace or under `.default`).
+        const mod = await import('exceljs');
+        const candidate =
+            (mod as { default?: unknown }).default ?? mod;
+        const ExcelJS = candidate as { Workbook: new () => EWorkbook };
+        if (typeof ExcelJS.Workbook !== 'function') {
+            // eslint-disable-next-line no-console
+            console.error(
+                '[exportTripToExcel] exceljs module did not expose a Workbook constructor. Module shape:',
+                Object.keys(mod ?? {}),
+            );
+            throw new Error(
+                'exceljs failed to load — check the browser console for details.',
+            );
+        }
 
-    const wb = XLSX.utils.book_new();
-    const itinerarySheet = buildItinerarySheet(trip);
-    const budgetSheet = buildBudgetSheet(trip);
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'daTryp';
+        workbook.created = new Date();
 
-    XLSX.utils.book_append_sheet(wb, itinerarySheet as any, 'Itinerary');
-    XLSX.utils.book_append_sheet(wb, budgetSheet as any, 'Budget Summary');
-    XLSX.writeFile(wb, `${safeFilename(trip.name)}.xlsx`);
+        await buildOverviewSheet(workbook, trip);
+        await buildItinerarySheet(workbook, trip);
+        await buildExpenseSheet(workbook, trip);
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeFilename(trip.name)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        // Surface a real error to the user — silent failures were
+        // making the Download Excel CTA look broken. Caller can
+        // still catch this and route to a toast; minimum, the
+        // console gets a stack so we can diagnose.
+        // eslint-disable-next-line no-console
+        console.error('[exportTripToExcel] failed:', err);
+        throw err;
+    }
 };

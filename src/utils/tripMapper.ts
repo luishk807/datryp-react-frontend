@@ -101,18 +101,39 @@ const budgetEntriesToInput = (
     return out;
 };
 
-/** Extract the backend `trip_statuses.id` UUID off an activity's local status,
- *  if it's actually a UUID. Legacy sample-data ids (numbers, or strings that
- *  don't match the UUID shape) are dropped so the backend doesn't 400 on a
- *  bad cast — those activities will just save with `trip_status_id = null`.
+/** Extract the backend `trip_statuses.id` UUID off an activity's local status.
+ *
+ *  Primary path: the status was set with a UUID (set by `useTripStatuses`
+ *  after the lookup resolved) → return it.
+ *
+ *  Fallback path: the activity carries a partial status object like
+ *  `{ id: 0, name: 'Confirmed' }` — happens when the user toggled the
+ *  status pill *before* `useTripStatuses` resolved (cold cache, fast
+ *  click). The numeric `0` is a placeholder; without the lookup we'd
+ *  silently drop the field and the backend would save
+ *  `trip_status_id = NULL`, which round-trips back as "Planning" and
+ *  looks like the toggle never persisted. The optional `statusLookup`
+ *  (name → UUID) resolves the real id by status name so the toggle
+ *  always saves, no matter when the user clicked relative to the
+ *  lookup query.
+ *
+ *  Legacy sample-data ids that aren't strings AND can't be name-resolved
+ *  still drop to null — the backend would 400 on a bad UUID cast,
+ *  and those activities are pre-existing test fixtures with no real
+ *  status anyway.
  */
 const activityStatusIdOf = (
-    status: Activity['status']
+    status: Activity['status'],
+    statusLookup?: Map<string, string>
 ): string | null => {
     if (!status || typeof status !== 'object') return null;
     const id = status.id;
-    if (typeof id !== 'string') return null;
-    return UUID_RE.test(id) ? id : null;
+    if (typeof id === 'string' && UUID_RE.test(id)) return id;
+    // Cold-cache / stale-id fallback: resolve UUID by name.
+    if (statusLookup && typeof status.name === 'string') {
+        return statusLookup.get(status.name) ?? null;
+    }
+    return null;
 };
 
 const flightSegmentsToInput = (
@@ -130,7 +151,8 @@ const flightSegmentsToInput = (
 
 const activityToInput = (
     activity: Activity,
-    dayDate?: string
+    dayDate: string | undefined,
+    statusLookup: Map<string, string> | undefined
 ): ActivityInput => ({
     name: activity.name?.trim() || 'Untitled activity',
     place: activity.place ?? null,
@@ -141,7 +163,7 @@ const activityToInput = (
     notes: activity.note ?? null,
     image: activity.image?.url ?? null,
     budget: sumBudget(activity.budget),
-    tripStatusId: activityStatusIdOf(activity.status),
+    tripStatusId: activityStatusIdOf(activity.status, statusLookup),
     budgets: budgetEntriesToInput(activity.budget),
     kind: activity.kind ?? null,
     flightSegments: flightSegmentsToInput(activity.flightSegments),
@@ -156,6 +178,13 @@ export interface MapTripOptions {
     id?: string | null;
     /** Per-save opt-out for the notification fan-out (default true). */
     notifyParticipants?: boolean;
+    /** Name → UUID lookup from `useTripStatuses`. Lets `activityStatusIdOf`
+     *  resolve an activity's status when its `id` is stale (numeric `0`
+     *  from the cold-cache toggle fallback) but its `name` is correct.
+     *  Without this, the activity saves with `trip_status_id = NULL` and
+     *  the post-save refetch shows Planning — looks like the toggle was
+     *  lost. */
+    activityStatusLookup?: Map<string, string>;
 }
 
 export const tripStateToSaveInput = (
@@ -164,6 +193,8 @@ export const tripStateToSaveInput = (
 ): SaveItineraryInput => {
     const isMulti = tripState.type?.id === TRIP_BASIC.MULTIPLE.id;
     const destinations = tripState.destinations ?? [];
+
+    const statusLookup = options.activityStatusLookup;
 
     const days: ItineraryDayInput[] = [];
     if (isMulti) {
@@ -174,7 +205,7 @@ export const tripStateToSaveInput = (
                     countryId: countryIdOf(dest.country),
                     flightInfo: flightToInput(dest.flightInfo, day.date),
                     activities: (day.activities ?? []).map((a) =>
-                        activityToInput(a, day.date)
+                        activityToInput(a, day.date, statusLookup)
                     ),
                 });
             }
@@ -187,7 +218,7 @@ export const tripStateToSaveInput = (
                 countryId: null,
                 flightInfo: null,
                 activities: (day.activities ?? []).map((a) =>
-                    activityToInput(a, day.date)
+                    activityToInput(a, day.date, statusLookup)
                 ),
             });
         }

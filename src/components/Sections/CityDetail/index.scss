@@ -198,22 +198,28 @@
   }
 }
 
-/* ── 70/30 top layout (hero + side cards) ── */
+/* ── Top layout (hero + side cards) ── */
+/* Three breakpoints, mirroring PlaceDetail:
+ *   mobile (<640px):  single column stacked.
+ *   tablet (640-1199px / all iPad portrait widths, incl. 12.9 Pro
+ *     at 1024px viewport): hero full-width on top,
+ *     weather/currency/safety in a 3-col row below.
+ *   desktop (≥1200px): classic 70/30 split, hero left + side stack
+ *     right at full hero height.
+ *
+ *  IMPORTANT: the base `.city-detail-side` block MUST come BEFORE
+ *  the media queries below — CSS source order resolves equal-
+ *  specificity rules, and we want the media-query overrides to
+ *  win on tablet and desktop. (Previously the base sat after the
+ *  media queries and stomped the tablet `display: grid` override,
+ *  collapsing the three widgets back into a vertical stack on
+ *  iPad.) Don't reorder these blocks without re-checking the
+ *  layout on every breakpoint.
+ */
 .city-detail-top {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-}
-
-@media (min-width: 640px) {
-  .city-detail-top {
-    grid-template-columns: 7fr 3fr;
-    align-items: stretch;
-  }
-  .city-detail-top .place-hero {
-    height: 100%;
-    aspect-ratio: auto;
-  }
 }
 
 .city-detail-side {
@@ -232,6 +238,56 @@
   .detail-section-title {
     font-size: 0.95rem;
     margin-bottom: 8px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1199px) {
+  .city-detail-top {
+    grid-template-columns: 1fr !important;
+    /* `!important` must sit at the END of the entire value, not
+     *  between the string tokens — embedding it mid-value (after
+     *  `'side'`) silently invalidates the whole declaration and,
+     *  in older versions of dart-sass, was rejecting this media
+     *  query block entirely. That's why the iPad tablet layout
+     *  was silently failing earlier. Do NOT split !important
+     *  across the multi-line value. */
+    grid-template-areas: 'hero' 'side' !important;
+  }
+  /* Belt-and-suspenders: explicit width: 100% + !important so the
+   *  hero takes the full container width on iPad portrait. Dropped
+   *  the earlier `max-height: 420px` cap because it made the image
+   *  look short relative to its container — the user explicitly
+   *  asked for a tall, full-width photo here. */
+  .city-detail-top > .place-hero {
+    grid-area: hero;
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  /* `!important` + higher specificity (`.city-detail-top >`) so the
+   *  tablet 3-column grid wins against any stray rule that might
+   *  later try to reassert `display: flex` on the side block.
+   *  Without one of these belts, the three widgets stacked back
+   *  into a column on iPad portrait. */
+  .city-detail-top > .city-detail-side {
+    grid-area: side;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    flex-direction: row !important;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .city-detail-top {
+    grid-template-columns: 7fr 3fr;
+    align-items: stretch;
+  }
+  .city-detail-top .place-hero {
+    height: 100%;
+    aspect-ratio: auto;
   }
 }
 

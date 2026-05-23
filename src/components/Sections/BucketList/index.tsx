@@ -15,7 +15,6 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import { IconButton } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
@@ -338,11 +337,16 @@ const BucketList = () => {
                                         }
                                     >
                                         {isPro ? (
-                                            <FlightTakeoffRoundedIcon fontSize="small" />
+                                            <AutoAwesomeRoundedIcon
+                                                fontSize="small"
+                                                className="bucket-card-cta-sparkle"
+                                            />
                                         ) : (
                                             <LockRoundedIcon fontSize="small" />
                                         )}
-                                        <span>Create trip</span>
+                                        <span>
+                                            {isPro ? 'AI-build trip' : 'Create trip'}
+                                        </span>
                                         {!isPro && (
                                             <span className="bucket-card-pro-tag">
                                                 Pro

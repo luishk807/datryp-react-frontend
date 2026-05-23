@@ -159,7 +159,12 @@
   position: absolute;
   left: 0;
   width: 100%;
-  z-index: 10;
+  // Above the page's sticky toolbar (`z-index: 50` on CountryDetail /
+  // PlaceDetail / CityDetail) and the floating action toolbar
+  // (`z-index: 10`). At z-index 10 the dropdown intermingled with
+  // the Save / I've been here / Share / Start planning chips when
+  // typing in the subpage search.
+  z-index: 100;
   background: #fff;
   border-radius: 14px;
   padding: 6px;
@@ -376,7 +381,10 @@
   max-height: 360px;
   overflow: auto;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  z-index: 10;
+  // Same reason as listContainerV2 — sit above the subpage sticky
+  // toolbar so AI-search results don't render behind Save / Share /
+  // Start planning chips.
+  z-index: 100;
   display: flex;
   flex-direction: column;
   gap: 4px;

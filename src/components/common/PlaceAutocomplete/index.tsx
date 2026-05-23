@@ -141,7 +141,14 @@ const PlaceAutocomplete = ({
                 onTextChange(next);
             }}
             onChange={handleChange}
-            loading={isFetching || isTyping}
+            // Only flag `loading` while a real API request is in flight,
+            // NOT during the local debounce window. With `loading={true}`
+            // MUI auto-opens the listbox to show the loading indicator,
+            // and once that listbox is mounted some keystrokes — most
+            // notably space — get intercepted by its keydown handler
+            // before reaching the input. Bug repro: type "Eat" → wait
+            // a beat → press space → space is dropped.
+            loading={isFetching}
             noOptionsText={
                 value.trim().length < MIN_CHARS
                     ? `Type at least ${MIN_CHARS} characters`

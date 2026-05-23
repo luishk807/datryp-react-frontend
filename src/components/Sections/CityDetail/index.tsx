@@ -30,6 +30,7 @@ import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
 import VisaSection from "components/PlaceDetail/VisaSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
+import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
 import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
@@ -398,6 +399,11 @@ const CityDetail = () => {
                             bestTime={details.bestTimeToVisit}
                             worstTime={details.worstTimeToVisit}
                             isError={false}
+                        />
+
+                        <LatestNewsSection
+                            country={city.country}
+                            placeName={city.name}
                         />
                     </aside>
                 </div>

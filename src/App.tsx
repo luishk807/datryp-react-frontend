@@ -26,6 +26,7 @@ const Saved = lazy(() => import('components/Sections/Saved'));
 const BucketList = lazy(() => import('components/Sections/BucketList'));
 const Signup = lazy(() => import('components/Sections/Signup'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
+const PreparingTrip = lazy(() => import('components/Sections/PreparingTrip'));
 const CityDetail = lazy(() => import('components/Sections/CityDetail'));
 const Terms = lazy(() => import('components/Sections/Terms'));
 const Privacy = lazy(() => import('components/Sections/Privacy'));
@@ -128,6 +129,11 @@ function App() {
                     <Suspense fallback={<>...</>}>
                         <CountryDetail />
                     </Suspense>
+                }/>
+                <Route path='/preparing-trip' element={
+                    <Gated title="Sign in to plan your trip">
+                        <PreparingTrip />
+                    </Gated>
                 }/>
                 <Route path='/city' element={
                     <Suspense fallback={<>...</>}>

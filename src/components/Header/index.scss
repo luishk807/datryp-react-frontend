@@ -11,8 +11,16 @@
   // sticky toolbar on detail pages. Letting it scroll away naturally
   // gives the toolbar the top of the viewport while users can still
   // reach the nav by scrolling back up.
+  //
+  // z-index = 100 — above the page's sticky toolbar (z-index: 50 on
+  // CountryDetail / PlaceDetail / CityDetail). At z-index: 5 the
+  // header sat in a stacking context BELOW the toolbar, which meant
+  // the search-bar dropdown opened *behind* Save / I've been here /
+  // Share / Start planning chips no matter how high we pushed the
+  // dropdown's own z-index (children can't escape their parent's
+  // stacking context). Bumping the header itself fixes it.
   position: relative;
-  z-index: 5;
+  z-index: 100;
 }
 
 .app-header-inner {

@@ -158,56 +158,24 @@
 /* ── Top layout (hero + side cards) ────────────────────────────────────── */
 /* Three breakpoints:
  *   mobile (<640px):  single column, hero stacked above side cards.
- *   tablet (640–1023px / iPad): hero full-width on top, side cards in a
- *     row of 3 below. Image is wider so it gets the visual weight, and
- *     the 3 stat cards (weather / currency / safety) sit on one tidy
- *     row below — matches the "image full width, widgets in a row"
- *     layout request.
- *   desktop (≥1024px): classic 70/30 split, hero left + side stack
+ *   tablet (640–1199px / all iPad portrait widths, incl. 12.9 Pro
+ *     at 1024px viewport): hero full-width on top, side cards in
+ *     a row of 3 below.
+ *   desktop (≥1200px): classic 70/30 split, hero left + side stack
  *     right at full hero height.
+ *
+ *  IMPORTANT: the base `.place-detail-side` block MUST come BEFORE
+ *  the media queries below — CSS source order resolves equal-
+ *  specificity rules. (Previously the base sat after the media
+ *  queries and silently stomped the tablet `display: grid` override,
+ *  collapsing the three widgets back into a vertical stack on
+ *  iPad.) Don't reorder these blocks without re-checking the
+ *  layout on every breakpoint.
  */
 .place-detail-top {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-}
-
-/* Tablet / iPad — hero full-width, side cards in a 3-col row below. */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .place-detail-top {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'hero'
-      'side';
-  }
-  .place-detail-top .place-hero {
-    grid-area: hero;
-    width: 100%;
-    /* Slightly wider/shorter crop so the photo fills the page without
-     * dominating it. object-fit: cover (set on the img) keeps the
-     * subject centered even at this aspect. */
-    aspect-ratio: 16 / 9;
-    max-height: 420px;
-  }
-  .place-detail-side {
-    grid-area: side;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .place-detail-top {
-    grid-template-columns: 7fr 3fr;
-    align-items: stretch;
-  }
-  /* Stretch the hero to match the aside (Weather + Currency + Safety) on
-   * desktop. Drop the aspect-ratio so it doesn't fight `height: 100%`. */
-  .place-detail-top .place-hero {
-    height: 100%;
-    aspect-ratio: auto;
-  }
 }
 
 .place-detail-side {
@@ -227,6 +195,46 @@
 .place-detail-side .detail-section-title {
   font-size: 0.95rem;
   margin-bottom: 8px;
+}
+
+/* Tablet / iPad — hero full-width, side cards in a 3-col row below. */
+@media (min-width: 640px) and (max-width: 1199px) {
+  .place-detail-top {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'hero'
+      'side';
+  }
+  .place-detail-top > .place-hero {
+    grid-area: hero;
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  .place-detail-top > .place-detail-side {
+    grid-area: side;
+    /* Flip from the base flex-column to a 3-column grid so weather,
+     *  currency, and safety land side-by-side under the hero. */
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    flex-direction: row !important;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .place-detail-top {
+    grid-template-columns: 7fr 3fr;
+    align-items: stretch;
+  }
+  /* Stretch the hero to match the aside (Weather + Currency + Safety) on
+   * desktop. Drop the aspect-ratio so it doesn't fight `height: 100%`. */
+  .place-detail-top .place-hero {
+    height: 100%;
+    aspect-ratio: auto;
+  }
 }
 
 /* Top toolbar: back link on the left, save + share pill actions on the right. */

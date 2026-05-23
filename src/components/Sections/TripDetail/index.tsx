@@ -15,6 +15,7 @@ import {
 import Menu, { MenuActionItem } from "components/common/Menu";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
+import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
 import TableChartOutlinedIcon from "@mui/icons-material/TableChartOutlined";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -51,6 +52,7 @@ import { tripStateToSaveInput } from "utils/tripMapper";
 import { isSameDay } from "utils";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
+import { exportTripToPdf, printTripPdf } from "utils/exportTripPdf";
 import type {
   Activity,
   ActivityStatus,
@@ -109,6 +111,15 @@ export const TripDetail = () => {
   const saveItinerary = useSaveItinerary();
   const deleteItinerary = useDeleteItinerary();
   const { data: tripStatuses = [] } = useTripStatuses();
+  // Name → UUID lookup passed to `tripStateToSaveInput` so per-activity
+  // status toggles that captured `{ id: 0, name: 'Confirmed' }` (cold
+  // cache) still serialize the real UUID. Without this, the toggle
+  // appears to take effect locally but the post-save refetch reverts
+  // the activity to Planning.
+  const activityStatusLookup = useMemo(
+    () => new Map(tripStatuses.map((s) => [s.name, s.id])),
+    [tripStatuses],
+  );
   const [saveError, setSaveError] = useState<string | null>(null);
   // Per-save opt-out for the participant notification fan-out. Defaults
   // ON; one checkbox in the header controls every save / status change /
@@ -245,6 +256,7 @@ export const TripDetail = () => {
           interaryTypeId: apiTrip.interaryType.id,
           tripStatusId: apiTrip.status?.id ?? null,
           notifyParticipants,
+          activityStatusLookup,
         });
         void saveItinerary.mutateAsync(input).catch((err: unknown) => {
           setSaveError(
@@ -275,6 +287,7 @@ export const TripDetail = () => {
           ? String(statusOverride.id)
           : apiTrip.status?.id ?? null,
         notifyParticipants,
+        activityStatusLookup,
       });
       await saveItinerary.mutateAsync(input);
       // Cache invalidation triggers a refetch; baseTripData updates and the
@@ -333,7 +346,13 @@ export const TripDetail = () => {
     isOrganizer &&
     (persistedStatusName === TRIP_STATUS.PLANNING ||
       persistedStatusName === TRIP_STATUS.CONFIRMED);
-  const canExport = isLocked;
+  // Share + download are always allowed once a trip exists, regardless
+  // of its lifecycle state. Sharing in Planning lets organizers send
+  // the draft to participants for feedback; sharing in Confirmed /
+  // Completed lets anyone retrieve the final copy. Previously gated to
+  // `isLocked` (Confirmed/Completed/Cancelled), which silently hid the
+  // share button while drafting.
+  const canExport = true;
 
   // Once the trip is past Planning, both the basic-info stats and the
   // budget bar collapse behind a SINGLE Show/Hide detail button driven
@@ -362,6 +381,7 @@ export const TripDetail = () => {
           interaryTypeId: apiTrip.interaryType.id,
           tripStatusId: String(next.id),
           notifyParticipants,
+          activityStatusLookup,
         });
         await saveItinerary.mutateAsync(input);
         setStatusOverride(null);
@@ -392,6 +412,7 @@ export const TripDetail = () => {
         interaryTypeId: apiTrip.interaryType.id,
         tripStatusId: String(cancelled.id),
         notifyParticipants,
+        activityStatusLookup,
       });
       await saveItinerary.mutateAsync(input);
       setStatusOverride(null);
@@ -417,6 +438,11 @@ export const TripDetail = () => {
   const handleExportExcel = () => {
     if (!tripData) return;
     void exportTripToExcel(tripData);
+  };
+
+  const handleExportPdf = () => {
+    if (!tripData) return;
+    void exportTripToPdf(tripData);
   };
 
   if (isLoading) {
@@ -491,8 +517,12 @@ export const TripDetail = () => {
             isSaving={saveItinerary.isPending}
             isDeleting={deleteItinerary.isPending}
             onEditTrip={handleChangeStep}
-            onPrint={() => window.print()}
+            onPrint={() => {
+              if (!tripData) return;
+              void printTripPdf(tripData);
+            }}
             onDownloadExcel={handleExportExcel}
+            onDownloadPdf={handleExportPdf}
             onStatusChange={handleStatusChange}
             onCancelTrip={handleCancelTrip}
             onDeleteTrip={handleDeleteTrip}
@@ -566,6 +596,7 @@ interface TripDetailHeaderProps {
   onEditTrip: () => void;
   onPrint: () => void;
   onDownloadExcel: () => void;
+  onDownloadPdf: () => void;
   onStatusChange: (next: TripStatus) => void | Promise<void>;
   onCancelTrip: () => void | Promise<void>;
   onDeleteTrip: () => void | Promise<void>;
@@ -589,6 +620,7 @@ const TripDetailHeader = ({
   onEditTrip,
   onPrint,
   onDownloadExcel,
+  onDownloadPdf,
   onStatusChange,
   onCancelTrip,
   onDeleteTrip,
@@ -609,6 +641,10 @@ const TripDetailHeader = ({
   const handleDownloadExcel = () => {
     exportModalRef.current?.closeModal();
     onDownloadExcel();
+  };
+  const handleDownloadPdf = () => {
+    exportModalRef.current?.closeModal();
+    onDownloadPdf();
   };
 
   // Share-text helpers — build a short itinerary summary suitable for
@@ -783,12 +819,27 @@ const TripDetailHeader = ({
               <button
                 type="button"
                 className="trip-export-option"
+                onClick={handleDownloadPdf}
+              >
+                <PictureAsPdfOutlinedIcon className="trip-export-option-icon" />
+                <span className="trip-export-option-text">
+                  <span className="trip-export-option-title">
+                    Download PDF
+                  </span>
+                  <span className="trip-export-option-hint">
+                    Branded two-page report — itinerary + expense summary.
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="trip-export-option"
                 onClick={handlePrint}
               >
                 <PrintOutlinedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
                   <span className="trip-export-option-title">
-                    Print / PDF
+                    Print
                   </span>
                   <span className="trip-export-option-hint">
                     Opens your browser's print preview — save as PDF or send

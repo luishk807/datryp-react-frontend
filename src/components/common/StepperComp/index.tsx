@@ -187,6 +187,9 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                 interaryTypeId,
                 tripStatusId: cancelledRow.id,
                 notifyParticipants,
+                activityStatusLookup: new Map(
+                    tripStatuses.map((s) => [s.name, s.id])
+                ),
             });
             await saveItinerary.mutateAsync(input);
             navigate(`/trip-detail?id=${data.apiId}`);
@@ -380,6 +383,15 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             interaryTypeId,
             tripStatusId,
             notifyParticipants,
+            // Resolve activity statuses by NAME when the toggled
+            // pill captured the placeholder `{ id: 0, name: ... }`
+            // before useTripStatuses resolved. Without this, every
+            // toggle made on cold cache saves as `null` and the
+            // post-save refetch reverts the badge to Planning —
+            // looking like the save lost the change.
+            activityStatusLookup: new Map(
+                tripStatuses.map((s) => [s.name, s.id])
+            ),
         });
         // Note: the creator is always implicitly the owner (`user_id`) and can
         // edit regardless of organizer status, so we respect their choice to

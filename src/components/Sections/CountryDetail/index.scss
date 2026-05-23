@@ -197,22 +197,25 @@
   }
 }
 
-/* ── 70/30 top layout (hero + side cards) — same as PlaceDetail ── */
+/* ── Top layout (hero + side cards) — three breakpoints matching
+ *   PlaceDetail / CityDetail:
+ *     mobile (<640px):     single column stacked.
+ *     tablet (640-1199px / all iPad portrait widths, incl. 12.9
+ *       Pro at 1024px viewport): hero full-width on top, the three
+ *       side widgets (weather / currency / safety) in a 3-col row
+ *       below.
+ *     desktop (≥1200px): classic 70/30 split, hero left + side
+ *       stack right at full hero height.
+ *
+ *  IMPORTANT: the base `.country-detail-side` block MUST come BEFORE
+ *  the media queries — CSS source order resolves equal-specificity
+ *  rules. Don't reorder without re-checking layouts across the
+ *  three breakpoints.
+ */
 .country-detail-top {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
-}
-
-@media (min-width: 640px) {
-  .country-detail-top {
-    grid-template-columns: 7fr 3fr;
-    align-items: stretch;
-  }
-  .country-detail-top .place-hero {
-    height: 100%;
-    aspect-ratio: auto;
-  }
 }
 
 .country-detail-side {
@@ -231,6 +234,39 @@
   .detail-section-title {
     font-size: 0.95rem;
     margin-bottom: 8px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1199px) {
+  .country-detail-top {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: 'hero' 'side' !important;
+  }
+  .country-detail-top > .place-hero {
+    grid-area: hero;
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  .country-detail-top > .country-detail-side {
+    grid-area: side;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    flex-direction: row !important;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .country-detail-top {
+    grid-template-columns: 7fr 3fr;
+    align-items: stretch;
+  }
+  .country-detail-top .place-hero {
+    height: 100%;
+    aspect-ratio: auto;
   }
 }
 

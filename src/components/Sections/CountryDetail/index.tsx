@@ -39,9 +39,9 @@ import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetails } from "api/hooks/useCountryDetails";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useIsStuck } from "hooks/useIsStuck";
-import { addPlace, basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
+import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import { now } from "utils";
-import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
+import { TRIP_BASIC } from "constants";
 import type { Destination } from "types";
 
 const CountryDetail = () => {
@@ -111,29 +111,32 @@ const CountryDetail = () => {
 
     // Seed flow: when the user arrived via the "Your top pick"
     // homepage card and the monthly pick's country matches this
-    // page, pre-fill the new trip with the 4 highlights as activity
-    // rows so the user lands in the wizard with content (not an
-    // empty itinerary they have to fill in).
+    // page, route through `/preparing-trip` so the per-highlight
+    // recommender enrichment happens on a dedicated loading screen
+    // with a progress indicator. Sitting on /country while 4-12
+    // backend calls fire behind a disabled CTA was unclear UX —
+    // the standalone loading page makes the wait its own moment.
     if (seedMatchesThisCountry && monthlyBestPlace.data) {
       const { place, highlights } = monthlyBestPlace.data;
-      const location = `${place.name}, ${country.name}`;
       // Take up to 4 — guarantees the wizard's Day-1 doesn't get
       // overwhelmed if the prompt ever returns more.
-      highlights.slice(0, 4).forEach((h) => {
-        dispatch(
-          addPlace({
-            value: {
-              kind: ACTIVITY_KIND.PLACE,
-              name: h.title,
-              note: h.description,
-              location,
-            },
-            index: 0,
-            date: today,
-            destinationIndx: 0,
-          }),
-        );
+      const picks = highlights.slice(0, 4);
+      navigate('/preparing-trip', {
+        state: {
+          targetRoute: tripType.route,
+          today,
+          country: {
+            id: country.id,
+            name: country.name,
+            code: country.code,
+            local: country.local,
+            image: country.image,
+          },
+          fallbackLocation: `${place.name}, ${country.name}`,
+          highlights: picks,
+        },
       });
+      return;
     }
 
     navigate(tripType.route, { replace: true });

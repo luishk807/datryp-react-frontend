@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Center the card vertically + horizontally within whatever the
+// Layout gives us. `min-height: 100%` is too parent-dependent on
+// some screens; use `min-height: 60vh` so the card is always
+// visually anchored mid-viewport even if the Layout container is
+// taller than the viewport (e.g. when scrollbars take over).
+.preparing-trip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 32px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.preparing-trip-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 48px 32px 36px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.preparing-trip-spinner {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 4px solid rgba(60, 181, 75, 0.18);
+  border-top-color: theme('colors.primaryGreen');
+  animation: preparing-trip-spin 0.9s linear infinite;
+  margin-bottom: 4px;
+}
+
+@keyframes preparing-trip-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.preparing-trip-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  svg {
+    font-size: 0.95rem;
+  }
+}
+
+.preparing-trip-title {
+  margin: 0;
+  font-size: clamp(1.25rem, 3.5vw, 1.6rem);
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.preparing-trip-subtitle {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
+  max-width: 380px;
+}
+
+.preparing-trip-progress-track {
+  width: 100%;
+  max-width: 380px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.preparing-trip-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.preparing-trip-progress-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.65);
+  font-weight: 500;
+  line-height: 1.4;
+  // Avoid horizontal overflow with long landmark names on mobile —
+  // wrap onto a second line instead of pushing the card wider.
+  overflow-wrap: anywhere;
+}
+
+.preparing-trip-progress-count {
+  color: rgba(0, 0, 0, 0.45);
+  font-weight: 400;
+}
+
+.preparing-trip-steps {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.preparing-trip-step {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  font-size: 0.86rem;
+  transition: background 0.18s ease, opacity 0.18s ease;
+  min-width: 0;
+
+  &.is-done {
+    background: rgba(60, 181, 75, 0.08);
+    color: theme('colors.primary');
+
+    .preparing-trip-step-icon {
+      color: theme('colors.primaryGreen');
+    }
+  }
+
+  &.is-active {
+    background: rgba(247, 159, 38, 0.1);
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+
+  &.is-queued {
+    opacity: 0.55;
+  }
+}
+
+.preparing-trip-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.preparing-trip-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: theme('colors.primaryOrange');
+  animation: preparing-trip-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes preparing-trip-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.preparing-trip-step-label {
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Mobile (≤640px) — tighten the card so it stops just shy of
+// the viewport edge and the chrome doesn't shove the spinner
+// off-screen. ──────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .preparing-trip {
+    padding: 16px 12px;
+    min-height: 70vh;
+  }
+
+  .preparing-trip-card {
+    padding: 32px 18px 24px;
+    border-radius: 18px;
+    gap: 10px;
+  }
+
+  .preparing-trip-spinner {
+    width: 44px;
+    height: 44px;
+    border-width: 3px;
+  }
+
+  .preparing-trip-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .preparing-trip-step {
+    padding: 7px 10px;
+    font-size: 0.82rem;
+  }
+
+  .preparing-trip-step-label {
+    // On very narrow screens, allow the step label to wrap rather
+    // than ellipsis — losing characters of a landmark name reads
+    // worse than two lines.
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
