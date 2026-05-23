@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import './index.scss';
 import { formatDate, isValidDate, now } from 'utils';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import AddLocationAltRoundedIcon from '@mui/icons-material/AddLocationAltRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
+import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchBar from 'components/SearchBar';
 import PlaceAutocomplete, {
@@ -183,12 +184,14 @@ const AddDestinationBtn = ({
                     ref={modelRef}
                     buttonProps={{
                         title,
-                        Icon: buttonType === BUTTON_VARIANT.STANDARD ? AddCircleIcon : null,
+                        Icon:
+                            buttonType === BUTTON_VARIANT.STANDARD
+                                ? AddLocationAltRoundedIcon
+                                : null,
                         type: buttonType,
                     }}
                 >
                     <div className="add-destination-comp">
-                        <div className="add-destination-scroll">
                             <section className="add-destination-group">
                                 <header className="add-destination-group-head">
                                     <span className="add-destination-group-num">1</span>
@@ -251,11 +254,12 @@ const AddDestinationBtn = ({
                                 </div>
                                 <div className="add-destination-field">
                                     <label className="add-destination-label">Departure airport</label>
-                                    <InputField
-                                        defaultValue={destination.flightInfo?.departAirport}
-                                        label=""
-                                        name="departAirport"
-                                        onChange={(e) => handleOnFlightInfo('departAirport', e.target.value)}
+                                    <AirportAutocomplete
+                                        value={destination.flightInfo?.departAirport ?? ''}
+                                        onChange={(code) =>
+                                            handleOnFlightInfo('departAirport', code)
+                                        }
+                                        placeholder="IATA code, city, or airport"
                                     />
                                 </div>
                                 <div className="add-destination-row">
@@ -293,11 +297,12 @@ const AddDestinationBtn = ({
                                 </header>
                                 <div className="add-destination-field">
                                     <label className="add-destination-label">Arrival airport</label>
-                                    <InputField
-                                        defaultValue={destination.flightInfo?.arrivalAirport}
-                                        name="Arrival Airport"
-                                        label=""
-                                        onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}
+                                    <AirportAutocomplete
+                                        value={destination.flightInfo?.arrivalAirport ?? ''}
+                                        onChange={(code) =>
+                                            handleOnFlightInfo('arrivalAirport', code)
+                                        }
+                                        placeholder="IATA code, city, or airport"
                                     />
                                 </div>
                                 <div className="add-destination-row">
@@ -325,7 +330,6 @@ const AddDestinationBtn = ({
                                     </div>
                                 </div>
                             </section>
-                        </div>
 
                         <div className="add-destination-actions">
                             <ButtonCustom

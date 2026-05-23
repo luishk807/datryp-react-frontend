@@ -211,6 +211,18 @@ const ShareButton = ({
 
             <ModalButton ref={modalRef} title="Share">
                 <div className="share-modal">
+                    {/* Localhost-testing hint — when running against a
+                        local backend, social crawlers (Twitter/FB/WhatsApp)
+                        can't reach the URL, so the rich unfurl preview
+                        won't render. Production URLs unfurl correctly. */}
+                    {/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(previewUrl) && (
+                        <p className="share-modal-dev-note">
+                            Heads-up: this is a localhost preview URL.
+                            Facebook / X / WhatsApp can't reach it, so the
+                            rich card won't unfurl while testing locally.
+                            It works on production.
+                        </p>
+                    )}
                     {/* Preview card — mirrors the rough shape of what a
                         social-link unfurl will look like once the URL is
                         shared. Image + title + subtitle + description so

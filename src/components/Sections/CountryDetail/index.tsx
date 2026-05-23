@@ -31,6 +31,7 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import VisaSection from "components/PlaceDetail/VisaSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
+import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
 import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
@@ -358,6 +359,8 @@ const CountryDetail = () => {
               worstTime={details.worstTimeToVisit}
               isError={false}
             />
+
+            <LatestNewsSection country={country.name} />
           </aside>
         </div>
 

@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.place-suggestions {
+  margin: 0 0 14px;
+  padding: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.06) 0%,
+    rgba(247, 159, 38, 0.05) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+}
+
+.place-suggestions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.place-suggestions-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.place-suggestions-shuffle {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.6);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.4s ease;
+
+  &:hover:not(:disabled) {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+  }
+
+  &:active:not(:disabled) {
+    transform: rotate(180deg);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.place-suggestions-error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.place-suggestions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.place-suggestions-card {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 8px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: rgba(60, 181, 75, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &.is-picked {
+    border-color: theme('colors.primaryGreen');
+    background: rgba(60, 181, 75, 0.05);
+  }
+
+  &.is-skeleton {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: transparent;
+
+    &:hover {
+      border-color: transparent;
+      box-shadow: none;
+    }
+  }
+}
+
+.place-suggestions-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+
+  &.is-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(60, 181, 75, 0.1);
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.place-suggestions-card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.place-suggestions-card-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: theme('colors.primary');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-suggestions-card-loc {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skeleton-line {
+  display: block;
+  height: 0.9rem;
+  width: 70%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.12) 50%,
+    rgba(0, 0, 0, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: place-suggestions-shimmer 1.4s linear infinite;
+
+  &.short {
+    width: 45%;
+    height: 0.75rem;
+  }
+}
+
+@keyframes place-suggestions-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.place-suggestions-add {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(60, 181, 75, 0.3);
+  }
+
+  &:disabled {
+    background: rgba(60, 181, 75, 0.55);
+    cursor: default;
+  }
+}

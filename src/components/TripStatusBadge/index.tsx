@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react';
 import classnames from 'classnames';
 import {
+    Alert,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
+    Snackbar,
 } from '@mui/material';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import ErrorAlert from 'components/common/ErrorAlert';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
@@ -169,9 +170,22 @@ export const TripStatusBadge = ({
                 <Icon className="trip-status-badge-icon" />
                 <span className="trip-status-badge-label">{label}</span>
             </ButtonCustom>
-            {error && (
-                <ErrorAlert className="trip-status-badge-error">{error}</ErrorAlert>
-            )}
+            <Snackbar
+                open={!!error}
+                autoHideDuration={6000}
+                onClose={() => setError(null)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                sx={{ zIndex: 1500 }}
+            >
+                <Alert
+                    severity="warning"
+                    variant="filled"
+                    onClose={() => setError(null)}
+                    sx={{ maxWidth: 560, width: '100%' }}
+                >
+                    {error}
+                </Alert>
+            </Snackbar>
 
             <Dialog
                 open={confirmOpen}

@@ -120,6 +120,13 @@ const PlaceAutocomplete = ({
         <Autocomplete<PlaceRecommendation, false, false, true>
             freeSolo
             disabled={disabled}
+            // Bump popper z-index above MUI Modal (1300) so the dropdown
+            // is visible when this picker is rendered inside a modal —
+            // most relevant on mobile where some WebKit builds hide
+            // popper content behind modals.
+            slotProps={{
+                popper: { sx: { zIndex: 1500 } },
+            }}
             options={options}
             inputValue={value}
             // Disable MUI's built-in client-side filtering — the backend

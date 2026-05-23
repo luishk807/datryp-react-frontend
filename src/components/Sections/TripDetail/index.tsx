@@ -3,17 +3,22 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { produce } from "immer";
 import "./index.scss";
 import {
+  Alert,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
   IconButton,
+  Snackbar,
 } from "@mui/material";
 import Menu, { MenuActionItem } from "components/common/Menu";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import TableChartOutlinedIcon from "@mui/icons-material/TableChartOutlined";
+import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -453,6 +458,22 @@ export const TripDetail = () => {
 
   return (
     <Layout>
+      <Snackbar
+        open={!!saveError}
+        autoHideDuration={6000}
+        onClose={() => setSaveError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ zIndex: 1500 }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          onClose={() => setSaveError(null)}
+          sx={{ maxWidth: 640, width: '100%' }}
+        >
+          {saveError}
+        </Alert>
+      </Snackbar>
       <Grid container>
         {/* Standalone trip header — title + action buttons. Lives
             OUTSIDE BasicTripInfo so Hide detail can unmount the basic-
@@ -590,6 +611,63 @@ const TripDetailHeader = ({
     onDownloadExcel();
   };
 
+  // Share-text helpers — build a short itinerary summary suitable for
+  // dropping into an email body, WhatsApp message, or copy-to-clipboard
+  // toast. We deliberately keep it short (trip name + dates + URL) so
+  // it works on platforms with text limits.
+  const buildShareUrl = () => {
+    if (typeof window === "undefined") return "";
+    if (tripData.apiId) {
+      return `${window.location.origin}/trip-detail?id=${tripData.apiId}`;
+    }
+    return window.location.href;
+  };
+
+  const buildShareBody = () => {
+    const lines: string[] = [];
+    const tripTitle = tripData.name?.trim() || "My trip";
+    lines.push(`📍 ${tripTitle}`);
+    if (tripData.startDate && tripData.endDate) {
+      lines.push(`🗓 ${tripData.startDate} → ${tripData.endDate}`);
+    }
+    const countries = (tripData.destinations ?? [])
+      .map((d) => d.country?.name)
+      .filter((n): n is string => Boolean(n));
+    if (countries.length) {
+      lines.push(`✈️ ${countries.join(" · ")}`);
+    }
+    const url = buildShareUrl();
+    if (url) lines.push(url);
+    return lines.join("\n");
+  };
+
+  const handleShareWhatsApp = () => {
+    exportModalRef.current?.closeModal();
+    const text = encodeURIComponent(buildShareBody());
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareEmail = () => {
+    exportModalRef.current?.closeModal();
+    const tripTitle = tripData.name?.trim() || "My trip";
+    const subject = encodeURIComponent(`Trip: ${tripTitle}`);
+    const body = encodeURIComponent(buildShareBody());
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const [copyToast, setCopyToast] = useState(false);
+  const handleCopyLink = async () => {
+    exportModalRef.current?.closeModal();
+    const url = buildShareUrl();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyToast(true);
+    } catch {
+      // Silent — clipboard API can fail under HTTP / sandboxed iframes.
+    }
+  };
+
   const closeMenu = () => setMenuAnchor(null);
   const openConfirm = (kind: "cancel" | "delete") => {
     closeMenu();
@@ -648,17 +726,60 @@ const TripDetailHeader = ({
         {canExport && (
           <ModalButton
             ref={exportModalRef}
-            title="Download trip"
+            title="Share or download trip"
             buttonProps={{
               type: "standard",
               className: "trip-detail-download-btn",
               Icon: IosShareIcon,
               iconProps: { fontSize: "small" },
-              title: "Download",
-              ariaLabel: "Download trip",
+              title: "Share",
+              ariaLabel: "Share or download trip",
             }}
           >
             <div className="trip-export-options">
+              <h4 className="trip-export-section-head">Share with people</h4>
+              <button
+                type="button"
+                className="trip-export-option"
+                onClick={handleShareWhatsApp}
+              >
+                <WhatsAppIcon className="trip-export-option-icon" />
+                <span className="trip-export-option-text">
+                  <span className="trip-export-option-title">WhatsApp</span>
+                  <span className="trip-export-option-hint">
+                    Send the trip summary + link to a participant or
+                    group chat.
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="trip-export-option"
+                onClick={handleShareEmail}
+              >
+                <EmailRoundedIcon className="trip-export-option-icon" />
+                <span className="trip-export-option-text">
+                  <span className="trip-export-option-title">Email</span>
+                  <span className="trip-export-option-hint">
+                    Opens your mail app with the trip summary + link.
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="trip-export-option"
+                onClick={handleCopyLink}
+              >
+                <ContentCopyRoundedIcon className="trip-export-option-icon" />
+                <span className="trip-export-option-text">
+                  <span className="trip-export-option-title">Copy link</span>
+                  <span className="trip-export-option-hint">
+                    Paste it anywhere — Messages, Slack, anywhere.
+                  </span>
+                </span>
+              </button>
+
+              <h4 className="trip-export-section-head">Download a copy</h4>
               <button
                 type="button"
                 className="trip-export-option"
@@ -666,7 +787,9 @@ const TripDetailHeader = ({
               >
                 <PrintOutlinedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
-                  <span className="trip-export-option-title">Print</span>
+                  <span className="trip-export-option-title">
+                    Print / PDF
+                  </span>
                   <span className="trip-export-option-hint">
                     Opens your browser's print preview — save as PDF or send
                     to a printer.
@@ -691,6 +814,13 @@ const TripDetailHeader = ({
             </div>
           </ModalButton>
         )}
+        <Snackbar
+          open={copyToast}
+          autoHideDuration={2400}
+          onClose={() => setCopyToast(false)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          message="Trip link copied to clipboard"
+        />
         {showNotifyToggle && (
           <NotifyParticipantsCheckbox
             checked={notifyParticipants}

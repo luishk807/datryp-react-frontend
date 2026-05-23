@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type ComponentType } from 'react';
+import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { Grid } from '@mui/material';
 import { now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -13,6 +14,7 @@ import ErrorAlert from 'components/common/ErrorAlert';
 import PlaceAutocomplete, {
     type PlaceSuggestion,
 } from 'components/common/PlaceAutocomplete';
+import PlaceSuggestions from 'components/common/PlaceSuggestions';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import classNames from 'classnames';
 import { ACTION, ACTIVITY_KIND, BUTTON_VARIANT, TRIP_BASIC } from 'constants';
@@ -108,6 +110,33 @@ const AddPlaceBtn = ({
     const [place, setPlace] = useState<PlaceDraft>(buildInitialPlace);
     const [formKey, setFormKey] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    // City of the most-recently picked arrival airport — drives the
+    // optional auto-fetch of a hero image for the flight activity.
+    // Resets when the modal closes or the kind toggles away from
+    // FLIGHT.
+    const [arrivalCity, setArrivalCity] = useState<string | null>(null);
+
+    // Fetch one image for the arrival city. Reuses the recommendations
+    // endpoint (already cached server-side) so this is essentially free
+    // after the first lookup.
+    const arrivalImageQuery = useSearchPlaces(
+        arrivalCity?.trim() ? arrivalCity.trim() : '',
+        1,
+    );
+    useEffect(() => {
+        if (place.kind !== ACTIVITY_KIND.FLIGHT) return;
+        const item = arrivalImageQuery.data?.items?.[0];
+        if (!item?.imageUrl) return;
+        if (place.image?.url === item.imageUrl) return;
+        setPlace((prev) =>
+            prev.image?.url
+                ? prev
+                : { ...prev, image: { url: item.imageUrl!, name: item.name } }
+        );
+        // Only react to a new image landing; intentionally narrow deps so
+        // we don't loop on our own image-state writes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [arrivalImageQuery.data, place.kind]);
 
     const handleOnChange = <K extends keyof PlaceDraft>(name: K, value: PlaceDraft[K] | Friend) => {
         setError(null);
@@ -169,6 +198,9 @@ const AddPlaceBtn = ({
      *  into a flight draft when the user changes their mind. */
     const handleKindChange = (next: ActivityKind) => {
         setError(null);
+        if (next !== ACTIVITY_KIND.FLIGHT) {
+            setArrivalCity(null);
+        }
         setPlace((prev) => ({
             ...prev,
             kind: next,
@@ -413,6 +445,14 @@ const AddPlaceBtn = ({
                         <Grid item lg={12} md={12} xs={12} id="add-place-form-container">
                             {(place.kind ?? ACTIVITY_KIND.PLACE) === ACTIVITY_KIND.PLACE && (
                                 <Grid container>
+                                    {isAdd && countryScope && (
+                                        <Grid item lg={12} xs={12} className="py-5">
+                                            <PlaceSuggestions
+                                                country={countryScope}
+                                                onPick={handlePlacePicked}
+                                            />
+                                        </Grid>
+                                    )}
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <PlaceAutocomplete
                                             value={place.name ?? ''}
@@ -510,6 +550,16 @@ const AddPlaceBtn = ({
 
                             {place.kind === ACTIVITY_KIND.FLIGHT && (
                                 <Grid container>
+                                    <Grid item lg={12} xs={12} className="py-5">
+                                        <InputField
+                                            value={place.name ?? ''}
+                                            name="name"
+                                            label="Flight name (optional — auto-fills from route)"
+                                            onChange={(e) =>
+                                                handleOnChange('name', e.target.value)
+                                            }
+                                        />
+                                    </Grid>
                                     {(place.flightSegments ?? [emptySegment()]).map(
                                         (segment, segIdx, allSegs) => (
                                             <Grid
@@ -575,6 +625,17 @@ const AddPlaceBtn = ({
                                                                     code
                                                                 )
                                                             }
+                                                            onSelectMeta={(opt) => {
+                                                                // Only the LAST segment's
+                                                                // arrival airport drives the
+                                                                // flight image — that's the
+                                                                // final destination.
+                                                                const segs =
+                                                                    place.flightSegments ?? [];
+                                                                if (segIdx === segs.length - 1) {
+                                                                    setArrivalCity(opt.city);
+                                                                }
+                                                            }}
                                                             label="Arrival airport"
                                                             placeholder="IATA code, city, or airport"
                                                         />

@@ -33,6 +33,11 @@ export interface AirportAutocompleteProps {
     value: string;
     /** Fires with the new IATA code (or free-typed text uppercased). */
     onChange: (iataCode: string) => void;
+    /** Fires when the user picks an option from the dropdown (NOT for
+     *  free-typed strings) with the full airport record. Lets the
+     *  parent prefill related fields (e.g. flight image based on the
+     *  destination city). */
+    onSelectMeta?: (option: AirportOption) => void;
     label?: string;
     placeholder?: string;
     /** Disable input while a parent save is in flight. */
@@ -44,6 +49,7 @@ export interface AirportAutocompleteProps {
 const AirportAutocomplete = ({
     value,
     onChange,
+    onSelectMeta,
     label,
     placeholder = 'IATA code, city, or airport',
     disabled,
@@ -71,12 +77,22 @@ const AirportAutocomplete = ({
             return;
         }
         onChange(newValue.iataCode);
+        onSelectMeta?.(newValue);
     };
 
     return (
         <Autocomplete<AirportOption, false, false, true>
             className="airport-autocomplete"
             freeSolo
+            // MUI Popper defaults to z-index 1300 — same as MUI Modal —
+            // so when this picker lives inside a modal (AddDestination /
+            // AddPlace flight segment) the dropdown can render behind
+            // the modal on some mobile WebKit builds. Bump the popper
+            // above the modal layer explicitly so the dropdown is
+            // always visible.
+            slotProps={{
+                popper: { sx: { zIndex: 1500 } },
+            }}
             // Server-side ranking — disable client filter so we don't
             // double-filter the already-ranked list.
             filterOptions={(x) => x}
