@@ -1,0 +1,93 @@
+.trip-expense-summary {
+  margin: 24px 0 8px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.trip-expense-summary-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+}
+
+.trip-expense-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.trip-expense-summary-table td {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.trip-expense-summary-row td,
+.trip-expense-summary-balance-row td {
+  font-size: 0.88rem;
+}
+
+.trip-expense-summary-label {
+  color: rgba(0, 0, 0, 0.78);
+  font-weight: 500;
+}
+
+.trip-expense-summary-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: theme('colors.primary');
+  font-weight: 600;
+}
+
+.trip-expense-summary-percent {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.82rem;
+  width: 64px;
+  padding-left: 12px;
+}
+
+// Top "Total" row reads as a header — bigger, darker, with a thicker
+// separator below.
+.trip-expense-summary-total-row td {
+  font-size: 1rem;
+  font-weight: 700;
+  padding-top: 4px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+}
+
+.trip-expense-summary-total-row .trip-expense-summary-label,
+.trip-expense-summary-total-row .trip-expense-summary-amount {
+  color: theme('colors.primary');
+}
+
+.trip-expense-summary-total-row .trip-expense-summary-percent {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+// Unassigned/balance row — orange-ish tint to draw the eye, since it
+// indicates an action item ("someone needs to claim these expenses").
+.trip-expense-summary-balance-row td {
+  color: theme('colors.primaryOrange');
+  font-weight: 600;
+  border-bottom: none;
+}
+
+.trip-expense-summary-balance-row .trip-expense-summary-amount {
+  color: theme('colors.primaryOrange');
+}
+
+.trip-expense-summary-hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.4;
+}

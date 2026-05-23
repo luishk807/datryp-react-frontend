@@ -22,6 +22,7 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
+import TripExpenseSummary from "components/TripExpenseSummary";
 import DestinationDetail from "components/DestinationDetail";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import ModalButton, {
@@ -526,6 +527,14 @@ export const TripDetail = () => {
             onChangeBudget={handleChangeBudget}
             tripStatusName={persistedStatusName}
           />
+        </Grid>
+        <Grid item lg={12} md={12} xs={12}>
+          {/* Per-payer expense breakdown — shown at the bottom of the
+              trip page so it's the last thing visible before scrolling
+              away. Also picked up by the print stylesheet so paper
+              copies carry the same totals + per-payer split as the
+              Excel export. Hidden when no budget items exist. */}
+          <TripExpenseSummary data={tripData} />
         </Grid>
       </Grid>
     </Layout>
