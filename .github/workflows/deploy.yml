@@ -1,0 +1,93 @@
+name: Deploy to S3 + CloudFront
+
+# Fires on every push to master (= production). Builds the Vite bundle
+# with `.env.production` baked in, syncs to S3, and invalidates the
+# CloudFront cache so users see the new bundle immediately.
+#
+# Branch model (mirrors backend): master = production. develop +
+# feature/* run CI only — `deploy.yml` doesn't fire for them.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1
+  S3_BUCKET: datryp-assets
+  CLOUDFRONT_DISTRIBUTION_ID: E1IZZH238E1OSP
+
+jobs:
+  build-and-deploy:
+    name: Build, sync, invalidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        # `.env.production` is committed and carries the prod
+        # VITE_PYTHON_API_URL — Vite picks it up automatically when
+        # `npm run build` runs in production mode.
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        # `--delete` removes files in the bucket that aren't in the
+        # new build (catches old hashed JS chunks so they don't pile
+        # up forever). `--cache-control` on the HTML is short so users
+        # see the new app shell quickly; the hashed assets get a long
+        # cache because their filenames change on every build.
+        run: |
+          aws s3 sync build/ s3://${{ env.S3_BUCKET }}/ \
+            --delete \
+            --exclude "*.html" \
+            --exclude "robots.txt" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 sync build/ s3://${{ env.S3_BUCKET }}/ \
+            --exclude "*" \
+            --include "*.html" \
+            --include "robots.txt" \
+            --cache-control "public, max-age=60, must-revalidate" \
+            --content-type "text/html; charset=utf-8" \
+            --metadata-directive REPLACE
+
+      - name: Invalidate CloudFront
+        # `/*` evicts every cached path. CloudFront includes the first
+        # 1000 invalidation paths per month free; "/*" counts as one
+        # path so we're nowhere near that limit.
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Summary
+        run: |
+          echo "### Deployed to https://www.datryp.com" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Bucket: \`s3://${{ env.S3_BUCKET }}/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- CloudFront: \`${{ env.CLOUDFRONT_DISTRIBUTION_ID }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
