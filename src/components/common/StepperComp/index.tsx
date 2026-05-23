@@ -291,6 +291,13 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             if (!(data.organizer ?? []).some((o) => o.userId)) {
                 stepMissing.push('at least one organizer');
             }
+            // Participants are required — the current user is auto-seeded
+            // into `friends` on mount (see TripSteps), so an empty list
+            // means the user actively deselected everyone. Block advance
+            // until at least one participant is back.
+            if (!(data.friends ?? []).length) {
+                stepMissing.push('at least one participant');
+            }
         }
         if (isEditing || isLastStep) {
             if (!data.name?.trim()) stepMissing.push('trip name');
@@ -298,6 +305,9 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             if (!data.endDate) stepMissing.push('end date');
             if (!(data.organizer ?? []).some((o) => o.userId)) {
                 stepMissing.push('at least one organizer');
+            }
+            if (!(data.friends ?? []).length) {
+                stepMissing.push('at least one participant');
             }
             const { expected, missing: emptyDates } = inspectDays(data);
             if (expected.length === 0) {
@@ -336,8 +346,11 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
         if (!(data.organizer ?? []).some((o) => o.userId)) {
             missing.push('at least one organizer');
         }
-        // Participants are optional — solo trips are valid. Only the
-        // organizer is mandatory (it's the seeded current user).
+        // Participants are required — current user is auto-seeded into
+        // `friends`, so an empty list means the user deselected everyone.
+        if (!(data.friends ?? []).length) {
+            missing.push('at least one participant');
+        }
         const { expected, missing: emptyDates } = inspectDays(data);
         if (expected.length === 0) {
             missing.push('at least one place');
