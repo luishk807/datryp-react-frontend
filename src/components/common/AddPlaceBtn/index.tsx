@@ -7,6 +7,7 @@ import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
 import FlightRoundedIcon from '@mui/icons-material/FlightRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
+import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
 import PlaceAutocomplete, {
@@ -551,31 +552,31 @@ const AddPlaceBtn = ({
                                                         />
                                                     </Grid>
                                                     <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
+                                                        <AirportAutocomplete
                                                             value={segment.departAirport ?? ''}
-                                                            name={`departAirport-${segIdx}`}
-                                                            label="Depart airport (IATA)"
-                                                            onChange={(e) =>
+                                                            onChange={(code) =>
                                                                 handleSegmentField(
                                                                     segIdx,
                                                                     'departAirport',
-                                                                    e.target.value.toUpperCase()
+                                                                    code
                                                                 )
                                                             }
+                                                            label="Depart airport"
+                                                            placeholder="IATA code, city, or airport"
                                                         />
                                                     </Grid>
                                                     <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
+                                                        <AirportAutocomplete
                                                             value={segment.arrivalAirport ?? ''}
-                                                            name={`arrivalAirport-${segIdx}`}
-                                                            label="Arrival airport (IATA)"
-                                                            onChange={(e) =>
+                                                            onChange={(code) =>
                                                                 handleSegmentField(
                                                                     segIdx,
                                                                     'arrivalAirport',
-                                                                    e.target.value.toUpperCase()
+                                                                    code
                                                                 )
                                                             }
+                                                            label="Arrival airport"
+                                                            placeholder="IATA code, city, or airport"
                                                         />
                                                     </Grid>
                                                     <Grid item lg={6} xs={12} className="py-5">
