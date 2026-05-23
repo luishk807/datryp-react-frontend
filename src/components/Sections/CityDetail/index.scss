@@ -175,6 +175,9 @@
 
 // Tighter on mobile — the toolbar gets crowded with Back / Share /
 // Bookmark / Visited and a full-sized CTA pushes content off-screen.
+// Also drop the trailing city/country name so the button reads
+// "Start planning" alone; the city name is already in the page
+// header right above the button, so it's redundant.
 @media (max-width: 640px) {
   .city-detail-plan-cta {
     padding: 7px 14px;
@@ -184,12 +187,11 @@
   .city-detail-plan-cta-icon {
     font-size: 0.95rem !important;
   }
-  .city-detail-plan-cta-label,
-  .city-detail-plan-cta-target {
+  .city-detail-plan-cta-label {
     font-size: 0.82rem;
   }
   .city-detail-plan-cta-target {
-    max-width: 110px;
+    display: none;
   }
   .city-detail-plan-cta-arrow {
     font-size: 0.9rem !important;

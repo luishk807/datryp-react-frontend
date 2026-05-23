@@ -163,6 +163,8 @@
 
 // Tighter on mobile — toolbar real estate is tight when Bookmark /
 // Visited / Share are siblings, so shrink the CTA in lockstep.
+// Drop the trailing country name so the button reads "Start planning"
+// alone; the country name is already in the page header right above.
 @media (max-width: 640px) {
   .country-detail-plan-cta {
     padding: 7px 14px;
@@ -172,12 +174,11 @@
   .country-detail-plan-cta-icon {
     font-size: 0.95rem !important;
   }
-  .country-detail-plan-cta-label,
-  .country-detail-plan-cta-target {
+  .country-detail-plan-cta-label {
     font-size: 0.82rem;
   }
   .country-detail-plan-cta-target {
-    max-width: 110px;
+    display: none;
   }
   .country-detail-plan-cta-arrow {
     font-size: 0.9rem !important;
