@@ -270,6 +270,22 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
             }
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
+            // Budget is required (≥ 0). We treat 0 as "flexible" — the
+            // user signals they don't want to track spend — and accept
+            // it. An empty / non-numeric budget blocks advance.
+            const budgetVal = data.budget;
+            const budgetNumeric =
+                typeof budgetVal === 'number'
+                    ? budgetVal
+                    : Number(budgetVal);
+            if (
+                budgetVal === undefined ||
+                budgetVal === null ||
+                String(budgetVal).trim() === '' ||
+                !Number.isFinite(budgetNumeric)
+            ) {
+                stepMissing.push('a budget (use 0 if flexible)');
+            }
         }
         if (!isEditing && activeLabel === 'People') {
             if (!(data.organizer ?? []).some((o) => o.userId)) {

@@ -96,6 +96,19 @@
    unfurl so the sender sees what they're about to send. Image on the
    left, content + domain on the right, matching the standard OG-card
    anatomy users already recognize from Facebook / WhatsApp / Slack. */
+// Dev-only hint shown when previewUrl points at localhost — explains
+// to the dev tester why their FB/X/WhatsApp unfurl card is empty.
+.share-modal-dev-note {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  background: rgba(247, 159, 38, 0.12);
+  border-left: 3px solid theme('colors.primaryOrange');
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.4;
+}
+
 .share-modal-preview {
   display: grid;
   grid-template-columns: 96px 1fr;

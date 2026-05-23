@@ -82,14 +82,28 @@
   }
 }
 
-// Export-trip modal: two stacked option cards (Print, Download
-// Excel). Big tappable rows, icon + 2-line text. Lifts on hover so
-// the affordance reads as a chooser.
+// Share / export modal: stacked option cards grouped under section
+// heads ("Share with people" / "Download a copy"). Big tappable
+// rows, icon + 2-line text. Lifts on hover so the affordance reads
+// as a chooser.
 .trip-export-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   padding: 4px 0;
+}
+
+.trip-export-section-head {
+  margin: 8px 4px 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  &:first-child {
+    margin-top: 0;
+  }
 }
 
 .trip-export-option {
