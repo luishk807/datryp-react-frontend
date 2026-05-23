@@ -151,6 +151,19 @@
   }
 }
 
+// The mirror flag: pages (homepage) that have their own large hero
+// searchbar don't need a second one in the header on desktop, but DO
+// want a compact searchbar in the header on mobile (no hero search
+// fits on a phone). Layout sets this class when it passes
+// `withSearch` to Header conditionally.
+.page-shell.hide-header-search-desktop {
+  @media (min-width: 769px) {
+    .app-header-search {
+      display: none;
+    }
+  }
+}
+
 .app-header-search .searchbarMain .holder-simple {
   background: #f6f6f6;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -396,13 +409,26 @@
     flex-wrap: nowrap;
   }
 
-  // Swap to icon-only logo so the full wordmark doesn't crowd out the
-  // searchbar on the same row.
-  .app-header-logo .app-header-logo-full {
-    display: none;
+  // Logo swap is scoped to subpages only (SubLayout adds `is-subpage`
+  // to the page-shell). Subpages have a searchbar inline on the same
+  // row, so the full wordmark would crowd it out — icon variant wins.
+  // The homepage uses Layout (no `is-subpage`) and keeps the full
+  // wordmark on mobile because it has no inline header search to
+  // compete with.
+  .page-shell.is-subpage {
+    .app-header-logo .app-header-logo-full {
+      display: none;
+    }
+    .app-header-logo .app-header-logo-icon {
+      display: block;
+    }
   }
-  .app-header-logo .app-header-logo-icon {
-    display: block;
+
+  // Full logo on mobile (homepage only, since subpages hide it
+  // above): shrink slightly so it doesn't dominate the header on
+  // phones. Matches the pre-mobile-UX value.
+  .app-header-logo .app-header-logo-full {
+    width: 110px;
   }
 
   .app-header-nav {

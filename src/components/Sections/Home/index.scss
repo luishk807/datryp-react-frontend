@@ -93,17 +93,19 @@
 .home-hero-options {
   position: relative;
   display: inline-flex;
-  // Solid-white pill so unselected text has consistent contrast on
-  // any hero photo. Previously a glassy translucent pill let the
-  // photo bleed through and made the unselected label nearly
-  // invisible on bright backgrounds.
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  // Glassy translucent pill — sits over the hero photo and lets it
+  // bleed through. backdrop-filter softens the photo behind so the
+  // labels stay readable; the heavier blur (compared to the original
+  // 8px) is what makes it work on bright photos that previously
+  // washed the text out.
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 9999px;
-  padding: 4px;
-  margin-bottom: 22px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  min-width: 360px;
+  padding: 5px;
+  margin-bottom: 26px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  min-width: 440px;
 }
 
 .home-hero-options .hero-option-thumb {
@@ -131,30 +133,37 @@
   position: relative;
   z-index: 1;
   flex: 1 1 0;
-  padding: 8px 18px;
+  padding: 11px 22px;
   border-radius: 9999px;
   background: transparent;
-  // Dark text on white pill — guaranteed contrast against any photo.
-  color: rgba(0, 0, 0, 0.7);
+  // Light text on glassy pill over hero photo. The backdrop-blur on
+  // the pill softens any underlying photo enough that white-on-blur
+  // reads cleanly. text-shadow adds one more layer of contrast for
+  // the unselected state where the thumb isn't behind the text.
+  color: rgba(255, 255, 255, 0.88);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.98rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   transition: color 0.18s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
 }
 
 .home-hero-options .hero-option:hover {
-  color: theme('colors.primary');
+  color: #fff;
 }
 
-// Selected tab: thumb covers it with brand color, text inverts to
-// white. The thumb's box-shadow provides the depth cue.
+// Selected tab: orange (or AI gradient) thumb sits behind it; text
+// becomes solid white + heavier weight. text-shadow drops here
+// because the thumb is solid behind the text — extra shadow would
+// muddy it.
 .home-hero-options .hero-option.selected {
   color: #fff;
   font-weight: 600;
+  text-shadow: none;
 }
 
 .home-hero-options .hero-option-icon {
@@ -308,41 +317,31 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
+  // Keep the hero photo behind the search/title/toggle on mobile —
+  // it was previously stripped to a flat white block which made the
+  // homepage feel anemic. Just shrink the section so it doesn't push
+  // the rest of the page off-screen on tall phones.
   .home-hero {
-    min-height: 0;
+    min-height: 320px;
     margin-bottom: 16px;
-    background: transparent !important;
-    background-image: none !important;
-  }
-
-  .home-hero-overlay {
-    display: none;
-  }
-
-  /* No hero image on mobile → nothing to attribute. Unsplash's terms
-     only require photographer credit when their photo is actually
-     displayed, and the credit looked stranded floating over an empty
-     section. */
-  .home-hero-attribution {
-    display: none;
   }
 
   .home-hero-content {
     padding: 32px 16px 24px;
-    color: theme('colors.primary');
+    color: #fff;
   }
 
   .home-hero-title {
-    font-size: clamp(1.75rem, 7vw, 2.25rem);
-    margin-bottom: 8px;
-    color: theme('colors.primaryGreen');
+    font-size: clamp(2.1rem, 8vw, 2.75rem);
+    margin-bottom: 10px;
+    color: #fff;
   }
 
   .home-hero-subtitle {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     margin-bottom: 22px;
     line-height: 1.45;
-    color: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   // Mobile pill — inherits the white solid background from the
@@ -356,25 +355,27 @@
   }
 
   .home-hero-options .hero-option {
-    padding: 8px 12px;
-    font-size: 0.85rem;
+    padding: 10px 16px;
+    font-size: 1rem;
   }
 
-  /* Stack input over CREATE button on phones */
+  /* Stack input over CREATE button on phones. Slimmer outer padding +
+     slimmer input padding so the searchbar doesn't look chunky next
+     to the now-bigger title. */
   .home-hero-search .searchbarMain .holder,
   .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-form {
     flex-direction: column;
     align-items: stretch;
-    padding: 10px;
+    padding: 6px;
     border-radius: 14px;
-    gap: 8px;
+    gap: 6px;
     border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   }
 
   .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-input {
     font-size: 1rem;
-    padding: 12px 14px;
+    padding: 9px 12px;
     width: 100%;
   }
 
@@ -392,7 +393,7 @@
 
   .home-hero-search .searchbarMain .inputBar {
     font-size: 1rem;
-    padding: 12px 14px;
+    padding: 9px 12px;
     width: 100%;
   }
 

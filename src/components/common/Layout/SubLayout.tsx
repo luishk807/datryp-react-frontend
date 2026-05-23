@@ -25,7 +25,7 @@ const Layout = ({
 }: SubLayoutProps) => {
     return (
         <div
-            className={classnames('page-shell', {
+            className={classnames('page-shell', 'is-subpage', {
                 'hide-header-search-mobile': hideHeaderSearchOnMobile,
             })}
         >
