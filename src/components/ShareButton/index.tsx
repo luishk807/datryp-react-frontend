@@ -41,6 +41,33 @@ export interface ShareButtonProps {
     emailPayload?: SharePlacePayload;
 }
 
+/** Backend `/share/preview` returns minimal HTML with rich OG/Twitter
+ *  tags populated from these query params + a meta-refresh redirect
+ *  to the canonical frontend URL. We route Facebook/X/WhatsApp shares
+ *  through this URL so their crawlers see the right title/description/
+ *  image instead of the static homepage OG tags baked into index.html.
+ *
+ *  Copy / Email / native share don't unfurl, so we keep using the raw
+ *  canonical URL there — cleaner clipboard contents, no double-hop. */
+const API_BASE =
+    import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
+
+const buildPreviewUrl = (
+    title: string,
+    subtitle: string | undefined,
+    description: string | undefined,
+    imageUrl: string | null | undefined,
+    canonicalUrl: string,
+): string => {
+    const params = new URLSearchParams();
+    const fullTitle = subtitle ? `${title} — ${subtitle}` : title;
+    params.set('title', fullTitle);
+    if (description) params.set('description', description);
+    if (imageUrl) params.set('image', imageUrl);
+    params.set('url', canonicalUrl);
+    return `${API_BASE}/share/preview?${params.toString()}`;
+};
+
 const canNativeShare = (): boolean =>
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
@@ -87,35 +114,48 @@ const ShareButton = ({
     const shortShareText = subtitle
         ? `${title} — ${subtitle}`
         : `Check out ${title} on DaTryp.com`;
-    const encodedUrl = encodeURIComponent(url);
+    // The URL that gets crawled by social platforms for the rich
+    // unfurl preview. Routes through the backend's /share/preview
+    // endpoint which serves OG-tagged HTML + meta-refreshes humans
+    // to the canonical frontend URL. See buildPreviewUrl above.
+    const previewUrl = buildPreviewUrl(
+        title,
+        subtitle,
+        description,
+        imageUrl,
+        url,
+    );
+
+    const encodedPreviewUrl = encodeURIComponent(previewUrl);
     const encodedShortText = encodeURIComponent(shortShareText);
-    const encodedLongTextWithUrl = encodeURIComponent(
-        `${longShareText} ${url}`
+    const encodedLongTextWithPreviewUrl = encodeURIComponent(
+        `${longShareText} ${previewUrl}`
     );
 
     const handleFacebook = () => {
         closeShare();
+        // Facebook's crawler fetches the shared URL — we hand it the
+        // preview URL so it gets the right OG tags instead of the
+        // static homepage tags baked into index.html.
         openIntent(
-            `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
+            `https://www.facebook.com/sharer/sharer.php?u=${encodedPreviewUrl}`
         );
     };
 
     const handleTwitter = () => {
         closeShare();
-        // X (formerly Twitter) intent — short headline only because of
-        // the character budget; the URL gets its own line and renders
-        // as a card if OG meta is set up.
+        // Same OG-tag reason — X's card preview crawls the shared URL,
+        // so it needs to land on /share/preview, not the SPA route.
         openIntent(
-            `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedShortText}`
+            `https://twitter.com/intent/tweet?url=${encodedPreviewUrl}&text=${encodedShortText}`
         );
     };
 
     const handleWhatsApp = () => {
         closeShare();
-        // `wa.me` works on web + deep-links into the WhatsApp app on
-        // mobile when installed. Full pitch text since WhatsApp has
-        // no length limit.
-        openIntent(`https://wa.me/?text=${encodedLongTextWithUrl}`);
+        // WhatsApp also unfurls; route through /share/preview. Full
+        // pitch text since WhatsApp has no length limit.
+        openIntent(`https://wa.me/?text=${encodedLongTextWithPreviewUrl}`);
     };
 
     const handleEmail = () => {

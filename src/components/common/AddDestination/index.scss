@@ -1,14 +1,137 @@
-.add-destination-comp > .form-container {
-  min-height: 200px;
-  max-height: 700px;
-  overflow-y: auto;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 .add-place-container-standard {
-  width: 100%
+  width: 100%;
 }
 
 .add-place-container-simple {
   width: auto !important;
   font-size: inherit;
+}
+
+.add-destination-comp {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  // Bound total modal body height; only the form scrolls, action row pins
+  // so the primary CTA is always reachable.
+  max-height: min(78vh, 720px);
+}
+
+.add-destination-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 4px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.add-destination-group {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.add-destination-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.add-destination-group-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-weight: 700;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.add-destination-group-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+}
+
+.add-destination-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.add-destination-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.add-destination-optional {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.add-destination-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  .add-destination-field {
+    margin-bottom: 0;
+  }
+}
+
+.add-destination-actions {
+  flex: 0 0 auto;
+  padding: 14px 2px 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+
+  // The ButtonCustom wrapper renders a div; ensure the actual <button>
+  // pops to full-width on mobile but stays compact on wider screens.
+  > div,
+  > button {
+    width: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .add-destination-group {
+    padding: 14px 14px 10px;
+    border-radius: 12px;
+  }
+
+  .add-destination-row {
+    grid-template-columns: 1fr;
+  }
+
+  .add-destination-actions {
+    > div,
+    > button {
+      width: 100%;
+    }
+  }
 }

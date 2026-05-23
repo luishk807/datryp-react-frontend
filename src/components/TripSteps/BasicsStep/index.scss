@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-basics-step {
+  padding: 12px 4px 28px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.trip-basics-section {
+  margin: 0 0 28px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.04);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.trip-basics-section-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.trip-basics-section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.trip-basics-section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.01em;
+}
+
+.trip-basics-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trip-basics-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+
+  svg {
+    font-size: 1.05rem;
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.trip-basics-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.trip-basics-summary {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primaryOrange');
+}
+
+.trip-basics-budget-field {
+  max-width: 320px;
+}
+
+.trip-basics-hint {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.35;
+}
+
+// ── Trip-mode picker — tighter version of the original cards so the
+// section doesn't dominate the merged step. ─────────────────────────────
+.trip-basics-step .trip-mode-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.trip-basics-step .trip-mode-card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 22px 16px;
+  min-height: 140px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    transform 0.18s ease, background-color 0.18s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(60, 181, 75, 0.14);
+  }
+
+  &.is-selected {
+    border-color: theme('colors.primaryGreen');
+    background: rgba(60, 181, 75, 0.06);
+    box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.16);
+  }
+}
+
+.trip-basics-step .trip-mode-card-icon {
+  font-size: 2.2rem !important;
+  color: theme('colors.primaryGreen');
+}
+
+.trip-basics-step .trip-mode-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.trip-basics-step .trip-mode-card-sub {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .trip-basics-section {
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+
+  .trip-basics-dates-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .trip-basics-step .trip-mode-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-basics-step .trip-mode-card {
+    padding: 18px 14px;
+    min-height: 110px;
+  }
+}

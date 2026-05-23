@@ -41,7 +41,7 @@ import { useDeleteItinerary, useSaveItinerary } from 'api/hooks/useItineraries';
 import { isTripCapReachedError } from 'api/paywallError';
 import { useUser } from 'context/UserContext';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
-import { TRIP_STATUS } from 'constants';
+import { TRIP_BASIC, TRIP_STATUS } from 'constants';
 import type { TripState, TripStatus } from 'types';
 
 interface DayCoverage {
@@ -248,25 +248,30 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     const isLastStep = activeStep === steps.length - 1;
 
     // Required-field check for the current step. Matched by step *label*
-    // rather than index because the create flow conditionally inserts a
-    // 'Destination' step (single-trip-only, when no country was preset).
-    // Labels mirror the entries in `TripSteps`.
+    // because the merged create flow conditionally renders the destination
+    // picker inside the Basics step (single-trip-only, when no country was
+    // preset). Labels mirror the entries in `TripSteps`.
     const activeLabel = steps[activeStep]?.label;
     const stepMissing: string[] = [];
     if (data) {
-        if (!isEditing && activeLabel === 'Trip type') {
+        if (!isEditing && activeLabel === 'Trip basics') {
             if (!data.type?.id) stepMissing.push('a trip type');
-        }
-        if (!isEditing && activeLabel === 'Destination') {
-            if (!data.destinations?.[0]?.country?.id) {
+            // Destination is required only for single-trip + no preset
+            // country. Multi-trips pick countries per-day in the Itinerary
+            // step, so the picker is hidden there. Mirrors the
+            // `needsDestinationStep` rule in TripSteps.
+            const isSingleMode = data.type?.id === TRIP_BASIC.SINGLE.id;
+            const countryAlreadyPicked = Boolean(
+                data.destinations?.[0]?.country?.id ||
+                    data.destinations?.[0]?.country?.name
+            );
+            if (isSingleMode && !countryAlreadyPicked) {
                 stepMissing.push('a destination country');
             }
-        }
-        if (!isEditing && activeLabel === 'Dates') {
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
         }
-        if (!isEditing && activeLabel === 'Organizers') {
+        if (!isEditing && activeLabel === 'People') {
             if (!(data.organizer ?? []).some((o) => o.userId)) {
                 stepMissing.push('at least one organizer');
             }
@@ -853,7 +858,6 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                     label="Back"
                                 />
                             )}
-                            {activeLabel !== 'Trip type' && (
                             <Button
                                 type="standard"
                                 onClick={handleNext}
@@ -869,7 +873,6 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                     (isLastStep && saveItinerary.isPending)
                                 }
                             />
-                            )}
                         </div>
                     </Grid>
                 </Grid>

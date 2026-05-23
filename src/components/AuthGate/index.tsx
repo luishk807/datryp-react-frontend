@@ -73,6 +73,18 @@ const AuthGate = ({
 
     const resetError = () => error && setError(null);
 
+    // Force a soft reload of the current URL after auth success.
+    // Without this, gated routes that lazy-load (notably /single and
+    // /multiple) sometimes render blank after the user transitions
+    // from unauth → authed in-place — the AuthGate→Suspense→lazy
+    // chunk pipeline doesn't always reconcile cleanly when the
+    // upstream dispatches (Start Planning's resetTrip + basicInfo +
+    // addPlace) happened before the user existed. localStorage holds
+    // both TripContext and the JWT, so reload is loss-free.
+    const reloadAfterAuth = () => {
+        window.location.reload();
+    };
+
     const handleLogin = async () => {
         const trimmed = email.trim();
         if (!trimmed || !password) {
@@ -82,6 +94,7 @@ const AuthGate = ({
         setSubmitting(true);
         try {
             await login(trimmed, password);
+            reloadAfterAuth();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed.');
         } finally {
@@ -121,6 +134,7 @@ const AuthGate = ({
                 name: name.trim() || undefined,
                 phone: phone.trim() || undefined,
             });
+            reloadAfterAuth();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Signup failed.');
         } finally {
@@ -148,6 +162,7 @@ const AuthGate = ({
     const handleGoogleCredential = useCallback(
         (credential: string) => {
             googleSignin.mutate(credential, {
+                onSuccess: reloadAfterAuth,
                 onError: (err) =>
                     setError(
                         err instanceof Error

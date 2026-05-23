@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import './index.scss';
-import { Grid } from '@mui/material';
 import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
@@ -173,15 +172,13 @@ const AddDestinationBtn = ({
     if (isViewMode) return null;
 
     return (
-        <Grid
-            container
+        <div
             className={classNames({
                 'add-place-container-standard': buttonType === BUTTON_VARIANT.STANDARD,
                 'add-place-container-simple': buttonType === BUTTON_VARIANT.TEXT,
             })}
         >
-            <Grid item lg={12} md={12} xs={12}>
-                <ModalButton
+            <ModalButton
                     title={isAdd ? DESTINATION_LABEL.ADD : `${DESTINATION_LABEL.EDIT} ${data?.country?.name ?? ''}`}
                     ref={modelRef}
                     buttonProps={{
@@ -190,24 +187,31 @@ const AddDestinationBtn = ({
                         type: buttonType,
                     }}
                 >
-                    <Grid container className="add-destination-comp">
-                        <Grid item lg={12} md={12} xs={12} className="form-container">
-                            <Grid container>
-                                <Grid item lg={12} md={12} xs={12} className="py-5">
+                    <div className="add-destination-comp">
+                        <div className="add-destination-scroll">
+                            <section className="add-destination-group">
+                                <header className="add-destination-group-head">
+                                    <span className="add-destination-group-num">1</span>
+                                    <h4 className="add-destination-group-title">
+                                        Destination
+                                    </h4>
+                                </header>
+                                <div className="add-destination-field">
+                                    <label className="add-destination-label">Country</label>
                                     <SearchBar
                                         defaultValue={data?.country}
                                         type="simple"
                                         onSelected={handleSelectedDestinationSearch}
                                     />
-                                </Grid>
+                                </div>
                                 {type === ACTION.ADD && (
-                                    <Grid
-                                        item
-                                        lg={12}
-                                        md={12}
-                                        xs={12}
-                                        className="py-5"
-                                    >
+                                    <div className="add-destination-field">
+                                        <label className="add-destination-label">
+                                            First place to visit{' '}
+                                            <span className="add-destination-optional">
+                                                (optional)
+                                            </span>
+                                        </label>
                                         <PlaceAutocomplete
                                             value={firstPlaceText}
                                             onTextChange={handleFirstPlaceText}
@@ -215,97 +219,125 @@ const AddDestinationBtn = ({
                                             country={destination.country?.name}
                                             label={
                                                 destination.country?.name
-                                                    ? `First place in ${destination.country.name} (optional)`
-                                                    : 'First place to visit (optional)'
+                                                    ? `First place in ${destination.country.name}`
+                                                    : 'First place to visit'
                                             }
                                             placeholder={
                                                 destination.country?.name
                                                     ? 'Type a landmark or activity in this country'
-                                                    : 'Pick the country above first to get country-specific suggestions'
+                                                    : 'Pick the country above first'
                                             }
                                             disabled={!destination.country?.name}
                                         />
-                                    </Grid>
+                                    </div>
                                 )}
-                                <Grid item lg={12} md={12} xs={12} className="py-5">
+                            </section>
+
+                            <section className="add-destination-group">
+                                <header className="add-destination-group-head">
+                                    <span className="add-destination-group-num">2</span>
+                                    <h4 className="add-destination-group-title">
+                                        Outbound flight
+                                    </h4>
+                                </header>
+                                <div className="add-destination-field">
+                                    <label className="add-destination-label">Flight number</label>
                                     <InputField
                                         defaultValue={destination.flightInfo?.flightNumber}
-                                        label="Flight Number"
+                                        label=""
                                         name="flightNumber"
                                         onChange={(e) => handleOnFlightInfo('flightNumber', e.target.value)}
                                     />
-                                </Grid>
-                                <Grid item lg={12} md={12} xs={12} className="py-5">
+                                </div>
+                                <div className="add-destination-field">
+                                    <label className="add-destination-label">Departure airport</label>
                                     <InputField
                                         defaultValue={destination.flightInfo?.departAirport}
-                                        label="Depart airport"
+                                        label=""
                                         name="departAirport"
                                         onChange={(e) => handleOnFlightInfo('departAirport', e.target.value)}
                                     />
-                                </Grid>
-                                <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField
-                                        defaultValue={destination.flightInfo?.departDate}
-                                        type="date"
-                                        disablePast
-                                        disabled
-                                        maxDate={normalizedTripMaxDate}
-                                        name="departDate"
-                                        onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}
-                                    />
-                                </Grid>
-                                <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
-                                    <InputField
-                                        defaultValue={destination.flightInfo?.departTime}
-                                        name="departTime"
-                                        type="time"
-                                        label="Depart Time"
-                                        onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}
-                                    />
-                                </Grid>
-                                <Grid item lg={12} md={12} xs={12} className="py-5">
+                                </div>
+                                <div className="add-destination-row">
+                                    <div className="add-destination-field">
+                                        <label className="add-destination-label">Departure date</label>
+                                        <InputField
+                                            defaultValue={destination.flightInfo?.departDate}
+                                            type="date"
+                                            disablePast
+                                            disabled
+                                            maxDate={normalizedTripMaxDate}
+                                            name="departDate"
+                                            onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="add-destination-field">
+                                        <label className="add-destination-label">Departure time</label>
+                                        <InputField
+                                            defaultValue={destination.flightInfo?.departTime}
+                                            name="departTime"
+                                            type="time"
+                                            label=""
+                                            onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section className="add-destination-group">
+                                <header className="add-destination-group-head">
+                                    <span className="add-destination-group-num">3</span>
+                                    <h4 className="add-destination-group-title">
+                                        Arrival
+                                    </h4>
+                                </header>
+                                <div className="add-destination-field">
+                                    <label className="add-destination-label">Arrival airport</label>
                                     <InputField
                                         defaultValue={destination.flightInfo?.arrivalAirport}
                                         name="Arrival Airport"
-                                        label="Arrival Airport"
+                                        label=""
                                         onChange={(e) => handleOnFlightInfo('arrivalAirport', e.target.value)}
                                     />
-                                </Grid>
-                                <Grid item lg={6} md={6} xs={12} className="py-5">
-                                    <InputField
-                                        defaultValue={destination.flightInfo?.arrivalDate}
-                                        type="date"
-                                        minDate={isoDate(destination.flightInfo?.departDate)}
-                                        name="arrivalDate"
-                                        maxDate={normalizedTripMaxDate}
-                                        disablePast
-                                        onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}
-                                    />
-                                </Grid>
-                                <Grid item lg={6} md={6} xs={12} className="py-5 lg:pl-2">
-                                    <InputField
-                                        defaultValue={destination.flightInfo?.arrivalTime}
-                                        name="arrivalTime"
-                                        type="time"
-                                        label="Arrival Time"
-                                        onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}
-                                    />
-                                </Grid>
-                            </Grid>
-                        </Grid>
+                                </div>
+                                <div className="add-destination-row">
+                                    <div className="add-destination-field">
+                                        <label className="add-destination-label">Arrival date</label>
+                                        <InputField
+                                            defaultValue={destination.flightInfo?.arrivalDate}
+                                            type="date"
+                                            minDate={isoDate(destination.flightInfo?.departDate)}
+                                            name="arrivalDate"
+                                            maxDate={normalizedTripMaxDate}
+                                            disablePast
+                                            onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="add-destination-field">
+                                        <label className="add-destination-label">Arrival time</label>
+                                        <InputField
+                                            defaultValue={destination.flightInfo?.arrivalTime}
+                                            name="arrivalTime"
+                                            type="time"
+                                            label=""
+                                            onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
 
-                        <Grid item lg={12} md={12} xs={12} className="pt-5">
+                        <div className="add-destination-actions">
                             <ButtonCustom
                                 onClick={handleSubmit}
                                 label={isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.SAVE}
                                 type={BUTTON_VARIANT.STANDARD}
                                 capitalizeType="uppercase"
                             />
-                        </Grid>
-                    </Grid>
-                </ModalButton>
-            </Grid>
-        </Grid>
+                        </div>
+                    </div>
+            </ModalButton>
+        </div>
     );
 };
 

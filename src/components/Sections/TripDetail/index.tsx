@@ -416,7 +416,7 @@ export const TripDetail = () => {
 
   if (isLoading) {
     return (
-      <Layout hideHeaderSearchOnMobile>
+      <Layout>
         <div className="trip-detail-empty">
           <p>Loading trip…</p>
         </div>
@@ -426,7 +426,7 @@ export const TripDetail = () => {
 
   if (!apiTrip || !tripData) {
     return (
-      <Layout hideHeaderSearchOnMobile>
+      <Layout>
         <div className="trip-detail-empty">
           <p>Trip not found.</p>
         </div>
@@ -452,7 +452,7 @@ export const TripDetail = () => {
   const destinations = tripData.destinations ?? [];
 
   return (
-    <Layout hideHeaderSearchOnMobile>
+    <Layout>
       <Grid container>
         {/* Standalone trip header — title + action buttons. Lives
             OUTSIDE BasicTripInfo so Hide detail can unmount the basic-

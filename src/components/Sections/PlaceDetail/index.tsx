@@ -35,6 +35,7 @@ import VisaSection from "components/PlaceDetail/VisaSection";
 import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
 import LodgingSection from "components/PlaceDetail/LodgingSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
+import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
@@ -301,6 +302,11 @@ const PlaceDetail = () => {
               bestTime={place.bestTimeToVisit}
               worstTime={detailsQuery.data?.details.worstTimeToVisit}
               isError={detailsQuery.isError}
+            />
+
+            <LatestNewsSection
+              country={place.country}
+              placeName={place.name}
             />
           </aside>
         </div>
