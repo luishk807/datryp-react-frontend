@@ -1,4 +1,3 @@
-import classnames from 'classnames';
 import type { ReactNode } from 'react';
 import { Grid } from '@mui/material';
 import 'App.scss';
@@ -10,25 +9,17 @@ interface SubLayoutProps {
     children?: ReactNode;
     title?: string;
     titleAction?: ReactNode;
-    /** Hide the page-header search bar on mobile (<= ~640px). Use on
-     *  long-content pages like /trip-detail where the search is rarely
-     *  needed mid-flow and competes with the page's own toolbar for
-     *  vertical real estate. */
-    hideHeaderSearchOnMobile?: boolean;
 }
 
-const Layout = ({
-    children,
-    title = '',
-    titleAction,
-    hideHeaderSearchOnMobile = false,
-}: SubLayoutProps) => {
+const Layout = ({ children, title = '', titleAction }: SubLayoutProps) => {
     return (
-        <div
-            className={classnames('page-shell', 'is-subpage', {
-                'hide-header-search-mobile': hideHeaderSearchOnMobile,
-            })}
-        >
+        // `is-subpage` flags subpages for header CSS (mobile logo
+        // swap). The previous `hideHeaderSearchOnMobile` opt-in
+        // (suppressed the search on long-content pages) is gone — the
+        // search now always shows on subpages on mobile per latest UX
+        // direction. Re-add per-page if a future page needs to hide
+        // it again.
+        <div className="page-shell is-subpage">
             <Header withSearch />
             <main className="page-content">
                 <Grid container spacing={0} id="layout" className="root">

@@ -89,7 +89,7 @@ const Notifications = () => {
     };
 
     return (
-        <Layout hideHeaderSearchOnMobile>
+        <Layout>
             <div className="notifications-page">
                 <div className="notifications-page-head">
                     <h1 className="notifications-page-title">Notifications</h1>

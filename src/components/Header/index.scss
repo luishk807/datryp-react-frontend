@@ -139,30 +139,11 @@
   min-width: 0;
 }
 
-// Page-level opt-in: hide the search bar on mobile when the page
-// passes `hideHeaderSearchOnMobile` to SubLayout. Search competes for
-// vertical real estate against long content (trip detail, etc.) and
-// users on phones aren't typically searching mid-flow.
-.page-shell.hide-header-search-mobile {
-  @media (max-width: 640px) {
-    .app-header-search {
-      display: none;
-    }
-  }
-}
-
-// The mirror flag: pages (homepage) that have their own large hero
-// searchbar don't need a second one in the header on desktop, but DO
-// want a compact searchbar in the header on mobile (no hero search
-// fits on a phone). Layout sets this class when it passes
-// `withSearch` to Header conditionally.
-.page-shell.hide-header-search-desktop {
-  @media (min-width: 769px) {
-    .app-header-search {
-      display: none;
-    }
-  }
-}
+// (Previously had .page-shell.hide-header-search-mobile + .desktop
+// opt-out classes. Removed — feedback was the header search should
+// always show on mobile subpages, even on long-content ones like
+// /trip-detail. If a future page genuinely needs to suppress it, add
+// the rule back scoped to that page's class.)
 
 .app-header-search .searchbarMain .holder-simple {
   background: #f6f6f6;
