@@ -433,7 +433,12 @@ export const TripProvider = ({ children }: { children: ReactNode }) => {
     }, [state]);
 
     return (
-        <TripStateContext.Provider value={state}>
+        // immer's produce widens the result type to `Immutable<TripState>`
+        // — TypeScript flags it as not assignable to the mutable context
+        // value type. Runtime is fine (immer guarantees no mutation of
+        // the previous state), but the compile-time signature mismatches.
+        // Narrow it back with a single cast at this seam.
+        <TripStateContext.Provider value={state as TripState}>
             <TripDispatchContext.Provider value={dispatch}>
                 {children}
             </TripDispatchContext.Provider>
