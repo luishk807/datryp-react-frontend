@@ -36,9 +36,11 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetails } from "api/hooks/useCountryDetails";
+import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useIsStuck } from "hooks/useIsStuck";
-import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
-import { TRIP_BASIC } from "constants";
+import { addPlace, basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
+import { now } from "utils";
+import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
 import type { Destination } from "types";
 
 const CountryDetail = () => {
@@ -57,7 +59,28 @@ const CountryDetail = () => {
   const tripType =
     modeParam === "multiple" ? TRIP_BASIC.MULTIPLE : TRIP_BASIC.SINGLE;
 
+  // Seed flag — when arriving from the "Your top pick" homepage card we
+  // know which entry point this is and can offer a CTA that pre-fills
+  // the trip with the 4 highlights from that monthly pick (so the user
+  // doesn't have to guess what to add).
+  const seed = (searchParams.get("seed") ?? "").trim();
+  const isMonthlyBestPlaceSeed = seed === "monthly-best-place";
+
   const { data, isLoading, isError, error } = useCountryDetails(code);
+
+  // Only fetch the monthly pick when we're actually arriving via the
+  // seed flow — keeps the country page from hitting an extra endpoint
+  // for every normal visit. The hook itself gates on Pro+admin, so
+  // free users never see the seed CTA even if the URL has the param.
+  const monthlyBestPlace = useMonthlyBestPlace({
+    enabled: isMonthlyBestPlaceSeed,
+  });
+  // The seed CTA only makes sense when the monthly pick's country
+  // matches the country we're currently looking at (otherwise the 4
+  // highlights belong to a different country and would mis-seed).
+  const seedMatchesThisCountry =
+    isMonthlyBestPlaceSeed &&
+    monthlyBestPlace.data?.place.countryCode === code;
 
   const startTrip = (
     country: { id: string; name: string; code: string; local: string | null; image: string | null },
@@ -73,8 +96,45 @@ const CountryDetail = () => {
         },
       },
     ] as Destination[];
+    const today = now();
     dispatch(resetTrip());
-    dispatch(basicInfo({ type: tripType, destinations }));
+    dispatch(
+      basicInfo({
+        type: tripType,
+        destinations,
+        startDate: today,
+        endDate: today,
+        image: country.image ?? undefined,
+      }),
+    );
+
+    // Seed flow: when the user arrived via the "Your top pick"
+    // homepage card and the monthly pick's country matches this
+    // page, pre-fill the new trip with the 4 highlights as activity
+    // rows so the user lands in the wizard with content (not an
+    // empty itinerary they have to fill in).
+    if (seedMatchesThisCountry && monthlyBestPlace.data) {
+      const { place, highlights } = monthlyBestPlace.data;
+      const location = `${place.name}, ${country.name}`;
+      // Take up to 4 — guarantees the wizard's Day-1 doesn't get
+      // overwhelmed if the prompt ever returns more.
+      highlights.slice(0, 4).forEach((h) => {
+        dispatch(
+          addPlace({
+            value: {
+              kind: ACTIVITY_KIND.PLACE,
+              name: h.title,
+              note: h.description,
+              location,
+            },
+            index: 0,
+            date: today,
+            destinationIndx: 0,
+          }),
+        );
+      });
+    }
+
     navigate(tripType.route, { replace: true });
   };
 
@@ -187,9 +247,11 @@ const CountryDetail = () => {
               <FlightTakeoffRoundedIcon className="country-detail-plan-cta-icon" />
               <span className="country-detail-plan-cta-text">
                 <span className="country-detail-plan-cta-label">
-                  {tripType.id === TRIP_BASIC.MULTIPLE.id
-                    ? "Start multi-destination trip"
-                    : "Start planning"}
+                  {seedMatchesThisCountry
+                    ? "Plan trip with these picks"
+                    : tripType.id === TRIP_BASIC.MULTIPLE.id
+                      ? "Start multi-destination trip"
+                      : "Start planning"}
                 </span>
                 <span className="country-detail-plan-cta-target">
                   {country.name}
