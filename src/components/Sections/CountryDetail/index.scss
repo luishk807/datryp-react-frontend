@@ -92,8 +92,8 @@
 .country-detail-plan-cta {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px 10px 16px;
+  gap: 8px;
+  padding: 8px 18px;
   border-radius: 999px;
   border: none;
   background: linear-gradient(
@@ -103,8 +103,10 @@
   );
   color: #fff;
   font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(60, 181, 75, 0.32);
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.28);
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -127,37 +129,34 @@
 }
 
 .country-detail-plan-cta-icon {
-  font-size: 1.4rem !important;
+  font-size: 1.05rem !important;
   flex-shrink: 0;
 }
 
 .country-detail-plan-cta-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   line-height: 1.15;
   min-width: 0;
 }
 
 .country-detail-plan-cta-label {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.85;
 }
 
 .country-detail-plan-cta-target {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 220px;
+  max-width: 160px;
 }
 
 .country-detail-plan-cta-arrow {
-  font-size: 1.15rem !important;
+  font-size: 1rem !important;
   flex-shrink: 0;
   transition: transform 0.18s ease;
 }
