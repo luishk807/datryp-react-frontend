@@ -90,22 +90,31 @@ const TripSteps = ({
         dispatch(basicInfo({ apiId: undefined }));
     }, [editingId, tripInfo.apiId, dispatch]);
 
-    // Pre-seed the current user as an organizer once per mount. We deliberately
-    // don't watch `tripInfo.organizer` here — otherwise removing yourself
-    // would trigger this effect and re-add you, making de-select impossible.
+    // Pre-seed the current user as an organizer AND as a participant
+    // (friend) once per mount. We deliberately don't watch
+    // `tripInfo.organizer` / `tripInfo.friends` here — otherwise
+    // removing yourself would trigger this effect and re-add you,
+    // making de-select impossible.
     const seededRef = useRef(false);
     useEffect(() => {
         if (!user || seededRef.current) return;
         seededRef.current = true;
-        const current = tripInfo.organizer ?? [];
-        if (current.some((o) => o.userId === user.id)) return;
         const selfAsFriend: Friend = {
             id: hashUuid(user.id),
             label: `${user.name} (you)`,
             name: `${user.name} (you)`,
             userId: user.id,
         };
-        dispatch(basicInfo({ organizer: [...current, selfAsFriend] }));
+        const currentOrganizers = tripInfo.organizer ?? [];
+        const currentFriends = tripInfo.friends ?? [];
+        const patch: Partial<typeof tripInfo> = {};
+        if (!currentOrganizers.some((o) => o.userId === user.id)) {
+            patch.organizer = [...currentOrganizers, selfAsFriend];
+        }
+        if (!currentFriends.some((f) => f.userId === user.id)) {
+            patch.friends = [...currentFriends, selfAsFriend];
+        }
+        if (Object.keys(patch).length) dispatch(basicInfo(patch));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 

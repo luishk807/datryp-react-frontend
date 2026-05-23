@@ -68,7 +68,8 @@ const PeopleStep = ({ data, onChange }: PeopleStepProps) => {
                         </h3>
                         <p className="trip-people-section-sub">
                             Travelers along for the ride — they can split
-                            budgets. Going solo? Leave this empty.
+                            budgets. You're added by default; remove yourself
+                            if you're planning for someone else.
                         </p>
                     </div>
                 </header>
