@@ -1,5 +1,9 @@
 export const NO_IMAGE = "./images/logo-gray.png";
 export const LOGO_IMAGE = "/images/logo.svg";
+/** Icon-only variant of the logo (no wordmark). Used on mobile where
+ *  horizontal space is tight — the full logo would crowd out the
+ *  searchbar + burger menu on the same header row. */
+export const LOGO_ICON_IMAGE = "/images/logo-icon.svg";
 export const PAGE_TITLE = "DaTryp.com";
 
 /** Lightweight email validator — checks for `local@domain.tld` shape only.
