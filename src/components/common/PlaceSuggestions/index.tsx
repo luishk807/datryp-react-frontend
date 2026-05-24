@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
@@ -44,10 +46,28 @@ const PlaceSuggestions = ({
     onPick,
 }: PlaceSuggestionsProps) => {
     const trimmedCountry = country?.trim();
+    // Picker is rendered inside the trip editor — read the trip id off
+    // the URL so the per-card "View" link carries it into /place. A new
+    // /place tab with the trip id lets "Add to itinerary" persist
+    // straight back to this trip.
+    const [searchParams] = useSearchParams();
+    const tripId = searchParams.get('id');
     // Cache-bust nonce — bumped when the user hits "shuffle" so the
     // recommender returns a fresh set instead of the cached top-3.
     const [shuffleNonce, setShuffleNonce] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
+
+    // `q=<name>&i=0` matches the convention used by Saved / Visited /
+    // NearbyGrid. The recommender chokes on verbose
+    // `name, city, country` strings (especially when the country name
+    // carries an ISO 3166 parenthetical suffix like
+    // "United States Minor Outlying Islands (the)" — those produce a
+    // 500 from /place-details).
+    const buildDetailHref = (item: PlaceRecommendation): string => {
+        const params = new URLSearchParams({ q: item.name, i: '0' });
+        if (tripId) params.set('id', tripId);
+        return `/place?${params.toString()}`;
+    };
 
     // Build a query that biases the recommender toward the configured
     // topic (defaults to "top things to do" for activities; the hotel
@@ -158,22 +178,35 @@ const PlaceSuggestions = ({
                                               {item.city}
                                           </span>
                                       </div>
-                                      <button
-                                          type="button"
-                                          className="place-suggestions-add"
-                                          onClick={() => handlePick(item)}
-                                          aria-label={`Use ${item.name}`}
-                                          disabled={isPicked}
-                                      >
-                                          {isPicked ? (
-                                              'Added'
-                                          ) : (
-                                              <>
-                                                  <AddCircleOutlineRoundedIcon fontSize="small" />
-                                                  <span>Add</span>
-                                              </>
-                                          )}
-                                      </button>
+                                      <div className="place-suggestions-actions">
+                                          <a
+                                              className="place-suggestions-view"
+                                              href={buildDetailHref(item)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              aria-label={`Open ${item.name} details in a new tab`}
+                                              title="View details"
+                                          >
+                                              <OpenInNewRoundedIcon fontSize="small" />
+                                              <span>View</span>
+                                          </a>
+                                          <button
+                                              type="button"
+                                              className="place-suggestions-add"
+                                              onClick={() => handlePick(item)}
+                                              aria-label={`Use ${item.name}`}
+                                              disabled={isPicked}
+                                          >
+                                              {isPicked ? (
+                                                  'Added'
+                                              ) : (
+                                                  <>
+                                                      <AddCircleOutlineRoundedIcon fontSize="small" />
+                                                      <span>Add</span>
+                                                  </>
+                                              )}
+                                          </button>
+                                      </div>
                                   </li>
                               );
                           })}

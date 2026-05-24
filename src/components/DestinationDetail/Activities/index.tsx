@@ -1,5 +1,6 @@
 import './index.scss';
 import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import { reformatDate } from 'utils';
 import { Grid, IconButton } from '@mui/material';
@@ -120,6 +121,15 @@ const Activities = ({
     // the status pill is hidden. After Completed/Cancelled the actions
     // disappear entirely — the trip is locked in.
     const isTripConfirmed = tripStatusName === TRIP_STATUS.CONFIRMED;
+
+    // Trip id pulled from the URL — present on /trip-detail?id=, /single?id=,
+    // /multiple?id=. Drives the place-name → /place link in PLACE activities
+    // (skipped during the new-trip create flow where there is no saved trip
+    // to scope the detail page to). Reading from the URL keeps the
+    // Activities component free of a `tripId` prop that two ancestors would
+    // otherwise have to thread through.
+    const [searchParams] = useSearchParams();
+    const tripId = searchParams.get('id');
     // Day-level drop target — accepts drops onto empty space when there
     // are no sortable cards to land on. dnd-kit needs both the sortable
     // items AND a droppable container to support the empty-day case.
@@ -390,7 +400,29 @@ const Activities = ({
                                                 {TitleIcon && (
                                                     <TitleIcon className="activity-title-icon" />
                                                 )}
-                                                <span className="title">{activity.name}</span>
+                                                {tripId && activityKind === ACTIVITY_KIND.PLACE ? (
+                                                    <a
+                                                        className="title title-link"
+                                                        // `q=<name>&i=0` matches the rest of the
+                                                        // app's /place URL convention (Saved,
+                                                        // Visited, NearbyGrid, PlaceResultCard).
+                                                        // Verbose `name,city,country` queries
+                                                        // 500'd /place-details on places whose
+                                                        // ISO country name carries parenthetical
+                                                        // suffixes. The location subtitle below
+                                                        // already shows city/country to the user.
+                                                        href={`/place?q=${encodeURIComponent(
+                                                            activity.name
+                                                        )}&i=0&id=${tripId}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        title={`Open ${activity.name} details in a new tab`}
+                                                    >
+                                                        {activity.name}
+                                                    </a>
+                                                ) : (
+                                                    <span className="title">{activity.name}</span>
+                                                )}
                                                 <AddPlaceBtn
                                                     isViewMode={isPlaceLocked}
                                                     type="edit"

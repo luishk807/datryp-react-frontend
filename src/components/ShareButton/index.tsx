@@ -13,6 +13,7 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import EmailShareModal, {
     type EmailShareModalHandle,
 } from 'components/EmailShareModal';
+import { buildSharePreviewUrl } from 'utils/sharePreviewUrl';
 import type { SharePlacePayload } from 'types';
 
 export interface ShareButtonProps {
@@ -40,33 +41,6 @@ export interface ShareButtonProps {
      *  doesn't apply. */
     emailPayload?: SharePlacePayload;
 }
-
-/** Backend `/share/preview` returns minimal HTML with rich OG/Twitter
- *  tags populated from these query params + a meta-refresh redirect
- *  to the canonical frontend URL. We route Facebook/X/WhatsApp shares
- *  through this URL so their crawlers see the right title/description/
- *  image instead of the static homepage OG tags baked into index.html.
- *
- *  Copy / Email / native share don't unfurl, so we keep using the raw
- *  canonical URL there — cleaner clipboard contents, no double-hop. */
-const API_BASE =
-    import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
-
-const buildPreviewUrl = (
-    title: string,
-    subtitle: string | undefined,
-    description: string | undefined,
-    imageUrl: string | null | undefined,
-    canonicalUrl: string,
-): string => {
-    const params = new URLSearchParams();
-    const fullTitle = subtitle ? `${title} — ${subtitle}` : title;
-    params.set('title', fullTitle);
-    if (description) params.set('description', description);
-    if (imageUrl) params.set('image', imageUrl);
-    params.set('url', canonicalUrl);
-    return `${API_BASE}/share/preview?${params.toString()}`;
-};
 
 const canNativeShare = (): boolean =>
     typeof navigator !== 'undefined' && typeof navigator.share === 'function';
@@ -118,13 +92,13 @@ const ShareButton = ({
     // unfurl preview. Routes through the backend's /share/preview
     // endpoint which serves OG-tagged HTML + meta-refreshes humans
     // to the canonical frontend URL. See buildPreviewUrl above.
-    const previewUrl = buildPreviewUrl(
+    const previewUrl = buildSharePreviewUrl({
         title,
         subtitle,
         description,
         imageUrl,
-        url,
-    );
+        canonicalUrl: url,
+    });
 
     const encodedPreviewUrl = encodeURIComponent(previewUrl);
     const encodedShortText = encodeURIComponent(shortShareText);

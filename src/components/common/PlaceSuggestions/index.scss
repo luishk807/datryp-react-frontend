@@ -177,10 +177,52 @@
   }
 }
 
+// Wraps the per-card View + Add buttons side-by-side. View sits to
+// the LEFT of Add (DOM order matches visual order) so the primary
+// "Add" action stays anchored at the trailing edge of the card —
+// matches the user's mental model where the rightmost button is the
+// commit action.
+.place-suggestions-actions {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.place-suggestions-view {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: transparent;
+  color: theme('colors.primaryOrange');
+  border: 1px solid rgba(247, 159, 38, 0.4);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(247, 159, 38, 0.12);
+  }
+
+  svg {
+    font-size: 0.95rem !important;
+  }
+}
+
 .place-suggestions-add {
   appearance: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 5px 10px;
   background: theme('colors.primaryGreen');

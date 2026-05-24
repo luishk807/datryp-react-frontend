@@ -128,6 +128,22 @@
   color: theme('colors.primary');
   text-transform: capitalize;
   letter-spacing: -0.005em;
+
+  // PLACE activities turn the title into a link to /place — keep the
+  // same look as a static title, just add hover affordance so the
+  // click target is discoverable.
+  &.title-link {
+    text-decoration: none;
+    border-bottom: 1px dashed transparent;
+    transition: border-color 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: theme('colors.primaryOrange');
+      border-bottom-color: theme('colors.primaryOrange');
+    }
+  }
 }
 
 // Kind icon that sits to the LEFT of the activity title. Rendered for

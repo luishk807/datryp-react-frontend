@@ -50,6 +50,7 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
+import { buildSharePreviewUrl } from "utils/sharePreviewUrl";
 import { isSameDay } from "utils";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
@@ -660,11 +661,14 @@ const TripDetailHeader = ({
     onDownloadPdf();
   };
 
-  // Share-text helpers — build a short itinerary summary suitable for
-  // dropping into an email body, WhatsApp message, or copy-to-clipboard
-  // toast. We deliberately keep it short (trip name + dates + URL) so
-  // it works on platforms with text limits.
-  const buildShareUrl = () => {
+  // Share-text helpers — assemble a short itinerary summary and a
+  // crawl-friendly preview URL. The preview URL routes through the
+  // backend `/share/preview` endpoint which returns OG / Twitter Card
+  // tags so WhatsApp / Facebook can unfurl a rich card. The raw
+  // `/trip-detail?id=...` URL is private (auth-gated) — sending it
+  // straight to a crawler returns 404 / login wall and the chat shows
+  // "not found" instead of a preview.
+  const buildCanonicalUrl = () => {
     if (typeof window === "undefined") return "";
     if (tripData.apiId) {
       return `${window.location.origin}/trip-detail?id=${tripData.apiId}`;
@@ -672,6 +676,48 @@ const TripDetailHeader = ({
     return window.location.href;
   };
 
+  /** First country with an image, else first destination's country
+   *  image, else the trip's own image. Drives the og:image on the
+   *  share preview so the unfurl carries a visual. */
+  const resolveShareImage = (): string | null => {
+    if (tripData.image) return tripData.image;
+    for (const dest of tripData.destinations ?? []) {
+      if (dest.country?.image) return dest.country.image;
+    }
+    return null;
+  };
+
+  /** One-line pitch used as og:description. Skips the URL — that's
+   *  already attached to the share separately — and the bullet
+   *  emojis (FB / X strip them or render them as raw Unicode in the
+   *  card, which reads worse than plain text). */
+  const buildShareDescription = () => {
+    const parts: string[] = [];
+    if (tripData.startDate && tripData.endDate) {
+      parts.push(`${tripData.startDate} → ${tripData.endDate}`);
+    }
+    const countries = (tripData.destinations ?? [])
+      .map((d) => d.country?.name)
+      .filter((n): n is string => Boolean(n));
+    if (countries.length) parts.push(countries.join(" · "));
+    return parts.length
+      ? `My trip on DaTryp.com — ${parts.join(" · ")}`
+      : "My trip itinerary on DaTryp.com";
+  };
+
+  const buildSharePreview = () => {
+    const canonical = buildCanonicalUrl();
+    if (!canonical) return "";
+    const tripTitle = tripData.name?.trim() || "My trip";
+    return buildSharePreviewUrl({
+      title: tripTitle,
+      description: buildShareDescription(),
+      imageUrl: resolveShareImage(),
+      canonicalUrl: canonical,
+    });
+  };
+
+  /** Plain-text body for surfaces that DON'T unfurl (email + copy). */
   const buildShareBody = () => {
     const lines: string[] = [];
     const tripTitle = tripData.name?.trim() || "My trip";
@@ -685,14 +731,29 @@ const TripDetailHeader = ({
     if (countries.length) {
       lines.push(`✈️ ${countries.join(" · ")}`);
     }
-    const url = buildShareUrl();
+    const url = buildCanonicalUrl();
     if (url) lines.push(url);
     return lines.join("\n");
   };
 
   const handleShareWhatsApp = () => {
     exportModalRef.current?.closeModal();
-    const text = encodeURIComponent(buildShareBody());
+    // WhatsApp unfurls the LAST URL in the message. Use the preview
+    // URL so the crawler reads the trip's OG tags instead of hitting
+    // the auth-gated /trip-detail SPA route (which returns "not
+    // found" in the chat unfurl).
+    const preview = buildSharePreview();
+    const tripTitle = tripData.name?.trim() || "My trip";
+    const lines: string[] = [`📍 ${tripTitle}`];
+    if (tripData.startDate && tripData.endDate) {
+      lines.push(`🗓 ${tripData.startDate} → ${tripData.endDate}`);
+    }
+    const countries = (tripData.destinations ?? [])
+      .map((d) => d.country?.name)
+      .filter((n): n is string => Boolean(n));
+    if (countries.length) lines.push(`✈️ ${countries.join(" · ")}`);
+    if (preview) lines.push(preview);
+    const text = encodeURIComponent(lines.join("\n"));
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   };
 
@@ -707,7 +768,7 @@ const TripDetailHeader = ({
   const [copyToast, setCopyToast] = useState(false);
   const handleCopyLink = async () => {
     exportModalRef.current?.closeModal();
-    const url = buildShareUrl();
+    const url = buildCanonicalUrl();
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);

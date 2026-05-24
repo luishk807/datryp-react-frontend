@@ -45,6 +45,9 @@ import { useSearchPlaces } from "api/hooks/useSearchPlaces";
 import { usePlaceDetails } from "api/hooks/usePlaceDetails";
 import { useIsStuck } from "hooks/useIsStuck";
 import { useVisitedPlaces } from "api/hooks/useVisitedPlaces";
+import { useMyItineraries } from "api/hooks/useItineraries";
+import { useUser } from "context/UserContext";
+import { apiIsSingleTrip } from "utils/itineraryAdapter";
 import { getPlaceKey } from "utils/placeKey";
 import { formatDate } from "utils/date";
 
@@ -52,13 +55,37 @@ const PlaceDetail = () => {
   const [searchParams] = useSearchParams();
   const query = (searchParams.get("q") ?? "").trim();
   const index = Number(searchParams.get("i") ?? "0");
+  // Trip context — when /place is opened from inside a trip
+  // (`/place?q=...&id=<tripId>`), the recommender scopes its
+  // suggestions to that trip's destination country for single-trips
+  // (a Spain trip's "View" link shouldn't surface Tokyo). Multi-trips
+  // span multiple countries by definition, so no scoping there.
+  const tripId = searchParams.get("id");
   // Scroll-activated chrome — see useIsStuck.
   const toolbarIsStuck = useIsStuck();
+
+  // Fetch the user's trips only when we actually need to resolve the
+  // tripId — keeps anonymous / cold-start /place loads off the trips
+  // endpoint entirely.
+  const { user } = useUser();
+  const { data: myItineraries } = useMyItineraries({
+    enabled: Boolean(user && tripId),
+  });
+  const recommenderCountry = (() => {
+    if (!tripId || !myItineraries) return undefined;
+    const trip = myItineraries.find((t) => t.id === tripId);
+    if (!trip || !apiIsSingleTrip(trip)) return undefined;
+    return trip.country?.name ?? trip.intenaryDates[0]?.country?.name ?? undefined;
+  })();
 
   // Reuses the same cached recommender response — instant if the user just
   // came from the search results page; one OpenAI/Unsplash hit if landing
   // here directly via a shared link.
-  const { data, isLoading, isError, error } = useSearchPlaces(query, 5);
+  const { data, isLoading, isError, error } = useSearchPlaces(
+    query,
+    5,
+    recommenderCountry
+  );
 
   // Enriched details (foods, places, weather, worst-time). Lazy-fetched,
   // cached server-side on the same row so a repeat view is instant. Gated

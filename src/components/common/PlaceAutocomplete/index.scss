@@ -45,3 +45,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+// Inline link to the place detail page, anchored to the right of each
+// option. Pushed to the trailing edge via `margin-left: auto` so it
+// doesn't crowd the name/location text on narrow lists.
+.place-autocomplete-option-detail {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: theme('colors.primaryOrange');
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 153, 51, 0.12);
+  }
+
+  svg {
+    font-size: 1rem !important;
+  }
+}

@@ -1,9 +1,30 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './index.scss';
 import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import type { PlaceRecommendation } from 'types';
+
+/** Build a /place URL that matches the rest of the app's convention:
+ *  `q=<place name>&i=0`. The recommender is tuned for user-typed
+ *  search queries ("bali", "south korea"), so packing
+ *  `name, city, country` into `q` produces verbose queries that the
+ *  recommender / OpenAI details call don't handle well (seen 500s on
+ *  obscure places where the ISO country name carries parenthetical
+ *  suffixes). Existing surfaces — Saved, Visited, NearbyGrid,
+ *  PlaceResultCard — all use the name-only convention; this matches.
+ *  Trip id is preserved when present so the destination /place page's
+ *  "Add to itinerary" knows which trip to attach to. */
+const buildPlaceDetailHref = (
+    option: PlaceRecommendation,
+    tripId: string | null
+): string => {
+    const params = new URLSearchParams({ q: option.name, i: '0' });
+    if (tripId) params.set('id', tripId);
+    return `/place?${params.toString()}`;
+};
 
 export interface PlaceSuggestion {
     name: string;
@@ -61,6 +82,13 @@ const PlaceAutocomplete = ({
     disabled = false,
     queryPrefix,
 }: PlaceAutocompleteProps) => {
+    // Picker is rendered inside the trip editor (`/single?id=`, `/multiple?id=`)
+    // — read the trip id off the URL so the per-option "View detail" link can
+    // carry it into /place. Falls back to a global /place link when the picker
+    // is somehow rendered outside a trip route.
+    const [searchParams] = useSearchParams();
+    const tripId = searchParams.get('id');
+
     // Debounced submitted query. Only crosses MIN_CHARS triggers a fetch;
     // shorter input clears the dropdown without burning OpenAI on partials.
     const [submittedQuery, setSubmittedQuery] = useState('');
@@ -206,6 +234,25 @@ const PlaceAutocomplete = ({
                                 {option.city} · {option.country}
                             </span>
                         </span>
+                        {/* "View detail" opens the place page in a new
+                            tab WITHOUT picking the option. stopPropagation
+                            + preventDefault on mousedown is required —
+                            MUI's Autocomplete listens on mousedown to
+                            commit the highlighted option, which would
+                            otherwise fire before our anchor click. */}
+                        <a
+                            className="place-autocomplete-option-detail"
+                            href={buildPlaceDetailHref(option, tripId)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Open ${option.name} details in a new tab`}
+                            title="View details"
+                        >
+                            <OpenInNewRoundedIcon fontSize="small" />
+                            <span>View</span>
+                        </a>
                     </li>
                 );
             }}

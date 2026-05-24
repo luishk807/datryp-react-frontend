@@ -1,30 +1,46 @@
 /**
- * Shared trip-mutation helpers used by `AddToItineraryButton` and by
- * `PlacesYouMightLove` card clicks.
+ * Trip-mutation helpers for the /place "Add to itinerary" surface.
  *
- * Why extracted: both surfaces need identical "start fresh / add to
- * current" semantics — including saving the place's image at both the
- * trip level (for the trip-card thumbnail) and the activity level (for
- * the place row inside the itinerary). Centralizing the logic prevents
- * the two callers from drifting.
+ * Two paths, picked by whether the page URL carries a `?id=<tripId>`:
+ *
+ *   1. No id  → `dispatchStartFreshTrip` wipes the local draft and
+ *      seeds a fresh single-destination trip with this place. The
+ *      caller drops the user on /single to finish setup.
+ *
+ *   2. id     → `addPlaceToTripState` is a pure function the caller
+ *      uses to fold the place into a hydrated saved trip; the result
+ *      goes through `tripStateToSaveInput` + `useSaveItinerary` and
+ *      the user lands on /trip-detail. No draft involvement.
  */
 import { gql } from 'graphql-request';
+import { produce } from 'immer';
 import { pythonGqlClient } from 'api/pythonGqlClient';
 import {
-    addDestination,
     addPlace,
     basicInfo,
     resetTrip,
     type TripAction,
 } from 'context/TripContext';
 import { TRIP_BASIC } from 'constants';
-import { now } from 'utils';
+import { now, isSameDay } from 'utils';
 import type {
     Activity,
     Country,
     Destination,
+    ItineraryDay,
     TripState,
 } from 'types';
+
+let nextLocalId = 1;
+const localId = (): number => {
+    if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        return buf[0];
+    }
+    nextLocalId += 1;
+    return Date.now() + nextLocalId;
+};
 
 const COUNTRY_LOOKUP_QUERY = gql`
     query AddToItineraryCountry($query: String!) {
@@ -140,61 +156,62 @@ export const dispatchStartFreshTrip = (
     );
 };
 
-/** Append `place` to an in-progress trip. If the trip already has a
- *  destination in the same country, the place is added to that
- *  destination's earliest day; otherwise a new destination is appended
- *  (promoting a single-destination trip to multi when needed). */
-export const dispatchAddToCurrentTrip = (
+/** Fold `place` into a `TripState` (typically one hydrated from the
+ *  backend via `apiToTripState`). If a destination in the same
+ *  country exists, the place is appended to that destination's
+ *  earliest day; otherwise a new destination is added and the trip
+ *  promotes single→multi as needed. Returns a new `TripState`; the
+ *  caller is expected to send it through `tripStateToSaveInput` +
+ *  `useSaveItinerary` to persist.
+ */
+export const addPlaceToTripState = (
+    trip: TripState,
     place: AddablePlace,
     country: Country,
-    trip: TripState,
-    matchingDestinationIndex: number,
-    dispatch: (action: TripAction) => void
-): { route: string } => {
-    const isMultiTrip = trip.type?.id === TRIP_BASIC.MULTIPLE.id;
+    matchingDestinationIndex: number
+): TripState =>
+    produce(trip, (draft) => {
+        const isMultiTrip = draft.type?.id === TRIP_BASIC.MULTIPLE.id;
+        const activity: Activity = {
+            ...placeToActivity(place),
+            id: localId(),
+        };
 
-    if (matchingDestinationIndex !== -1) {
-        const dest = trip.destinations[matchingDestinationIndex];
-        const date = earliestDateOf(dest, trip.startDate);
-        dispatch(
-            addPlace({
-                value: placeToActivity(place),
-                index: 0,
-                date,
-                destinationIndx: matchingDestinationIndex,
-            })
-        );
-        return { route: trip.type?.route ?? TRIP_BASIC.SINGLE.route };
-    }
+        if (matchingDestinationIndex !== -1) {
+            const dest = draft.destinations[matchingDestinationIndex];
+            if (!dest) return;
+            if (!dest.itinerary) dest.itinerary = [];
+            const date = earliestDateOf(dest, draft.startDate);
+            const day = dest.itinerary.find((d) => isSameDay(d.date, date));
+            if (day) {
+                day.activities.push(activity);
+            } else {
+                dest.itinerary.push({
+                    id: localId(),
+                    date,
+                    activities: [activity],
+                });
+            }
+            return;
+        }
 
-    // No matching destination — append a new one. Promote single→multi
-    // first so the type reflects reality.
-    if (!isMultiTrip) {
-        dispatch(basicInfo({ type: TRIP_BASIC.MULTIPLE }));
-    }
-    const newDestinationIndex = trip.destinations.length;
-    dispatch(
-        addDestination({
-            value: { country },
-            startDate: trip.startDate,
-            endDate: trip.endDate,
-        })
-    );
-    dispatch(
-        addPlace({
-            value: placeToActivity(place),
-            index: 0,
-            date: trip.startDate ?? now(),
-            destinationIndx: newDestinationIndex,
-        })
-    );
-    return { route: TRIP_BASIC.MULTIPLE.route };
-};
-
-/** True when the trip draft has been touched (destinations or type
- *  set). Use to decide between "start fresh" vs. "ask the user". */
-export const tripHasContent = (trip: TripState): boolean =>
-    (trip.destinations?.length ?? 0) > 0 || Boolean(trip.type);
+        if (!isMultiTrip) {
+            draft.type = TRIP_BASIC.MULTIPLE;
+        }
+        const date = draft.startDate ?? now();
+        const newDay: ItineraryDay = {
+            id: localId(),
+            date,
+            activities: [activity],
+        };
+        draft.destinations.push({
+            id: localId(),
+            country,
+            startDate: draft.startDate,
+            endDate: draft.endDate,
+            itinerary: [newDay],
+        } as Destination);
+    });
 
 /** Find the index of a destination matching `countryName` (case-
  *  insensitive). Returns -1 when no match exists. */
