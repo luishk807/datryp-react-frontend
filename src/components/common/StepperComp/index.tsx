@@ -23,6 +23,8 @@ import {
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import Stepper from '@mui/material/Stepper';
 import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
@@ -521,6 +523,33 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                             <h2 className="edit-trip-name">
                                                 {data.name || 'Untitled trip'}
                                             </h2>
+                                            {/* Bell sits BETWEEN title and the
+                                                status/action so the broadcast
+                                                affordance is visually anchored
+                                                to the trip name rather than
+                                                grouped with the status CTA. */}
+                                            {showNotifyToggle && (
+                                                <NotifyParticipantsCheckbox
+                                                    checked={notifyParticipants}
+                                                    onChange={setNotifyParticipants}
+                                                    disabled={
+                                                        saveItinerary.isPending ||
+                                                        deleteItinerary.isPending
+                                                    }
+                                                />
+                                            )}
+                                            {/* In edit mode the title-row pill
+                                                IS the promote-status action
+                                                ("Confirm trip" in Planning,
+                                                "Mark complete" in Confirmed) —
+                                                tapping it advances the trip's
+                                                lifecycle, replacing the
+                                                read-only status indicator used
+                                                on the non-editing TripDetail
+                                                page. The user is already in
+                                                edit mode here, so a
+                                                clickable affordance is more
+                                                useful than a label. */}
                                             <TripStatusBadge
                                                 data={data}
                                                 onStatusChange={(status) =>
@@ -555,16 +584,6 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                                                     hasMissingFields
                                                 }
                                             />
-                                            {showNotifyToggle && (
-                                                <NotifyParticipantsCheckbox
-                                                    checked={notifyParticipants}
-                                                    onChange={setNotifyParticipants}
-                                                    disabled={
-                                                        saveItinerary.isPending ||
-                                                        deleteItinerary.isPending
-                                                    }
-                                                />
-                                            )}
                                             <IconButton
                                                 className="edit-trip-menu-btn"
                                                 aria-label="More actions"

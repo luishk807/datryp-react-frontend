@@ -296,12 +296,28 @@ const Activities = ({
                                 // Clicking the filled tick reverts the
                                 // activity back to Confirmed so the user
                                 // can undo an accidental check.
+                                //
+                                // GUARD: disable the tick until the
+                                // tripStatuses lookup has resolved the
+                                // real UUIDs. Otherwise the save sends
+                                // `tripStatusId: null` (the cold-cache
+                                // fallback `{ id: 0, … }` doesn't resolve
+                                // by name when the lookup itself is
+                                // empty), and the post-save refetch
+                                // reverts the activity to Planning — the
+                                // "checkmark flicks but doesn't update"
+                                // bug reported on mobile cold loads.
                                 isActivityCompleted ? (
                                     <IconButton
                                         size="small"
                                         className="activity-card-complete-btn is-checked"
                                         aria-label={`Uncheck ${activity.name} (reverts to Confirmed)`}
-                                        title="Uncheck — reverts to Confirmed"
+                                        title={
+                                            confirmedStatus.id === 0
+                                                ? 'Loading status options…'
+                                                : 'Uncheck — reverts to Confirmed'
+                                        }
+                                        disabled={confirmedStatus.id === 0}
                                         onClick={() =>
                                             onChangePlace('edit', {
                                                 index: indx,
@@ -319,7 +335,12 @@ const Activities = ({
                                         size="small"
                                         className="activity-card-complete-btn"
                                         aria-label={`Mark ${activity.name} as completed`}
-                                        title="Mark as completed"
+                                        title={
+                                            completedStatus.id === 0
+                                                ? 'Loading status options…'
+                                                : 'Mark as completed'
+                                        }
+                                        disabled={completedStatus.id === 0}
                                         onClick={() =>
                                             onChangePlace('edit', {
                                                 index: indx,

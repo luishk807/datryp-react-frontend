@@ -35,7 +35,11 @@
   align-items: center;
   justify-content: center;
   z-index: 1;
-  overflow: hidden;
+  // overflow:hidden was clipping the SearchBar autocomplete dropdown when
+  // it extended past the hero on short phone heros, leaving it visually
+  // "behind" the next section. The bg photo is `position:absolute; inset:0`
+  // with `object-fit:cover`, so it can't bleed out — overflow:hidden was
+  // only ever helping the photo, which doesn't need it.
 }
 
 // Hero photo layer — covers the section, sits below the dark
@@ -72,7 +76,13 @@
   position: absolute;
   bottom: 8px;
   right: 12px;
-  z-index: 2;
+  // Sits above the photo + overlay (z-index: 0) but BELOW
+  // .home-hero-content (z-index: 3 below). The SearchBar dropdown
+  // anchors inside .home-hero-content's stacking context, so on
+  // mobile (short hero) the dropdown extends down and was being
+  // overlapped by this attribution chip. Lowered from z-index: 2
+  // to: 1 so the dropdown wins.
+  z-index: 1;
   font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.55);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -90,7 +100,13 @@
 
 .home-hero-content {
   position: relative;
-  z-index: 1;
+  // Above the Unsplash attribution chip (z-index: 1) so the
+  // SearchBar dropdown — which lives inside this content's
+  // stacking context — can extend over the attribution on
+  // short-hero mobile layouts. Anything inside this container
+  // (search dropdown at z-index: 1000) stacks within this
+  // bounded context.
+  z-index: 3;
   width: 100%;
   max-width: 1120px;
   padding: 64px 24px;

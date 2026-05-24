@@ -417,12 +417,19 @@
     gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 8px 4px;
-    margin: -4px -4px 4px;
-    // Sticky chip strip so the nav follows the user as they scroll
-    // through long sections.
+    // Edge-to-edge full-bleed strip: cancel the .account-page horizontal
+    // padding (16px) so the bar reads as a real top bar that snaps to
+    // the viewport edges, not a chip strip inside a card.
+    padding: 10px 16px;
+    margin: -4px -16px 4px;
+    // Sticky chip strip pinned BELOW the (also-sticky on mobile) global
+    // header + page title so the three pin together as one cohesive
+    // "page-top" band. The :has() block below makes the header + title
+    // sticky on /account at ≤720px with locked heights — header 56px
+    // + title 44px = 100px combined. Don't change one of these
+    // values without updating the other two.
     position: sticky;
-    top: 64px;
+    top: 100px;
     z-index: 5;
     background: linear-gradient(
       180deg,
@@ -432,6 +439,7 @@
     );
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
@@ -464,6 +472,83 @@
 
   .account-nav-chip-icon {
     font-size: 1rem !important;
+  }
+}
+
+// Mobile-only FIXED stack for the /account page: global header (logo)
+// + page title ("Account") + nav chip strip pin rock-solid at the
+// top of the viewport so they don't move at all while the user
+// scrolls long sections.
+//
+// Why fixed and not sticky: sticky elements are relative until
+// they scroll into their trigger position. On /account that meant
+// the chip strip moved ~30-50px before sticking (the gap between
+// the page top and its natural document position), which felt
+// like the toolbar was "still scrolling a little". `position:
+// fixed` takes them out of flow entirely so they never move.
+//
+// Scoped via `:has(.account-page)` so it only kicks in for this
+// page — detail pages (place / city / country) still scroll their
+// global header away as before. Requires `:has()`, supported in
+// all evergreen browsers since 2023 / Safari 15.4+.
+//
+// Heights are pinned explicitly so the `top` offsets below line up.
+@media (max-width: 720px) {
+  .page-shell.is-subpage:has(.account-page) {
+    .app-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 110;
+      background: #fff;
+      height: 56px;
+      display: flex;
+      align-items: center;
+    }
+
+    .app-header .app-header-inner {
+      width: 100%;
+      min-height: 56px;
+    }
+
+    // Title sits flush against the header's bottom edge. It lives
+    // inside the Grid layout, so its width is constrained by the
+    // grid — we span it edge-to-edge via left:0 / right:0 while
+    // fixed.
+    #layout .layout-title {
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      z-index: 109;
+      background: #fff;
+      margin: 0;
+      padding: 10px 14px;
+      line-height: 1.2;
+      height: 44px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    // Chip strip — same fixed treatment as header + title so the
+    // three layers truly pin together. The 960px breakpoint above
+    // still sets the visual styling (flex / overflow / scrollbar
+    // hide / padding) — we only flip the positioning here.
+    .account-nav-mobile {
+      position: fixed;
+      top: 100px;
+      left: 0;
+      right: 0;
+      margin: 0;
+      z-index: 5;
+    }
+
+    // Push the page content below the ~144px fixed stack
+    // (header 56 + title 44 + chip strip ~44) so the first card
+    // isn't covered by the fixed bar.
+    .page-content {
+      padding-top: 144px;
+    }
   }
 }
 

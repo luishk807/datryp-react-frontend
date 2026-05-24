@@ -240,6 +240,15 @@
   }
 }
 
+/* ---------- Mobile-only floating "Plan new trip" pill ---------- */
+// Hidden by default; the mobile breakpoint below flips it into a
+// fixed-position pill above the bottom nav (mirroring `.add-itinerary-pill`
+// on /place and /country detail). On desktop the same action lives
+// inline in the trips-header row as `.trips-plan-cta`.
+.trips-plan-cta-mobile {
+  display: none;
+}
+
 /* ---------- Filter chips ---------- */
 .trips-filters {
   display: flex;
@@ -317,11 +326,97 @@
     align-items: stretch;
     gap: 12px;
   }
-  .trips-cta button.main-button {
-    width: 100% !important;
-    min-width: 0;
+  // Keep the `.trips-cta` row visible on mobile so the "Select"
+  // multi-select toggle still renders. The inline "Plan new trip"
+  // pill inside the same row is hidden below — the floating pill
+  // (`.trips-plan-cta-mobile`) takes its place.
+  .trips-cta {
+    justify-content: flex-end;
+  }
+  // Hide ONLY the inline "Plan new trip" pill on phones — Select
+  // stays.
+  .trips-cta .trips-plan-cta {
+    display: none !important;
   }
   .trips-summary {
     font-size: 0.9rem;
+  }
+
+  // Filters: horizontal scrolling chip strip, same affordance as
+  // the account-page mobile nav. Cancel the page padding so chips
+  // run edge-to-edge and the scroll feels like a real strip rather
+  // than a constrained row.
+  .trips-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 8px;
+    padding: 4px 8px;
+    margin: 0 -8px 18px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .trips-filter {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  // Floating "+ Plan new trip" pill — fixed above the bottom nav so
+  // the primary action is reachable while scrolling the trip grid.
+  // Style mirrors `.add-itinerary-pill` on PlaceDetail and the
+  // `city-detail-plan-cta` floater on CityDetail so the three pages
+  // feel like one family: brand-green pill, centered, sits
+  // ~86px above the viewport bottom (= just above the bottom-nav
+  // bar, accounting for safe-area on notched phones).
+  .trips-plan-cta-mobile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(86px + env(safe-area-inset-bottom));
+    z-index: 1099;
+    width: auto;
+    max-width: calc(100vw - 32px);
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 26px rgba(60, 181, 75, 0.4),
+      0 3px 8px rgba(0, 0, 0, 0.16);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      filter 0.18s ease;
+
+    &:hover {
+      transform: translate(-50%, -1px);
+      filter: brightness(1.04);
+      box-shadow: 0 14px 30px rgba(60, 181, 75, 0.48),
+        0 4px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    &:active {
+      transform: translateX(-50%);
+    }
+  }
+
+  // The grid has a tall floating pill hovering near the bottom of
+  // the viewport. Pad the trips list so the last card doesn't get
+  // covered by the pill on landing.
+  .trips-page {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom));
   }
 }

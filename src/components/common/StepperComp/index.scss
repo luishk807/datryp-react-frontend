@@ -54,6 +54,50 @@
   white-space: nowrap;
 }
 
+// Read-only status pill — matches `.trip-detail-status` on the
+// non-editing TripDetail page so the two title rows look identical.
+// The clickable "Confirm trip" / "Mark complete" CTA lives in the
+// actions row below (TripStatusBadge); this pill is purely a status
+// indicator. Color-coded by state: amber for planning, green for
+// confirmed/completed, muted gray for cancelled.
+.edit-trip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.edit-trip-status-icon {
+  font-size: 1rem;
+}
+
+.edit-trip-status-planning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.edit-trip-status-confirmed {
+  background: rgba(60, 181, 75, 0.14);
+  color: theme('colors.primaryGreen');
+}
+
+.edit-trip-status-completed {
+  background: rgba(60, 181, 75, 0.18);
+  color: theme('colors.primaryGreen');
+}
+
+.edit-trip-status-cancelled {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.55);
+  font-style: italic;
+}
+
 .edit-trip-header-actions {
   display: flex;
   flex-wrap: wrap;
@@ -233,6 +277,34 @@
   .step-actions button {
     width: 100%;
     padding: 10px 0;
+  }
+}
+
+// Mobile (edit-trip header): when the action cluster wraps onto
+// its own line under the trip name, pin it to the far right of
+// the row so the buttons read as a coherent toolbar edge. The
+// cluster itself uses `flex-wrap: nowrap` so the kebab stays on
+// the same row as Cancel / Save Changes / Confirm trip rather
+// than dropping to its own line on narrow widths.
+@media (max-width: 640px) {
+  // Tighten the top of the edit header on phones — the default
+  // 12px padding-top stacks with the stepper container's own
+  // margin and leaves an awkward gap above the trip name.
+  .edit-trip-header {
+    padding-top: 2px;
+  }
+
+  .edit-trip-header .edit-trip-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    margin-left: auto;
+    // Vertical breathing room so the buttons read as their own
+    // band rather than crowding the title above and the
+    // basic-info card below. Mirrors the same spacing applied
+    // on the trip-detail page header at this breakpoint.
+    margin-top: 14px;
+    margin-bottom: 14px;
   }
 }
 

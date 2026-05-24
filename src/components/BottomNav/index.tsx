@@ -25,7 +25,7 @@
  * existing Header (Sign in / Sign up CTAs) and pushing them into a
  * bottom nav before they have an account would be hostile.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
 import { Drawer, Divider } from '@mui/material';
@@ -71,6 +71,22 @@ const BottomNav = () => {
     // token, so it's a no-op for signed-out users.
     const unreadQuery = useUnreadNotificationCount();
     const unreadCount = unreadQuery.data ?? 0;
+
+    // Lock body scroll while the full-viewport search overlay is open.
+    // The overlay is a plain div (not a MUI Drawer, which handles this
+    // automatically), so without this hook the page behind it remained
+    // scrollable on mobile — fingers landing near the edges scrolled
+    // the article while typing in the overlay. Restore on unmount /
+    // close so accidental remounts don't strand the page in a locked
+    // state.
+    useEffect(() => {
+        if (!searchOpen) return;
+        const previous = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previous;
+        };
+    }, [searchOpen]);
 
     // Bottom nav is an authenticated-user surface. Signed-out users
     // keep using the header's Sign in / Sign up flow.

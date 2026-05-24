@@ -380,6 +380,7 @@
     width: auto;
     max-width: calc(100vw - 32px);
     justify-content: center;
+    gap: 8px;
     padding: 12px 22px;
     border-radius: 999px;
     background: theme('colors.primaryGreen');
@@ -390,6 +391,13 @@
     box-shadow: 0 10px 26px rgba(60, 181, 75, 0.4),
       0 3px 8px rgba(0, 0, 0, 0.16);
     border: none;
+
+    // AddToItineraryButton's mobile rule hides the label so it can
+    // shrink to an icon chip; the floating CTA layout below has room
+    // for the label and reads better with it, so unhide it here.
+    > span {
+      display: inline;
+    }
   }
 
   .place-detail-toolbar-actions .add-itinerary-pill .add-itinerary-icon {

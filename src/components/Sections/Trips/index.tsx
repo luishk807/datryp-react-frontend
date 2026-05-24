@@ -189,6 +189,7 @@ export const Trips = () => {
                         <ButtonCustom
                             type="standard"
                             capitalizeType="uppercase"
+                            className="trips-plan-cta"
                             label="+ Plan new trip"
                             onClick={() => navigate('/')}
                         />
@@ -244,6 +245,20 @@ export const Trips = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Mobile-only floating "+ Plan new trip" pill —
+                    fixed-position above the bottom nav, mirroring the
+                    `.add-itinerary-pill` style on /place and /country
+                    detail. Hidden ≥641px via CSS; the same action
+                    lives inline in the trips-header on desktop. */}
+                <button
+                    type="button"
+                    className="trips-plan-cta-mobile"
+                    onClick={() => navigate('/')}
+                    aria-label="Plan new trip"
+                >
+                    + Plan new trip
+                </button>
 
                 <div className="trips-filters">
                     {FILTERS.map((f) => (

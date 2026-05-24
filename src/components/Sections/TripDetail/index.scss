@@ -185,3 +185,40 @@
     background-color: rgba(192, 57, 43, 0.08) !important;
   }
 }
+
+// Mobile: give the header action row (Edit / Mark complete / Share /
+// kebab) breathing room. The row currently wraps onto its own line
+// under the trip name + status pill, but with no margins it crowds
+// both the title above and the basic-info card below. Adds clear
+// vertical space so the action cluster reads as its own band.
+@media (max-width: 640px) {
+  .trip-detail-header {
+    .trip-detail-header-actions {
+      width: 100%;
+      // `nowrap` keeps the kebab on the same row as the other
+      // action buttons (Mark complete / Share). With wrap on, the
+      // kebab dropped to its own line under narrow widths.
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      margin-top: 14px;
+      margin-bottom: 14px;
+    }
+
+    // Mobile: hide the inline "Edit Trip" pill — the same action is
+    // surfaced as the first item inside the kebab menu (see the
+    // `.trip-detail-menu-item-edit` rule below). Frees up horizontal
+    // room so Mark Complete / Share / kebab fit on one line.
+    .trip-detail-edit-btn {
+      display: none !important;
+    }
+  }
+}
+
+// Desktop: the inline Edit Trip pill is the canonical affordance, so
+// hide the duplicate menu entry. The class is added in TripDetail's
+// MenuActionItem via the `className` prop.
+@media (min-width: 641px) {
+  .trip-detail-menu-item-edit {
+    display: none !important;
+  }
+}

@@ -23,6 +23,7 @@ import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import Layout from "components/common/Layout/SubLayout";
@@ -245,11 +246,22 @@ export const TripDetail = () => {
       // activity while the trip is already Confirmed. No separate Save
       // Trip click needed — the activity transitions to Completed and
       // is saved to the backend in a single tap.
+      //
+      // GUARD: only fire when the tripStatuses lookup has at least one
+      // entry. Otherwise `tripStateToSaveInput` resolves every activity's
+      // status UUID to null (the cold-cache `{ id: 0, name: … }`
+      // fallback can't be resolved by name when the lookup itself is
+      // empty). The post-save refetch then returns activities with
+      // status=Planning and the UI flicks back — the "checkmark flicks
+      // but doesn't update" bug. The activity card disables the tick
+      // when its own copy of `completedStatus.id` is 0, but the lookup
+      // races with the trip fetch, so belt-and-suspenders this here.
       if (
         apiTrip &&
         apiTrip.interaryType?.id &&
         persistedStatusName === TRIP_STATUS.CONFIRMED &&
-        isMarkActivityCompletedEvent(event)
+        isMarkActivityCompletedEvent(event) &&
+        activityStatusLookup.size > 0
       ) {
         const input = tripStateToSaveInput(next, {
           id: apiTrip.id,
@@ -273,6 +285,7 @@ export const TripDetail = () => {
       persistedStatusName,
       saveItinerary,
       notifyParticipants,
+      activityStatusLookup,
     ],
   );
 
@@ -726,6 +739,17 @@ const TripDetailHeader = ({
     <div className="trip-detail-header">
       <div className="trip-detail-header-title">
         <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
+        {/* Bell sits BETWEEN title and status — the broadcast
+            affordance reads as paired with the trip name first,
+            then the status pill anchors the right side of the
+            row. Matches the edit-trip header layout exactly. */}
+        {showNotifyToggle && (
+          <NotifyParticipantsCheckbox
+            checked={notifyParticipants}
+            onChange={onChangeNotifyParticipants}
+            disabled={isSaving || isDeleting}
+          />
+        )}
         {/* Status pill — visible for every state so the user always knows
             where the trip is in its lifecycle. */}
         <span
@@ -872,13 +896,6 @@ const TripDetailHeader = ({
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
           message="Trip link copied to clipboard"
         />
-        {showNotifyToggle && (
-          <NotifyParticipantsCheckbox
-            checked={notifyParticipants}
-            onChange={onChangeNotifyParticipants}
-            disabled={isSaving || isDeleting}
-          />
-        )}
         {isOrganizer && (
           <>
             <IconButton
@@ -891,6 +908,21 @@ const TripDetailHeader = ({
               <MoreVertIcon fontSize="small" />
             </IconButton>
             <Menu anchorEl={menuAnchor} onClose={closeMenu}>
+              {/* Edit Trip is rendered both as the inline pill (desktop)
+                  AND as this menu item (mobile). CSS hides whichever
+                  doesn't belong at the current breakpoint — see
+                  `.trip-detail-menu-item-edit` in index.scss. */}
+              {canSaveTrip && (
+                <MenuActionItem
+                  icon={<EditRoundedIcon />}
+                  label="Edit trip"
+                  onClick={() => {
+                    closeMenu();
+                    onEditTrip();
+                  }}
+                  className="trip-detail-menu-item-edit"
+                />
+              )}
               {canCancelTrip && (
                 <MenuActionItem
                   icon={<EventBusyRoundedIcon />}

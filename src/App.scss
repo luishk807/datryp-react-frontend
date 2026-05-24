@@ -81,9 +81,15 @@ iframe[id*='__acroToolbar' i],
 
     // The shared circle — identical for all three. Active states
     // only change the ICON color, not the chip itself, so the set
-    // always reads as a row of matched buttons.
+    // always reads as a row of matched buttons. The `*-city-pill`
+    // variants are the BookmarkCityButton / VisitedCityButton used
+    // on the /city page — they MUST stay in sync with their
+    // BookmarkButton / VisitedButton siblings so /city renders the
+    // same unified mobile chip set as /place and /country.
     .bookmark-button-pill,
+    .bookmark-city-pill,
     .visited-button-pill,
+    .visited-city-pill,
     .share-button-pill {
       width: 36px !important;
       height: 36px !important;
@@ -108,7 +114,9 @@ iframe[id*='__acroToolbar' i],
     }
 
     .bookmark-button-pill:hover,
+    .bookmark-city-pill:hover,
     .visited-button-pill:hover,
+    .visited-city-pill:hover,
     .share-button-pill:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24),
@@ -119,7 +127,9 @@ iframe[id*='__acroToolbar' i],
     // the row reads as a set. Active states below recolor the
     // glyph only.
     .bookmark-button-icon,
+    .bookmark-city-icon,
     .visited-button-icon,
+    .visited-city-icon,
     .share-button-pill-icon,
     .share-button-pill .MuiSvgIcon-root,
     .share-button-pill svg {
@@ -131,11 +141,13 @@ iframe[id*='__acroToolbar' i],
     }
 
     // Active glyph colors — same chip styling, brand-tinted icon.
-    .bookmark-button-pill.is-saved .bookmark-button-icon {
+    .bookmark-button-pill.is-saved .bookmark-button-icon,
+    .bookmark-city-pill.is-saved .bookmark-city-icon {
       color: theme('colors.primaryOrange') !important;
     }
 
-    .visited-button-pill.is-visited .visited-button-icon {
+    .visited-button-pill.is-visited .visited-button-icon,
+    .visited-city-pill.is-visited .visited-city-icon {
       color: theme('colors.primaryGreen') !important;
     }
   }
