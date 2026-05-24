@@ -2,15 +2,24 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
 
+  // `md` keeps the original stacked layout — used by the four "Top 5"
+  // sections where each tip needs its own visual row.
   &.size-md {
+    display: flex;
+    flex-direction: column;
     gap: 10px;
   }
 
+  // `sm` (the "Good to know" notes block) now uses a responsive
+  // 2-column card grid. Stacked-list rendering of 5 dense tips reads
+  // as a wall of text; chunking each tip into a soft-tinted card with
+  // its own bordered region gives the eye anchors and makes the
+  // section scannable instead of paragraph-by-paragraph.
   &.size-sm {
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
   }
 }
 
@@ -18,9 +27,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
   .tip-list.size-md & {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     padding-bottom: 8px;
 
     &:last-child {
@@ -29,12 +38,23 @@
     }
   }
 
+  // Each `sm` item is a small card. Subtle green-tinted gradient
+  // mirrors the "Highlights" / "Best to visit" callout treatment
+  // elsewhere on the detail pages, so this section reads as part of
+  // the same visual family. Left border accent gives a glanceable
+  // anchor without forcing per-card icons (which the recommender
+  // doesn't supply).
   .tip-list.size-sm & {
-    padding: 8px 0;
-
-    &:last-child {
-      border-bottom: 0;
-    }
+    padding: 10px 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(60, 181, 75, 0.05) 0%,
+      rgba(247, 159, 38, 0.04) 100%
+    );
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-left: 3px solid theme('colors.primaryGreen');
+    border-radius: 10px;
+    gap: 4px;
   }
 }
 
@@ -47,7 +67,10 @@
   }
 
   .tip-list.size-sm & {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: theme('colors.primaryGreen');
   }
 }
 

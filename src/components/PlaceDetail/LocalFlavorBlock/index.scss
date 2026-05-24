@@ -76,19 +76,35 @@
   color: theme('colors.primaryGreen');
 }
 
-// Three short labeled paragraphs (nightlife, liquor, souvenir)
+// Three short labeled paragraphs (nightlife, liquor, souvenir) — now
+// a 3-column card grid. The previous stacked-paragraph layout read
+// as a wall of muted text between the Fun meter and the
+// "Don't leave without" list; chunked cards break the flow and
+// match the visual rhythm of the new MustDoList below.
 .local-flavor-rows {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
 
 .local-flavor-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.05) 0%,
+    rgba(247, 159, 38, 0.05) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  }
 }
 
 .local-flavor-row-label {
@@ -99,12 +115,12 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.55);
+  color: theme('colors.primaryGreen');
 }
 
 .local-flavor-row-icon {
-  font-size: 1rem !important;
-  color: theme('colors.primaryGreen');
+  font-size: 1.05rem !important;
+  color: theme('colors.primaryOrange');
 }
 
 .local-flavor-row-text {

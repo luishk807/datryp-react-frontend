@@ -81,6 +81,7 @@ interface NearbyDestinationRaw {
     why: string;
     lat: number;
     lng: number;
+    image_url?: string | null;
 }
 
 interface LocalFlavorRaw {
@@ -204,7 +205,10 @@ const toDetails = (raw: CityDetailsRaw): CityDetails => ({
         priceRange: raw.lodging.price_range,
         bookingTip: raw.lodging.booking_tip,
     },
-    nearbyDestinations: raw.nearby_destinations,
+    nearbyDestinations: raw.nearby_destinations.map((n) => ({
+        ...n,
+        imageUrl: n.image_url ?? null,
+    })),
     localFlavor: {
         funLevel: raw.local_flavor.fun_level,
         nightlife: raw.local_flavor.nightlife,

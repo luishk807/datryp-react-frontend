@@ -389,12 +389,6 @@ const CityDetail = () => {
                             flavor={details.localFlavor}
                             isError={false}
                         />
-
-                        <NearbySection
-                            items={details.nearbyDestinations}
-                            origin={details.coordinates}
-                            isError={false}
-                        />
                     </div>
 
                     <aside className="city-detail-content-side">
@@ -457,6 +451,11 @@ const CityDetail = () => {
                         items={details.photoSpots}
                     />
                 </div>
+
+                <NearbySection
+                    items={details.nearbyDestinations}
+                    isError={false}
+                />
 
                 <div id="city-reviews">
                     <ReviewSection

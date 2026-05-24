@@ -4,8 +4,9 @@ import LocalBarRoundedIcon from "@mui/icons-material/LocalBarRounded";
 import RedeemRoundedIcon from "@mui/icons-material/RedeemRounded";
 import StarsRoundedIcon from "@mui/icons-material/StarsRounded";
 import Skeleton from "components/common/Skeleton";
-import TipList from "components/PlaceDetail/TipList";
-import TipListSkeleton from "components/PlaceDetail/TipListSkeleton";
+import MustDoList, {
+  MustDoListSkeleton,
+} from "components/PlaceDetail/MustDoList";
 import type { LocalFlavor } from "types";
 import "./index.scss";
 
@@ -84,7 +85,7 @@ const LocalFlavorBlock = ({ flavor }: LocalFlavorBlockProps) => {
           <StarsRoundedIcon className="local-flavor-row-icon" />
           Don&rsquo;t leave without
         </span>
-        <TipList items={flavor.mustDoBeforeLeaving} size="sm" />
+        <MustDoList items={flavor.mustDoBeforeLeaving} />
       </div>
     </div>
   );
@@ -100,7 +101,7 @@ export const LocalFlavorSkeleton = () => (
         <Skeleton width="95%" height={14} radius={4} />
       </div>
     ))}
-    <TipListSkeleton size="sm" />
+    <MustDoListSkeleton />
   </div>
 );
 

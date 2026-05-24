@@ -59,7 +59,9 @@ export type NearbyKind = string;
 
 /** A nearby city / region / country / district / etc. worth visiting from
  *  the current place. Rendered as a clickable card linking to
- *  `/place?q=<name>&i=0`. lat/lng feed the distance-from-current-place sort. */
+ *  `/place?q=<name>&i=0`. lat/lng are no longer used by the UI (distance
+ *  sort was removed) but stay on the payload so older cached rows
+ *  validate. */
 export interface NearbyDestination {
   name: string;
   country: string;
@@ -67,6 +69,12 @@ export interface NearbyDestination {
   why: string;
   lat: number;
   lng: number;
+  /** Unsplash photo URL — populated server-side via the same
+   *  `enrich_named_tips_with_unsplash` helper that powers the
+   *  "Top 5" cards. Optional because cached rows from before image
+   *  enrichment shipped don't carry it; the card falls back to a
+   *  gradient + icon when missing. */
+  imageUrl?: string | null;
 }
 
 /** Locale-specific 'don't leave without...' info — fun energy, nightlife,

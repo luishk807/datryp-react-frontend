@@ -3,17 +3,12 @@ import MainSection from "components/PlaceDetail/MainSection";
 import NearbyGrid, {
   NearbyGridSkeleton,
 } from "components/PlaceDetail/NearbyGrid";
-import type { Coordinates, NearbyDestination } from "types";
+import type { NearbyDestination } from "types";
 
 export interface NearbySectionProps {
   /** The resolved list of nearby destinations. Pass `undefined` while the
    *  query is still loading — a `NearbyGridSkeleton` renders instead. */
   items: NearbyDestination[] | undefined;
-  /** Origin coordinates for the distance calculation. Pass `undefined` to
-   *  render the list without distance badges (e.g. on the country page,
-   *  where a single point doesn't make sense). The loading skeleton is
-   *  driven by `items === undefined` alone. */
-  origin: Coordinates | undefined;
   /** When true, the whole section renders nothing. Pass the source
    *  query's `isError` flag here instead of wrapping the call site in
    *  a `!isError && (...)` guard. */
@@ -21,15 +16,13 @@ export interface NearbySectionProps {
 }
 
 /**
- * "Nearby — worth a side trip" section that sits in the main content
- * column of the place-detail page. Wraps `MainSection` with an explore
- * icon and renders `NearbyGrid` (or its skeleton) inside.
+ * "Nearby — worth a side trip" section. Renders as a horizontal card
+ * grid (responsive — stacks on narrow viewports), each card image-led
+ * with a name / kind / why blurb. The distance-from-origin sort was
+ * dropped: the recommender already orders by relevance, and showing a
+ * "12 mi" badge on a country-scale entry felt arbitrary.
  */
-const NearbySection = ({
-  items,
-  origin,
-  isError = false,
-}: NearbySectionProps) => {
+const NearbySection = ({ items, isError = false }: NearbySectionProps) => {
   if (isError) return null;
   return (
     <MainSection
@@ -37,11 +30,7 @@ const NearbySection = ({
       icon={<ExploreRoundedIcon />}
       size="md"
     >
-      {items ? (
-        <NearbyGrid items={items} origin={origin} />
-      ) : (
-        <NearbyGridSkeleton />
-      )}
+      {items ? <NearbyGrid items={items} /> : <NearbyGridSkeleton />}
     </MainSection>
   );
 };

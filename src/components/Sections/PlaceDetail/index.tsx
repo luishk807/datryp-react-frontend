@@ -304,12 +304,6 @@ const PlaceDetail = () => {
               flavor={detailsQuery.data?.details.localFlavor}
               isError={detailsQuery.isError}
             />
-
-            <NearbySection
-              items={detailsQuery.data?.details.nearbyDestinations}
-              origin={detailsQuery.data?.details.coordinates}
-              isError={detailsQuery.isError}
-            />
           </div>
 
           <aside className="place-detail-content-side">
@@ -401,6 +395,11 @@ const PlaceDetail = () => {
             />
           </div>
         )}
+
+        <NearbySection
+          items={detailsQuery.data?.details.nearbyDestinations}
+          isError={detailsQuery.isError}
+        />
 
         <div id="reviews">
           <ReviewSection

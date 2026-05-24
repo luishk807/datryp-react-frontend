@@ -2,44 +2,51 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  // 4-up on desktop — the component slices the recommender list to 4
+  // items so a single row always fits cleanly inside the content-
+  // width wrapper. Steps down to 2-up on tablet and 1-up on phone so
+  // each card stays readable.
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .nearby-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .nearby-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .nearby-grid-item {
   list-style: none;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.nearby-grid-item-skeleton {
-  padding: 12px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.015);
 }
 
 .nearby-grid-link {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
+  flex: 1;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
   color: inherit;
   text-decoration: none;
+  overflow: hidden;
   transition:
     border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 
   &:hover {
     border-color: theme('colors.primaryGreen');
-    box-shadow: 0 2px 8px rgba(60, 181, 75, 0.12);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(60, 181, 75, 0.12);
+    transform: translateY(-2px);
 
     .nearby-grid-arrow {
       transform: translateX(2px);
@@ -49,7 +56,62 @@
     .nearby-grid-name {
       color: theme('colors.primaryGreen');
     }
+
+    .nearby-grid-image {
+      transform: scale(1.04);
+    }
   }
+}
+
+.nearby-grid-image {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(60, 181, 75, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s ease;
+
+  // Skeleton variant — soft pulsing gradient instead of a static
+  // placeholder so the loading state feels alive.
+  &.is-loading {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.04) 0%,
+      rgba(0, 0, 0, 0.08) 50%,
+      rgba(0, 0, 0, 0.04) 100%
+    );
+    background-size: 200% 100%;
+    animation: nearby-grid-shimmer 1.4s linear infinite;
+  }
+}
+
+@keyframes nearby-grid-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+// Fallback icon when no imageUrl is available. Sits centered in the
+// soft-tinted image slot.
+.nearby-grid-image-fallback {
+  font-size: 2.4rem !important;
+  color: theme('colors.primaryGreen');
+  opacity: 0.55;
+}
+
+.nearby-grid-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px 14px;
+  min-width: 0;
 }
 
 .nearby-grid-head {
@@ -76,19 +138,6 @@
   transition: transform 0.15s ease, color 0.15s ease;
 }
 
-.nearby-grid-distance {
-  flex-shrink: 0;
-  margin-left: auto;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(60, 181, 75, 0.12);
-  color: theme('colors.primaryGreen');
-  font-variant-numeric: tabular-nums;
-}
-
 .nearby-grid-meta {
   margin: 0;
   font-size: 0.7rem;
@@ -99,8 +148,12 @@
 }
 
 .nearby-grid-why {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   font-size: 0.85rem;
   color: rgba(0, 0, 0, 0.7);
-  line-height: 1.4;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

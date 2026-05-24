@@ -342,6 +342,12 @@ const CountryDetail = () => {
               isError={false}
             />
 
+            <BudgetSection
+              description={details.budgetDescription}
+              costLevel={details.costLevel}
+              isError={false}
+            />
+
             <CulturalShockCallout
               text={details.culturalShock}
               subjectLabel={country.name}
@@ -349,20 +355,8 @@ const CountryDetail = () => {
 
             <NotesSection items={details.notesToKnow} isError={false} />
 
-            <BudgetSection
-              description={details.budgetDescription}
-              costLevel={details.costLevel}
-              isError={false}
-            />
-
             <LocalFlavorSection
               flavor={details.localFlavor}
-              isError={false}
-            />
-
-            <NearbySection
-              items={details.nearbyDestinations}
-              origin={undefined}
               isError={false}
             />
           </div>
@@ -429,6 +423,11 @@ const CountryDetail = () => {
             items={details.photoSpots}
           />
         </div>
+
+        <NearbySection
+          items={details.nearbyDestinations}
+          isError={false}
+        />
 
         <div id="country-reviews">
           <ReviewSection
