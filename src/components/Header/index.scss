@@ -390,69 +390,42 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .app-header-inner {
-    padding: 10px 12px;
+    padding: 8px 12px;
     gap: 10px;
-    // No-wrap: logo + search + burger stay on one row at all mobile
-    // widths. The search is the flex-grow target and shrinks to fit
-    // whatever space remains.
+    // Center the logo on mobile — the bottom nav now provides search,
+    // account, notifications etc., so the header just carries the
+    // brand wordmark. Simple, calm, makes the page feel less busy.
+    justify-content: center;
     flex-wrap: nowrap;
   }
 
-  // Logo swap is scoped to subpages only (SubLayout adds `is-subpage`
-  // to the page-shell). Subpages have a searchbar inline on the same
-  // row, so the full wordmark would crowd it out — icon variant wins.
-  // The homepage uses Layout (no `is-subpage`) and keeps the full
-  // wordmark on mobile because it has no inline header search to
-  // compete with.
-  .page-shell.is-subpage {
-    .app-header-logo .app-header-logo-full {
-      display: none;
-    }
-    .app-header-logo .app-header-logo-icon {
-      display: block;
-    }
-  }
-
-  // Full logo on mobile (homepage only, since subpages hide it
-  // above): shrink slightly so it doesn't dominate the header on
-  // phones. Matches the pre-mobile-UX value.
+  // Compact wordmark on mobile — the header is purely a brand mark
+  // now (bottom nav handles all interaction), so the logo doesn't
+  // need to be loud.
   .app-header-logo .app-header-logo-full {
-    width: 110px;
+    width: 92px;
+    display: block;
+  }
+  .app-header-logo .app-header-logo-icon {
+    display: none;
   }
 
+  // Hide the desktop nav (avatar + bell) — replaced by the bottom
+  // nav's Account + Alerts buttons.
   .app-header-nav {
     display: none;
   }
 
+  // Hide the hamburger — replaced by the bottom nav's Account
+  // bottom-sheet which carries the same menu items.
   .app-header-burger {
-    display: inline-flex !important;
-    flex-shrink: 0;
+    display: none !important;
   }
 
-  // Inline search on mobile — sits between the icon logo and the
-  // burger. flex-grow lets it fill remaining space; max-width caps it
-  // on tablet widths so it doesn't dominate.
+  // Inline header search is also hidden on mobile — the bottom
+  // nav's Search button opens a full-viewport overlay which is the
+  // proper place for typing on a phone.
   .app-header-search {
-    order: 0;
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    margin: 0;
-  }
-
-  .app-header-search .MuiOutlinedInput-root {
-    font-size: 0.85rem;
-    padding-left: 32px !important;
-    padding-right: 10px !important;
-  }
-
-  .app-header-search .MuiOutlinedInput-root input {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-  }
-
-  .app-header-search .app-header-search-icon {
-    left: 10px;
-    font-size: 1rem !important;
+    display: none;
   }
 }

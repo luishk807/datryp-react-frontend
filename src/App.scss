@@ -22,6 +22,25 @@
   margin: 10px 5px !important;
 }
 
+// Adobe Acrobat browser extension injects a "Save as PDF" floating
+// button into pages. Not part of our markup — it's the extension's
+// own overlay (iframe + helper chrome). Hide it across all the
+// selectors Adobe has shipped historically; harmless when the
+// extension isn't installed.
+iframe[name*='acrobat' i],
+iframe[id*='acrobat' i],
+iframe[src*='acrobat.adobe' i],
+iframe[id*='__acroToolbar' i],
+[id*='__acroToolbar' i],
+[id*='acr-toolbar' i],
+[class*='acr-toolbar' i],
+[id*='adobe-dc' i],
+[data-acrobat-injected],
+.acrobat-floating-action {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 #root {
   position: relative;
   min-height: 100vh;
@@ -34,4 +53,118 @@
   // container — same visual effect, no sticky breakage. Chromium 90+,
   // Firefox 81+, Safari 16+.
   overflow-x: clip;
+}
+
+// Hero-photo action chips on mobile subpages. THREE IDENTICAL white
+// circle buttons in a row — Bookmark / Visited / Share. They are a
+// matched set: same 40px circle, same white background, same subtle
+// shadow, same dark icon. Only the glyph inside differs (and the
+// icon flips to a brand color when in its active state).
+@media (max-width: 720px) {
+  .place-detail-overlay-actions,
+  .country-detail-overlay-actions,
+  .city-detail-overlay-actions {
+    padding: 0 !important;
+    gap: 8px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    // Let the ShareButton's inline-flex wrapper pass through so its
+    // inner pill aligns as a direct sibling of bookmark + visited
+    // (same flex baseline, same size).
+    .share-button-wrap {
+      display: contents !important;
+    }
+
+    // The shared circle — identical for all three. Active states
+    // only change the ICON color, not the chip itself, so the set
+    // always reads as a row of matched buttons.
+    .bookmark-button-pill,
+    .visited-button-pill,
+    .share-button-pill {
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important;
+      gap: 0 !important;
+      border-radius: 50% !important;
+      background: #fff !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18),
+        0 1px 3px rgba(0, 0, 0, 0.1) !important;
+      color: rgba(0, 0, 0, 0.65) !important;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      // Drop the text labels — the icon carries the action.
+      > span:not(.MuiSvgIcon-root) {
+        display: none !important;
+      }
+    }
+
+    .bookmark-button-pill:hover,
+    .visited-button-pill:hover,
+    .share-button-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24),
+        0 2px 4px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    // Icons — uniform size + uniform default tone (dark gray) so
+    // the row reads as a set. Active states below recolor the
+    // glyph only.
+    .bookmark-button-icon,
+    .visited-button-icon,
+    .share-button-pill-icon,
+    .share-button-pill .MuiSvgIcon-root,
+    .share-button-pill svg {
+      color: rgba(0, 0, 0, 0.7) !important;
+      font-size: 1.05rem !important;
+      width: 1.05rem !important;
+      height: 1.05rem !important;
+      transition: color 0.18s ease;
+    }
+
+    // Active glyph colors — same chip styling, brand-tinted icon.
+    .bookmark-button-pill.is-saved .bookmark-button-icon {
+      color: theme('colors.primaryOrange') !important;
+    }
+
+    .visited-button-pill.is-visited .visited-button-icon {
+      color: theme('colors.primaryGreen') !important;
+    }
+  }
+}
+
+// On mobile subpages the hero photo is the page's top — every
+// intermediate layout container needs to drop its top padding /
+// margin so nothing sits between the viewport edge and the photo.
+// SubLayout flags subpages with `.is-subpage`; this overrides every
+// Grid/container gutter inside that wrapper at phone widths.
+@media (max-width: 720px) {
+  .page-shell.is-subpage {
+    .page-content {
+      padding-top: 0;
+      margin-top: 0;
+    }
+    #layout.root,
+    .root {
+      margin-top: 0;
+      padding-top: 0;
+    }
+    #layout .layout-container,
+    .layout-container {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+    .homeContainer {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+  }
 }

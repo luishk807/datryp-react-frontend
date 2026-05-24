@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, BrowserRouter as Router } from 'react-router-dom';
 import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
+import BottomNav from 'components/BottomNav';
 const Home = lazy(() => import('components/Sections/Home'));
 const Dashboard = lazy(() => import('components/Sections/Dashboard'));
 const DashboardOverview = lazy(() => import('components/Sections/Dashboard/OverviewCard'));
@@ -265,6 +266,9 @@ function App() {
                     </Suspense>
                 }/>
             </Routes>
+            {/* Mobile-only fixed bottom nav. Hidden ≥720px by CSS;
+                hidden for signed-out users by the component itself. */}
+            <BottomNav />
         </Router>
     );
 }

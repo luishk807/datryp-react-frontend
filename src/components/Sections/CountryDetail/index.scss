@@ -68,23 +68,101 @@
 
 // Mobile (≤640px): pin the action group to the bottom of the
 // viewport. Back link stays at the top of the page.
+// Mobile (≤640px) — modern hero-on-top layout. Mirrors the
+// PlaceDetail mobile treatment: header hidden globally, back link
+// hidden, hero touches the viewport top, glass chip on top-right,
+// "Start planning" CTA lifted into a floating pill above the
+// "Plan new trip" FAB.
 @media (max-width: 640px) {
   .country-detail {
-    padding-bottom: 96px;
+    position: relative;
+    padding-top: 0 !important;
+    padding-bottom: 170px;
+  }
+
+  .country-detail-toolbar {
+    position: static;
+    padding: 0;
+    margin: 0;
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .country-detail-back-link {
+    display: none;
   }
 
   .country-detail-toolbar-actions {
+    position: static;
+    display: block;
+    width: auto;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  // Bookmark + Visited + Share — bare icon buttons in the hero's
+  // top-right corner. No wrapper background; each button carries
+  // its own chip styling.
+  .country-detail-overlay-actions {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  // Hero photo edge-to-edge. Negative margin-top closes the
+  // article's `gap: 20px` so the photo sits flush under the
+  // (mobile) header.
+  .country-detail-top {
+    flex-direction: column;
+    margin-top: -20px;
+  }
+
+  .country-detail-top > .place-hero,
+  .country-detail-top .place-hero {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    width: 100vw;
+    border-radius: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  // "Start planning" CTA — the only floating trip-launch button on
+  // a country detail page. Solid brand green, no gradient. Sits
+  // directly above the bottom nav (the global "Plan new trip" FAB
+  // is suppressed on detail pages — see BottomNav `onDetailPage`).
+  .country-detail-toolbar-actions
+    .country-detail-plan-cta.country-detail-plan-cta {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
-    padding: 12px 16px;
-    background: #fff;
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.1);
-    justify-content: space-between;
-    width: 100%;
-    display: flex;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    bottom: calc(86px + env(safe-area-inset-bottom));
+    z-index: 1099;
+    width: auto;
+    max-width: calc(100vw - 32px);
+    justify-content: center;
+    padding: 12px 22px;
+    border-radius: 999px;
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    box-shadow: 0 10px 26px rgba(60, 181, 75, 0.4),
+      0 3px 8px rgba(0, 0, 0, 0.16);
+    border: none;
   }
 }
 
@@ -344,9 +422,19 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 720px) {
+  .country-detail-header {
+    gap: 2px;
+    padding: 0;
+    margin-top: 14px;
+  }
   .country-detail-name {
-    font-size: 1.4rem;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    margin: 0;
+  }
+  .country-detail-name-row {
+    gap: 6px;
   }
 }
 

@@ -218,34 +218,38 @@ const CountryDetail = () => {
             <ArrowBackRoundedIcon fontSize="small" /> Back
           </button>
           <div className="country-detail-toolbar-actions">
-            <BookmarkCountryButton
-              countryCode={country.code}
-              countryName={country.name}
-              imageUrl={country.image}
-            />
-            <VisitedCountryButton
-              countryCode={country.code}
-              countryName={country.name}
-            />
-            <ShareButton
-              title={country.name}
-              subtitle="Country"
-              imageUrl={country.image}
-              description={details.countryHighlight}
-              url={
-                typeof window !== "undefined"
-                  ? window.location.href
-                  : `/country?code=${encodeURIComponent(country.code)}`
-              }
-              variant="pill"
-              emailPayload={{
-                name: country.name,
-                city: "",
-                country: country.name,
-                description: details.countryHighlight ?? "",
-                image_url: country.image,
-              }}
-            />
+            {/* Group Bookmark + Visited + Share so mobile CSS can lift
+                them onto the hero photo's top-right corner. */}
+            <div className="country-detail-overlay-actions">
+              <BookmarkCountryButton
+                countryCode={country.code}
+                countryName={country.name}
+                imageUrl={country.image}
+              />
+              <VisitedCountryButton
+                countryCode={country.code}
+                countryName={country.name}
+              />
+              <ShareButton
+                title={country.name}
+                subtitle="Country"
+                imageUrl={country.image}
+                description={details.countryHighlight}
+                url={
+                  typeof window !== "undefined"
+                    ? window.location.href
+                    : `/country?code=${encodeURIComponent(country.code)}`
+                }
+                variant="pill"
+                emailPayload={{
+                  name: country.name,
+                  city: "",
+                  country: country.name,
+                  description: details.countryHighlight ?? "",
+                  image_url: country.image,
+                }}
+              />
+            </div>
             <button
               type="button"
               className="country-detail-plan-cta"

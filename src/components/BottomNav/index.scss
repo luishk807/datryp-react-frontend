@@ -1,0 +1,482 @@
+// Mobile-only fixed bottom navigation. Hidden ≥720px because the
+// desktop header already serves that role; showing both at once
+// crowds the screen.
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100; // above MUI Modal scrim (1200) — wait, modal needs higher.
+    // Actually MUI Modal is 1300 — the bottom nav must sit BELOW any
+    // open modal so the modal's backdrop covers it. 1100 keeps it
+    // above page content but below modals/drawers/snackbars (1400+).
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: 6px 6px max(6px, env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  // Reserve room at the bottom of the viewport so page content
+  // doesn't slide under the fixed bar. Each page-shell adds this
+  // padding via a global selector on the layout container.
+  .page-shell {
+    padding-bottom: 76px;
+  }
+}
+
+.bottom-nav-item {
+  appearance: none;
+  flex: 1 1 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px 6px;
+  background: transparent;
+  border: none;
+  color: rgba(0, 0, 0, 0.55);
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  position: relative;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.is-active {
+  color: theme('colors.primary');
+}
+
+.bottom-nav-item.is-active::after {
+  // Active underline pip — tiny brand-orange line under each tab.
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: theme('colors.primaryOrange');
+}
+
+.bottom-nav-icon {
+  font-size: 22px !important;
+}
+
+.bottom-nav-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -7px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(192, 57, 43, 0.4);
+}
+
+// (My Trip was a lifted gradient puck — restyled to look like every
+// other tab. JSX no longer renders a `.bottom-nav-cta-puck` wrapper.)
+
+// ── Account sheet ────────────────────────────────────────────────
+.bottom-nav-account-paper {
+  border-top-left-radius: 18px !important;
+  border-top-right-radius: 18px !important;
+  max-height: 88vh !important;
+}
+
+.bottom-nav-account {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-account-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 16px;
+}
+
+.bottom-nav-account-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bottom-nav-account-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.bottom-nav-account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bottom-nav-account-name {
+  font-weight: 700;
+  color: theme('colors.primary');
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bottom-nav-account-email {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bottom-nav-account-close {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: theme('colors.primary');
+  }
+}
+
+.bottom-nav-account-list {
+  list-style: none;
+  padding: 8px 0 16px;
+  margin: 0;
+}
+
+.bottom-nav-account-divider {
+  padding: 8px 0;
+}
+
+.bottom-nav-account-item {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  background: transparent;
+  border: none;
+  color: theme('colors.primary');
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.bottom-nav-account-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.55);
+
+  .MuiSvgIcon-root {
+    font-size: 22px;
+  }
+}
+
+.bottom-nav-account-item.tone-accent {
+  color: theme('colors.primaryOrange');
+  font-weight: 700;
+}
+
+.bottom-nav-account-item.tone-accent .bottom-nav-account-item-icon {
+  color: theme('colors.primaryOrange');
+}
+
+.bottom-nav-account-item.tone-danger {
+  color: #c0392b;
+}
+
+.bottom-nav-account-item.tone-danger .bottom-nav-account-item-icon {
+  color: #c0392b;
+}
+
+// ── Search overlay ────────────────────────────────────────────────
+// Frosted-white sheet inspired by iOS Spotlight / macOS Sequoia:
+// translucent white with a strong backdrop-blur of the page behind,
+// so the user feels "lifted above" the page rather than dropped into
+// a different app.
+.bottom-nav-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1250; // above the bottom nav, below modals
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 22px 18px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(34px) saturate(1.6);
+  -webkit-backdrop-filter: blur(34px) saturate(1.6);
+  color: theme('colors.primary');
+  animation: bottom-nav-search-in 0.22s ease-out;
+}
+
+@keyframes bottom-nav-search-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bottom-nav-search-close {
+  appearance: none;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: theme('colors.primary');
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+  }
+}
+
+.bottom-nav-search-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.bottom-nav-search-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 6vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: theme('colors.primary');
+  background: linear-gradient(
+    135deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+// Mode toggle — mirrors the homepage hero pill's sliding-thumb
+// pattern. Two-position; thumb translates 100% across on `is-ai`.
+.bottom-nav-search-toggle {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  max-width: 380px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 4px;
+  align-self: center;
+}
+
+.bottom-nav-search-toggle-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: theme('colors.primaryOrange');
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(246, 137, 31, 0.4);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.28s ease;
+  z-index: 0;
+}
+
+.bottom-nav-search-toggle.is-ai .bottom-nav-search-toggle-thumb {
+  transform: translateX(100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+}
+
+.bottom-nav-search-toggle-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  color: rgba(0, 0, 0, 0.55);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.18s ease;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+
+  &.selected {
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+.bottom-nav-search-toggle-icon {
+  font-size: 17px !important;
+}
+
+// BETA badge — solid purple chip so it reads in both states:
+// against the light track when AI is unselected, AND against the
+// purple thumb when AI is selected (slightly lighter purple +
+// white text keeps it legible without disappearing into the thumb).
+.bottom-nav-search-toggle-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #7c3aed;
+  color: #fff;
+  line-height: 1;
+}
+
+// When AI is selected the thumb is purple — invert the badge to
+// white-on-translucent so it stays distinct on the purple background.
+.bottom-nav-search-toggle.is-ai
+  .bottom-nav-search-toggle-btn.selected
+  .bottom-nav-search-toggle-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+// Pure wrapper — no chrome of its own. The SearchBar inside owns
+// its full chrome (rounded white pill + shadow). Adding any border /
+// padding / background here doubled up against the inner input and
+// looked like a card-inside-a-card.
+.bottom-nav-search-bar {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  color: #1f2937;
+}
+
+// Lift the inner SearchBar pill so it stands clear of the frosted
+// backdrop. Drop any leftover border from the SearchBar's own
+// `.holder-simple` so the pill reads as a single clean shape.
+.bottom-nav-search-bar .searchbarMain .holder-simple {
+  background: #fff !important;
+  border: none !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.06) !important;
+}
+
+.bottom-nav-search-bar
+  .searchbarMain
+  .holder-simple:focus-within {
+  box-shadow: 0 14px 36px rgba(60, 181, 75, 0.18),
+    0 0 0 3px rgba(60, 181, 75, 0.18) !important;
+}
+
+.bottom-nav-search-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bottom-nav-search-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  color: theme('colors.primary');
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: #fff;
+    border-color: theme('colors.primaryGreen');
+    color: theme('colors.primaryGreen');
+    transform: translateY(-1px);
+  }
+}

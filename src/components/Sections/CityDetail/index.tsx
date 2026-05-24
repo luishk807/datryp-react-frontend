@@ -225,42 +225,47 @@ const CityDetail = () => {
                         <ArrowBackRoundedIcon fontSize="small" /> Back
                     </button>
                     <div className="city-detail-toolbar-actions">
-                        <BookmarkCityButton
-                            cityName={city.name}
-                            countryName={city.country}
-                            countryCode={city.countryCode}
-                            imageUrl={city.imageUrl}
-                        />
-                        <VisitedCityButton
-                            cityName={city.name}
-                            countryName={city.country}
-                            countryCode={city.countryCode}
-                        />
-                        <ShareButton
-                            title={city.name}
-                            subtitle={city.country}
-                            imageUrl={city.imageUrl}
-                            description={details.cityHighlight}
-                            url={
-                                typeof window !== "undefined"
-                                    ? window.location.href
-                                    : `/city?name=${encodeURIComponent(
-                                          city.name
-                                      )}&country=${encodeURIComponent(
-                                          city.country
-                                      )}&code=${encodeURIComponent(
-                                          city.countryCode
-                                      )}`
-                            }
-                            variant="pill"
-                            emailPayload={{
-                                name: city.name,
-                                city: city.name,
-                                country: city.country,
-                                description: details.cityHighlight ?? "",
-                                image_url: city.imageUrl,
-                            }}
-                        />
+                        {/* Bookmark + Visited + Share grouped so mobile
+                            CSS can lift them onto the hero photo's
+                            top-right corner. */}
+                        <div className="city-detail-overlay-actions">
+                            <BookmarkCityButton
+                                cityName={city.name}
+                                countryName={city.country}
+                                countryCode={city.countryCode}
+                                imageUrl={city.imageUrl}
+                            />
+                            <VisitedCityButton
+                                cityName={city.name}
+                                countryName={city.country}
+                                countryCode={city.countryCode}
+                            />
+                            <ShareButton
+                                title={city.name}
+                                subtitle={city.country}
+                                imageUrl={city.imageUrl}
+                                description={details.cityHighlight}
+                                url={
+                                    typeof window !== "undefined"
+                                        ? window.location.href
+                                        : `/city?name=${encodeURIComponent(
+                                              city.name
+                                          )}&country=${encodeURIComponent(
+                                              city.country
+                                          )}&code=${encodeURIComponent(
+                                              city.countryCode
+                                          )}`
+                                }
+                                variant="pill"
+                                emailPayload={{
+                                    name: city.name,
+                                    city: city.name,
+                                    country: city.country,
+                                    description: details.cityHighlight ?? "",
+                                    image_url: city.imageUrl,
+                                }}
+                            />
+                        </div>
                         <button
                             type="button"
                             className="city-detail-plan-cta"

@@ -11,6 +11,17 @@
   }
 }
 
+// Mobile — the page already has the centered header logo on top.
+// Shrink the title and give it a bit of breathing room from the
+// header so it doesn't crowd the logo.
+@media (max-width: 720px) {
+  #layout .layout-title {
+    font-size: 1.05em;
+    margin-top: 14px;
+    padding: 0 12px;
+  }
+}
+
 /* Center the lg={8} column itself in the row. The inner `margin: auto` only
  * centers content within a column that's already centered — without this,
  * the column sits at the left of the page with empty space on the right. */

@@ -140,30 +140,34 @@ const PlaceDetail = () => {
             &rdquo;
           </Link>
           <div className="place-detail-toolbar-actions">
-            <BookmarkButton place={place} query={query} index={index} />
-            <VisitedButton
-              place={place}
-              coordinates={detailsQuery.data?.details.coordinates}
-              visa={detailsQuery.data?.details.visa}
-            />
-            <ShareButton
-              title={place.name}
-              subtitle={`${place.city} · ${place.country}`}
-              imageUrl={place.imageUrl}
-              description={place.description}
-              url={detailUrl}
-              variant="pill"
-              emailPayload={{
-                name: place.name,
-                city: place.city,
-                country: place.country,
-                description: place.description,
-                image_url: place.imageUrl,
-              }}
-            />
-            {/* Primary CTA — placed last so it visually anchors the
-                action row on the right, mirroring "Start planning" on
-                the city / country detail pages. */}
+            {/* Bookmark + Visited + Share are grouped so the mobile
+                CSS can lift them out of the toolbar and overlay them
+                on the hero photo's top-right corner. The primary
+                AddToItineraryButton stays inline — too wide to fit
+                as a hero-overlay icon chip. */}
+            <div className="place-detail-overlay-actions">
+              <BookmarkButton place={place} query={query} index={index} />
+              <VisitedButton
+                place={place}
+                coordinates={detailsQuery.data?.details.coordinates}
+                visa={detailsQuery.data?.details.visa}
+              />
+              <ShareButton
+                title={place.name}
+                subtitle={`${place.city} · ${place.country}`}
+                imageUrl={place.imageUrl}
+                description={place.description}
+                url={detailUrl}
+                variant="pill"
+                emailPayload={{
+                  name: place.name,
+                  city: place.city,
+                  country: place.country,
+                  description: place.description,
+                  image_url: place.imageUrl,
+                }}
+              />
+            </div>
             <AddToItineraryButton place={place} />
           </div>
         </div>
