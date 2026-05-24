@@ -388,7 +388,11 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 768px) {
+// Bumped from 768px to 1024px so iPad portrait gets the same
+// centered-logo + bottom-nav treatment as phones — keeps the two
+// navigation surfaces (header + bottom nav) from competing on
+// tablet-sized viewports.
+@media (max-width: 1024px) {
   .app-header-inner {
     padding: 8px 12px;
     gap: 10px;

@@ -1,11 +1,12 @@
-// Mobile-only fixed bottom navigation. Hidden ≥720px because the
-// desktop header already serves that role; showing both at once
-// crowds the screen.
+// Mobile + tablet fixed bottom navigation. Hidden ≥1024px because
+// at desktop widths the header serves that role; showing both at
+// once crowds the screen. iPad portrait (768–1024px) gets the
+// bottom nav too — the user explicitly asked for it there.
 .bottom-nav {
   display: none;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .bottom-nav {
     position: fixed;
     bottom: 0;
