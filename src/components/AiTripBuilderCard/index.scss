@@ -1,0 +1,458 @@
+// AI Trip Builder homepage ad. Two-column layout (visual + copy) on
+// desktop, stacked on mobile. Designed to read as a premium feature
+// banner — not a small promo strip — since the AI Trip Builder is a
+// flagship Pro perk.
+
+.ai-trip-builder-card {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto 56px;
+  background: linear-gradient(
+      135deg,
+      #1f2937 0%,
+      #4c1d95 45%,
+      #7c3aed 100%
+    );
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  align-items: stretch;
+  color: #fff;
+  box-shadow: 0 16px 40px rgba(28, 25, 50, 0.18);
+}
+
+// Visual column — fanned stack of three destination "preview cards"
+// that mimic the option-grid the user will see inside the wizard.
+// Pure CSS so the card stays fast + offline; readable + concrete vs.
+// the previous abstract-AI blob treatment.
+.ai-trip-builder-card-visual {
+  position: relative;
+  min-height: 340px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background:
+    radial-gradient(
+      circle at 25% 28%,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0) 50%
+    ),
+    radial-gradient(
+      circle at 75% 80%,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0) 55%
+    );
+  isolation: isolate;
+}
+
+// Stack container — fixed-size wrapper so the polaroid math stays
+// stable regardless of the parent's width. Centered in the visual
+// column.
+.ai-trip-builder-card-stack {
+  position: relative;
+  width: 220px;
+  height: 240px;
+}
+
+// Individual "polaroid" — gradient photo area on top, white text
+// panel below. Hard-anchored to the stack center via absolute
+// positioning; the per-variant rotation/translate fans them out.
+.ai-trip-builder-card-preview {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 168px;
+  height: 220px;
+  margin-left: -84px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: ai-card-preview-float 6s ease-in-out infinite;
+
+  &.is-back {
+    transform: rotate(-9deg) translate(-44px, 14px);
+    z-index: 1;
+    animation-delay: -2s;
+  }
+
+  &.is-mid {
+    transform: rotate(-1deg) translate(0, -2px);
+    z-index: 2;
+    animation-delay: -4s;
+  }
+
+  &.is-front {
+    transform: rotate(8deg) translate(46px, 18px);
+    z-index: 3;
+    animation-delay: 0s;
+  }
+}
+
+@keyframes ai-card-preview-float {
+  0%, 100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+// Top "photo" area — a vibe-appropriate gradient per destination
+// theme. No real image dependency; the gradient + emoji tag carry
+// the identity.
+.ai-trip-builder-card-preview-photo {
+  position: relative;
+  flex: 1 1 auto;
+  height: 65%;
+  overflow: hidden;
+
+  &.theme-beach {
+    background: linear-gradient(
+      155deg,
+      #38bdf8 0%,
+      #06b6d4 45%,
+      #fbbf24 100%
+    );
+  }
+
+  &.theme-temple {
+    background: linear-gradient(
+      160deg,
+      #fb7185 0%,
+      #fda4af 40%,
+      #f9a8d4 100%
+    );
+  }
+
+  &.theme-mountain {
+    background: linear-gradient(
+      170deg,
+      #312e81 0%,
+      #4338ca 50%,
+      #c7d2fe 100%
+    );
+  }
+
+  &::after {
+    // Soft top-down vignette so the country tag has a clean
+    // contrast surface regardless of which theme it sits over.
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.18) 0%,
+      rgba(0, 0, 0, 0) 35%,
+      rgba(0, 0, 0, 0) 65%,
+      rgba(0, 0, 0, 0.16) 100%
+    );
+    pointer-events: none;
+  }
+}
+
+.ai-trip-builder-card-preview-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1f2937;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  z-index: 1;
+}
+
+.ai-trip-builder-card-preview-body {
+  padding: 10px 14px 14px;
+  background: #fff;
+  color: #1f2937;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  span {
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.3;
+  }
+}
+
+// "4 options for you" badge — small chip below the stack that ties
+// the visual to the actual feature behavior.
+.ai-trip-builder-card-visual-badge {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ai-trip-builder-card-visual-badge-icon {
+  font-size: 0.95rem !important;
+  color: #fbbf24;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-trip-builder-card-preview {
+    animation: none;
+  }
+}
+
+// Copy column — eyebrow chip, headline, lede, 3-step preview, big
+// CTA, microcopy.
+.ai-trip-builder-card-body {
+  padding: 44px 44px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+}
+
+.ai-trip-builder-card-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  align-self: flex-start;
+}
+
+.ai-trip-builder-card-eyebrow-icon {
+  color: #fbbf24; // brand gold sits well on the dark purple background
+}
+
+.ai-trip-builder-card-title {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.6vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+.ai-trip-builder-card-lede {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 50ch;
+}
+
+// Inline 3-step preview — quick visual signal of what's about to
+// happen if the user taps the CTA.
+.ai-trip-builder-card-steps {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 50ch;
+}
+
+.ai-trip-builder-card-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.ai-trip-builder-card-step-bullet {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.ai-trip-builder-card-step-num {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.ai-trip-builder-card-step-icon {
+  color: #fff;
+  opacity: 0.9;
+}
+
+.ai-trip-builder-card-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  strong {
+    font-weight: 600;
+    color: #fff;
+  }
+
+  span {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.85rem;
+  }
+}
+
+.ai-trip-builder-card-cta {
+  margin-top: 10px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #fff;
+  color: #4c1d95;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.ai-trip-builder-card-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+  color: #4c1d95;
+  text-decoration: none;
+}
+
+.ai-trip-builder-card-cta:active {
+  transform: translateY(0);
+}
+
+.ai-trip-builder-card-cta-sparkle {
+  font-size: 1.15rem !important;
+  color: theme('colors.primaryOrange');
+  animation: ai-card-cta-sparkle 2.6s ease-in-out infinite;
+}
+
+@keyframes ai-card-cta-sparkle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: rotate(15deg) scale(1.12);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-trip-builder-card-cta-sparkle {
+    animation: none;
+  }
+}
+
+.ai-trip-builder-card-cta-arrow {
+  font-size: 1.05rem !important;
+  color: theme('colors.primaryOrange');
+}
+
+.ai-trip-builder-card-microcopy {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+// Tablet — drop to slightly tighter columns.
+@media (max-width: 980px) {
+  .ai-trip-builder-card {
+    grid-template-columns: 1fr 1.4fr;
+  }
+  .ai-trip-builder-card-body {
+    padding: 32px 28px;
+  }
+  .ai-trip-builder-card-visual {
+    min-height: 260px;
+  }
+}
+
+// Mobile — stack vertically, shrink the visual to a banner across
+// the top, tighten paddings, expand the CTA to full width.
+@media (max-width: 720px) {
+  .ai-trip-builder-card {
+    grid-template-columns: 1fr;
+    margin-bottom: 40px;
+    border-radius: 20px;
+  }
+  .ai-trip-builder-card-visual {
+    min-height: 240px;
+    padding: 22px;
+  }
+  .ai-trip-builder-card-stack {
+    width: 200px;
+    height: 200px;
+  }
+  .ai-trip-builder-card-preview {
+    width: 144px;
+    height: 188px;
+    margin-left: -72px;
+  }
+  .ai-trip-builder-card-visual-badge {
+    bottom: 14px;
+    font-size: 0.72rem;
+  }
+  .ai-trip-builder-card-body {
+    padding: 26px 22px 30px;
+  }
+  .ai-trip-builder-card-title {
+    font-size: 1.4rem;
+  }
+  .ai-trip-builder-card-cta {
+    align-self: stretch;
+    justify-content: center;
+  }
+}

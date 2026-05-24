@@ -24,6 +24,7 @@ const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPa
 const Visited = lazy(() => import('components/Sections/Visited'));
 const Saved = lazy(() => import('components/Sections/Saved'));
 const BucketList = lazy(() => import('components/Sections/BucketList'));
+const AiTripBuilderPage = lazy(() => import('components/Sections/AiTripBuilderPage'));
 const Signup = lazy(() => import('components/Sections/Signup'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const PreparingTrip = lazy(() => import('components/Sections/PreparingTrip'));
@@ -170,6 +171,14 @@ function App() {
                         subtitle="Travel goals you want to check off, in one place."
                     >
                         <BucketList />
+                    </Gated>
+                }/>
+                <Route path='/plan-trip-ai' element={
+                    <Gated
+                        title="Sign in to plan with AI"
+                        subtitle="Pro members get AI-built trips. Free users land on the pricing page after signing in."
+                    >
+                        <AiTripBuilderPage />
                     </Gated>
                 }/>
                 <Route path='/dashboard' element={

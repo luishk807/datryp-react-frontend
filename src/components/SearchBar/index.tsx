@@ -116,15 +116,24 @@ const SearchBar = ({
         setSubmittedQuery('');
     };
 
+    // After a pick the search bar clears (input value + raw / submitted
+    // query state) so the user can immediately start a new search
+    // without having to manually delete the previous selection. The
+    // resolved Country still flows through `onSelected` for whatever
+    // navigation / dispatch the parent wants.
+    const clearSearchInput = () => {
+        setSelectedDestination('');
+        if (inputRef.current) inputRef.current.value = '';
+        closeResults();
+    };
+
     const handleCountryClick = (item: {
         id: string;
         name: string;
         code: string;
         local: string | null;
     }) => {
-        setSelectedDestination(item.name);
-        if (inputRef.current) inputRef.current.value = item.name;
-        closeResults();
+        clearSearchInput();
         onSelected?.({
             id: item.id,
             name: item.name,
@@ -141,9 +150,7 @@ const SearchBar = ({
             local: item.local ?? undefined,
             image: item.image ?? undefined,
         };
-        setSelectedDestination(country.name);
-        closeResults();
-        if (inputRef.current) inputRef.current.value = country.name;
+        clearSearchInput();
         onSelected?.(country);
     };
 

@@ -50,7 +50,11 @@ export class BucketListBlockedError extends Error {
  *  user tried to Create trip from a bucket-list row". */
 export type BucketListPaywallKind =
     | 'bucket_list_cap'
-    | 'bucket_list_generate';
+    | 'bucket_list_generate'
+    // Reused by `/me/plan-trip-ai` for free-tier users — same paywall
+    // modal flow, distinct kind so the copy can address the AI Trip
+    // Builder feature specifically.
+    | 'ai_trip_builder_pro';
 
 export class BucketListPaywallError extends Error {
     kind: BucketListPaywallKind;

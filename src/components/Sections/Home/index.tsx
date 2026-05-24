@@ -14,6 +14,7 @@ import UpcomingHoliday from 'components/UpcomingHoliday';
 import WorldEvent from 'components/WorldEvent';
 import MonthlyBestPlace from 'components/MonthlyBestPlace';
 import SeasonalBestPlaces from 'components/SeasonalBestPlaces';
+import AiTripBuilderCard from 'components/AiTripBuilderCard';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import type { Country, HeroImage } from 'types';
 
@@ -183,6 +184,7 @@ const Home = () => {
             </section>
 
             <PlacesYouMightLove variant="home" />
+            <AiTripBuilderCard />
             <MonthlyBestPlace />
             <SeasonalBestPlaces />
             <UpcomingHoliday />

@@ -58,6 +58,12 @@ const FEATURE_ROWS: FeatureRow[] = [
         note: 'One click → AI builds a full itinerary (country, days, activities) you can edit and save.',
     },
     {
+        label: 'Plan a trip with AI',
+        free: false,
+        pro: true,
+        note: 'Tell us a budget + a few interests and the AI picks the destination, plans the days, and saves a draft trip for you to edit.',
+    },
+    {
         // Bundles the personalized homepage surfaces (Places you might
         // love + your monthly personal top pick) into one comparison
         // row. Free gets the baseline; Pro adds the monthly

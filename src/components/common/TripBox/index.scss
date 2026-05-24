@@ -7,18 +7,76 @@
   color: inherit !important;
 }
 
+// Button-mode wrapper used in select mode. Strips the default button
+// chrome so the inner card layout looks identical to the Link variant.
+button.trip-box-link.is-select-trigger {
+  appearance: none;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
 .trip-box {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .trip-box:hover {
   transform: translateY(-3px);
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+// Selectable variant — dim the hover lift slightly (selection is a
+// decision, not a navigation), and highlight selected cards with the
+// brand orange border + soft glow.
+.trip-box.is-selectable:hover {
+  transform: translateY(-1px);
+}
+
+.trip-box.is-selected {
+  border-color: theme('colors.primaryOrange');
+  box-shadow: 0 0 0 2px rgba(246, 137, 31, 0.18),
+    0 10px 24px rgba(246, 137, 31, 0.18);
+}
+
+// Checkbox overlay rendered in the top-left of the image. Empty
+// circle when unselected; orange filled circle with white check
+// when selected.
+.trip-box-check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.trip-box-check.is-checked {
+  background: theme('colors.primaryOrange');
+  border-color: theme('colors.primaryOrange');
+  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.4);
+}
+
+.trip-box-check .MuiSvgIcon-root {
+  font-size: 1.1rem;
 }
 
 .trip-box-image {

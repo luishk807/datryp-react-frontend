@@ -31,10 +31,213 @@
   margin-left: 2px;
 }
 
+.trips-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .trips-cta button.main-button {
   padding: 10px 22px !important;
   width: auto !important;
   min-width: 180px;
+}
+
+// "Select" button — secondary action that puts the page into
+// multi-select mode. Sits next to the primary "Plan new trip" CTA.
+.trips-select-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.7);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: rgba(246, 137, 31, 0.06);
+    border-color: rgba(246, 137, 31, 0.4);
+    color: theme('colors.primaryOrange');
+  }
+
+  .MuiSvgIcon-root {
+    color: inherit;
+  }
+}
+
+// Action bar — only visible when selectMode is true. Brand-orange
+// border + soft fill so it reads as "I'm in a special state" without
+// being aggressive. Sticks below the header until the user exits.
+.trips-select-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  background: rgba(246, 137, 31, 0.08);
+  border: 1px solid rgba(246, 137, 31, 0.32);
+  border-radius: 14px;
+}
+
+.trips-select-bar-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.95rem;
+
+  strong {
+    font-size: 1rem;
+    color: theme('colors.primaryOrange');
+    font-weight: 700;
+  }
+}
+
+.trips-select-bar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trips-select-bar-secondary {
+  appearance: none;
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.7);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.32);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.trips-select-bar-danger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #c0392b;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.32);
+  transition: background 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #a93220;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(192, 57, 43, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .MuiSvgIcon-root {
+    color: inherit;
+  }
+}
+
+.trips-select-bar-cancel {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: theme('colors.primary');
+  }
+}
+
+// Confirm-dialog action buttons.
+.trips-dialog-cancel {
+  appearance: none;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(0, 0, 0, 0.6);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 4px;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+    color: theme('colors.primary');
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.trips-dialog-confirm {
+  appearance: none;
+  padding: 9px 18px;
+  background: #c0392b;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.28);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #a93220;
+    box-shadow: 0 6px 14px rgba(192, 57, 43, 0.36);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 /* ---------- Filter chips ---------- */

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import classnames from 'classnames';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import './index.scss';
 import { NO_IMAGE } from 'constants';
 import { formatDate, isValidDate } from 'utils';
@@ -13,6 +14,15 @@ export type TripBoxData = SingleDestination | MultipleDestinations;
 interface TripBoxProps {
     data: TripBoxData;
     to?: string;
+    /** When true, the card switches to selection mode: a checkbox
+     *  appears in the top-left of the photo, click toggles selection
+     *  instead of navigating, and `selected` styling applies. */
+    selectable?: boolean;
+    /** Visual selection state — only meaningful when `selectable`. */
+    selected?: boolean;
+    /** Fires on click while in selectable mode. Required for the
+     *  card to be interactive in selection mode. */
+    onToggleSelect?: () => void;
 }
 
 const TRIP_BOX_LABEL = {
@@ -47,7 +57,13 @@ const getTripImage = (data: TripBoxData) => {
     return country?.image || NO_IMAGE;
 };
 
-export const TripBox = ({ data, to }: TripBoxProps) => {
+export const TripBox = ({
+    data,
+    to,
+    selectable = false,
+    selected = false,
+    onToggleSelect,
+}: TripBoxProps) => {
     const friendsCount = data.friends?.length ?? 0;
     const friendsLabel = `${friendsCount} friend${friendsCount === 1 ? '' : 's'}`;
     const target = to ?? `/trip-detail?id=${data.id}`;
@@ -56,19 +72,30 @@ export const TripBox = ({ data, to }: TripBoxProps) => {
     const tripImage = getTripImage(data);
     const isPlaceholder = tripImage === NO_IMAGE;
 
-    return (
-        <Link to={target} className="trip-box-link">
-            <article className="trip-box">
-                <div
-                    className={classnames('trip-box-image', {
-                        'is-placeholder': isPlaceholder,
-                    })}
-                >
-                    <img
-                        src={tripImage}
-                        alt={destinationLabel}
-                        loading="lazy"
-                    />
+    // Body shared by both interaction modes — only the wrapper element
+    // changes (`<Link>` for navigation vs `<button>` for selection).
+    const inner = (
+        <article
+            className={classnames('trip-box', {
+                'is-selectable': selectable,
+                'is-selected': selectable && selected,
+            })}
+        >
+            <div
+                className={classnames('trip-box-image', {
+                    'is-placeholder': isPlaceholder,
+                })}
+            >
+                <img
+                    src={tripImage}
+                    alt={destinationLabel}
+                    loading="lazy"
+                />
+                {/* Status badge hides in selectable mode — the action
+                    the user is taking (delete) doesn't care about the
+                    trip's status, and dropping it gives the checkbox
+                    visual room to breathe. */}
+                {!selectable && (
                     <span
                         className={classnames(
                             'trip-box-status',
@@ -77,16 +104,46 @@ export const TripBox = ({ data, to }: TripBoxProps) => {
                     >
                         {data.status.name}
                     </span>
+                )}
+                {selectable && (
+                    <span
+                        className={classnames('trip-box-check', {
+                            'is-checked': selected,
+                        })}
+                        aria-hidden="true"
+                    >
+                        {selected && <CheckRoundedIcon fontSize="small" />}
+                    </span>
+                )}
+            </div>
+            <div className="trip-box-content">
+                <h3 className="trip-box-name">{data.name}</h3>
+                <p className="trip-box-destination">{destinationLabel}</p>
+                <div className="trip-box-meta">
+                    <span>{formatDateRange(data.startDate, data.endDate)}</span>
+                    <span className="trip-box-friends">{friendsLabel}</span>
                 </div>
-                <div className="trip-box-content">
-                    <h3 className="trip-box-name">{data.name}</h3>
-                    <p className="trip-box-destination">{destinationLabel}</p>
-                    <div className="trip-box-meta">
-                        <span>{formatDateRange(data.startDate, data.endDate)}</span>
-                        <span className="trip-box-friends">{friendsLabel}</span>
-                    </div>
-                </div>
-            </article>
+            </div>
+        </article>
+    );
+
+    if (selectable) {
+        return (
+            <button
+                type="button"
+                className="trip-box-link is-select-trigger"
+                onClick={onToggleSelect}
+                aria-pressed={selected}
+                aria-label={`${selected ? 'Unselect' : 'Select'} trip ${data.name}`}
+            >
+                {inner}
+            </button>
+        );
+    }
+
+    return (
+        <Link to={target} className="trip-box-link">
+            {inner}
         </Link>
     );
 };

@@ -1,0 +1,824 @@
+// `/plan-trip-ai` page styles. Multi-step wizard with a brand-gradient
+// hero, a horizontal step indicator, and a generous content panel for
+// each step. Designed to feel like a high-end Pro experience rather
+// than a cramped modal.
+
+.ai-trip-builder-page {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 8px 64px;
+}
+
+.ai-trip-builder-page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  padding: 36px 32px;
+  color: #fff;
+  background: linear-gradient(
+      135deg,
+      rgba(60, 181, 75, 0.97) 0%,
+      rgba(247, 198, 26, 0.95) 50%,
+      rgba(246, 137, 31, 0.97) 100%
+    );
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        circle at 15% 18%,
+        rgba(255, 255, 255, 0.22) 0%,
+        rgba(255, 255, 255, 0) 45%
+      ),
+      radial-gradient(
+        circle at 85% 88%,
+        rgba(255, 255, 255, 0.14) 0%,
+        rgba(255, 255, 255, 0) 50%
+      );
+    z-index: -1;
+  }
+}
+
+.ai-trip-builder-page-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  align-self: flex-start;
+}
+
+.ai-trip-builder-page-eyebrow-icon {
+  color: #fff;
+}
+
+.ai-trip-builder-page-headline {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.ai-trip-builder-page-sub {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+// Step indicator — horizontal row of "bullet + label" entries with a
+// connecting line. Clickable to jump back to completed steps; forward
+// jumps are blocked (you have to validate via Next).
+.ai-trip-builder-page-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px 10px;
+}
+
+.ai-trip-builder-page-step {
+  flex: 1 1 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.45);
+  font: inherit;
+  position: relative;
+  transition: color 0.18s ease;
+
+  // Connector line — a thin track behind each step that joins to the
+  // next one. Drawn via a pseudo-element so the bullet still sits on
+  // top. Hidden for the last step.
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: calc(50% + 18px);
+    right: calc(-50% + 18px);
+    top: 18px;
+    height: 2px;
+    background: rgba(0, 0, 0, 0.08);
+    z-index: 0;
+  }
+
+  &.is-complete:not(:last-child)::after {
+    background: theme('colors.primaryOrange');
+  }
+
+  &.is-active {
+    color: theme('colors.primary');
+  }
+
+  &.is-complete {
+    color: theme('colors.primaryOrange');
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.ai-trip-builder-page-step-bullet {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 1.1rem;
+  transition: background 0.18s ease, border-color 0.18s ease,
+    color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ai-trip-builder-page-step.is-active .ai-trip-builder-page-step-bullet {
+  background: theme('colors.primaryOrange');
+  border-color: theme('colors.primaryOrange');
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(246, 137, 31, 0.32);
+}
+
+.ai-trip-builder-page-step.is-complete .ai-trip-builder-page-step-bullet {
+  background: #fff;
+  border-color: theme('colors.primaryOrange');
+  color: theme('colors.primaryOrange');
+}
+
+.ai-trip-builder-page-step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+// Content panel for the active step.
+.ai-trip-builder-page-panel {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.04);
+}
+
+.ai-trip-builder-page-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ai-trip-builder-page-step-title {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.ai-trip-builder-page-step-hint {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.6);
+  max-width: 60ch;
+}
+
+// Budget / duration input. Big symbol on the left, large number
+// field, optional suffix on the right (used by the duration step for
+// "days").
+.ai-trip-builder-page-budget-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ai-trip-builder-page-budget-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  min-width: 220px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:focus-within {
+    border-color: theme('colors.primaryOrange');
+    box-shadow: 0 0 0 4px rgba(246, 137, 31, 0.16);
+  }
+}
+
+.ai-trip-builder-page-budget-symbol {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.45);
+
+  &.is-suffix {
+    font-size: 1.05rem;
+    font-weight: 500;
+  }
+}
+
+.ai-trip-builder-page-budget-field {
+  appearance: none;
+  -moz-appearance: textfield;
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  outline: none;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+// Preset chip row (budget + duration steps).
+.ai-trip-builder-page-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ai-trip-builder-page-preset {
+  appearance: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 18px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  color: theme('colors.primary');
+  font: inherit;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: rgba(246, 137, 31, 0.4);
+    background: rgba(246, 137, 31, 0.04);
+  }
+
+  &.is-selected {
+    background: theme('colors.primaryOrange');
+    border-color: theme('colors.primaryOrange');
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(246, 137, 31, 0.26);
+  }
+}
+
+.ai-trip-builder-page-preset-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.ai-trip-builder-page-preset-note {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+// Text input shared by the interest draft + country hint fields.
+.ai-trip-builder-page-text {
+  appearance: none;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  font: inherit;
+  color: theme('colors.primary');
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: rgba(246, 137, 31, 0.4);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: theme('colors.primaryOrange');
+    box-shadow: 0 0 0 3px rgba(246, 137, 31, 0.16);
+  }
+}
+
+.ai-trip-builder-page-chips,
+.ai-trip-builder-page-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-trip-builder-page-suggest-title {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.ai-trip-builder-page-chip {
+  &.is-selected.MuiChip-root {
+    background-color: theme('colors.primaryOrange') !important;
+    color: #fff !important;
+    font-weight: 600;
+
+    .MuiChip-deleteIcon {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+    .MuiChip-deleteIcon:hover {
+      color: #fff !important;
+    }
+  }
+
+  &.is-suggestion.MuiChip-root {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: rgba(0, 0, 0, 0.7) !important;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(246, 137, 31, 0.12) !important;
+      color: theme('colors.primaryOrange') !important;
+    }
+  }
+}
+
+.ai-trip-builder-page-side-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ai-trip-builder-page-side-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+// Review step: a clean two-column-ish definition list.
+.ai-trip-builder-page-review {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+
+.ai-trip-builder-page-review-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  align-items: baseline;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  dt {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(0, 0, 0, 0.5);
+    margin: 0;
+  }
+
+  dd {
+    font-size: 1rem;
+    font-weight: 500;
+    color: theme('colors.primary');
+    margin: 0;
+  }
+}
+
+.ai-trip-builder-page-review-meta {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.5);
+  margin-left: 6px;
+  font-weight: 400;
+}
+
+.ai-trip-builder-page-error {
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(179, 38, 30, 0.08);
+  border-left: 3px solid #b3261e;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #b3261e;
+}
+
+// Action row at the bottom of each step — Back on the left, Next /
+// Submit on the right.
+.ai-trip-builder-page-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.ai-trip-builder-page-back {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(0, 0, 0, 0.6);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.04);
+    color: theme('colors.primary');
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.ai-trip-builder-page-next {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: theme('colors.primaryOrange');
+  border: none;
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(246, 137, 31, 0.28);
+  transition: background 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease, filter 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+    box-shadow: 0 8px 22px rgba(246, 137, 31, 0.36);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(246, 137, 31, 0.2);
+  }
+}
+
+// Reuse ButtonCustom's `.main-button` for the submit (green) but
+// extend it a touch — slightly taller padding, full width on mobile.
+.ai-trip-builder-page-submit.main-button.main-button {
+  width: auto;
+  min-width: 220px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(60, 181, 75, 0.28);
+}
+
+// ── Options phase ──────────────────────────────────────────────────
+// Image-led result cards rendered when the AI returns destination
+// options. Two columns on desktop, single column on mobile. Each
+// card has a photo on top, country chip, headline, why-it-fits,
+// highlight bullets, cost + duration meta, and a primary CTA that
+// triggers the full-build call.
+.ai-trip-builder-page-options {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ai-trip-builder-page-options-toolbar {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ai-trip-builder-page-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+}
+
+@media (max-width: 760px) {
+  .ai-trip-builder-page-options-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.ai-trip-builder-page-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+}
+
+.ai-trip-builder-page-option:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  border-color: rgba(246, 137, 31, 0.4);
+}
+
+// Other cards dim while one is being built — keeps the user's focus
+// on the in-flight choice, prevents misclicks.
+.ai-trip-builder-page-option.is-dimmed {
+  opacity: 0.55;
+  filter: grayscale(0.15);
+  pointer-events: none;
+}
+
+.ai-trip-builder-page-option.is-building {
+  border-color: theme('colors.primaryOrange');
+  box-shadow: 0 12px 30px rgba(246, 137, 31, 0.18);
+}
+
+.ai-trip-builder-page-option-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.18) 0%,
+    rgba(246, 137, 31, 0.22) 100%
+  );
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+}
+
+.ai-trip-builder-page-option:hover .ai-trip-builder-page-option-media img {
+  transform: scale(1.04);
+}
+
+.ai-trip-builder-page-option-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.3);
+
+  .MuiSvgIcon-root {
+    font-size: 3rem;
+  }
+}
+
+// Country name pill rendered over the photo. Reads as the option's
+// identity at a glance — under the headline below for ranking.
+.ai-trip-builder-page-option-country {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: theme('colors.primary');
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+.ai-trip-builder-page-option-attribution {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+
+  a {
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: underline;
+  }
+}
+
+.ai-trip-builder-page-option-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-trip-builder-page-option-headline {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.ai-trip-builder-page-option-why {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.ai-trip-builder-page-option-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.7);
+    line-height: 1.4;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: theme('colors.primaryOrange');
+    }
+  }
+}
+
+.ai-trip-builder-page-option-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    .MuiSvgIcon-root {
+      font-size: 1rem;
+      color: theme('colors.primaryOrange');
+    }
+  }
+}
+
+.ai-trip-builder-page-option-cta {
+  margin-top: 12px;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: theme('colors.primaryOrange');
+  border: none;
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(246, 137, 31, 0.28);
+  transition: filter 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(246, 137, 31, 0.36);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.ai-trip-builder-page-option-cta-icon {
+  font-size: 1.1rem !important;
+}
+
+// Mobile tweaks — tighten paddings, stack the review rows, and
+// expand the submit/next to fill the width.
+@media (max-width: 640px) {
+  .ai-trip-builder-page {
+    padding: 12px 4px 48px;
+  }
+
+  .ai-trip-builder-page-hero {
+    padding: 28px 22px;
+    border-radius: 18px;
+  }
+
+  .ai-trip-builder-page-headline {
+    font-size: 1.45rem;
+  }
+
+  .ai-trip-builder-page-stepper {
+    overflow-x: auto;
+    gap: 4px;
+    padding: 6px 2px;
+  }
+
+  .ai-trip-builder-page-step {
+    flex: 0 0 auto;
+    min-width: 80px;
+  }
+
+  .ai-trip-builder-page-step:not(:last-child)::after {
+    display: none;
+  }
+
+  .ai-trip-builder-page-panel {
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+
+  .ai-trip-builder-page-step-title {
+    font-size: 1.2rem;
+  }
+
+  .ai-trip-builder-page-review-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .ai-trip-builder-page-next,
+  .ai-trip-builder-page-submit.main-button.main-button {
+    flex: 1;
+    min-width: 0;
+  }
+}
