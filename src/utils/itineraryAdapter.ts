@@ -99,6 +99,14 @@ const normalizeKind = (k: string | null | undefined): ActivityKind | undefined =
     if (k === ACTIVITY_KIND.FLIGHT) return ACTIVITY_KIND.FLIGHT;
     if (k === ACTIVITY_KIND.NOTE) return ACTIVITY_KIND.NOTE;
     if (k === ACTIVITY_KIND.PLACE) return ACTIVITY_KIND.PLACE;
+    // Newer kinds. Without these, a saved-then-reloaded hotel / train /
+    // bus activity comes back with `kind = undefined`, which the
+    // AddPlaceBtn modal falls back to PLACE — making edit silently
+    // open the wrong form for the kind the user originally picked.
+    if (k === ACTIVITY_KIND.HOTEL_CHECKIN) return ACTIVITY_KIND.HOTEL_CHECKIN;
+    if (k === ACTIVITY_KIND.HOTEL_CHECKOUT) return ACTIVITY_KIND.HOTEL_CHECKOUT;
+    if (k === ACTIVITY_KIND.TRAIN) return ACTIVITY_KIND.TRAIN;
+    if (k === ACTIVITY_KIND.BUS) return ACTIVITY_KIND.BUS;
     return undefined;
 };
 

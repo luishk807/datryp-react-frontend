@@ -29,6 +29,12 @@ export interface PlaceAutocompleteProps {
     label?: string;
     placeholder?: string;
     disabled?: boolean;
+    /** Optional bias prefix prepended to the user's typed query before
+     *  it hits the AI. Used by kind-specific forms — e.g. the Hotel
+     *  form passes `"hotel"` so typing "marriott" sends "hotel
+     *  marriott" to the recommender and the results lean toward
+     *  hotels. The user-visible input value is unaffected. */
+    queryPrefix?: string;
 }
 
 const MIN_CHARS = 3;
@@ -53,6 +59,7 @@ const PlaceAutocomplete = ({
     label = 'Name of Place',
     placeholder = 'Start typing — we\'ll suggest matching places',
     disabled = false,
+    queryPrefix,
 }: PlaceAutocompleteProps) => {
     // Debounced submitted query. Only crosses MIN_CHARS triggers a fetch;
     // shorter input clears the dropdown without burning OpenAI on partials.
@@ -83,7 +90,17 @@ const PlaceAutocomplete = ({
         return () => clearTimeout(handle);
     }, [value, submittedQuery]);
 
-    const { data, isFetching } = useSearchPlaces(submittedQuery, LIMIT, country);
+    // Prepend the bias prefix (if any) to the user's typed query before
+    // it hits the recommender. Visible input value stays the user's
+    // exact text — the prefix is invisible plumbing that nudges the AI
+    // toward the right kind of result.
+    const trimmedPrefix = queryPrefix?.trim() ?? '';
+    const effectiveQuery = submittedQuery
+        ? trimmedPrefix
+            ? `${trimmedPrefix} ${submittedQuery}`
+            : submittedQuery
+        : '';
+    const { data, isFetching } = useSearchPlaces(effectiveQuery, LIMIT, country);
 
     // While the user is mid-keystroke we hand MUI an empty options array
     // so the dropdown has nothing to flash. We deliberately DON'T control

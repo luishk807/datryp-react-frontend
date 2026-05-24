@@ -1091,14 +1091,31 @@ const AddPlaceBtn = ({
                                             </div>
                                         </Grid>
                                     )}
+                                    {isAdd && countryScope && (
+                                        <Grid item lg={12} xs={12} className="pt-2 pb-5">
+                                            <PlaceSuggestions
+                                                country={countryScope}
+                                                topic="top hotels"
+                                                headingPrefix="Suggested hotels in"
+                                                onPick={handlePlacePicked}
+                                            />
+                                        </Grid>
+                                    )}
                                     <Grid item lg={12} xs={12} className="pt-2 pb-5">
-                                        <InputField
+                                        <PlaceAutocomplete
                                             value={place.name ?? ''}
-                                            name="name"
-                                            label="Hotel name"
-                                            onChange={(e) =>
-                                                handleOnChange('name', e.target.value)
+                                            onTextChange={(text) =>
+                                                handleOnChange('name', text)
                                             }
+                                            onSelect={handlePlacePicked}
+                                            country={countryScope}
+                                            queryPrefix="hotel"
+                                            label={
+                                                countryScope
+                                                    ? `Hotel name (or search in ${countryScope})`
+                                                    : 'Hotel name'
+                                            }
+                                            placeholder="Type a hotel name — we'll suggest matches"
                                         />
                                     </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">

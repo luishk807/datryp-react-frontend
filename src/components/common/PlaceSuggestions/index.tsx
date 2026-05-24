@@ -15,6 +15,14 @@ export interface PlaceSuggestionsProps {
      *  city, or activity-type hint. Appended to the recommender query so
      *  results lean toward the user's current trip context. */
     bias?: string;
+    /** Topic seed for the recommender query. Defaults to "top things to
+     *  do", which surfaces attractions / activities. Override for kind-
+     *  specific suggestions — e.g. `"top hotels"` for the hotel form,
+     *  `"top restaurants"` for a food form. The string is dropped
+     *  straight into the OpenAI prompt, so phrase it as you'd ask. */
+    topic?: string;
+    /** Heading shown above the chips. Defaults to "Suggested for X". */
+    headingPrefix?: string;
     /** Fires when the user picks a suggestion. The parent prefills name +
      *  location + image from the payload. */
     onPick: (suggestion: PlaceSuggestion) => void;
@@ -28,21 +36,26 @@ const LIMIT = 3;
  * the existing `/place-recommendations` endpoint and lets them prefill
  * the form with one tap — name, location, and image all in one go.
  */
-const PlaceSuggestions = ({ country, bias, onPick }: PlaceSuggestionsProps) => {
+const PlaceSuggestions = ({
+    country,
+    bias,
+    topic = 'top things to do',
+    headingPrefix = 'Suggested for',
+    onPick,
+}: PlaceSuggestionsProps) => {
     const trimmedCountry = country?.trim();
     // Cache-bust nonce — bumped when the user hits "shuffle" so the
     // recommender returns a fresh set instead of the cached top-3.
     const [shuffleNonce, setShuffleNonce] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
 
-    // Build a query that biases the recommender toward "things to do":
-    //   `things to do in {country}` — the recommender's
-    //   country-scoped path treats this as "popular activities here".
-    // Adding the optional `bias` term (e.g. arrival airport / city)
-    // narrows further. Empty country means no useful query, so we skip
-    // the call entirely.
+    // Build a query that biases the recommender toward the configured
+    // topic (defaults to "top things to do" for activities; the hotel
+    // form passes "top hotels" instead). Adding the optional `bias`
+    // term (e.g. arrival airport / city) narrows further. Empty
+    // country means no useful query, so we skip the call entirely.
     const queryParts = [
-        'top things to do',
+        topic,
         bias?.trim() || '',
         trimmedCountry ? `in ${trimmedCountry}` : '',
         shuffleNonce ? `(shuffle ${shuffleNonce})` : '',
@@ -77,7 +90,7 @@ const PlaceSuggestions = ({ country, bias, onPick }: PlaceSuggestionsProps) => {
         >
             <header className="place-suggestions-head">
                 <h4 className="place-suggestions-title">
-                    Suggested for {trimmedCountry}
+                    {headingPrefix} {trimmedCountry}
                 </h4>
                 <button
                     type="button"

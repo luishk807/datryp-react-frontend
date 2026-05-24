@@ -58,10 +58,14 @@ const FEATURE_ROWS: FeatureRow[] = [
         note: 'One click → AI builds a full itinerary (country, days, activities) you can edit and save.',
     },
     {
-        label: 'Personalized "Places you might love"',
-        free: true,
-        pro: true,
-        note: 'Picks tied to your interests, travel style, and dream destinations.',
+        // Bundles the personalized homepage surfaces (Places you might
+        // love + your monthly personal top pick) into one comparison
+        // row. Free gets the baseline; Pro adds the monthly
+        // personalized pick on top.
+        label: 'Personalized picks for you',
+        free: 'Standard',
+        pro: 'Enhanced',
+        note: 'Free: Places you might love, tied to your interests and travel style. Pro adds your monthly personalized top pick.',
     },
     {
         label: 'Trip collaboration with friends',
@@ -69,27 +73,14 @@ const FEATURE_ROWS: FeatureRow[] = [
         pro: true,
     },
     {
-        label: 'Country & city detail pages',
-        free: true,
-        pro: true,
-    },
-    {
-        label: 'Cultural-shock heads-up',
-        free: true,
-        pro: true,
-        note: 'AI-flagged norms, etiquette, taboos and surprises — on every place, city, and country page.',
-    },
-    {
-        label: 'Popularity meter (year-current)',
-        free: false,
-        pro: true,
-        note: 'Animated 0-100 popularity score with a rising / steady / cooling trend, on every detail page.',
-    },
-    {
-        label: 'Experience-highlight images',
-        free: false,
-        pro: true,
-        note: 'Photo strip of the top 4 things to do at any destination, above the Travel Basics section.',
+        // Bundles country / city / place detail-page features into one
+        // row. Free gets the standard detail page plus cultural-shock
+        // heads-up; Pro adds the year-current popularity meter and the
+        // experience-highlight image strip.
+        label: 'Enhanced detail pages',
+        free: 'Standard',
+        pro: 'Enhanced',
+        note: 'Free: full country / city / place detail pages with cultural-shock heads-up. Pro adds the year-current popularity meter and experience-highlight image strip.',
     },
     {
         label: 'Best places this month',
@@ -213,10 +204,17 @@ const Membership = () => (
                         edit and save.
                     </li>
                     <li>
-                        <strong>Popularity at a glance.</strong> Pro detail
-                        pages show a year-current popularity meter with a
-                        rising / steady / cooling trend so you can tell at
-                        a glance whether a destination is having a moment.
+                        <strong>Enhanced detail pages.</strong> Pro adds a
+                        year-current popularity meter (rising / steady /
+                        cooling trend) and an experience-highlight image
+                        strip on every country, city, and place page —
+                        so you can tell at a glance whether a destination
+                        is having a moment.
+                    </li>
+                    <li>
+                        <strong>Picks made for you.</strong> Pro layers
+                        a personalized monthly top pick onto the homepage
+                        recommendations free already shows you.
                     </li>
                     <li>
                         <strong>Try before you commit.</strong> 30-day free
