@@ -65,6 +65,16 @@ const openIntent = (intentUrl: string) => {
     window.open(intentUrl, '_blank', 'noopener,noreferrer');
 };
 
+// Rough mobile detection. We don't need to be precise — the goal is
+// "is the user on a touch device where social-network web share URLs
+// (sharer.php, intent/tweet) tend to break?" UA sniffing is good
+// enough for that signal; we're not branching on capabilities like
+// rendering.
+const isMobileUA = (): boolean => {
+    if (typeof navigator === 'undefined') return false;
+    return /android|iphone|ipad|ipod|mobile|tablet/i.test(navigator.userAgent);
+};
+
 const ShareButton = ({
     title,
     subtitle,
@@ -107,11 +117,33 @@ const ShareButton = ({
         `${longShareText} ${url}`
     );
 
-    const handleFacebook = () => {
+    const handleFacebook = async () => {
         closeShare();
-        // Facebook's share dialog encapsulates the URL inside a card —
-        // users never see the raw URL string. So we route through
-        // /share/preview to get rich OG tags on the unfurl.
+        // On mobile, FB's `sharer.php` URL opens the FB app (or the
+        // mobile FB site) but never surfaces the share compose dialog
+        // — known FB issue, no workaround on FB's side. Route through
+        // the Web Share API instead: it opens the OS share sheet
+        // (which lists FB as a target) and FB's app receives the URL
+        // via the native share intent, which DOES open the compose
+        // dialog properly. Falls back to the web sharer if the user
+        // cancels or the API is unavailable.
+        if (isMobileUA() && canNativeShare()) {
+            try {
+                await navigator.share({
+                    title,
+                    text: longShareText,
+                    url: previewUrl,
+                });
+                return;
+            } catch {
+                // User dismissed the share sheet — silent.
+                return;
+            }
+        }
+        // Desktop: `sharer.php` opens a clean share popup. We keep
+        // routing through /share/preview here because FB's dialog
+        // encapsulates the URL inside a card — users never see the
+        // raw URL string in the post.
         openIntent(
             `https://www.facebook.com/sharer/sharer.php?u=${encodedPreviewUrl}`
         );
