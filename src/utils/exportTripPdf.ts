@@ -40,9 +40,9 @@ import {
     activityLocation,
     collapseWs,
     computePayerTotals,
+    formatActivityTime,
     formatCurrency,
     formatDate,
-    formatTimeRange,
     joinNames,
     safeFilename,
     tripBudgetTotal,
@@ -249,7 +249,7 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
 
             tableBody.push([
                 dateCell,
-                { text: formatTimeRange(r.activity.startTime, r.activity.endTime) },
+                { text: formatActivityTime(r.activity) },
                 buildActivityCell(r),
                 buildCostCell(r),
                 buildPaidByCell(r),

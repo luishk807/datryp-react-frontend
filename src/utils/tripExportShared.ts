@@ -57,8 +57,60 @@ export const formatTimeRange = (
 ): string => {
     const s = formatTimeOne(start);
     const e = formatTimeOne(end);
-    if (s && e) return `${s} - ${e}`;
+    // Collapse equal-or-missing pairs so we never render "1:00pm - 1:00pm"
+    // (some legacy activities ship with both fields set to the same value)
+    // or "1:00pm - " (one side missing). Either way the user only sees the
+    // single meaningful time.
+    if (s && e && s !== e) return `${s} - ${e}`;
     return s || e || '';
+};
+
+/** Headline schedule string for an activity row on the day timeline.
+ *  Kind-aware so each entry shows the right time semantics:
+ *  - Flight: depart→arrival pulled from the first/last `flightSegments`
+ *    entry (top-level startTime/endTime aren't reliable for multi-leg
+ *    flights and are sometimes blank).
+ *  - Train / Bus: same depart→arrival logic but against `transitSegments`,
+ *    falling back to top-level startTime/endTime when the segments
+ *    haven't shipped yet (legacy / pre-segment-persistence rows).
+ *  - Hotel check-in / check-out: single time only — the activity is
+ *    a single bookend event, never a range.
+ *  - Note: blank, notes are timeless.
+ *  - Otherwise: standard `formatTimeRange(start, end)` with the
+ *    equal-or-missing collapse from above. */
+export const formatActivityTime = (a: Activity): string => {
+    const kind = a.kind ?? ACTIVITY_KIND.PLACE;
+    if (kind === ACTIVITY_KIND.NOTE) return '';
+    if (kind === ACTIVITY_KIND.FLIGHT) {
+        const segs = a.flightSegments ?? [];
+        if (segs.length) {
+            const first = segs[0];
+            const last = segs[segs.length - 1];
+            return formatTimeRange(first?.departTime, last?.arrivalTime);
+        }
+        // Fall through to the legacy top-level fields for the rare
+        // flight saved before the segment join-table shipped.
+        return formatTimeRange(a.startTime, a.endTime);
+    }
+    if (kind === ACTIVITY_KIND.TRAIN || kind === ACTIVITY_KIND.BUS) {
+        const segs = a.transitSegments ?? [];
+        if (segs.length) {
+            const first = segs[0];
+            const last = segs[segs.length - 1];
+            return formatTimeRange(first?.departTime, last?.arrivalTime);
+        }
+        return formatTimeRange(a.startTime, a.endTime);
+    }
+    if (
+        kind === ACTIVITY_KIND.HOTEL_CHECKIN ||
+        kind === ACTIVITY_KIND.HOTEL_CHECKOUT
+    ) {
+        // Single-time event: only the relevant bookend time is shown.
+        // `endTime` is intentionally ignored even if a stale value
+        // exists on a legacy row.
+        return formatTimeOne(a.startTime);
+    }
+    return formatTimeRange(a.startTime, a.endTime);
 };
 
 export const formatDate = (raw?: string | null, fmt = 'MM/DD/YYYY'): string => {
