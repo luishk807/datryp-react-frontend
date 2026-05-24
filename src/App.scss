@@ -82,14 +82,18 @@ iframe[id*='__acroToolbar' i],
     // The shared circle — identical for all three. Active states
     // only change the ICON color, not the chip itself, so the set
     // always reads as a row of matched buttons. The `*-city-pill`
-    // variants are the BookmarkCityButton / VisitedCityButton used
-    // on the /city page — they MUST stay in sync with their
-    // BookmarkButton / VisitedButton siblings so /city renders the
-    // same unified mobile chip set as /place and /country.
+    // and `*-country-pill` variants are the
+    // BookmarkCity/VisitedCity and BookmarkCountry/VisitedCountry
+    // components used on /city and /country respectively — they
+    // MUST stay in sync with their BookmarkButton / VisitedButton
+    // siblings so all three pages render the same unified mobile
+    // chip set.
     .bookmark-button-pill,
     .bookmark-city-pill,
+    .bookmark-country-pill,
     .visited-button-pill,
     .visited-city-pill,
+    .visited-country-pill,
     .share-button-pill {
       width: 36px !important;
       height: 36px !important;
@@ -115,8 +119,10 @@ iframe[id*='__acroToolbar' i],
 
     .bookmark-button-pill:hover,
     .bookmark-city-pill:hover,
+    .bookmark-country-pill:hover,
     .visited-button-pill:hover,
     .visited-city-pill:hover,
+    .visited-country-pill:hover,
     .share-button-pill:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24),
@@ -128,8 +134,10 @@ iframe[id*='__acroToolbar' i],
     // glyph only.
     .bookmark-button-icon,
     .bookmark-city-icon,
+    .bookmark-country-icon,
     .visited-button-icon,
     .visited-city-icon,
+    .visited-country-icon,
     .share-button-pill-icon,
     .share-button-pill .MuiSvgIcon-root,
     .share-button-pill svg {
@@ -142,12 +150,14 @@ iframe[id*='__acroToolbar' i],
 
     // Active glyph colors — same chip styling, brand-tinted icon.
     .bookmark-button-pill.is-saved .bookmark-button-icon,
-    .bookmark-city-pill.is-saved .bookmark-city-icon {
+    .bookmark-city-pill.is-saved .bookmark-city-icon,
+    .bookmark-country-pill.is-saved .bookmark-country-icon {
       color: theme('colors.primaryOrange') !important;
     }
 
     .visited-button-pill.is-visited .visited-button-icon,
-    .visited-city-pill.is-visited .visited-city-icon {
+    .visited-city-pill.is-visited .visited-city-icon,
+    .visited-country-pill.is-visited .visited-country-icon {
       color: theme('colors.primaryGreen') !important;
     }
   }

@@ -29,6 +29,15 @@ const PopularitySection = ({ popularity, isError }: PopularitySectionProps) => {
   const { user, isAdmin } = useUser();
   const isPro = Boolean(user && (user.isPaidMember || isAdmin));
   if (!isPro) return null;
+  // Hide the section entirely when the parent's query has resolved but
+  // popularity is null/undefined — old cached country/city/place rows
+  // from before this field shipped don't carry the payload, and
+  // `AsyncDetailSection` would otherwise leave a 3-line skeleton
+  // spinning forever (the "hanging widget" bug). Parents only mount
+  // this section after their own data load completes, so a null
+  // payload at this point means "not in the response", not "still
+  // loading". Errors still surface via `isError` below.
+  if (!isError && popularity == null) return null;
   return (
     <AsyncDetailSection
       title="Popularity this year"
