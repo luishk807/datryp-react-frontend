@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton } from '@mui/material';
 import SearchBarIcon from '@mui/icons-material/SearchRounded';
@@ -87,14 +87,25 @@ const Header = ({ withSearch = false }: HeaderProps) => {
 
     const initial = user?.name.charAt(0).toUpperCase() ?? '?';
     const profileImg = user?.profileImageUrl ?? null;
+    // Fallback: when the <img> fails to load (S3 ACL, iOS Safari TLS
+    // quirk, stale CloudFront cache after a re-upload) swap to the
+    // initial-letter chip. Reset whenever the URL changes so a new
+    // upload gets a fresh attempt.
+    const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+    useEffect(() => {
+        setAvatarLoadFailed(false);
+    }, [profileImg]);
     // Re-usable contents for any circular avatar in this header. When the
     // user has uploaded a profile picture we render it; otherwise we fall
     // back to the initial-letter chip.
-    const avatarContent = profileImg ? (
+    const avatarContent = profileImg && !avatarLoadFailed ? (
         <img
             src={profileImg}
             alt=""
             className="app-header-avatar-img"
+            decoding="async"
+            loading="eager"
+            onError={() => setAvatarLoadFailed(true)}
         />
     ) : (
         initial

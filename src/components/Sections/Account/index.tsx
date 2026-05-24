@@ -141,6 +141,16 @@ export const Account = () => {
     const removeProfileImageMutation = useRemoveProfileImage();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [imageError, setImageError] = useState<string | null>(null);
+    // Fallback flag: flips true when the <img> for the profile picture
+    // fails to load (S3 ACL, iOS Safari TLS quirk, expired CloudFront
+    // edge cache after a re-upload, etc.). When true we render the
+    // initial-letter avatar instead of a broken-image icon. Resets
+    // whenever the URL itself changes so a re-upload gets another
+    // chance to load.
+    const [imageLoadFailed, setImageLoadFailed] = useState(false);
+    useEffect(() => {
+        setImageLoadFailed(false);
+    }, [user?.profileImageUrl]);
 
     const onPickFile = () => {
         if (uploadProfileImage.isPending) return;
@@ -415,11 +425,25 @@ export const Account = () => {
                                         : 'Upload a profile picture'
                                 }
                             >
-                                {user.profileImageUrl ? (
+                                {user.profileImageUrl && !imageLoadFailed ? (
                                     <img
                                         src={user.profileImageUrl}
                                         alt=""
                                         className="account-avatar-img"
+                                        // Decode async so the page doesn't
+                                        // block on a slow CDN; iOS Safari
+                                        // historically held the main
+                                        // thread on large remote images.
+                                        decoding="async"
+                                        loading="eager"
+                                        // No `crossOrigin` attribute — adding
+                                        // it forces a CORS preflight that the
+                                        // S3 bucket isn't configured for and
+                                        // turns a previously-working image
+                                        // into a broken one. Plain <img>
+                                        // tags don't need CORS unless we
+                                        // intend to canvas-read them.
+                                        onError={() => setImageLoadFailed(true)}
                                     />
                                 ) : (
                                     <span className="account-avatar-initial">

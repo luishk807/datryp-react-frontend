@@ -74,17 +74,44 @@ const BottomNav = () => {
 
     // Lock body scroll while the full-viewport search overlay is open.
     // The overlay is a plain div (not a MUI Drawer, which handles this
-    // automatically), so without this hook the page behind it remained
-    // scrollable on mobile — fingers landing near the edges scrolled
-    // the article while typing in the overlay. Restore on unmount /
-    // close so accidental remounts don't strand the page in a locked
-    // state.
+    // automatically), so without this the page behind it remained
+    // scrollable on mobile.
+    //
+    // iOS Safari quirk: `body { overflow: hidden }` alone is leaky —
+    // when the search input is focused, iOS auto-scrolls to keep the
+    // field on-screen and the background page scrolls behind the
+    // overlay. The robust fix is to take the page out of the document
+    // scroll flow entirely with `position: fixed`, snapshotting the
+    // current scroll position so we can restore it on close. Same
+    // pattern body-scroll-lock and react-remove-scroll use.
     useEffect(() => {
         if (!searchOpen) return;
-        const previous = document.body.style.overflow;
+        const scrollY = window.scrollY;
+        const previousBodyStyles = {
+            position: document.body.style.position,
+            top: document.body.style.top,
+            left: document.body.style.left,
+            right: document.body.style.right,
+            width: document.body.style.width,
+            overflow: document.body.style.overflow,
+        };
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
         document.body.style.overflow = 'hidden';
         return () => {
-            document.body.style.overflow = previous;
+            document.body.style.position = previousBodyStyles.position;
+            document.body.style.top = previousBodyStyles.top;
+            document.body.style.left = previousBodyStyles.left;
+            document.body.style.right = previousBodyStyles.right;
+            document.body.style.width = previousBodyStyles.width;
+            document.body.style.overflow = previousBodyStyles.overflow;
+            // Restore the scroll position the page was at before
+            // we pinned the body — without this the page jumps to
+            // the top when the overlay closes.
+            window.scrollTo(0, scrollY);
         };
     }, [searchOpen]);
 
