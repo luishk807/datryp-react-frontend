@@ -21,6 +21,7 @@ import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitR
 import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import { useDroppable } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -418,7 +419,14 @@ const Activities = ({
                                                         rel="noopener noreferrer"
                                                         title={`Open ${activity.name} details in a new tab`}
                                                     >
-                                                        {activity.name}
+                                                        <span className="title-link-text">
+                                                            {activity.name}
+                                                        </span>
+                                                        <OpenInNewRoundedIcon
+                                                            className="title-link-icon"
+                                                            fontSize="small"
+                                                            aria-hidden="true"
+                                                        />
                                                     </a>
                                                 ) : (
                                                     <span className="title">{activity.name}</span>

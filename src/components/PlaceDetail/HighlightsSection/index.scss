@@ -1,27 +1,41 @@
 .highlights-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
+// Stack pill above its description rather than putting them side by
+// side. The previous side-by-side layout had `flex-shrink: 0` on the
+// pill, so a long ISO country label like
+// "United States Minor Outlying Islands (the)" hogged the row and
+// squeezed the description into a single-word-per-line column. The
+// widget lives in a narrow sidebar — stacking gives the description
+// full width regardless of label length.
 .highlights-section-row {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
   align-items: flex-start;
+  gap: 6px;
 }
 
 .highlights-section-label {
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
-  min-width: 90px;
-  justify-content: center;
+  // Allow long labels to wrap inside the pill instead of overflowing
+  // the container. `break-word` handles labels like the ISO 3166
+  // "(the)" suffix that includes parens + spaces.
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: center;
+  line-height: 1.25;
 
   &.tier-city {
     background: rgba(60, 181, 75, 0.12);
@@ -38,6 +52,5 @@
   font-size: 0.95rem;
   color: rgba(0, 0, 0, 0.75);
   line-height: 1.5;
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }

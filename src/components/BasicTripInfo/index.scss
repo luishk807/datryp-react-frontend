@@ -383,6 +383,27 @@
   word-break: break-word;
 }
 
+// Country links inside the "Where" stat — visible affordance at rest
+// (orange + dashed underline) so users see they can click through to
+// the country detail page in a new tab. Matches the place-name link
+// pattern used on activity rows.
+.basic-trip-info .stat-value-link {
+  color: theme('colors.primaryOrange');
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: rgba(247, 159, 38, 0.4);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration-style: solid;
+    text-decoration-color: theme('colors.primaryOrange');
+  }
+}
+
 /* ---------- Friends ---------- */
 .basic-trip-info .trip-friends {
   margin-top: 18px;

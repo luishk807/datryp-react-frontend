@@ -129,19 +129,45 @@
   text-transform: capitalize;
   letter-spacing: -0.005em;
 
-  // PLACE activities turn the title into a link to /place — keep the
-  // same look as a static title, just add hover affordance so the
-  // click target is discoverable.
+  // PLACE activities turn the title into a link to /place. Make the
+  // affordance visible at rest so the user can see it's clickable
+  // without hovering: orange color + adjacent open-in-new icon.
   &.title-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: theme('colors.primaryOrange');
     text-decoration: none;
-    border-bottom: 1px dashed transparent;
-    transition: border-color 0.15s ease, color 0.15s ease;
     cursor: pointer;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+    .title-link-text {
+      text-decoration: underline;
+      text-decoration-style: dashed;
+      text-decoration-color: rgba(247, 159, 38, 0.4);
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+      transition: text-decoration-color 0.15s ease;
+    }
+
+    .title-link-icon {
+      flex-shrink: 0;
+      font-size: 0.95rem !important;
+      opacity: 0.7;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
 
     &:hover,
     &:focus-visible {
-      color: theme('colors.primaryOrange');
-      border-bottom-color: theme('colors.primaryOrange');
+      .title-link-text {
+        text-decoration-color: theme('colors.primaryOrange');
+        text-decoration-style: solid;
+      }
+
+      .title-link-icon {
+        opacity: 1;
+        transform: translate(1px, -1px);
+      }
     }
   }
 }

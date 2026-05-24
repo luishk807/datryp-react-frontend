@@ -156,14 +156,23 @@ export const BasicTripInfo = ({
     );
 
     // Destination country/countries — deduped (helps when a multi-destination
-    // trip has two stops in the same country). Single trip → single value;
-    // multi → comma-joined list.
-    const destinationLabel = useMemo(() => {
-        const names = (data.destinations ?? [])
-            .map((d) => d.country?.name)
-            .filter((name): name is string => Boolean(name));
-        return Array.from(new Set(names)).join(', ');
+    // trip has two stops in the same country). Each carries its `code` so the
+    // "Where" stat can render every country as a /country?code= link rather
+    // than a plain text label.
+    const destinationCountries = useMemo(() => {
+        const seen = new Set<string>();
+        const out: { name: string; code?: string }[] = [];
+        for (const d of data.destinations ?? []) {
+            const name = d.country?.name;
+            if (!name) continue;
+            const key = (d.country?.code ?? name).toLowerCase();
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push({ name, code: d.country?.code });
+        }
+        return out;
     }, [data.destinations]);
+    const destinationLabel = destinationCountries.map((c) => c.name).join(', ');
 
     const statusName = deriveStatusName(data.status);
     const friends = data.friends ?? [];
@@ -410,12 +419,33 @@ export const BasicTripInfo = ({
                         <span className="stat-value">{organizer || '—'}</span>
                     </div>
                 </div>
-                {destinationLabel && (
+                {destinationCountries.length > 0 && (
                     <div className="trip-stat">
                         <PublicOutlinedIcon className="stat-icon" />
                         <div className="stat-text">
                             <span className="stat-label">Where</span>
-                            <span className="stat-value">{destinationLabel}</span>
+                            <span className="stat-value">
+                                {destinationCountries.map((c, idx) => (
+                                    <span key={`${c.code ?? c.name}-${idx}`}>
+                                        {idx > 0 && ', '}
+                                        {c.code ? (
+                                            <a
+                                                className="stat-value-link"
+                                                href={`/country?code=${encodeURIComponent(
+                                                    c.code
+                                                )}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title={`Open ${c.name} in a new tab`}
+                                            >
+                                                {c.name}
+                                            </a>
+                                        ) : (
+                                            c.name
+                                        )}
+                                    </span>
+                                ))}
+                            </span>
                         </div>
                     </div>
                 )}
