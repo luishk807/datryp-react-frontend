@@ -101,16 +101,17 @@ const ShareButton = ({
     });
 
     const encodedPreviewUrl = encodeURIComponent(previewUrl);
+    const encodedCanonicalUrl = encodeURIComponent(url);
     const encodedShortText = encodeURIComponent(shortShareText);
-    const encodedLongTextWithPreviewUrl = encodeURIComponent(
-        `${longShareText} ${previewUrl}`
+    const encodedLongTextWithCanonicalUrl = encodeURIComponent(
+        `${longShareText} ${url}`
     );
 
     const handleFacebook = () => {
         closeShare();
-        // Facebook's crawler fetches the shared URL — we hand it the
-        // preview URL so it gets the right OG tags instead of the
-        // static homepage tags baked into index.html.
+        // Facebook's share dialog encapsulates the URL inside a card —
+        // users never see the raw URL string. So we route through
+        // /share/preview to get rich OG tags on the unfurl.
         openIntent(
             `https://www.facebook.com/sharer/sharer.php?u=${encodedPreviewUrl}`
         );
@@ -118,18 +119,30 @@ const ShareButton = ({
 
     const handleTwitter = () => {
         closeShare();
-        // Same OG-tag reason — X's card preview crawls the shared URL,
-        // so it needs to land on /share/preview, not the SPA route.
+        // X / Twitter writes the URL inline into the tweet compose box.
+        // Sending the long /share/preview URL means the user stares at
+        // a wall of `?title=...&description=...&image=...` text before
+        // posting. Use the canonical URL instead — it's short and
+        // recognizable. Trade-off: the card preview falls back to the
+        // SPA's static homepage OG tags. Worth it for the cleaner
+        // compose experience.
         openIntent(
-            `https://twitter.com/intent/tweet?url=${encodedPreviewUrl}&text=${encodedShortText}`
+            `https://twitter.com/intent/tweet?url=${encodedCanonicalUrl}&text=${encodedShortText}`
         );
     };
 
     const handleWhatsApp = () => {
         closeShare();
-        // WhatsApp also unfurls; route through /share/preview. Full
-        // pitch text since WhatsApp has no length limit.
-        openIntent(`https://wa.me/?text=${encodedLongTextWithPreviewUrl}`);
+        // WhatsApp displays the URL as literal text in the message
+        // bubble. The previous /share/preview routing produced an
+        // unreadable wall of URL-encoded params on the long AWS ECS
+        // hostname (see screenshot from user). Use the canonical
+        // datryp.com URL instead so the message stays readable.
+        // Unfurl falls back to the homepage OG tags (acceptable —
+        // users already accept that for the search/results page).
+        openIntent(
+            `https://wa.me/?text=${encodedLongTextWithCanonicalUrl}`
+        );
     };
 
     const handleEmail = () => {

@@ -50,7 +50,6 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
-import { buildSharePreviewUrl } from "utils/sharePreviewUrl";
 import { isSameDay } from "utils";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
@@ -676,48 +675,7 @@ const TripDetailHeader = ({
     return window.location.href;
   };
 
-  /** First country with an image, else first destination's country
-   *  image, else the trip's own image. Drives the og:image on the
-   *  share preview so the unfurl carries a visual. */
-  const resolveShareImage = (): string | null => {
-    if (tripData.image) return tripData.image;
-    for (const dest of tripData.destinations ?? []) {
-      if (dest.country?.image) return dest.country.image;
-    }
-    return null;
-  };
-
-  /** One-line pitch used as og:description. Skips the URL — that's
-   *  already attached to the share separately — and the bullet
-   *  emojis (FB / X strip them or render them as raw Unicode in the
-   *  card, which reads worse than plain text). */
-  const buildShareDescription = () => {
-    const parts: string[] = [];
-    if (tripData.startDate && tripData.endDate) {
-      parts.push(`${tripData.startDate} → ${tripData.endDate}`);
-    }
-    const countries = (tripData.destinations ?? [])
-      .map((d) => d.country?.name)
-      .filter((n): n is string => Boolean(n));
-    if (countries.length) parts.push(countries.join(" · "));
-    return parts.length
-      ? `My trip on DaTryp.com — ${parts.join(" · ")}`
-      : "My trip itinerary on DaTryp.com";
-  };
-
-  const buildSharePreview = () => {
-    const canonical = buildCanonicalUrl();
-    if (!canonical) return "";
-    const tripTitle = tripData.name?.trim() || "My trip";
-    return buildSharePreviewUrl({
-      title: tripTitle,
-      description: buildShareDescription(),
-      imageUrl: resolveShareImage(),
-      canonicalUrl: canonical,
-    });
-  };
-
-  /** Plain-text body for surfaces that DON'T unfurl (email + copy). */
+  /** Plain-text body for share channels (WhatsApp / email / copy). */
   const buildShareBody = () => {
     const lines: string[] = [];
     const tripTitle = tripData.name?.trim() || "My trip";
@@ -738,22 +696,14 @@ const TripDetailHeader = ({
 
   const handleShareWhatsApp = () => {
     exportModalRef.current?.closeModal();
-    // WhatsApp unfurls the LAST URL in the message. Use the preview
-    // URL so the crawler reads the trip's OG tags instead of hitting
-    // the auth-gated /trip-detail SPA route (which returns "not
-    // found" in the chat unfurl).
-    const preview = buildSharePreview();
-    const tripTitle = tripData.name?.trim() || "My trip";
-    const lines: string[] = [`📍 ${tripTitle}`];
-    if (tripData.startDate && tripData.endDate) {
-      lines.push(`🗓 ${tripData.startDate} → ${tripData.endDate}`);
-    }
-    const countries = (tripData.destinations ?? [])
-      .map((d) => d.country?.name)
-      .filter((n): n is string => Boolean(n));
-    if (countries.length) lines.push(`✈️ ${countries.join(" · ")}`);
-    if (preview) lines.push(preview);
-    const text = encodeURIComponent(lines.join("\n"));
+    // Use the canonical /trip-detail?id= URL — short, readable, on
+    // datryp.com. The /share/preview routing we briefly tried put a
+    // long unreadable URL on the AWS ECS hostname into the WhatsApp
+    // message body (URL is rendered as literal text in the chat
+    // bubble). The trip body text already contains the title, dates,
+    // and countries so a recipient understands the share even if
+    // WhatsApp can't unfurl the auth-gated trip URL.
+    const text = encodeURIComponent(buildShareBody());
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   };
 

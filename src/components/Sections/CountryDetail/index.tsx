@@ -291,7 +291,6 @@ const CountryDetail = () => {
               weather={details.weather}
               isError={false}
             />
-            <CurrencySection currency={details.currency} isError={false} />
             <SafetySection safety={details.safety} isError={false} />
           </aside>
         </div>
@@ -369,6 +368,8 @@ const CountryDetail = () => {
           </div>
 
           <aside className="country-detail-content-side">
+            <CurrencySection currency={details.currency} isError={false} />
+
             <AirportsSection airports={details.airports} />
 
             <VisaSection visa={details.visa} isError={false} />

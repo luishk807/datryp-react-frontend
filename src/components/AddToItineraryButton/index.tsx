@@ -75,12 +75,28 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
         ? itinerariesQuery.data?.find((t) => t.id === tripId) ?? null
         : null;
     const isTripMissing = Boolean(tripId) && itinerariesQuery.isSuccess && !targetTrip;
+    const isCountryUnresolved = countryQuery.isSuccess && !country;
 
     const isLoading =
         countryQuery.isLoading ||
         (Boolean(tripId) && itinerariesQuery.isLoading) ||
         saveItinerary.isPending;
     const isDisabled = isLoading || !country || isTripMissing;
+
+    // Surface the silent abort cases as a tooltip on the disabled
+    // button so users understand WHY clicking does nothing. Previously
+    // both "no country match" and "trip not in your list" rendered
+    // the button as a generic disabled chip with no explanation.
+    const disabledReason = (() => {
+        if (isLoading) return undefined;
+        if (isTripMissing) {
+            return "This trip isn't in your list — you may not have access, or it was deleted.";
+        }
+        if (isCountryUnresolved) {
+            return `Couldn't resolve "${place.country}" in our country catalog.`;
+        }
+        return undefined;
+    })();
 
     const startFreshFlow = () => {
         if (!country) return;
@@ -90,7 +106,27 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
     };
 
     const addToTripFlow = async () => {
-        if (!country || !tripId || !targetTrip) return;
+        if (!tripId) {
+            setToast('Missing trip id — refresh the page and try again.');
+            return;
+        }
+        if (!country) {
+            setToast(
+                `Couldn't resolve "${place.country}" in our country catalog.`
+            );
+            return;
+        }
+        if (!targetTrip) {
+            setToast(
+                "This trip isn't in your list — you may not have access."
+            );
+            return;
+        }
+        if (itineraryTypes.length === 0) {
+            setToast('Trip-type lookup not ready — try again in a moment.');
+            return;
+        }
+
         const baseState = apiToTripState(targetTrip);
         const matchingIndex = findMatchingDestinationIndex(
             baseState,
@@ -134,8 +170,15 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
             setToast(`Added ${place.name} to ${targetTrip.name ?? 'your trip'}`);
             navigate(`/trip-detail?id=${tripId}`);
         } catch (err) {
+            // Log the full error so the user (or whoever is debugging)
+            // can see the underlying GraphQL error in DevTools instead
+            // of just a generic toast that auto-dismisses in 2s.
+            // eslint-disable-next-line no-console
+            console.error('Failed to add place to itinerary', err);
             setToast(
-                err instanceof Error ? err.message : 'Failed to add place.'
+                err instanceof Error
+                    ? `Failed to add place: ${err.message}`
+                    : 'Failed to add place — see console for details.'
             );
         }
     };
@@ -170,6 +213,7 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
                 })}
                 aria-label={ariaLabel}
                 disabled={isDisabled}
+                title={disabledReason}
                 onClick={handleClick}
             >
                 <PlaylistAddRoundedIcon className="add-itinerary-icon" />
@@ -179,7 +223,10 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
             <Snackbar
                 open={Boolean(toast)}
                 onClose={() => setToast(null)}
-                autoHideDuration={2200}
+                // 4.5s so error messages stay readable. The success case
+                // navigates away immediately, so duration only matters
+                // for failures the user needs time to read.
+                autoHideDuration={4500}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 message={toast}
             />
