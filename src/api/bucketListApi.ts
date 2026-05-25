@@ -176,17 +176,38 @@ interface BucketTripGenerationRaw {
     rationale: string;
 }
 
+export interface GenerateTripFromBucketInput {
+    /** Number of travelers. Optional; backend defaults to 2 when
+     *  omitted so we don't break existing call sites. */
+    partySize?: number;
+    /** Trip length in days. Optional — omit (or pass undefined) to
+     *  let the AI pick a length that fits the budget + activity mix.
+     *  Capped at 21 days by the backend schema. */
+    durationDays?: number;
+    /** Traveler-style tags from the user's saved preferences
+     *  (Adventurer / Foodie / Luxury / etc). Used by the AI prompt
+     *  to personalize the trip mix even when the bucket-list item
+     *  itself only carries a destination + headline. */
+    travelerStyles?: string[];
+}
+
 /** POST /me/bucket-list/{id}/itinerary — kicks off the AI-driven plan +
  *  save. Returns the new trip's id and shape so the caller can navigate
  *  the user straight into edit mode of the just-saved trip. */
 export const generateTripFromBucket = async (
-    itemId: string
+    itemId: string,
+    input?: GenerateTripFromBucketInput
 ): Promise<BucketTripGenerationResult> => {
     const resp = await fetch(
         `${API_BASE}/me/bucket-list/${encodeURIComponent(itemId)}/itinerary`,
         {
             method: 'POST',
             headers: authHeaders(),
+            body: JSON.stringify({
+                party_size: input?.partySize ?? null,
+                duration_days: input?.durationDays ?? null,
+                traveler_styles: input?.travelerStyles ?? null,
+            }),
         }
     );
     if (!resp.ok) await handleError(resp, 'generate trip from bucket-list');

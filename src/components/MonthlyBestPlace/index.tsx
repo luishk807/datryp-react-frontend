@@ -20,6 +20,7 @@ import Skeleton from 'components/common/Skeleton';
 import type { MonthlyBestPlaceInfo } from 'api/monthlyBestPlaceApi';
 import { useMonthlyBestPlace } from 'api/hooks/useMonthlyBestPlace';
 import { useUser } from 'context/UserContext';
+import { getUserFirstName } from 'utils/userName';
 import './index.scss';
 
 const monthLabel = (monthKey: string): string => {
@@ -53,13 +54,17 @@ const MonthlyBestPlace = () => {
     // Pro-only silent surprise — same gate as UpcomingHoliday.
     if (!user || !isPro) return null;
 
-    return <MonthlyBestPlaceActive />;
+    return <MonthlyBestPlaceActive userFirstName={getUserFirstName(user)} />;
 };
 
 // Active path lives separately so the conditional useQuery doesn't
 // violate the rules of hooks — the gate above returns early for
 // non-Pro users before this is mounted.
-const MonthlyBestPlaceActive = () => {
+interface MonthlyBestPlaceActiveProps {
+    userFirstName: string;
+}
+
+const MonthlyBestPlaceActive = ({ userFirstName }: MonthlyBestPlaceActiveProps) => {
     const navigate = useNavigate();
     const { data, isLoading, isError } = useMonthlyBestPlace();
 
@@ -76,7 +81,7 @@ const MonthlyBestPlaceActive = () => {
                                 className="monthly-best-place-eyebrow-icon"
                                 fontSize="small"
                             />
-                            <span>Your top pick this month</span>
+                            <span>{userFirstName}&rsquo;s top pick this month</span>
                         </div>
                         <Skeleton width="80%" height={32} radius={8} />
                         <Skeleton width="55%" height={14} radius={4} />
@@ -162,7 +167,7 @@ const MonthlyBestPlaceActive = () => {
                             fontSize="small"
                         />
                         <span>
-                            Your top pick{month ? ` · ${month}` : ''}
+                            {userFirstName}&rsquo;s top pick{month ? ` · ${month}` : ''}
                         </span>
                     </div>
 

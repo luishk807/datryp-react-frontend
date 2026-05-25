@@ -1,6 +1,7 @@
-﻿import { useEffect, useMemo, useRef } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Grid } from '@mui/material';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import './index.scss';
 
 import Layout from 'components/common/Layout/SubLayout';
@@ -10,6 +11,10 @@ import BasicInfo from 'components/DestinationDetail/BasicInfo';
 import BasicsStep from 'components/TripSteps/BasicsStep';
 import PeopleStep from 'components/TripSteps/PeopleStep';
 import ParticipantsStep from 'components/TripSteps/ParticipantsStep';
+import TripTour, {
+    TRIP_TOUR_STORAGE_KEY,
+    type TripTourStep,
+} from 'components/TripTour';
 import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
 import { useMyItineraries } from 'api/hooks/useItineraries';
@@ -62,6 +67,44 @@ const TripSteps = ({
     const { user } = useUser();
     const [searchParams] = useSearchParams();
     const editingId = searchParams.get('id');
+
+    // Onboarding tour state. Runs automatically the first time a
+    // logged-in user lands on the create-trip wizard (no `?id=`), and
+    // is re-runnable from the "Take the tour" button in the wizard
+    // header. The localStorage flag is set once the tour closes —
+    // skip, finish, or close all count as "seen" so we don't nag a
+    // user who already dismissed it. The "Take the tour" button
+    // re-opens the tour for the CURRENT wizard step, so a user on the
+    // People or Itinerary screen gets the right tooltips.
+    const [tourRun, setTourRun] = useState(false);
+    const [tourWizardStep, setTourWizardStep] = useState<TripTourStep>(0);
+    useEffect(() => {
+        if (!user) return;
+        if (editingId) return;
+        if (typeof window === 'undefined') return;
+        if (window.localStorage.getItem(TRIP_TOUR_STORAGE_KEY) === '1') return;
+        const handle = window.setTimeout(() => setTourRun(true), 400);
+        return () => window.clearTimeout(handle);
+    }, [user, editingId]);
+
+    const handleTourClose = () => {
+        setTourRun(false);
+        if (typeof window !== 'undefined') {
+            window.localStorage.setItem(TRIP_TOUR_STORAGE_KEY, '1');
+        }
+    };
+
+    const handleTourStart = () => setTourRun(true);
+
+    // Mirror StepperComp's internal activeStep into local state so we
+    // can pass it to TripTour. The callback fires on every step
+    // change. Clamped to 0/1/2 because TripTour only knows about the
+    // three create-flow steps (the trailing "Finish" indicator and
+    // the post-save "TripComplete" screen don't get their own tour).
+    const handleActiveStepChange = (step: number) => {
+        const clamped = Math.max(0, Math.min(2, step)) as TripTourStep;
+        setTourWizardStep(clamped);
+    };
 
     // When the URL carries ?id=<uuid> we're editing an existing trip. Hydrate
     // TripContext from the API once per id change so refresh-on-/single?id=X
@@ -283,10 +326,35 @@ const TripSteps = ({
             title={isEditing ? '' : title}
         >
             <Grid container className={containerClassName}>
+                {!isEditing && (
+                    <Grid item lg={12} md={12} xs={12}>
+                        <div className="trip-tour-launcher">
+                            <button
+                                type="button"
+                                className="trip-tour-launcher-btn"
+                                onClick={handleTourStart}
+                                aria-label="Show me how to plan a trip"
+                                title="Show me how to plan a trip"
+                            >
+                                <HelpOutlineRoundedIcon fontSize="small" />
+                                <span>Take the tour</span>
+                            </button>
+                        </div>
+                    </Grid>
+                )}
                 <Grid item lg={12} md={12} xs={12}>
-                    <StepperComp data={tripInfo} steps={steps} />
+                    <StepperComp
+                        data={tripInfo}
+                        steps={steps}
+                        onActiveStepChange={handleActiveStepChange}
+                    />
                 </Grid>
             </Grid>
+            <TripTour
+                run={tourRun}
+                wizardStep={tourWizardStep}
+                onClose={handleTourClose}
+            />
         </Layout>
     );
 };

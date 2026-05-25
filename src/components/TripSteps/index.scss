@@ -30,3 +30,41 @@
   text-align: center;
   max-width: 540px;
 }
+
+// "Take the tour" launcher — small pill in the top-right of the
+// create-trip wizard. Auto-launches the tour for first-time users
+// and is the re-run hook for everyone else. Hidden entirely in
+// edit mode (the existing trip has its own structure; the tour is
+// scoped to first-trip planning).
+.trip-tour-launcher {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 8px;
+}
+
+.trip-tour-launcher-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(60, 181, 75, 0.35);
+  background: rgba(60, 181, 75, 0.06);
+  color: theme('colors.primaryGreen');
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: theme('colors.primaryGreen');
+    border-color: theme('colors.primaryGreen');
+    color: #ffffff;
+  }
+
+  svg {
+    font-size: 1rem !important;
+  }
+}

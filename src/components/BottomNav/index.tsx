@@ -115,9 +115,47 @@ const BottomNav = () => {
         };
     }, [searchOpen]);
 
-    // Bottom nav is an authenticated-user surface. Signed-out users
-    // keep using the header's Sign in / Sign up flow.
-    if (!user) return null;
+    // Signed-out users see a stripped-down version of the bottom nav
+    // (Home + Sign in CTA). Returning `null` here used to strand mobile
+    // users after logout — the bell would unmount with no replacement,
+    // leaving the user with no way to navigate back to a logged-in
+    // state without scrolling up to the header CTAs.
+    //
+    // The Sign in link points at `/signup` — there is no standalone
+    // `/login` route; the signup page is the auth funnel and carries
+    // an "Already have an account? Sign in" footer that opens the
+    // login modal for returning users.
+    if (!user) {
+        const homeActive = location.pathname === '/';
+        const signupActive = location.pathname.startsWith('/signup');
+        return (
+            <nav
+                className="bottom-nav bottom-nav--guest"
+                aria-label="Primary navigation"
+            >
+                <Link
+                    to="/"
+                    className={classNames('bottom-nav-item', {
+                        'is-active': homeActive,
+                    })}
+                    aria-label="Home"
+                >
+                    <HomeRoundedIcon className="bottom-nav-icon" />
+                    <span className="bottom-nav-label">Home</span>
+                </Link>
+                <Link
+                    to="/signup"
+                    className={classNames('bottom-nav-item', {
+                        'is-active': signupActive,
+                    })}
+                    aria-label="Sign in or create an account"
+                >
+                    <PersonOutlineRoundedIcon className="bottom-nav-icon" />
+                    <span className="bottom-nav-label">Sign in</span>
+                </Link>
+            </nav>
+        );
+    }
 
     const showUpgradeLink = !isAdmin && !user.isPaidMember;
     const showSubscriptionLink = !isAdmin && user.isPaidMember;

@@ -25,6 +25,17 @@ export interface AiTripBuilderInput {
      *  to the country's catalog image (and Unsplash as a final
      *  fallback). */
     heroImageUrl?: string;
+    /** Number of travelers. Defaults to 2 in the UI. The backend
+     *  uses this to size lodging hints, split the budget into
+     *  per-person ballpark figures, and tune the activity mix
+     *  (e.g. "family-friendly" copy for parties of 4+, "couples
+     *  retreat" framing for parties of 2). */
+    partySize?: number;
+    /** Optional traveler-style tags pulled from the user's saved
+     *  preferences (Adventurer / Foodie / Luxury / etc). Sent
+     *  alongside the per-trip `interests` so the AI personalizes
+     *  even when the user leaves the interests field blank. */
+    travelerStyles?: string[];
 }
 
 export interface AiTripBuilderResult {
@@ -110,6 +121,8 @@ export const generateTripOptions = async (
             interests: input.interests,
             duration_days: input.durationDays ?? null,
             country_hint: input.countryHint ?? null,
+            party_size: input.partySize ?? null,
+            traveler_styles: input.travelerStyles ?? null,
         }),
     });
     if (resp.status === 402) {
@@ -159,6 +172,8 @@ export const planTripWithAi = async (
             duration_days: input.durationDays ?? null,
             country_hint: input.countryHint ?? null,
             hero_image_url: input.heroImageUrl ?? null,
+            party_size: input.partySize ?? null,
+            traveler_styles: input.travelerStyles ?? null,
         }),
     });
     if (resp.status === 402) {

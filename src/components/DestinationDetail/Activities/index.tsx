@@ -1,8 +1,14 @@
 import './index.scss';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import { reformatDate } from 'utils';
+import { useNow } from 'hooks/useNow';
+import {
+    getActivityProgress,
+    getActivityTiming,
+    type ActivityTimingState,
+} from 'utils/activityTiming';
 import { Grid, IconButton } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
@@ -131,6 +137,11 @@ const Activities = ({
     // otherwise have to thread through.
     const [searchParams] = useSearchParams();
     const tripId = searchParams.get('id');
+
+    // Live "now" for activity timing — re-renders every 30s so the
+    // past/current/upcoming bin flips as time passes. Cheap: just a
+    // setInterval; no external date lib.
+    const now = useNow(30_000);
     // Day-level drop target — accepts drops onto empty space when there
     // are no sortable cards to land on. dnd-kit needs both the sortable
     // items AND a droppable container to support the empty-day case.
@@ -196,6 +207,44 @@ const Activities = ({
         };
     }, [tripStatuses]);
 
+    // Auto-complete past-due activities. When the trip is in Confirmed
+    // state and an activity's end time slips into the past, flip its
+    // status to Completed exactly the way the tick button does. We
+    // gate on:
+    //   - trip is Confirmed (Planning trips don't auto-complete —
+    //     they aren't "live" yet)
+    //   - completedStatus resolved to a real UUID (cold-cache guard
+    //     mirroring the click-handler in handleChangePlace)
+    //   - activity isn't already Completed
+    //   - timing state is `past`
+    // `autoMarkedRef` tracks ids we've already dispatched for in this
+    // session so a re-render with the same data doesn't fire a flood
+    // of save mutations.
+    const autoMarkedRef = useRef(new Set<number>());
+    useEffect(() => {
+        if (!isTripConfirmed) return;
+        if (typeof completedStatus.id !== 'string') return;
+        if (!date) return;
+        for (const activity of activities ?? []) {
+            if (autoMarkedRef.current.has(activity.id)) continue;
+            if (isCompletedStatus(activity.status)) continue;
+            const timing = getActivityTiming(activity, date, now);
+            if (timing !== 'past') continue;
+            autoMarkedRef.current.add(activity.id);
+            onChangePlace('edit', {
+                index: 0,
+                value: { id: activity.id, status: completedStatus },
+            });
+        }
+    }, [
+        activities,
+        completedStatus,
+        date,
+        isTripConfirmed,
+        now,
+        onChangePlace,
+    ]);
+
     const isEmpty = !activities || activities.length === 0;
     return (
         <div
@@ -218,6 +267,16 @@ const Activities = ({
                     const activityKind = activity.kind ?? ACTIVITY_KIND.PLACE;
                     const isNote = activityKind === ACTIVITY_KIND.NOTE;
                     const isFlight = activityKind === ACTIVITY_KIND.FLIGHT;
+                    // Live timing bin used for the past/current/upcoming
+                    // CSS class on the card. Notes (no time) return null
+                    // and skip the live-state styling. The full now/date
+                    // pair recomputes every 30s via useNow above.
+                    const activityTiming: ActivityTimingState = isNote
+                        ? null
+                        : getActivityTiming(activity, date, now);
+                    const activityProgress = isNote
+                        ? null
+                        : getActivityProgress(activity, date, now);
                     const isTransit =
                         activityKind === ACTIVITY_KIND.TRAIN ||
                         activityKind === ACTIVITY_KIND.BUS;
@@ -294,11 +353,35 @@ const Activities = ({
                                 'activity-content-trip border-trip',
                                 {
                                     'is-completed': isActivityCompleted,
+                                    'is-view-mode': isViewMode,
                                     [`kind-${activityKind}`]: true,
+                                    [`is-time-${activityTiming}`]:
+                                        activityTiming !== null,
                                 }
                             )}
                             aria-disabled={isActivityCompleted || undefined}
                         >
+                            {/* Live "happening now" stripe — grows along
+                                the top edge of the card from 0 → 100% as
+                                the activity's start→end window elapses.
+                                Only renders for current activities; past
+                                cards show the static dimmed treatment
+                                and upcoming cards are unmarked. */}
+                            {activityTiming === 'current' && activityProgress !== null && (
+                                <div
+                                    className="activity-now-stripe"
+                                    role="progressbar"
+                                    aria-label="Currently happening"
+                                    aria-valuenow={Math.round(activityProgress * 100)}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                >
+                                    <div
+                                        className="activity-now-stripe-fill"
+                                        style={{ width: `${activityProgress * 100}%` }}
+                                    />
+                                </div>
+                            )}
                             {isTripConfirmed ? (
                                 // Trip is past planning — replace the X
                                 // delete with a tick toggle. Outlined tick
@@ -594,7 +677,12 @@ const Activities = ({
             </SortableContext>
             <Grid item lg={12} className="content-trip">
                 <Grid container>
-                    <Grid item lg={12} className="add-place-item">
+                    <Grid
+                        item
+                        lg={12}
+                        className="add-place-item"
+                        data-tour="trip-add-activity"
+                    >
                         <AddPlaceBtn
                             isViewMode={isViewMode}
                             tripTypeId={tripTypeId}

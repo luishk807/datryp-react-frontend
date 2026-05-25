@@ -99,10 +99,17 @@ const AiTripBuilderPage = () => {
 
     const [stepIndex, setStepIndex] = useState(0);
     const [budget, setBudget] = useState<string>('1500');
-    const [interests, setInterests] = useState<string[]>([]);
+    // Pre-seed the interests field with whatever the user picked during
+    // onboarding. Empty means "user hasn't picked any" — we leave the
+    // chip strip empty so they can pick fresh for this specific trip.
+    // The chip strip is editable from here either way.
+    const [interests, setInterests] = useState<string[]>(
+        () => user?.interests ?? []
+    );
     const [interestDraft, setInterestDraft] = useState('');
     const [countryHint, setCountryHint] = useState('');
     const [duration, setDuration] = useState<string>('');
+    const [partySize, setPartySize] = useState<string>('2');
     const [error, setError] = useState<string | null>(null);
     // Options returned by the AI. Empty array = still in the wizard
     // phase; populated = options phase.
@@ -242,11 +249,20 @@ const AiTripBuilderPage = () => {
         const durationNum = duration.trim()
             ? Math.max(1, Math.min(21, Number(duration)))
             : undefined;
+        const partySizeNum = Math.max(1, Math.min(20, Number(partySize) || 2));
         optionsMutation.mutate({
             budgetUsd: Math.round(budgetNum),
             interests,
             durationDays: durationNum,
             countryHint: countryHint.trim() || undefined,
+            partySize: partySizeNum,
+            // Fold in the user's saved traveler styles so the AI
+            // personalizes even when the per-trip interests list is
+            // empty. The backend treats these as low-priority bias
+            // signals alongside the explicit `interests` list.
+            travelerStyles: user?.travelerStyles?.length
+                ? user.travelerStyles
+                : undefined,
         });
     };
 
@@ -257,10 +273,15 @@ const AiTripBuilderPage = () => {
         const durationNum = duration.trim()
             ? Math.max(1, Math.min(21, Number(duration)))
             : undefined;
+        const partySizeNum = Math.max(1, Math.min(20, Number(partySize) || 2));
         buildMutation.mutate({
             budgetUsd: Math.round(budgetNum),
             interests,
             durationDays: durationNum,
+            partySize: partySizeNum,
+            travelerStyles: user?.travelerStyles?.length
+                ? user.travelerStyles
+                : undefined,
             // Pin the destination to the chosen option's country name.
             // The existing /me/plan-trip-ai endpoint already honors
             // `country_hint` in its prompt.
@@ -545,6 +566,75 @@ const AiTripBuilderPage = () => {
                                                 AI picks
                                             </span>
                                         </button>
+                                    </div>
+
+                                    {/* People count — sits on the same
+                                        step because length + party size
+                                        are both quick numerics and
+                                        users naturally answer them
+                                        together. */}
+                                    <h2
+                                        className="ai-trip-builder-page-step-title"
+                                        style={{ marginTop: 28 }}
+                                    >
+                                        How many people are going?
+                                    </h2>
+                                    <p className="ai-trip-builder-page-step-hint">
+                                        We use this to size lodging
+                                        suggestions and split the budget
+                                        per-person.
+                                    </p>
+                                    <div className="ai-trip-builder-page-budget-row">
+                                        <div className="ai-trip-builder-page-budget-input">
+                                            <input
+                                                type="number"
+                                                className="ai-trip-builder-page-budget-field"
+                                                value={partySize}
+                                                min={1}
+                                                max={20}
+                                                placeholder="2"
+                                                onChange={(e) => {
+                                                    setPartySize(e.target.value);
+                                                    setError(null);
+                                                }}
+                                            />
+                                            <span className="ai-trip-builder-page-budget-symbol is-suffix">
+                                                {Number(partySize) === 1
+                                                    ? 'person'
+                                                    : 'people'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="ai-trip-builder-page-presets">
+                                        {[1, 2, 4, 6].map((n) => (
+                                            <button
+                                                key={`party-${n}`}
+                                                type="button"
+                                                className={
+                                                    'ai-trip-builder-page-preset' +
+                                                    (Number(partySize) === n
+                                                        ? ' is-selected'
+                                                        : '')
+                                                }
+                                                onClick={() => {
+                                                    setPartySize(String(n));
+                                                    setError(null);
+                                                }}
+                                            >
+                                                <span className="ai-trip-builder-page-preset-amount">
+                                                    {n}
+                                                </span>
+                                                <span className="ai-trip-builder-page-preset-note">
+                                                    {n === 1
+                                                        ? 'solo'
+                                                        : n === 2
+                                                            ? 'couple'
+                                                            : n === 4
+                                                                ? 'family'
+                                                                : 'group'}
+                                                </span>
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             )}

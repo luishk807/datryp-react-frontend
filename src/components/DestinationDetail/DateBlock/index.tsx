@@ -79,7 +79,14 @@ const DateBlock = ({
     return (
         <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className="date-block">
             <Grid container>
-                <Grid item lg={12} md={12} xs={12} className="header">
+                <Grid
+                    item
+                    lg={12}
+                    md={12}
+                    xs={12}
+                    className="header"
+                    data-tour={index === 0 ? 'trip-day-header' : undefined}
+                >
                     <Grid container>
                         <Grid item className="icon">
                             <span className="dot"></span>

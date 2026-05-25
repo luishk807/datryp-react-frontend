@@ -13,11 +13,13 @@
  */
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import classNames from 'classnames';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { IconButton } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -38,6 +40,7 @@ import {
 } from 'api/hooks/useBucketList';
 import { useUser } from 'context/UserContext';
 import { formatDate } from 'utils/date';
+import { getUserFirstName } from 'utils/userName';
 import { TRIP_BASIC } from 'constants';
 import './index.scss';
 
@@ -128,11 +131,20 @@ const BucketList = () => {
         }
     };
 
-    const handleCreateTrip = async (id: string, text: string) => {
+    // Two-step inline build flow: clicking "AI-build trip" on a card
+    // expands that card to reveal a small wizard — step 1 asks party
+    // size, step 2 asks trip length (or "let us decide"). The expand
+    // happens INSIDE the card rather than opening a modal dialog
+    // because the user said the popup felt heavy for a single
+    // question per screen. Inline keeps the bucket goal visible while
+    // they answer.
+    const [wizardItemId, setWizardItemId] = useState<string | null>(null);
+    const [wizardStep, setWizardStep] = useState<1 | 2>(1);
+    const [wizardParty, setWizardParty] = useState<string>('2');
+    const [wizardDuration, setWizardDuration] = useState<string>('');
+
+    const openBuildWizard = (id: string) => {
         setError(null);
-        // Short-circuit for free users — no need to hit the backend just
-        // to receive a 402. Opens the same paywall the backend would
-        // surface, with the "Pro feature" copy.
         if (!isPro) {
             openPaywall({
                 kind: 'bucket_list_generate',
@@ -141,9 +153,42 @@ const BucketList = () => {
             });
             return;
         }
+        setWizardParty('2');
+        setWizardDuration('');
+        setWizardStep(1);
+        setWizardItemId(id);
+    };
+
+    const closeBuildWizard = () => {
+        setWizardItemId(null);
+        setWizardStep(1);
+    };
+
+    const handleCreateTrip = async (id: string, text: string) => {
+        setError(null);
+        closeBuildWizard();
+        const partySizeNum = Math.max(
+            1,
+            Math.min(20, Number(wizardParty) || 2)
+        );
+        const durationNum = wizardDuration.trim()
+            ? Math.max(1, Math.min(21, Number(wizardDuration)))
+            : undefined;
         setGeneratingText(text);
         try {
-            const result = await generate.mutateAsync(id);
+            const result = await generate.mutateAsync({
+                id,
+                input: {
+                    partySize: partySizeNum,
+                    durationDays: durationNum,
+                    // Fold in the user's saved traveler styles so the
+                    // AI personalizes the trip mix even when the bucket
+                    // entry itself only carries a short headline.
+                    travelerStyles: user?.travelerStyles?.length
+                        ? user.travelerStyles
+                        : undefined,
+                },
+            });
             // Route to the editor for the trip type the AI picked. Edit
             // mode renders the just-saved trip with all fields filled in
             // so the user can review, tweak, and confirm.
@@ -178,7 +223,9 @@ const BucketList = () => {
         <Layout title="Bucket list">
             <div className="bucket-page">
                 <header className="bucket-page-header">
-                    <h1 className="bucket-page-title">Your travel goals</h1>
+                    <h1 className="bucket-page-title">
+                        {getUserFirstName(user)}&rsquo;s travel goals
+                    </h1>
                     <p className="bucket-page-subtitle">
                         Your bucket list is the wishlist of things you want to
                         experience while traveling — a concert, a stadium, a
@@ -355,70 +402,330 @@ const BucketList = () => {
 
                 {items.length > 0 && (
                     <ul className="bucket-list">
-                        {items.map((item) => (
-                            <li key={item.id} className="bucket-card">
-                                <div className="bucket-card-main">
-                                    <span className="bucket-card-text">
-                                        {item.text}
-                                    </span>
-                                    <span className="bucket-card-meta">
-                                        Added{' '}
-                                        {formatDate(item.createdAt, 'MMM D, YYYY')}
-                                    </span>
-                                </div>
-                                <div className="bucket-card-actions">
-                                    <ButtonCustom
-                                        type="none"
-                                        capitalizeType="none"
-                                        className={
-                                            isPro
-                                                ? 'bucket-card-cta'
-                                                : 'bucket-card-cta is-pro-locked'
-                                        }
-                                        onClick={() =>
-                                            void handleCreateTrip(
-                                                item.id,
-                                                item.text
-                                            )
-                                        }
-                                        disabled={generate.isPending}
-                                        aria-label={
-                                            isPro
-                                                ? `Create trip from "${item.text}"`
-                                                : `Pro only — upgrade to create a trip from "${item.text}"`
-                                        }
-                                    >
-                                        {isPro ? (
-                                            <AutoAwesomeRoundedIcon
-                                                fontSize="small"
-                                                className="bucket-card-cta-sparkle"
-                                            />
-                                        ) : (
-                                            <LockRoundedIcon fontSize="small" />
-                                        )}
-                                        <span>
-                                            {isPro ? 'AI-build trip' : 'Create trip'}
-                                        </span>
-                                        {!isPro && (
-                                            <span className="bucket-card-pro-tag">
-                                                Pro
+                        {items.map((item) => {
+                            const isWizardOpen = wizardItemId === item.id;
+                            return (
+                                <li
+                                    key={item.id}
+                                    className={classNames('bucket-card', {
+                                        'is-wizard-open': isWizardOpen,
+                                    })}
+                                >
+                                    <div className="bucket-card-row">
+                                        <div className="bucket-card-main">
+                                            <span className="bucket-card-text">
+                                                {item.text}
                                             </span>
-                                        )}
-                                    </ButtonCustom>
-                                    <IconButton
-                                        size="small"
-                                        className="bucket-card-delete"
-                                        aria-label={`Remove "${item.text}"`}
-                                        title="Remove from bucket list"
-                                        onClick={() =>
-                                            void remove.mutateAsync(item.id)
-                                        }
-                                    >
-                                        <DeleteOutlineRoundedIcon fontSize="small" />
-                                    </IconButton>
-                                </div>
-                            </li>
-                        ))}
+                                            <span className="bucket-card-meta">
+                                                Added{' '}
+                                                {formatDate(
+                                                    item.createdAt,
+                                                    'MMM D, YYYY'
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="bucket-card-actions">
+                                            <ButtonCustom
+                                                type="none"
+                                                capitalizeType="none"
+                                                className={
+                                                    isPro
+                                                        ? 'bucket-card-cta'
+                                                        : 'bucket-card-cta is-pro-locked'
+                                                }
+                                                onClick={() =>
+                                                    openBuildWizard(item.id)
+                                                }
+                                                disabled={generate.isPending}
+                                                aria-label={
+                                                    isPro
+                                                        ? `Create trip from "${item.text}"`
+                                                        : `Pro only — upgrade to create a trip from "${item.text}"`
+                                                }
+                                            >
+                                                {isPro ? (
+                                                    <AutoAwesomeRoundedIcon
+                                                        fontSize="small"
+                                                        className="bucket-card-cta-sparkle"
+                                                    />
+                                                ) : (
+                                                    <LockRoundedIcon fontSize="small" />
+                                                )}
+                                                <span>
+                                                    {isPro
+                                                        ? 'AI-build trip'
+                                                        : 'Create trip'}
+                                                </span>
+                                                {!isPro && (
+                                                    <span className="bucket-card-pro-tag">
+                                                        Pro
+                                                    </span>
+                                                )}
+                                            </ButtonCustom>
+                                            <IconButton
+                                                size="small"
+                                                className="bucket-card-delete"
+                                                aria-label={`Remove "${item.text}"`}
+                                                title="Remove from bucket list"
+                                                onClick={() =>
+                                                    void remove.mutateAsync(
+                                                        item.id
+                                                    )
+                                                }
+                                            >
+                                                <DeleteOutlineRoundedIcon fontSize="small" />
+                                            </IconButton>
+                                        </div>
+                                    </div>
+
+                                    {isWizardOpen && (
+                                        <div className="bucket-wizard">
+                                            {/* Step header — dots + close.
+                                                Step 1 dot fills when on
+                                                step 1; both fill on step 2
+                                                so the user reads
+                                                progression. */}
+                                            <div className="bucket-wizard-head">
+                                                <div className="bucket-wizard-progress">
+                                                    <span
+                                                        className={classNames(
+                                                            'bucket-wizard-dot',
+                                                            { 'is-active': true }
+                                                        )}
+                                                    />
+                                                    <span
+                                                        className={classNames(
+                                                            'bucket-wizard-dot',
+                                                            {
+                                                                'is-active':
+                                                                    wizardStep ===
+                                                                    2,
+                                                            }
+                                                        )}
+                                                    />
+                                                </div>
+                                                <span className="bucket-wizard-step-label">
+                                                    Step {wizardStep} of 2
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="bucket-wizard-cancel"
+                                                    onClick={closeBuildWizard}
+                                                    aria-label="Cancel"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+
+                                            {wizardStep === 1 && (
+                                                <>
+                                                    <h4 className="bucket-wizard-question">
+                                                        How many people are going?
+                                                    </h4>
+                                                    <p className="bucket-wizard-hint">
+                                                        Sizes lodging
+                                                        suggestions and splits
+                                                        the budget per person.
+                                                    </p>
+                                                    <div className="bucket-wizard-chips">
+                                                        {[
+                                                            {
+                                                                value: 1,
+                                                                label: '1',
+                                                                note: 'Solo',
+                                                            },
+                                                            {
+                                                                value: 2,
+                                                                label: '2',
+                                                                note: 'Couple',
+                                                            },
+                                                            {
+                                                                value: 4,
+                                                                label: '4',
+                                                                note: 'Family',
+                                                            },
+                                                            {
+                                                                value: 6,
+                                                                label: '6',
+                                                                note: 'Group',
+                                                            },
+                                                        ].map((opt) => (
+                                                            <button
+                                                                key={`party-${opt.value}`}
+                                                                type="button"
+                                                                className={classNames(
+                                                                    'bucket-wizard-chip',
+                                                                    {
+                                                                        'is-selected':
+                                                                            Number(
+                                                                                wizardParty
+                                                                            ) ===
+                                                                            opt.value,
+                                                                    }
+                                                                )}
+                                                                onClick={() =>
+                                                                    setWizardParty(
+                                                                        String(
+                                                                            opt.value
+                                                                        )
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span className="bucket-wizard-chip-amount">
+                                                                    {opt.label}
+                                                                </span>
+                                                                <span className="bucket-wizard-chip-note">
+                                                                    {opt.note}
+                                                                </span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="bucket-wizard-custom">
+                                                        <label
+                                                            htmlFor={`party-custom-${item.id}`}
+                                                            className="bucket-wizard-custom-label"
+                                                        >
+                                                            Or enter a number:
+                                                        </label>
+                                                        <input
+                                                            id={`party-custom-${item.id}`}
+                                                            type="number"
+                                                            min={1}
+                                                            max={20}
+                                                            value={wizardParty}
+                                                            onChange={(e) =>
+                                                                setWizardParty(
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            className="bucket-wizard-custom-input"
+                                                        />
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {wizardStep === 2 && (
+                                                <>
+                                                    <h4 className="bucket-wizard-question">
+                                                        How long should the trip be?
+                                                    </h4>
+                                                    <p className="bucket-wizard-hint">
+                                                        Pick a length, or let the
+                                                        AI decide based on the
+                                                        budget + activity mix.
+                                                    </p>
+                                                    <div className="bucket-wizard-chips">
+                                                        {[3, 5, 7, 10, 14].map(
+                                                            (d) => (
+                                                                <button
+                                                                    key={`dur-${d}`}
+                                                                    type="button"
+                                                                    className={classNames(
+                                                                        'bucket-wizard-chip',
+                                                                        {
+                                                                            'is-selected':
+                                                                                Number(
+                                                                                    wizardDuration
+                                                                                ) ===
+                                                                                d,
+                                                                        }
+                                                                    )}
+                                                                    onClick={() =>
+                                                                        setWizardDuration(
+                                                                            String(d)
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <span className="bucket-wizard-chip-amount">
+                                                                        {d}
+                                                                    </span>
+                                                                    <span className="bucket-wizard-chip-note">
+                                                                        {d === 1
+                                                                            ? 'day'
+                                                                            : 'days'}
+                                                                    </span>
+                                                                </button>
+                                                            )
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            className={classNames(
+                                                                'bucket-wizard-chip',
+                                                                {
+                                                                    'is-selected':
+                                                                        !wizardDuration,
+                                                                }
+                                                            )}
+                                                            onClick={() =>
+                                                                setWizardDuration(
+                                                                    ''
+                                                                )
+                                                            }
+                                                        >
+                                                            <span className="bucket-wizard-chip-amount">
+                                                                Auto
+                                                            </span>
+                                                            <span className="bucket-wizard-chip-note">
+                                                                AI picks
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            <div className="bucket-wizard-actions">
+                                                {wizardStep === 2 && (
+                                                    <button
+                                                        type="button"
+                                                        className="bucket-wizard-back"
+                                                        onClick={() =>
+                                                            setWizardStep(1)
+                                                        }
+                                                    >
+                                                        <ArrowBackRoundedIcon fontSize="small" />
+                                                        <span>Back</span>
+                                                    </button>
+                                                )}
+                                                {wizardStep === 1 ? (
+                                                    <ButtonCustom
+                                                        type="standard"
+                                                        capitalizeType="none"
+                                                        label="Next"
+                                                        onClick={() =>
+                                                            setWizardStep(2)
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <ButtonCustom
+                                                        type="standard"
+                                                        capitalizeType="none"
+                                                        label="Build trip"
+                                                        onClick={() =>
+                                                            void handleCreateTrip(
+                                                                item.id,
+                                                                item.text
+                                                            )
+                                                        }
+                                                    />
+                                                )}
+                                            </div>
+                                            {(user?.travelerStyles?.length ??
+                                                0) > 0 && (
+                                                <p className="bucket-wizard-styles-hint">
+                                                    Your saved travel style (
+                                                    {(
+                                                        user?.travelerStyles ??
+                                                        []
+                                                    ).join(', ')}
+                                                    ) will also be used to
+                                                    personalize the trip.
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
                     </ul>
                 )}
             </div>

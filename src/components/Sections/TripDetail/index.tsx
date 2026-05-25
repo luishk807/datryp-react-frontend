@@ -51,6 +51,11 @@ import {
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
 import { isSameDay } from "utils";
+import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
+import TripDetailTour, {
+  TRIP_DETAIL_TOUR_STORAGE_KEY,
+} from "components/TripDetailTour";
+import { useActivityStartReminders } from "hooks/useActivityStartReminders";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
 import { exportTripToPdf, printTripPdf } from "utils/exportTripPdf";
@@ -81,6 +86,33 @@ export const TripDetail = () => {
   const idParam = searchParams.get("id");
 
   const { data: apiItineraries = [], isLoading } = useMyItineraries();
+
+  // Trip-detail onboarding tour. Auto-runs the first time a logged-in
+  // user lands here; re-runnable any time from the "Take the tour"
+  // pill in the header. Storage flag is set on close so the auto-
+  // trigger only fires once.
+  const [detailTourRun, setDetailTourRun] = useState(false);
+  useEffect(() => {
+    if (!currentUser) return;
+    if (!idParam) return;
+    if (typeof window === "undefined") return;
+    if (
+      window.localStorage.getItem(TRIP_DETAIL_TOUR_STORAGE_KEY) === "1"
+    ) return;
+    // Wait for the trip to actually render — Joyride needs tooltip
+    // targets in the DOM before it can position anything.
+    const handle = window.setTimeout(() => setDetailTourRun(true), 500);
+    return () => window.clearTimeout(handle);
+  }, [currentUser, idParam]);
+
+  const handleDetailTourClose = () => {
+    setDetailTourRun(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(TRIP_DETAIL_TOUR_STORAGE_KEY, "1");
+    }
+  };
+
+  const handleDetailTourStart = () => setDetailTourRun(true);
 
   const apiTrip = useMemo(() => {
     if (!idParam) return undefined;
@@ -458,6 +490,40 @@ export const TripDetail = () => {
     void exportTripToPdf(tripData);
   };
 
+  // ---- Activity-start reminder hooks --------------------------------
+  // MUST be declared BEFORE the early returns below (the loading /
+  // not-found branches) — React's rules-of-hooks treats every render
+  // path as needing the same hook order, so a conditional bail-out
+  // before these would crash with "Rendered more hooks than during
+  // the previous render." Body handles the null tripData case
+  // gracefully via the `?? []` fallback.
+  const remindableActivities = useMemo(() => {
+    const out: { activity: Activity; dayDate: string }[] = [];
+    const destsForReminders = tripData?.destinations ?? [];
+    for (const dest of destsForReminders) {
+      for (const day of dest.itinerary ?? []) {
+        if (!day.date) continue;
+        for (const activity of day.activities ?? []) {
+          out.push({ activity, dayDate: day.date });
+        }
+      }
+    }
+    return out;
+  }, [tripData]);
+
+  const [reminderToast, setReminderToast] = useState<string | null>(null);
+  useActivityStartReminders(remindableActivities, {
+    leadMinutes: 15,
+    onReminder: (activity, minutesUntil) => {
+      const label = activity.name?.trim() || 'Your next activity';
+      setReminderToast(
+        minutesUntil === 1
+          ? `${label} starts in 1 minute`
+          : `${label} starts in ${minutesUntil} minutes`
+      );
+    },
+  });
+
   if (isLoading) {
     return (
       <Layout>
@@ -513,6 +579,22 @@ export const TripDetail = () => {
           {saveError}
         </Alert>
       </Snackbar>
+      <Snackbar
+        open={!!reminderToast}
+        autoHideDuration={8000}
+        onClose={() => setReminderToast(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ zIndex: 1500 }}
+      >
+        <Alert
+          severity="info"
+          variant="filled"
+          onClose={() => setReminderToast(null)}
+          sx={{ maxWidth: 640, width: '100%' }}
+        >
+          {reminderToast}
+        </Alert>
+      </Snackbar>
       <Grid container>
         {/* Standalone trip header — title + action buttons. Lives
             OUTSIDE BasicTripInfo so Hide detail can unmount the basic-
@@ -556,6 +638,16 @@ export const TripDetail = () => {
           >
             {detailsCollapsed ? "Show detail" : "Hide detail"}
           </button>
+          <button
+            type="button"
+            className="trip-detail-tour-launcher-btn"
+            onClick={handleDetailTourStart}
+            aria-label="Show me around the trip view"
+            title="Show me around the trip view"
+          >
+            <HelpOutlineRoundedIcon fontSize="small" />
+            <span>Take the tour</span>
+          </button>
         </Grid>
         {!detailsCollapsed && (
           <>
@@ -592,6 +684,10 @@ export const TripDetail = () => {
           />
         </Grid>
       </Grid>
+      <TripDetailTour
+        run={detailTourRun}
+        onClose={handleDetailTourClose}
+      />
     </Layout>
   );
 };
@@ -746,14 +842,24 @@ const TripDetailHeader = ({
 
   const tripName = tripData.name;
 
+  // When the trip is still in Planning, surface "Confirm trip" as the
+  // promote button right next to the notification bell in the title
+  // row — that's where the static "Planning" pill used to sit. The
+  // pill itself is redundant in this state because the promote button
+  // already communicates the lifecycle stage AND offers the action.
+  // For Confirmed / Completed / Cancelled we keep the read-only pill
+  // so users can see at a glance where the trip is.
+  const showInlinePromote = canPromoteStatus && statusName === TRIP_STATUS.PLANNING;
+  const showInlineStatusPill = statusName !== TRIP_STATUS.PLANNING;
+
   return (
     <div className="trip-detail-header">
       <div className="trip-detail-header-title">
         <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
         {/* Bell sits BETWEEN title and status — the broadcast
             affordance reads as paired with the trip name first,
-            then the status pill anchors the right side of the
-            row. Matches the edit-trip header layout exactly. */}
+            then the status pill / promote button anchors the right
+            side of the row. */}
         {showNotifyToggle && (
           <NotifyParticipantsCheckbox
             checked={notifyParticipants}
@@ -761,20 +867,32 @@ const TripDetailHeader = ({
             disabled={isSaving || isDeleting}
           />
         )}
-        {/* Status pill — visible for every state so the user always knows
-            where the trip is in its lifecycle. */}
-        <span
-          className={`trip-detail-status trip-detail-status-${statusName.toLowerCase()}`}
-          aria-label={`Trip status: ${statusName}`}
-        >
-          {statusName === TRIP_STATUS.CONFIRMED && (
-            <CheckCircleOutlineRoundedIcon className="trip-detail-status-icon" />
-          )}
-          {statusName === TRIP_STATUS.COMPLETED && (
-            <CheckCircleRoundedIcon className="trip-detail-status-icon" />
-          )}
-          {statusName}
-        </span>
+        {/* Planning state: replace the static "Planning" pill with the
+            actionable Confirm Trip control. Reads as "your trip is in
+            this state AND here's how to advance it" in one element. */}
+        {showInlinePromote && (
+          <TripStatusBadge
+            data={tripData}
+            onStatusChange={onStatusChange}
+            isSaving={isSaving}
+          />
+        )}
+        {/* Post-Planning lifecycle: read-only status indicator so the
+            user always knows where the trip stands. */}
+        {showInlineStatusPill && (
+          <span
+            className={`trip-detail-status trip-detail-status-${statusName.toLowerCase()}`}
+            aria-label={`Trip status: ${statusName}`}
+          >
+            {statusName === TRIP_STATUS.CONFIRMED && (
+              <CheckCircleOutlineRoundedIcon className="trip-detail-status-icon" />
+            )}
+            {statusName === TRIP_STATUS.COMPLETED && (
+              <CheckCircleRoundedIcon className="trip-detail-status-icon" />
+            )}
+            {statusName}
+          </span>
+        )}
       </div>
       <div className="trip-detail-header-actions">
         {canSaveTrip && (
@@ -787,7 +905,7 @@ const TripDetailHeader = ({
             disabled={isSaving}
           />
         )}
-        {canPromoteStatus && (
+        {canPromoteStatus && !showInlinePromote && (
           <TripStatusBadge
             data={tripData}
             onStatusChange={onStatusChange}

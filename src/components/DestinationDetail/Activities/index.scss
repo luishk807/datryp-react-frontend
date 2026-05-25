@@ -99,6 +99,76 @@
   align-items: stretch;
 }
 
+// On mobile, hide activity images in read-only view (`/trip-detail`)
+// so users can scan more activities per screen. Edit mode keeps the
+// image visible because the user is reviewing/changing content and
+// the visual context matters there. The image column collapses to
+// 0px so the title row reclaims the full row width.
+@media (max-width: 720px) {
+  .activity-content-trip.is-view-mode .content-image {
+    display: none !important;
+  }
+}
+
+// ----- Live timing states ---------------------------------------------
+// Visual state for past / current / upcoming activities. The bin is
+// computed once per render of Activities (re-runs every 30s via the
+// useNow hook) and applied as `is-time-past` / `is-time-current` /
+// `is-time-upcoming` on the activity card.
+
+// Past: visually de-emphasized so it falls out of the user's primary
+// attention. We keep the content readable (not strikethrough) but
+// dim it so the timeline reads as "this is history."
+.activity-content-trip.is-time-past:not(.is-completed) {
+  opacity: 0.62;
+}
+
+// Current: card stays full-strength + the green stripe at the top
+// edge does the work of signaling "this is happening now."
+.activity-content-trip.is-time-current {
+  border-color: theme('colors.primaryGreen');
+  box-shadow: 0 6px 20px rgba(60, 181, 75, 0.18);
+}
+
+// The animated "now" stripe sits flush on the card's top edge. The
+// fill div is widened by the inline style above (`activityProgress
+// * 100%`) so it grows in lock-step with the elapsed time.
+.activity-now-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(60, 181, 75, 0.18);
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.activity-now-stripe-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    theme('colors.primaryGreen') 0%,
+    #5fd55f 100%
+  );
+  transition: width 0.6s ease;
+  // Soft pulse on the leading edge so the strip looks alive even when
+  // progress is creeping.
+  animation: activity-now-stripe-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes activity-now-stripe-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 .activity-content-trip .content-detail {
   padding: 14px 16px 16px;
   display: flex !important;

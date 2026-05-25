@@ -120,7 +120,10 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
             </section>
 
             {showDestination && (
-                <section className="trip-basics-section">
+                <section
+                    className="trip-basics-section"
+                    data-tour="trip-destination"
+                >
                     <header className="trip-basics-section-head">
                         <span className="trip-basics-section-num">2</span>
                         <h3 className="trip-basics-section-title">
@@ -142,7 +145,10 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                 </section>
             )}
 
-            <section className="trip-basics-section">
+            <section
+                className="trip-basics-section"
+                data-tour="trip-dates"
+            >
                 <header className="trip-basics-section-head">
                     <span className="trip-basics-section-num">
                         {showDestination ? 3 : 2}
@@ -184,7 +190,10 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                 )}
             </section>
 
-            <section className="trip-basics-section">
+            <section
+                className="trip-basics-section"
+                data-tour="trip-budget"
+            >
                 <header className="trip-basics-section-head">
                     <span className="trip-basics-section-num">
                         {showDestination ? 4 : 3}

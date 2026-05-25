@@ -405,7 +405,48 @@
 @media (max-width: 960px) {
   .account-page {
     grid-template-columns: 1fr;
-    gap: 14px;
+    // Tighten vertical gap between cards — the box-shadow that used
+    // to provide breathing room is gone on mobile (see .account-card
+    // override below), so the visual separation is now a single hr
+    // divider with a small gap on either side.
+    gap: 0;
+    // Edge-to-edge on mobile — the page-level 16px gutter eats too
+    // much of a 360px-wide viewport; cards span the full width and
+    // own their own inner padding for the actual text content.
+    padding: 8px 0 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  // Account content stack flushes against the viewport edges. Each
+  // card has internal padding so text doesn't touch the side; the
+  // shared sticky chip strip already extends edge-to-edge via its
+  // own negative margins.
+  .account-content {
+    padding: 0;
+    gap: 0;
+  }
+
+  // Cards on mobile drop the floating-panel chrome (border, shadow,
+  // rounded corners) and become full-bleed sections separated by a
+  // single 1px divider. Reads as a clean stacked-list of sections
+  // instead of a wall of floating cards on a narrow viewport.
+  .account-card {
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 22px 16px;
+    margin: 0;
+  }
+
+  // hr-style divider between adjacent cards. Lives on the card
+  // itself (top border) so a missing-card scenario doesn't leave
+  // an orphan separator. The first card in the stack gets a flat
+  // top via the `:first-of-type` reset to avoid a stray line under
+  // the sticky chip strip.
+  .account-card + .account-card {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   .account-nav {
@@ -553,10 +594,11 @@
 }
 
 @media (max-width: 640px) {
-  .account-card {
-    padding: 20px 18px;
-    border-radius: 16px;
-  }
+  // Inner padding stays — the 960px override gave the card a smaller
+  // gutter than the desktop one; here we just tweak the avatar/header
+  // density. border-radius / background / shadow are intentionally
+  // not re-set so the mobile full-bleed treatment above keeps owning
+  // the chrome.
   .account-card-header {
     gap: 14px;
     padding-bottom: 14px;

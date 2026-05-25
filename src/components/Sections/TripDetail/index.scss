@@ -4,13 +4,46 @@
   text-align: center;
 }
 
-// Row holding the single Show/Hide detail toggle. Sits between the
-// trip header (name + action buttons, always visible) and the
-// collapsible detail cards (basic info stats + budget summary).
+// Row holding the Show/Hide detail toggle + the "Take the tour"
+// launcher. Sits between the trip header (name + action buttons,
+// always visible) and the collapsible detail cards (basic info
+// stats + budget summary).
 .trip-detail-toggle-row {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
   padding: 4px 0 12px;
+}
+
+// "Take the tour" pill for the trip-detail viewing tutorial. Sits
+// alongside the Show/Hide detail toggle so the affordance is visible
+// without intruding on the header action row.
+.trip-detail-tour-launcher-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(60, 181, 75, 0.35);
+  background: rgba(60, 181, 75, 0.06);
+  color: theme('colors.primaryGreen');
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: theme('colors.primaryGreen');
+    border-color: theme('colors.primaryGreen');
+    color: #ffffff;
+  }
+
+  svg {
+    font-size: 1rem !important;
+  }
 }
 
 .trip-detail-toggle {

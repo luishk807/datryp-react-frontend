@@ -41,7 +41,10 @@ const PeopleStep = ({ data, onChange }: PeopleStepProps) => {
                 the trip, and participants for everyone else along for the ride.
             </p>
 
-            <section className="trip-people-section">
+            <section
+                className="trip-people-section"
+                data-tour="trip-organizers"
+            >
                 <header className="trip-people-section-head">
                     <PersonRoundedIcon className="trip-people-section-icon" />
                     <div>
@@ -59,7 +62,10 @@ const PeopleStep = ({ data, onChange }: PeopleStepProps) => {
                 />
             </section>
 
-            <section className="trip-people-section">
+            <section
+                className="trip-people-section"
+                data-tour="trip-participants"
+            >
                 <header className="trip-people-section-head">
                     <GroupsRoundedIcon className="trip-people-section-icon" />
                     <div>

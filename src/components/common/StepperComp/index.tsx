@@ -121,9 +121,17 @@ export const useStepperAdvance = (): StepperAdvanceContextValue =>
 interface StepperCompProps {
     steps?: StepperStep[];
     data?: TripState;
+    /** Optional callback fired whenever the active wizard step changes.
+     *  Lets the parent (TripSteps) keep its own copy of the active step
+     *  so it can show the right tour-tooltips for the current section. */
+    onActiveStepChange?: (step: number) => void;
 }
 
-const StepperComp = ({ steps = [], data }: StepperCompProps) => {
+const StepperComp = ({
+    steps = [],
+    data,
+    onActiveStepChange,
+}: StepperCompProps) => {
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
     const { user } = useUser();
@@ -216,7 +224,17 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
     // single-page edit layout instead of the new-trip wizard.
     const isEditing = !!data?.apiId;
 
-    const [activeStep, setActiveStep] = useState(0);
+    const [activeStep, setActiveStepRaw] = useState(0);
+    // Wrap setActiveStep so any caller fires the parent callback too.
+    // Keeps TripSteps' tour-aware copy of the active step in lockstep
+    // with the stepper's internal state.
+    const setActiveStep = (next: number | ((prev: number) => number)) => {
+        setActiveStepRaw((prev) => {
+            const resolved = typeof next === 'function' ? next(prev) : next;
+            onActiveStepChange?.(resolved);
+            return resolved;
+        });
+    };
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
     // Per-save opt-out for participant notifications. Defaults ON;
@@ -910,7 +928,7 @@ const StepperComp = ({ steps = [], data }: StepperCompProps) => {
                       project_edit_trip_share_to_participants).
                     */}
                     <Grid item lg={12} md={12} xs={12}>
-                        <div className="step-actions">
+                        <div className="step-actions" data-tour="trip-next-btn">
                             {activeStep > 0 && (
                                 <Button
                                     type="line"

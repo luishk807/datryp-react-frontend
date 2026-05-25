@@ -17,6 +17,7 @@ import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
 import EventRoundedIcon from '@mui/icons-material/EventRounded';
 import { useUser } from 'context/UserContext';
+import { getUserFirstName } from 'utils/userName';
 import './index.scss';
 
 const STEPS = [
@@ -41,6 +42,8 @@ const AiTripBuilderCard = () => {
     const { user, isAdmin } = useUser();
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
     if (!user || !isPro) return null;
+
+    const firstName = getUserFirstName(user);
 
     return (
         <section className="ai-trip-builder-card">
@@ -100,7 +103,8 @@ const AiTripBuilderCard = () => {
                     <span>Pro perk</span>
                 </span>
                 <h2 className="ai-trip-builder-card-title">
-                    Skip the planning. We&rsquo;ll build the trip for you.
+                    Skip the planning, {firstName}. We&rsquo;ll build the
+                    trip for you.
                 </h2>
                 <p className="ai-trip-builder-card-lede">
                     Tell us your budget and what you want to do. Our AI

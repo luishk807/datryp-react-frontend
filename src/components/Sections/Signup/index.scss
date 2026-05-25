@@ -342,13 +342,17 @@
   text-decoration: underline;
 }
 
-/* ── Mobile (< 900px) ───────────────────────────────────────────────────── */
+/* ── Tablet (< 900px) ───────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
   .signup-page {
     grid-template-columns: 1fr;
     position: static;
+    // Use dynamic viewport units when supported so the page tracks
+    // mobile-browser address-bar collapse instead of overflowing
+    // when the bar slides away. Fallback to vh for older browsers.
     min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .signup-hero {
@@ -379,5 +383,98 @@
 
   .signup-panel {
     padding: 22px 20px 32px;
+  }
+
+  // Form column should fill the viewport width on tablet/phone —
+  // the 400px desktop cap looks like a floating column on a phone.
+  .signup-step-body {
+    max-width: none;
+  }
+
+  // Primary CTA spans the full content width on mobile so it's
+  // unambiguous + thumb-reachable. Keeps the desktop pill on wider
+  // viewports.
+  .signup-primary-btn.signup-primary-btn {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 24px;
+    font-size: 1rem;
+  }
+
+  // Actions stack vertically so the secondary "Skip" link doesn't
+  // crowd the primary button on a narrow row.
+  .signup-step-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .signup-skip-link {
+    align-self: center;
+    padding: 8px 12px;
+  }
+}
+
+/* ── Phone (< 560px) ───────────────────────────────────────────────────── */
+
+@media (max-width: 560px) {
+  .signup-hero {
+    // Trim hero further so step content gets more vertical space.
+    // Phones — especially in landscape — barely have room for a
+    // 200px hero plus form + keyboard.
+    min-height: 140px;
+    padding: 18px 20px 14px;
+  }
+
+  .signup-hero-brand img,
+  .signup-hero-brand .icon-link-adornment img {
+    height: 40px;
+  }
+
+  .signup-hero-title {
+    font-size: 1.2rem;
+  }
+
+  .signup-panel {
+    padding: 18px 16px 28px;
+  }
+
+  .signup-panel-top {
+    margin-bottom: 12px;
+  }
+
+  .signup-progress {
+    margin-bottom: 20px;
+  }
+
+  .signup-step-title {
+    font-size: 1.35rem;
+  }
+
+  .signup-step-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .signup-step-input {
+    // iOS Safari zooms in on <input> when the font-size is < 16px.
+    // Lock to 16px on phones to suppress the zoom + layout shift.
+    font-size: 16px;
+    padding: 14px 14px;
+  }
+
+  .signup-footer {
+    margin-top: 18px;
+    font-size: 0.85rem;
+  }
+}
+
+/* ── Hide bottom nav while the signup funnel is open ────────────────── */
+
+// Signup is a focused full-screen funnel — the bottom nav competing
+// for the same vertical space pushes the CTA out of view on phones.
+// Hide it for the duration of the page.
+@media (max-width: 720px) {
+  body:has(.signup-page) .bottom-nav {
+    display: none;
   }
 }
