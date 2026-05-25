@@ -60,3 +60,48 @@
   color: rgba(0, 0, 0, 0.45);
   font-style: italic;
 }
+
+// ── Real headline rendering (loaded item) ──────────────────────────
+.latest-news-headline {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: theme('colors.primary');
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.latest-news-headline-quote {
+  color: rgba(0, 0, 0, 0.35);
+  font-weight: 400;
+  margin: 0 2px;
+}
+
+.latest-news-meta {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  flex-wrap: wrap;
+}
+
+.latest-news-source {
+  font-weight: 600;
+  color: theme('colors.primaryOrange');
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+}
+
+.latest-news-meta-sep {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.latest-news-time {
+  font-variant-numeric: tabular-nums;
+}

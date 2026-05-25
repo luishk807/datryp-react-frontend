@@ -43,15 +43,39 @@
   font-size: 1.1rem !important;
 }
 
-// Mobile: icon-only. Hides the label, tightens to a square pill that
-// reads as a round chip thanks to the parent's `border-radius: 999px`.
-@media (max-width: 640px) {
-  .bookmark-city-pill {
-    padding: 8px;
-    gap: 0;
+// Icon-only — dark monochrome treatment shared with place / country
+// variants. Same color as the visited + share buttons so the action
+// row reads as one cohesive strip.
+.bookmark-city-pill.is-icon-only {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.78);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.95);
+    transform: none;
+    box-shadow: none;
   }
 
-  .bookmark-city-pill > span {
-    display: none;
+  &.is-saved {
+    background: transparent;
+    box-shadow: none;
+    color: rgba(0, 0, 0, 0.85);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: rgba(0, 0, 0, 0.95);
+    }
+  }
+
+  .bookmark-city-icon {
+    font-size: 1.7rem !important;
   }
 }

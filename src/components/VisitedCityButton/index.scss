@@ -50,13 +50,38 @@
   font-size: 1.1rem !important;
 }
 
-@media (max-width: 640px) {
-  .visited-city-pill {
-    padding: 8px;
-    gap: 0;
+// Icon-only — dark monochrome treatment shared with the place /
+// country variants and the bookmark + share buttons.
+.visited-city-pill.is-icon-only {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.78);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.95);
+    transform: none;
+    box-shadow: none;
   }
 
-  .visited-city-pill > span {
-    display: none;
+  &.is-visited {
+    background: transparent;
+    box-shadow: none;
+    color: rgba(0, 0, 0, 0.85);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: rgba(0, 0, 0, 0.95);
+    }
+  }
+
+  .visited-city-icon {
+    font-size: 1.7rem !important;
   }
 }

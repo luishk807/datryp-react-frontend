@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './index.scss';
 import { Snackbar } from '@mui/material';
-import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import classNames from 'classnames';
 import {
     useSavedCountries,
@@ -65,7 +65,7 @@ const BookmarkCountryButton = ({
         <>
             <button
                 type="button"
-                className={classNames('bookmark-country-pill', {
+                className={classNames('bookmark-country-pill', 'is-icon-only', {
                     'is-saved': saved,
                 })}
                 aria-label={
@@ -73,16 +73,20 @@ const BookmarkCountryButton = ({
                         ? `Remove ${countryName} from bookmarks`
                         : `Save ${countryName} to bookmarks`
                 }
+                title={
+                    saved
+                        ? `${countryName} is saved — tap to remove`
+                        : `Save ${countryName}`
+                }
                 aria-pressed={saved}
                 disabled={isPending}
                 onClick={handleClick}
             >
                 {saved ? (
-                    <BookmarkRoundedIcon className="bookmark-country-icon" />
+                    <FavoriteRoundedIcon className="bookmark-country-icon" />
                 ) : (
-                    <BookmarkAddOutlinedIcon className="bookmark-country-icon" />
+                    <FavoriteBorderRoundedIcon className="bookmark-country-icon" />
                 )}
-                <span>{saved ? 'Saved' : 'Save'}</span>
             </button>
 
             <Snackbar

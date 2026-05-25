@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './index.scss';
 import { Snackbar } from '@mui/material';
-import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import classNames from 'classnames';
 import {
     useSavedCities,
@@ -82,7 +82,7 @@ const BookmarkCityButton = ({
         <>
             <button
                 type="button"
-                className={classNames('bookmark-city-pill', {
+                className={classNames('bookmark-city-pill', 'is-icon-only', {
                     'is-saved': saved,
                 })}
                 aria-label={
@@ -90,16 +90,20 @@ const BookmarkCityButton = ({
                         ? `Remove ${cityName} from bookmarks`
                         : `Save ${cityName} to bookmarks`
                 }
+                title={
+                    saved
+                        ? `${cityName} is saved — tap to remove`
+                        : `Save ${cityName}`
+                }
                 aria-pressed={saved}
                 disabled={isPending}
                 onClick={handleClick}
             >
                 {saved ? (
-                    <BookmarkRoundedIcon className="bookmark-city-icon" />
+                    <FavoriteRoundedIcon className="bookmark-city-icon" />
                 ) : (
-                    <BookmarkAddOutlinedIcon className="bookmark-city-icon" />
+                    <FavoriteBorderRoundedIcon className="bookmark-city-icon" />
                 )}
-                <span>{saved ? 'Saved' : 'Save'}</span>
             </button>
 
             <Snackbar

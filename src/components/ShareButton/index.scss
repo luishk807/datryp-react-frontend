@@ -68,14 +68,30 @@
   font-size: 1.05rem !important;
 }
 
-@media (max-width: 640px) {
-  .share-button-pill {
-    padding: 8px;
-    gap: 0;
+// Icon-only — dark monochrome treatment shared with bookmark +
+// visited. Same color across the three so the action row reads as
+// one cohesive strip instead of three brand-colored chips
+// competing for attention against the hero photo.
+.share-button-pill.is-icon-only {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.78);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.95);
+    transform: none;
+    box-shadow: none;
   }
 
-  .share-button-pill > span {
-    display: none;
+  .share-button-pill-icon {
+    font-size: 1.7rem !important;
   }
 }
 

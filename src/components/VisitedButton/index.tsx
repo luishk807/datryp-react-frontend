@@ -71,12 +71,17 @@ const VisitedButton = ({ place, coordinates, visa }: VisitedButtonProps) => {
         <>
             <button
                 type="button"
-                className={classNames('visited-button-pill', {
+                className={classNames('visited-button-pill', 'is-icon-only', {
                     'is-visited': isVisited,
                 })}
                 aria-label={
                     isVisited
                         ? `Unmark ${place.name} as visited`
+                        : `Mark ${place.name} as visited`
+                }
+                title={
+                    isVisited
+                        ? `You've been to ${place.name} — tap to unmark`
                         : `Mark ${place.name} as visited`
                 }
                 aria-pressed={isVisited}
@@ -88,7 +93,6 @@ const VisitedButton = ({ place, coordinates, visa }: VisitedButtonProps) => {
                 ) : (
                     <CheckCircleOutlineRoundedIcon className="visited-button-icon" />
                 )}
-                <span>{isVisited ? 'Visited' : "I've been here"}</span>
             </button>
 
             <Snackbar

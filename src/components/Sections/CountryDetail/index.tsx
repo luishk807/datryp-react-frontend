@@ -24,6 +24,7 @@ import WeatherSection from "components/PlaceDetail/WeatherSection";
 import CurrencySection from "components/PlaceDetail/CurrencySection";
 import SafetySection from "components/PlaceDetail/SafetySection";
 import PopularitySection from "components/PlaceDetail/PopularitySection";
+import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import CulturalShockCallout from "components/PlaceDetail/CulturalShockCallout";
 import ExperienceHighlights from "components/PlaceDetail/ExperienceHighlights";
 import ParagraphSection from "components/PlaceDetail/ParagraphSection";
@@ -287,6 +288,19 @@ const CountryDetail = () => {
               popularity={details.popularity}
               isError={false}
             />
+            {/* Getting There — anchors on the capital city's
+                coordinates. Hides entirely for cached rows from
+                before the AI started returning `capital_coordinates`
+                so users don't see a perpetually-loading skeleton.
+                Once the row is regenerated the field arrives and
+                the widget appears on its own. */}
+            {details.capitalCoordinates && (
+              <GettingThereSection
+                placeName={`${details.capitalCity}, ${country.name}`}
+                coordinates={details.capitalCoordinates}
+                isError={false}
+              />
+            )}
             <WeatherSection
               weather={details.weather}
               isError={false}

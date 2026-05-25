@@ -15,9 +15,15 @@ import type {
     VisaInfo,
 } from "./placeDetails.types";
 
+import type { Coordinates } from "./placeDetails.types";
+
 export interface CountryDetails {
     longDescription: string;
     capitalCity: string;
+    /** Lat/lng of the capital city. Optional because rows cached
+     *  before this field shipped don't carry it — the UI hides the
+     *  Getting There map when absent. */
+    capitalCoordinates?: Coordinates;
     budgetDescription: string;
     countryHighlight: string;
     topCities: NamedTip[];

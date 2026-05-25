@@ -79,15 +79,12 @@ iframe[id*='__acroToolbar' i],
       display: contents !important;
     }
 
-    // The shared circle — identical for all three. Active states
-    // only change the ICON color, not the chip itself, so the set
-    // always reads as a row of matched buttons. The `*-city-pill`
-    // and `*-country-pill` variants are the
-    // BookmarkCity/VisitedCity and BookmarkCountry/VisitedCountry
-    // components used on /city and /country respectively — they
-    // MUST stay in sync with their BookmarkButton / VisitedButton
-    // siblings so all three pages render the same unified mobile
-    // chip set.
+    // The shared circle — bare icon buttons (no border, no
+    // background, no shadow) all using the same dark monochrome
+    // color. The hero photo is the visual feature; the icons sit
+    // quietly on top of it. Active states keep the same dark color —
+    // the filled vs outlined glyph carries the state, so we don't
+    // need a brand-color flip that fights the photo for attention.
     .bookmark-button-pill,
     .bookmark-city-pill,
     .bookmark-country-pill,
@@ -95,23 +92,25 @@ iframe[id*='__acroToolbar' i],
     .visited-city-pill,
     .visited-country-pill,
     .share-button-pill {
-      width: 36px !important;
-      height: 36px !important;
+      width: 44px !important;
+      height: 44px !important;
       padding: 0 !important;
       gap: 0 !important;
-      border-radius: 50% !important;
-      background: #fff !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18),
-        0 1px 3px rgba(0, 0, 0, 0.1) !important;
-      color: rgba(0, 0, 0, 0.65) !important;
+      border-radius: 999px !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: rgba(255, 255, 255, 0.92) !important;
       cursor: pointer;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      transition: background-color 0.18s ease, color 0.18s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      // Soft drop shadow on the glyph so it stays legible over
+      // light hero photos (mountain snow, beach sand, etc) without
+      // needing a pill chrome to back it.
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
 
-      // Drop the text labels — the icon carries the action.
       > span:not(.MuiSvgIcon-root) {
         display: none !important;
       }
@@ -124,14 +123,13 @@ iframe[id*='__acroToolbar' i],
     .visited-city-pill:hover,
     .visited-country-pill:hover,
     .share-button-pill:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24),
-        0 2px 4px rgba(0, 0, 0, 0.12) !important;
+      background: rgba(0, 0, 0, 0.28) !important;
+      color: #fff !important;
     }
 
-    // Icons — uniform size + uniform default tone (dark gray) so
-    // the row reads as a set. Active states below recolor the
-    // glyph only.
+    // Icons — uniform 1.7rem size, white tinted so they read on a
+    // hero photo. Filled vs outlined glyph (driven by component
+    // JSX) communicates the active state without a color shift.
     .bookmark-button-icon,
     .bookmark-city-icon,
     .bookmark-country-icon,
@@ -141,24 +139,11 @@ iframe[id*='__acroToolbar' i],
     .share-button-pill-icon,
     .share-button-pill .MuiSvgIcon-root,
     .share-button-pill svg {
-      color: rgba(0, 0, 0, 0.7) !important;
-      font-size: 1.05rem !important;
-      width: 1.05rem !important;
-      height: 1.05rem !important;
+      color: inherit !important;
+      font-size: 1.45rem !important;
+      width: 1.45rem !important;
+      height: 1.45rem !important;
       transition: color 0.18s ease;
-    }
-
-    // Active glyph colors — same chip styling, brand-tinted icon.
-    .bookmark-button-pill.is-saved .bookmark-button-icon,
-    .bookmark-city-pill.is-saved .bookmark-city-icon,
-    .bookmark-country-pill.is-saved .bookmark-country-icon {
-      color: theme('colors.primaryOrange') !important;
-    }
-
-    .visited-button-pill.is-visited .visited-button-icon,
-    .visited-city-pill.is-visited .visited-city-icon,
-    .visited-country-pill.is-visited .visited-country-icon {
-      color: theme('colors.primaryGreen') !important;
     }
   }
 }

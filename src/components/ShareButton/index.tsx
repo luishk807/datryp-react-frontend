@@ -210,12 +210,12 @@ const ShareButton = ({
             {variant === 'pill' ? (
                 <button
                     type="button"
-                    className="share-button-pill"
+                    className="share-button-pill is-icon-only"
                     aria-label={`Share ${title}`}
+                    title={`Share ${title}`}
                     onClick={openShare}
                 >
                     <IosShareIcon className="share-button-pill-icon" />
-                    <span>Share</span>
                 </button>
             ) : (
                 <IconButton

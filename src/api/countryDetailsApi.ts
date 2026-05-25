@@ -94,9 +94,15 @@ interface AirportRaw {
     international: boolean;
 }
 
+interface CapitalCoordinatesRaw {
+    lat: number;
+    lng: number;
+}
+
 interface CountryDetailsRaw {
     long_description: string;
     capital_city: string;
+    capital_coordinates?: CapitalCoordinatesRaw | null;
     budget_description: string;
     country_highlight: string;
     top_cities: NamedTipRaw[];
@@ -154,6 +160,12 @@ const toCountry = (raw: CountrySummaryRaw): CountrySummary => ({
 const toDetails = (raw: CountryDetailsRaw): CountryDetails => ({
     longDescription: raw.long_description,
     capitalCity: raw.capital_city,
+    capitalCoordinates: raw.capital_coordinates
+        ? {
+              lat: raw.capital_coordinates.lat,
+              lng: raw.capital_coordinates.lng,
+          }
+        : undefined,
     budgetDescription: raw.budget_description,
     countryHighlight: raw.country_highlight,
     topCities: raw.top_cities.map(toNamedTip),

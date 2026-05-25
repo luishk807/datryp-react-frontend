@@ -72,12 +72,17 @@ const VisitedCityButton = ({
         <>
             <button
                 type="button"
-                className={classNames('visited-city-pill', {
+                className={classNames('visited-city-pill', 'is-icon-only', {
                     'is-visited': isVisited,
                 })}
                 aria-label={
                     isVisited
                         ? `Unmark ${cityName} as visited`
+                        : `Mark ${cityName} as visited`
+                }
+                title={
+                    isVisited
+                        ? `You've been to ${cityName} — tap to unmark`
                         : `Mark ${cityName} as visited`
                 }
                 aria-pressed={isVisited}
@@ -89,7 +94,6 @@ const VisitedCityButton = ({
                 ) : (
                     <CheckCircleOutlineRoundedIcon className="visited-city-icon" />
                 )}
-                <span>{isVisited ? 'Visited' : "I've been here"}</span>
             </button>
 
             <Snackbar

@@ -4,6 +4,58 @@
   gap: 8px;
 }
 
+/* ─── Interactive Leaflet map preview ────────────────────────── */
+
+// Map container — frames the leaflet canvas with the same rounded
+// border the rest of the detail-page widgets use. No click-overlay
+// or "open in Google Maps" CTA anymore; the user pans / zooms the
+// map directly to see the dashed route from their location to the
+// destination.
+.travel-widget-map {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #e8eef1;
+}
+
+// Cap leaflet's internal z-index inside this container so the map
+// doesn't punch through modal / popover stacking elsewhere on the
+// page. Leaflet promotes its own panes pretty aggressively; this
+// keeps it contained.
+.travel-widget-map .leaflet-container {
+  font-family: inherit;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+
+// Skeleton placeholder while we wait for the user's location.
+.travel-widget-map-skeleton {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: travel-widget-map-shimmer 1.4s linear infinite;
+}
+
+@keyframes travel-widget-map-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 .travel-widget-from {
   margin: 0;
   font-size: 0.75rem;

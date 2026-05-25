@@ -44,13 +44,42 @@
   font-size: 1.1rem !important;
 }
 
-@media (max-width: 640px) {
-  .bookmark-button-pill {
-    padding: 8px;
-    gap: 0;
+// Icon-only — bare 44px touch target, no pill chrome. The action
+// strip (heart / check / share) all share a single dark color so it
+// reads as one consistent row instead of three competing brand-
+// colored chips. Saved state still fills the heart glyph — the
+// filled vs outlined shape carries the state, no color change
+// needed.
+.bookmark-button-pill.is-icon-only {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.78);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.95);
+    transform: none;
+    box-shadow: none;
   }
 
-  .bookmark-button-pill > span {
-    display: none;
+  &.is-saved {
+    background: transparent;
+    box-shadow: none;
+    color: rgba(0, 0, 0, 0.85);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: rgba(0, 0, 0, 0.95);
+    }
+  }
+
+  .bookmark-button-icon {
+    font-size: 1.7rem !important;
   }
 }
