@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Grid,
@@ -17,12 +17,14 @@ import classnames from 'classnames';
 import Layout from 'components/common/Layout/SubLayout';
 import TripBox, { type TripBoxData } from 'components/common/TripBox';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import Pagination from 'components/common/Pagination';
 import PlacesYouMightLove from 'components/PlacesYouMightLove';
 import {
     useDeleteItinerary,
     useMyItineraries,
 } from 'api/hooks/useItineraries';
 import { apiToTripEntry } from 'utils/itineraryAdapter';
+import { LIST_PAGE_SIZE } from 'constants';
 import './index.scss';
 
 type FilterValue = 'all' | 'planning' | 'confirmed' | 'completed';
@@ -80,6 +82,23 @@ export const Trips = () => {
         return allTrips.filter((t) => t.status.name.toLowerCase() === filter);
     }, [filter, allTrips]);
 
+    // Paginate the filtered list (50/page, shared constant). Reset
+    // back to page 1 whenever the filter or trip data changes — that
+    // way a Confirmed-only filter doesn't strand the user on page 4
+    // when there are only 2 pages of Confirmed trips.
+    const [page, setPage] = useState(1);
+    useEffect(() => {
+        setPage(1);
+    }, [filter, allTrips.length]);
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredTrips.length / LIST_PAGE_SIZE)
+    );
+    const pagedTrips = useMemo(() => {
+        const start = (page - 1) * LIST_PAGE_SIZE;
+        return filteredTrips.slice(start, start + LIST_PAGE_SIZE);
+    }, [filteredTrips, page]);
+
     const tripIdOf = (trip: TripBoxData) =>
         (trip as { apiId?: string }).apiId ?? String(trip.id);
 
@@ -103,7 +122,10 @@ export const Trips = () => {
     };
 
     const selectAllVisible = () => {
-        const ids = filteredTrips.map(tripIdOf);
+        // "Visible" = the trips currently rendered, which after
+        // pagination is just the current page's slice, not the whole
+        // filtered list. Matches what the user can see on screen.
+        const ids = pagedTrips.map(tripIdOf);
         setSelectedIds(new Set(ids));
     };
 
@@ -298,31 +320,45 @@ export const Trips = () => {
                         )}
                     </>
                 ) : (
-                    <Grid container id="trip-container">
-                        {filteredTrips.map((trip) => {
-                            const id = tripIdOf(trip);
-                            return (
-                                <Grid
-                                    key={id}
-                                    item
-                                    lg={4}
-                                    md={6}
-                                    xs={12}
-                                    className="trip-item"
-                                >
-                                    <TripBox
-                                        data={trip}
-                                        to={`/trip-detail?id=${id}`}
-                                        selectable={selectMode}
-                                        selected={selectedIds.has(id)}
-                                        onToggleSelect={() =>
-                                            toggleSelected(id)
-                                        }
-                                    />
-                                </Grid>
-                            );
-                        })}
-                    </Grid>
+                    <>
+                        <Grid container id="trip-container">
+                            {pagedTrips.map((trip) => {
+                                const id = tripIdOf(trip);
+                                return (
+                                    <Grid
+                                        key={id}
+                                        item
+                                        lg={4}
+                                        md={6}
+                                        xs={12}
+                                        className="trip-item"
+                                    >
+                                        <TripBox
+                                            data={trip}
+                                            to={`/trip-detail?id=${id}`}
+                                            selectable={selectMode}
+                                            selected={selectedIds.has(id)}
+                                            onToggleSelect={() =>
+                                                toggleSelected(id)
+                                            }
+                                        />
+                                    </Grid>
+                                );
+                            })}
+                        </Grid>
+                        <Pagination
+                            page={page}
+                            totalPages={totalPages}
+                            onPageChange={(p) => {
+                                setPage(p);
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth',
+                                });
+                            }}
+                            ariaLabel="Trips pagination"
+                        />
+                    </>
                 )}
 
                 <Dialog

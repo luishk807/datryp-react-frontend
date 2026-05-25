@@ -12,6 +12,11 @@ export const PAGE_TITLE = "DaTryp.com";
  *  "enter a valid email" UX in forms. */
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** Shared page size for paginated list views (Notifications, My Trips,
+ *  Bucket List, Manage Friends, Recent Searches). A single constant
+ *  keeps the UX consistent and makes a future bump a one-line change. */
+export const LIST_PAGE_SIZE = 20;
+
 /** Hero images shown on the homepage when `/hero-images` is empty or
  *  unreachable. Self-hosted under `public/images/heroes/` so they're
  *  served by the SPA directly — no CDN dependency, no risk of the

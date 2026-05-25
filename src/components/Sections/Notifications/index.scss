@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 .notifications-page {
-  max-width: 760px;
+  // Widened from 760px so trip names + subtitles have more room on
+  // desktop. 1100px matches the list-page baseline (My Trips, Bucket
+  // List, Saved). The content still centers on viewport widths above
+  // that; below it, the natural responsive padding takes over.
+  max-width: 1100px;
   margin: 24px auto;
   padding: 0 16px;
 }

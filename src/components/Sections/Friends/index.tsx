@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
     Dialog,
     DialogActions,
@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import Pagination from 'components/common/Pagination';
 import InviteFriendModal from 'components/InviteFriendModal';
 import { type ModalButtonHandle } from 'components/ModalButton';
 import { useUser } from 'context/UserContext';
@@ -20,7 +21,7 @@ import {
     type ApiFriend,
     type ApiFriendRequest,
 } from 'api/hooks/useFriends';
-import { BUTTON_VARIANT } from 'constants';
+import { BUTTON_VARIANT, LIST_PAGE_SIZE } from 'constants';
 import './index.scss';
 
 /** Pretty-print "2 days ago" / "today" — keeps the row terse but informative. */
@@ -62,6 +63,19 @@ export const Friends = () => {
         kind: 'success' | 'error';
         message: string;
     } | null>(null);
+
+    // Paginate the friends list at LIST_PAGE_SIZE (shared constant).
+    // Outgoing / incoming requests are typically small + transient so
+    // they're not paginated.
+    const [friendsPage, setFriendsPage] = useState(1);
+    const friendsTotalPages = Math.max(
+        1,
+        Math.ceil(friends.length / LIST_PAGE_SIZE)
+    );
+    const pagedFriends = useMemo(() => {
+        const start = (friendsPage - 1) * LIST_PAGE_SIZE;
+        return friends.slice(start, start + LIST_PAGE_SIZE);
+    }, [friends, friendsPage]);
 
     if (!user) {
         return (
@@ -222,7 +236,7 @@ export const Friends = () => {
                                 No friends yet. Invite one to get started.
                             </p>
                         ) : (
-                            friends.map((f) => (
+                            pagedFriends.map((f) => (
                                 <div key={f.id} className="friend-row">
                                     <div className="friend-avatar">
                                         {initial(f.name, f.email)}
@@ -254,6 +268,20 @@ export const Friends = () => {
                             ))
                         )}
                     </div>
+                    {friends.length > 0 && (
+                        <Pagination
+                            page={friendsPage}
+                            totalPages={friendsTotalPages}
+                            onPageChange={(p) => {
+                                setFriendsPage(p);
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth',
+                                });
+                            }}
+                            ariaLabel="Friends pagination"
+                        />
+                    )}
                 </section>
 
                 {/* ── Outgoing pending requests ─────────────────────────── */}

@@ -11,7 +11,7 @@
  * call runs, then navigates the user straight into the trip's edit page
  * so they can review and tweak before confirming.
  */
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
@@ -41,7 +41,8 @@ import {
 import { useUser } from 'context/UserContext';
 import { formatDate } from 'utils/date';
 import { getUserFirstName } from 'utils/userName';
-import { TRIP_BASIC } from 'constants';
+import Pagination from 'components/common/Pagination';
+import { LIST_PAGE_SIZE, TRIP_BASIC } from 'constants';
 import './index.scss';
 
 // Mirrors the backend `FREE_TIER_BUCKET_LIST_LIMIT`. Kept in sync manually
@@ -93,6 +94,16 @@ const BucketList = () => {
     const [generatingText, setGeneratingText] = useState<string | null>(null);
     const paywallRef = useRef<ModalButtonHandle>(null);
     const [paywall, setPaywall] = useState<PaywallState | null>(null);
+
+    // Slice the list into LIST_PAGE_SIZE chunks. Shared with the
+    // other list pages (Notifications, Trips, Friends, Recent
+    // Searches) so the UX is consistent.
+    const [page, setPage] = useState(1);
+    const totalPages = Math.max(1, Math.ceil(items.length / LIST_PAGE_SIZE));
+    const pagedItems = useMemo(() => {
+        const start = (page - 1) * LIST_PAGE_SIZE;
+        return items.slice(start, start + LIST_PAGE_SIZE);
+    }, [items, page]);
 
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
     const atCap = !isPro && items.length >= FREE_TIER_BUCKET_LIST_LIMIT;
@@ -414,7 +425,7 @@ const BucketList = () => {
 
                 {items.length > 0 && (
                     <ul className="bucket-list">
-                        {items.map((item) => {
+                        {pagedItems.map((item) => {
                             const isWizardOpen = wizardItemId === item.id;
                             return (
                                 <li
@@ -739,6 +750,18 @@ const BucketList = () => {
                             );
                         })}
                     </ul>
+                )}
+
+                {items.length > 0 && (
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPageChange={(p) => {
+                            setPage(p);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        ariaLabel="Bucket list pagination"
+                    />
                 )}
             </div>
         </Layout>

@@ -1,39 +1,41 @@
+// Page pager — MUI Pagination wrapper. Center the row + tighten the
+// vertical rhythm so it sits cleanly under any list page.
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  margin-top: 4px;
-}
+  margin: 16px 0 8px;
 
-.pagination-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #fff;
-  color: rgba(0, 0, 0, 0.7);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  // Re-theme MUI's default blue to match the site palette (green is
+  // the primary action color). MUI applies these via .Mui-selected
+  // (current page) + .MuiPaginationItem-root (everyone else).
+  .MuiPaginationItem-root {
+    font-weight: 500;
+    color: theme('colors.primary');
 
-  &:hover:not(:disabled) {
-    border-color: theme('colors.primaryGreen');
-    color: theme('colors.primaryGreen');
-  }
+    &:hover {
+      background-color: rgba(60, 181, 75, 0.08);
+    }
 
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+    &.Mui-selected {
+      background-color: theme('colors.primaryGreen');
+      color: #fff;
+
+      &:hover {
+        background-color: #2d8f37;
+      }
+    }
   }
 }
 
-.pagination-indicator {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
-  font-variant-numeric: tabular-nums;
+// Compact spacing on mobile — MUI's default page-button gap is a
+// touch wide for narrow viewports and pushes the row to wrap.
+@media (max-width: 480px) {
+  .pagination .MuiPagination-ul {
+    gap: 2px;
+  }
+  .pagination .MuiPaginationItem-root {
+    min-width: 30px;
+    height: 30px;
+  }
 }

@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
@@ -10,12 +11,13 @@ import moment from 'moment';
 import classnames from 'classnames';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import Pagination from 'components/common/Pagination';
 import {
     useNotifications,
     useMarkNotificationRead,
     useMarkAllNotificationsRead,
 } from 'api/hooks/useNotifications';
-import { NOTIFICATION_KIND } from 'constants';
+import { LIST_PAGE_SIZE, NOTIFICATION_KIND } from 'constants';
 import type { ApiNotification, NotificationPayload } from 'types';
 import './index.scss';
 
@@ -81,6 +83,16 @@ const Notifications = () => {
 
     const unread = rows.filter((r) => !r.readAt).length;
 
+    // Paginate the full list at LIST_PAGE_SIZE per page (shared with
+    // My Trips / Bucket List / Friends / Recent Searches). 1-based to
+    // match the Pagination component's API.
+    const [page, setPage] = useState(1);
+    const totalPages = Math.max(1, Math.ceil(rows.length / LIST_PAGE_SIZE));
+    const pagedRows = useMemo(() => {
+        const start = (page - 1) * LIST_PAGE_SIZE;
+        return rows.slice(start, start + LIST_PAGE_SIZE);
+    }, [rows, page]);
+
     const handleRowClick = (n: ApiNotification) => {
         if (!n.readAt) markRead.mutate(n.id);
         if (n.tripId && n.kind !== NOTIFICATION_KIND.TRIP_DELETED) {
@@ -121,7 +133,7 @@ const Notifications = () => {
                     </div>
                 ) : (
                     <ul className="notifications-list">
-                        {rows.map((n) => {
+                        {pagedRows.map((n) => {
                             const Icon =
                                 KIND_ICON[n.kind] ?? NotificationsNoneRoundedIcon;
                             const { title, subtitle } = formatRow(n);
@@ -154,6 +166,21 @@ const Notifications = () => {
                             );
                         })}
                     </ul>
+                )}
+
+                {!isLoading && rows.length > 0 && (
+                    <Pagination
+                        page={page}
+                        totalPages={totalPages}
+                        onPageChange={(p) => {
+                            setPage(p);
+                            // Scroll back to the top of the list when
+                            // the page changes so the user lands at
+                            // the first row of the new page.
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        ariaLabel="Notifications pagination"
+                    />
                 )}
             </div>
         </Layout>
