@@ -68,14 +68,17 @@
     box-shadow: none;
   }
 
+  // Active heart fills in a saturated red so "saved" reads as a
+  // strong colored signal — the previous dark-gray treatment had the
+  // saved + unsaved hearts look nearly identical at a glance.
   &.is-saved {
     background: transparent;
     box-shadow: none;
-    color: rgba(0, 0, 0, 0.85);
+    color: #e11d48;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.06);
-      color: rgba(0, 0, 0, 0.95);
+      background: rgba(225, 29, 72, 0.08);
+      color: #be123c;
     }
   }
 

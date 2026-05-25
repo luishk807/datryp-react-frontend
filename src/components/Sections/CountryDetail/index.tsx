@@ -12,6 +12,7 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import LocationCityRoundedIcon from "@mui/icons-material/LocationCityRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
+import LoadingFacts from "components/common/LoadingFacts";
 import CostBadge from "components/common/CostBadge";
 import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
@@ -168,9 +169,13 @@ const CountryDetail = () => {
           <p className="country-detail-loading-text">
             Loading {code} details…
           </p>
-          <p className="country-detail-loading-hint">
-            First-time look-ups take a few seconds while we gather travel info.
-          </p>
+          {/* No country name yet (it ships back with the loaded
+              details), so the place-specific fact is skipped — the
+              rest of the rotating copy still works. */}
+          <LoadingFacts
+            placeName=""
+            headline="A few things while you wait"
+          />
         </div>
       </Layout>
     );

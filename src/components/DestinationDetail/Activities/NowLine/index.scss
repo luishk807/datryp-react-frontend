@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// "You are here" indicator placed between activity cards inside the
+// day whose date matches today. The pill anchors the left and the
+// gradient rule fades into the day-column background, so it reads as
+// a soft band across the timeline without competing with the per-card
+// green stripe (which is scoped to the activity that's running now).
+.activity-now-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  padding: 0 4px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.activity-now-line-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 2px 6px rgba(192, 57, 43, 0.32);
+}
+
+.activity-now-line-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+  animation: activity-now-line-pulse 1.6s ease-in-out infinite;
+}
+
+.activity-now-line-rule {
+  flex: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    #c0392b 0%,
+    rgba(192, 57, 43, 0) 100%
+  );
+}
+
+@keyframes activity-now-line-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+}

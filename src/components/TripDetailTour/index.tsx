@@ -104,7 +104,7 @@ const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
             },
             {
                 target: '.date-block',
-                placement: 'top',
+                placement: 'bottom',
                 title: 'Day-by-day timeline',
                 content: (
                     <p>

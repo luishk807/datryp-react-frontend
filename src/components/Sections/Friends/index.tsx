@@ -1,4 +1,10 @@
 import { useRef, useState } from 'react';
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+} from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InviteFriendModal from 'components/InviteFriendModal';
@@ -96,8 +102,26 @@ export const Friends = () => {
                 }),
         });
     };
-    const handleUnfriend = (friend: ApiFriend) => {
-        unfriendMutation.mutate(friend.id);
+    // Two-step unfriend — opens a confirm dialog instead of removing
+    // on the first click. Unfriending is hard to undo (the other
+    // person has to re-accept a fresh request) and the row buttons
+    // sit close together on mobile, so a confirm step prevents the
+    // accidental tap.
+    const [unfriendCandidate, setUnfriendCandidate] = useState<ApiFriend | null>(
+        null
+    );
+    const handleUnfriendClick = (friend: ApiFriend) => {
+        setUnfriendCandidate(friend);
+    };
+    const handleUnfriendConfirm = () => {
+        if (!unfriendCandidate) return;
+        unfriendMutation.mutate(unfriendCandidate.id, {
+            onSettled: () => setUnfriendCandidate(null),
+        });
+    };
+    const handleUnfriendCancel = () => {
+        if (unfriendMutation.isPending) return;
+        setUnfriendCandidate(null);
     };
 
     return (
@@ -219,7 +243,7 @@ export const Friends = () => {
                                         <button
                                             type="button"
                                             className="friend-remove"
-                                            onClick={() => handleUnfriend(f)}
+                                            onClick={() => handleUnfriendClick(f)}
                                             disabled={unfriendMutation.isPending}
                                             aria-label={`Unfriend ${f.name ?? f.email}`}
                                         >
@@ -318,6 +342,45 @@ export const Friends = () => {
                     ref={inviteRef}
                 />
             </div>
+            <Dialog
+                open={unfriendCandidate !== null}
+                onClose={handleUnfriendCancel}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>
+                    Unfriend{' '}
+                    {unfriendCandidate?.name ?? unfriendCandidate?.email}?
+                </DialogTitle>
+                <DialogContent>
+                    <p>
+                        They&rsquo;ll be removed from your friends list and
+                        won&rsquo;t see your trips unless you&rsquo;re both
+                        organizers on one. To reconnect, either of you will
+                        need to send a fresh friend request.
+                    </p>
+                </DialogContent>
+                <DialogActions>
+                    <ButtonCustom
+                        type={BUTTON_VARIANT.LINE}
+                        capitalizeType="uppercase"
+                        label="Keep as friend"
+                        onClick={handleUnfriendCancel}
+                        disabled={unfriendMutation.isPending}
+                    />
+                    <ButtonCustom
+                        type={BUTTON_VARIANT.STANDARD}
+                        capitalizeType="uppercase"
+                        label={
+                            unfriendMutation.isPending
+                                ? 'Removing…'
+                                : 'Unfriend'
+                        }
+                        onClick={handleUnfriendConfirm}
+                        disabled={unfriendMutation.isPending}
+                    />
+                </DialogActions>
+            </Dialog>
         </Layout>
     );
 };

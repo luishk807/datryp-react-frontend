@@ -1,9 +1,10 @@
 import './index.scss';
-import { useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
-import { reformatDate } from 'utils';
+import { isSameDay, reformatDate } from 'utils';
 import { useNow } from 'hooks/useNow';
+import NowLine from 'components/DestinationDetail/Activities/NowLine';
 import {
     getActivityProgress,
     getActivityTiming,
@@ -190,6 +191,41 @@ const Activities = ({
         [sortedActivities]
     );
 
+    // Insertion index for the horizontal "now" line. The line only
+    // renders inside the day whose date matches today; for every other
+    // day this stays `null`. Index semantics:
+    //   - 0          : line goes above the first activity
+    //   - N          : line goes after activity at index N-1
+    //   - length     : line goes after the last activity
+    //   - null       : day isn't today, skip the line entirely
+    // We pick "first activity whose startTime is strictly after now".
+    // Currently-running activities already get the per-card stripe, so
+    // pushing the line past them keeps the visual signal "this is the
+    // boundary between past and future" rather than splitting an
+    // in-progress card.
+    const nowLineIndex = useMemo<number | null>(() => {
+        if (!date) return null;
+        if (!isSameDay(date, now)) return null;
+        const HHMM_TWO = /^\d{2}:\d{2}$/;
+        const toDayMs = (time: string | undefined | null): number | null => {
+            if (!time) return null;
+            const padded = HHMM_TWO.test(time) ? `${time}:00` : time;
+            const d = new Date(`${date}T${padded}`);
+            return Number.isFinite(d.getTime()) ? d.getTime() : null;
+        };
+        const nowMs = now.getTime();
+        for (let i = 0; i < sortedActivities.length; i++) {
+            const a = sortedActivities[i];
+            const startTime =
+                a.kind === ACTIVITY_KIND.FLIGHT
+                    ? a.flightSegments?.[0]?.departTime
+                    : a.startTime;
+            const startMs = toDayMs(startTime);
+            if (startMs !== null && startMs > nowMs) return i;
+        }
+        return sortedActivities.length;
+    }, [date, now, sortedActivities]);
+
     // Activities share the same `trip_statuses` lookup as trips, so toggling
     // the badge resolves the real backend UUID here. If the lookup hasn't
     // loaded yet (cold cache, transient network blip), we fall back to a
@@ -259,6 +295,12 @@ const Activities = ({
                 <p className="activities-empty-hint">
                     Drop a place here, or add one below.
                 </p>
+            )}
+            {/* Empty-day case for today — when the day has no activities,
+                render the now-line on its own so the user still gets a
+                "you are here" anchor in the timeline. */}
+            {nowLineIndex !== null && sortedActivities.length === 0 && (
+                <NowLine now={now} />
             )}
             <SortableContext
                 items={activityIds}
@@ -396,21 +438,37 @@ const Activities = ({
                             {/* Live "happening now" stripe — grows along
                                 the top edge of the card from 0 → 100% as
                                 the activity's start→end window elapses.
-                                Only renders for current activities; past
-                                cards show the static dimmed treatment
-                                and upcoming cards are unmarked. */}
-                            {activityTiming === 'current' && activityProgress !== null && (
+                                When the activity has no endTime (hotel
+                                check-in, note-like place), we still
+                                render the stripe at full width with a
+                                pulse so "currently happening" reads
+                                visually — the bar just doesn't grow.
+                                Past cards show the static dimmed
+                                treatment; upcoming cards are unmarked. */}
+                            {activityTiming === 'current' && (
                                 <div
-                                    className="activity-now-stripe"
+                                    className={classNames('activity-now-stripe', {
+                                        'is-indeterminate':
+                                            activityProgress === null,
+                                    })}
                                     role="progressbar"
                                     aria-label="Currently happening"
-                                    aria-valuenow={Math.round(activityProgress * 100)}
+                                    aria-valuenow={
+                                        activityProgress !== null
+                                            ? Math.round(activityProgress * 100)
+                                            : undefined
+                                    }
                                     aria-valuemin={0}
                                     aria-valuemax={100}
                                 >
                                     <div
                                         className="activity-now-stripe-fill"
-                                        style={{ width: `${activityProgress * 100}%` }}
+                                        style={{
+                                            width:
+                                                activityProgress !== null
+                                                    ? `${activityProgress * 100}%`
+                                                    : '100%',
+                                        }}
                                     />
                                 </div>
                             )}
@@ -434,28 +492,54 @@ const Activities = ({
                                 // "checkmark flicks but doesn't update"
                                 // bug reported on mobile cold loads.
                                 isActivityCompleted ? (
-                                    <IconButton
-                                        size="small"
-                                        className="activity-card-complete-btn is-checked"
-                                        aria-label={`Uncheck ${activity.name} (reverts to Confirmed)`}
-                                        title={
-                                            confirmedStatus.id === 0
-                                                ? 'Loading status options…'
-                                                : 'Uncheck — reverts to Confirmed'
-                                        }
-                                        disabled={confirmedStatus.id === 0}
-                                        onClick={() =>
-                                            onChangePlace('edit', {
-                                                index: indx,
-                                                value: {
-                                                    id: activity.id,
-                                                    status: confirmedStatus,
-                                                },
-                                            })
-                                        }
-                                    >
-                                        <CheckCircleRoundedIcon fontSize="small" />
-                                    </IconButton>
+                                    (() => {
+                                        // Once the activity's own time
+                                        // window is in the past, the tick
+                                        // locks in place — un-checking a
+                                        // by-then-elapsed activity is
+                                        // never the right outcome and
+                                        // racks up notification spam if
+                                        // accidental. Tick remains
+                                        // visible for the visual cue.
+                                        const isPastLocked =
+                                            activityTiming === 'past';
+                                        return (
+                                            <IconButton
+                                                size="small"
+                                                className={classNames(
+                                                    'activity-card-complete-btn is-checked',
+                                                    { 'is-past-locked': isPastLocked }
+                                                )}
+                                                aria-label={
+                                                    isPastLocked
+                                                        ? `${activity.name} is locked — its time has passed`
+                                                        : `Uncheck ${activity.name} (reverts to Confirmed)`
+                                                }
+                                                title={
+                                                    isPastLocked
+                                                        ? 'This activity has already passed and is locked'
+                                                        : confirmedStatus.id === 0
+                                                            ? 'Loading status options…'
+                                                            : 'Uncheck — reverts to Confirmed'
+                                                }
+                                                disabled={
+                                                    isPastLocked ||
+                                                    confirmedStatus.id === 0
+                                                }
+                                                onClick={() =>
+                                                    onChangePlace('edit', {
+                                                        index: indx,
+                                                        value: {
+                                                            id: activity.id,
+                                                            status: confirmedStatus,
+                                                        },
+                                                    })
+                                                }
+                                            >
+                                                <CheckCircleRoundedIcon fontSize="small" />
+                                            </IconButton>
+                                        );
+                                    })()
                                 ) : (
                                     <IconButton
                                         size="small"
@@ -695,17 +779,25 @@ const Activities = ({
                         </Grid>
                     );
                     return (
-                        <DraggableActivity
-                            key={`activity-${activity.id}`}
-                            activityId={activity.id}
-                            destIdx={destIdx}
-                            date={date}
-                            disabled={!dndEnabled || isPlaceLocked}
-                        >
-                            {card}
-                        </DraggableActivity>
+                        <Fragment key={`activity-${activity.id}`}>
+                            {nowLineIndex === indx && <NowLine now={now} />}
+                            <DraggableActivity
+                                activityId={activity.id}
+                                destIdx={destIdx}
+                                date={date}
+                                disabled={!dndEnabled || isPlaceLocked}
+                            >
+                                {card}
+                            </DraggableActivity>
+                        </Fragment>
                     );
                 })}
+                {/* Trailing now-line — when "now" is past every activity's
+                    start time, the line goes at the bottom of the day so
+                    the user still sees a clear boundary marker. */}
+                {nowLineIndex !== null &&
+                    nowLineIndex === sortedActivities.length &&
+                    sortedActivities.length > 0 && <NowLine now={now} />}
             </SortableContext>
             <Grid item lg={12} className="content-trip">
                 <Grid container>

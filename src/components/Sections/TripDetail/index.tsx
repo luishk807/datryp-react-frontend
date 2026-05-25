@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { produce } from "immer";
+import confetti from "canvas-confetti";
 import "./index.scss";
 import {
   Alert,
@@ -26,6 +27,8 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
@@ -56,6 +59,7 @@ import TripDetailTour, {
   TRIP_DETAIL_TOUR_STORAGE_KEY,
 } from "components/TripDetailTour";
 import { useActivityStartReminders } from "hooks/useActivityStartReminders";
+import { useTripDayReminders } from "hooks/useTripDayReminders";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
 import { exportTripToPdf, printTripPdf } from "utils/exportTripPdf";
@@ -77,6 +81,26 @@ const LOCKED_STATUS_NAMES = new Set<string>([
   TRIP_STATUS.COMPLETED,
   TRIP_STATUS.CANCELLED,
 ]);
+
+/** Three-burst confetti — left, center, right — for the
+ *  Planning → Confirmed transition. Uses brand colors. Falls
+ *  back silently if the user is in a reduced-motion context. */
+const fireConfettiBurst = () => {
+  if (typeof window === "undefined") return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  const colors = ["#3cb54b", "#5fd55f", "#F79F26", "#FFD166"];
+  const defaults = {
+    spread: 70,
+    ticks: 90,
+    gravity: 1.1,
+    decay: 0.94,
+    startVelocity: 35,
+    colors,
+  };
+  confetti({ ...defaults, particleCount: 60, origin: { x: 0.2, y: 0.4 } });
+  confetti({ ...defaults, particleCount: 80, origin: { x: 0.5, y: 0.3 } });
+  confetti({ ...defaults, particleCount: 60, origin: { x: 0.8, y: 0.4 } });
+};
 
 export const TripDetail = () => {
   const [searchParams] = useSearchParams();
@@ -420,6 +444,7 @@ export const TripDetail = () => {
     async (next: TripStatus) => {
       if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
       setSaveError(null);
+      const previousStatus = persistedStatusName;
       try {
         const input = tripStateToSaveInput(tripData, {
           id: apiTrip.id,
@@ -430,6 +455,19 @@ export const TripDetail = () => {
         });
         await saveItinerary.mutateAsync(input);
         setStatusOverride(null);
+        // Celebration on Planning → Confirmed. A short confetti burst
+        // plus a sticky-ish toast — the trip just graduated from "an
+        // idea" to "happening." Fires only on the actual transition so
+        // toggling back-and-forth doesn't re-trigger.
+        if (
+          previousStatus === TRIP_STATUS.PLANNING &&
+          next.name === TRIP_STATUS.CONFIRMED
+        ) {
+          fireConfettiBurst();
+          setReminderToast(
+            "Yay! Your trip is confirmed and ready to go!"
+          );
+        }
       } catch (err) {
         setSaveError(
           err instanceof Error ? err.message : "Failed to update trip status.",
@@ -438,7 +476,7 @@ export const TripDetail = () => {
         throw err;
       }
     },
-    [apiTrip, tripData, saveItinerary, notifyParticipants],
+    [apiTrip, tripData, saveItinerary, notifyParticipants, persistedStatusName],
   );
 
   const handleCancelTrip = useCallback(async () => {
@@ -521,6 +559,26 @@ export const TripDetail = () => {
           ? `${label} starts in 1 minute`
           : `${label} starts in ${minutesUntil} minutes`
       );
+    },
+  });
+
+  // Trip-level reminders: a one-time "your trip starts today" toast on
+  // the start day, plus a per-day morning summary (defaults to 8am
+  // local). Both reuse the activity-reminder snackbar slot so the UI
+  // doesn't gain a second floating banner. Persisted-fired state lives
+  // in localStorage keyed by trip id so a refresh doesn't re-fire.
+  useTripDayReminders(tripData, {
+    onTripStart: ({ name }) => {
+      setReminderToast(`${name} starts today — have a great trip!`);
+    },
+    onDayStart: (_trip, _dayDate, { activityCount, dayIndex, totalDays }) => {
+      const count =
+        activityCount === 0
+          ? 'a free day — nothing scheduled.'
+          : activityCount === 1
+            ? '1 activity planned.'
+            : `${activityCount} activities planned.`;
+      setReminderToast(`Day ${dayIndex} of ${totalDays} — ${count}`);
     },
   });
 
@@ -667,6 +725,25 @@ export const TripDetail = () => {
             </Grid>
           </>
         )}
+        {persistedStatusName === TRIP_STATUS.COMPLETED && (
+          <Grid item lg={12} md={12} xs={12}>
+            <div className="trip-detail-completed-banner">
+              <EmojiEventsRoundedIcon
+                className="trip-detail-completed-icon"
+                fontSize="medium"
+              />
+              <div className="trip-detail-completed-text">
+                <span className="trip-detail-completed-title">
+                  Trip completed
+                </span>
+                <span className="trip-detail-completed-sub">
+                  Locked in as a record of where you&rsquo;ve been. Activity
+                  edits, deletes, and budget changes are sealed.
+                </span>
+              </div>
+            </div>
+          </Grid>
+        )}
         <Grid item lg={12}>
           {/* Activity cards on /trip-detail are read-only by design — the
               Edit Trip button (and the trip-name pencil) navigate to the
@@ -682,6 +759,19 @@ export const TripDetail = () => {
             onChangeBudget={handleChangeBudget}
             tripStatusName={persistedStatusName}
           />
+        </Grid>
+        {/* End-of-trip cap — visual full-stop after the day list, regardless
+            of status. Mirrors the date-block dot so the timeline reads as
+            "starts here … ends here." */}
+        <Grid item lg={12} md={12} xs={12}>
+          <div
+            className={`trip-detail-end status-${persistedStatusName.toLowerCase()}`}
+          >
+            <span className="trip-detail-end-dot">
+              <FlagRoundedIcon fontSize="small" />
+            </span>
+            <span className="trip-detail-end-label">End of trip</span>
+          </div>
         </Grid>
       </Grid>
       <TripDetailTour
@@ -877,6 +967,19 @@ const TripDetailHeader = ({
             isSaving={isSaving}
           />
         )}
+        {/* Mobile-only inline Mark Complete — when the trip is Confirmed
+            and the user can promote, surface the action right next to
+            the bell on small screens so it isn't buried in the actions
+            row. CSS hides this on desktop and hides the static pill on
+            mobile (when Confirmed) so the two don't double-up. */}
+        {statusName === TRIP_STATUS.CONFIRMED && canPromoteStatus && (
+          <TripStatusBadge
+            data={tripData}
+            onStatusChange={onStatusChange}
+            isSaving={isSaving}
+            className="trip-detail-inline-promote-mobile"
+          />
+        )}
         {/* Post-Planning lifecycle: read-only status indicator so the
             user always knows where the trip stands. */}
         {showInlineStatusPill && (
@@ -1037,6 +1140,21 @@ const TripDetailHeader = ({
               <MoreVertIcon fontSize="small" />
             </IconButton>
             <Menu anchorEl={menuAnchor} onClose={closeMenu}>
+              {/* Mobile-only Share & download menu item. The desktop
+                  trigger is the ModalButton pill in the actions row;
+                  on mobile that pill is hidden by CSS and this menu
+                  entry opens the same export modal. */}
+              {canExport && (
+                <MenuActionItem
+                  icon={<IosShareIcon />}
+                  label="Share & download"
+                  onClick={() => {
+                    closeMenu();
+                    exportModalRef.current?.openModel();
+                  }}
+                  className="trip-detail-menu-item-share"
+                />
+              )}
               {/* Edit Trip is rendered both as the inline pill (desktop)
                   AND as this menu item (mobile). CSS hides whichever
                   doesn't belong at the current breakpoint — see

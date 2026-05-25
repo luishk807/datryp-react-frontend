@@ -65,6 +65,149 @@
   color: theme('colors.primary');
 }
 
+// ───── Completed banner ─────────────────────────────────────────────────
+// Sits above the day list when the trip status is Completed. Soft
+// trophy chip — the trip is "won," not just finished.
+.trip-detail-completed-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin: 4px 8px 18px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.12) 0%,
+    rgba(247, 159, 38, 0.1) 100%
+  );
+  border: 1px solid rgba(60, 181, 75, 0.18);
+}
+
+.trip-detail-completed-icon {
+  color: theme('colors.primaryOrange');
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(247, 159, 38, 0.28);
+}
+
+.trip-detail-completed-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trip-detail-completed-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+}
+
+.trip-detail-completed-sub {
+  font-size: 0.86rem;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.45;
+}
+
+// ───── End-of-trip cap ──────────────────────────────────────────────────
+// Soft full-stop after the last day. The flag dot picks the status
+// color so the start dot and the end dot read as a matched pair.
+.trip-detail-end {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 8px 0;
+  margin-top: 4px;
+}
+
+.trip-detail-end-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  border: 3px solid #fff;
+  box-shadow:
+    0 0 0 2px theme('colors.primaryGreen'),
+    0 2px 6px rgba(60, 181, 75, 0.35);
+}
+
+.trip-detail-end.status-planning .trip-detail-end-dot {
+  background: theme('colors.primaryOrange');
+  box-shadow:
+    0 0 0 2px theme('colors.primaryOrange'),
+    0 2px 6px rgba(247, 159, 38, 0.4);
+}
+
+.trip-detail-end.status-completed .trip-detail-end-dot,
+.trip-detail-end.status-cancelled .trip-detail-end-dot {
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.trip-detail-end-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+
+.trip-detail-end.status-completed .trip-detail-end-label,
+.trip-detail-end.status-cancelled .trip-detail-end-label {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+// ───── Mobile-only inline Mark Complete (Confirmed status) ──────────────
+// Hidden on desktop; shown on mobile so users tap-promote without
+// digging into the actions row.
+.trip-detail-inline-promote-mobile {
+  display: none;
+}
+
+// ───── Mobile breakpoint shifts ─────────────────────────────────────────
+@media (max-width: 720px) {
+  // Show the mobile-inline promote next to the bell.
+  .trip-detail-inline-promote-mobile {
+    display: inline-flex;
+  }
+
+  // Hide the desktop promote in the actions row (when status is
+  // Confirmed; the Planning case still uses the inline button up top).
+  .trip-detail-header-actions
+    > .trip-status-badge-wrapper:not(.trip-detail-inline-promote-mobile) {
+    display: none;
+  }
+
+  // Hide the static Confirmed pill — the inline Mark Complete button
+  // replaces it on mobile.
+  .trip-detail-header .trip-detail-status-confirmed {
+    display: none;
+  }
+
+  // Tour launcher collapses to icon only on mobile so the toggle row
+  // doesn't wrap.
+  .trip-detail-tour-launcher-btn span {
+    display: none;
+  }
+  .trip-detail-tour-launcher-btn {
+    padding: 6px 10px;
+  }
+
+  // Share / download ModalButton trigger moves into the three-dots
+  // menu. Hide the inline pill button; the menu item handles it.
+  .trip-detail-header-actions .trip-detail-download-btn {
+    display: none;
+  }
+}
+
 // Standalone trip-detail header — title row + main action buttons
 // hoisted out of BasicTripInfo so that Hide detail can unmount the
 // basic-info + budget cards without losing the title/buttons.

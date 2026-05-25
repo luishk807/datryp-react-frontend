@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
 import { Grid } from '@mui/material';
 import _ from 'lodash';
+import classnames from 'classnames';
 import MultipleTrips from 'components/DestinationDetail/Multiple';
 import SingleTrips from 'components/DestinationDetail/Single';
 import { formatDate, isSameDay, isSingleTrip } from 'utils';
 import './index.scss';
+import { TRIP_STATUS } from 'constants';
 import type { ActionType, Activity, Destination, Friend } from 'types';
 
 interface DateBlockProps {
@@ -76,8 +78,22 @@ const DateBlock = ({
 
     if (hideEmpty) return null;
 
+    // Status-driven theme class. The dot + content-tint pick their
+    // color from this so the timeline reads at a glance — soft orange
+    // while still in Planning, brand green once Confirmed, and a quiet
+    // gray once the trip is Completed. Cancelled uses the same gray
+    // treatment so the dead-trip case doesn't fight for attention.
+    const statusClass = (() => {
+        const name = (tripStatusName ?? '').toLowerCase();
+        if (name === TRIP_STATUS.PLANNING) return 'status-planning';
+        if (name === TRIP_STATUS.CONFIRMED) return 'status-confirmed';
+        if (name === TRIP_STATUS.COMPLETED) return 'status-completed';
+        if (name === TRIP_STATUS.CANCELLED) return 'status-cancelled';
+        return 'status-confirmed';
+    })();
+
     return (
-        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className="date-block">
+        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className={classnames('date-block', statusClass)}>
             <Grid container>
                 <Grid
                     item

@@ -73,11 +73,11 @@
   &.is-visited {
     background: transparent;
     box-shadow: none;
-    color: rgba(0, 0, 0, 0.85);
+    color: theme('colors.primaryGreen');
 
     &:hover {
-      background: rgba(0, 0, 0, 0.06);
-      color: rgba(0, 0, 0, 0.95);
+      background: rgba(60, 181, 75, 0.1);
+      color: theme('colors.primaryGreen');
     }
   }
 

@@ -23,14 +23,19 @@
   z-index: 100;
 }
 
+// Full-bleed header — extends edge-to-edge so the logo anchors the
+// far-left of the viewport and the account/notification cluster sits
+// flush right. Padding tightened so the row reads as compact chrome
+// rather than a stripe of empty space above the page content.
 .app-header-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 14px 24px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 8px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
 }
 
 .app-header-logo {
@@ -38,9 +43,37 @@
   flex-shrink: 0;
 }
 .app-header-logo .app-header-logo-full {
-  width: 130px;
+  width: 108px;
   height: auto;
   display: block;
+}
+
+// Brand group: logo + page-title bundled into one flex unit so the
+// outer `space-between` on `.app-header-inner` distributes free space
+// AROUND the brand group, not between the logo and the title. Tight
+// 10px gap keeps the title visually paired with the wordmark.
+.app-header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.app-header-page-title {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.app-header-page-title-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 // Icon-only logo lives in the DOM at all sizes; CSS toggles which is
 // visible. Keeps the rendered tree stable across breakpoints so React
@@ -189,13 +222,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: theme('colors.primaryGreen');
   color: #fff;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.9rem;
   letter-spacing: 0.02em;
   cursor: pointer;
   // Hide the bit of the uploaded photo that would otherwise spill past

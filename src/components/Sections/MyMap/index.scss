@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Full-bleed wrapper. The SubLayout `fullBleed` mode removes the
+// constrained Grid; the parent flex chain stretches us to the full
+// available viewport. `flex: 1` is the load-bearing piece —
+// `height: 100%` alone won't reliably propagate through flex parents
+// in every browser, and Mapbox renders nothing when its container
+// computes to 0 px.
+.my-map-page {
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  // No bottom padding — the canvas-wrap butts against the compact
+  // footer so there's no green strip between the rounded corner and
+  // the footer edge. Side padding kept so the stats chips +
+  // hide-map button don't kiss the viewport edges.
+  padding: 14px 20px 0;
+  box-sizing: border-box;
+  min-height: 70vh;
+}
+
+.my-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.my-map-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.my-map-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.08);
+  color: theme('colors.primary');
+  font-size: 0.84rem;
+
+  strong {
+    color: theme('colors.primaryGreen');
+    font-weight: 700;
+    margin-right: 2px;
+  }
+}
+
+.my-map-stat-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 1rem !important;
+}
+
+.my-map-controls {
+  display: inline-flex;
+  align-items: center;
+}
+
+.my-map-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  color: theme('colors.primary');
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    color: theme('colors.primaryGreen');
+    background: rgba(60, 181, 75, 0.04);
+  }
+}
+
+// ───── Map canvas ──────────────────────────────────────────────────────
+// Square the bottom corners + drop the bottom shadow so the wrap
+// reads as flush against the footer instead of a floating card with
+// a soft drop-shadow underneath (which previously looked like a gap).
+.my-map-canvas-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 60vh;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+  // Match the dominant tile color of the Mapbox light style so any
+  // sub-frame paint gap before Mapbox draws blends in instead of
+  // flashing green.
+  background: #e8e8e3;
+  isolation: isolate;
+}
+
+// Mapbox writes the canvas dimensions in pixels from the container's
+// box. Absolute-fill makes sure the container itself never collapses
+// to its child canvas's old size; flex parent stretches us, and the
+// child canvas resizes to match via the ResizeObserver in TSX.
+.my-map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.my-map-canvas-wrap.is-locked .my-map-canvas {
+  filter: blur(6px) saturate(0.85);
+  transform: scale(1.02);
+  transition: filter 0.3s ease;
+  pointer-events: none;
+}
+
+// Pinpoint marker. Plain div styled into a teardrop pin — using a
+// pseudo-element triangle for the stem so we don't need an SVG asset.
+.my-map-pin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: theme('colors.primaryOrange');
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.25);
+  }
+}
+
+.my-map-pin-meta {
+  display: inline-block;
+  margin-top: 2px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.82rem;
+}
+
+// ───── Pro paywall overlay ──────────────────────────────────────────────
+.my-map-paywall-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 28px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+}
+
+.my-map-paywall-icon {
+  font-size: 2.4rem !important;
+  color: theme('colors.primaryOrange');
+  background: #fff;
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow: 0 4px 16px rgba(247, 159, 38, 0.32);
+  margin-bottom: 14px;
+}
+
+.my-map-paywall-title {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.my-map-paywall-body {
+  margin: 0 0 18px;
+  max-width: 460px;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.55;
+}
+
+.my-map-paywall-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+// ───── List view (hide-map mode) ────────────────────────────────────────
+.my-map-list-view {
+  padding: 18px 4px 0;
+}
+
+.my-map-list-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: theme('colors.primary');
+}
+
+.my-map-list-empty {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.92rem;
+}
+
+.my-map-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.my-map-list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.my-map-list-flag {
+  font-size: 1.4rem;
+}
+
+.my-map-list-name {
+  font-size: 0.94rem;
+  color: theme('colors.primary');
+}
+
+// ───── Setup-missing state ──────────────────────────────────────────────
+.my-map-setup-missing {
+  padding: 40px 24px;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.6;
+
+  h2 {
+    color: theme('colors.primary');
+    font-size: 1.4rem;
+    margin: 0 0 12px;
+  }
+
+  code {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+
+  a {
+    color: theme('colors.primaryGreen');
+    text-decoration: underline;
+  }
+}
+
+// ───── Full-bleed page-shell tweaks ─────────────────────────────────────
+// Make the shell a flex column that consumes the viewport so the
+// `main` can stretch to fill all remaining height between header and
+// compact footer. The map page then claims 100% of that area.
+.page-shell.is-full-bleed {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-shell.is-full-bleed .page-content-full-bleed {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 720px) {
+  .my-map-page {
+    padding: 12px 14px 10px;
+  }
+}

@@ -115,7 +115,10 @@ export const generateTripOptions = async (
 ): Promise<TripOption[]> => {
     const resp = await fetch(`${API_BASE}/me/plan-trip-ai/options`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(),
+        },
         body: JSON.stringify({
             budget_usd: input.budgetUsd,
             interests: input.interests,
@@ -165,7 +168,10 @@ export const planTripWithAi = async (
 ): Promise<AiTripBuilderResult> => {
     const resp = await fetch(`${API_BASE}/me/plan-trip-ai`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(),
+        },
         body: JSON.stringify({
             budget_usd: input.budgetUsd,
             interests: input.interests,

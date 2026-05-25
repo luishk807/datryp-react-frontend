@@ -209,10 +209,22 @@ const BucketList = () => {
                 });
                 return;
             }
+            // Moderation gate — backend has structured copy meant for the
+            // user ("This goal includes content we can't help with…"). Show
+            // it verbatim.
+            if (err instanceof BucketListBlockedError) {
+                setError(err.message);
+                return;
+            }
+            // Everything else (422, 500, network drops, etc.) — surface a
+            // single friendly fallback. The raw `err.message` reads like
+            // a stack trace ("generate trip from bucket-list 422
+            // Unprocessable Entity") and means nothing to a traveler.
+            // Log the dev-facing detail for debugging.
+            // eslint-disable-next-line no-console
+            console.error('[bucket-list] generate trip failed:', err);
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Couldn't build that trip right now. Please try again."
+                "Sorry, we couldn't build your trip right now. Please try again in a moment."
             );
         } finally {
             setGeneratingText(null);

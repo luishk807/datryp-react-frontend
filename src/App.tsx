@@ -23,6 +23,7 @@ const SearchResults = lazy(() => import('components/Sections/SearchResults'));
 const PlaceDetail = lazy(() => import('components/Sections/PlaceDetail'));
 const SearchHistoryPage = lazy(() => import('components/Sections/SearchHistoryPage'));
 const Visited = lazy(() => import('components/Sections/Visited'));
+const MyMap = lazy(() => import('components/Sections/MyMap'));
 const Saved = lazy(() => import('components/Sections/Saved'));
 const BucketList = lazy(() => import('components/Sections/BucketList'));
 const AiTripBuilderPage = lazy(() => import('components/Sections/AiTripBuilderPage'));
@@ -156,6 +157,14 @@ function App() {
                         subtitle="Your visited list is tied to your account."
                     >
                         <Visited />
+                    </Gated>
+                }/>
+                <Route path='/my-map' element={
+                    <Gated
+                        title="Sign in to see your map"
+                        subtitle="Mapper plots every country and place you have visited."
+                    >
+                        <MyMap />
                     </Gated>
                 }/>
                 <Route path='/saved' element={

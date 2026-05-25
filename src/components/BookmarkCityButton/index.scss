@@ -64,14 +64,17 @@
     box-shadow: none;
   }
 
+  // Active heart fills in a saturated red — matches the place +
+  // country bookmark variants so the "saved" signal reads the same
+  // everywhere a heart appears.
   &.is-saved {
     background: transparent;
     box-shadow: none;
-    color: rgba(0, 0, 0, 0.85);
+    color: #e11d48;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.06);
-      color: rgba(0, 0, 0, 0.95);
+      background: rgba(225, 29, 72, 0.08);
+      color: #be123c;
     }
   }
 

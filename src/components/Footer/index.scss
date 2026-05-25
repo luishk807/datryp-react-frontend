@@ -8,6 +8,61 @@
   color: #fff;
 }
 
+// Compact one-line variant — used on full-bleed pages (e.g. /my-map)
+// where the footer should not eat vertical space. Logo + tagline are
+// suppressed; copyright + quick links sit inline.
+.footer.footer-compact {
+  padding: 0;
+}
+
+.footer-compact-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+}
+
+.footer-compact-copy {
+  opacity: 0.92;
+  white-space: nowrap;
+}
+
+.footer-compact-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  li a {
+    color: #fff;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-compact-inner {
+    padding: 8px 14px;
+    gap: 10px;
+    font-size: 0.78rem;
+  }
+  .footer-compact-links {
+    gap: 10px;
+  }
+}
+
 .footer-inner {
   max-width: 1280px;
   margin: 0 auto;

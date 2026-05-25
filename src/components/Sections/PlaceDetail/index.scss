@@ -412,6 +412,20 @@
   padding: 24px 0;
 }
 
+.place-detail-loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+}
+
+.place-detail-loading-wrap .place-detail-loading {
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  font-size: 1.05rem;
+  padding-bottom: 8px;
+}
+
 .place-detail-error {
   color: #c0392b;
   font-size: 0.9rem;

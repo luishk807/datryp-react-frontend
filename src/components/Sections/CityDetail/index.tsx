@@ -12,6 +12,7 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
+import LoadingFacts from "components/common/LoadingFacts";
 import CostBadge from "components/common/CostBadge";
 import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
@@ -167,12 +168,11 @@ const CityDetail = () => {
                     <p className="city-detail-loading-text">
                         Loading {name} details…
                     </p>
-                    <p className="city-detail-loading-hint">
-                        This city is new to us — gathering detailed travel
-                        info takes about a minute on first visit. Every
-                        future visit (yours and anyone else's) will be
-                        instant.
-                    </p>
+                    <LoadingFacts
+                        placeName={name}
+                        countryName={country}
+                        headline="A few things while you wait"
+                    />
                 </div>
             </Layout>
         );

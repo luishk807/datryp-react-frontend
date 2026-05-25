@@ -31,6 +31,49 @@
   display: inline-block;
 }
 
+// Status-driven theming. Each variant retones the dot + the vertical
+// timeline rail + the soft fill behind the activities. The DateBlock
+// receives `tripStatusName` and applies one of these classes — change
+// it once on the date-block container and the whole row updates.
+.date-block.status-planning .header .dot {
+  background: theme('colors.primaryOrange');
+  box-shadow:
+    0 0 0 2px theme('colors.primaryOrange'),
+    0 2px 6px rgba(247, 159, 38, 0.4);
+}
+
+.date-block.status-planning .content {
+  background: rgba(247, 159, 38, 0.05);
+}
+
+.date-block.status-planning .item-border {
+  border-left-color: rgba(247, 159, 38, 0.35);
+}
+
+// Completed: muted gray treatment so the trip reads as "history."
+.date-block.status-completed .header .dot,
+.date-block.status-cancelled .header .dot {
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.date-block.status-completed .content,
+.date-block.status-cancelled .content {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.date-block.status-completed .item-border,
+.date-block.status-cancelled .item-border {
+  border-left-color: rgba(0, 0, 0, 0.2);
+}
+
+.date-block.status-completed .header .title,
+.date-block.status-cancelled .header .title {
+  color: rgba(0, 0, 0, 0.55);
+}
+
 .date-block .header .title {
   padding-left: 14px;
   font-size: 1.05rem;

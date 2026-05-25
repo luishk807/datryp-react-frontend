@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton } from '@mui/material';
 import SearchBarIcon from '@mui/icons-material/SearchRounded';
@@ -13,7 +13,8 @@ import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
@@ -32,9 +33,14 @@ import './index.scss';
 interface HeaderProps {
     /** Renders a search bar between the logo and the nav (was the old Subheader). */
     withSearch?: boolean;
+    /** Optional page-title slot rendered immediately after the logo,
+     *  separated by a vertical divider. Used by full-bleed pages
+     *  (e.g. /my-map) to surface the page name without spending a
+     *  whole row of vertical space on a page-header. */
+    pageTitle?: ReactNode;
 }
 
-const Header = ({ withSearch = false }: HeaderProps) => {
+const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const { user, isAdmin, login, logout } = useUser();
@@ -114,25 +120,38 @@ const Header = ({ withSearch = false }: HeaderProps) => {
     return (
         <header className="app-header">
             <div className={classnames('app-header-inner', { 'with-search': withSearch })}>
-                <IconLink
-                    to="/"
-                    icon={
-                        <>
-                            <img
-                                src={LOGO_IMAGE}
-                                alt=""
-                                className="app-header-logo-full"
-                            />
-                            <img
-                                src={LOGO_ICON_IMAGE}
-                                alt=""
-                                className="app-header-logo-icon"
-                            />
-                        </>
-                    }
-                    ariaLabel="DaTryp.com home"
-                    className="app-header-logo"
-                />
+                {/* Brand group: logo + (optional) page-title. Wrapping
+                    them in one flex container keeps the title flush
+                    against the logo regardless of the outer
+                    `space-between` distribution. */}
+                <div className="app-header-brand">
+                    <IconLink
+                        to="/"
+                        icon={
+                            <>
+                                <img
+                                    src={LOGO_IMAGE}
+                                    alt=""
+                                    className="app-header-logo-full"
+                                />
+                                <img
+                                    src={LOGO_ICON_IMAGE}
+                                    alt=""
+                                    className="app-header-logo-icon"
+                                />
+                            </>
+                        }
+                        ariaLabel="DaTryp.com home"
+                        className="app-header-logo"
+                    />
+                    {pageTitle && (
+                        <span className="app-header-page-title">
+                            <span className="app-header-page-title-text">
+                                {pageTitle}
+                            </span>
+                        </span>
+                    )}
+                </div>
 
                 {withSearch && (
                     <div className="app-header-search">
@@ -208,7 +227,12 @@ const Header = ({ withSearch = false }: HeaderProps) => {
                                     onClick={() => handleNavigate('/visited')}
                                 />
                                 <MenuActionItem
-                                    icon={<BookmarkRoundedIcon />}
+                                    icon={<PublicRoundedIcon />}
+                                    label="Mapper"
+                                    onClick={() => handleNavigate('/my-map')}
+                                />
+                                <MenuActionItem
+                                    icon={<FavoriteRoundedIcon />}
                                     label="Saved Places"
                                     onClick={() => handleNavigate('/saved')}
                                 />

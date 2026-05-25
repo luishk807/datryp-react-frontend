@@ -202,7 +202,10 @@ export const generateTripFromBucket = async (
         `${API_BASE}/me/bucket-list/${encodeURIComponent(itemId)}/itinerary`,
         {
             method: 'POST',
-            headers: authHeaders(),
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders(),
+            },
             body: JSON.stringify({
                 party_size: input?.partySize ?? null,
                 duration_days: input?.durationDays ?? null,

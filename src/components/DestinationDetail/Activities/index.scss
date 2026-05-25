@@ -159,6 +159,29 @@
   animation: activity-now-stripe-pulse 1.8s ease-in-out infinite;
 }
 
+// Indeterminate variant — activity has a startTime but no endTime
+// (hotel check-in, note-like place). Bar fills full width and a
+// diagonal stripe sweeps across so "happening now" still reads as
+// animated, without claiming a specific elapsed-progress value.
+.activity-now-stripe.is-indeterminate .activity-now-stripe-fill {
+  background: repeating-linear-gradient(
+    -45deg,
+    theme('colors.primaryGreen') 0px,
+    theme('colors.primaryGreen') 8px,
+    #5fd55f 8px,
+    #5fd55f 16px
+  );
+  background-size: 22.6px 22.6px;
+  animation:
+    activity-now-stripe-pulse 1.8s ease-in-out infinite,
+    activity-now-stripe-sweep 1.2s linear infinite;
+}
+
+@keyframes activity-now-stripe-sweep {
+  0% { background-position: 0 0; }
+  100% { background-position: 22.6px 0; }
+}
+
 @keyframes activity-now-stripe-pulse {
   0%,
   100% {
@@ -296,6 +319,28 @@
   &:hover {
     background: theme('colors.primaryOrange');
     transform: translateY(-1px) scale(1.05);
+  }
+}
+
+// Past + completed = locked. Tick stays visible (green check) but the
+// hover affordance is removed and the cursor reads as not-allowed so
+// the user understands clicking won't do anything. MUI's
+// `Mui-disabled` would otherwise wash the icon to faint gray, hiding
+// the "this is done" signal — we override to keep it readable.
+.activity-content-trip .activity-card-complete-btn.is-past-locked.is-checked.MuiIconButton-root {
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  opacity: 0.85;
+  cursor: not-allowed;
+
+  &:hover {
+    background: theme('colors.primaryGreen');
+    transform: none;
+  }
+
+  &.Mui-disabled {
+    background: theme('colors.primaryGreen') !important;
+    color: #fff !important;
   }
 }
 

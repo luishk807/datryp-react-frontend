@@ -19,8 +19,38 @@ const QUICK_LINKS: QuickLink[] = [
   { label: "Privacy Policy", href: "/privacy", internal: true },
 ];
 
-const Footer = () => {
+interface FooterProps {
+  /** Compact one-line layout — used on full-bleed map page where the
+   *  footer should not eat vertical space. Renders just the brand,
+   *  copyright, and quick-links inline. */
+  compact?: boolean;
+}
+
+const Footer = ({ compact = false }: FooterProps) => {
   const year = new Date().getFullYear();
+
+  if (compact) {
+    return (
+      <footer className="footer footer-compact">
+        <div className="footer-compact-inner">
+          <span className="footer-compact-copy">
+            &copy; {year} DaTryp.com
+          </span>
+          <ul className="footer-compact-links">
+            {QUICK_LINKS.map((link) => (
+              <li key={link.label}>
+                {link.internal ? (
+                  <Link to={link.href}>{link.label}</Link>
+                ) : (
+                  <a href={link.href}>{link.label}</a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="footer">

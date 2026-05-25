@@ -40,7 +40,7 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
-import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PeopleOutlineRoundedIcon from '@mui/icons-material/PeopleOutlineRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
@@ -348,7 +348,12 @@ const BottomNav = () => {
                             onClick={() => handleNavigate('/visited')}
                         />
                         <AccountItem
-                            icon={<BookmarkRoundedIcon />}
+                            icon={<PublicRoundedIcon />}
+                            label="Mapper"
+                            onClick={() => handleNavigate('/my-map')}
+                        />
+                        <AccountItem
+                            icon={<FavoriteRoundedIcon />}
                             label="Saved Places"
                             onClick={() => handleNavigate('/saved')}
                         />
@@ -500,7 +505,7 @@ const BottomNav = () => {
                                 className="bottom-nav-search-shortcut"
                                 onClick={() => setSearchOpen(false)}
                             >
-                                <BookmarkRoundedIcon fontSize="small" />
+                                <FavoriteRoundedIcon fontSize="small" />
                                 <span>Saved places</span>
                             </Link>
                             <Link

@@ -1,57 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .about-page {
     width: 100%;
-    max-width: 880px;
+    max-width: 920px;
     margin: 0 auto;
     padding: 24px 0 80px;
     line-height: 1.6;
     color: rgba(0, 0, 0, 0.78);
 }
 
+// ───── Hero ─────────────────────────────────────────────────────────────
+// Big, motto-forward. The eyebrow + soft gradient backdrop set the
+// tone before the page even loads in copy. The motto itself is the
+// loudest type on the whole site — that is the point.
 .about-hero {
+    position: relative;
     text-align: center;
-    padding: 16px 0 40px;
+    padding: 56px 24px 48px;
+    margin: 0 -8px 40px;
+    border-radius: 28px;
+    background:
+        radial-gradient(
+            120% 100% at 50% 0%,
+            rgba(60, 181, 75, 0.18) 0%,
+            rgba(60, 181, 75, 0) 60%
+        ),
+        linear-gradient(
+            180deg,
+            #f8fbf7 0%,
+            #ffffff 100%
+        );
+    overflow: hidden;
 }
 
-.about-hero-title {
-    font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+.about-hero::before,
+.about-hero::after {
+    content: '';
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.about-hero::before {
+    top: -80px;
+    left: -80px;
+    background: rgba(60, 181, 75, 0.35);
+}
+
+.about-hero::after {
+    bottom: -100px;
+    right: -60px;
+    background: rgba(247, 159, 38, 0.28);
+}
+
+.about-hero-eyebrow {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    font-size: 0.72rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: theme('colors.primaryGreen');
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(60, 181, 75, 0.1);
+    margin-bottom: 16px;
+}
+
+.about-hero-motto {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 0 auto 18px;
     color: theme('colors.primary');
-    margin: 0 0 16px;
-    letter-spacing: -0.02em;
+    background: linear-gradient(
+        135deg,
+        theme('colors.primaryGreen') 0%,
+        #2d8f37 60%,
+        theme('colors.primaryOrange') 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .about-hero-lede {
-    font-size: 1.05rem;
-    color: rgba(0, 0, 0, 0.65);
+    position: relative;
+    z-index: 1;
+    font-size: 1.08rem;
+    color: rgba(0, 0, 0, 0.7);
     max-width: 620px;
-    margin: 0 auto;
+    margin: 0 auto 28px;
 }
 
+.about-hero-pillars {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.about-pillar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.72);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.about-pillar-icon {
+    font-size: 1rem !important;
+    color: theme('colors.primaryGreen');
+}
+
+.about-pillar:nth-child(2) .about-pillar-icon {
+    color: theme('colors.primaryOrange');
+}
+
+// ───── Feature cards ────────────────────────────────────────────────────
 .about-features {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
-    margin: 16px 0 48px;
+    margin: 0 0 56px;
 }
 
 .about-feature {
-    padding: 22px 22px;
+    padding: 24px;
     background: #fff;
     border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 22px rgba(60, 181, 75, 0.12);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(60, 181, 75, 0.14);
     }
 }
 
+.about-feature-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(60, 181, 75, 0.12);
+    margin-bottom: 12px;
+}
+
 .about-feature-icon {
-    font-size: 2rem !important;
+    font-size: 1.5rem !important;
     color: theme('colors.primaryGreen');
-    margin-bottom: 10px;
+}
+
+.about-feature:nth-child(2) .about-feature-icon-wrap {
+    background: rgba(247, 159, 38, 0.12);
+}
+
+.about-feature:nth-child(2) .about-feature-icon {
+    color: theme('colors.primaryOrange');
+}
+
+.about-feature:nth-child(3) .about-feature-icon-wrap {
+    background: rgba(96, 165, 250, 0.15);
+}
+
+.about-feature:nth-child(3) .about-feature-icon {
+    color: #3b82f6;
+}
+
+.about-feature:nth-child(4) .about-feature-icon-wrap {
+    background: rgba(168, 85, 247, 0.15);
+}
+
+.about-feature:nth-child(4) .about-feature-icon {
+    color: #a855f7;
 }
 
 .about-feature-title {
@@ -59,23 +202,43 @@
     font-weight: 700;
     color: theme('colors.primary');
     margin: 0 0 6px;
+    letter-spacing: -0.005em;
 }
 
 .about-feature-body {
-    font-size: 0.95rem;
-    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.93rem;
+    color: rgba(0, 0, 0, 0.62);
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
+// ───── Sections ─────────────────────────────────────────────────────────
 .about-section {
-    margin-bottom: 36px;
+    margin-bottom: 40px;
 
     h2 {
-        font-size: 1.4rem;
+        font-size: 1.55rem;
         font-weight: 700;
         color: theme('colors.primary');
-        margin: 0 0 12px;
+        margin: 0 0 14px;
+        letter-spacing: -0.015em;
+        position: relative;
+        padding-left: 14px;
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            bottom: 8px;
+            width: 4px;
+            border-radius: 4px;
+            background: linear-gradient(
+                180deg,
+                theme('colors.primaryGreen') 0%,
+                theme('colors.primaryOrange') 100%
+            );
+        }
     }
 
     p {
@@ -90,9 +253,60 @@
 
 .about-inline-link {
     color: theme('colors.primaryGreen');
+    font-weight: 600;
     text-decoration: underline;
+    text-decoration-color: rgba(60, 181, 75, 0.4);
+    text-underline-offset: 3px;
 
     &:hover {
+        color: theme('colors.primaryOrange');
+        text-decoration-color: theme('colors.primaryOrange');
+    }
+}
+
+// ───── CTA strip ────────────────────────────────────────────────────────
+.about-cta {
+    margin-top: 28px;
+    padding: 36px 24px;
+    border-radius: 22px;
+    background: linear-gradient(
+        135deg,
+        theme('colors.primaryGreen') 0%,
+        #2d8f37 100%
+    );
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    box-shadow: 0 10px 28px rgba(60, 181, 75, 0.25);
+}
+
+.about-cta-title {
+    margin: 0;
+    font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.about-cta-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: #fff;
+    color: theme('colors.primaryGreen');
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
         color: theme('colors.primaryOrange');
     }
 }
@@ -100,5 +314,9 @@
 @media (max-width: 640px) {
     .about-features {
         grid-template-columns: 1fr;
+    }
+    .about-hero {
+        padding: 44px 18px 36px;
+        border-radius: 22px;
     }
 }

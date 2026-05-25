@@ -9,9 +9,35 @@ interface SubLayoutProps {
     children?: ReactNode;
     title?: string;
     titleAction?: ReactNode;
+    /** When true, skip the constrained grid + title bar and render
+     *  children directly in `<main>`. Used by the /my-map page so the
+     *  Mapbox canvas can span the full viewport width. The footer is
+     *  rendered in a compact one-line variant on full-bleed pages so
+     *  the map gets every available pixel. */
+    fullBleed?: boolean;
 }
 
-const Layout = ({ children, title = '', titleAction }: SubLayoutProps) => {
+const Layout = ({
+    children,
+    title = '',
+    titleAction,
+    fullBleed = false,
+}: SubLayoutProps) => {
+    if (fullBleed) {
+        return (
+            <div className="page-shell is-subpage is-full-bleed">
+                {/* `title` doubles as the in-header page-title slot on
+                    full-bleed pages so the chrome row stays a single
+                    line and the page-body can claim 100% vertical
+                    space (e.g. the /my-map globe). */}
+                <Header withSearch pageTitle={title || undefined} />
+                <main className="page-content page-content-full-bleed">
+                    {children}
+                </main>
+                <Footer compact />
+            </div>
+        );
+    }
     return (
         // `is-subpage` flags subpages for header CSS (mobile logo
         // swap). The previous `hideHeaderSearchOnMobile` opt-in

@@ -11,6 +11,7 @@ import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
+import LoadingFacts from "components/common/LoadingFacts";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
 import VisitedButton from "components/VisitedButton";
@@ -125,7 +126,15 @@ const PlaceDetail = () => {
   if (isLoading) {
     return (
       <Layout title="Loading…">
-        <p className="place-detail-loading">Loading details…</p>
+        <div className="place-detail-loading-wrap" role="status" aria-live="polite">
+          <p className="place-detail-loading">
+            {query ? `Loading ${query} details…` : 'Loading details…'}
+          </p>
+          <LoadingFacts
+            placeName={query}
+            headline="A few things while you wait"
+          />
+        </div>
       </Layout>
     );
   }
