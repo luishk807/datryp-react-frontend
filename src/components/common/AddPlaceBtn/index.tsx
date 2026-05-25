@@ -71,6 +71,19 @@ interface PlaceDraft {
      *  submit helper lifts `confirmationNumber` into this shape so the
      *  consumer's Activity stays clean). */
     hotelInfo?: { confirmationNumber?: string };
+    /** Structured place data lifted off a picked PlaceSuggestion (from
+     *  PlaceAutocomplete or PlaceSuggestions). Stashed on the draft so
+     *  it rides along with the activity on save and reaches the
+     *  backend's `activities` row. The Mapper trip-link cascade reads
+     *  these on trip completion to write `visited_places` rows with a
+     *  tripId back-link. Null/undefined when the user typed free-text
+     *  instead of picking. */
+    placeKey?: string | null;
+    placeCity?: string | null;
+    placeCountry?: string | null;
+    countryCode?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
 }
 
 const emptySegment = (): FlightInfo => ({});
@@ -324,7 +337,14 @@ const AddPlaceBtn = ({
     };
 
     /** AI suggestion picked from PlaceAutocomplete — prefill name + location
-     *  + image in one go. The user can still edit any of them before saving. */
+     *  + image in one go. The user can still edit any of them before saving.
+     *
+     *  Also stashes the structured place block (city / country / countryCode /
+     *  lat / lng) from the suggestion so it rides along on save. The Mapper
+     *  trip-link cascade reads those fields off the saved activity to write
+     *  self-only `visited_places` rows with a tripId back-link. If the user
+     *  later edits the activity's name into something unrelated, that's
+     *  fine — the structured block stays as the picked place's identity. */
     const handlePlacePicked = (suggestion: PlaceSuggestion) => {
         setError(null);
         setPlace((prev) => ({
@@ -334,6 +354,11 @@ const AddPlaceBtn = ({
             image: suggestion.imageUrl
                 ? { url: suggestion.imageUrl, name: suggestion.name }
                 : prev.image,
+            placeCity: suggestion.city || null,
+            placeCountry: suggestion.country || null,
+            countryCode: suggestion.countryCode ?? null,
+            latitude: suggestion.latitude ?? null,
+            longitude: suggestion.longitude ?? null,
         }));
     };
 
@@ -582,6 +607,17 @@ const AddPlaceBtn = ({
                 confirmationNumber: isHotelEdit
                     ? data.hotelInfo?.confirmationNumber
                     : undefined,
+                // Preserve the structured place block across edit. Without
+                // this, saving an edited place would null out the city /
+                // country / coords on the server and break the Mapper
+                // trip-link cascade. The block isn't user-editable in the
+                // form today — it lives or dies by whether the original
+                // create picked from PlaceAutocomplete.
+                placeCity: data.placeCity ?? null,
+                placeCountry: data.placeCountry ?? null,
+                countryCode: data.countryCode ?? null,
+                latitude: data.latitude ?? null,
+                longitude: data.longitude ?? null,
             });
         } else {
             setPlace(buildInitialPlace());

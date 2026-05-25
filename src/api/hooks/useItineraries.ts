@@ -62,6 +62,17 @@ export interface ApiActivity {
     kind: string | null;
     /** One row per flight leg. Empty for non-flight activities. */
     flightSegments: ApiFlightInfo[];
+    /** Structured place data set when the user added the activity via
+     *  PlaceAutocomplete / PlaceSuggestions. Null on free-text
+     *  activities ("dinner with mom"). Drives the Mapper trip-link
+     *  cascade — a visited-place pin on /my-map gets a "View trip"
+     *  CTA when a matching itinerary activity exists. */
+    placeKey: string | null;
+    placeCity: string | null;
+    placeCountry: string | null;
+    countryCode: string | null;
+    latitude: number | null;
+    longitude: number | null;
 }
 
 export interface ApiItineraryDate {
@@ -120,6 +131,18 @@ export interface ActivityInput {
     kind?: string | null;
     /** Flight legs, in chronological depart order. Empty for non-flight. */
     flightSegments?: FlightInfoInput[];
+    /** Structured place data captured when the user picks a real place
+     *  from PlaceAutocomplete / PlaceSuggestions. All optional —
+     *  free-text activities omit them and the backend stores nulls.
+     *  `placeKey` is intentionally not in this input shape: the backend
+     *  derives the canonical slug from (name, placeCity, placeCountry)
+     *  via the same helper `visited_places` uses, so the FE can't
+     *  fabricate a slug that wouldn't match other surfaces. */
+    placeCity?: string | null;
+    placeCountry?: string | null;
+    countryCode?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
 }
 
 export interface ItineraryDayInput {
@@ -252,6 +275,12 @@ const ITINERARY_FIELDS = gql`
                     departAirport
                     arrivalAirport
                 }
+                placeKey
+                placeCity
+                placeCountry
+                countryCode
+                latitude
+                longitude
             }
         }
     }

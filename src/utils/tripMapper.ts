@@ -167,6 +167,11 @@ const activityToInput = (
     budgets: budgetEntriesToInput(activity.budget),
     kind: activity.kind ?? null,
     flightSegments: flightSegmentsToInput(activity.flightSegments),
+    placeCity: activity.placeCity ?? null,
+    placeCountry: activity.placeCountry ?? null,
+    countryCode: activity.countryCode ?? null,
+    latitude: activity.latitude ?? null,
+    longitude: activity.longitude ?? null,
 });
 
 export interface MapTripOptions {

@@ -134,6 +134,12 @@ const apiActivityToActivity = (a: ApiActivity): Activity => ({
     flightSegments: a.flightSegments?.length
         ? a.flightSegments.map(apiFlightSegmentToFlightInfo)
         : undefined,
+    placeKey: a.placeKey,
+    placeCity: a.placeCity,
+    placeCountry: a.placeCountry,
+    countryCode: a.countryCode,
+    latitude: a.latitude,
+    longitude: a.longitude,
 });
 
 const apiUserToFriend = (u: { id: string; name: string | null; email: string }): Friend => ({

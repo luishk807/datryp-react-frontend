@@ -67,6 +67,17 @@ export interface Activity {
   hotelInfo?: {
     confirmationNumber?: string;
   };
+  /** Structured place data captured when the user picks a real place
+   *  from PlaceAutocomplete / PlaceSuggestions. Null/undefined on
+   *  free-text activities. The Mapper trip-link cascade (PR 3) reads
+   *  these fields to write self-only `visited_places` rows with a
+   *  tripId back-link when a trip is marked Completed. */
+  placeKey?: string | null;
+  placeCity?: string | null;
+  placeCountry?: string | null;
+  countryCode?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface ItineraryDay {
