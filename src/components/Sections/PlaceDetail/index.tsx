@@ -309,6 +309,18 @@ const PlaceDetail = () => {
               fallbackDescription={place.description}
             />
 
+            {/* "Getting there" lives in the main content column —
+                                surfaces the distance + travel time + Maps deep-
+                                link right after the description, where users
+                                naturally ask "how do I get there?". Previously
+                                tucked into the right-side aside where it was
+                                easy to miss. */}
+            <GettingThereSection
+              placeName={`${place.name}, ${place.city}`}
+              coordinates={detailsQuery.data?.details.coordinates}
+              isError={detailsQuery.isError}
+            />
+
             <ParagraphSection
               title={`About ${place.country}`}
               description={detailsQuery.data?.details.countryDescription}
@@ -340,12 +352,6 @@ const PlaceDetail = () => {
           <aside className="place-detail-content-side">
             <PopularitySection
               popularity={detailsQuery.data?.details.popularity}
-              isError={detailsQuery.isError}
-            />
-
-            <GettingThereSection
-              placeName={`${place.name}, ${place.city}`}
-              coordinates={detailsQuery.data?.details.coordinates}
               isError={detailsQuery.isError}
             />
 

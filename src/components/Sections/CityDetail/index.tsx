@@ -363,6 +363,16 @@ const CityDetail = () => {
                             isError={false}
                         />
 
+                        {/* Getting There moved into the main column so
+                            the distance + travel-time + Maps deep-link
+                            sit alongside the rest of the logistical
+                            info instead of being buried in the aside. */}
+                        <GettingThereSection
+                            placeName={placeForGetting}
+                            coordinates={details.coordinates}
+                            isError={false}
+                        />
+
                         <ParagraphSection
                             title={`About ${city.country}`}
                             description={details.countryDescription}
@@ -394,12 +404,6 @@ const CityDetail = () => {
                     <aside className="city-detail-content-side">
                         <PopularitySection
                             popularity={details.popularity}
-                            isError={false}
-                        />
-
-                        <GettingThereSection
-                            placeName={placeForGetting}
-                            coordinates={details.coordinates}
                             isError={false}
                         />
 

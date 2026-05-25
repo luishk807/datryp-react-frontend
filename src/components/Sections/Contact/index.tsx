@@ -5,6 +5,12 @@ import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import BugReportRoundedIcon from '@mui/icons-material/BugReportRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import { Link } from 'react-router-dom';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
 import { useUser } from 'context/UserContext';
@@ -13,6 +19,87 @@ import { EMAIL_REGEX } from 'constants';
 import './index.scss';
 
 const CONTACT_EMAIL = 'info@datryp.com';
+
+interface FaqItem {
+    q: string;
+    a: React.ReactNode;
+}
+
+const FAQ_ITEMS: FaqItem[] = [
+    {
+        q: 'How long until I get a reply?',
+        a: (
+            <>
+                We aim for one or two business days. Account /
+                billing issues get prioritized — if you write{' '}
+                <em>billing</em> in the subject, we route it
+                straight to that queue.
+            </>
+        ),
+    },
+    {
+        q: "What's free vs. Pro?",
+        a: (
+            <>
+                The core app — searching, viewing places, marking
+                visited, planning one trip at a time — is free.
+                Pro unlocks AI-built trips, your full visited-places
+                map, unlimited saved trips, and the monthly best-
+                place picks. See{' '}
+                <Link to="/membership" className="contact-inline-link">
+                    Membership
+                </Link>{' '}
+                for the current pricing.
+            </>
+        ),
+    },
+    {
+        q: 'How do I cancel my Pro subscription?',
+        a: (
+            <>
+                Open the{' '}
+                <Link to="/account" className="contact-inline-link">
+                    Account
+                </Link>{' '}
+                page and look for the Subscription card. The
+                &ldquo;Manage subscription&rdquo; button takes you to
+                Stripe&rsquo;s Customer Portal where you can cancel,
+                update payment, or change plans. Cancellation takes
+                effect at the end of the current billing period — no
+                proration, but you keep Pro features until then.
+            </>
+        ),
+    },
+    {
+        q: 'How do I delete my account?',
+        a: (
+            <>
+                Account &rarr; scroll to the bottom &rarr;{' '}
+                <strong>Delete account</strong>. Deletion removes
+                your profile, trips, bookmarks, and visited-places
+                lists. Anonymized usage telemetry may be retained for
+                up to 30 days for security/audit, then purged.
+            </>
+        ),
+    },
+    {
+        q: 'What data do you share with third parties?',
+        a: (
+            <>
+                We don&rsquo;t sell or share your personal data with
+                marketers. Names + emails go to SendGrid for
+                transactional email, Stripe for payments, and OpenAI
+                / Unsplash for AI trip-builder and photo lookups (as
+                request bodies, not for training). Full breakdown
+                lives on the{' '}
+                <Link to="/privacy" className="contact-inline-link">
+                    Privacy
+                </Link>{' '}
+                page.
+            </>
+        ),
+    },
+];
 
 const REASONS = [
     {
@@ -109,6 +196,39 @@ const Contact = () => {
                         directly.
                     </p>
                 </section>
+
+                {/* Quick-reference callout — sits above the form so the
+                    "we won't ask for passwords" warning and "screenshots
+                    help" tip are visible BEFORE the user starts writing,
+                    not buried at the bottom of the page. */}
+                {!sent && (
+                    <aside className="contact-tips" aria-label="Before you write">
+                        <ul className="contact-tips-list">
+                            <li>
+                                <MailOutlineRoundedIcon className="contact-tips-icon" />
+                                <span>
+                                    We reply from a real human inbox at{' '}
+                                    <strong>{CONTACT_EMAIL}</strong>.
+                                </span>
+                            </li>
+                            <li>
+                                <LockOutlinedIcon className="contact-tips-icon" />
+                                <span>
+                                    Don&rsquo;t share passwords or payment
+                                    details &mdash; we&rsquo;ll never ask for
+                                    them.
+                                </span>
+                            </li>
+                            <li>
+                                <PhotoCameraOutlinedIcon className="contact-tips-icon" />
+                                <span>
+                                    A screenshot or steps to reproduce a bug
+                                    helps us ship a fix faster.
+                                </span>
+                            </li>
+                        </ul>
+                    </aside>
+                )}
 
                 {sent ? (
                     <section className="contact-success" role="status">
@@ -245,23 +365,34 @@ const Contact = () => {
                     ))}
                 </section>
 
-                <section className="contact-section">
-                    <h2>A few notes</h2>
-                    <ul className="contact-list">
-                        <li>
-                            We reply from a real human inbox at{' '}
-                            <strong>{CONTACT_EMAIL}</strong>.
-                        </li>
-                        <li>
-                            Don't share passwords or payment details — we'll
-                            never ask for them.
-                        </li>
-                        <li>
-                            A screenshot or steps to reproduce a bug helps us
-                            ship a fix faster.
-                        </li>
-                    </ul>
+                {/* Common-questions accordion — answers the questions
+                    most people would otherwise email about (reply
+                    time, billing, deletion, data sharing). Cuts inbox
+                    volume and gets users to the answer faster. */}
+                <section className="contact-faq" aria-label="Frequently asked questions">
+                    <h2 className="contact-faq-title">Common questions</h2>
+                    {FAQ_ITEMS.map(({ q, a }) => (
+                        <Accordion
+                            key={q}
+                            disableGutters
+                            elevation={0}
+                            className="contact-faq-item"
+                        >
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreRoundedIcon />}
+                                className="contact-faq-summary"
+                            >
+                                <span className="contact-faq-question">
+                                    {q}
+                                </span>
+                            </AccordionSummary>
+                            <AccordionDetails className="contact-faq-answer">
+                                {a}
+                            </AccordionDetails>
+                        </Accordion>
+                    ))}
                 </section>
+
             </article>
         </Layout>
     );

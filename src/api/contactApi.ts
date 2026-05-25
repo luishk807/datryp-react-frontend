@@ -44,10 +44,22 @@ export const sendContactForm = async (
         body: JSON.stringify(payload),
     });
     if (!resp.ok) {
+        // Rate-limit hit (SlowAPI on the backend caps /contact at 5/hr
+        // per IP). Substitute a friendly explanation in place of the
+        // raw "Rate limit exceeded: 5 per 1 hour" detail so the
+        // ErrorAlert reads like the user can do something about it.
+        if (resp.status === 429) {
+            throw new Error(
+                "You've sent a few messages in a row — please wait a bit before trying again."
+            );
+        }
         let message = `${resp.status} ${resp.statusText}`;
         try {
             const body = await resp.json();
-            const formatted = formatDetail(body?.detail);
+            // SlowAPI uses `error`; FastAPI default uses `detail`. Check
+            // both so the caller surfaces a useful message either way.
+            const formatted =
+                formatDetail(body?.detail) ?? formatDetail(body?.error);
             if (formatted) message = formatted;
         } catch {
             // ignore JSON parse errors

@@ -248,6 +248,110 @@
     }
 }
 
+// ── "Before you write" callout — replaces the old bottom-of-page
+// "A few notes" section. Sits between the hero and the form so the
+// password warning + screenshot tip are visible while the user is
+// still framing what they're going to say.
+.contact-tips {
+    margin: 0 0 24px;
+    padding: 14px 18px;
+    background: rgba(60, 181, 75, 0.06);
+    border: 1px solid rgba(60, 181, 75, 0.18);
+    border-left: 3px solid theme('colors.primaryGreen');
+    border-radius: 10px;
+}
+
+.contact-tips-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.92rem;
+        color: rgba(0, 0, 0, 0.72);
+        line-height: 1.45;
+    }
+}
+
+.contact-tips-icon {
+    flex-shrink: 0;
+    color: theme('colors.primaryGreen');
+    margin-top: 1px;
+    font-size: 1.1rem !important;
+}
+
+// ── FAQ accordion ───────────────────────────────────────────────────────
+.contact-faq {
+    margin-top: 32px;
+}
+
+.contact-faq-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+    margin: 0 0 14px;
+}
+
+// MUI Accordion theming — flat card with rounded corners, no shadow.
+// The default MUI styling has a hard top-border and elevation that
+// fights with our visual rhythm; we want a quiet, list-like feel.
+.contact-faq-item.MuiAccordion-root {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px !important;
+    margin-bottom: 10px;
+    background: #fff;
+    overflow: hidden;
+
+    &::before {
+        display: none; // MUI's default top divider line
+    }
+
+    &.Mui-expanded {
+        border-color: rgba(60, 181, 75, 0.32);
+        box-shadow: 0 2px 8px rgba(60, 181, 75, 0.08);
+    }
+}
+
+.contact-faq-summary.MuiAccordionSummary-root {
+    padding: 4px 18px;
+    min-height: 52px;
+
+    &.Mui-expanded {
+        min-height: 52px;
+    }
+
+    .MuiAccordionSummary-content {
+        margin: 12px 0;
+
+        &.Mui-expanded {
+            margin: 12px 0;
+        }
+    }
+
+    .MuiAccordionSummary-expandIconWrapper {
+        color: theme('colors.primaryGreen');
+    }
+}
+
+.contact-faq-question {
+    font-size: 1rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+}
+
+.contact-faq-answer.MuiAccordionDetails-root {
+    padding: 0 18px 16px;
+    font-size: 0.95rem;
+    color: rgba(0, 0, 0, 0.72);
+    line-height: 1.55;
+}
+
 @media (max-width: 760px) {
     .contact-reasons {
         grid-template-columns: 1fr;

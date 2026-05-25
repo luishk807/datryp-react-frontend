@@ -293,19 +293,6 @@ const CountryDetail = () => {
               popularity={details.popularity}
               isError={false}
             />
-            {/* Getting There — anchors on the capital city's
-                coordinates. Hides entirely for cached rows from
-                before the AI started returning `capital_coordinates`
-                so users don't see a perpetually-loading skeleton.
-                Once the row is regenerated the field arrives and
-                the widget appears on its own. */}
-            {details.capitalCoordinates && (
-              <GettingThereSection
-                placeName={`${details.capitalCity}, ${country.name}`}
-                coordinates={details.capitalCoordinates}
-                isError={false}
-              />
-            )}
             <WeatherSection
               weather={details.weather}
               isError={false}
@@ -360,6 +347,20 @@ const CountryDetail = () => {
               description={details.longDescription}
               isError={false}
             />
+
+            {/* Getting There — anchors on the capital city's
+                coordinates. Hides entirely for cached rows from
+                before the AI started returning `capital_coordinates`
+                so users don't see a perpetually-loading skeleton.
+                Lives in the main content column where logistical
+                info belongs alongside Budget / Notes. */}
+            {details.capitalCoordinates && (
+              <GettingThereSection
+                placeName={`${details.capitalCity}, ${country.name}`}
+                coordinates={details.capitalCoordinates}
+                isError={false}
+              />
+            )}
 
             <BudgetSection
               description={details.budgetDescription}
