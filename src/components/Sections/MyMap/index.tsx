@@ -96,6 +96,8 @@ const MyMap = () => {
                     country: p.placeCountry ?? '',
                     lat: p.latitude as number,
                     lng: p.longitude as number,
+                    source: p.source,
+                    visitedAt: p.visitedAt,
                 })),
         [visitedPlaces]
     );
@@ -219,6 +221,10 @@ const MyMap = () => {
     }, [countryCodes, mapReady]);
 
     // Sync place markers — clear, then add one per place with lat/lng.
+    // The popup carries enough context to recognize the place (name +
+    // city) and a primary CTA that opens the full place-detail page in
+    // a new tab. Visited-places don't carry a tripId, so we can't link
+    // back to a specific trip — the place page is the closest anchor.
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady) return;
@@ -228,22 +234,15 @@ const MyMap = () => {
             const el = document.createElement('div');
             el.className = 'my-map-pin';
             const popup = new mapboxgl.Popup({
-                offset: 16,
-                closeButton: false,
-            }).setHTML(
-                `<strong>${escapeHtml(pin.name)}</strong>${
-                    pin.city
-                        ? `<br/><span class="my-map-pin-meta">${escapeHtml(
-                              pin.city
-                          )}${
-                              pin.country
-                                  ? `, ${escapeHtml(pin.country)}`
-                                  : ''
-                          }</span>`
-                        : ''
-                }`
-            );
-            const marker = new mapboxgl.Marker(el)
+                offset: 18,
+                closeButton: true,
+                maxWidth: '260px',
+                className: 'my-map-pin-popup',
+            }).setHTML(renderPinPopupHtml(pin));
+            const marker = new mapboxgl.Marker({
+                element: el,
+                anchor: 'bottom',
+            })
                 .setLngLat([pin.lng, pin.lat])
                 .setPopup(popup)
                 .addTo(map);
@@ -445,5 +444,79 @@ const escapeHtml = (s: string): string =>
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+
+/** Friendly "Visited Jun 14, 2024" line; returns '' for missing/invalid
+ *  timestamps so the popup just skips the row instead of rendering
+ *  "Invalid Date". */
+const formatVisitedAt = (iso: string | null | undefined): string => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (!Number.isFinite(d.getTime())) return '';
+    return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+};
+
+interface PinPopupInput {
+    name: string;
+    city: string;
+    country: string;
+    source?: string;
+    visitedAt?: string | null;
+}
+
+/** Render the Mapbox popup body for a visited place. All values
+ *  flow through `escapeHtml` since Mapbox injects this as innerHTML.
+ *  The "View details" link is plain HTML — `target="_blank"` opens it
+ *  in a new tab so the user keeps the map context. */
+const renderPinPopupHtml = (pin: PinPopupInput): string => {
+    const detailHref = `/place?q=${encodeURIComponent(pin.name)}&i=0`;
+    const locationLine = [pin.city, pin.country]
+        .filter(Boolean)
+        .map(escapeHtml)
+        .join(', ');
+    const visited = formatVisitedAt(pin.visitedAt);
+    const sourceLabel =
+        pin.source === 'itinerary'
+            ? 'From a trip'
+            : pin.source === 'manual'
+              ? 'Marked visited'
+              : '';
+    return `
+        <div class="my-map-pin-popup-inner">
+            <div class="my-map-pin-popup-title">${escapeHtml(pin.name)}</div>
+            ${
+                locationLine
+                    ? `<div class="my-map-pin-popup-loc">${locationLine}</div>`
+                    : ''
+            }
+            ${
+                visited || sourceLabel
+                    ? `<div class="my-map-pin-popup-meta">${
+                          sourceLabel
+                              ? `<span class="my-map-pin-popup-chip">${escapeHtml(
+                                    sourceLabel
+                                )}</span>`
+                              : ''
+                      }${
+                          visited
+                              ? `<span class="my-map-pin-popup-date">Visited ${escapeHtml(
+                                    visited
+                                )}</span>`
+                              : ''
+                      }</div>`
+                    : ''
+            }
+            <a
+                class="my-map-pin-popup-cta"
+                href="${detailHref}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >View details</a>
+        </div>
+    `;
+};
 
 export default MyMap;

@@ -45,6 +45,12 @@ jobs:
         # `.env.production` is committed and carries the prod
         # VITE_PYTHON_API_URL — Vite picks it up automatically when
         # `npm run build` runs in production mode.
+        # Secrets-style values (Mapbox token) are passed via the
+        # job env so they stay out of the committed env file.
+        # Vite reads any VITE_* in the process environment at build
+        # time and bakes it into the bundle.
+        env:
+          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
         run: npm run build
 
       - name: Configure AWS credentials

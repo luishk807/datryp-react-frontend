@@ -23,19 +23,14 @@
   z-index: 100;
 }
 
-// Full-bleed header — extends edge-to-edge so the logo anchors the
-// far-left of the viewport and the account/notification cluster sits
-// flush right. Padding tightened so the row reads as compact chrome
-// rather than a stripe of empty space above the page content.
 .app-header-inner {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 8px 20px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
 }
 
 .app-header-logo {
@@ -43,7 +38,7 @@
   flex-shrink: 0;
 }
 .app-header-logo .app-header-logo-full {
-  width: 108px;
+  width: 130px;
   height: auto;
   display: block;
 }
@@ -74,6 +69,30 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// ───── Compact header on full-bleed pages (e.g. /mapper) ────────────
+// Full-bleed pages own the entire viewport, so the header acts as
+// thin chrome rather than a centered content row. Only applied when
+// the SubLayout sets `is-full-bleed` on the outer shell; all other
+// pages keep the default centered 1280px max-width header.
+.page-shell.is-full-bleed {
+  .app-header-inner {
+    max-width: none;
+    margin: 0;
+    padding: 8px 20px;
+    gap: 20px;
+  }
+
+  .app-header-logo .app-header-logo-full {
+    width: 108px;
+  }
+
+  .app-header-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
 }
 // Icon-only logo lives in the DOM at all sizes; CSS toggles which is
 // visible. Keeps the rendered tree stable across breakpoints so React
@@ -222,13 +241,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: theme('colors.primaryGreen');
   color: #fff;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
   letter-spacing: 0.02em;
   cursor: pointer;
   // Hide the bit of the uploaded photo that would otherwise spill past

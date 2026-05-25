@@ -145,6 +145,83 @@
   font-size: 0.82rem;
 }
 
+// ───── Pin popup ───────────────────────────────────────────────────────
+// Tighter padding + a primary CTA at the bottom. Mapbox owns the
+// outer arrow/tip; we own the content card.
+.mapboxgl-popup.my-map-pin-popup .mapboxgl-popup-content {
+  padding: 14px 16px 12px;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.my-map-pin-popup-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.my-map-pin-popup-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+
+.my-map-pin-popup-loc {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.35;
+}
+
+.my-map-pin-popup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.my-map-pin-popup-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.my-map-pin-popup-date {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.my-map-pin-popup-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: theme('colors.primaryGreen');
+  color: #fff !important;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: #2d8f37;
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+}
+
 // ───── Pro paywall overlay ──────────────────────────────────────────────
 .my-map-paywall-overlay {
   position: absolute;
