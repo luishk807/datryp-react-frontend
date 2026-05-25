@@ -387,6 +387,16 @@
     .trip-detail-edit-btn {
       display: none !important;
     }
+
+    // Mobile: hide the read-only status pill until the trip is
+    // Completed. Confirmed / Cancelled lifecycle states already read
+    // from context (the Mark Complete button on Confirmed; the muted
+    // header treatment on Cancelled), so the pill is just noise that
+    // crowds the narrow header. Completed gets to keep the pill since
+    // there's no other affordance carrying that signal.
+    .trip-detail-status:not(.trip-detail-status-completed) {
+      display: none;
+    }
   }
 }
 

@@ -44,6 +44,7 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
 import { usePlaceDetails } from "api/hooks/usePlaceDetails";
+import { usePhotoSearch } from "api/hooks/usePhotoSearch";
 import { useIsStuck } from "hooks/useIsStuck";
 import { useVisitedPlaces } from "api/hooks/useVisitedPlaces";
 import { useMyItineraries } from "api/hooks/useItineraries";
@@ -102,6 +103,27 @@ const PlaceDetail = () => {
   const backUrl = `/search?q=${encodeURIComponent(query)}`;
 
   const place = data?.items[index];
+
+  // Hero-image fallback. When the place row arrives with no
+  // `imageUrl` (older cached recommendation, transient Unsplash miss),
+  // hit /photo-search with the place's name to grab a fresh Unsplash
+  // photo. Gated on `!place.imageUrl` so the lookup only fires when
+  // it's actually needed.
+  const fallbackPhotoQuery = place
+    ? `${place.name} ${place.city ?? ""} ${place.country ?? ""}`.trim()
+    : "";
+  const { data: fallbackPhoto } = usePhotoSearch(fallbackPhotoQuery, {
+    enabled: Boolean(place) && !place?.imageUrl,
+  });
+  const heroImageUrl = place?.imageUrl ?? fallbackPhoto?.imageUrl ?? null;
+  const heroPhotographerName =
+    place?.imageUrl
+      ? place.photographerName
+      : fallbackPhoto?.photographerName ?? null;
+  const heroPhotographerUrl =
+    place?.imageUrl
+      ? place.photographerUrl
+      : fallbackPhoto?.photographerUrl ?? null;
 
   // Visited-state lookup. Same cached list powers the toolbar button and the
   // "Visited on …" indicator under the title — single source of truth so the
@@ -191,7 +213,7 @@ const PlaceDetail = () => {
               <ShareButton
                 title={place.name}
                 subtitle={`${place.city} · ${place.country}`}
-                imageUrl={place.imageUrl}
+                imageUrl={heroImageUrl ?? undefined}
                 description={place.description}
                 url={detailUrl}
                 variant="pill"
@@ -200,7 +222,7 @@ const PlaceDetail = () => {
                   city: place.city,
                   country: place.country,
                   description: place.description,
-                  image_url: place.imageUrl,
+                  image_url: heroImageUrl,
                 }}
               />
             </div>
@@ -211,9 +233,9 @@ const PlaceDetail = () => {
         <div className="place-detail-top">
           <PlaceHero
             name={place.name}
-            imageUrl={place.imageUrl}
-            photographerName={place.photographerName}
-            photographerUrl={place.photographerUrl}
+            imageUrl={heroImageUrl}
+            photographerName={heroPhotographerName}
+            photographerUrl={heroPhotographerUrl}
           />
 
           {/* Right column on desktop / stacked under hero on mobile.
