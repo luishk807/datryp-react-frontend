@@ -37,28 +37,6 @@
   gap: 10px;
 }
 
-.my-map-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(60, 181, 75, 0.08);
-  color: theme('colors.primary');
-  font-size: 0.84rem;
-
-  strong {
-    color: theme('colors.primaryGreen');
-    font-weight: 700;
-    margin-right: 2px;
-  }
-}
-
-.my-map-stat-icon {
-  color: theme('colors.primaryGreen');
-  font-size: 1rem !important;
-}
-
 .my-map-controls {
   display: inline-flex;
   align-items: center;

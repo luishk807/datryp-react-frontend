@@ -13,6 +13,7 @@
  * a setup hint instead of breaking — useful in dev.
  */
 import {
+    useCallback,
     useEffect,
     useMemo,
     useRef,
@@ -28,13 +29,19 @@ import type { ModalButtonHandle } from 'components/ModalButton';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
 import { useVisitedCities } from 'api/hooks/useVisitedCities';
+import MyMapStatDropdown, {
+    type MyMapStatDropdownOption,
+} from './MyMapStatDropdown';
 import './index.scss';
+
+type StatDropdownKey = 'countries' | 'cities' | 'places';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
 
@@ -59,9 +66,19 @@ const MyMap = () => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
+    // Keyed by visited-place id so a dropdown selection can target the
+    // exact marker to open its popup. Lives alongside `markersRef`
+    // (which keeps a plain list for cleanup) — the two are written and
+    // cleared in lock-step in the marker-sync effect.
+    const markersByPlaceIdRef = useRef<Map<string, mapboxgl.Marker>>(
+        new Map()
+    );
 
     const [mapHidden, setMapHidden] = useState(false);
     const [mapReady, setMapReady] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<StatDropdownKey | null>(
+        null
+    );
 
     const paywallRef = useRef<ModalButtonHandle>(null);
 
@@ -73,13 +90,23 @@ const MyMap = () => {
     const visitedCities = citiesData?.items ?? [];
     const visitedPlaces = placesData?.items ?? [];
 
-    const countryCodes = useMemo<string[]>(
-        () =>
-            visitedCountries
-                .map((c) => c.countryCode?.toUpperCase())
-                .filter((c): c is string => Boolean(c)),
-        [visitedCountries]
-    );
+    // Country shading is the UNION of:
+    //   1. countries the user explicitly marked as visited
+    //   2. countries implied by a visited city
+    //   3. countries implied by a visited place
+    // A visited place/city must imply the country was visited too, so we
+    // dedupe codes across all three sources to drive the fill filter.
+    const countryCodes = useMemo<string[]>(() => {
+        const seen = new Set<string>();
+        const push = (raw: string | null | undefined) => {
+            if (!raw) return;
+            seen.add(raw.toUpperCase());
+        };
+        for (const c of visitedCountries) push(c.countryCode);
+        for (const c of visitedCities) push(c.countryCode);
+        for (const p of visitedPlaces) push(p.countryCode);
+        return Array.from(seen);
+    }, [visitedCountries, visitedCities, visitedPlaces]);
 
     const placePins = useMemo(
         () =>
@@ -230,6 +257,7 @@ const MyMap = () => {
         if (!map || !mapReady) return;
         for (const m of markersRef.current) m.remove();
         markersRef.current = [];
+        markersByPlaceIdRef.current.clear();
         for (const pin of placePins) {
             const el = document.createElement('div');
             el.className = 'my-map-pin';
@@ -247,12 +275,225 @@ const MyMap = () => {
                 .setPopup(popup)
                 .addTo(map);
             markersRef.current.push(marker);
+            markersByPlaceIdRef.current.set(pin.id, marker);
         }
     }, [placePins, mapReady]);
 
     const handleToggleMap = () => setMapHidden((h) => !h);
 
     const handleOpenPaywall = () => paywallRef.current?.openModel();
+
+    // Build dropdown options. Each is keyed by a stable id (code / slug
+    // / place-id) so the onSelect handler can look up coords or markers
+    // without re-deriving from the option label.
+    const countryOptions = useMemo<MyMapStatDropdownOption[]>(() => {
+        const byCode = new Map<
+            string,
+            { name: string; code: string }
+        >();
+        for (const c of visitedCountries) {
+            const code = c.countryCode?.toUpperCase();
+            if (!code) continue;
+            byCode.set(code, { name: c.countryName, code });
+        }
+        // Surface countries the user has only marked implicitly via
+        // city/place so the dropdown matches the country-shading union.
+        for (const c of visitedCities) {
+            const code = c.countryCode?.toUpperCase();
+            if (!code || byCode.has(code)) continue;
+            byCode.set(code, { name: c.countryName, code });
+        }
+        for (const p of visitedPlaces) {
+            const code = p.countryCode?.toUpperCase();
+            if (!code || byCode.has(code)) continue;
+            byCode.set(code, {
+                name: p.placeCountry || code,
+                code,
+            });
+        }
+        return Array.from(byCode.values())
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((c) => ({
+                id: c.code,
+                label: c.name,
+                sublabel: c.code,
+            }));
+    }, [visitedCountries, visitedCities, visitedPlaces]);
+
+    const cityOptions = useMemo<MyMapStatDropdownOption[]>(() => {
+        return visitedCities
+            .slice()
+            .sort((a, b) => a.cityName.localeCompare(b.cityName))
+            .map((c) => {
+                const hasCoords = visitedPlaces.some(
+                    (p) =>
+                        typeof p.latitude === 'number' &&
+                        typeof p.longitude === 'number' &&
+                        (p.placeCity ?? '').toLowerCase() ===
+                            c.cityName.toLowerCase() &&
+                        (p.countryCode ?? '').toUpperCase() ===
+                            c.countryCode.toUpperCase()
+                );
+                return {
+                    id: c.citySlug,
+                    label: c.cityName,
+                    sublabel: `${c.countryName} (${c.countryCode})`,
+                    disabled: !hasCoords,
+                    disabledReason: hasCoords
+                        ? undefined
+                        : 'No place coordinates yet for this city',
+                };
+            });
+    }, [visitedCities, visitedPlaces]);
+
+    const placeOptions = useMemo<MyMapStatDropdownOption[]>(() => {
+        return visitedPlaces
+            .slice()
+            .sort((a, b) => a.placeName.localeCompare(b.placeName))
+            .map((p) => {
+                const hasCoords =
+                    typeof p.latitude === 'number' &&
+                    typeof p.longitude === 'number';
+                return {
+                    id: p.id,
+                    label: p.placeName,
+                    sublabel: [p.placeCity, p.placeCountry]
+                        .filter(Boolean)
+                        .join(', '),
+                    disabled: !hasCoords,
+                    disabledReason: hasCoords
+                        ? undefined
+                        : 'No coordinates for this place yet',
+                };
+            });
+    }, [visitedPlaces]);
+
+    // Compute a bounding box from the country-boundaries source. Mapbox
+    // returns the feature(s) only after the relevant tiles have loaded;
+    // we expand the same `LngLatBounds` across every feature so multi-
+    // polygon countries (Russia, US, etc.) get a tight overall fit.
+    const flyToCountry = useCallback(
+        (code: string) => {
+            const map = mapRef.current;
+            if (!map) return;
+            const features = map.querySourceFeatures(
+                COUNTRY_BOUNDARIES_SOURCE,
+                {
+                    sourceLayer: 'country_boundaries',
+                    filter: ['==', 'iso_3166_1', code],
+                }
+            );
+            if (features.length > 0) {
+                const bounds = new mapboxgl.LngLatBounds();
+                for (const f of features) {
+                    const geom = f.geometry as
+                        | { type: string; coordinates: unknown }
+                        | undefined;
+                    if (!geom) continue;
+                    extendBoundsFromGeometry(bounds, geom);
+                }
+                if (
+                    bounds.getNorthEast() &&
+                    bounds.getSouthWest()
+                ) {
+                    map.fitBounds(bounds, {
+                        padding: 60,
+                        maxZoom: 6,
+                        duration: 1200,
+                    });
+                    return;
+                }
+            }
+            // Fallback — average lat/lng of any visited places in this
+            // country. Better than nothing when source tiles haven't
+            // resolved yet (rare after first interaction).
+            const places = visitedPlaces.filter(
+                (p) =>
+                    (p.countryCode ?? '').toUpperCase() === code &&
+                    typeof p.latitude === 'number' &&
+                    typeof p.longitude === 'number'
+            );
+            if (places.length > 0) {
+                const lat =
+                    places.reduce((s, p) => s + (p.latitude as number), 0) /
+                    places.length;
+                const lng =
+                    places.reduce((s, p) => s + (p.longitude as number), 0) /
+                    places.length;
+                map.flyTo({ center: [lng, lat], zoom: 4, duration: 1200 });
+            }
+        },
+        [visitedPlaces]
+    );
+
+    const flyToCity = useCallback(
+        (citySlug: string) => {
+            const map = mapRef.current;
+            if (!map) return;
+            const city = visitedCities.find((c) => c.citySlug === citySlug);
+            if (!city) return;
+            const places = visitedPlaces.filter(
+                (p) =>
+                    typeof p.latitude === 'number' &&
+                    typeof p.longitude === 'number' &&
+                    (p.placeCity ?? '').toLowerCase() ===
+                        city.cityName.toLowerCase() &&
+                    (p.countryCode ?? '').toUpperCase() ===
+                        city.countryCode.toUpperCase()
+            );
+            if (places.length === 0) return;
+            const lat =
+                places.reduce((s, p) => s + (p.latitude as number), 0) /
+                places.length;
+            const lng =
+                places.reduce((s, p) => s + (p.longitude as number), 0) /
+                places.length;
+            map.flyTo({ center: [lng, lat], zoom: 10, duration: 1200 });
+        },
+        [visitedCities, visitedPlaces]
+    );
+
+    const flyToPlace = useCallback(
+        (placeId: string) => {
+            const map = mapRef.current;
+            if (!map) return;
+            const place = visitedPlaces.find((p) => p.id === placeId);
+            if (
+                !place ||
+                typeof place.latitude !== 'number' ||
+                typeof place.longitude !== 'number'
+            ) {
+                return;
+            }
+            map.flyTo({
+                center: [place.longitude, place.latitude],
+                zoom: 13,
+                duration: 1200,
+            });
+            // Open the matching marker's popup once the camera has
+            // settled — opening immediately makes the popup feel
+            // disconnected from the fly motion.
+            const marker = markersByPlaceIdRef.current.get(placeId);
+            if (marker) {
+                window.setTimeout(() => {
+                    if (!marker.getPopup()?.isOpen()) {
+                        marker.togglePopup();
+                    }
+                }, 900);
+            }
+        },
+        [visitedPlaces]
+    );
+
+    const handleSelectFromDropdown = (
+        key: StatDropdownKey,
+        id: string
+    ) => {
+        if (key === 'countries') flyToCountry(id);
+        else if (key === 'cities') flyToCity(id);
+        else flyToPlace(id);
+        setOpenDropdown(null);
+    };
 
     if (!MAPBOX_TOKEN) {
         return (
@@ -282,34 +523,59 @@ const MyMap = () => {
             <div className="my-map-page">
                 <header className="my-map-header">
                     <div className="my-map-stats">
-                        <span className="my-map-stat">
-                            <PublicRoundedIcon
-                                fontSize="small"
-                                className="my-map-stat-icon"
-                            />
-                            <span>
-                                <strong>{visitedCountries.length}</strong>{' '}
-                                countries
-                            </span>
-                        </span>
-                        <span className="my-map-stat">
-                            <PlaceRoundedIcon
-                                fontSize="small"
-                                className="my-map-stat-icon"
-                            />
-                            <span>
-                                <strong>{visitedCities.length}</strong> cities
-                            </span>
-                        </span>
-                        <span className="my-map-stat">
-                            <PlaceRoundedIcon
-                                fontSize="small"
-                                className="my-map-stat-icon"
-                            />
-                            <span>
-                                <strong>{visitedPlaces.length}</strong> places
-                            </span>
-                        </span>
+                        <MyMapStatDropdown
+                            icon={<PublicRoundedIcon fontSize="small" />}
+                            count={countryOptions.length}
+                            label="countries"
+                            options={countryOptions}
+                            isOpen={openDropdown === 'countries'}
+                            onToggle={() =>
+                                setOpenDropdown((cur) =>
+                                    cur === 'countries' ? null : 'countries'
+                                )
+                            }
+                            onClose={() => setOpenDropdown(null)}
+                            onSelect={(id) =>
+                                handleSelectFromDropdown('countries', id)
+                            }
+                            emptyHint="No visited countries yet."
+                        />
+                        <MyMapStatDropdown
+                            icon={
+                                <LocationCityRoundedIcon fontSize="small" />
+                            }
+                            count={cityOptions.length}
+                            label="cities"
+                            options={cityOptions}
+                            isOpen={openDropdown === 'cities'}
+                            onToggle={() =>
+                                setOpenDropdown((cur) =>
+                                    cur === 'cities' ? null : 'cities'
+                                )
+                            }
+                            onClose={() => setOpenDropdown(null)}
+                            onSelect={(id) =>
+                                handleSelectFromDropdown('cities', id)
+                            }
+                            emptyHint="No visited cities yet."
+                        />
+                        <MyMapStatDropdown
+                            icon={<PlaceRoundedIcon fontSize="small" />}
+                            count={placeOptions.length}
+                            label="places"
+                            options={placeOptions}
+                            isOpen={openDropdown === 'places'}
+                            onToggle={() =>
+                                setOpenDropdown((cur) =>
+                                    cur === 'places' ? null : 'places'
+                                )
+                            }
+                            onClose={() => setOpenDropdown(null)}
+                            onSelect={(id) =>
+                                handleSelectFromDropdown('places', id)
+                            }
+                            emptyHint="No visited places yet."
+                        />
                     </div>
                     <div className="my-map-controls">
                         <button
@@ -423,6 +689,30 @@ const MyMap = () => {
             />
         </Layout>
     );
+};
+
+/** Walk a GeoJSON Polygon / MultiPolygon geometry and extend the given
+ *  `LngLatBounds` to include every coordinate. Used to fit-bounds a
+ *  country whose polygons come from the Mapbox boundaries source —
+ *  multi-polygon countries (Russia, US, Indonesia) need every ring
+ *  included for the fit to look right. */
+const extendBoundsFromGeometry = (
+    bounds: mapboxgl.LngLatBounds,
+    geom: { type: string; coordinates: unknown }
+): void => {
+    const walk = (coords: unknown): void => {
+        if (!Array.isArray(coords)) return;
+        if (
+            coords.length >= 2 &&
+            typeof coords[0] === 'number' &&
+            typeof coords[1] === 'number'
+        ) {
+            bounds.extend([coords[0] as number, coords[1] as number]);
+            return;
+        }
+        for (const c of coords) walk(c);
+    };
+    walk(geom.coordinates);
 };
 
 /** Convert ISO-2 country code to the regional-indicator flag emoji

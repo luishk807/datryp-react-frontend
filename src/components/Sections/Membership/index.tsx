@@ -100,6 +100,12 @@ const FEATURE_ROWS: FeatureRow[] = [
         pro: true,
     },
     {
+        label: 'Mapper — your travel history on a world map',
+        free: false,
+        pro: true,
+        note: 'See every country you’ve visited shaded on a globe, with pins for every place — a living record of where you’ve been.',
+    },
+    {
         label: 'Free trial',
         free: '—',
         pro: '30 days, cancel anytime',
@@ -221,6 +227,12 @@ const Membership = () => (
                         <strong>Picks made for you.</strong> Pro layers
                         a personalized monthly top pick onto the homepage
                         recommendations free already shows you.
+                    </li>
+                    <li>
+                        <strong>Mapper.</strong> Visualize every country
+                        and place you&rsquo;ve visited on an interactive
+                        world map — shaded regions, pins, and the satisfying
+                        proof of how far you&rsquo;ve gone.
                     </li>
                     <li>
                         <strong>Try before you commit.</strong> 30-day free
