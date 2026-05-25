@@ -99,7 +99,10 @@ const PlaceSuggestions = ({
             location: `${item.city}, ${item.country}`,
             city: item.city,
             country: item.country,
+            countryCode: item.countryCode,
             imageUrl: item.imageUrl,
+            latitude: item.latitude,
+            longitude: item.longitude,
         });
     };
 

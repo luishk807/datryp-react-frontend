@@ -16,6 +16,11 @@ export interface PlaceSuggestion {
     imageUrl: string | null;
     photographerName: string | null;
     photographerUrl: string | null;
+    /** Approximate city coordinates. Null on suggestions cached before
+     *  the OpenAI prompt was extended to return them; new picks carry
+     *  them. */
+    latitude: number | null;
+    longitude: number | null;
 }
 
 interface PlaceSuggestionRaw {
@@ -26,6 +31,8 @@ interface PlaceSuggestionRaw {
     image_url: string | null;
     photographer_name: string | null;
     photographer_url: string | null;
+    latitude: number | null;
+    longitude: number | null;
 }
 
 interface PlaceSuggestionsRaw {
@@ -45,6 +52,8 @@ const toSuggestion = (r: PlaceSuggestionRaw): PlaceSuggestion => ({
     imageUrl: r.image_url,
     photographerName: r.photographer_name,
     photographerUrl: r.photographer_url,
+    latitude: r.latitude ?? null,
+    longitude: r.longitude ?? null,
 });
 
 export const fetchPlaceSuggestions = async (): Promise<PlaceSuggestion[]> => {

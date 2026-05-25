@@ -19,12 +19,15 @@ interface PlaceItemRaw {
     name: string;
     city: string;
     country: string;
+    country_code: string | null;
     rating: number;
     best_time_to_visit: string;
     description: string;
     image_url: string | null;
     photographer_name: string | null;
     photographer_url: string | null;
+    latitude: number | null;
+    longitude: number | null;
 }
 
 /** Mirrors backend NamedTip — name + 1-sentence why, plus the optional
@@ -56,12 +59,15 @@ const toPlace = (raw: PlaceItemRaw): PlaceRecommendation => ({
     name: raw.name,
     city: raw.city,
     country: raw.country,
+    countryCode: raw.country_code ?? null,
     rating: raw.rating,
     bestTimeToVisit: raw.best_time_to_visit,
     description: raw.description,
     imageUrl: raw.image_url,
     photographerName: raw.photographer_name,
     photographerUrl: raw.photographer_url,
+    latitude: raw.latitude ?? null,
+    longitude: raw.longitude ?? null,
 });
 
 export const fetchPlaceRecommendations = async (

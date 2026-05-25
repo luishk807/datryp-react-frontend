@@ -32,7 +32,17 @@ export interface PlaceSuggestion {
     location: string;
     city: string;
     country: string;
+    /** ISO 3166-1 alpha-2, uppercase. Null when the underlying place
+     *  recommendation predates the prompt change that enriched it. */
+    countryCode: string | null;
     imageUrl: string | null;
+    /** Approximate coordinates of the picked place. Both null when the
+     *  underlying recommendation predates the prompt change. Consumers
+     *  (e.g. activity create flow capturing structured place data for
+     *  the Mapper trip-link cascade) should treat null as "not yet
+     *  enriched" rather than treating the suggestion as invalid. */
+    latitude: number | null;
+    longitude: number | null;
 }
 
 export interface PlaceAutocompleteProps {
@@ -157,7 +167,10 @@ const PlaceAutocomplete = ({
             location: `${next.city}, ${next.country}`,
             city: next.city,
             country: next.country,
+            countryCode: next.countryCode,
             imageUrl: next.imageUrl,
+            latitude: next.latitude,
+            longitude: next.longitude,
         });
     };
 
