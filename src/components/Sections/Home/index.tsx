@@ -183,12 +183,17 @@ const Home = () => {
                 </div>
             </section>
 
+            {/* Upcoming world event lives at the top of the
+                recommendation stack — time-sensitive (a fixed event
+                window to act on) and the highest-impact CTA among the
+                cards. Holiday, monthly pick, and seasonal sit below
+                it. */}
+            <WorldEvent />
             <PlacesYouMightLove variant="home" />
             <AiTripBuilderCard />
             <MonthlyBestPlace />
             <SeasonalBestPlaces />
             <UpcomingHoliday />
-            <WorldEvent />
             <TopPlaces onPlaceClick={handlePlaceClick} />
         </Layout>
     );

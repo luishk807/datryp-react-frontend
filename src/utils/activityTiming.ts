@@ -14,6 +14,35 @@
 export type ActivityTimingState = 'past' | 'current' | 'upcoming' | null;
 
 const HHMM_RE = /^\d{2}:\d{2}$/;
+// Loose HH:mm pattern used to gate display formatting. Matches "9:00"
+// AND "09:00" and rejects ISO datetime strings ("2026-05-25T09:00:00")
+// that occasionally leak in when an upstream code path forgot to call
+// `apiTimeToHHmm`. Without this guard, `moment(iso, 'HH:mm')` returns
+// an invalid moment and the UI displays the string "Invalid date" in
+// the activity time row — looks like a real bug until you realize the
+// underlying time IS set, just in the wrong shape.
+const LOOSE_HHMM_RE = /^\d{1,2}:\d{2}(:\d{2})?$/;
+
+/** Render an `HH:mm`-shaped time string as a 12h display ("9:00 AM").
+ *  Returns empty string for missing / malformed input so the activity
+ *  card never surfaces moment's "Invalid date" placeholder. */
+export const safeFormatTime = (
+    time: string | null | undefined
+): string => {
+    if (!time) return '';
+    const trimmed = String(time).trim();
+    if (!trimmed) return '';
+    if (!LOOSE_HHMM_RE.test(trimmed)) return '';
+    const [hStr, mStr] = trimmed.split(':');
+    const h = Number(hStr);
+    const m = Number(mStr);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return '';
+    if (h < 0 || h > 23 || m < 0 || m > 59) return '';
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    const mm = m.toString().padStart(2, '0');
+    return `${h12}:${mm} ${period}`;
+};
 
 const buildDateTime = (date: string, time?: string): Date | null => {
     if (!date) return null;

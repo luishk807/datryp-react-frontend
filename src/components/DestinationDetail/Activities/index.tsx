@@ -7,6 +7,7 @@ import { useNow } from 'hooks/useNow';
 import {
     getActivityProgress,
     getActivityTiming,
+    safeFormatTime,
     type ActivityTimingState,
 } from 'utils/activityTiming';
 import { Grid, IconButton } from '@mui/material';
@@ -297,19 +298,50 @@ const Activities = ({
                     const firstTransit = transitSegments[0];
                     const lastTransit =
                         transitSegments[transitSegments.length - 1];
+                    // `safeFormatTime` returns '' for missing / malformed
+                    // HH:mm input — that keeps the activity card from
+                    // surfacing moment's "Invalid date" placeholder when
+                    // an upstream code path (notably the AI trip builder
+                    // before bug fixes) leaks a non-HH:mm value into
+                    // `activity.startTime`. The display joins the two
+                    // ends with " - " only when both ends formatted to
+                    // something visible; a one-sided time still renders
+                    // (e.g. "9:00 AM").
+                    const joinTimes = (a: string, b: string, sep: string): string => {
+                        if (a && b) return `${a}${sep}${b}`;
+                        return a || b;
+                    };
                     let activityTime: string;
                     if (isFlight) {
-                        activityTime = `${reformatDate(firstSeg?.departTime, 'HH:mm', 'LT')} → ${reformatDate(lastSeg?.arrivalTime, 'HH:mm', 'LT')}`;
+                        activityTime = joinTimes(
+                            safeFormatTime(firstSeg?.departTime),
+                            safeFormatTime(lastSeg?.arrivalTime),
+                            ' → '
+                        );
                     } else if (isTransit) {
-                        activityTime = `${reformatDate(firstTransit?.departTime ?? activity.startTime, 'HH:mm', 'LT')} → ${reformatDate(lastTransit?.arrivalTime ?? activity.endTime, 'HH:mm', 'LT')}`;
+                        activityTime = joinTimes(
+                            safeFormatTime(
+                                firstTransit?.departTime ?? activity.startTime
+                            ),
+                            safeFormatTime(
+                                lastTransit?.arrivalTime ?? activity.endTime
+                            ),
+                            ' → '
+                        );
                     } else if (isHotel) {
-                        // Single timestamp — the check-in OR check-out
-                        // time. Top-level startTime carries it.
-                        activityTime = reformatDate(activity.startTime, 'HH:mm', 'LT');
+                        activityTime = safeFormatTime(activity.startTime);
                     } else {
-                        activityTime = `${reformatDate(activity.startTime, 'HH:mm', 'LT')} - ${reformatDate(activity.endTime, 'HH:mm', 'LT')}`;
+                        activityTime = joinTimes(
+                            safeFormatTime(activity.startTime),
+                            safeFormatTime(activity.endTime),
+                            ' - '
+                        );
                     }
-                    const showTimeRow = !isNote;
+                    // Hide the time row entirely when the activity has no
+                    // valid time anchors AND isn't a flight (flights show
+                    // the row even when times are TBD so the user has a
+                    // visual placeholder to fill in).
+                    const showTimeRow = !isNote && Boolean(activityTime);
                     const budgetEntries = activity.budget ?? [];
                     const hasBudget = budgetEntries.length > 0;
                     const isActivityCompleted = isCompletedStatus(activity.status);
