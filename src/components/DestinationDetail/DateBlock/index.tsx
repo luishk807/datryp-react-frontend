@@ -83,8 +83,11 @@ const DateBlock = ({
     // while still in Planning, brand green once Confirmed, and a quiet
     // gray once the trip is Completed. Cancelled uses the same gray
     // treatment so the dead-trip case doesn't fight for attention.
+    // TRIP_STATUS values are TitleCase ("Planning", "Confirmed", …) —
+    // don't lowercase before comparing, otherwise every branch misses
+    // and we silently default to Confirmed.
     const statusClass = (() => {
-        const name = (tripStatusName ?? '').toLowerCase();
+        const name = tripStatusName ?? '';
         if (name === TRIP_STATUS.PLANNING) return 'status-planning';
         if (name === TRIP_STATUS.CONFIRMED) return 'status-confirmed';
         if (name === TRIP_STATUS.COMPLETED) return 'status-completed';

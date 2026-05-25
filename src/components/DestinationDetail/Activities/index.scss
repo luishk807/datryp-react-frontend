@@ -22,7 +22,9 @@
   min-width: 0;
   border-radius: 10px;
   padding: 2px;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   /* Each draggable card wrapper takes the full row. */
   & > div {
@@ -31,7 +33,7 @@
 
   &.is-drop-target {
     background: rgba(60, 181, 75, 0.08);
-    box-shadow: inset 0 0 0 2px theme('colors.primaryGreen');
+    box-shadow: inset 0 0 0 2px theme("colors.primaryGreen");
   }
 
   &.is-empty {
@@ -59,7 +61,9 @@
   border-radius: 14px !important;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
   /* Card has no Grid container ancestor (we wrapped each card in a
    * DraggableActivity div for dnd-kit), so MUI's `lg-12` `flex-basis`
    * is inert and content-light kinds (note / flight) shrink to their
@@ -126,7 +130,7 @@
 // Current: card stays full-strength + the green stripe at the top
 // edge does the work of signaling "this is happening now."
 .activity-content-trip.is-time-current {
-  border-color: theme('colors.primaryGreen');
+  border-color: theme("colors.primaryGreen");
   box-shadow: 0 6px 20px rgba(60, 181, 75, 0.18);
 }
 
@@ -150,7 +154,7 @@
   height: 100%;
   background: linear-gradient(
     90deg,
-    theme('colors.primaryGreen') 0%,
+    theme("colors.primaryGreen") 0%,
     #5fd55f 100%
   );
   transition: width 0.6s ease;
@@ -166,8 +170,8 @@
 .activity-now-stripe.is-indeterminate .activity-now-stripe-fill {
   background: repeating-linear-gradient(
     -45deg,
-    theme('colors.primaryGreen') 0px,
-    theme('colors.primaryGreen') 8px,
+    theme("colors.primaryGreen") 0px,
+    theme("colors.primaryGreen") 8px,
     #5fd55f 8px,
     #5fd55f 16px
   );
@@ -178,8 +182,12 @@
 }
 
 @keyframes activity-now-stripe-sweep {
-  0% { background-position: 0 0; }
-  100% { background-position: 22.6px 0; }
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 22.6px 0;
+  }
 }
 
 @keyframes activity-now-stripe-pulse {
@@ -218,7 +226,7 @@
 .activity-content-trip .content-detail .info .title {
   font-size: 1.15rem;
   font-weight: 600;
-  color: theme('colors.primary');
+  color: theme("colors.primary");
   text-transform: capitalize;
   letter-spacing: -0.005em;
 
@@ -229,10 +237,12 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    color: theme('colors.primaryOrange');
+    color: theme("colors.primaryOrange");
     text-decoration: none;
     cursor: pointer;
-    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    transition:
+      color 0.15s ease,
+      text-decoration-color 0.15s ease;
 
     .title-link-text {
       text-decoration: underline;
@@ -247,13 +257,15 @@
       flex-shrink: 0;
       font-size: 0.95rem !important;
       opacity: 0.7;
-      transition: opacity 0.15s ease, transform 0.15s ease;
+      transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
     }
 
     &:hover,
     &:focus-visible {
       .title-link-text {
-        text-decoration-color: theme('colors.primaryOrange');
+        text-decoration-color: theme("colors.primaryOrange");
         text-decoration-style: solid;
       }
 
@@ -269,15 +281,19 @@
 // flights, notes, and places without an image (where the image
 // thumbnail would otherwise be the visual cue). Order matters — the
 // icon is the first flex child so it lands before the title.
-.activity-content-trip .content-detail .info .activity-title-row .activity-title-icon {
+.activity-content-trip
+  .content-detail
+  .info
+  .activity-title-row
+  .activity-title-icon {
   flex-shrink: 0;
-  color: theme('colors.primaryOrange');
+  color: theme("colors.primaryOrange");
   font-size: 1.25rem !important;
 }
 
 // Per-kind tints so glance-scanning the day shows the entry shape.
 .activity-content-trip.kind-flight .activity-title-icon {
-  color: theme('colors.primaryGreen');
+  color: theme("colors.primaryGreen");
 }
 
 .activity-content-trip.kind-note .activity-title-icon {
@@ -295,29 +311,33 @@
   top: 8px;
   right: 8px;
   background: #fff;
-  color: theme('colors.primaryGreen');
+  color: theme("colors.primaryGreen");
   width: 30px;
   height: 30px;
   border-radius: 50%;
   box-shadow: none;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
   z-index: 2;
 }
 
 .activity-content-trip .activity-card-complete-btn.MuiIconButton-root:hover {
-  background: theme('colors.primaryGreen');
+  background: theme("colors.primaryGreen");
   color: #fff;
   transform: translateY(-1px);
 }
 
 // Checked variant — filled green tick, signals "done, click to undo".
-.activity-content-trip .activity-card-complete-btn.is-checked.MuiIconButton-root {
-  background: theme('colors.primaryGreen');
+.activity-content-trip
+  .activity-card-complete-btn.is-checked.MuiIconButton-root {
+  background: theme("colors.primaryGreen");
   color: #fff;
   box-shadow: 0 2px 6px rgba(60, 181, 75, 0.35);
 
   &:hover {
-    background: theme('colors.primaryOrange');
+    background: theme("colors.primaryOrange");
     transform: translateY(-1px) scale(1.05);
   }
 }
@@ -327,19 +347,20 @@
 // the user understands clicking won't do anything. MUI's
 // `Mui-disabled` would otherwise wash the icon to faint gray, hiding
 // the "this is done" signal — we override to keep it readable.
-.activity-content-trip .activity-card-complete-btn.is-past-locked.is-checked.MuiIconButton-root {
-  background: theme('colors.primaryGreen');
+.activity-content-trip
+  .activity-card-complete-btn.is-past-locked.is-checked.MuiIconButton-root {
+  background: theme("colors.primaryGreen");
   color: #fff;
   opacity: 0.85;
   cursor: not-allowed;
 
   &:hover {
-    background: theme('colors.primaryGreen');
+    background: theme("colors.primaryGreen");
     transform: none;
   }
 
   &.Mui-disabled {
-    background: theme('colors.primaryGreen') !important;
+    background: theme("colors.primaryGreen") !important;
     color: #fff !important;
   }
 }
@@ -371,11 +392,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
     background: rgba(60, 181, 75, 0.08) !important;
-    color: theme('colors.primaryGreen') !important;
+    color: theme("colors.primaryGreen") !important;
   }
 
   svg {
@@ -395,7 +418,10 @@
   vertical-align: middle;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .activity-content-trip .content-detail .info .status-toggle.is-pending {
@@ -404,18 +430,24 @@
   border-color: rgba(245, 158, 11, 0.32);
 }
 
-.activity-content-trip .content-detail .info .status-toggle.is-pending:hover:not(:disabled) {
+.activity-content-trip
+  .content-detail
+  .info
+  .status-toggle.is-pending:hover:not(:disabled) {
   background: rgba(245, 158, 11, 0.2);
   border-color: rgba(245, 158, 11, 0.5);
 }
 
 .activity-content-trip .content-detail .info .status-toggle.is-confirmed {
   background: rgba(60, 181, 75, 0.12);
-  color: theme('colors.primaryGreen');
+  color: theme("colors.primaryGreen");
   border-color: rgba(60, 181, 75, 0.32);
 }
 
-.activity-content-trip .content-detail .info .status-toggle.is-confirmed:hover:not(:disabled) {
+.activity-content-trip
+  .content-detail
+  .info
+  .status-toggle.is-confirmed:hover:not(:disabled) {
   background: rgba(60, 181, 75, 0.2);
   border-color: rgba(60, 181, 75, 0.5);
 }
@@ -453,13 +485,13 @@
 }
 
 .activity-content-trip .content-detail .info .meta-text.location {
-  color: theme('colors.primary');
+  color: theme("colors.primary");
   font-weight: 500;
 }
 
 .activity-content-trip .content-detail .info .meta-text.flight-number {
   font-weight: 600;
-  color: theme('colors.primary');
+  color: theme("colors.primary");
 }
 
 /* ── Budget row: chips per contributor + a subtle edit pencil ─────────── */
@@ -490,7 +522,7 @@
   border: 1px solid rgba(60, 181, 75, 0.2);
   font-size: 0.8rem;
   line-height: 1.3;
-  color: theme('colors.primary');
+  color: theme("colors.primary");
 }
 
 .activity-content-trip .content-detail .info .budget-chip-name {
@@ -501,7 +533,7 @@
 .activity-content-trip .content-detail .info .budget-chip-amount {
   padding: 1px 8px;
   border-radius: 999px;
-  background: theme('colors.primaryGreen');
+  background: theme("colors.primaryGreen");
   color: #fff;
   font-size: 0.74rem;
   font-weight: 700;
@@ -522,11 +554,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
     background: rgba(60, 181, 75, 0.08);
-    color: theme('colors.primaryGreen');
+    color: theme("colors.primaryGreen");
   }
 }
 
@@ -537,15 +571,17 @@
   border-radius: 999px;
   border: 1px dashed rgba(60, 181, 75, 0.45);
   background: rgba(60, 181, 75, 0.06);
-  color: theme('colors.primaryGreen');
+  color: theme("colors.primaryGreen");
   font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 
   &:hover {
     background: rgba(60, 181, 75, 0.14);
-    border-color: theme('colors.primaryGreen');
+    border-color: theme("colors.primaryGreen");
   }
 }
 
@@ -568,7 +604,7 @@
   padding: 2px !important;
   min-width: 0 !important;
   line-height: 1 !important;
-  color: theme('colors.primaryGreen') !important;
+  color: theme("colors.primaryGreen") !important;
 }
 
 /* ---------- Edit / Delete action buttons ---------- */
@@ -589,17 +625,19 @@
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   border-radius: 8px !important;
-  transition: background-color 0.15s ease, color 0.15s ease !important;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease !important;
   white-space: nowrap;
 }
 
 /* Edit (AddPlaceBtn with type=edit, buttonType=text → .button-simple) */
 .activity-content-trip .option .button-simple {
-  color: theme('colors.primaryGreen') !important;
+  color: theme("colors.primaryGreen") !important;
 }
 .activity-content-trip .option .button-simple:hover {
   background: rgba(60, 181, 75, 0.1) !important;
-  color: theme('colors.primaryGreen') !important;
+  color: theme("colors.primaryGreen") !important;
   font-weight: 600 !important;
 }
 

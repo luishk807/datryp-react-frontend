@@ -1,10 +1,8 @@
 import './index.scss';
-import { Fragment, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
-import { isSameDay, reformatDate } from 'utils';
 import { useNow } from 'hooks/useNow';
-import NowLine from 'components/DestinationDetail/Activities/NowLine';
 import {
     getActivityProgress,
     getActivityTiming,
@@ -148,11 +146,24 @@ const Activities = ({
     // are no sortable cards to land on. dnd-kit needs both the sortable
     // items AND a droppable container to support the empty-day case.
     const dndEnabled = Boolean(date) && !isViewMode;
-    const { setNodeRef, isOver } = useDroppable({
+    const { setNodeRef: setDroppableRef, isOver } = useDroppable({
         id: `day-${destIdx}-${date}`,
         data: { type: 'day', destIdx, date },
         disabled: !dndEnabled,
     });
+
+    // Container ref for the activities list. Merged with dnd-kit's
+    // `setDroppableRef` via the combined setter below. Used by the
+    // continuous-slide NOW line to measure activity card positions
+    // and place the line at a Y coord that matches the current clock.
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const setContainerRef = useCallback(
+        (el: HTMLDivElement | null) => {
+            containerRef.current = el;
+            setDroppableRef(el);
+        },
+        [setDroppableRef]
+    );
 
     // Auto-sort timed activities by start time within the day. Notes
     // are timeless, so they keep the exact index the user dragged them
@@ -190,41 +201,6 @@ const Activities = ({
         () => sortedActivities.map((a) => `act-${a.id}`),
         [sortedActivities]
     );
-
-    // Insertion index for the horizontal "now" line. The line only
-    // renders inside the day whose date matches today; for every other
-    // day this stays `null`. Index semantics:
-    //   - 0          : line goes above the first activity
-    //   - N          : line goes after activity at index N-1
-    //   - length     : line goes after the last activity
-    //   - null       : day isn't today, skip the line entirely
-    // We pick "first activity whose startTime is strictly after now".
-    // Currently-running activities already get the per-card stripe, so
-    // pushing the line past them keeps the visual signal "this is the
-    // boundary between past and future" rather than splitting an
-    // in-progress card.
-    const nowLineIndex = useMemo<number | null>(() => {
-        if (!date) return null;
-        if (!isSameDay(date, now)) return null;
-        const HHMM_TWO = /^\d{2}:\d{2}$/;
-        const toDayMs = (time: string | undefined | null): number | null => {
-            if (!time) return null;
-            const padded = HHMM_TWO.test(time) ? `${time}:00` : time;
-            const d = new Date(`${date}T${padded}`);
-            return Number.isFinite(d.getTime()) ? d.getTime() : null;
-        };
-        const nowMs = now.getTime();
-        for (let i = 0; i < sortedActivities.length; i++) {
-            const a = sortedActivities[i];
-            const startTime =
-                a.kind === ACTIVITY_KIND.FLIGHT
-                    ? a.flightSegments?.[0]?.departTime
-                    : a.startTime;
-            const startMs = toDayMs(startTime);
-            if (startMs !== null && startMs > nowMs) return i;
-        }
-        return sortedActivities.length;
-    }, [date, now, sortedActivities]);
 
     // Activities share the same `trip_statuses` lookup as trips, so toggling
     // the badge resolves the real backend UUID here. If the lookup hasn't
@@ -283,9 +259,10 @@ const Activities = ({
     ]);
 
     const isEmpty = !activities || activities.length === 0;
+
     return (
         <div
-            ref={setNodeRef}
+            ref={setContainerRef}
             className={classNames('activities-droppable', {
                 'is-drop-target': dndEnabled && isOver,
                 'is-empty': isEmpty,
@@ -295,12 +272,6 @@ const Activities = ({
                 <p className="activities-empty-hint">
                     Drop a place here, or add one below.
                 </p>
-            )}
-            {/* Empty-day case for today — when the day has no activities,
-                render the now-line on its own so the user still gets a
-                "you are here" anchor in the timeline. */}
-            {nowLineIndex !== null && sortedActivities.length === 0 && (
-                <NowLine now={now} />
             )}
             <SortableContext
                 items={activityIds}
@@ -779,8 +750,10 @@ const Activities = ({
                         </Grid>
                     );
                     return (
-                        <Fragment key={`activity-${activity.id}`}>
-                            {nowLineIndex === indx && <NowLine now={now} />}
+                        <div
+                            key={`activity-${activity.id}`}
+                            className="activity-card-slot"
+                        >
                             <DraggableActivity
                                 activityId={activity.id}
                                 destIdx={destIdx}
@@ -789,15 +762,9 @@ const Activities = ({
                             >
                                 {card}
                             </DraggableActivity>
-                        </Fragment>
+                        </div>
                     );
                 })}
-                {/* Trailing now-line — when "now" is past every activity's
-                    start time, the line goes at the bottom of the day so
-                    the user still sees a clear boundary marker. */}
-                {nowLineIndex !== null &&
-                    nowLineIndex === sortedActivities.length &&
-                    sortedActivities.length > 0 && <NowLine now={now} />}
             </SortableContext>
             <Grid item lg={12} className="content-trip">
                 <Grid container>
