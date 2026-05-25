@@ -6,6 +6,7 @@ import { Navigate, Route, Routes, BrowserRouter as Router } from 'react-router-d
 import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
 import BottomNav from 'components/BottomNav';
+import RouteErrorBoundary from 'components/common/RouteErrorBoundary';
 const Home = lazy(() => import('components/Sections/Home'));
 const Dashboard = lazy(() => import('components/Sections/Dashboard'));
 const DashboardOverview = lazy(() => import('components/Sections/Dashboard/OverviewCard'));
@@ -48,9 +49,17 @@ const Gated = ({ children, title, subtitle }: {
     title?: string;
     subtitle?: string;
 }) => (
-    <AuthGate title={title} subtitle={subtitle}>
-        <Suspense fallback={<>...</>}>{children}</Suspense>
-    </AuthGate>
+    // RouteErrorBoundary wraps the gate so a render error during the
+    // auth-check OR the gated content falls back to a friendly error
+    // page with "Sign in" / "Go home" actions, instead of unmounting
+    // the tree and leaving a blank page. The boundary lives ABOVE
+    // AuthGate so a thrown error in AuthGate itself (e.g. a malformed
+    // /auth/me response) is still caught.
+    <RouteErrorBoundary>
+        <AuthGate title={title} subtitle={subtitle}>
+            <Suspense fallback={<>...</>}>{children}</Suspense>
+        </AuthGate>
+    </RouteErrorBoundary>
 );
 
 function App() {
