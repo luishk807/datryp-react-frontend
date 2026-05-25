@@ -29,6 +29,7 @@ const Saved = lazy(() => import('components/Sections/Saved'));
 const BucketList = lazy(() => import('components/Sections/BucketList'));
 const AiTripBuilderPage = lazy(() => import('components/Sections/AiTripBuilderPage'));
 const Signup = lazy(() => import('components/Sections/Signup'));
+const Login = lazy(() => import('components/Sections/Login'));
 const CountryDetail = lazy(() => import('components/Sections/CountryDetail'));
 const PreparingTrip = lazy(() => import('components/Sections/PreparingTrip'));
 const CityDetail = lazy(() => import('components/Sections/CityDetail'));
@@ -262,6 +263,11 @@ function App() {
                 <Route path='/signup' element={
                     <Suspense fallback={<>...</>}>
                         <Signup />
+                    </Suspense>
+                }/>
+                <Route path='/login' element={
+                    <Suspense fallback={<>...</>}>
+                        <Login />
                     </Suspense>
                 }/>
                 <Route path='/forgot-password' element={

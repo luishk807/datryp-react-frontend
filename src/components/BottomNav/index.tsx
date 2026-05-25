@@ -120,14 +120,9 @@ const BottomNav = () => {
     // users after logout — the bell would unmount with no replacement,
     // leaving the user with no way to navigate back to a logged-in
     // state without scrolling up to the header CTAs.
-    //
-    // The Sign in link points at `/signup` — there is no standalone
-    // `/login` route; the signup page is the auth funnel and carries
-    // an "Already have an account? Sign in" footer that opens the
-    // login modal for returning users.
     if (!user) {
         const homeActive = location.pathname === '/';
-        const signupActive = location.pathname.startsWith('/signup');
+        const loginActive = location.pathname.startsWith('/login');
         return (
             <nav
                 className="bottom-nav bottom-nav--guest"
@@ -144,11 +139,11 @@ const BottomNav = () => {
                     <span className="bottom-nav-label">Home</span>
                 </Link>
                 <Link
-                    to="/signup"
+                    to="/login"
                     className={classNames('bottom-nav-item', {
-                        'is-active': signupActive,
+                        'is-active': loginActive,
                     })}
-                    aria-label="Sign in or create an account"
+                    aria-label="Sign in to your account"
                 >
                     <PersonOutlineRoundedIcon className="bottom-nav-icon" />
                     <span className="bottom-nav-label">Sign in</span>
