@@ -489,6 +489,25 @@
   font-weight: 500;
 }
 
+// Small Google Maps directions launcher next to the location text.
+// `component="a"` on MUI's IconButton renders a real anchor so the
+// user can long-press / right-click → "open in new tab" as well as
+// the default click-through. Sits flush after the location and uses
+// the green palette to read as "go" rather than a destructive action.
+.activity-content-trip .content-detail .info .meta-directions-btn {
+  padding: 2px;
+  margin-left: 2px;
+  color: theme("colors.primaryGreen");
+
+  .MuiSvgIcon-root {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.1);
+  }
+}
+
 .activity-content-trip .content-detail .info .meta-text.flight-number {
   font-weight: 600;
   color: theme("colors.primary");

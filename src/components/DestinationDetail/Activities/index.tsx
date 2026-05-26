@@ -28,6 +28,7 @@ import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import DirectionsRoundedIcon from '@mui/icons-material/DirectionsRounded';
 import { useDroppable } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -655,6 +656,23 @@ const Activities = ({
                                                         <span className="meta-text location">
                                                             {activity.location}
                                                         </span>
+                                                        <IconButton
+                                                            size="small"
+                                                            className="meta-directions-btn"
+                                                            component="a"
+                                                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+                                                                [activity.name, activity.location]
+                                                                    .filter(Boolean)
+                                                                    .join(', ')
+                                                            )}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            aria-label="Get directions on Google Maps"
+                                                            title="Get directions"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <DirectionsRoundedIcon fontSize="small" />
+                                                        </IconButton>
                                                     </div>
                                                 )}
                                                 {isFlight &&

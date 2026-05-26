@@ -196,7 +196,21 @@ const AddPlaceBtn = ({
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
                 : [emptySegment()];
-            segments[index] = { ...segments[index], [name]: value };
+            const current = segments[index];
+            const updated = { ...current, [name]: value };
+            // Auto-fill arrival date from depart date when arrival is empty
+            // or was still tracking the old depart (i.e. user never edited
+            // it). Saves users from scrolling the date picker back from
+            // today every time the trip is months out.
+            if (
+                name === 'departDate' &&
+                typeof value === 'string' &&
+                value &&
+                (!current.arrivalDate || current.arrivalDate === current.departDate)
+            ) {
+                updated.arrivalDate = value;
+            }
+            segments[index] = updated;
             return { ...prev, flightSegments: segments };
         });
     };
@@ -238,7 +252,20 @@ const AddPlaceBtn = ({
             const segments = prev.transitSegments?.length
                 ? [...prev.transitSegments]
                 : [emptyTransitSegment()];
-            segments[index] = { ...segments[index], [name]: value };
+            const current = segments[index];
+            const updated = { ...current, [name]: value };
+            // Mirror the flight cascade: auto-fill arrival date when the
+            // user changes depart and arrival is empty or still tracking
+            // the old depart.
+            if (
+                name === 'departDate' &&
+                typeof value === 'string' &&
+                value &&
+                (!current.arrivalDate || current.arrivalDate === current.departDate)
+            ) {
+                updated.arrivalDate = value;
+            }
+            segments[index] = updated;
             return { ...prev, transitSegments: segments };
         });
     };
@@ -992,6 +1019,7 @@ const AddPlaceBtn = ({
                                                             type="date"
                                                             label="Arrival date"
                                                             labelOnTop
+                                                            minDate={segment.departDate || undefined}
                                                             onChange={(e) =>
                                                                 handleSegmentField(
                                                                     segIdx,
@@ -1466,6 +1494,7 @@ const AddPlaceBtn = ({
                                                             label="Arrival date (optional)"
                                                             labelOnTop
                                                             required={false}
+                                                            minDate={segment.departDate || undefined}
                                                             onChange={(e) =>
                                                                 handleTransitField(
                                                                     segIdx,
