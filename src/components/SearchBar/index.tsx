@@ -7,6 +7,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import classNames from 'classnames';
 import { useCountries } from 'api/hooks/useCountries';
 import { useCountryRecommendations } from 'api/hooks/useCountryRecommendations';
+import { usePlaces, type PlaceResult } from 'api/hooks/usePlaces';
 import { isQueryBlockedError } from 'api/moderationError';
 import { BUTTON_VARIANT } from 'constants';
 import type { Country, CountryRecommendation } from 'types';
@@ -18,6 +19,10 @@ const SEARCH_VARIANT = {
 
 const SEARCH_MODE = {
     COUNTRY: 'country',
+    /** Unified city + country autocomplete. Picks fire `onPlaceSelected`
+     *  with a `PlaceResult` whose `kind` discriminates between 'city'
+     *  and 'country'. Used by the homepage hero. */
+    PLACE: 'place',
     RECOMMEND: 'recommend',
 } as const;
 
@@ -26,6 +31,10 @@ export type SearchMode = (typeof SEARCH_MODE)[keyof typeof SEARCH_MODE];
 
 interface SearchBarProps {
     onSelected?: (country: Country) => void;
+    /** Fired in 'place' mode after the user picks a result. Receives a
+     *  PlaceResult with `kind` discriminator so the parent can route
+     *  cities to /city and countries to /country. */
+    onPlaceSelected?: (place: PlaceResult) => void;
     defaultValue?: Country;
     className?: string;
     type?: SearchBarVariant;
@@ -53,6 +62,7 @@ const flagEmoji = (code?: string | null): string => {
 
 const SearchBar = ({
     onSelected,
+    onPlaceSelected,
     defaultValue,
     className = 'justify-center',
     type = SEARCH_VARIANT.STANDARD,
@@ -85,6 +95,15 @@ const SearchBar = ({
         { query: submittedQuery, limit: 6 },
         { enabled: mode === SEARCH_MODE.RECOMMEND && submittedQuery.length > 0 }
     );
+
+    const {
+        data: placeResults,
+        isFetching: isPlaceFetching,
+        isError: hasPlaceError,
+    } = usePlaces(submittedQuery, {
+        enabled: mode === SEARCH_MODE.PLACE && submittedQuery.length > 0,
+        limit: 10,
+    });
 
     useEffect(() => {
         // Clear in-flight state when the user toggles between country/recommend.
@@ -140,6 +159,11 @@ const SearchBar = ({
             code: item.code,
             local: item.local ?? undefined,
         });
+    };
+
+    const handlePlaceClick = (place: PlaceResult) => {
+        clearSearchInput();
+        onPlaceSelected?.(place);
     };
 
     const handleRecommendationClick = (item: CountryRecommendation) => {
@@ -269,6 +293,116 @@ const SearchBar = ({
         );
     };
 
+    const renderPlaceMode = () => {
+        const items = placeResults ?? [];
+        const trimmed = rawQuery.trim();
+        const showLoading = isPlaceFetching && items.length === 0 && !hasPlaceError;
+        const showEmpty =
+            submittedQuery && !isPlaceFetching && items.length === 0 && !hasPlaceError;
+        const showDropdown =
+            trimmed.length > 0 &&
+            (items.length > 0 || showLoading || showEmpty || hasPlaceError);
+
+        return (
+            <Grid
+                container
+                className={classNames({
+                    container: type === SEARCH_VARIANT.STANDARD,
+                    'container-simple': type === SEARCH_VARIANT.SIMPLE,
+                })}
+            >
+                {type === SEARCH_VARIANT.STANDARD ? (
+                    <Grid item lg={12} md={12} xs={12} className="inputHolder">
+                        <input
+                            onChange={(e) => handleKeystroke(e)}
+                            ref={inputRef}
+                            className="inputBar"
+                            type="text"
+                            onFocus={handleFocus}
+                            placeholder="Search a city or country"
+                        />
+                        {isPlaceFetching && (
+                            <span className="searchbar-country-spinner" aria-hidden="true" />
+                        )}
+                    </Grid>
+                ) : (
+                    <Grid item lg={12} md={12} xs={12}>
+                        <InputField
+                            ref={inputRef}
+                            defaultValue={selectedDestination}
+                            placeholder="Search a city or country"
+                            onChange={handleKeystroke}
+                        />
+                    </Grid>
+                )}
+
+                {showDropdown && (
+                    <div
+                        className={classNames({
+                            listContainerV2: type === SEARCH_VARIANT.STANDARD,
+                            'listContainerV2-simple': type === SEARCH_VARIANT.SIMPLE,
+                        })}
+                    >
+                        {hasPlaceError && (
+                            <p className="searchbar-recommend-error">
+                                Could not reach the place search. Is the
+                                backend running?
+                            </p>
+                        )}
+                        {showLoading && (
+                            <p className="searchbar-recommend-loading">Searching…</p>
+                        )}
+                        {showEmpty && (
+                            <p className="searchbar-recommend-empty">
+                                No places match &ldquo;{submittedQuery}&rdquo;.
+                            </p>
+                        )}
+                        {!!items.length && (
+                            <ul className="searchbar-country-list">
+                                {items.map((place) => (
+                                    <li
+                                        onClick={() => handlePlaceClick(place)}
+                                        onMouseEnter={() =>
+                                            handleListHover(
+                                                place.kind === 'country'
+                                                    ? place.name
+                                                    : `${place.name}, ${place.countryName}`
+                                            )
+                                        }
+                                        key={place.id}
+                                        className="item searchbar-country-item"
+                                    >
+                                        <span
+                                            className="searchbar-country-flag"
+                                            aria-hidden="true"
+                                        >
+                                            {flagEmoji(place.countryCode)}
+                                        </span>
+                                        <span className="searchbar-country-text">
+                                            <span className="searchbar-country-name">
+                                                {place.kind === 'country'
+                                                    ? place.name
+                                                    : `${place.name}, ${place.countryName}`}
+                                            </span>
+                                            <span className="searchbar-place-kind">
+                                                {place.kind === 'country'
+                                                    ? 'Country'
+                                                    : 'City'}
+                                            </span>
+                                        </span>
+                                        <span className="searchbar-country-code">
+                                            {place.countryCode}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )}
+            </Grid>
+        );
+    };
+
     const renderRecommendMode = () => {
         const items = recommendations?.items ?? [];
         const isBlocked = isQueryBlockedError(recommendError);
@@ -385,12 +519,20 @@ const SearchBar = ({
                     md={12}
                     xs={12}
                     className={classNames({
-                        holder: type === SEARCH_VARIANT.STANDARD && mode === SEARCH_MODE.COUNTRY,
-                        'holder-simple': type === SEARCH_VARIANT.SIMPLE && mode === SEARCH_MODE.COUNTRY,
+                        holder:
+                            type === SEARCH_VARIANT.STANDARD &&
+                            (mode === SEARCH_MODE.COUNTRY ||
+                                mode === SEARCH_MODE.PLACE),
+                        'holder-simple':
+                            type === SEARCH_VARIANT.SIMPLE &&
+                            (mode === SEARCH_MODE.COUNTRY ||
+                                mode === SEARCH_MODE.PLACE),
                         'holder-recommend': mode === SEARCH_MODE.RECOMMEND,
                     })}
                 >
-                    {mode === SEARCH_MODE.COUNTRY ? renderCountryMode() : renderRecommendMode()}
+                    {mode === SEARCH_MODE.COUNTRY && renderCountryMode()}
+                    {mode === SEARCH_MODE.PLACE && renderPlaceMode()}
+                    {mode === SEARCH_MODE.RECOMMEND && renderRecommendMode()}
                 </Grid>
             </Grid>
         </ClickAwayListener>

@@ -257,6 +257,19 @@
   text-overflow: ellipsis;
 }
 
+// 'City' / 'Country' chip in the place-mode dropdown. Sits in the
+// same slot as `.searchbar-country-local` (just below the name) so
+// place rows mirror the country-mode layout — a small uppercase
+// label that disambiguates the two result types without crowding.
+.searchbarMain .searchbar-place-kind {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.45);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
 .searchbarMain .searchbar-country-code {
   flex-shrink: 0;
   font-size: 0.7rem;

@@ -20,9 +20,10 @@ import AiTripBuilderCard from 'components/AiTripBuilderCard';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import { useUser } from 'context/UserContext';
 import { getUserFirstName } from 'utils/userName';
-import type { Country, HeroImage } from 'types';
+import type { PlaceResult } from 'api/hooks/usePlaces';
+import type { HeroImage } from 'types';
 
-type HomeMode = 'country' | 'ai';
+type HomeMode = 'place' | 'ai';
 
 interface SelectedHero {
     url: string;
@@ -56,7 +57,7 @@ const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
 };
 
 const Home = () => {
-    const [homeMode, setHomeMode] = useState<HomeMode>('country');
+    const [homeMode, setHomeMode] = useState<HomeMode>('place');
     const navigate = useNavigate();
     const { user } = useUser();
 
@@ -73,14 +74,24 @@ const Home = () => {
             ? `Where to next, ${firstName}?`
             : 'Where to next?';
 
-    /** SearchBar autocomplete pick — route the user to the country detail
-     *  page (preview-before-commit). Single vs multi is no longer chosen
-     *  here; the trip-builder's first step lets them pick the mode. */
-    const handleSearchSelected = useCallback(
-        (country: Country) => {
-            if (!country?.code) return;
+    /** SearchBar place-pick — route cities to /city and countries to
+     *  /country. Single-destination by convention; the user can switch
+     *  to multi from inside the trip-builder. The previous flow was
+     *  country-only; the new unified place search also handles cities. */
+    const handlePlaceSelected = useCallback(
+        (place: PlaceResult) => {
+            if (!place?.countryCode) return;
+            if (place.kind === 'country') {
+                navigate(
+                    `/country?code=${encodeURIComponent(place.countryCode)}&mode=single`
+                );
+                return;
+            }
             navigate(
-                `/country?code=${encodeURIComponent(country.code)}&mode=single`
+                `/city?name=${encodeURIComponent(place.name)}` +
+                    `&country=${encodeURIComponent(place.countryName)}` +
+                    `&code=${encodeURIComponent(place.countryCode)}` +
+                    `&mode=single`
             );
         },
         [navigate]
@@ -151,8 +162,8 @@ const Home = () => {
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">{heroTitle}</h1>
                     <p className="home-hero-subtitle">
-                        Search for a country, or let our AI pick the right one
-                        for you.
+                        Search for a city or country, or let our AI pick the
+                        right destination for you.
                     </p>
 
                     <div
@@ -163,14 +174,14 @@ const Home = () => {
                         <span className="hero-option-thumb" aria-hidden="true" />
                         <button
                             role="tab"
-                            aria-selected={homeMode === 'country'}
+                            aria-selected={homeMode === 'place'}
                             className={classnames('hero-option', {
-                                selected: homeMode === 'country',
+                                selected: homeMode === 'place',
                             })}
-                            onClick={() => setHomeMode('country')}
+                            onClick={() => setHomeMode('place')}
                         >
                             <PublicRoundedIcon className="hero-option-icon" />
-                            <span>Search by country</span>
+                            <span>Search by Place</span>
                         </button>
                         <button
                             role="tab"
@@ -188,8 +199,8 @@ const Home = () => {
 
                     <div className="home-hero-search">
                         <SearchBar
-                            onSelected={handleSearchSelected}
-                            mode={homeMode === 'ai' ? 'recommend' : 'country'}
+                            onPlaceSelected={handlePlaceSelected}
+                            mode={homeMode === 'ai' ? 'recommend' : 'place'}
                             onAiSearchSubmit={(q) =>
                                 navigate(`/search?q=${encodeURIComponent(q)}`)
                             }
