@@ -15,6 +15,12 @@ import type {
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
 
+interface VisitedPlaceTripRaw {
+    trip_id: string;
+    trip_name: string | null;
+    visited_at: string;
+}
+
 interface VisitedPlaceRaw {
     id: string;
     place_key: string;
@@ -27,8 +33,7 @@ interface VisitedPlaceRaw {
     latitude: number | null;
     longitude: number | null;
     source: VisitedSource;
-    trip_id: string | null;
-    trip_name: string | null;
+    trips: VisitedPlaceTripRaw[];
     visited_at: string;
 }
 
@@ -54,8 +59,13 @@ const toItem = (r: VisitedPlaceRaw): VisitedPlace => ({
     latitude: r.latitude,
     longitude: r.longitude,
     source: r.source,
-    tripId: r.trip_id ?? null,
-    tripName: r.trip_name ?? null,
+    // Old responses (pre-PR-6) don't include `trips`; default to empty
+    // so consumers can rely on the field being an array.
+    trips: (r.trips ?? []).map((t) => ({
+        tripId: t.trip_id,
+        tripName: t.trip_name,
+        visitedAt: t.visited_at,
+    })),
     visitedAt: r.visited_at,
 });
 

@@ -136,8 +136,11 @@ const MyMap = () => {
                     lng: p.longitude as number,
                     source: p.source,
                     visitedAt: p.visitedAt,
-                    tripId: p.tripId,
-                    tripName: p.tripName,
+                    // Trip list comes from the new join table — pass
+                    // through as-is so the popup can render 0 / 1 / 2+
+                    // trip behavior without re-walking the original
+                    // visited-place row.
+                    trips: p.trips,
                 })),
         [visitedPlaces]
     );
@@ -934,29 +937,39 @@ const formatVisitedAt = (iso: string | null | undefined): string => {
     });
 };
 
+interface PinPopupTrip {
+    tripId: string;
+    tripName: string | null;
+    visitedAt: string;
+}
+
 interface PinPopupInput {
     name: string;
     city: string;
     country: string;
     source?: string;
     visitedAt?: string | null;
-    /** Trip back-link from the visited-cascade. When present, the
-     *  popup renders a "View trip" CTA alongside "View details". */
-    tripId?: string | null;
-    tripName?: string | null;
+    /** Trips that visited this place. The popup branches on length:
+     *  0 → details-only; 1 → single "View trip" CTA; 2+ → inline list. */
+    trips?: PinPopupTrip[];
 }
 
 /** Render the Mapbox popup body for a visited place. All values
  *  flow through `escapeHtml` since Mapbox injects this as innerHTML.
- *  The "View details" / "View trip" links are plain HTML —
- *  `target="_blank"` opens them in a new tab so the user keeps the
- *  map context. "View trip" only renders when the visited-place row
- *  carries a `tripId` back-link from the cascade. */
+ *
+ *  Trip-rendering branches:
+ *  - **No trips** (`source='manual'` only): just "View details".
+ *  - **One trip**: header line "From <trip>" + a green primary CTA +
+ *    an orange "View trip" CTA. Mirrors the pre-multi-trip behavior.
+ *  - **Multiple trips**: an inline list of trips with per-row visit
+ *    dates and one link per trip. The primary CTA still goes to the
+ *    place page; the orange single-CTA is replaced by the list so
+ *    the popup doesn't grow two competing affordances.
+ *
+ *  All `target="_blank"` so the user keeps the map context. */
 const renderPinPopupHtml = (pin: PinPopupInput): string => {
     const detailHref = `/place?q=${encodeURIComponent(pin.name)}&i=0`;
-    const tripHref = pin.tripId
-        ? `/trip-detail?id=${encodeURIComponent(pin.tripId)}`
-        : null;
+    const trips = pin.trips ?? [];
     const locationLine = [pin.city, pin.country]
         .filter(Boolean)
         .map(escapeHtml)
@@ -968,18 +981,52 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
             : pin.source === 'manual'
               ? 'Marked visited'
               : '';
-    const tripLine =
-        tripHref && pin.tripName
-            ? `<div class="my-map-pin-popup-trip">From <strong>${escapeHtml(pin.tripName)}</strong></div>`
-            : '';
-    const tripCta = tripHref
-        ? `<a
+
+    let tripBlock = '';
+    let tripCta = '';
+    if (trips.length === 1) {
+        const trip = trips[0];
+        const tripHref = `/trip-detail?id=${encodeURIComponent(trip.tripId)}`;
+        if (trip.tripName) {
+            tripBlock = `<div class="my-map-pin-popup-trip">From <strong>${escapeHtml(
+                trip.tripName
+            )}</strong></div>`;
+        }
+        tripCta = `<a
                 class="my-map-pin-popup-cta my-map-pin-popup-cta-trip"
                 href="${tripHref}"
                 target="_blank"
                 rel="noopener noreferrer"
-            >View trip</a>`
-        : '';
+            >View trip</a>`;
+    } else if (trips.length > 1) {
+        // Inline list — one row per trip with its own date. Replaces
+        // the single orange CTA; the popup wraps if there are many.
+        const rows = trips
+            .map((t) => {
+                const tripHref = `/trip-detail?id=${encodeURIComponent(t.tripId)}`;
+                const name = t.tripName?.trim() || 'Untitled trip';
+                const visitedOn = formatVisitedAt(t.visitedAt);
+                const dateBit = visitedOn
+                    ? `<span class="my-map-pin-popup-trip-row-date">${escapeHtml(
+                          visitedOn
+                      )}</span>`
+                    : '';
+                return `<a
+                    class="my-map-pin-popup-trip-row"
+                    href="${tripHref}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                ><span class="my-map-pin-popup-trip-row-name">${escapeHtml(
+                    name
+                )}</span>${dateBit}</a>`;
+            })
+            .join('');
+        tripBlock = `<div class="my-map-pin-popup-trip-list">
+            <div class="my-map-pin-popup-trip-list-label">Visited on ${trips.length} trips</div>
+            ${rows}
+        </div>`;
+    }
+
     return `
         <div class="my-map-pin-popup-inner">
             <div class="my-map-pin-popup-title">${escapeHtml(pin.name)}</div>
@@ -988,7 +1035,7 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                     ? `<div class="my-map-pin-popup-loc">${locationLine}</div>`
                     : ''
             }
-            ${tripLine}
+            ${tripBlock}
             ${
                 visited || sourceLabel
                     ? `<div class="my-map-pin-popup-meta">${

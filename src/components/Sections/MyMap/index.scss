@@ -190,6 +190,68 @@
   }
 }
 
+// Inline list shown on the popup when the user has visited the same
+// place across 2+ trips. Replaces the single orange CTA so the popup
+// doesn't grow two competing affordances; each row is its own link
+// out to the trip detail page.
+.my-map-pin-popup-trip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(247, 159, 38, 0.08);
+  border: 1px solid rgba(247, 159, 38, 0.16);
+}
+
+.my-map-pin-popup-trip-list-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: theme('colors.primaryOrange');
+  margin-bottom: 2px;
+}
+
+.my-map-pin-popup-trip-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 0.82rem;
+  color: theme('colors.primary');
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(247, 159, 38, 0.22);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: none;
+    color: theme('colors.primaryOrange');
+  }
+}
+
+.my-map-pin-popup-trip-row-name {
+  font-weight: 600;
+  // Trip names can be long; keep the row to one line and ellipsis
+  // anything that doesn't fit. Date stays right-aligned via flex.
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-map-pin-popup-trip-row-date {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .my-map-pin-popup-actions {
   display: flex;
   flex-wrap: wrap;

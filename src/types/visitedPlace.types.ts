@@ -2,6 +2,16 @@ import type { VISITED_SOURCE } from 'constants';
 
 export type VisitedSource = (typeof VISITED_SOURCE)[keyof typeof VISITED_SOURCE];
 
+/** One trip that visited a given place. A user who's travelled to the
+ *  same place across multiple trips gets multiple of these attached to
+ *  a single `VisitedPlace`. Surfaced by the Mapper popup as either a
+ *  single "View trip" CTA (one trip) or an inline list (2+ trips). */
+export interface VisitedPlaceTrip {
+    tripId: string;
+    tripName: string | null;
+    visitedAt: string;
+}
+
 /** One place the current user has marked as visited.
  *  Mirrors the backend `VisitedPlaceItem` schema (camelCase here, snake_case
  *  on the wire). */
@@ -19,15 +29,10 @@ export interface VisitedPlace {
     latitude: number | null;
     longitude: number | null;
     source: VisitedSource;
-    /** Itinerary id back-link. Set when the row was written by the
-     *  trip-completion cascade (or back-filled onto a manual row by that
-     *  cascade). Null on rows persisted before the cascade extension
-     *  shipped and on pure-manual marks with no matching trip. The
-     *  Mapper pin popup renders a "View trip" CTA when present. */
-    tripId: string | null;
-    /** Denormalized trip name at cascade-write time. Can go stale if
-     *  the trip is renamed later — these are historical records. */
-    tripName: string | null;
+    /** Trips that visited this place. Empty for `source='manual'` rows
+     *  with no matching cascade write and for legacy rows from before
+     *  the multi-trip data model shipped. Newest-first by `visitedAt`. */
+    trips: VisitedPlaceTrip[];
     visitedAt: string;
 }
 
