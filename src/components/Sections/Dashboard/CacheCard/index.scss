@@ -1,0 +1,168 @@
+.cache-card-search {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cache-card-city-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 12px;
+
+    @media (max-width: 720px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cache-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+.cache-card-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 6px;
+    background: #fff;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.cache-card-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.92rem;
+    color: rgba(0, 0, 0, 0.8);
+    transition: background 0.12s ease;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+}
+
+.cache-card-result-name {
+    font-weight: 500;
+}
+
+.cache-card-result-code {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.04em;
+}
+
+.cache-card-detail {
+    margin-top: 16px;
+    padding: 16px 18px;
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cache-card-detail-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cache-card-detail-name {
+    display: block;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+}
+
+.cache-card-detail-sub {
+    display: block;
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.5);
+    margin-top: 2px;
+
+    code {
+        background: rgba(0, 0, 0, 0.05);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+}
+
+.cache-card-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: theme('colors.primaryOrange');
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.cache-card-status-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: rgba(0, 0, 0, 0.7);
+    }
+}
+
+.cache-card-yes {
+    color: #228b22;
+    font-weight: 500;
+}
+
+.cache-card-no {
+    color: rgba(0, 0, 0, 0.4);
+    font-style: italic;
+}
+
+.cache-card-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+
+    &:has(input:disabled) {
+        cursor: not-allowed;
+        color: rgba(0, 0, 0, 0.4);
+    }
+}
+
+.cache-card-status {
+    margin: 8px 0;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.88rem;
+}

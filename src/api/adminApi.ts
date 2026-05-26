@@ -402,3 +402,128 @@ export const softDeleteUser = async (userId: string): Promise<void> => {
     );
     if (!resp.ok) await handleError(resp, 'delete user');
 };
+
+// ---------- cache management ----------
+
+interface CountryCacheStatusRaw {
+    code: string;
+    name: string;
+    details_cached: boolean;
+    details_hits: number;
+    details_updated_at: string | null;
+    has_hero_image: boolean;
+}
+
+interface CityCacheStatusRaw {
+    slug: string;
+    city_name: string;
+    country_name: string;
+    country_code: string;
+    details_cached: boolean;
+    details_hits: number;
+    details_updated_at: string | null;
+}
+
+interface CacheClearResultRaw {
+    cleared: boolean;
+    rows_deleted: number;
+}
+
+export interface CountryCacheStatus {
+    code: string;
+    name: string;
+    detailsCached: boolean;
+    detailsHits: number;
+    detailsUpdatedAt: string | null;
+    hasHeroImage: boolean;
+}
+
+export interface CityCacheStatus {
+    slug: string;
+    cityName: string;
+    countryName: string;
+    countryCode: string;
+    detailsCached: boolean;
+    detailsHits: number;
+    detailsUpdatedAt: string | null;
+}
+
+export interface CacheClearResult {
+    cleared: boolean;
+    rowsDeleted: number;
+}
+
+const toCountryCache = (r: CountryCacheStatusRaw): CountryCacheStatus => ({
+    code: r.code,
+    name: r.name,
+    detailsCached: r.details_cached,
+    detailsHits: r.details_hits,
+    detailsUpdatedAt: r.details_updated_at,
+    hasHeroImage: r.has_hero_image,
+});
+
+const toCityCache = (r: CityCacheStatusRaw): CityCacheStatus => ({
+    slug: r.slug,
+    cityName: r.city_name,
+    countryName: r.country_name,
+    countryCode: r.country_code,
+    detailsCached: r.details_cached,
+    detailsHits: r.details_hits,
+    detailsUpdatedAt: r.details_updated_at,
+});
+
+const toClearResult = (r: CacheClearResultRaw): CacheClearResult => ({
+    cleared: r.cleared,
+    rowsDeleted: r.rows_deleted,
+});
+
+export const fetchCountryCacheStatus = async (
+    code: string
+): Promise<CountryCacheStatus> => {
+    const resp = await fetch(
+        `${API_BASE}/admin/cache/country/${encodeURIComponent(code)}`,
+        { headers: authHeaders() }
+    );
+    if (!resp.ok) await handleError(resp, '/admin/cache/country');
+    return toCountryCache((await resp.json()) as CountryCacheStatusRaw);
+};
+
+export const clearCountryCache = async (
+    code: string,
+    options?: { includeImage?: boolean }
+): Promise<CacheClearResult> => {
+    const params = new URLSearchParams();
+    if (options?.includeImage) params.set('include_image', 'true');
+    const resp = await fetch(
+        `${API_BASE}/admin/cache/country/${encodeURIComponent(code)}?${params.toString()}`,
+        { method: 'DELETE', headers: authHeaders() }
+    );
+    if (!resp.ok) await handleError(resp, 'clear country cache');
+    return toClearResult((await resp.json()) as CacheClearResultRaw);
+};
+
+export const fetchCityCacheStatus = async (
+    name: string,
+    code: string
+): Promise<CityCacheStatus> => {
+    const params = new URLSearchParams({ name, code });
+    const resp = await fetch(
+        `${API_BASE}/admin/cache/city?${params.toString()}`,
+        { headers: authHeaders() }
+    );
+    if (!resp.ok) await handleError(resp, '/admin/cache/city');
+    return toCityCache((await resp.json()) as CityCacheStatusRaw);
+};
+
+export const clearCityCache = async (
+    name: string,
+    code: string
+): Promise<CacheClearResult> => {
+    const params = new URLSearchParams({ name, code });
+    const resp = await fetch(
+        `${API_BASE}/admin/cache/city?${params.toString()}`,
+        { method: 'DELETE', headers: authHeaders() }
+    );
+    if (!resp.ok) await handleError(resp, 'clear city cache');
+    return toClearResult((await resp.json()) as CacheClearResultRaw);
+};

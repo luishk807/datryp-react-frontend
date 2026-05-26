@@ -6,6 +6,7 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import classnames from 'classnames';
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
     },
     { to: '/dashboard/activity', label: 'Activity', icon: InsightsRoundedIcon },
     { to: '/dashboard/users', label: 'Users', icon: GroupRoundedIcon },
+    { to: '/dashboard/cache', label: 'Cache', icon: StorageRoundedIcon },
 ] as const;
 
 /**

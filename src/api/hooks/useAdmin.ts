@@ -1,11 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+    clearCityCache as clearCityCacheReq,
+    clearCountryCache as clearCountryCacheReq,
     createAdminUser as createAdminUserReq,
     fetchActivityStats,
     fetchAdminUsers,
     fetchAdminUserTrips,
     fetchAgeDistribution,
     fetchAiUsage,
+    fetchCityCacheStatus,
+    fetchCountryCacheStatus,
     fetchGrowth,
     fetchOverview,
     fetchSubscriptionGrowth,
@@ -15,6 +19,8 @@ import {
     setUserRole as setUserRoleReq,
     softDeleteUser as softDeleteUserReq,
     type AdminUserCreatePayload,
+    type CityCacheStatus,
+    type CountryCacheStatus,
 } from 'api/adminApi';
 import { useUser } from 'context/UserContext';
 import type {
@@ -41,6 +47,10 @@ export const adminKeys = {
     aiUsage: (months: number) => ['admin', 'ai-usage', months] as const,
     users: (q: string) => ['admin', 'users', q] as const,
     userTrips: (id: string) => ['admin', 'user-trips', id] as const,
+    countryCache: (code: string) =>
+        ['admin', 'cache', 'country', code.toUpperCase()] as const,
+    cityCache: (name: string, code: string) =>
+        ['admin', 'cache', 'city', code.toUpperCase(), name.trim().toLowerCase()] as const,
 };
 
 // Polling matches the "live-ish" choice — refreshes the dashboard
@@ -200,5 +210,59 @@ export const useCreateAdminUser = () => {
         mutationFn: (payload: AdminUserCreatePayload) =>
             createAdminUserReq(payload),
         onSuccess: invalidate,
+    });
+};
+
+// ---------- cache management ----------
+
+export const useCountryCacheStatus = (code: string | null) => {
+    const { isAdmin } = useUser();
+    return useQuery<CountryCacheStatus>({
+        queryKey: code ? adminKeys.countryCache(code) : ['admin', 'cache', 'country', 'none'],
+        queryFn: () => fetchCountryCacheStatus(code as string),
+        enabled: adminEnabled(isAdmin) && Boolean(code),
+        staleTime: 10 * 1000,
+    });
+};
+
+export const useCityCacheStatus = (name: string | null, code: string | null) => {
+    const { isAdmin } = useUser();
+    const ready = Boolean(name && code);
+    return useQuery<CityCacheStatus>({
+        queryKey: ready
+            ? adminKeys.cityCache(name as string, code as string)
+            : ['admin', 'cache', 'city', 'none'],
+        queryFn: () => fetchCityCacheStatus(name as string, code as string),
+        enabled: adminEnabled(isAdmin) && ready,
+        staleTime: 10 * 1000,
+    });
+};
+
+export const useClearCountryCache = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({
+            code,
+            includeImage,
+        }: {
+            code: string;
+            includeImage?: boolean;
+        }) => clearCountryCacheReq(code, { includeImage }),
+        onSuccess: (_data, vars) => {
+            qc.invalidateQueries({ queryKey: adminKeys.countryCache(vars.code) });
+        },
+    });
+};
+
+export const useClearCityCache = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ name, code }: { name: string; code: string }) =>
+            clearCityCacheReq(name, code),
+        onSuccess: (_data, vars) => {
+            qc.invalidateQueries({
+                queryKey: adminKeys.cityCache(vars.name, vars.code),
+            });
+        },
     });
 };
