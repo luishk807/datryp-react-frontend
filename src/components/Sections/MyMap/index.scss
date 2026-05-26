@@ -40,6 +40,8 @@
 .my-map-controls {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .my-map-toggle-btn {
@@ -178,11 +180,27 @@
   color: rgba(0, 0, 0, 0.5);
 }
 
+.my-map-pin-popup-trip {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.62);
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+}
+
+.my-map-pin-popup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
 .my-map-pin-popup-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 8px;
   padding: 7px 14px;
   border-radius: 999px;
   background: theme('colors.primaryGreen');
@@ -197,6 +215,18 @@
     background: #2d8f37;
     transform: translateY(-1px);
     text-decoration: none;
+  }
+}
+
+// Variant for the trip back-link CTA. Same shape as the primary but
+// switches to the brand orange so the two CTAs are visually distinct
+// when both show on the popup.
+.my-map-pin-popup-cta-trip {
+  background: theme('colors.primaryOrange');
+
+  &:hover,
+  &:focus-visible {
+    background: #d9871f;
   }
 }
 

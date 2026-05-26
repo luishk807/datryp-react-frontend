@@ -19,6 +19,15 @@ export interface VisitedPlace {
     latitude: number | null;
     longitude: number | null;
     source: VisitedSource;
+    /** Itinerary id back-link. Set when the row was written by the
+     *  trip-completion cascade (or back-filled onto a manual row by that
+     *  cascade). Null on rows persisted before the cascade extension
+     *  shipped and on pure-manual marks with no matching trip. The
+     *  Mapper pin popup renders a "View trip" CTA when present. */
+    tripId: string | null;
+    /** Denormalized trip name at cascade-write time. Can go stale if
+     *  the trip is renamed later — these are historical records. */
+    tripName: string | null;
     visitedAt: string;
 }
 

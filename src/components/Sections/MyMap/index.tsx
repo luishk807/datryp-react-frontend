@@ -32,6 +32,7 @@ import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
+import FilterCenterFocusRoundedIcon from '@mui/icons-material/FilterCenterFocusRounded';
 import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
@@ -66,6 +67,16 @@ const MyMap = () => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
+    // One-shot guard for the initial "fit to my world" camera fly.
+    // Once the user has seen their continents framed up, subsequent
+    // data refetches (new visited place lands in cache, etc.) must not
+    // yank the camera back — they may have already panned somewhere
+    // else.
+    const didAutoFitRef = useRef(false);
+    // Tracks the currently-hovered country feature id so the hover
+    // feature-state can be unset when the cursor moves to a new
+    // country or off the layer entirely.
+    const hoveredCountryRef = useRef<number | string | null>(null);
     // Keyed by visited-place id so a dropdown selection can target the
     // exact marker to open its popup. Lives alongside `markersRef`
     // (which keeps a plain list for cleanup) — the two are written and
@@ -125,6 +136,8 @@ const MyMap = () => {
                     lng: p.longitude as number,
                     source: p.source,
                     visitedAt: p.visitedAt,
+                    tripId: p.tripId,
+                    tripName: p.tripName,
                 })),
         [visitedPlaces]
     );
@@ -185,7 +198,17 @@ const MyMap = () => {
                         type: 'fill',
                         paint: {
                             'fill-color': '#3cb54b',
-                            'fill-opacity': 0.45,
+                            // Brighten on hover via feature-state.
+                            // mapbox.country-boundaries-v1 provides a
+                            // unique numeric feature.id per polygon, so
+                            // feature-state lookups work without us
+                            // promoting an id property.
+                            'fill-opacity': [
+                                'case',
+                                ['boolean', ['feature-state', 'hover'], false],
+                                0.65,
+                                0.45,
+                            ],
                         },
                         // Start with an impossible filter so nothing
                         // shows until the visited list resolves.
@@ -279,7 +302,86 @@ const MyMap = () => {
         }
     }, [placePins, mapReady]);
 
+    // Frame the camera so every visited country polygon AND every
+    // visited place pin is inside the viewport. Used twice:
+    // 1. one-shot on initial load, so the user lands on "their world"
+    //    instead of the default world view, and
+    // 2. by the "Fit to my world" button so they can return to that
+    //    framing after exploring.
+    const fitToVisitedWorld = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const bounds = new mapboxgl.LngLatBounds();
+        let extended = false;
+
+        if (map.getLayer('visited-country-fill')) {
+            // queryRenderedFeatures only returns features whose tiles
+            // are currently drawn — relies on the caller having waited
+            // for the map to be idle (the auto-fit effect uses 'idle';
+            // the reset button is fine because tiles are already up
+            // by then).
+            const features = map.queryRenderedFeatures(undefined, {
+                layers: ['visited-country-fill'],
+            });
+            for (const f of features) {
+                const geom = f.geometry as
+                    | { type: string; coordinates: unknown }
+                    | undefined;
+                if (!geom) continue;
+                extendBoundsFromGeometry(bounds, geom);
+                extended = true;
+            }
+        }
+
+        // Pins extend bounds too, so a country with no shaded polygon
+        // (rare — code missing from the boundaries tileset) still
+        // contributes a coordinate, AND so a city-less place pin
+        // inside a country whose other half wraps the antimeridian
+        // (Russia, US/AK) gets pulled into the frame.
+        for (const p of placePins) {
+            bounds.extend([p.lng, p.lat]);
+            extended = true;
+        }
+
+        if (!extended) return;
+        map.fitBounds(bounds, {
+            padding: { top: 80, bottom: 80, left: 80, right: 80 },
+            maxZoom: 5,
+            duration: 1500,
+        });
+    }, [placePins]);
+
+    // One-shot auto-fit on initial load. Waits for the country layer's
+    // tiles to actually render (the 'idle' event) before measuring —
+    // queryRenderedFeatures returns nothing until then, so a naive
+    // "fire after mapReady" would fitBounds with an empty box and the
+    // camera wouldn't move.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        if (didAutoFitRef.current) return;
+        if (countryCodes.length === 0 && placePins.length === 0) return;
+
+        const tryFit = () => {
+            if (didAutoFitRef.current) return;
+            if (!map.isStyleLoaded()) return;
+            fitToVisitedWorld();
+            didAutoFitRef.current = true;
+            map.off('idle', tryFit);
+        };
+
+        map.on('idle', tryFit);
+        return () => {
+            map.off('idle', tryFit);
+        };
+    }, [mapReady, countryCodes, placePins, fitToVisitedWorld]);
+
     const handleToggleMap = () => setMapHidden((h) => !h);
+
+    const handleFitToWorld = () => {
+        if (countryCodes.length === 0 && placePins.length === 0) return;
+        fitToVisitedWorld();
+    };
 
     const handleOpenPaywall = () => paywallRef.current?.openModel();
 
@@ -425,6 +527,75 @@ const MyMap = () => {
         },
         [visitedPlaces]
     );
+
+    // Click + hover interactions on the visited-country fill layer.
+    // Click flies in (same code path the dropdown uses). Hover sets a
+    // feature-state flag the layer's paint expression reads to bump
+    // opacity, plus a cursor change so users discover the country is
+    // interactive.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+
+        const setHover = (id: number | string | null) => {
+            const prev = hoveredCountryRef.current;
+            if (prev !== null && prev !== id) {
+                map.setFeatureState(
+                    {
+                        source: COUNTRY_BOUNDARIES_SOURCE,
+                        sourceLayer: 'country_boundaries',
+                        id: prev,
+                    },
+                    { hover: false }
+                );
+            }
+            hoveredCountryRef.current = id;
+            if (id !== null) {
+                map.setFeatureState(
+                    {
+                        source: COUNTRY_BOUNDARIES_SOURCE,
+                        sourceLayer: 'country_boundaries',
+                        id,
+                    },
+                    { hover: true }
+                );
+            }
+        };
+
+        const onClick = (e: mapboxgl.MapLayerMouseEvent) => {
+            const feat = e.features?.[0];
+            if (!feat) return;
+            const code =
+                (feat.properties?.iso_3166_1 as string | undefined) ?? '';
+            if (!code) return;
+            flyToCountry(code);
+        };
+        const onMove = (e: mapboxgl.MapLayerMouseEvent) => {
+            const id = e.features?.[0]?.id;
+            if (id === undefined || id === null) return;
+            if (id !== hoveredCountryRef.current) {
+                map.getCanvas().style.cursor = 'pointer';
+                setHover(id);
+            }
+        };
+        const onLeave = () => {
+            map.getCanvas().style.cursor = '';
+            setHover(null);
+        };
+
+        map.on('click', 'visited-country-fill', onClick);
+        map.on('mousemove', 'visited-country-fill', onMove);
+        map.on('mouseleave', 'visited-country-fill', onLeave);
+        return () => {
+            map.off('click', 'visited-country-fill', onClick);
+            map.off('mousemove', 'visited-country-fill', onMove);
+            map.off('mouseleave', 'visited-country-fill', onLeave);
+            // Clear any lingering hover state so the next mount
+            // (e.g. after a HMR reload in dev) doesn't see a stuck
+            // brightened country.
+            setHover(null);
+        };
+    }, [mapReady, flyToCountry]);
 
     const flyToCity = useCallback(
         (citySlug: string) => {
@@ -578,6 +749,20 @@ const MyMap = () => {
                         />
                     </div>
                     <div className="my-map-controls">
+                        {isPro &&
+                            !mapHidden &&
+                            (countryCodes.length > 0 ||
+                                placePins.length > 0) && (
+                                <button
+                                    type="button"
+                                    className="my-map-toggle-btn"
+                                    onClick={handleFitToWorld}
+                                    title="Re-center the map on your visited countries and places"
+                                >
+                                    <FilterCenterFocusRoundedIcon fontSize="small" />
+                                    <span>Fit to my world</span>
+                                </button>
+                            )}
                         <button
                             type="button"
                             className="my-map-toggle-btn"
@@ -755,14 +940,23 @@ interface PinPopupInput {
     country: string;
     source?: string;
     visitedAt?: string | null;
+    /** Trip back-link from the visited-cascade. When present, the
+     *  popup renders a "View trip" CTA alongside "View details". */
+    tripId?: string | null;
+    tripName?: string | null;
 }
 
 /** Render the Mapbox popup body for a visited place. All values
  *  flow through `escapeHtml` since Mapbox injects this as innerHTML.
- *  The "View details" link is plain HTML — `target="_blank"` opens it
- *  in a new tab so the user keeps the map context. */
+ *  The "View details" / "View trip" links are plain HTML —
+ *  `target="_blank"` opens them in a new tab so the user keeps the
+ *  map context. "View trip" only renders when the visited-place row
+ *  carries a `tripId` back-link from the cascade. */
 const renderPinPopupHtml = (pin: PinPopupInput): string => {
     const detailHref = `/place?q=${encodeURIComponent(pin.name)}&i=0`;
+    const tripHref = pin.tripId
+        ? `/trip-detail?id=${encodeURIComponent(pin.tripId)}`
+        : null;
     const locationLine = [pin.city, pin.country]
         .filter(Boolean)
         .map(escapeHtml)
@@ -774,6 +968,18 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
             : pin.source === 'manual'
               ? 'Marked visited'
               : '';
+    const tripLine =
+        tripHref && pin.tripName
+            ? `<div class="my-map-pin-popup-trip">From <strong>${escapeHtml(pin.tripName)}</strong></div>`
+            : '';
+    const tripCta = tripHref
+        ? `<a
+                class="my-map-pin-popup-cta my-map-pin-popup-cta-trip"
+                href="${tripHref}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >View trip</a>`
+        : '';
     return `
         <div class="my-map-pin-popup-inner">
             <div class="my-map-pin-popup-title">${escapeHtml(pin.name)}</div>
@@ -782,6 +988,7 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                     ? `<div class="my-map-pin-popup-loc">${locationLine}</div>`
                     : ''
             }
+            ${tripLine}
             ${
                 visited || sourceLabel
                     ? `<div class="my-map-pin-popup-meta">${
@@ -799,12 +1006,15 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                       }</div>`
                     : ''
             }
-            <a
-                class="my-map-pin-popup-cta"
-                href="${detailHref}"
-                target="_blank"
-                rel="noopener noreferrer"
-            >View details</a>
+            <div class="my-map-pin-popup-actions">
+                <a
+                    class="my-map-pin-popup-cta"
+                    href="${detailHref}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >View details</a>
+                ${tripCta}
+            </div>
         </div>
     `;
 };

@@ -27,6 +27,8 @@ interface VisitedPlaceRaw {
     latitude: number | null;
     longitude: number | null;
     source: VisitedSource;
+    trip_id: string | null;
+    trip_name: string | null;
     visited_at: string;
 }
 
@@ -52,6 +54,8 @@ const toItem = (r: VisitedPlaceRaw): VisitedPlace => ({
     latitude: r.latitude,
     longitude: r.longitude,
     source: r.source,
+    tripId: r.trip_id ?? null,
+    tripName: r.trip_name ?? null,
     visitedAt: r.visited_at,
 });
 
