@@ -21,7 +21,7 @@ export const getUserFirstName = (
         // in compound first names stay glued together — "Jean-Luc"
         // reads as one first name).
         const first = raw.split(/\s+/, 1)[0];
-        if (first) return first;
+        if (first) return first.charAt(0).toUpperCase() + first.slice(1);
     }
     const email = user.email?.trim();
     if (email) {

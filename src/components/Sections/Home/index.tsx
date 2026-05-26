@@ -18,6 +18,8 @@ import MonthlyBestPlace from 'components/MonthlyBestPlace';
 import SeasonalBestPlaces from 'components/SeasonalBestPlaces';
 import AiTripBuilderCard from 'components/AiTripBuilderCard';
 import { useHeroImages } from 'api/hooks/useHeroImages';
+import { useUser } from 'context/UserContext';
+import { getUserFirstName } from 'utils/userName';
 import type { Country, HeroImage } from 'types';
 
 type HomeMode = 'country' | 'ai';
@@ -56,9 +58,20 @@ const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
 const Home = () => {
     const [homeMode, setHomeMode] = useState<HomeMode>('country');
     const navigate = useNavigate();
+    const { user } = useUser();
 
     const { data: heroImages } = useHeroImages();
     const heroImage = useMemo(() => pickRandomHero(heroImages), [heroImages]);
+
+    // Cap the greeted name length so an unusually long first name
+    // ("luistestiigjgfddfdfdfdfdfd") doesn't overflow the hero on
+    // narrow phones — the title has no internal break point. Above
+    // the cap, fall back to the plain "Where to next?" copy.
+    const firstName = user ? getUserFirstName(user, '') : '';
+    const heroTitle =
+        firstName && firstName.length <= 12
+            ? `Where to next, ${firstName}?`
+            : 'Where to next?';
 
     /** SearchBar autocomplete pick — route the user to the country detail
      *  page (preview-before-commit). Single vs multi is no longer chosen
@@ -136,7 +149,7 @@ const Home = () => {
                     </span>
                 )}
                 <div className="home-hero-content">
-                    <h1 className="home-hero-title">Where to next?</h1>
+                    <h1 className="home-hero-title">{heroTitle}</h1>
                     <p className="home-hero-subtitle">
                         Search for a country, or let our AI pick the right one
                         for you.
