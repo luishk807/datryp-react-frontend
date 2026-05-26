@@ -940,7 +940,14 @@ const TripDetailHeader = ({
   // For Confirmed / Completed / Cancelled we keep the read-only pill
   // so users can see at a glance where the trip is.
   const showInlinePromote = canPromoteStatus && statusName === TRIP_STATUS.PLANNING;
-  const showInlineStatusPill = statusName !== TRIP_STATUS.PLANNING;
+  // Read-only status pill ONLY when there's no actionable promote
+  // sitting in the same slot. Planning + canPromote → inline Confirm
+  // button. Confirmed + canPromote → inline Mark Complete button.
+  // Otherwise (Completed / Cancelled / no-promote viewers) → pill.
+  const showInlineConfirmedPromote =
+    statusName === TRIP_STATUS.CONFIRMED && canPromoteStatus;
+  const showInlineStatusPill =
+    statusName !== TRIP_STATUS.PLANNING && !showInlineConfirmedPromote;
 
   return (
     <div className="trip-detail-header">
@@ -967,17 +974,16 @@ const TripDetailHeader = ({
             isSaving={isSaving}
           />
         )}
-        {/* Mobile-only inline Mark Complete — when the trip is Confirmed
-            and the user can promote, surface the action right next to
-            the bell on small screens so it isn't buried in the actions
-            row. CSS hides this on desktop and hides the static pill on
-            mobile (when Confirmed) so the two don't double-up. */}
-        {statusName === TRIP_STATUS.CONFIRMED && canPromoteStatus && (
+        {/* Confirmed + canPromote: inline Mark Complete button
+            replaces the static "Confirmed" pill on BOTH mobile and
+            desktop. The button reads as "trip status + how to
+            advance" in one element so users aren't hunting in the
+            actions row for the promote action. */}
+        {showInlineConfirmedPromote && (
           <TripStatusBadge
             data={tripData}
             onStatusChange={onStatusChange}
             isSaving={isSaving}
-            className="trip-detail-inline-promote-mobile"
           />
         )}
         {/* Post-Planning lifecycle: read-only status indicator so the
@@ -1008,13 +1014,10 @@ const TripDetailHeader = ({
             disabled={isSaving}
           />
         )}
-        {canPromoteStatus && !showInlinePromote && (
-          <TripStatusBadge
-            data={tripData}
-            onStatusChange={onStatusChange}
-            isSaving={isSaving}
-          />
-        )}
+        {/* No actions-row promote button — both Planning (Confirm
+            trip) and Confirmed (Mark complete) render inline next to
+            the trip name so the lifecycle action sits where the
+            status pill used to live. */}
         {canExport && (
           <ModalButton
             ref={exportModalRef}

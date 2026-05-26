@@ -168,30 +168,8 @@
 // ───── Mobile-only inline Mark Complete (Confirmed status) ──────────────
 // Hidden on desktop; shown on mobile so users tap-promote without
 // digging into the actions row.
-.trip-detail-inline-promote-mobile {
-  display: none;
-}
-
 // ───── Mobile breakpoint shifts ─────────────────────────────────────────
 @media (max-width: 720px) {
-  // Show the mobile-inline promote next to the bell.
-  .trip-detail-inline-promote-mobile {
-    display: inline-flex;
-  }
-
-  // Hide the desktop promote in the actions row (when status is
-  // Confirmed; the Planning case still uses the inline button up top).
-  .trip-detail-header-actions
-    > .trip-status-badge-wrapper:not(.trip-detail-inline-promote-mobile) {
-    display: none;
-  }
-
-  // Hide the static Confirmed pill — the inline Mark Complete button
-  // replaces it on mobile.
-  .trip-detail-header .trip-detail-status-confirmed {
-    display: none;
-  }
-
   // Tour launcher collapses to icon only on mobile so the toggle row
   // doesn't wrap.
   .trip-detail-tour-launcher-btn span {
