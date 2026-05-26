@@ -35,8 +35,17 @@
 
 .visited-page-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.visited-page-header-text {
+  display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .visited-page-title {
@@ -50,6 +59,29 @@
   font-size: 0.95rem;
   color: rgba(0, 0, 0, 0.6);
   margin: 0;
+}
+
+.visited-page-map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  background: theme('colors.primaryOrange');
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    background: #e07a2e;
+    box-shadow: 0 2px 6px rgba(243, 142, 64, 0.35);
+  }
+}
+
+.visited-page-map-link-icon {
+  font-size: 1.1rem !important;
 }
 
 .visited-page-msg {

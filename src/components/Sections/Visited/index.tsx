@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import './index.scss';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import MapRoundedIcon from '@mui/icons-material/MapRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import DeleteBtn from 'components/common/DeleteBtn';
 import Pagination from 'components/common/Pagination';
@@ -100,15 +101,21 @@ const Visited = () => {
         <Layout title="Visited Places">
             <div className="visited-page">
                 <header className="visited-page-header">
-                    <h1 className="visited-page-title">Where you've been</h1>
-                    {!anyLoading && !anyError && !allEmpty && (
-                        <p className="visited-page-summary">
-                            {countryCount}{' '}
-                            countr{countryCount === 1 ? 'y' : 'ies'} ·{' '}
-                            {cityTotal} cit{cityTotal === 1 ? 'y' : 'ies'} ·{' '}
-                            {total} place{total === 1 ? '' : 's'}
-                        </p>
-                    )}
+                    <div className="visited-page-header-text">
+                        <h1 className="visited-page-title">Where you've been</h1>
+                        {!anyLoading && !anyError && !allEmpty && (
+                            <p className="visited-page-summary">
+                                {countryCount}{' '}
+                                countr{countryCount === 1 ? 'y' : 'ies'} ·{' '}
+                                {cityTotal} cit{cityTotal === 1 ? 'y' : 'ies'} ·{' '}
+                                {total} place{total === 1 ? '' : 's'}
+                            </p>
+                        )}
+                    </div>
+                    <Link to="/my-map" className="visited-page-map-link">
+                        <MapRoundedIcon className="visited-page-map-link-icon" />
+                        <span>View on map</span>
+                    </Link>
                 </header>
 
                 {anyLoading && <p className="visited-page-msg">Loading…</p>}
