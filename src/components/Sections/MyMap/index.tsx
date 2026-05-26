@@ -67,6 +67,14 @@ const MyMap = () => {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
+    // City markers live on their own list so the marker-sync effects
+    // for places vs cities can each rebuild their own pins without
+    // stepping on each other. Same lifecycle (cleared + repopulated
+    // when the source list changes) but distinct refs.
+    const cityMarkersRef = useRef<mapboxgl.Marker[]>([]);
+    const cityMarkersByIdRef = useRef<Map<string, mapboxgl.Marker>>(
+        new Map()
+    );
     // One-shot guard for the initial "fit to my world" camera fly.
     // Once the user has seen their continents framed up, subsequent
     // data refetches (new visited place lands in cache, etc.) must not
@@ -143,6 +151,35 @@ const MyMap = () => {
                     trips: p.trips,
                 })),
         [visitedPlaces]
+    );
+
+    // City-level pins. A city pin sits at the city centroid (geocoded
+    // by the backend at mark-visited time) and is visually distinct
+    // from a place pin — green ring instead of an orange dot — so the
+    // user can tell "I've been to this city" (broader) from "I've
+    // been to this specific spot" (narrower). Pre-geocoder rows
+    // without lat/lng are filtered out; the dropdown still lists
+    // them so the user can see them in the cities count.
+    const cityPins = useMemo(
+        () =>
+            visitedCities
+                .filter(
+                    (c) =>
+                        typeof c.latitude === 'number' &&
+                        typeof c.longitude === 'number'
+                )
+                .map((c) => ({
+                    id: c.id,
+                    citySlug: c.citySlug,
+                    cityName: c.cityName,
+                    countryName: c.countryName,
+                    countryCode: c.countryCode,
+                    lat: c.latitude as number,
+                    lng: c.longitude as number,
+                    source: c.source,
+                    visitedAt: c.visitedAt,
+                })),
+        [visitedCities]
     );
 
     // Initialize the Mapbox map. Runs once — subsequent data changes
@@ -305,6 +342,38 @@ const MyMap = () => {
         }
     }, [placePins, mapReady]);
 
+    // Sync city markers. Same pattern as places but with a distinct
+    // CSS class so the city pins read as a different visual layer.
+    // City markers are anchored at the centroid (geocoded server-side)
+    // and have a lighter popup focused on the city itself rather than
+    // a trip back-link (the cascade doesn't write cities today).
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        for (const m of cityMarkersRef.current) m.remove();
+        cityMarkersRef.current = [];
+        cityMarkersByIdRef.current.clear();
+        for (const pin of cityPins) {
+            const el = document.createElement('div');
+            el.className = 'my-map-city-pin';
+            const popup = new mapboxgl.Popup({
+                offset: 14,
+                closeButton: true,
+                maxWidth: '240px',
+                className: 'my-map-pin-popup',
+            }).setHTML(renderCityPopupHtml(pin));
+            const marker = new mapboxgl.Marker({
+                element: el,
+                anchor: 'center',
+            })
+                .setLngLat([pin.lng, pin.lat])
+                .setPopup(popup)
+                .addTo(map);
+            cityMarkersRef.current.push(marker);
+            cityMarkersByIdRef.current.set(pin.citySlug, marker);
+        }
+    }, [cityPins, mapReady]);
+
     // Frame the camera so every visited country polygon AND every
     // visited place pin is inside the viewport. Used twice:
     // 1. one-shot on initial load, so the user lands on "their world"
@@ -345,6 +414,13 @@ const MyMap = () => {
             bounds.extend([p.lng, p.lat]);
             extended = true;
         }
+        // City pins contribute too — a user who's only marked cities
+        // (no specific places) inside a never-shaded country still
+        // gets framed when they hit "Fit to my world".
+        for (const c of cityPins) {
+            bounds.extend([c.lng, c.lat]);
+            extended = true;
+        }
 
         if (!extended) return;
         map.fitBounds(bounds, {
@@ -352,7 +428,7 @@ const MyMap = () => {
             maxZoom: 5,
             duration: 1500,
         });
-    }, [placePins]);
+    }, [placePins, cityPins]);
 
     // One-shot auto-fit on initial load. Waits for the country layer's
     // tiles to actually render (the 'idle' event) before measuring —
@@ -363,7 +439,13 @@ const MyMap = () => {
         const map = mapRef.current;
         if (!map || !mapReady) return;
         if (didAutoFitRef.current) return;
-        if (countryCodes.length === 0 && placePins.length === 0) return;
+        if (
+            countryCodes.length === 0 &&
+            placePins.length === 0 &&
+            cityPins.length === 0
+        ) {
+            return;
+        }
 
         const tryFit = () => {
             if (didAutoFitRef.current) return;
@@ -377,12 +459,18 @@ const MyMap = () => {
         return () => {
             map.off('idle', tryFit);
         };
-    }, [mapReady, countryCodes, placePins, fitToVisitedWorld]);
+    }, [mapReady, countryCodes, placePins, cityPins, fitToVisitedWorld]);
 
     const handleToggleMap = () => setMapHidden((h) => !h);
 
     const handleFitToWorld = () => {
-        if (countryCodes.length === 0 && placePins.length === 0) return;
+        if (
+            countryCodes.length === 0 &&
+            placePins.length === 0 &&
+            cityPins.length === 0
+        ) {
+            return;
+        }
         fitToVisitedWorld();
     };
 
@@ -430,7 +518,16 @@ const MyMap = () => {
             .slice()
             .sort((a, b) => a.cityName.localeCompare(b.cityName))
             .map((c) => {
-                const hasCoords = visitedPlaces.some(
+                // Native city coords (geocoded at mark-visited time)
+                // are the primary source. Older rows from before the
+                // geocoder shipped don't have them — fall back to
+                // borrowing coords from a visited place in that city
+                // so existing data still flies on the map until a
+                // backfill runs.
+                const hasNative =
+                    typeof c.latitude === 'number' &&
+                    typeof c.longitude === 'number';
+                const borrowedFromPlace = !hasNative && visitedPlaces.some(
                     (p) =>
                         typeof p.latitude === 'number' &&
                         typeof p.longitude === 'number' &&
@@ -439,6 +536,7 @@ const MyMap = () => {
                         (p.countryCode ?? '').toUpperCase() ===
                             c.countryCode.toUpperCase()
                 );
+                const hasCoords = hasNative || borrowedFromPlace;
                 return {
                     id: c.citySlug,
                     label: c.cityName,
@@ -446,7 +544,7 @@ const MyMap = () => {
                     disabled: !hasCoords,
                     disabledReason: hasCoords
                         ? undefined
-                        : 'No place coordinates yet for this city',
+                        : 'No coordinates yet for this city',
                 };
             });
     }, [visitedCities, visitedPlaces]);
@@ -606,22 +704,39 @@ const MyMap = () => {
             if (!map) return;
             const city = visitedCities.find((c) => c.citySlug === citySlug);
             if (!city) return;
-            const places = visitedPlaces.filter(
-                (p) =>
-                    typeof p.latitude === 'number' &&
-                    typeof p.longitude === 'number' &&
-                    (p.placeCity ?? '').toLowerCase() ===
-                        city.cityName.toLowerCase() &&
-                    (p.countryCode ?? '').toUpperCase() ===
-                        city.countryCode.toUpperCase()
-            );
-            if (places.length === 0) return;
-            const lat =
-                places.reduce((s, p) => s + (p.latitude as number), 0) /
-                places.length;
-            const lng =
-                places.reduce((s, p) => s + (p.longitude as number), 0) /
-                places.length;
+            // Primary: the city row's own lat/lng (geocoded at
+            // mark-visited time by the backend). Fallback: average the
+            // coords of any visited places in that city — keeps the
+            // dropdown working for pre-geocoder city rows until a
+            // backfill catches up.
+            let lat: number | null = null;
+            let lng: number | null = null;
+            if (
+                typeof city.latitude === 'number' &&
+                typeof city.longitude === 'number'
+            ) {
+                lat = city.latitude;
+                lng = city.longitude;
+            } else {
+                const places = visitedPlaces.filter(
+                    (p) =>
+                        typeof p.latitude === 'number' &&
+                        typeof p.longitude === 'number' &&
+                        (p.placeCity ?? '').toLowerCase() ===
+                            city.cityName.toLowerCase() &&
+                        (p.countryCode ?? '').toUpperCase() ===
+                            city.countryCode.toUpperCase()
+                );
+                if (places.length > 0) {
+                    lat =
+                        places.reduce((s, p) => s + (p.latitude as number), 0) /
+                        places.length;
+                    lng =
+                        places.reduce((s, p) => s + (p.longitude as number), 0) /
+                        places.length;
+                }
+            }
+            if (lat === null || lng === null) return;
             map.flyTo({ center: [lng, lat], zoom: 10, duration: 1200 });
         },
         [visitedCities, visitedPlaces]
@@ -1061,6 +1176,65 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                     rel="noopener noreferrer"
                 >View details</a>
                 ${tripCta}
+            </div>
+        </div>
+    `;
+};
+
+interface CityPopupInput {
+    cityName: string;
+    countryName: string;
+    countryCode: string;
+    source?: string;
+    visitedAt?: string | null;
+}
+
+/** Render the Mapbox popup body for a visited city pin. Distinct from
+ *  the place popup — cities don't carry the trips[] join today (the
+ *  cascade only writes places + countries), so the popup is simpler:
+ *  name, country, when visited, and one CTA to the /city page.
+ *
+ *  Same escapeHtml + target=_blank conventions as the place popup so
+ *  the user keeps the map context when they jump out. */
+const renderCityPopupHtml = (pin: CityPopupInput): string => {
+    const cityHref =
+        `/city?name=${encodeURIComponent(pin.cityName)}` +
+        `&country=${encodeURIComponent(pin.countryName)}` +
+        `&code=${encodeURIComponent(pin.countryCode)}` +
+        `&mode=single`;
+    const visited = formatVisitedAt(pin.visitedAt);
+    const sourceLabel =
+        pin.source === 'itinerary' ? 'From a trip' : 'Marked visited';
+    return `
+        <div class="my-map-pin-popup-inner">
+            <div class="my-map-pin-popup-title">${escapeHtml(pin.cityName)}</div>
+            <div class="my-map-pin-popup-loc">${escapeHtml(
+                `${pin.countryName} (${pin.countryCode})`,
+            )}</div>
+            ${
+                visited || sourceLabel
+                    ? `<div class="my-map-pin-popup-meta">${
+                          sourceLabel
+                              ? `<span class="my-map-pin-popup-chip">${escapeHtml(
+                                    sourceLabel,
+                                )}</span>`
+                              : ''
+                      }${
+                          visited
+                              ? `<span class="my-map-pin-popup-date">Visited ${escapeHtml(
+                                    visited,
+                                )}</span>`
+                              : ''
+                      }</div>`
+                    : ''
+            }
+            <div class="my-map-pin-popup-actions">
+                <a
+                    class="my-map-pin-popup-cta"
+                    href="${cityHref}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >View city</a>
             </div>
         </div>
     `;

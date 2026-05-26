@@ -8,6 +8,12 @@ export interface VisitedCity {
     cityName: string;
     countryName: string;
     countryCode: string;
+    /** Geocoded centre point of the city, set at mark-visited time via
+     *  the OpenAI geocoder. Null on rows persisted before the geocoder
+     *  shipped — the Mapper city-dropdown disables those rows so the
+     *  "fly to city" action only lights up when we have coords. */
+    latitude: number | null;
+    longitude: number | null;
     source: VisitedSource;
     visitedAt: string;
 }

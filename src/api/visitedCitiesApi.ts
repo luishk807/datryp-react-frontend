@@ -21,6 +21,8 @@ interface VisitedCityRaw {
     city_name: string;
     country_name: string;
     country_code: string;
+    latitude: number | null;
+    longitude: number | null;
     source: VisitedSource;
     visited_at: string;
 }
@@ -41,6 +43,8 @@ const toItem = (r: VisitedCityRaw): VisitedCity => ({
     cityName: r.city_name,
     countryName: r.country_name,
     countryCode: r.country_code,
+    latitude: r.latitude ?? null,
+    longitude: r.longitude ?? null,
     source: r.source,
     visitedAt: r.visited_at,
 });

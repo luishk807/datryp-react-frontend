@@ -118,6 +118,31 @@
   }
 }
 
+// City-level marker. Visually distinct from `.my-map-pin` so the user
+// can tell "I visited Bangkok" (broad) from "I visited Wat Arun in
+// Bangkok" (narrow). White solid core stands out against the green
+// country shading (a tinted-green ring blended in too much there);
+// the green border keeps the color identity so cities still read as
+// part of the same family as the country-shading layer.
+.my-map-city-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid theme('colors.primaryGreen');
+  // Darker drop shadow than the place pin so the white core has
+  // enough separation from the light-style basemap. Without this the
+  // pin disappears over land/ocean tiles that happen to be near-white.
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    transform: scale(1.2);
+    background: theme('colors.primaryGreen');
+  }
+}
+
 .my-map-pin-meta {
   display: inline-block;
   margin-top: 2px;
@@ -132,6 +157,35 @@
   padding: 14px 16px 12px;
   border-radius: 12px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+// Mapbox ships a 16px × button by default — way too small to be a
+// reliable tap target, and on a green-shaded country basemap the
+// near-transparent default vanishes. Beef it up: ~30px round chip
+// with stronger contrast + a hover affordance so the close action
+// reads as actually-clickable.
+.mapboxgl-popup.my-map-pin-popup .mapboxgl-popup-close-button {
+  width: 28px;
+  height: 28px;
+  top: 6px;
+  right: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.85);
+    outline: none;
+  }
 }
 
 .my-map-pin-popup-inner {
