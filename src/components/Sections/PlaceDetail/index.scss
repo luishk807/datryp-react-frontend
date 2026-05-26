@@ -417,7 +417,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  // Fill the viewport minus the page chrome (header + title bar +
+  // footer + padding ≈ 12rem) so the loader visually sits at the
+  // center of the screen, not the center of a 60vh region biased
+  // downward by the header. `min-height: 60vh` worked on short
+  // viewports but left the loader pinned to the upper third on
+  // desktop / tall screens.
+  min-height: calc(100vh - 12rem);
   padding: 32px 16px;
 }
 
