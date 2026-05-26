@@ -355,6 +355,15 @@
   gap: 6px;
 }
 
+// Friends-visited chip slots — paired show/hide. Desktop default
+// hides the mobile slot; the 720px media query inverts it.
+.country-detail-friends-slot.is-mobile-only {
+  display: none;
+}
+.country-detail-friends-slot.is-desktop-only {
+  display: block;
+}
+
 .country-detail-name-row {
   display: flex;
   align-items: baseline;
@@ -427,6 +436,18 @@
     gap: 2px;
     padding: 0;
     margin-top: 14px;
+  }
+  // Mobile chip lives in `.is-mobile-only` slot inside the top
+  // section (directly under the hero). The desktop slot collapses
+  // out of the layout entirely so we don't ship double chips.
+  .country-detail-friends-slot.is-desktop-only {
+    display: none;
+  }
+  .country-detail-friends-slot.is-mobile-only {
+    display: block;
+    // Pull the chip up against the hero, cancelling the parent
+    // grid gap that would float it in dead space below the image.
+    margin: -10px 0 6px;
   }
   .country-detail-name {
     font-size: 0.95rem;

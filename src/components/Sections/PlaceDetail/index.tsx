@@ -15,6 +15,7 @@ import LoadingFacts from "components/common/LoadingFacts";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
 import VisitedButton from "components/VisitedButton";
+import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import AddToItineraryButton from "components/AddToItineraryButton";
 import Stars from "components/common/Stars";
 import CostBadge from "components/common/CostBadge";
@@ -238,6 +239,16 @@ const PlaceDetail = () => {
             photographerUrl={heroPhotographerUrl}
           />
 
+          {/* Mobile-only slot: chip sits directly under the hero,
+              BEFORE the weather/currency/safety stack. CSS-hidden on
+              desktop where the header copy below renders instead. */}
+          <div className="place-detail-friends-slot is-mobile-only">
+            <FriendsVisitedBadge
+              kind="place"
+              placeKey={getPlaceKey(place.name, place.city, place.country)}
+            />
+          </div>
+
           {/* Right column on desktop / stacked under hero on mobile.
                         Weather, Currency, and Safety stack vertically. */}
           <aside className="place-detail-side">
@@ -266,6 +277,15 @@ const PlaceDetail = () => {
           <p className="place-detail-location">
             {place.city} · {place.country}
           </p>
+          {/* Desktop-only slot — pairs with the mobile slot inside
+              the top section above. CSS-hidden below 720px so the
+              chip appears once per viewport. */}
+          <div className="place-detail-friends-slot is-desktop-only">
+            <FriendsVisitedBadge
+              kind="place"
+              placeKey={getPlaceKey(place.name, place.city, place.country)}
+            />
+          </div>
           {visitedRecord && (
             <p
               className="place-detail-visited-on"

@@ -18,6 +18,7 @@ import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
 import ReviewSummary from "components/Review/ReviewSummary";
 import VisitedCountryButton from "components/VisitedCountryButton";
+import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import BookmarkCountryButton from "components/BookmarkCountryButton";
 import ShareButton from "components/ShareButton";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
@@ -288,6 +289,16 @@ const CountryDetail = () => {
             className="country-detail-hero"
           />
 
+          {/* Mobile-only slot: chip lands directly under the hero
+              before the side cards stack. Desktop slot lives inside
+              the header below. */}
+          <div className="country-detail-friends-slot is-mobile-only">
+            <FriendsVisitedBadge
+              kind="country"
+              placeKey={country.code ?? ""}
+            />
+          </div>
+
           <aside className="country-detail-side">
             <PopularitySection
               popularity={details.popularity}
@@ -309,6 +320,13 @@ const CountryDetail = () => {
           {country.local && country.local !== country.name && (
             <p className="country-detail-local">{country.local}</p>
           )}
+          {/* Desktop-only slot — pairs with the mobile slot above. */}
+          <div className="country-detail-friends-slot is-desktop-only">
+            <FriendsVisitedBadge
+              kind="country"
+              placeKey={country.code ?? ""}
+            />
+          </div>
           <p className="country-detail-highlight">{details.countryHighlight}</p>
           <p className="country-detail-meta">
             <span>

@@ -369,6 +369,15 @@
   gap: 6px;
 }
 
+// Friends-visited chip slots — paired show/hide. Desktop default
+// hides the mobile slot; the 720px media query below inverts it.
+.city-detail-friends-slot.is-mobile-only {
+  display: none;
+}
+.city-detail-friends-slot.is-desktop-only {
+  display: block;
+}
+
 // Mirrors `.place-detail-meta` on PlaceDetail — small green-globe icon
 // next to the AI-curated 0-5 rating. Stays inline-flex so a ReviewSummary
 // can sit right after it on the same row when the viewport is wide
@@ -426,6 +435,21 @@
     gap: 2px;
     padding: 0;
     margin-top: 14px;
+  }
+  // Mobile: the chip is rendered TWICE in the JSX — one inside
+  // `.city-detail-top` directly under the hero (`.is-mobile-only`),
+  // one inside the header (`.is-desktop-only`). CSS picks the right
+  // copy per viewport. Hidden state collapses the wrong slot out of
+  // the layout entirely so we don't ship double chips.
+  .city-detail-friends-slot.is-desktop-only {
+    display: none;
+  }
+  .city-detail-friends-slot.is-mobile-only {
+    display: block;
+    // Negative top margin cancels the parent grid `gap: 16px` so the
+    // chip sits flush below the hero image instead of floating in
+    // the gap between hero and the side-cards stack.
+    margin: -10px 0 6px;
   }
   .city-detail-name {
     font-size: 0.95rem;

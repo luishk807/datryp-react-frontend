@@ -1,0 +1,271 @@
+// Detail-page chip: small, secondary affordance. Lives near the page
+// title — should NOT compete with the primary "I've visited" /
+// "Save" actions. Pill shape with a subtle background so it reads as
+// metadata, not a CTA.
+.friends-visited-badge-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: transparent;
+    color: theme('colors.primary');
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.35;
+    // Borderless — the avatar stack carries the visual weight; the
+    // text reads as a label. Padding stays so the hover/focus
+    // background still feels like a discrete tap target.
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    // Stops the chip from stretching when its parent
+    // (place-detail-header / city-detail-header /
+    // country-detail-header) is a flex column.
+    width: auto;
+    align-self: flex-start;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(0, 0, 0, 0.05);
+        outline: none;
+    }
+}
+
+// Avatar stack inside the chip. Each avatar overlaps the previous
+// one by ~5px so up to 3 fit in a tight space without losing
+// readability. The white ring (border) separates one avatar from the
+// next visually — classic social-proof stack pattern.
+.friends-visited-chip-stack {
+    display: inline-flex;
+    align-items: center;
+    // Negative gap so the avatars overlap. Combined with the white
+    // border on each, this creates the layered look.
+    gap: -5px;
+    // Flex doesn't honor negative `gap` everywhere yet; the
+    // `margin-left: -5px` on every avatar after the first is the
+    // load-bearing rule. Keep the `gap` declaration anyway as a
+    // future-proofing note.
+}
+
+.friends-visited-chip-avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e8e8e3;
+    // White ring so adjacent avatars in the stack read as distinct.
+    border: 2px solid #fff;
+    // Stack each avatar to the right but pull it leftward into the
+    // previous one. The overlap scales with avatar size — at 32px,
+    // -11px keeps the same visual proportion as -8px did at 24px.
+    &:not(:first-child) {
+        margin-left: -11px;
+    }
+
+    &.is-placeholder {
+        // Initials fallback. Brand green ties back to the modal
+        // initials styling.
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: theme('colors.primaryGreen');
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.88rem;
+        line-height: 1;
+        letter-spacing: 0;
+    }
+}
+
+// ── Drawer (bottom sheet) ─────────────────────────────────────────────
+// Mirrors `.bottom-nav-account-paper`'s shape — rounded top, sized to
+// content with a max-height so the list scrolls when long. MUI Drawer
+// hands us this Paper element; everything inside is ours.
+.friends-visited-drawer-paper {
+    border-top-left-radius: 18px !important;
+    border-top-right-radius: 18px !important;
+    // Cap at 80vh so the search input + a few visible rows fit above
+    // the keyboard on small phones. Content beyond that scrolls.
+    max-height: 80vh !important;
+    width: 100%;
+}
+
+// Desktop ≥ 720px swaps the bottom-sheet Drawer for a centered
+// Dialog. Same body content, just a different MUI container. Paper
+// gets all four corners rounded since it floats free in the
+// viewport rather than docked to an edge.
+.friends-visited-dialog-paper {
+    border-radius: 18px !important;
+    // Cap height so the list still scrolls inside the dialog on
+    // taller content — same 80vh cap as the drawer keeps the search
+    // input + a few rows visible without forcing the dialog past
+    // the visible viewport.
+    max-height: 80vh !important;
+}
+
+.friends-visited-drawer {
+    display: flex;
+    flex-direction: column;
+    // Cap the inner height — the drawer Paper already does this, but
+    // pinning here ensures the list region (flex: 1) gets the rest of
+    // the available space for its own scroll.
+    max-height: 80vh;
+    background: #fff;
+}
+
+.friends-visited-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.friends-visited-drawer-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+}
+
+.friends-visited-drawer-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.6);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(0, 0, 0, 0.1);
+        color: rgba(0, 0, 0, 0.85);
+        outline: none;
+    }
+}
+
+.friends-visited-search {
+    position: relative;
+    margin: 12px 18px 8px;
+}
+
+.friends-visited-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 1.15rem !important;
+    pointer-events: none;
+}
+
+.friends-visited-search-input {
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.03);
+    font-size: 0.92rem;
+    color: theme('colors.primary');
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+
+    &::placeholder {
+        color: rgba(0, 0, 0, 0.4);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: theme('colors.primaryGreen');
+        background: #fff;
+    }
+}
+
+// List — scrolls inside the drawer when content overflows. `flex: 1`
+// + `min-height: 0` is the classic flex+overflow combo so the scroll
+// container actually paginates instead of overflowing the drawer.
+.friends-visited-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.friends-visited-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+}
+
+.friends-visited-avatar {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e8e8e3;
+
+    &.is-placeholder {
+        // Initials fallback when the friend has no profile photo. Use
+        // the brand green so it ties visually to the chip that opened
+        // the modal — keeps the "this came from the visited badge"
+        // signal consistent.
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: theme('colors.primaryGreen');
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.92rem;
+        letter-spacing: 0.02em;
+    }
+}
+
+.friends-visited-row-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.friends-visited-row-name {
+    font-weight: 600;
+    color: theme('colors.primary');
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friends-visited-row-date {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.friends-visited-empty {
+    padding: 24px 12px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 0.9rem;
+}

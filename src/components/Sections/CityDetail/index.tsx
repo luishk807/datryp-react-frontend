@@ -19,6 +19,7 @@ import ReviewSection from "components/Review/ReviewSection";
 import ReviewSummary from "components/Review/ReviewSummary";
 import BookmarkCityButton from "components/BookmarkCityButton";
 import VisitedCityButton from "components/VisitedCityButton";
+import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import ShareButton from "components/ShareButton";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
 import WeatherSection from "components/PlaceDetail/WeatherSection";
@@ -306,6 +307,19 @@ const CityDetail = () => {
                         className="city-detail-hero"
                     />
 
+                    {/* Mobile-only slot: chip sits right below the hero
+                        image, BEFORE the weather/currency/safety stack.
+                        CSS-hidden on desktop so the desktop layout
+                        keeps the chip in the header below the title.
+                        TanStack caches the hook so this + the header
+                        copy share a single network request. */}
+                    <div className="city-detail-friends-slot is-mobile-only">
+                        <FriendsVisitedBadge
+                            kind="city"
+                            placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
+                        />
+                    </div>
+
                     <aside className="city-detail-side">
                         <WeatherSection
                             weather={details.weather}
@@ -330,6 +344,16 @@ const CityDetail = () => {
                     <p className="city-detail-location">
                         {city.country} ({city.countryCode})
                     </p>
+                    {/* Desktop-only slot — pairs with the mobile slot
+                        inside `.city-detail-top` above. CSS-hidden
+                        below 720px so we don't render two chips at
+                        the same time. */}
+                    <div className="city-detail-friends-slot is-desktop-only">
+                        <FriendsVisitedBadge
+                            kind="city"
+                            placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
+                        />
+                    </div>
                     <p className="city-detail-highlight">
                         {details.cityHighlight}
                     </p>
