@@ -650,31 +650,50 @@ const Activities = ({
                                                 })()}
                                             </div>
                                             <div className="activity-meta">
-                                                {activity.location && (
-                                                    <div className="meta-row">
-                                                        <LocationIcon className="meta-icon" />
-                                                        <span className="meta-text location">
-                                                            {activity.location}
-                                                        </span>
-                                                        <IconButton
-                                                            size="small"
-                                                            className="meta-directions-btn"
-                                                            component="a"
-                                                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-                                                                [activity.name, activity.location]
-                                                                    .filter(Boolean)
-                                                                    .join(', ')
-                                                            )}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            aria-label="Get directions on Google Maps"
-                                                            title="Get directions"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <DirectionsRoundedIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    // AI-built activities frequently leave the
+                                                    // free-text `location` blank but still carry
+                                                    // structured `placeCity` / `placeCountry` /
+                                                    // lat-lng from the prompt's required place
+                                                    // fields. Fall back through those so the
+                                                    // meta-row + directions icon both render for
+                                                    // AI activities — not just user-entered ones.
+                                                    const displayLocation =
+                                                        activity.location ||
+                                                        [activity.placeCity, activity.placeCountry]
+                                                            .filter(Boolean)
+                                                            .join(', ');
+                                                    if (!displayLocation) return null;
+                                                    const hasCoords =
+                                                        activity.latitude != null &&
+                                                        activity.longitude != null;
+                                                    const mapsDestination = hasCoords
+                                                        ? `${activity.latitude},${activity.longitude}`
+                                                        : [activity.name, displayLocation]
+                                                              .filter(Boolean)
+                                                              .join(', ');
+                                                    return (
+                                                        <div className="meta-row">
+                                                            <LocationIcon className="meta-icon" />
+                                                            <span className="meta-text location">
+                                                                {displayLocation}
+                                                            </span>
+                                                            <IconButton
+                                                                size="small"
+                                                                className="meta-directions-btn"
+                                                                component="a"
+                                                                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsDestination)}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                aria-label="Get directions on Google Maps"
+                                                                title="Get directions"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <DirectionsRoundedIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </div>
+                                                    );
+                                                })()}
                                                 {isFlight &&
                                                     flightSegments.map((seg, segIdx) => {
                                                         if (!seg.flightNumber) return null;

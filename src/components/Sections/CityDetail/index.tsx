@@ -44,14 +44,13 @@ import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
 import { useIsStuck } from "hooks/useIsStuck";
 import {
-    addPlace,
     basicInfo,
     resetTrip,
     useTripDispatch,
 } from "context/TripContext";
 import { now } from "utils";
-import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
-import type { Activity, Destination } from "types";
+import { TRIP_BASIC } from "constants";
+import type { Destination } from "types";
 
 const CityDetail = () => {
     const [searchParams] = useSearchParams();
@@ -90,6 +89,16 @@ const CityDetail = () => {
         // Use the catalog UUID when we have it — the itinerary save mutation
         // rejects ids that don't match a real countries row, so id=0 would
         // silently drop the country FK on save.
+        //
+        // Seed the destination's own `flightInfo.arrivalAirport` with the
+        // catalog's best-guess airport so the destination card's built-in
+        // Depart/Arrive UI is pre-filled. Previously we also added a
+        // separate `Flight to <city>` Activity inside the destination —
+        // that produced two flight UIs for the same flight (the
+        // destination-level Depart/Arrive row PLUS a redundant Flight
+        // activity below). One source of truth: the destination's own
+        // flightInfo. The user fills in the rest (depart airport, dates,
+        // times) on the destination card.
         const destinations = [
             {
                 country: {
@@ -98,6 +107,13 @@ const CityDetail = () => {
                     code: args.countryCode,
                     image: args.cityImage ?? undefined,
                 },
+                ...(args.arrivalAirportCode
+                    ? {
+                          flightInfo: {
+                              arrivalAirport: args.arrivalAirportCode,
+                          },
+                      }
+                    : {}),
             },
         ] as Destination[];
         const today = now();
@@ -112,32 +128,6 @@ const CityDetail = () => {
                 startDate: today,
                 endDate: today,
                 image: args.cityImage ?? undefined,
-            })
-        );
-        // Seed activity #1 as a *flight* to the destination — adding the
-        // city itself as a place activity reads weirdly ("Visit Kyoto?
-        // I'm already there"). A flight gives the trip a natural starting
-        // event and pre-fills the arrival airport from the city-details
-        // catalog. Departure airport is left blank for the user.
-        const flightActivity: Omit<Activity, "id"> = {
-            kind: ACTIVITY_KIND.FLIGHT,
-            name: `Flight to ${args.cityName}`,
-            location: `${args.cityName}, ${args.countryName}`,
-            flightSegments: [
-                args.arrivalAirportCode
-                    ? { arrivalAirport: args.arrivalAirportCode }
-                    : {},
-            ],
-            ...(args.cityImage
-                ? { image: { url: args.cityImage, name: args.cityName } }
-                : {}),
-        };
-        dispatch(
-            addPlace({
-                value: flightActivity,
-                index: 0,
-                date: today,
-                destinationIndx: 0,
             })
         );
         navigate(tripType.route, { replace: true });

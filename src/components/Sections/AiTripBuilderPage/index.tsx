@@ -838,10 +838,16 @@ const AiTripBuilderPage = () => {
                 )}
             </article>
 
-            {/* Full-overlay loader runs during the build phase. The
-                options call has its own lighter button-spinner so the
-                page stays visible while the user waits for the grid. */}
-            <AiTripLoader open={buildMutation.isPending} />
+            {/* Full-overlay loader for both AI phases.
+                - `options` phase: fires from "Show me destination options"
+                   (preference matching → destination shortlist).
+                - `build` phase: fires after the user picks a destination
+                   (day-by-day itinerary generation).
+                Friend-testing showed the options call needed the same
+                overlay as the build — a label-only button change wasn't
+                obvious enough; users thought nothing was happening. */}
+            <AiTripLoader open={optionsMutation.isPending} phase="options" />
+            <AiTripLoader open={buildMutation.isPending} phase="build" />
         </Layout>
     );
 };
