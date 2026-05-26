@@ -1,0 +1,60 @@
+// Mirrors the next-month-picks + places-you-might-love layout so the
+// three personalized homepage sections share rhythm. Distinct class
+// names avoid the visual coupling of an inherited stylesheet — a
+// future tweak to either section doesn't bleed across.
+.similar-to-saves {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto 56px;
+    padding: 32px 24px 0;
+
+    .sts-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .sts-title {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 700;
+        color: theme('colors.primary');
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+
+    .sts-subtitle {
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 0.9rem;
+        text-align: right;
+        max-width: 320px;
+    }
+
+    .sts-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+    }
+
+    @media (max-width: 1024px) {
+        .sts-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .sts-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .sts-subtitle {
+            text-align: left;
+            max-width: none;
+        }
+        .sts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}

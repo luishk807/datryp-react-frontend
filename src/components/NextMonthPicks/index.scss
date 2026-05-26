@@ -1,0 +1,67 @@
+// Mirrors `places-you-might-love.is-home` exactly so the two homepage
+// sections share rhythm (margins, grid, breakpoints). Kept as its own
+// stylesheet rather than reusing the pyml classes so a future tweak
+// to either feature doesn't bleed into the other.
+.next-month-picks {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto 56px;
+    padding: 32px 24px 0;
+
+    .nmp-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .nmp-title {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 700;
+        color: theme('colors.primary');
+        letter-spacing: -0.01em;
+        margin: 0;
+    }
+
+    .nmp-subtitle {
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 0.9rem;
+        text-align: right;
+        // Subtitle copy is full-sentence ("From your saved destinations
+        // — next month is a great time…") so we drop the uppercase
+        // letter-spacing treatment that `pyml-subtitle` uses. The
+        // sentence-case here reads better at this length.
+        max-width: 360px;
+    }
+
+    .nmp-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+    }
+
+    @media (max-width: 1024px) {
+        .nmp-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        // On a phone we drop the right-aligned subtitle below the
+        // title so it has room to breathe; without this it gets
+        // squeezed to two narrow columns next to the heading.
+        .nmp-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        .nmp-subtitle {
+            text-align: left;
+            max-width: none;
+        }
+        .nmp-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+}

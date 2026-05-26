@@ -9,7 +9,9 @@ import Layout from 'components/common/Layout';
 import { FALLBACK_HERO_IMAGES } from 'constants';
 import type { TopPlace } from 'types';
 import TopPlaces from 'components/TopPlaces';
+import NextMonthPicks from 'components/NextMonthPicks';
 import PlacesYouMightLove from 'components/PlacesYouMightLove';
+import SimilarToSaves from 'components/SimilarToSaves';
 import UpcomingHoliday from 'components/UpcomingHoliday';
 import WorldEvent from 'components/WorldEvent';
 import MonthlyBestPlace from 'components/MonthlyBestPlace';
@@ -189,6 +191,18 @@ const Home = () => {
                 cards. Holiday, monthly pick, and seasonal sit below
                 it. */}
             <WorldEvent />
+            {/* "Best for <Next Month>" — driven by the user's saved
+                destinations whose best_time_to_visit window covers
+                next month, minus anywhere they've already been. Self-
+                hides when the user has no matching saves, so it
+                doesn't add visual noise for new accounts. */}
+            <NextMonthPicks />
+            {/* ML-driven kNN recommendation: average the user's saved
+                place embeddings into a taste vector, query the chroma
+                `places` collection for nearest neighbors, return the
+                top 6 minus saved/visited. Local sentence-transformers
+                + chroma — zero OpenAI cost per call. */}
+            <SimilarToSaves />
             <PlacesYouMightLove variant="home" />
             <AiTripBuilderCard />
             <MonthlyBestPlace />

@@ -333,6 +333,13 @@ const MyMap = () => {
             const marker = new mapboxgl.Marker({
                 element: el,
                 anchor: 'bottom',
+                // Lock the marker to the map surface — without these
+                // it stays viewport-aligned and visually slides
+                // around when the globe rotates. With `pitchAlignment`
+                // and `rotationAlignment` set to 'map', the pin
+                // tracks its lat/lng tightly on every camera move.
+                pitchAlignment: 'map',
+                rotationAlignment: 'map',
             })
                 .setLngLat([pin.lng, pin.lat])
                 .setPopup(popup)
@@ -365,6 +372,10 @@ const MyMap = () => {
             const marker = new mapboxgl.Marker({
                 element: el,
                 anchor: 'center',
+                // Same map-anchored alignment as place pins so cities
+                // don't slide when the globe rotates.
+                pitchAlignment: 'map',
+                rotationAlignment: 'map',
             })
                 .setLngLat([pin.lng, pin.lat])
                 .setPopup(popup)
