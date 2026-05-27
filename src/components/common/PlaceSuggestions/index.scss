@@ -129,6 +129,15 @@
   flex-direction: column;
   gap: 2px;
   overflow: hidden;
+
+  // Rating badge is an <a> when Google-Maps-linked; without this it
+  // stretches to fill the card-body width because the column flex
+  // parent defaults to align-items: stretch. Name + loc still stretch
+  // for their text-overflow ellipsis to work, so we only collapse
+  // the badge.
+  .rating-badge {
+    align-self: flex-start;
+  }
 }
 
 .place-suggestions-card-name {

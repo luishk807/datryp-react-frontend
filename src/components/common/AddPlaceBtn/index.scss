@@ -71,20 +71,17 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  // Hairline scrollbar under the chips so users notice there's more
-  // to scroll. Defaults to invisible on most browsers without the
-  // explicit thumb styling.
+  // Hide the scrollbar — same treatment as the .account-nav-mobile
+  // chip strip. Users still get touch / wheel / drag scrolling, but
+  // the bar doesn't visually break the modal's clean look.
+  scrollbar-width: none;
   &::-webkit-scrollbar {
-    height: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
+    display: none;
   }
 }
 
 .add-place-kind-btn {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
