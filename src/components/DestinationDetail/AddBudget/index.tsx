@@ -184,6 +184,7 @@ export const AddBudget = ({
             ref={modalRef}
             title="Travel Budget"
             buttonProps={triggerProps}
+            containerClassName="travel-budget-modal-shell"
             onClose={handleModalClose}
         >
             <Grid container className="travel-budget">
@@ -275,6 +276,7 @@ export const AddBudget = ({
                 <Grid item lg={12} xs={12} md={12} className="button-container">
                     <ButtonCustom
                         onClick={handleSubmit}
+                        nativeType="button"
                         label="Save Budget"
                         type="standard"
                         capitalizeType="uppercase"

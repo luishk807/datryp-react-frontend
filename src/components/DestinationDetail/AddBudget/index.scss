@@ -44,3 +44,33 @@
   text-align: right;
   font-weight: 600;
 }
+
+// ─── Mobile full-viewport sheet ───────────────────────────────────────
+// Matches the AddPlaceBtn / MarkPaidModal pattern: on phones the
+// centered card crowds the small viewport, so flip to a full-screen
+// white sheet that fills the screen. Desktop behavior (centered 560px
+// card via the default ModalButton styles) is unchanged.
+//
+// `dvh` excludes the iOS Safari URL bar so the Save button stays
+// above the browser chrome. `safe-area-inset-bottom` clears the home
+// indicator on notched devices.
+@media (max-width: 600px) {
+  .modalCustom.travel-budget-modal-shell {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .modalCustom.travel-budget-modal-shell .modalCustom-header {
+    padding: 16px 18px 12px;
+  }
+  .modalCustom.travel-budget-modal-shell .modalCustom-content {
+    flex: 1;
+    padding: 14px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+}

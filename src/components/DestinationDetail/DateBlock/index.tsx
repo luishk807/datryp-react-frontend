@@ -25,6 +25,9 @@ interface DateBlockProps {
     lockActivityStatus?: boolean;
     /** Opt-in override for the status pill — forwarded unchanged. */
     allowStatusToggle?: boolean;
+    /** Opt-in override for Mark-as-paid / edit-paid — forwarded
+     *  unchanged. */
+    allowPaidEdits?: boolean;
     /** Forwarded to Activities so post-planning UI (Complete button,
      *  hidden status pill, dim-when-completed cards) can light up. */
     tripStatusName?: string;
@@ -44,6 +47,7 @@ const DateBlock = ({
     isViewMode = false,
     lockActivityStatus = false,
     allowStatusToggle,
+    allowPaidEdits,
     tripStatusName,
 }: DateBlockProps) => {
     const showsRange = useMemo(
@@ -145,6 +149,7 @@ const DateBlock = ({
                                 country={destinations[0]?.country?.name ?? ''}
                                 lockActivityStatus={lockActivityStatus}
                                 allowStatusToggle={allowStatusToggle}
+                                allowPaidEdits={allowPaidEdits}
                                 tripStatusName={tripStatusName}
                             />
                         ) : (
@@ -160,6 +165,7 @@ const DateBlock = ({
                                 onChangeBudget={onChangeBudget}
                                 lockActivityStatus={lockActivityStatus}
                                 allowStatusToggle={allowStatusToggle}
+                                allowPaidEdits={allowPaidEdits}
                                 tripStatusName={tripStatusName}
                             />
                         )}

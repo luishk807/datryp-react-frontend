@@ -1604,32 +1604,39 @@ const AddPlaceBtn = ({
                                         </Grid>
                                     )}
                                     {/* Name + location → image fields are hidden
-                                        by default — the smart entry above
-                                        usually fills them in. User clicks
-                                        "Show details" to verify or tweak. */}
-                                    <Grid item lg={12} xs={12} className="py-1">
-                                        <button
-                                            type="button"
-                                            className="flight-segment-toggle"
-                                            onClick={() =>
-                                                setPlaceDetailsExpanded((v) => !v)
-                                            }
-                                            aria-expanded={placeDetailsExpanded}
-                                        >
-                                            {placeDetailsExpanded ? (
-                                                <>
-                                                    Hide details
-                                                    <ExpandLessRoundedIcon fontSize="small" />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    Show details (name, location, cost, time, note, image)
-                                                    <ExpandMoreRoundedIcon fontSize="small" />
-                                                </>
-                                            )}
-                                        </button>
-                                    </Grid>
-                                    {placeDetailsExpanded && (
+                                        by default during ADD — the smart entry
+                                        above usually fills them in. User clicks
+                                        "Show details" to verify or tweak. On
+                                        EDIT we skip the toggle entirely and
+                                        show the form fields open: the user
+                                        opened the modal specifically to change
+                                        something, so hiding the inputs adds an
+                                        extra click. */}
+                                    {isAdd && (
+                                        <Grid item lg={12} xs={12} className="py-1">
+                                            <button
+                                                type="button"
+                                                className="flight-segment-toggle"
+                                                onClick={() =>
+                                                    setPlaceDetailsExpanded((v) => !v)
+                                                }
+                                                aria-expanded={placeDetailsExpanded}
+                                            >
+                                                {placeDetailsExpanded ? (
+                                                    <>
+                                                        Hide details
+                                                        <ExpandLessRoundedIcon fontSize="small" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Show details (name, location, cost, time, note, image)
+                                                        <ExpandMoreRoundedIcon fontSize="small" />
+                                                    </>
+                                                )}
+                                            </button>
+                                        </Grid>
+                                    )}
+                                    {(placeDetailsExpanded || !isAdd) && (
                                     <>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <PlaceAutocomplete

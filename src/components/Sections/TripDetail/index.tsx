@@ -273,6 +273,20 @@ export const TripDetail = () => {
         status.name === TRIP_STATUS.CONFIRMED)
     );
   };
+  // Detect paid-attestation edits (Mark as paid, edit who paid, clear
+  // paid). The patch contains paidAt and/or paidBy — paidAt may be
+  // null when clearing, so check for explicit `undefined` to
+  // distinguish "field present" from "field absent".
+  const isPaidEditEvent = (event: TripPlaceEvent): boolean => {
+    const { activity } = event;
+    if (activity.type !== "edit") return false;
+    const wrapper = activity.value as
+      | { value?: Partial<Activity> }
+      | undefined;
+    const patch = wrapper?.value;
+    if (!patch) return false;
+    return patch.paidAt !== undefined || patch.paidBy !== undefined;
+  };
 
   const handleChangePlace = useCallback(
     (event: TripPlaceEvent) => {
@@ -340,7 +354,16 @@ export const TripDetail = () => {
           isMarkActivityCompletedEvent(event)) ||
           (persistedStatusName === TRIP_STATUS.PLANNING &&
             isPlanningStatusToggleEvent(event)));
-      if (shouldAutoSaveStatusEdit) {
+      // Paid-edit auto-save runs at every lifecycle stage except
+      // Cancelled — payment settlement is operational and should
+      // persist even on Confirmed / Completed trips.
+      const shouldAutoSavePaidEdit =
+        apiTrip &&
+        apiTrip.interaryType?.id &&
+        activityStatusLookup.size > 0 &&
+        persistedStatusName !== TRIP_STATUS.CANCELLED &&
+        isPaidEditEvent(event);
+      if (shouldAutoSaveStatusEdit || shouldAutoSavePaidEdit) {
         const input = tripStateToSaveInput(next, {
           id: apiTrip.id,
           interaryTypeId: apiTrip.interaryType.id,
@@ -352,7 +375,9 @@ export const TripDetail = () => {
           setSaveError(
             err instanceof Error
               ? err.message
-              : "Failed to update the activity status.",
+              : shouldAutoSavePaidEdit
+                ? "Failed to update the payment."
+                : "Failed to update the activity status.",
           );
         });
       }
@@ -799,6 +824,14 @@ export const TripDetail = () => {
             isViewMode={true}
             allowStatusToggle={
               isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING
+            }
+            // Payment settlement stays editable for the organizer at
+            // every lifecycle stage except Cancelled — even after the
+            // trip is Confirmed or Completed, marking who actually
+            // paid is operational and shouldn't require dropping into
+            // the stepper editor.
+            allowPaidEdits={
+              isOrganizer && persistedStatusName !== TRIP_STATUS.CANCELLED
             }
             startDate={tripData.startDate}
             participants={participants}

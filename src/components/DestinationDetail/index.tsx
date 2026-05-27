@@ -52,6 +52,10 @@ interface DestinationDetailProps {
      *  Planning↔Confirmed quick-toggle is live without first dropping
      *  into the stepper editor. */
     allowStatusToggle?: boolean;
+    /** Opt-in override for Mark-as-paid / edit-paid — forwarded to
+     *  Activities. Same pattern: set on /trip-detail for organizers
+     *  so they can settle payments without entering the stepper. */
+    allowPaidEdits?: boolean;
     /** Current trip status name (e.g. "confirmed", "completed"). Drives
      *  the activity card's post-planning UI: when the trip is Confirmed
      *  each activity gets a "Complete" button in place of delete and
@@ -126,6 +130,7 @@ const DestinationDetail = ({
     isViewMode = false,
     lockActivityStatus = false,
     allowStatusToggle,
+    allowPaidEdits,
     tripStatusName,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
@@ -294,6 +299,7 @@ const DestinationDetail = ({
                         isViewMode={isViewMode}
                         lockActivityStatus={lockActivityStatus}
                         allowStatusToggle={allowStatusToggle}
+                        allowPaidEdits={allowPaidEdits}
                         tripStatusName={tripStatusName}
                         key={indx}
                         index={indx}

@@ -47,6 +47,8 @@ export interface MultipleProps {
     lockActivityStatus?: boolean;
     /** Opt-in override for the status pill — forwarded unchanged. */
     allowStatusToggle?: boolean;
+    /** Opt-in override for Mark-as-paid / edit-paid — forwarded. */
+    allowPaidEdits?: boolean;
     /** Forwarded to Activities so post-planning UI can render. */
     tripStatusName?: string;
 }
@@ -63,6 +65,7 @@ const Multiple = ({
     isViewMode = false,
     lockActivityStatus = false,
     allowStatusToggle,
+    allowPaidEdits,
     tripStatusName,
 }: MultipleProps) => {
     return (
@@ -361,6 +364,7 @@ const Multiple = ({
                                         country={country ?? ''}
                                         lockActivityStatus={lockActivityStatus}
                                         allowStatusToggle={allowStatusToggle}
+                                        allowPaidEdits={allowPaidEdits}
                                         tripStatusName={tripStatusName}
                                     />
                                 </Grid>

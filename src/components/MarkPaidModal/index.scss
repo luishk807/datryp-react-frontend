@@ -45,13 +45,268 @@
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     flex-wrap: wrap;
 
+    // Override ButtonCustom's `.main-line` width:100% so the outlined
+    // Cancel button sits inline next to "Mark as paid" instead of
+    // stretching to the full row. Padding is 9px vertical on
+    // `.main-line` (vs 10px on `.standard-small`) so the visible
+    // height matches — `.main-line` has a 1px border so 9px + 1px ≈
+    // 10px effective. Horizontal padding kept generous so neither
+    // button hugs its label.
+    .main-line {
+      width: auto;
+      padding: 9px 22px;
+    }
+    .standard-small {
+      padding: 10px 22px;
+    }
+    // "Mark as unpaid" — a destructive `.main-line` variant. Same
+    // outline shape as Cancel so the three actions read as a
+    // consistent button row, but tinted red so the user sees it
+    // means "remove" rather than "save". Background flips on hover
+    // to the standard MUI-style hover.
+    .mark-paid-unpaid-btn.main-line {
+      color: #c0392b;
+      border-color: rgba(192, 57, 43, 0.6);
+
+      &:hover {
+        background: rgba(192, 57, 43, 0.08);
+        color: #c0392b;
+      }
+    }
+
     @media (max-width: 480px) {
       // Stack vertically on narrow viewports BUT keep Save at the
       // bottom (primary action sits closest to the thumb when
-      // reaching from below the modal).
+      // reaching from below the modal). Cancel stretches in this
+      // case — full-row taps are easier than tiny side-by-side
+      // buttons on a phone.
       flex-direction: column;
       align-items: stretch;
       gap: 8px;
+
+      .main-line,
+      .standard-small {
+        width: 100%;
+      }
     }
   }
 }
+
+// ─── Mobile full-viewport sheet ───────────────────────────────────────
+// Matches the AddPlaceBtn pattern: on phones the centered card is
+// uncomfortable; flip to a full-screen white sheet so the split editor
+// has room to breathe. Desktop behavior (centered card) is unchanged.
+//
+// `dvh` excludes the iOS Safari URL bar so the Mark-as-paid button
+// stays above the browser chrome. `safe-area-inset-bottom` clears
+// the home indicator on notched devices.
+@media (max-width: 600px) {
+  .modalCustom.mark-paid-modal-shell {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .modalCustom.mark-paid-modal-shell .modalCustom-header {
+    padding: 16px 18px 12px;
+  }
+  .modalCustom.mark-paid-modal-shell .modalCustom-content {
+    flex: 1;
+    padding: 14px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+// ─── Split editor ─────────────────────────────────────────────────────
+// Per-person paid-confirmation rows. Toggled in by the "Split this
+// payment" switch. Each row: checkbox + name + amount + date +
+// remove. Stacks vertically on mobile so the inputs stay legible.
+
+.mark-paid-split-toggle {
+  .MuiFormControlLabel-label {
+    font-size: 0.92rem;
+    color: rgba(0, 0, 0, 0.78);
+  }
+}
+
+.mark-paid-split-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// Row: a card-like surface with subtle border and gentle hover lift.
+// Goal is a modern fintech / split-bill feel (think Splitwise rows)
+// rather than a dense form grid. Pending rows are quiet gray; checked
+// rows shift to a soft green gradient + brighter border so the
+// transition from "owed" to "paid" reads at a glance.
+.mark-paid-split-row {
+  display: grid;
+  grid-template-columns: auto 1fr 130px 160px 32px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fafafa;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background 160ms ease, border-color 160ms ease,
+    box-shadow 160ms ease, transform 160ms ease;
+
+  &:hover {
+    background: #f5f5f5;
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  // Paid (checkbox confirmed) — soft green gradient + accent border.
+  // Slightly elevated to feel "lifted off the list" once settled.
+  &:has(.MuiCheckbox-root.Mui-checked) {
+    background: linear-gradient(
+      135deg,
+      rgba(60, 181, 75, 0.10) 0%,
+      rgba(60, 181, 75, 0.03) 100%
+    );
+    border-color: rgba(60, 181, 75, 0.36);
+    box-shadow: 0 2px 8px rgba(60, 181, 75, 0.12);
+
+    .mark-paid-split-name {
+      color: theme('colors.primary');
+    }
+  }
+
+  // Bigger, brand-tinted checkbox so it reads as the row's primary
+  // affordance — not a tiny system control.
+  .MuiCheckbox-root {
+    padding: 6px;
+    color: rgba(0, 0, 0, 0.3);
+
+    &.Mui-checked {
+      color: theme('colors.primaryGreen');
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  // Trim the MUI Outlined input chrome down to a softer rounded
+  // square so it sits inside the row instead of feeling like a
+  // hard nested form field.
+  .MuiOutlinedInput-root {
+    background: #fff;
+    border-radius: 9px;
+    font-size: 0.92rem;
+
+    fieldset {
+      border-color: rgba(0, 0, 0, 0.10);
+      transition: border-color 140ms ease;
+    }
+
+    &:hover fieldset {
+      border-color: rgba(0, 0, 0, 0.22);
+    }
+
+    &.Mui-focused fieldset {
+      border-color: theme('colors.primaryGreen');
+      border-width: 1px;
+    }
+
+    input {
+      padding: 9px 10px;
+    }
+  }
+
+  // Floating labels — quieter, narrower so the input fields don't
+  // shout for attention when there's already a clear column header
+  // via the layout.
+  .MuiInputLabel-root {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.5);
+
+    &.Mui-focused {
+      color: theme('colors.primaryGreen');
+    }
+  }
+
+  // Stack the inputs below the name on narrow viewports — keeps the
+  // row legible without horizontal scroll on a phone.
+  @media (max-width: 600px) {
+    grid-template-columns: auto 1fr 32px;
+    grid-template-areas:
+      'check name remove'
+      'amount amount amount'
+      'date date date';
+    gap: 8px;
+    padding: 12px 14px;
+
+    .mark-paid-split-amount {
+      grid-area: amount;
+    }
+    .mark-paid-split-date {
+      grid-area: date;
+    }
+  }
+}
+
+.mark-paid-split-name {
+  font-weight: 600;
+  font-size: 0.96rem;
+  color: rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 160ms ease;
+  letter-spacing: -0.005em;
+}
+
+// Remove (×) button — ghosted in resting state, fades in on row
+// hover so it doesn't compete with the name/amount.
+.mark-paid-split-remove {
+  opacity: 0.35;
+  transition: opacity 140ms ease, color 140ms ease,
+    background 140ms ease;
+
+  .mark-paid-split-row:hover & {
+    opacity: 0.75;
+  }
+
+  &:hover {
+    opacity: 1 !important;
+    color: #c0392b !important;
+    background: rgba(192, 57, 43, 0.08) !important;
+  }
+}
+
+.mark-paid-split-empty,
+.mark-paid-split-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.45;
+}
+
+.mark-paid-split-hint {
+  margin-top: 4px;
+}
+
+// Hint variant that sits ABOVE the split toggle. Slightly darker
+// + a left accent border so it reads as instructional, not as a
+// footnote.
+.mark-paid-split-hint-top {
+  margin-top: 0;
+  padding: 8px 12px;
+  background: rgba(60, 181, 75, 0.06);
+  border-left: 3px solid theme('colors.primaryGreen');
+  border-radius: 4px;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.mark-paid-split-add {
+  margin-top: 4px;
+}
+
