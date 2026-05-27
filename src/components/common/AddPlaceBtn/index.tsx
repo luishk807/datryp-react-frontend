@@ -16,6 +16,8 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import FlightSegmentLookupWatcher from './FlightSegmentLookupWatcher';
+import type { FlightLookupResult } from 'api/flightLookupApi';
 import PlaceAutocomplete, {
     type PlaceSuggestion,
 } from 'components/common/PlaceAutocomplete';
@@ -253,13 +255,54 @@ const AddPlaceBtn = ({
 
     const handleAddSegment = () => {
         setError(null);
-        setPlace((prev) => ({
-            ...prev,
-            flightSegments: [
-                ...(prev.flightSegments ?? []),
-                emptySegment(isoDefaultDate),
-            ],
-        }));
+        setPlace((prev) => {
+            const existing = prev.flightSegments ?? [];
+            const last = existing[existing.length - 1];
+            // Most users adding a stopover are entering the SAME flight
+            // number for the next leg (return trip, same carrier
+            // through-flight, or they just remember the digits and the
+            // new leg is one off). Copy the previous leg's number so
+            // the lookup can re-fire immediately; user can edit if the
+            // next leg is a different flight.
+            return {
+                ...prev,
+                flightSegments: [
+                    ...existing,
+                    {
+                        ...emptySegment(isoDefaultDate),
+                        flightNumber: last?.flightNumber,
+                    },
+                ],
+            };
+        });
+    };
+
+    /** Apply a /flights/lookup result to a segment. The watcher only
+     *  re-fires when (flight number, depart date) changes — i.e. the
+     *  user is explicitly re-querying — so overwrite every field the
+     *  result covers. Keeps the second lookup feeling like a real
+     *  update instead of a stale half-update. Fields the API doesn't
+     *  return (rare) keep whatever was there. */
+    const applyFlightLookup = (
+        segIdx: number,
+        result: FlightLookupResult,
+    ) => {
+        setPlace((prev) => {
+            const segments = prev.flightSegments?.length
+                ? [...prev.flightSegments]
+                : [emptySegment(isoDefaultDate)];
+            const current = segments[segIdx] ?? {};
+            segments[segIdx] = {
+                ...current,
+                departAirport: result.departAirport ?? current.departAirport,
+                arrivalAirport: result.arrivalAirport ?? current.arrivalAirport,
+                departDate: result.departDate ?? current.departDate,
+                departTime: result.departTime ?? current.departTime,
+                arrivalDate: result.arrivalDate ?? current.arrivalDate,
+                arrivalTime: result.arrivalTime ?? current.arrivalTime,
+            };
+            return { ...prev, flightSegments: segments };
+        });
     };
 
     const handleRemoveSegment = (index: number) => {
@@ -962,6 +1005,18 @@ const AddPlaceBtn = ({
                                                         </button>
                                                     )}
                                                 </div>
+                                                {/* Auto-populates this segment's airports +
+                                                    times when the user types a real flight
+                                                    number and a depart date. Silent on
+                                                    failure (no match / no API key) — the
+                                                    user's typed values stay untouched. */}
+                                                <FlightSegmentLookupWatcher
+                                                    flightNumber={segment.flightNumber}
+                                                    departDate={segment.departDate}
+                                                    onResult={(result) =>
+                                                        applyFlightLookup(segIdx, result)
+                                                    }
+                                                />
                                                 <Grid container>
                                                     <Grid item lg={12} xs={12} className="py-5">
                                                         <InputField

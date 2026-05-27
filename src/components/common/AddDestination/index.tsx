@@ -6,6 +6,8 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import FlightSegmentLookupWatcher from 'components/common/AddPlaceBtn/FlightSegmentLookupWatcher';
+import type { FlightLookupResult } from 'api/flightLookupApi';
 import SearchBar from 'components/SearchBar';
 import PlaceAutocomplete, {
     type PlaceSuggestion,
@@ -97,9 +99,17 @@ const AddDestinationBtn = ({
             // Default the new leg's depart date to the previous leg's
             // arrival date if known — multi-segment flights almost
             // always continue same-day, this saves a manual fill.
+            // Also pre-fill the flight number with the previous leg's
+            // so users entering a return / through-flight can re-use
+            // it; they can edit if the connecting leg is different.
             const last = segs[segs.length - 1];
             const seedDate = last?.arrivalDate ?? last?.departDate;
-            segs.push(seedDate ? { departDate: seedDate, arrivalDate: seedDate } : {});
+            segs.push({
+                ...(seedDate
+                    ? { departDate: seedDate, arrivalDate: seedDate }
+                    : {}),
+                flightNumber: last?.flightNumber,
+            });
             return { ...prev, flightInfo: { ...(prev.flightInfo ?? {}), segments: segs } };
         });
     };
@@ -114,6 +124,36 @@ const AddDestinationBtn = ({
                     ...(prev.flightInfo ?? {}),
                     segments: segs.filter((_, i) => i !== index),
                 },
+            };
+        });
+    };
+
+    /** Apply a /flights/lookup result to a destination segment. The
+     *  watcher only re-fires when (flight number, depart date)
+     *  changes — i.e. the user typed a new flight number — so
+     *  overwrite every field the result covers. A second lookup
+     *  feels like a real update instead of a stale half-update. */
+    const applyFlightLookup = (
+        segIdx: number,
+        result: FlightLookupResult,
+    ) => {
+        setDestination((prev) => {
+            const segs = prev.flightInfo?.segments?.length
+                ? [...prev.flightInfo.segments]
+                : [{}];
+            const current = segs[segIdx] ?? {};
+            segs[segIdx] = {
+                ...current,
+                departAirport: result.departAirport ?? current.departAirport,
+                arrivalAirport: result.arrivalAirport ?? current.arrivalAirport,
+                departDate: result.departDate ?? current.departDate,
+                departTime: result.departTime ?? current.departTime,
+                arrivalDate: result.arrivalDate ?? current.arrivalDate,
+                arrivalTime: result.arrivalTime ?? current.arrivalTime,
+            };
+            return {
+                ...prev,
+                flightInfo: { ...(prev.flightInfo ?? {}), segments: segs },
             };
         });
     };
@@ -360,6 +400,16 @@ const AddDestinationBtn = ({
                                                     </button>
                                                 )}
                                             </div>
+                                            {/* Auto-populates this leg's airports + times
+                                                from AeroDataBox when the user types a real
+                                                flight number + depart date. */}
+                                            <FlightSegmentLookupWatcher
+                                                flightNumber={seg.flightNumber}
+                                                departDate={seg.departDate}
+                                                onResult={(result) =>
+                                                    applyFlightLookup(segIdx, result)
+                                                }
+                                            />
                                             <div className="add-destination-field">
                                                 <label className="add-destination-label">Flight number</label>
                                                 <InputField
