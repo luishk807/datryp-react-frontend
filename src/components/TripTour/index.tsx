@@ -25,6 +25,7 @@ import {
     type EventData,
     type Step,
 } from 'react-joyride';
+import './index.scss';
 
 export const TRIP_TOUR_STORAGE_KEY = 'trip-tour-completed-v1';
 
@@ -264,16 +265,22 @@ const TripTour = ({ run, wizardStep, onClose }: TripTourProps) => {
             styles={{
                 tooltip: {
                     borderRadius: 14,
-                    padding: 20,
+                    // Wider + slightly more padding so the body copy
+                    // doesn't break in awkward places (e.g. "on the
+                    // next step if you want a refresher" landing on a
+                    // line by itself at maxWidth=380). 460 fits two
+                    // comfortable lines of the longest tour message
+                    // and still feels like a tooltip, not a modal.
+                    padding: '22px 26px',
                     fontSize: '0.95rem',
-                    maxWidth: 380,
+                    maxWidth: 460,
                     boxShadow:
                         '0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.05)',
                 },
                 tooltipTitle: {
                     fontSize: '1.1rem',
                     fontWeight: 700,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     color: '#1a1a1a',
                     lineHeight: 1.25,
                 },
@@ -281,6 +288,9 @@ const TripTour = ({ run, wizardStep, onClose }: TripTourProps) => {
                     padding: 0,
                     lineHeight: 1.6,
                     color: 'rgba(0, 0, 0, 0.78)',
+                },
+                tooltipFooter: {
+                    marginTop: 14,
                 },
                 buttonPrimary: {
                     backgroundColor: '#3cb54b',

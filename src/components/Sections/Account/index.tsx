@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import classnames from 'classnames';
+import { Alert, Snackbar } from '@mui/material';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -65,6 +66,16 @@ export const Account = () => {
     );
     const [genderId, setGenderId] = useState<string>(user?.genderId ?? '');
     const [profileSaved, setProfileSaved] = useState(false);
+    // Toast that surfaces save success / failure prominently — the
+    // button-label flip alone ("Save profile" → "Saved") was too easy
+    // to miss, especially when the home-base / gender preferences
+    // mutation fails silently. The Snackbar at the bottom of the page
+    // shows both states until the user dismisses it (or auto-hides
+    // after a few seconds).
+    const [profileToast, setProfileToast] = useState<{
+        type: 'success' | 'error';
+        text: string;
+    } | null>(null);
 
     // Password
     const [currentPwd, setCurrentPwd] = useState('');
@@ -230,7 +241,13 @@ export const Account = () => {
 
     // ---- Handlers ----
     const handleProfileSave = async () => {
-        if (!name.trim()) return;
+        if (!name.trim()) {
+            setProfileToast({
+                type: 'error',
+                text: 'Name is required.',
+            });
+            return;
+        }
         updateUser({
             name: name.trim(),
             email: email.trim() || undefined,
@@ -247,6 +264,7 @@ export const Account = () => {
             (genderId || null) !== (user?.genderId ?? null);
         const prevHomeCity = user?.homeCity ?? null;
         const homeBaseChanged = (homeBase?.city ?? null) !== prevHomeCity;
+        let prefsError: string | null = null;
         if (genderChanged || homeBaseChanged) {
             try {
                 await updatePrefs.mutateAsync({
@@ -269,10 +287,23 @@ export const Account = () => {
                               }
                         : {}),
                 });
-            } catch {
-                /* surface via the travel-prefs message slot below if it
-                   ever matters; profile save remains optimistic */
+            } catch (err) {
+                prefsError =
+                    err instanceof Error
+                        ? err.message
+                        : 'Could not save home base / gender.';
             }
+        }
+        if (prefsError) {
+            setProfileToast({
+                type: 'error',
+                text: `Profile saved, but: ${prefsError}`,
+            });
+        } else {
+            setProfileToast({
+                type: 'success',
+                text: 'Profile saved.',
+            });
         }
         setProfileSaved(true);
         setTimeout(() => setProfileSaved(false), 2000);
@@ -774,6 +805,23 @@ export const Account = () => {
 
                 </div>{/* /.account-content */}
             </div>
+            <Snackbar
+                open={Boolean(profileToast)}
+                autoHideDuration={3500}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                onClose={() => setProfileToast(null)}
+            >
+                {profileToast ? (
+                    <Alert
+                        severity={profileToast.type}
+                        variant="filled"
+                        onClose={() => setProfileToast(null)}
+                        sx={{ width: '100%' }}
+                    >
+                        {profileToast.text}
+                    </Alert>
+                ) : undefined}
+            </Snackbar>
         </Layout>
     );
 };

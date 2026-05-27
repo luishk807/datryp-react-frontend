@@ -18,6 +18,10 @@ import {
     type EventData,
     type Step,
 } from 'react-joyride';
+// Shared tour polish (top accent stripe, hover states). Lives in
+// the TripTour folder since that's the primary consumer; this tour
+// just opts in.
+import 'components/TripTour/index.scss';
 
 export const TRIP_DETAIL_TOUR_STORAGE_KEY = 'trip-detail-tour-completed-v1';
 
@@ -167,16 +171,19 @@ const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
             styles={{
                 tooltip: {
                     borderRadius: 14,
-                    padding: 20,
+                    // Match TripTour: wider + more padding so body copy
+                    // doesn't break on every other word at the default
+                    // maxWidth=380.
+                    padding: '22px 26px',
                     fontSize: '0.95rem',
-                    maxWidth: 380,
+                    maxWidth: 460,
                     boxShadow:
                         '0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.05)',
                 },
                 tooltipTitle: {
                     fontSize: '1.1rem',
                     fontWeight: 700,
-                    marginBottom: 6,
+                    marginBottom: 8,
                     color: '#1a1a1a',
                     lineHeight: 1.25,
                 },
@@ -184,6 +191,9 @@ const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
                     padding: 0,
                     lineHeight: 1.6,
                     color: 'rgba(0, 0, 0, 0.78)',
+                },
+                tooltipFooter: {
+                    marginTop: 14,
                 },
                 buttonPrimary: {
                     backgroundColor: '#3cb54b',

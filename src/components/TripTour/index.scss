@@ -1,0 +1,94 @@
+// Tour tooltip polish. Targets react-joyride's classes directly —
+// Joyride applies the bulk of its styling inline via the `styles`
+// prop, so anything that needs pseudo-elements (top accent stripe)
+// or interactive states (button hover/focus) lives here.
+//
+// Used by both TripTour (creation flow) and TripDetailTour (read-only
+// view), so the visual treatment stays consistent across both tours.
+
+// Brand orange — matches the rest of the app's accent palette without
+// pulling in Tailwind's `theme()` here. Joyride's tooltip is rendered
+// in a portal at the document root, so it's outside any Tailwind-
+// processed tree; using a literal hex keeps this self-contained.
+$tour-accent: #F79F26;
+$tour-green: #3cb54b;
+
+.react-joyride__tooltip {
+  position: relative;
+  overflow: hidden;
+
+  // Top accent stripe — gives the tooltip a piece of brand color so
+  // it doesn't read as a generic browser dialog. Same pattern the
+  // modal shell uses ("modalCustom-stripe").
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      $tour-accent 0%,
+      $tour-green 100%
+    );
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+
+  // Primary button: subtle lift on hover. Joyride's inline `styles`
+  // set the base color + shape — we add the interaction layer here.
+  button[data-action='primary'] {
+    transition: transform 120ms ease, box-shadow 120ms ease,
+      filter 120ms ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(60, 181, 75, 0.32);
+      filter: brightness(1.05);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(60, 181, 75, 0.45);
+      outline-offset: 2px;
+    }
+  }
+
+  // Skip tour link: subtle underline on hover so it reads as
+  // interactive (the muted gray inline color is easy to miss).
+  button[data-action='skip'] {
+    transition: color 120ms ease;
+
+    &:hover {
+      color: rgba(0, 0, 0, 0.8) !important;
+      text-decoration: underline;
+    }
+  }
+
+  // Back button: same hover treatment as skip — quiet but obviously
+  // clickable on hover.
+  button[data-action='back'] {
+    transition: color 120ms ease;
+
+    &:hover {
+      color: rgba(0, 0, 0, 0.85) !important;
+      text-decoration: underline;
+    }
+  }
+
+  // Title gets a tiny green dot beside it — purely decorative, signals
+  // "this is the brand's voice talking" without needing an icon import.
+  h1, h2, h3, h4, h5, h6,
+  > div > div > div:first-child {
+    // Joyride wraps the title in a generic div, no semantic header —
+    // target the first content div within the tooltip body.
+  }
+}
+
+// Floater (the wrapper Joyride uses to position the tooltip). Drop a
+// softer shadow than Joyride's default so the tooltip floats more
+// gently over the dimmed background.
+.__floater__body {
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.18))
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.06));
+}
