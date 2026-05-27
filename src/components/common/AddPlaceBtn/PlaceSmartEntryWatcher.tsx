@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { usePhotoSearch } from 'api/hooks/usePhotoSearch';
+import { usePlaceRating } from 'api/hooks/usePlaceRating';
 import type { PlaceRecommendation } from 'types';
 import { parsePlaceEntry, type ParsedPlaceEntry } from './parsePlaceQuery';
+
+/** Canonical-place extras the watcher resolves via Google Places.
+ *  Surfaced as a third arg on `onResult` so the parent can override
+ *  the AI-recommender's city/country with a real street address when
+ *  Google found one. */
+export interface SmartEntryExtras {
+    formattedAddress?: string;
+    placeId?: string;
+}
 
 interface PlaceSmartEntryWatcherProps {
     /** Free text the user typed into the smart-entry field — may be a
@@ -23,8 +33,15 @@ interface PlaceSmartEntryWatcherProps {
     onResult: (
         item: PlaceRecommendation,
         parsed: ParsedPlaceEntry,
+        extras?: SmartEntryExtras,
     ) => void;
     onLoadingChange?: (loading: boolean) => void;
+    /** Soft warning the caller should surface inline (e.g. "couldn't
+     *  read that URL"). `null` clears any previous warning. The
+     *  watcher manages its own warnings; the caller can layer
+     *  additional ones (like country mismatch) on top in its
+     *  `onResult` handler. */
+    onWarning?: (text: string | null) => void;
 }
 
 /**
@@ -49,6 +66,7 @@ const PlaceSmartEntryWatcher = ({
     country,
     onResult,
     onLoadingChange,
+    onWarning,
 }: PlaceSmartEntryWatcherProps) => {
     const [parsed, setParsed] = useState<ParsedPlaceEntry | null>(null);
     const appliedRef = useRef<string | null>(null);
@@ -59,6 +77,27 @@ const PlaceSmartEntryWatcher = ({
         }, 600);
         return () => clearTimeout(timer);
     }, [rawInput]);
+
+    // Surface URL-extraction failures back to the caller. Cleared
+    // whenever a usable parse lands (empty / plain text / URL with a
+    // resolved name) so a stale warning doesn't linger.
+    useEffect(() => {
+        if (!parsed) {
+            onWarning?.(null);
+            return;
+        }
+        if (parsed.urlExtractionFailed) {
+            onWarning?.(
+                "We couldn't find a place in that link. Try a Yelp business page, a Google Maps share link, or just type the name.",
+            );
+            return;
+        }
+        onWarning?.(null);
+        // onWarning identity may change between renders — depending on
+        // it would re-fire this effect on every parent re-render. The
+        // intent is "react to parsed state", so deliberately exclude it.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [parsed]);
 
     const query = parsed?.query ?? '';
     const { data: searchData, isFetching: searchFetching } = useSearchPlaces(
@@ -74,21 +113,62 @@ const PlaceSmartEntryWatcher = ({
         photoQuery,
         { enabled: Boolean(query) },
     );
+    // Google Places resolves the actual street address + coordinates
+    // for arbitrary names (hotels, restaurants) that the AI
+    // recommender doesn't know about. Same `country` bias as the
+    // photo query — the backend appends it to the search.
+    const { data: ratingData, isFetching: ratingFetching } = usePlaceRating(
+        query,
+        country,
+        Boolean(query),
+    );
 
     useEffect(() => {
-        onLoadingChange?.(searchFetching || photoFetching);
-    }, [searchFetching, photoFetching, onLoadingChange]);
+        onLoadingChange?.(searchFetching || photoFetching || ratingFetching);
+    }, [searchFetching, photoFetching, ratingFetching, onLoadingChange]);
 
     useEffect(() => {
         if (!parsed) return;
-        // Wait for BOTH legs to settle so the merged result always
-        // ships with an image when one is available. (TanStack returns
-        // isFetching=false on cache hit too, so the wait is short.)
-        if (searchFetching || photoFetching) return;
+        // Wait for all three legs to settle so the merged result
+        // always ships with an image (when one exists) and Google's
+        // real address (when found). TanStack returns isFetching=false
+        // on cache hit, so the wait is short for repeat queries.
+        if (searchFetching || photoFetching || ratingFetching) return;
         const top = searchData?.items?.[0];
-        const photoUrl = photoData?.imageUrl ?? null;
+        // Image priority:
+        //   1. Google Places photo (real business photo — works for
+        //      niche / local / non-English-named venues that Unsplash
+        //      doesn't cover).
+        //   2. Unsplash search match (generic landscape / cityscape
+        //      fallback when Google has no photo).
+        const photoUrl =
+            ratingData?.photoUrl ?? photoData?.imageUrl ?? null;
+        // Token-overlap check: the AI recommendation engine sometimes
+        // returns a tangentially-related "top attraction" for an
+        // arbitrary name lookup (e.g. searching "Marina Bay Horizon"
+        // in Kenya gets back "Nairobi National Park"). When the top
+        // hit shares NO meaningful words with the user's typed query,
+        // treat it as a miss and fall back to the synthetic record
+        // built from the parsed query + photo-search image.
+        const queryTokens = new Set(
+            parsed.query
+                .toLowerCase()
+                .split(/\s+/)
+                .filter((t) => t.length > 2),
+        );
+        const topTokens = top
+            ? new Set(
+                  top.name
+                      .toLowerCase()
+                      .split(/\s+/)
+                      .filter((t) => t.length > 2),
+              )
+            : new Set<string>();
+        const sharesToken =
+            queryTokens.size > 0 &&
+            [...queryTokens].some((t) => topTokens.has(t));
         let merged: PlaceRecommendation | null = null;
-        if (top) {
+        if (top && sharesToken) {
             // Real recommendation hit. Use the photo-search image as
             // a fallback only when the recommendation itself doesn't
             // carry one.
@@ -100,33 +180,65 @@ const PlaceSmartEntryWatcher = ({
                 photographerUrl:
                     top.photographerUrl ?? photoData?.photographerUrl ?? null,
             };
-        } else if (photoUrl) {
+        } else if (ratingData?.formattedAddress || photoUrl || parsed.query) {
             // No recommendation match — fall back to a synthetic record
-            // built from the parsed query + the Unsplash photo. Country
-            // / lat / lng land as null; the user fills those manually
-            // in the collapsed details if they care.
+            // built from Google's place data (when found) + the
+            // Unsplash photo. Google's `formatted_address` is the real
+            // street address ("Champ de Mars, 5 Av. Anatole France,
+            // 75007 Paris, France") instead of just "Paris, France".
             merged = {
-                name: parsed.query,
+                name: ratingData?.name ?? parsed.query,
+                // We don't get city/country from Google directly, but
+                // the formattedAddress carries the same info plus the
+                // full street. Leave city blank so the parent's
+                // location-string builder uses the address below.
                 city: '',
                 country: country ?? '',
                 countryCode: null,
-                rating: 0,
+                rating: ratingData?.rating ?? 0,
                 bestTimeToVisit: '',
                 description: '',
                 imageUrl: photoUrl,
                 photographerName: photoData?.photographerName ?? null,
                 photographerUrl: photoData?.photographerUrl ?? null,
-                latitude: null,
-                longitude: null,
+                latitude: ratingData?.latitude ?? null,
+                longitude: ratingData?.longitude ?? null,
             };
         }
         if (!merged) return;
-        const key = `${parsed.query}|${merged.name}|${merged.imageUrl ?? ''}`;
+        // Layer Google's real coordinates on top whenever we got
+        // them — the recommender's lat/lng can be a city centroid
+        // while Google's points at the actual building. (For the
+        // synthetic-fallback path the lat/lng were already pulled
+        // from ratingData; the assign is a no-op there.)
+        if (ratingData?.latitude != null && !merged.latitude) {
+            merged = { ...merged, latitude: ratingData.latitude };
+        }
+        if (ratingData?.longitude != null && !merged.longitude) {
+            merged = { ...merged, longitude: ratingData.longitude };
+        }
+        const extras: SmartEntryExtras = {};
+        if (ratingData?.formattedAddress) {
+            extras.formattedAddress = ratingData.formattedAddress;
+        }
+        if (ratingData?.placeId) {
+            extras.placeId = ratingData.placeId;
+        }
+        const key = `${parsed.query}|${merged.name}|${merged.imageUrl ?? ''}|${extras.formattedAddress ?? ''}`;
         if (appliedRef.current === key) return;
         appliedRef.current = key;
-        onResult(merged, parsed);
+        onResult(merged, parsed, extras);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchData, photoData, parsed, searchFetching, photoFetching, country]);
+    }, [
+        searchData,
+        photoData,
+        ratingData,
+        parsed,
+        searchFetching,
+        photoFetching,
+        ratingFetching,
+        country,
+    ]);
 
     return null;
 };

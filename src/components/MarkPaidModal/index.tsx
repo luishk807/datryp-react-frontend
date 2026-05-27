@@ -9,6 +9,7 @@ import {
 import moment from 'moment';
 import './index.scss';
 import { Autocomplete, Grid, TextField } from '@mui/material';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import ModalButton, {
     type ModalButtonHandle,
 } from 'components/ModalButton';
@@ -159,13 +160,30 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
         const canSave = Boolean(payerId && paidAt);
         const showClear = Boolean(initialPaidAt && onClear);
 
+        const isEdit = Boolean(initialPaidAt);
         return (
             <ModalButton
                 ref={modalRef}
-                title={initialPaidAt ? 'Edit payment' : 'Mark as paid'}
+                title={isEdit ? 'Edit payment' : 'Mark as paid'}
                 buttonProps={null}
+                containerClassName="mark-paid-modal-shell"
             >
                 <Grid container className="mark-paid-modal">
+                    {/* Subhead — gives the dialog a sense of purpose
+                        without burying it in fine print. Different copy
+                        for new vs edit so the user knows which mode
+                        they're in at a glance. */}
+                    <Grid item lg={12} xs={12} className="mark-paid-subhead">
+                        <CheckCircleOutlineRoundedIcon
+                            className="mark-paid-subhead-icon"
+                            fontSize="small"
+                        />
+                        <span>
+                            {isEdit
+                                ? 'Update who covered this expense and when.'
+                                : 'Record who paid and the date so the trip stays settled.'}
+                        </span>
+                    </Grid>
                     <Grid item lg={12} md={12} xs={12} className="field-row">
                         <Autocomplete<PayerOption, false, false, false>
                             options={payerOptions}
@@ -197,18 +215,24 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                         xs={12}
                         className="mark-paid-actions"
                     >
+                        <ButtonCustom
+                            onClick={() => modalRef.current?.closeModal()}
+                            label="Cancel"
+                            type="line"
+                            capitalizeType="capitalize"
+                        />
                         {showClear && (
                             <ButtonCustom
                                 onClick={handleClear}
                                 label="Mark as unpaid"
-                                type="line"
+                                type="text"
                                 capitalizeType="capitalize"
                             />
                         )}
                         <ButtonCustom
                             onClick={handleSave}
-                            label="Save"
-                            type="standard"
+                            label={isEdit ? 'Save changes' : 'Mark as paid'}
+                            type="standard-small"
                             capitalizeType="capitalize"
                             disabled={!canSave}
                         />

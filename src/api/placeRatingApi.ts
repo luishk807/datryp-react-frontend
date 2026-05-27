@@ -15,6 +15,16 @@ export interface PlaceRating {
     rating: number | null;
     userRatingCount: number | null;
     googleMapsUri: string | null;
+    /** Full street address from Google ("Champ de Mars, 5 Av. Anatole
+     *  France, 75007 Paris, France"). Used by the smart-entry watcher
+     *  to fill the activity location. */
+    formattedAddress: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    /** First photo URL from Google Places (a stable
+     *  `lh3.googleusercontent.com` link). Used as an image fallback
+     *  when Unsplash has no match for the place name. */
+    photoUrl: string | null;
 }
 
 interface PlaceRatingRaw {
@@ -23,6 +33,10 @@ interface PlaceRatingRaw {
     rating: number | null;
     user_rating_count: number | null;
     google_maps_uri: string | null;
+    formatted_address: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    photo_url: string | null;
 }
 
 interface PlaceRatingResponseRaw {
@@ -35,6 +49,10 @@ const toRating = (r: PlaceRatingRaw): PlaceRating => ({
     rating: r.rating,
     userRatingCount: r.user_rating_count,
     googleMapsUri: r.google_maps_uri,
+    formattedAddress: r.formatted_address,
+    latitude: r.latitude,
+    longitude: r.longitude,
+    photoUrl: r.photo_url,
 });
 
 export const fetchPlaceRating = async (

@@ -471,3 +471,18 @@
   color: rgba(0, 0, 0, 0.55);
   line-height: 1.4;
 }
+
+// Soft amber warning surfaced under the smart-entry field — used for
+// URL-extraction misses ("we couldn't read that link") and country
+// mismatches ("found this in another country"). Inline (not modal)
+// so the user can keep editing.
+.flight-smart-entry-warning {
+  margin: 4px 4px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(247, 159, 38, 0.08);
+  border: 1px solid rgba(247, 159, 38, 0.25);
+  color: rgba(120, 70, 0, 1);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}

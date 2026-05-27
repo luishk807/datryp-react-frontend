@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect, type ComponentType } from 'react';
+import {
+    useState,
+    useRef,
+    useEffect,
+    useMemo,
+    type ComponentType,
+} from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import {
     Alert,
@@ -30,6 +36,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import FlightSegmentLookupWatcher from './FlightSegmentLookupWatcher';
 import { parseFlightInfo } from './parseFlightInfo';
 import PlaceSmartEntryWatcher from './PlaceSmartEntryWatcher';
+import { pickSmartEntryLocation } from './pickSmartEntryLocation';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { PlaceRecommendation } from 'types';
 import PlaceAutocomplete, {
@@ -233,11 +240,34 @@ const AddPlaceBtn = ({
     // searches and applies the top result via `handlePlacePicked`.
     const [placeSmartEntry, setPlaceSmartEntry] = useState('');
     const [placeSmartLoading, setPlaceSmartLoading] = useState(false);
+    // Country-mismatch warning when the smart entry resolves to a
+    // place outside the trip's destination country. Surfaced inline
+    // in the smart-entry hint area; auto-populate is skipped in this
+    // case so a mistakenly pasted out-of-country link doesn't clobber
+    // the form.
+    const [placeSmartWarning, setPlaceSmartWarning] = useState<string | null>(null);
     // Whole-block collapse for the PLACE form's location → cost →
     // time → note → image rows. Closed by default so the form stays
     // compact for the common case (smart entry filled everything);
     // user can expand to verify / tweak.
     const [placeDetailsExpanded, setPlaceDetailsExpanded] = useState(false);
+    // Parallel state for the HOTEL form. Same smart-entry + collapse
+    // pattern: a natural-language input above the hotel-name field,
+    // and the address → notes rows hidden behind a Show details
+    // toggle.
+    const [hotelSmartEntry, setHotelSmartEntry] = useState('');
+    const [hotelSmartLoading, setHotelSmartLoading] = useState(false);
+    const [hotelSmartWarning, setHotelSmartWarning] = useState<string | null>(null);
+    const [hotelDetailsExpanded, setHotelDetailsExpanded] = useState(false);
+    // Pending HOTEL_CHECKOUT to spawn alongside the primary
+    // HOTEL_CHECKIN once the user clicks Save. Populated by the hotel
+    // smart entry when the input mentions a separate check-out time
+    // ("check-in 3pm, check-out tomorrow 11am"). Cleared on modal
+    // close or after the second save fires.
+    const [pendingHotelCheckout, setPendingHotelCheckout] = useState<{
+        startTime?: string;
+        date?: string;
+    } | null>(null);
     // City of the most-recently picked arrival airport — drives the
     // optional auto-fetch of a hero image for the flight activity.
     // Resets when the modal closes or the kind toggles away from
@@ -253,6 +283,22 @@ const AddPlaceBtn = ({
     const tripState = useTripState();
     const { data: nearestAirport } = useNearestAirport();
     const { data: nearestStation } = useNearestTrainStation();
+    // Smart-entry search bias: pick the tightest known location for
+    // "near where the user actually is on this day". Walks the trip's
+    // itinerary in priority order — current-day activity address →
+    // current-day hotel → prior-day hotel → most recent flight
+    // arrival → trip country. Used to scope the place + hotel
+    // smart-entry searches so a Google Maps / Yelp link resolves
+    // against the user's actual context, not the whole country.
+    const smartEntryLocation = useMemo(
+        () =>
+            pickSmartEntryLocation({
+                destinations: tripState.destinations ?? [],
+                currentDate: defaultDate,
+                fallbackCountry: countryScope,
+            }),
+        [tripState.destinations, defaultDate, countryScope],
+    );
     const isFirstFlightActivity = isAdd && !tripState.destinations.some((d) =>
         d.itinerary?.some((day) =>
             day.activities.some((a) => a.kind === ACTIVITY_KIND.FLIGHT)
@@ -654,6 +700,20 @@ const AddPlaceBtn = ({
         if (next !== ACTIVITY_KIND.FLIGHT) {
             setArrivalCity(null);
         }
+        // Reset all smart-entry state so switching kinds shows a clean
+        // form — without this, a place name typed under PLACE would
+        // still drive a stale lookup after the user toggles to HOTEL,
+        // and the warning / loading indicators would linger.
+        setSmartEntry('');
+        setPlaceSmartEntry('');
+        setPlaceSmartLoading(false);
+        setPlaceSmartWarning(null);
+        setPlaceDetailsExpanded(false);
+        setHotelSmartEntry('');
+        setHotelSmartLoading(false);
+        setHotelSmartWarning(null);
+        setHotelDetailsExpanded(false);
+        setPendingHotelCheckout(null);
         const isHotel =
             next === ACTIVITY_KIND.HOTEL_CHECKIN ||
             next === ACTIVITY_KIND.HOTEL_CHECKOUT;
@@ -751,76 +811,68 @@ const AddPlaceBtn = ({
         const kind = place.kind ?? ACTIVITY_KIND.PLACE;
         const missing: string[] = [];
 
-        // Required-field rules differ per kind. Notes are timeless so
-        // start/end time aren't checked; flights need a flight number
-        // and depart datetime; places need a name + time window.
+        // Lazy-user mode: validation is intentionally permissive so
+        // anyone can save a partial activity and flesh it out later.
+        // We only block when there's literally nothing identifying
+        // the activity — every kind needs at least ONE meaningful
+        // field set so the timeline doesn't end up with an unreadable
+        // blank card.
         if (kind === ACTIVITY_KIND.NOTE) {
-            if (!place.name?.trim()) missing.push('title');
-            if (!place.note?.trim()) missing.push('note text');
+            // Notes need text — either a title or note body. Either
+            // alone is enough; the card just shows whichever's set.
+            if (!place.name?.trim() && !place.note?.trim()) {
+                missing.push('a title or note');
+            }
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
             const segments = place.flightSegments ?? [];
-            if (!segments.length) missing.push('a flight segment');
-            // Relaxed mode: when the lookup misses (charter / future
-            // flight / unknown carrier) the user can save with just a
-            // flight number and we accept the rest as undefined. The
-            // activity card synthesizes "DEP → ARR" with whatever
-            // airports are present and falls back to the flight number
-            // alone when none are. Flight number itself stays required —
-            // no number = no flight.
-            segments.forEach((seg, i) => {
-                const label = segments.length > 1 ? ` (segment ${i + 1})` : '';
-                if (!seg.flightNumber?.trim())
-                    missing.push(`flight number${label}`);
-            });
+            // Need at least one segment with a flight number OR an
+            // airport (otherwise the card has nothing to render).
+            const anyContent = segments.some(
+                (s) =>
+                    s.flightNumber?.trim() ||
+                    s.departAirport?.trim() ||
+                    s.arrivalAirport?.trim(),
+            );
+            if (!segments.length || !anyContent) {
+                missing.push('a flight number or airport');
+            }
         } else if (
             kind === ACTIVITY_KIND.HOTEL_CHECKIN ||
             kind === ACTIVITY_KIND.HOTEL_CHECKOUT
         ) {
-            // Hotel events: hotel name + the one relevant time. Address
-            // / confirmation # are optional but encouraged via labels.
-            const timeLabel =
-                kind === ACTIVITY_KIND.HOTEL_CHECKIN
-                    ? 'check-in time'
-                    : 'check-out time';
-            if (!place.name?.trim()) missing.push('hotel name');
-            if (!place.startTime?.trim()) missing.push(timeLabel);
+            // Hotel needs at least a name OR an address so the card
+            // identifies what hotel this is. Time / cost / confirmation
+            // can all be added later.
+            if (!place.name?.trim() && !place.location?.trim()) {
+                missing.push('a hotel name or address');
+            }
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
             kind === ACTIVITY_KIND.BUS ||
             kind === ACTIVITY_KIND.RENTAL_CAR
         ) {
-            // Train + bus + rental car: at least one segment with
-            // operator + number + depart station/pickup + depart
-            // datetime. Arrival station/dropoff + time are encouraged
-            // but not required (the user might be adding a partial
-            // booking before they know the dropoff time precisely).
-            const isRental = kind === ACTIVITY_KIND.RENTAL_CAR;
-            const operatorLabel = isRental ? 'rental company' : 'operator';
-            const numberLabel = isRental
-                ? 'confirmation #'
-                : `${kind === ACTIVITY_KIND.TRAIN ? 'train' : 'bus'} number`;
-            const departLabel = isRental ? 'pickup location' : 'depart station';
-            const departDateLabel = isRental ? 'pickup date' : 'depart date';
-            const departTimeLabel = isRental ? 'pickup time' : 'depart time';
             const segments = place.transitSegments ?? [];
-            if (!segments.length) missing.push('a transit segment');
-            segments.forEach((seg, i) => {
-                const label = segments.length > 1 ? ` (leg ${i + 1})` : '';
-                if (!seg.operator?.trim())
-                    missing.push(`${operatorLabel}${label}`);
-                if (!seg.number?.trim())
-                    missing.push(`${numberLabel}${label}`);
-                if (!seg.departStation?.trim())
-                    missing.push(`${departLabel}${label}`);
-                if (!seg.departDate?.trim())
-                    missing.push(`${departDateLabel}${label}`);
-                if (!seg.departTime?.trim())
-                    missing.push(`${departTimeLabel}${label}`);
-            });
+            // Need at least one segment with SOMETHING identifying
+            // it: operator, number, or depart station / pickup.
+            const anyContent = segments.some(
+                (s) =>
+                    s.operator?.trim() ||
+                    s.number?.trim() ||
+                    s.departStation?.trim() ||
+                    s.arrivalStation?.trim(),
+            );
+            if (!segments.length || !anyContent) {
+                const isRental = kind === ACTIVITY_KIND.RENTAL_CAR;
+                missing.push(
+                    isRental
+                        ? 'a rental company or pickup location'
+                        : 'an operator or station',
+                );
+            }
         } else {
-            if (!place.name?.trim()) missing.push('name');
-            if (!place.startTime?.trim()) missing.push('start time');
-            if (!place.endTime?.trim()) missing.push('end time');
+            // PLACE kind — just need a name. Time window, cost, note,
+            // image are all optional.
+            if (!place.name?.trim()) missing.push('a name');
         }
 
         if (missing.length) {
@@ -927,6 +979,38 @@ const AddPlaceBtn = ({
             endTime: transitEndTime ?? place.endTime,
             hotelInfo,
         });
+        // Spawn the paired HOTEL_CHECKOUT activity when the smart entry
+        // captured a separate check-out instruction. Same hotel details
+        // (name, address, image, confirmation, city/country) — only the
+        // kind, name prefix, and start time differ. Note: the parent
+        // adds activities to the current day-block; if the user
+        // mentioned a different checkout date, they may need to drag
+        // the spawned checkout to the right day after save.
+        if (
+            kind === ACTIVITY_KIND.HOTEL_CHECKIN &&
+            pendingHotelCheckout?.startTime &&
+            type === ACTION.ADD
+        ) {
+            const checkoutName = place.name?.trim()
+                ? `Check out: ${place.name.trim()}`
+                : 'Hotel check-out';
+            onChange?.({
+                ...placePayload,
+                kind: ACTIVITY_KIND.HOTEL_CHECKOUT,
+                name: checkoutName,
+                startTime: pendingHotelCheckout.startTime,
+                endTime: undefined,
+                hotelInfo,
+                // Cost lives on the check-in activity (whole-stay
+                // total). Don't double-charge by repeating it on the
+                // check-out row.
+                cost: undefined,
+                // Carry the budget split across? Same answer — split
+                // belongs to the check-in row.
+                budget: undefined,
+            });
+            setPendingHotelCheckout(null);
+        }
         if (type === ACTION.ADD) {
             setPlace(buildInitialPlace());
             setFormKey((k) => k + 1);
@@ -1023,11 +1107,38 @@ const AddPlaceBtn = ({
         setSmartEntry('');
         setPlaceSmartEntry('');
         setPlaceSmartLoading(false);
+        setPlaceSmartWarning(null);
         setPlaceDetailsExpanded(false);
+        setHotelSmartEntry('');
+        setHotelSmartLoading(false);
+        setHotelSmartWarning(null);
+        setHotelDetailsExpanded(false);
+        setPendingHotelCheckout(null);
         setOpenSegments(new Set());
         setExpandedSegments(new Set());
         setLookupLoading(new Set());
         setError(null);
+        // ADD mode: drop the in-progress form too so reopening the
+        // modal shows a clean activity-name field. EDIT mode keeps the
+        // saved data because the [data, type] useEffect won't re-fire
+        // if the user closes without changes (deps unchanged).
+        if (isAdd) {
+            setPlace(buildInitialPlace());
+            setFormKey((k) => k + 1);
+        }
+    };
+
+    /** Case-insensitive country-name comparison. Returns `true` when
+     *  the two values clearly describe the same country (or when
+     *  either is missing, since we can't compare). Used to block the
+     *  smart-entry auto-populate when a pasted Yelp / Google link
+     *  resolves to a place outside the trip's destination country. */
+    const sameCountry = (
+        tripCountry?: string,
+        itemCountry?: string | null,
+    ): boolean => {
+        if (!tripCountry || !itemCountry) return true;
+        return tripCountry.trim().toLowerCase() === itemCountry.trim().toLowerCase();
     };
 
     const modalElement = (
@@ -1215,18 +1326,53 @@ const AddPlaceBtn = ({
                                                         {placeSmartLoading
                                                             ? 'Looking up the place…'
                                                             : countryScope
-                                                              ? `Type a place, sentence, or paste a Google Maps link. We'll search ${countryScope} and fill in the details below.`
-                                                              : "Type a place, sentence, or paste a Google Maps link. We'll search and fill in the details below."}
+                                                              ? `Type a place, sentence, or paste a Google Maps / Yelp link. We'll search ${countryScope} and fill in the details below.`
+                                                              : "Type a place, sentence, or paste a Google Maps / Yelp link. We'll search and fill in the details below."}
                                                     </span>
                                                 </div>
+                                                {placeSmartWarning && (
+                                                    <div className="flight-smart-entry-warning">
+                                                        {placeSmartWarning}
+                                                    </div>
+                                                )}
                                             </div>
                                             <PlaceSmartEntryWatcher
                                                 rawInput={placeSmartEntry}
-                                                country={countryScope}
-                                                onResult={(item: PlaceRecommendation, parsed) => {
+                                                country={smartEntryLocation ?? countryScope}
+                                                onResult={(item: PlaceRecommendation, parsed, extras) => {
+                                                    // Warn but don't block: a
+                                                    // resolved place outside the
+                                                    // trip's country gets a soft
+                                                    // notice so the user can
+                                                    // double-check, but we still
+                                                    // populate the fields in
+                                                    // case the resolution was
+                                                    // imperfect and the user
+                                                    // actually wants it.
+                                                    if (
+                                                        countryScope &&
+                                                        !sameCountry(countryScope, item.country)
+                                                    ) {
+                                                        setPlaceSmartWarning(
+                                                            `Found "${item.name}" in ${item.country || 'a different country'} — your trip is in ${countryScope}. Double-check before saving.`,
+                                                        );
+                                                    } else {
+                                                        setPlaceSmartWarning(null);
+                                                    }
                                                     handlePlacePicked({
                                                         name: item.name,
-                                                        location: `${item.city}, ${item.country}`,
+                                                        // Prefer Google's
+                                                        // formatted street
+                                                        // address over the
+                                                        // recommender's
+                                                        // "City, Country"
+                                                        // string when Google
+                                                        // found a match.
+                                                        location:
+                                                            extras?.formattedAddress?.trim() ||
+                                                            [item.city, item.country]
+                                                                .filter((s) => s && s.trim())
+                                                                .join(', '),
                                                         city: item.city,
                                                         country: item.country,
                                                         countryCode: item.countryCode,
@@ -1251,8 +1397,22 @@ const AddPlaceBtn = ({
                                                     if (parsed.cost != null) {
                                                         handleOnChange('cost', String(parsed.cost));
                                                     }
+                                                    // Open the collapsed
+                                                    // details panel when the
+                                                    // smart entry populated a
+                                                    // field that lives inside
+                                                    // it — otherwise the user
+                                                    // can't see what got filled.
+                                                    if (
+                                                        parsed.startTime ||
+                                                        parsed.endTime ||
+                                                        parsed.cost != null
+                                                    ) {
+                                                        setPlaceDetailsExpanded(true);
+                                                    }
                                                 }}
                                                 onLoadingChange={setPlaceSmartLoading}
+                                                onWarning={setPlaceSmartWarning}
                                             />
                                         </Grid>
                                     )}
@@ -1313,7 +1473,7 @@ const AddPlaceBtn = ({
                                     </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
-                                            defaultValue={place.cost ? String(place.cost) : ''}
+                                            value={place.cost ? String(place.cost) : ''}
                                             name="cost"
                                             onChange={(e) => handleOnChange('cost', e.target.value)}
                                         />
@@ -1338,7 +1498,7 @@ const AddPlaceBtn = ({
                                     </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
-                                            defaultValue={place.note}
+                                            value={place.note ?? ''}
                                             name="note"
                                             onChange={(e) => handleOnChange('note', e.target.value)}
                                         />
@@ -1792,6 +1952,143 @@ const AddPlaceBtn = ({
                                             />
                                         </Grid>
                                     )}
+                                    {/* Smart entry — natural language /
+                                        Google Maps link → search →
+                                        populate hotel name + address +
+                                        image in one shot. Same shape as
+                                        the PLACE smart entry. */}
+                                    {isAdd && (
+                                        <Grid item lg={12} xs={12} className="py-5">
+                                            <div className="flight-smart-entry">
+                                                <div className="flight-smart-entry-field">
+                                                    <TextField
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        value={hotelSmartEntry}
+                                                        onChange={(e) =>
+                                                            setHotelSmartEntry(e.target.value)
+                                                        }
+                                                        placeholder={
+                                                            countryScope
+                                                                ? `e.g. "Hilton Tokyo, check-in 3pm, $200" — searched in ${countryScope}`
+                                                                : 'e.g. "Hilton Tokyo, check-in 3pm, $200", or paste a Google Maps link'
+                                                        }
+                                                        InputProps={{
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    {hotelSmartLoading ? (
+                                                                        <CircularProgress
+                                                                            size={16}
+                                                                            className="flight-smart-entry-input-icon"
+                                                                        />
+                                                                    ) : (
+                                                                        <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
+                                                                    )}
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="flight-smart-entry-hint">
+                                                    <span>
+                                                        {hotelSmartLoading
+                                                            ? 'Looking up the hotel…'
+                                                            : countryScope
+                                                              ? `Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search ${countryScope} and fill in the details below.`
+                                                              : "Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search and fill in the details below."}
+                                                    </span>
+                                                </div>
+                                                {hotelSmartWarning && (
+                                                    <div className="flight-smart-entry-warning">
+                                                        {hotelSmartWarning}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <PlaceSmartEntryWatcher
+                                                rawInput={hotelSmartEntry}
+                                                country={smartEntryLocation ?? countryScope}
+                                                onResult={(item: PlaceRecommendation, parsed, extras) => {
+                                                    if (
+                                                        countryScope &&
+                                                        !sameCountry(countryScope, item.country)
+                                                    ) {
+                                                        setHotelSmartWarning(
+                                                            `Found "${item.name}" in ${item.country || 'a different country'} — your trip is in ${countryScope}. Double-check before saving.`,
+                                                        );
+                                                    } else {
+                                                        setHotelSmartWarning(null);
+                                                    }
+                                                    handlePlacePicked({
+                                                        name: item.name,
+                                                        // Prefer Google's
+                                                        // formatted street
+                                                        // address over the
+                                                        // recommender's
+                                                        // "City, Country"
+                                                        // string when Google
+                                                        // found a match.
+                                                        location:
+                                                            extras?.formattedAddress?.trim() ||
+                                                            [item.city, item.country]
+                                                                .filter((s) => s && s.trim())
+                                                                .join(', '),
+                                                        city: item.city,
+                                                        country: item.country,
+                                                        countryCode: item.countryCode,
+                                                        imageUrl: item.imageUrl,
+                                                        latitude: item.latitude,
+                                                        longitude: item.longitude,
+                                                    });
+                                                    if (parsed.startTime) {
+                                                        handleOnChange('startTime', parsed.startTime);
+                                                    }
+                                                    if (parsed.cost != null) {
+                                                        handleOnChange('cost', String(parsed.cost));
+                                                    }
+                                                    if (parsed.confirmationNumber) {
+                                                        handleOnChange(
+                                                            'confirmationNumber',
+                                                            parsed.confirmationNumber,
+                                                        );
+                                                    }
+                                                    // Capture a separate
+                                                    // HOTEL_CHECKOUT to spawn
+                                                    // alongside the primary
+                                                    // CHECKIN once the user
+                                                    // clicks Save. Cleared
+                                                    // when the smart entry no
+                                                    // longer mentions check-
+                                                    // out (so editing the
+                                                    // input clears a stale
+                                                    // pending checkout).
+                                                    if (parsed.checkOutTime) {
+                                                        setPendingHotelCheckout({
+                                                            startTime: parsed.checkOutTime,
+                                                            date: parsed.checkOutDate,
+                                                        });
+                                                    } else {
+                                                        setPendingHotelCheckout(null);
+                                                    }
+                                                    // Auto-expand the hotel
+                                                    // details block when the
+                                                    // smart entry actually
+                                                    // populated time / cost /
+                                                    // confirmation — otherwise
+                                                    // the user can't see what
+                                                    // we just filled in.
+                                                    if (
+                                                        parsed.startTime ||
+                                                        parsed.cost != null ||
+                                                        parsed.confirmationNumber
+                                                    ) {
+                                                        setHotelDetailsExpanded(true);
+                                                    }
+                                                }}
+                                                onLoadingChange={setHotelSmartLoading}
+                                                onWarning={setHotelSmartWarning}
+                                            />
+                                        </Grid>
+                                    )}
                                     <Grid item lg={12} xs={12} className="pt-2 pb-5">
                                         <PlaceAutocomplete
                                             value={place.name ?? ''}
@@ -1809,6 +2106,34 @@ const AddPlaceBtn = ({
                                             placeholder="Type a hotel name — we'll suggest matches"
                                         />
                                     </Grid>
+                                    {/* Address → notes hidden by default.
+                                        Smart entry above usually fills the
+                                        address + time + cost; user expands
+                                        to verify or tweak. */}
+                                    <Grid item lg={12} xs={12} className="py-1">
+                                        <button
+                                            type="button"
+                                            className="flight-segment-toggle"
+                                            onClick={() =>
+                                                setHotelDetailsExpanded((v) => !v)
+                                            }
+                                            aria-expanded={hotelDetailsExpanded}
+                                        >
+                                            {hotelDetailsExpanded ? (
+                                                <>
+                                                    Hide details
+                                                    <ExpandLessRoundedIcon fontSize="small" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Show details (address, time, confirmation, cost, notes)
+                                                    <ExpandMoreRoundedIcon fontSize="small" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </Grid>
+                                    {hotelDetailsExpanded && (
+                                    <>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
                                             value={place.location ?? ''}
@@ -1853,7 +2178,7 @@ const AddPlaceBtn = ({
                                     </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
-                                            defaultValue={place.cost ? String(place.cost) : ''}
+                                            value={place.cost ? String(place.cost) : ''}
                                             name="cost"
                                             label={
                                                 place.kind ===
@@ -1869,7 +2194,7 @@ const AddPlaceBtn = ({
                                     </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
-                                            defaultValue={place.note}
+                                            value={place.note ?? ''}
                                             name="note"
                                             label="Notes (optional)"
                                             required={false}
@@ -1878,6 +2203,8 @@ const AddPlaceBtn = ({
                                             }
                                         />
                                     </Grid>
+                                    </>
+                                    )}
                                 </Grid>
                             )}
 

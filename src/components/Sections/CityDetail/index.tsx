@@ -43,6 +43,7 @@ import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
+import { useUser } from "context/UserContext";
 import { useIsStuck } from "hooks/useIsStuck";
 import {
     basicInfo,
@@ -62,6 +63,7 @@ const CityDetail = () => {
     // the activity injection in that case, same silent-skip pattern as
     // AddPlaceBtn's segment seeding.
     const { data: nearestAirport } = useNearestAirport();
+    const { user } = useUser();
     // Scroll-activated chrome — toolbar grows a translucent bg + drop
     // shadow once the user has scrolled past a small threshold, and
     // reverts to a flat in-flow look when they scroll back to the top.
@@ -108,34 +110,71 @@ const CityDetail = () => {
         // no home airport is available so we never ship a half-empty
         // segment with a placeholder depart.
         const today = now();
-        // Day-1 "Flight to <city>" auto-seed. Only fires when BOTH the
-        // user has a home airport (from their saved home city) AND the
-        // destination has a known primary airport — otherwise we'd ship
-        // a half-baked activity the user has to clean up. Silent skip
-        // (no toast / warning) matches AddPlaceBtn's seeding behaviour.
+        // Transport-mode heuristic: when the destination is in the
+        // same country as the user's home, a train / ground trip is
+        // usually more realistic than a flight. Cross-country defaults
+        // to flight. Cheap proxy in lieu of a real home-to-destination
+        // distance lookup (the city summary doesn't carry lat/lng).
+        // User can switch the kind via the form if the heuristic
+        // picked wrong (e.g. NYC → LA is same country but should be
+        // flight).
+        const isSameCountry = Boolean(
+            user?.homeCountryCode &&
+                args.countryCode &&
+                user.homeCountryCode.toUpperCase() ===
+                    args.countryCode.toUpperCase(),
+        );
+        // Day-1 outbound auto-seed. Silent skip (no toast / warning)
+        // when we don't have enough info to populate a meaningful
+        // activity — same pattern as AddPlaceBtn's segment seeding.
         // Arrival date is set explicitly to depart date so the
         // segment's internal dates are coherent without relying on the
         // form's depart→arrival cascade.
-        const seededActivities: Activity[] =
-            nearestAirport?.iataCode && args.arrivalAirportCode
-                ? [
-                      {
-                          id: 0,
-                          kind: ACTIVITY_KIND.FLIGHT,
-                          name: `Flight to ${args.cityName}`,
-                          flightSegments: [
-                              {
-                                  departAirport: nearestAirport.iataCode,
-                                  arrivalAirport: args.arrivalAirportCode,
-                                  departDate: today,
-                                  departTime: "00:00",
-                                  arrivalDate: today,
-                                  arrivalTime: "00:00",
-                              },
-                          ],
-                      },
-                  ]
-                : [];
+        //
+        // NOTE: the symmetric "return" activity on the trip's LAST day
+        // isn't seeded here — we don't know the end date until the
+        // user picks it in the stepper. The destination's `flightInfo`
+        // carries the depart/arrive airports symmetrically though, so
+        // a follow-up can hook into the stepper's end-date pick to
+        // spawn the return.
+        let seededActivities: Activity[] = [];
+        if (isSameCountry && user?.homeCity && args.cityName) {
+            seededActivities = [
+                {
+                    id: 0,
+                    kind: ACTIVITY_KIND.TRAIN,
+                    name: `Train to ${args.cityName}`,
+                    transitSegments: [
+                        {
+                            departStation: user.homeCity,
+                            arrivalStation: args.cityName,
+                            departDate: today,
+                            departTime: "00:00",
+                            arrivalDate: today,
+                            arrivalTime: "00:00",
+                        },
+                    ],
+                },
+            ];
+        } else if (nearestAirport?.iataCode && args.arrivalAirportCode) {
+            seededActivities = [
+                {
+                    id: 0,
+                    kind: ACTIVITY_KIND.FLIGHT,
+                    name: `Flight to ${args.cityName}`,
+                    flightSegments: [
+                        {
+                            departAirport: nearestAirport.iataCode,
+                            arrivalAirport: args.arrivalAirportCode,
+                            departDate: today,
+                            departTime: "00:00",
+                            arrivalDate: today,
+                            arrivalTime: "00:00",
+                        },
+                    ],
+                },
+            ];
+        }
         const destinations = [
             {
                 // Frontend-local numeric id. The trip reducer's `editDestination`

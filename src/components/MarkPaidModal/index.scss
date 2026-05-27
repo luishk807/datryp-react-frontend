@@ -2,23 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+// The ModalButton shell already paints a 100% gradient top stripe;
+// keep this file scoped to the modal's content + actions.
 .mark-paid-modal {
-  gap: 16px;
-  padding: 8px 0 4px;
+  gap: 18px;
+  padding: 4px 0;
 
   .field-row {
     width: 100%;
   }
 
+  // Subhead under the title — gives the dialog a short purpose hint
+  // without needing a separate paragraph block above the form.
+  .mark-paid-subhead {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 2px 10px;
+    font-size: 0.86rem;
+    line-height: 1.4;
+    color: rgba(0, 0, 0, 0.6);
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+    margin-bottom: 2px;
+  }
+
+  .mark-paid-subhead-icon {
+    color: theme('colors.primaryGreen');
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  // Actions row — Cancel / Mark as unpaid / Save, right-aligned. Save
+  // is the visual primary; Cancel + Mark as unpaid sit beside it as
+  // secondaries. No more full-width Save button.
   .mark-paid-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 12px;
-    margin-top: 8px;
+    gap: 10px;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
 
     @media (max-width: 480px) {
-      flex-direction: column-reverse;
+      // Stack vertically on narrow viewports BUT keep Save at the
+      // bottom (primary action sits closest to the thumb when
+      // reaching from below the modal).
+      flex-direction: column;
       align-items: stretch;
       gap: 8px;
     }

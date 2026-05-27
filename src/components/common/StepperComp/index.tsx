@@ -332,15 +332,11 @@ const StepperComp = ({
             if (!(data.friends ?? []).length) {
                 stepMissing.push('at least one participant');
             }
-            const { expected, missing: emptyDates } = inspectDays(data);
-            if (expected.length === 0) {
-                // No dates yet — earlier checks for start/end date already catch this.
-                stepMissing.push('at least one place');
-            } else if (emptyDates.length > 0) {
-                stepMissing.push(
-                    `a place for ${formatDateList(emptyDates)}`
-                );
-            }
+            // No per-day place requirement: empty days are allowed
+            // through the whole Planning phase. The Confirm step warns
+            // the user about empty days and they get hidden on
+            // confirm; forcing a place per day here was burning users
+            // who knew the trip dates but hadn't planned every day.
         }
     }
     const hasMissingFields = stepMissing.length > 0;
@@ -374,12 +370,10 @@ const StepperComp = ({
         if (!(data.friends ?? []).length) {
             missing.push('at least one participant');
         }
-        const { expected, missing: emptyDates } = inspectDays(data);
-        if (expected.length === 0) {
-            missing.push('at least one place');
-        } else if (emptyDates.length > 0) {
-            missing.push(`a place for ${formatDateList(emptyDates)}`);
-        }
+        // No per-day place requirement on save. Empty days are allowed
+        // through Planning — they're filtered out automatically after
+        // the trip is moved to Confirmed (with a warning modal at the
+        // status-change moment).
         if (missing.length) {
             setSaveError(
                 `Please provide ${missing.join(', ')} before saving.`

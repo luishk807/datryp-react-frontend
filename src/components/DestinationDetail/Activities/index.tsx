@@ -38,6 +38,8 @@ import {
 } from '@dnd-kit/sortable';
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
+import { pickSmartEntryLocation } from 'components/common/AddPlaceBtn/pickSmartEntryLocation';
+import { useTripState } from 'context/TripContext';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import RatingBadge from 'components/common/RatingBadge';
 import DraggableActivity from 'components/DestinationDetail/Activities/DraggableActivity';
@@ -259,6 +261,15 @@ const Activities = ({
     // otherwise have to thread through.
     const [searchParams] = useSearchParams();
     const tripId = searchParams.get('id');
+
+    // Origin for the directions URL is computed via the same
+    // priority chain the smart-entry watcher uses: today's other
+    // activities → today's hotel → prior day's hotel → most recent
+    // flight arrival → trip country. Without an explicit origin,
+    // Google Maps defaults to the browser's GPS location — which is
+    // the user's home city, not the trip — so directions always
+    // started in the wrong place.
+    const tripState = useTripState();
 
     // Live "now" for activity timing — re-renders every 30s so the
     // past/current/upcoming bin flips as time passes. Cheap: just a
@@ -807,19 +818,47 @@ const Activities = ({
                                                             <span className="meta-text location">
                                                                 {displayLocation}
                                                             </span>
-                                                            <IconButton
-                                                                size="small"
-                                                                className="meta-directions-btn"
-                                                                component="a"
-                                                                href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsDestination)}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                aria-label="Get directions on Google Maps"
-                                                                title="Get directions"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                <DirectionsRoundedIcon fontSize="small" />
-                                                            </IconButton>
+                                                            {(() => {
+                                                                // Pick the origin via the trip-
+                                                                // context priority chain — excluding
+                                                                // THIS activity so directions never
+                                                                // resolve "from X to X".
+                                                                const origin = pickSmartEntryLocation({
+                                                                    destinations:
+                                                                        tripState.destinations ?? [],
+                                                                    currentDate: date,
+                                                                    fallbackCountry: country,
+                                                                    excludeActivityId: activity.id,
+                                                                });
+                                                                const href = origin
+                                                                    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(mapsDestination)}`
+                                                                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsDestination)}`;
+                                                                return (
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        className="meta-directions-btn"
+                                                                        component="a"
+                                                                        href={href}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        aria-label={
+                                                                            origin
+                                                                                ? 'Get directions on Google Maps'
+                                                                                : 'Open in Google Maps'
+                                                                        }
+                                                                        title={
+                                                                            origin
+                                                                                ? `Directions from ${origin}`
+                                                                                : 'Open in Google Maps'
+                                                                        }
+                                                                        onClick={(e) =>
+                                                                            e.stopPropagation()
+                                                                        }
+                                                                    >
+                                                                        <DirectionsRoundedIcon fontSize="small" />
+                                                                    </IconButton>
+                                                                );
+                                                            })()}
                                                             <RatingBadge
                                                                 name={activity.name ?? ''}
                                                                 location={displayLocation}
