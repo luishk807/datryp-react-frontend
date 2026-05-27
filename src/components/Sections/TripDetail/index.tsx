@@ -28,6 +28,7 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
 import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import Layout from "components/common/Layout/SubLayout";
 import BasicTripInfo from "components/BasicTripInfo";
@@ -760,6 +761,26 @@ export const TripDetail = () => {
                 <span className="trip-detail-completed-sub">
                   Locked in as a record of where you&rsquo;ve been. Activity
                   edits, deletes, and budget changes are sealed.
+                </span>
+              </div>
+            </div>
+          </Grid>
+        )}
+        {persistedStatusName === TRIP_STATUS.PLANNING && (
+          <Grid item lg={12} md={12} xs={12}>
+            <div className="trip-detail-planning-banner">
+              <EditCalendarRoundedIcon
+                className="trip-detail-planning-icon"
+                fontSize="medium"
+              />
+              <div className="trip-detail-planning-text">
+                <span className="trip-detail-planning-title">
+                  Trip in planning
+                </span>
+                <span className="trip-detail-planning-sub">
+                  {isOrganizer
+                    ? "Tap any Planning chip on an activity to lock it in, or hit Edit Trip for full edits."
+                    : "The organizer is still arranging activities. Check back soon."}
                 </span>
               </div>
             </div>

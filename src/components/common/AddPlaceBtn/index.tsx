@@ -824,10 +824,12 @@ const AddPlaceBtn = ({
         // field set so the timeline doesn't end up with an unreadable
         // blank card.
         if (kind === ACTIVITY_KIND.NOTE) {
-            // Notes need text — either a title or note body. Either
-            // alone is enough; the card just shows whichever's set.
-            if (!place.name?.trim() && !place.note?.trim()) {
-                missing.push('a title or note');
+            // Notes are a single free-form text field. The form no longer
+            // has a separate title — the first line of the note doubles
+            // as the headline on the timeline card (see name-derivation
+            // below in finalName).
+            if (!place.note?.trim()) {
+                missing.push('a note');
             }
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
             const segments = place.flightSegments ?? [];
@@ -892,7 +894,15 @@ const AddPlaceBtn = ({
         // doesn't ask for one directly. Always lets the user override
         // by typing into the kind-specific name field.
         let finalName = place.name;
-        if (kind === ACTIVITY_KIND.FLIGHT) {
+        if (kind === ACTIVITY_KIND.NOTE) {
+            // NOTE has no title field — derive the timeline headline
+            // from the note's first line. Trim to a sensible length so
+            // a multi-paragraph note doesn't blow out the card width.
+            const firstLine = (place.note ?? '')
+                .split(/\r?\n/)[0]
+                ?.trim() ?? '';
+            finalName = place.name?.trim() || firstLine.slice(0, 80);
+        } else if (kind === ACTIVITY_KIND.FLIGHT) {
             finalName =
                 place.name?.trim() ||
                 (() => {
@@ -1547,21 +1557,26 @@ const AddPlaceBtn = ({
 
                             {place.kind === ACTIVITY_KIND.NOTE && (
                                 <Grid container>
+                                    {/* Notes are free-form text only — no
+                                        separate title. The first line of the
+                                        note doubles as the headline on the
+                                        timeline card (handleSubmit fills
+                                        place.name from the note if name is
+                                        empty). Using a multiline TextField
+                                        instead of the standard InputField so
+                                        users can write paragraphs without the
+                                        textbox feeling cramped. */}
                                     <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.name ?? ''}
-                                            name="name"
-                                            label="Title"
-                                            onChange={(e) =>
-                                                handleOnChange('name', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
+                                        <TextField
+                                            fullWidth
+                                            multiline
+                                            minRows={4}
+                                            maxRows={12}
+                                            variant="outlined"
                                             value={place.note ?? ''}
                                             name="note"
                                             label="Note"
+                                            placeholder="Jot down anything — reminders, ideas, links, packing checklist…"
                                             onChange={(e) =>
                                                 handleOnChange('note', e.target.value)
                                             }
