@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import {
     Alert,
@@ -12,8 +12,12 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import ConfirmEmptyDaysModal, {
+    type ConfirmEmptyDaysModalHandle,
+} from 'components/ConfirmEmptyDaysModal';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
+import { findEmptyDays } from 'utils/emptyDays';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 
 interface TripStatusBadgeProps {
@@ -26,6 +30,11 @@ interface TripStatusBadgeProps {
      *  another save is in flight. */
     disabled?: boolean;
     className?: string;
+    /** Fires when the user picks "Update trip dates" from the empty-day
+     *  confirm modal. Parent should hand off to the trip-edit flow. When
+     *  omitted, the modal surfaces an inline hint instead so the user
+     *  knows where to look. */
+    onEditTripDates?: () => void;
 }
 
 const deriveStatusName = (raw: TripState['status']): string => {
@@ -77,10 +86,17 @@ export const TripStatusBadge = ({
     isSaving = false,
     disabled = false,
     className,
+    onEditTripDates,
 }: TripStatusBadgeProps) => {
     const { data: tripStatuses = [] } = useTripStatuses();
     const [error, setError] = useState<string | null>(null);
+    const [hint, setHint] = useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const emptyDaysModalRef = useRef<ConfirmEmptyDaysModalHandle>(null);
+    // Cached list of empty-day ISO strings for the current "Confirm trip"
+    // attempt. Captured at the moment the user clicks promote so the
+    // modal body doesn't flicker if the trip changes underneath it.
+    const [pendingEmptyDays, setPendingEmptyDays] = useState<string[]>([]);
 
     const statusName = deriveStatusName(data.status);
 
@@ -135,9 +151,45 @@ export const TripStatusBadge = ({
                 );
                 return;
             }
+            // Planning → Confirmed only: warn when day blocks would
+            // disappear from the itinerary view + exports because they
+            // have no activities. The user can fill them in, edit the
+            // trip dates, or confirm anyway and accept the trimmed view.
+            const emptyDays = findEmptyDays(data);
+            if (emptyDays.length) {
+                setError(null);
+                setPendingEmptyDays(emptyDays);
+                emptyDaysModalRef.current?.openModel();
+                return;
+            }
         }
         setError(null);
         setConfirmOpen(true);
+    };
+
+    const handleEmptyDaysConfirm = async () => {
+        if (!target?.next) return;
+        emptyDaysModalRef.current?.closeModal();
+        try {
+            await onStatusChange(target.next as TripStatus);
+        } catch {
+            // Parent surfaces save errors via its own toast.
+        }
+    };
+
+    const handleEmptyDaysFillIn = () => {
+        emptyDaysModalRef.current?.closeModal();
+    };
+
+    const handleEmptyDaysEditDates = () => {
+        emptyDaysModalRef.current?.closeModal();
+        if (onEditTripDates) {
+            onEditTripDates();
+            return;
+        }
+        // No handoff wired by the parent — point the user at the Edit
+        // Trip button so they can shorten the date range manually.
+        setHint('Open Edit Trip to change the trip dates.');
     };
 
     const handleConfirm = async () => {
@@ -186,6 +238,31 @@ export const TripStatusBadge = ({
                     {error}
                 </Alert>
             </Snackbar>
+            <Snackbar
+                open={!!hint}
+                autoHideDuration={4000}
+                onClose={() => setHint(null)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                sx={{ zIndex: 1500 }}
+            >
+                <Alert
+                    severity="info"
+                    variant="filled"
+                    onClose={() => setHint(null)}
+                    sx={{ maxWidth: 560, width: '100%' }}
+                >
+                    {hint}
+                </Alert>
+            </Snackbar>
+
+            <ConfirmEmptyDaysModal
+                ref={emptyDaysModalRef}
+                emptyDates={pendingEmptyDays}
+                onConfirm={handleEmptyDaysConfirm}
+                onFillIn={handleEmptyDaysFillIn}
+                onEditDates={handleEmptyDaysEditDates}
+                isSaving={isSaving}
+            />
 
             <Dialog
                 open={confirmOpen}

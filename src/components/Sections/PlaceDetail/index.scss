@@ -464,6 +464,11 @@ a.place-detail-google-rating {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  // Width is forced to 100% because the parent `.homeContainer` is
+  // itself a flex row, which would otherwise shrink-to-fit and pin
+  // this block to the left edge.
+  width: 100%;
   // Fill the viewport minus the page chrome (header + title bar +
   // footer + padding ≈ 12rem) so the loader visually sits at the
   // center of the screen, not the center of a 60vh region biased

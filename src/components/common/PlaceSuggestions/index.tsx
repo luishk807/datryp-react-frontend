@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
-import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import RatingBadge from 'components/common/RatingBadge';
@@ -175,31 +174,26 @@ const PlaceSuggestions = ({
                                           </span>
                                       )}
                                       <div className="place-suggestions-card-body">
-                                          <span className="place-suggestions-card-name">
+                                          <a
+                                              className="place-suggestions-card-name"
+                                              href={buildDetailHref(item)}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              aria-label={`Open ${item.name} details in a new tab`}
+                                              title={item.name}
+                                          >
                                               {item.name}
-                                          </span>
+                                          </a>
                                           <span className="place-suggestions-card-loc">
                                               {item.city}
                                           </span>
                                           <RatingBadge
                                               name={item.name}
                                               location={`${item.city}, ${item.country}`}
-                                              variant="compact"
-                                              linkToMaps={false}
+                                              variant="chip"
                                           />
                                       </div>
                                       <div className="place-suggestions-actions">
-                                          <a
-                                              className="place-suggestions-view"
-                                              href={buildDetailHref(item)}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              aria-label={`Open ${item.name} details in a new tab`}
-                                              title="View details"
-                                          >
-                                              <OpenInNewRoundedIcon fontSize="small" />
-                                              <span>View</span>
-                                          </a>
                                           <button
                                               type="button"
                                               className="place-suggestions-add"

@@ -972,6 +972,7 @@ const TripDetailHeader = ({
             data={tripData}
             onStatusChange={onStatusChange}
             isSaving={isSaving}
+            onEditTripDates={onEditTrip}
           />
         )}
         {/* Confirmed + canPromote: inline Mark Complete button
@@ -984,6 +985,7 @@ const TripDetailHeader = ({
             data={tripData}
             onStatusChange={onStatusChange}
             isSaving={isSaving}
+            onEditTripDates={onEditTrip}
           />
         )}
         {/* Post-Planning lifecycle: read-only status indicator so the

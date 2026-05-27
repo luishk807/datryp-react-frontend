@@ -221,6 +221,20 @@ const AddPlaceBtn = ({
                     : [value as Friend];
                 return { ...prev, friends: next };
             }
+            // Mirror the flight depart→arrival cascade on PLACE start→end:
+            // when the user picks a start time and end time hasn't diverged
+            // (empty or still matching the old start), keep them in sync so
+            // a multi-activity day doesn't require setting two time fields
+            // per entry. User can still bump end time after.
+            if (
+                name === 'startTime' &&
+                typeof value === 'string' &&
+                value &&
+                (prev.kind ?? ACTIVITY_KIND.PLACE) === ACTIVITY_KIND.PLACE &&
+                (!prev.endTime || prev.endTime === prev.startTime)
+            ) {
+                return { ...prev, startTime: value, endTime: value };
+            }
             return { ...prev, [name]: value as PlaceDraft[K] };
         });
     };
@@ -355,13 +369,37 @@ const AddPlaceBtn = ({
 
     const handleAddTransitSegment = () => {
         setError(null);
-        setPlace((prev) => ({
-            ...prev,
-            transitSegments: [
-                ...(prev.transitSegments ?? []),
-                emptyTransitSegment(isoDefaultDate),
-            ],
-        }));
+        setPlace((prev) => {
+            const existing = prev.transitSegments ?? [];
+            const last = existing[existing.length - 1];
+            // Multi-leg transit almost always continues from where the
+            // previous leg ended on the same carrier (Renfe transfer,
+            // FlixBus connection, same rental company). Inherit those
+            // two fields so a transfer adds one tap instead of four;
+            // user can still edit if the next leg is a different
+            // operator / origin.
+            const inheritedDepartStation = last?.arrivalStation?.trim()
+                ? last.arrivalStation
+                : undefined;
+            const inheritedOperator = last?.operator?.trim()
+                ? last.operator
+                : undefined;
+            return {
+                ...prev,
+                transitSegments: [
+                    ...existing,
+                    {
+                        ...emptyTransitSegment(isoDefaultDate),
+                        ...(inheritedDepartStation
+                            ? { departStation: inheritedDepartStation }
+                            : {}),
+                        ...(inheritedOperator
+                            ? { operator: inheritedOperator }
+                            : {}),
+                    },
+                ],
+            };
+        });
     };
 
     const handleRemoveTransitSegment = (index: number) => {
@@ -499,18 +537,17 @@ const AddPlaceBtn = ({
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
             const segments = place.flightSegments ?? [];
             if (!segments.length) missing.push('a flight segment');
+            // Relaxed mode: when the lookup misses (charter / future
+            // flight / unknown carrier) the user can save with just a
+            // flight number and we accept the rest as undefined. The
+            // activity card synthesizes "DEP → ARR" with whatever
+            // airports are present and falls back to the flight number
+            // alone when none are. Flight number itself stays required —
+            // no number = no flight.
             segments.forEach((seg, i) => {
                 const label = segments.length > 1 ? ` (segment ${i + 1})` : '';
                 if (!seg.flightNumber?.trim())
                     missing.push(`flight number${label}`);
-                if (!seg.departAirport?.trim())
-                    missing.push(`depart airport${label}`);
-                if (!seg.arrivalAirport?.trim())
-                    missing.push(`arrival airport${label}`);
-                if (!seg.departDate?.trim())
-                    missing.push(`depart date${label}`);
-                if (!seg.departTime?.trim())
-                    missing.push(`depart time${label}`);
             });
         } else if (
             kind === ACTIVITY_KIND.HOTEL_CHECKIN ||

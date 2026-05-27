@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Per-modal sizing override for the empty-days confirm sheet — the
+// default `.modalCustom` width is 560px which is more than this short
+// content needs.
+.confirm-empty-days-modal {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.confirm-empty-days-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm-empty-days-helper {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.45;
+}
+
+.confirm-empty-days-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.confirm-empty-days-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(247, 159, 38, 0.12);
+  color: theme('colors.primaryOrange');
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.confirm-empty-days-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+
+  // ButtonCustom's `standard` / `line` variants default to `width: 100%`
+  // (they're built for stacked forms). Tighten them up for this inline
+  // action row.
+  .main-button,
+  .main-line,
+  .text-button {
+    width: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .text-button {
+    padding: 10px 6px;
+    color: theme('colors.primary');
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 480px) {
+  .confirm-empty-days-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .main-button,
+    .main-line,
+    .text-button {
+      width: 100%;
+    }
+  }
+}

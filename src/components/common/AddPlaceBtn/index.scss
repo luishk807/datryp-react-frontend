@@ -64,10 +64,24 @@
 // the thumb-position math the old sliding pill needed.
 .add-place-kind-toggle {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   width: 100%;
   margin-bottom: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  // Hairline scrollbar under the chips so users notice there's more
+  // to scroll. Defaults to invisible on most browsers without the
+  // explicit thumb styling.
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+  }
 }
 
 .add-place-kind-btn {

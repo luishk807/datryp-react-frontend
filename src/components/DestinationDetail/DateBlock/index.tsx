@@ -67,14 +67,22 @@ const DateBlock = ({
         return matchingDest.length ? matchingDest : null;
     }, [destinations, startDate, isSingle]);
 
+    // Confirmed trips trim empty day blocks from the timeline. The user
+    // opted in via the Planning → Confirmed flow (gated by the empty-days
+    // warning modal in TripStatusBadge); flipping back to Planning brings
+    // the empty blocks back automatically. View-mode (read-only renders
+    // on /trip-detail) retains the original "hide empties" behavior so
+    // shared / printed trips stay tidy regardless of status.
+    const isConfirmed = tripStatusName === TRIP_STATUS.CONFIRMED;
+    const hideWhenEmpty = isViewMode || isConfirmed;
     const hideEmpty = useMemo(() => {
-        if (!isViewMode) return false;
+        if (!hideWhenEmpty) return false;
         if (!trips) return true;
         if (isSingle) {
             return (trips as Activity[]).length === 0;
         }
         return false;
-    }, [isViewMode, trips, isSingle]);
+    }, [hideWhenEmpty, trips, isSingle]);
 
     if (hideEmpty) return null;
 
