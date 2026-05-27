@@ -30,19 +30,91 @@
   font-weight: 500;
 }
 
+/* Edit / Delete row sits right-aligned on desktop and left-aligned on
+ * phones. Buttons get small pill backgrounds and an explicit hover so
+ * they read as discrete affordances instead of bare underlined text. */
+.multrip-content-item .destination-actions {
+  display: flex !important;
+  justify-content: flex-end;
+}
+
+.multrip-content-item .destination-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.multrip-content-item .destination-action {
+  display: inline-flex;
+  align-items: center;
+
+  // The inner text trigger (AddDestinationBtn / DialogBox text mode)
+  // renders an unstyled button. Wrap it as a pill so it looks like an
+  // intentional action rather than a stray link.
+  button {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease,
+      color 0.15s ease;
+  }
+}
+
+.multrip-content-item .destination-action-edit button {
+  color: theme('colors.primary');
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.08);
+    border-color: rgba(60, 181, 75, 0.35);
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.multrip-content-item .destination-action-delete button {
+  color: rgba(192, 57, 43, 0.85);
+
+  &:hover {
+    background: rgba(192, 57, 43, 0.08);
+    border-color: rgba(192, 57, 43, 0.35);
+    color: #c0392b;
+  }
+}
+
 .multrip-content-item .title {
   font-weight: 500;
 }
 
-/* Flight leg pair */
+/* Flight legs container — stacks one leg per row so multi-segment
+ * flights read top-to-bottom (Leg 1 → stopover → Leg 2 → …). Each
+ * `.flight-leg-row` is the depart/arrive pair for a single leg. The
+ * 18px gap matches the spacing the side-by-side layout had before
+ * stacking, so multi-segment flights feel as airy as single-leg ones. */
 .multrip-content-item .content-info {
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
   gap: 18px;
   padding: 14px 0 18px;
   margin-bottom: 12px;
-  flex-wrap: wrap;
   border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+/* One leg = depart pinned left, arrive pinned right, divider centered
+ * between them. `space-between` pushes the two halves to opposite ends
+ * of the row so the eye reads the flight as "from → to" rather than a
+ * column. Right padding pulls the arrive half off the card edge so it
+ * doesn't sit flush against the border. */
+.multrip-content-item .flight-leg-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 18px;
+  padding-right: 16px;
 }
 
 .multrip-content-item .flight-leg {
@@ -50,7 +122,7 @@
   align-items: flex-start;
   gap: 12px;
   min-width: 0;
-  flex: 1 1 220px;
+  flex: 0 1 auto;
 }
 
 .multrip-content-item .leg-icon {
@@ -94,13 +166,226 @@
   align-self: stretch;
 }
 
+// Money row sits below the leg list, before the activities. Wraps the
+// cost chip and the "Paid by [Name]" chip so they sit side-by-side on
+// wide layouts and stack on narrow ones. Each chip styled as a small
+// pill so it doesn't compete with the depart/arrive blocks. Bottom
+// margin gives the activities section room to breathe so the chips
+// don't collide with the first activity card.
+.multrip-content-item .content-flight-money {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 16px;
+}
+
+.multrip-content-item .content-flight-cost,
+.multrip-content-item .content-flight-paidby {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.multrip-content-item .content-flight-cost {
+  background: rgba(60, 181, 75, 0.06);
+  border: 1px solid rgba(60, 181, 75, 0.18);
+}
+
+.multrip-content-item .content-flight-paidby {
+  background: rgba(246, 137, 31, 0.06);
+  border: 1px solid rgba(246, 137, 31, 0.22);
+}
+
+// Wrapper that anchors the "Paid by" label + chips + edit pencil onto
+// one inline row. When no budgets are set, the AddBudget trigger
+// renders by itself here as the prominent "Who is paying?" pill.
+.multrip-content-item .content-flight-paidby-wrap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 14px;
+  background: rgba(246, 137, 31, 0.06);
+  border: 1px solid rgba(246, 137, 31, 0.22);
+  border-radius: 999px;
+}
+
+.multrip-content-item .flight-paidby-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.multrip-content-item .flight-paidby-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid rgba(246, 137, 31, 0.32);
+  border-radius: 999px;
+}
+
+.multrip-content-item .flight-paidby-chip-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.multrip-content-item .flight-paidby-chip-amount {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: theme('colors.primaryOrange');
+}
+
+.multrip-content-item .flight-paidby-label {
+  // (existing rule defined below; redeclared here intentionally — the
+  // chip-row label wants the same treatment as the standalone chip.)
+}
+
+// AddBudget trigger lives inside the .content-flight-paidby-wrap pill.
+// When no budgets are set, AddBudget renders its "Who is paying?" text
+// button — strip the outer pill chrome here since the wrap container
+// already provides it, leaving just clean text inside the pill.
+.multrip-content-item .content-flight-paidby-wrap button.budget-add-trigger {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  color: theme('colors.primaryOrange');
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-transform: none;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+}
+
+// Edit pencil (when budgets exist) — small inline affordance at the
+// right edge of the chip row. No extra padding so it sits flush with
+// the last chip.
+.multrip-content-item .content-flight-paidby-wrap button.budget-edit-trigger {
+  padding: 2px;
+  color: rgba(0, 0, 0, 0.5);
+
+  &:hover {
+    color: theme('colors.primary');
+    background: transparent;
+  }
+}
+
+.multrip-content-item .flight-cost-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 18px !important;
+}
+
+.multrip-content-item .flight-cost-label,
+.multrip-content-item .flight-paidby-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.multrip-content-item .flight-cost-value,
+.multrip-content-item .flight-paidby-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+// Small down-arrow chip sitting between leg rows so the eye reads
+// "Leg 1 ↓ Leg 2 ↓ Leg 3" naturally top-to-bottom. Was previously a
+// "STOPOVER" word-pill; the arrow is quieter and works the same on
+// desktop and mobile. Margin around the arrow doubles the perceived
+// gap between adjacent legs so the user reads the stopover as a real
+// transition rather than a glued-together pair.
+.multrip-content-item .flight-stopover-gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  margin: 4px 0;
+  color: theme('colors.primaryGreen');
+  background: rgba(60, 181, 75, 0.1);
+  border: 1px solid rgba(60, 181, 75, 0.32);
+  border-radius: 999px;
+
+  .MuiSvgIcon-root {
+    font-size: 18px;
+  }
+}
+
 @media (max-width: 640px) {
-  .multrip-content-item .content-info {
-    flex-direction: column;
-    gap: 14px;
+  // Per-card chrome: pull the header tight and let the country name +
+  // edit/delete row stack so they don't crowd each other.
+  .multrip-content-item .content-header {
+    gap: 2px;
+  }
+  .multrip-content-item .country-name {
+    font-size: 1.1rem;
+  }
+  // On mobile, edit/delete pills sit ABOVE the country name pinned to
+  // the top-right corner — out of the way of the country title but
+  // still a thumb-tap away. `order: -1` reuses MUI Grid's flexbox to
+  // flip the visual order without restructuring the JSX.
+  .multrip-content-item .destination-actions {
+    order: -1;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
+
+  // Keep depart/arrive side-by-side on mobile so a single-leg flight
+  // reads as one tight row, not a tall column. Smaller flex-basis +
+  // smaller leg-icon below means two halves comfortably fit even on a
+  // ~360px viewport. Long airport names fall back to two-line wrap
+  // inside their own column rather than pushing arrive below depart.
+  .multrip-content-item .flight-leg-row {
+    gap: 10px;
+    // Narrow phones don't have room for the desktop 16px gutter —
+    // strip it entirely so the arrive half can use every pixel.
+    padding-right: 0;
+  }
+  .multrip-content-item .flight-leg-row .flight-leg {
+    flex: 1 1 0;
+    min-width: 0;
   }
   .multrip-content-item .flight-divider {
+    width: 1px;
+    min-height: 0;
+  }
+  // Mobile: keep generous space between legs so stopover transitions
+  // are still readable on a small screen.
+  .multrip-content-item .content-info {
+    padding: 10px 0 14px;
+    gap: 16px;
+  }
+  .multrip-content-item .leg-icon {
+    font-size: 20px !important;
+  }
+  .multrip-content-item .leg-airport {
+    font-size: 0.98rem;
+  }
+
+  // Money row chips wrap onto two lines and stretch full width so the
+  // user can read the cost / paid-by clearly on a narrow viewport.
+  .multrip-content-item .content-flight-money {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .multrip-content-item .content-flight-cost,
+  .multrip-content-item .content-flight-paidby {
+    justify-content: flex-start;
     width: 100%;
-    height: 1px;
   }
 }

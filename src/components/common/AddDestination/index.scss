@@ -61,8 +61,8 @@
 .add-destination-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 16px;
 
   &:last-child {
     margin-bottom: 0;
@@ -87,7 +87,12 @@
 .add-destination-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 
   .add-destination-field {
     margin-bottom: 0;
@@ -116,6 +121,84 @@
     padding-bottom: 12px;
     font-size: 0.95rem;
   }
+}
+
+// One leg of a multi-segment destination flight. Visually identical
+// language to the activity-level flight form's `.flight-segment-block`
+// so a user who knows one knows both. Multi-leg flights render one
+// card per segment with an inline Remove control; single-leg flights
+// render the same card without the remove button (header still says
+// "Outbound flight" to keep the simple case feeling familiar).
+.add-destination-segment {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 18px 18px 14px;
+  margin-bottom: 16px;
+  background: rgba(60, 181, 75, 0.03);
+
+  &:last-of-type {
+    margin-bottom: 12px;
+  }
+}
+
+.add-destination-segment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.add-destination-segment-label {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: theme('colors.primary');
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.add-destination-segment-remove {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c0392b;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(192, 57, 43, 0.08);
+  }
+}
+
+.add-destination-segment-add {
+  appearance: none;
+  width: 100%;
+  background: none;
+  border: 1px dashed rgba(60, 181, 75, 0.45);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.06);
+    border-color: theme('colors.primaryGreen');
+  }
+}
+
+// Cost input sits below the segments + "Add stopover" button. Without
+// a top margin it crowds the dashed-border add button; give it room
+// so it reads as the flight-total field rather than another segment.
+.add-destination-flight-cost {
+  margin-top: 16px;
 }
 
 @media (max-width: 640px) {

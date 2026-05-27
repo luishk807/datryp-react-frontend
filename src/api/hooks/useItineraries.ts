@@ -30,12 +30,39 @@ export interface ApiCountry {
     image: string | null;
 }
 
+export interface ApiFlightInfoSegment {
+    segmentIndex: number;
+    departDate: string | null;
+    arrivalDate: string | null;
+    flightNumber: string | null;
+    departAirport: string | null;
+    arrivalAirport: string | null;
+}
+
+export interface ApiFlightInfoBudgetEntry {
+    id: string;
+    user: ApiUserPublic;
+    amount: number;
+}
+
 export interface ApiFlightInfo {
     departDate: string | null;
     arrivalDate: string | null;
     flightNumber: string | null;
     departAirport: string | null;
     arrivalAirport: string | null;
+    /** Total cost for the booking (whole flight, not per-segment). */
+    cost: number | null;
+    /** Single payer (one participant covered the booking). Auto-
+     *  derived from `budgets` when the split has exactly one entry. */
+    paidBy: ApiUserPublic | null;
+    /** Per-friend split of the cost. Empty when no split is set. */
+    budgets: ApiFlightInfoBudgetEntry[];
+    /** Per-leg breakdown for stopover flights on destination-level
+     *  flights. Always populated by the backend (at minimum a one-
+     *  element list mirroring the headline fields above) so the
+     *  client can iterate without special-casing single-leg trips. */
+    segments: ApiFlightInfoSegment[];
 }
 
 export interface ApiActivityBudget {
@@ -100,12 +127,37 @@ export interface ApiItinerary {
     intenaryDates: ApiItineraryDate[];
 }
 
+export interface FlightInfoSegmentInput {
+    departDate?: string | null;
+    arrivalDate?: string | null;
+    flightNumber?: string | null;
+    departAirport?: string | null;
+    arrivalAirport?: string | null;
+}
+
+export interface FlightInfoBudgetInput {
+    userId: string;
+    amount: number;
+}
+
 export interface FlightInfoInput {
     departDate?: string | null;
     arrivalDate?: string | null;
     flightNumber?: string | null;
     departAirport?: string | null;
     arrivalAirport?: string | null;
+    cost?: number | null;
+    /** UUID of the participant who paid. Null to clear. Auto-derived
+     *  server-side when `budgets` has exactly one entry. */
+    paidByUserId?: string | null;
+    /** Per-friend split entries. Omit / empty list = no split. */
+    budgets?: FlightInfoBudgetInput[];
+    /** Per-leg breakdown for stopover flights. Backward-compatible:
+     *  callers that only know about the flat fields can omit this and
+     *  the backend materializes a single segment_index=0 row mirroring
+     *  them. When provided, segments are the source of truth — the
+     *  flat fields above become a cached view of segments[0]. */
+    segments?: FlightInfoSegmentInput[];
 }
 
 export interface ActivityBudgetInput {
@@ -225,6 +277,29 @@ const ITINERARY_FIELDS = gql`
             flightNumber
             departAirport
             arrivalAirport
+            cost
+            paidBy {
+                id
+                email
+                name
+            }
+            budgets {
+                id
+                user {
+                    id
+                    email
+                    name
+                }
+                amount
+            }
+            segments {
+                segmentIndex
+                departDate
+                arrivalDate
+                flightNumber
+                departAirport
+                arrivalAirport
+            }
         }
         intenaryDates {
             id
@@ -242,6 +317,14 @@ const ITINERARY_FIELDS = gql`
                 flightNumber
                 departAirport
                 arrivalAirport
+                segments {
+                    segmentIndex
+                    departDate
+                    arrivalDate
+                    flightNumber
+                    departAirport
+                    arrivalAirport
+                }
             }
             activities {
                 id

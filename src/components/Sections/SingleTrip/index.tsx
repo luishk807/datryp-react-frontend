@@ -6,10 +6,14 @@ import {
     editPlace,
     deletePlace,
     addBudget,
+    addDestination,
+    editDestination,
+    deleteDestination,
     useTripDispatch,
 } from 'context/TripContext';
 import type {
     TripChangeEvent,
+    TripDestinationEvent,
     TripPlaceEvent,
 } from 'types';
 
@@ -55,6 +59,47 @@ const SingleTrip = () => {
         }
     };
 
+    // A trip can be created via /single but still render the Multiple
+    // destination display when its `type` is set to MULTIPLE (e.g. when a
+    // city-link or a homepage entry seeded the trip with mode=multiple but
+    // the user landed on /single first). Without these handlers the
+    // destination card's Edit / Delete / Save calls would short-circuit on
+    // `onChangeDestination?.(...)` and silently lose the user's edits.
+    // Mirrors the MultipleTrip section so both routes behave identically.
+    const handleChangeDestination = ({
+        startDate,
+        endDate,
+        removeIndexes = [],
+        activity,
+    }: TripDestinationEvent) => {
+        switch (activity.type) {
+            case 'add':
+                dispatch(
+                    addDestination({
+                        startDate,
+                        endDate,
+                        value: activity.value,
+                        index: activity.index,
+                    })
+                );
+                break;
+            case 'edit':
+                dispatch(
+                    editDestination({
+                        startDate,
+                        endDate,
+                        removeIndexes,
+                        value: activity.value,
+                        index: activity.index,
+                    })
+                );
+                break;
+            case 'delete':
+                dispatch(deleteDestination({ index: activity.value }));
+                break;
+        }
+    };
+
     return (
         <TripSteps
             title="Single Trip Detail"
@@ -63,6 +108,7 @@ const SingleTrip = () => {
             onBasicChange={handleBasicOnChange}
             onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}
+            onChangeDestination={handleChangeDestination}
         />
     );
 };

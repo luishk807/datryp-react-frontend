@@ -63,6 +63,29 @@ export interface FlightInfo {
   flightNumber?: string;
   departAirport?: string;
   arrivalAirport?: string;
+  /** Total cost for the whole booking. One number, not per-segment —
+   *  multi-leg flights still have a single fare. Per-friend split
+   *  (who's paying) is queued for a follow-up and will live in its own
+   *  table the way `activity_budgets` does. */
+  cost?: string | number;
+  /** Single payer for the booking. Covers "one friend paid for the
+   *  group" without the complexity of per-friend amounts. When
+   *  `budgets` has exactly one entry, this auto-derives from it for
+   *  callers that only render the headline. */
+  paidBy?: { id: string; name: string | null } | null;
+  /** Per-friend split of the flight cost. Same shape as `BudgetItem`
+   *  (from activity.types) but inlined here to avoid a circular import
+   *  between common.types and activity.types. Empty / missing means
+   *  no split is configured. */
+  budgets?: Array<{ id: number; user: Friend; budget: string | number }>;
+  /** Per-leg breakdown for destination-level flights when the flight has
+   *  stopovers. Single-leg flights leave this undefined (or carry a
+   *  one-element list with the same values as the flat fields above).
+   *  The flat fields stay populated as a cached view of segment 0 for
+   *  legacy callers that only render the headline. Only meaningful on
+   *  the destination's `flightInfo` field — `Activity.flightSegments`
+   *  already handles activity-level multi-leg flights via its own list. */
+  segments?: FlightInfo[];
 }
 
 /** One leg of a ground-transport (train / bus) activity. Mirrors

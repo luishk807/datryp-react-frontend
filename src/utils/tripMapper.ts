@@ -63,12 +63,54 @@ const flightToInput = (
     defaultDate?: string
 ): FlightInfoInput | null => {
     if (!flight) return null;
+    // Forward each segment as its own input row. If the user only edited
+    // the legacy flat fields (no segments list yet — possible for legacy
+    // saved data that hasn't been re-opened in the AddDestination form),
+    // synthesize a one-element segments list from the headline so the
+    // server still writes a flight_info_segments row.
+    const segments: FlightInfo[] =
+        flight.segments?.length ? flight.segments : [flight];
+    const segmentInputs = segments.map((seg) => ({
+        departDate: combineDateTime(seg.departDate ?? defaultDate, seg.departTime),
+        arrivalDate: combineDateTime(seg.arrivalDate ?? defaultDate, seg.arrivalTime),
+        flightNumber: seg.flightNumber ?? null,
+        departAirport: seg.departAirport ?? null,
+        arrivalAirport: seg.arrivalAirport ?? null,
+    }));
+    const headline = segmentInputs[0];
+    // `paidBy.id` carries a backend user UUID — only forward when it
+    // looks like one. Legacy mock-friend ids (numeric or local-only
+    // strings) can't be saved, so we drop them silently rather than
+    // 500 the save.
+    const payerId = flight.paidBy?.id;
+    const paidByUserId =
+        payerId && UUID_RE.test(payerId) ? payerId : null;
+    // Per-friend budget split — only forward entries whose user has a
+    // backend UUID (legacy mock-friend numeric ids can't be saved).
+    const budgetInputs =
+        flight.budgets
+            ?.map((entry) => {
+                const uid = entry.user?.userId;
+                const amount = toNumber(entry.budget);
+                if (!uid || !UUID_RE.test(uid) || amount == null) {
+                    return null;
+                }
+                return { userId: uid, amount };
+            })
+            .filter((x): x is { userId: string; amount: number } => x !== null) ?? [];
     return {
-        departDate: combineDateTime(flight.departDate ?? defaultDate, flight.departTime),
-        arrivalDate: combineDateTime(flight.arrivalDate ?? defaultDate, flight.arrivalTime),
-        flightNumber: flight.flightNumber ?? null,
-        departAirport: flight.departAirport ?? null,
-        arrivalAirport: flight.arrivalAirport ?? null,
+        // Keep the flat fields in sync with segment 0 — server uses them
+        // as a cached view of the headline, and any legacy reader that
+        // never learns about segments still sees the right values.
+        departDate: headline.departDate,
+        arrivalDate: headline.arrivalDate,
+        flightNumber: headline.flightNumber,
+        departAirport: headline.departAirport,
+        arrivalAirport: headline.arrivalAirport,
+        cost: toNumber(flight.cost),
+        paidByUserId,
+        budgets: budgetInputs,
+        segments: segmentInputs,
     };
 };
 

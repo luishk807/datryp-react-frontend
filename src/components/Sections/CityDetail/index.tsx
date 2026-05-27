@@ -101,6 +101,13 @@ const CityDetail = () => {
         // times) on the destination card.
         const destinations = [
             {
+                // Frontend-local numeric id. The trip reducer's `editDestination`
+                // matches destinations by id when computing removeIndexes; a
+                // missing id collapses the wrapper's `ignoreId !== dest.id`
+                // check (undefined !== anything is always true), which marks
+                // the destination being edited for removal — the save would
+                // silently delete the row instead of updating it.
+                id: 0,
                 country: {
                     id: args.countryId ?? 0,
                     name: args.countryName,

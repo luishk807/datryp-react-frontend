@@ -58,14 +58,64 @@ const AddDestinationBtn = ({
     const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
     const modelRef = useRef<ModalButtonHandle>(null);
 
-    const handleOnFlightInfo = (name: keyof FlightInfo, value: string) => {
-        setDestination((prev) => ({
-            ...prev,
-            flightInfo: {
-                ...(prev.flightInfo ?? {}),
-                [name]: value,
-            },
-        }));
+    /** Per-segment field setter. The segments array is the source of
+     *  truth; the parent `flightInfo`'s flat fields are kept in sync with
+     *  segment 0 on submit so legacy callers reading only the headline
+     *  still see the right values. */
+    const handleSegmentField = (
+        index: number,
+        name: keyof FlightInfo,
+        value: string,
+    ) => {
+        setDestination((prev) => {
+            const segs = prev.flightInfo?.segments?.length
+                ? [...prev.flightInfo.segments]
+                : [{}];
+            const current = segs[index] ?? {};
+            const updated: FlightInfo = { ...current, [name]: value };
+            // Auto-fill arrival date from depart when arrival is empty
+            // or was still tracking the old depart — same heuristic as
+            // the Activity flight form so the picker doesn't open on
+            // today when the trip is months out.
+            if (
+                name === 'departDate' &&
+                value &&
+                (!current.arrivalDate || current.arrivalDate === current.departDate)
+            ) {
+                updated.arrivalDate = value;
+            }
+            segs[index] = updated;
+            return { ...prev, flightInfo: { ...(prev.flightInfo ?? {}), segments: segs } };
+        });
+    };
+
+    const handleAddSegment = () => {
+        setDestination((prev) => {
+            const segs = prev.flightInfo?.segments?.length
+                ? [...prev.flightInfo.segments]
+                : [{}];
+            // Default the new leg's depart date to the previous leg's
+            // arrival date if known — multi-segment flights almost
+            // always continue same-day, this saves a manual fill.
+            const last = segs[segs.length - 1];
+            const seedDate = last?.arrivalDate ?? last?.departDate;
+            segs.push(seedDate ? { departDate: seedDate, arrivalDate: seedDate } : {});
+            return { ...prev, flightInfo: { ...(prev.flightInfo ?? {}), segments: segs } };
+        });
+    };
+
+    const handleRemoveSegment = (index: number) => {
+        setDestination((prev) => {
+            const segs = prev.flightInfo?.segments ?? [];
+            if (segs.length <= 1) return prev;
+            return {
+                ...prev,
+                flightInfo: {
+                    ...(prev.flightInfo ?? {}),
+                    segments: segs.filter((_, i) => i !== index),
+                },
+            };
+        });
     };
 
     // Normalize whatever date format comes in (MM/DD/YYYY from
@@ -79,29 +129,53 @@ const AddDestinationBtn = ({
     useEffect(() => {
         const fallback = isoDate(defaultDate) ?? now();
         if (data && type === ACTION.EDIT) {
+            // Seed segments from the saved data: prefer the explicit
+            // `segments` array (new multi-leg format), fall back to a
+            // one-element list synthesized from the flat fields (legacy
+            // single-leg destinations).
+            const savedSegments = data.flightInfo?.segments;
+            const segments: FlightInfo[] = savedSegments?.length
+                ? savedSegments.map((seg) => ({
+                      flightNumber: seg.flightNumber,
+                      departAirport: seg.departAirport,
+                      departDate: isoDate(seg.departDate) ?? fallback,
+                      departTime: seg.departTime,
+                      arrivalAirport: seg.arrivalAirport,
+                      arrivalDate: isoDate(seg.arrivalDate) ?? fallback,
+                      arrivalTime: seg.arrivalTime,
+                  }))
+                : [
+                      {
+                          flightNumber: data.flightInfo?.flightNumber,
+                          departAirport: data.flightInfo?.departAirport,
+                          departDate: isoDate(data.flightInfo?.departDate) ?? fallback,
+                          departTime: data.flightInfo?.departTime,
+                          arrivalAirport: data.flightInfo?.arrivalAirport,
+                          arrivalDate: isoDate(data.flightInfo?.arrivalDate) ?? fallback,
+                          arrivalTime: data.flightInfo?.arrivalTime,
+                      },
+                  ];
             setDestination({
                 country: data.country,
                 id: data.id,
                 flightInfo: {
-                    flightNumber: data.flightInfo?.flightNumber,
-                    departAirport: data.flightInfo?.departAirport,
-                    departDate: isoDate(data.flightInfo?.departDate) ?? fallback,
-                    departTime: data.flightInfo?.departTime,
-                    arrivalAirport: data.flightInfo?.arrivalAirport,
-                    arrivalDate: isoDate(data.flightInfo?.arrivalDate) ?? fallback,
-                    arrivalTime: data.flightInfo?.arrivalTime,
+                    ...segments[0],
+                    cost: data.flightInfo?.cost,
+                    paidBy: data.flightInfo?.paidBy,
+                    segments,
                 },
                 itinerary: data.itinerary,
             });
         } else {
+            const seedSegment: FlightInfo = {
+                departDate: fallback,
+                departTime: now('HH:mm'),
+                arrivalDate: fallback,
+                arrivalTime: now('HH:mm'),
+            };
             setDestination({
                 country: null,
-                flightInfo: {
-                    departDate: fallback,
-                    departTime: now('HH:mm'),
-                    arrivalDate: fallback,
-                    arrivalTime: now('HH:mm'),
-                },
+                flightInfo: { ...seedSegment, segments: [seedSegment] },
             });
         }
     }, [data, defaultDate, type]);
@@ -112,12 +186,32 @@ const AddDestinationBtn = ({
         e.preventDefault();
         modelRef.current?.closeModal();
 
+        // Sync the flat headline fields with segment 0 so consumers that
+        // read `flightInfo.departDate` etc. (display cards, save mapper)
+        // see consistent values whether or not they understand segments.
+        const segments = destination.flightInfo?.segments ?? [];
+        const firstSeg = segments[0];
+        const flightInfo: FlightInfo | undefined = firstSeg
+            ? {
+                  flightNumber: firstSeg.flightNumber,
+                  departAirport: firstSeg.departAirport,
+                  departDate: firstSeg.departDate,
+                  departTime: firstSeg.departTime,
+                  arrivalAirport: firstSeg.arrivalAirport,
+                  arrivalDate: firstSeg.arrivalDate,
+                  arrivalTime: firstSeg.arrivalTime,
+                  cost: destination.flightInfo?.cost,
+                  paidBy: destination.flightInfo?.paidBy,
+                  segments,
+              }
+            : destination.flightInfo;
+
         // If the user picked a "first place" suggestion, seed the
         // destination's itinerary with one activity for the depart day.
         // The reducer will give it a real id when it lands in state; we use
         // a placeholder Date.now() so React keys stay stable in the meantime.
         const seedDate =
-            destination.flightInfo?.departDate ?? isoDate(defaultDate) ?? now();
+            firstSeg?.departDate ?? isoDate(defaultDate) ?? now();
         const itineraryWithSeed =
             firstPlace && seedDate
                 ? [
@@ -141,7 +235,7 @@ const AddDestinationBtn = ({
                   ]
                 : destination.itinerary;
 
-        onChange?.({ ...destination, itinerary: itineraryWithSeed });
+        onChange?.({ ...destination, flightInfo, itinerary: itineraryWithSeed });
 
         // Reset the seed fields so reopening the modal starts fresh.
         if (type === ACTION.ADD) {
@@ -240,94 +334,183 @@ const AddDestinationBtn = ({
                                 <header className="add-destination-group-head">
                                     <span className="add-destination-group-num">2</span>
                                     <h4 className="add-destination-group-title">
-                                        Outbound flight
+                                        Flight
                                     </h4>
                                 </header>
-                                <div className="add-destination-field">
-                                    <label className="add-destination-label">Flight number</label>
+                                {(destination.flightInfo?.segments ?? [{}]).map(
+                                    (seg, segIdx, allSegs) => (
+                                        <div
+                                            key={segIdx}
+                                            className="add-destination-segment"
+                                        >
+                                            <div className="add-destination-segment-head">
+                                                <span className="add-destination-segment-label">
+                                                    {allSegs.length === 1
+                                                        ? 'Outbound flight'
+                                                        : `Leg ${segIdx + 1}`}
+                                                </span>
+                                                {allSegs.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        className="add-destination-segment-remove"
+                                                        onClick={() => handleRemoveSegment(segIdx)}
+                                                        aria-label={`Remove leg ${segIdx + 1}`}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="add-destination-field">
+                                                <label className="add-destination-label">Flight number</label>
+                                                <InputField
+                                                    value={seg.flightNumber ?? ''}
+                                                    label=""
+                                                    name={`flightNumber-${segIdx}`}
+                                                    onChange={(e) =>
+                                                        handleSegmentField(
+                                                            segIdx,
+                                                            'flightNumber',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="add-destination-row">
+                                                <div className="add-destination-field">
+                                                    <label className="add-destination-label">Depart airport</label>
+                                                    <AirportAutocomplete
+                                                        value={seg.departAirport ?? ''}
+                                                        onChange={(code) =>
+                                                            handleSegmentField(
+                                                                segIdx,
+                                                                'departAirport',
+                                                                code,
+                                                            )
+                                                        }
+                                                        placeholder="IATA code, city, or airport"
+                                                    />
+                                                </div>
+                                                <div className="add-destination-field">
+                                                    <label className="add-destination-label">Arrive airport</label>
+                                                    <AirportAutocomplete
+                                                        value={seg.arrivalAirport ?? ''}
+                                                        onChange={(code) =>
+                                                            handleSegmentField(
+                                                                segIdx,
+                                                                'arrivalAirport',
+                                                                code,
+                                                            )
+                                                        }
+                                                        placeholder="IATA code, city, or airport"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="add-destination-row">
+                                                <div className="add-destination-field">
+                                                    <label className="add-destination-label">Depart date</label>
+                                                    <InputField
+                                                        value={seg.departDate ?? ''}
+                                                        type="date"
+                                                        maxDate={normalizedTripMaxDate}
+                                                        name={`departDate-${segIdx}`}
+                                                        onChange={(e) =>
+                                                            handleSegmentField(
+                                                                segIdx,
+                                                                'departDate',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="add-destination-field">
+                                                    <label className="add-destination-label">Depart time</label>
+                                                    <InputField
+                                                        value={seg.departTime ?? ''}
+                                                        name={`departTime-${segIdx}`}
+                                                        type="time"
+                                                        label=""
+                                                        onChange={(e) =>
+                                                            handleSegmentField(
+                                                                segIdx,
+                                                                'departTime',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="add-destination-row">
+                                                <div className="add-destination-field">
+                                                    <label className="add-destination-label">Arrive date</label>
+                                                    <InputField
+                                                        value={seg.arrivalDate ?? ''}
+                                                        type="date"
+                                                        minDate={isoDate(seg.departDate)}
+                                                        maxDate={normalizedTripMaxDate}
+                                                        name={`arrivalDate-${segIdx}`}
+                                                        onChange={(e) =>
+                                                            handleSegmentField(
+                                                                segIdx,
+                                                                'arrivalDate',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="add-destination-field">
+                                                    <label className="add-destination-label">Arrive time</label>
+                                                    <InputField
+                                                        value={seg.arrivalTime ?? ''}
+                                                        name={`arrivalTime-${segIdx}`}
+                                                        type="time"
+                                                        label=""
+                                                        onChange={(e) =>
+                                                            handleSegmentField(
+                                                                segIdx,
+                                                                'arrivalTime',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ),
+                                )}
+                                <button
+                                    type="button"
+                                    className="add-destination-segment-add"
+                                    onClick={handleAddSegment}
+                                >
+                                    + Add stopover
+                                </button>
+                                <div className="add-destination-field add-destination-flight-cost">
+                                    <label className="add-destination-label">
+                                        Cost{' '}
+                                        <span className="add-destination-optional">
+                                            (optional)
+                                        </span>
+                                    </label>
                                     <InputField
-                                        defaultValue={destination.flightInfo?.flightNumber}
+                                        value={
+                                            destination.flightInfo?.cost != null
+                                                ? String(destination.flightInfo.cost)
+                                                : ''
+                                        }
+                                        type="number"
+                                        name="flightCost"
                                         label=""
-                                        name="flightNumber"
-                                        onChange={(e) => handleOnFlightInfo('flightNumber', e.target.value)}
-                                    />
-                                </div>
-                                <div className="add-destination-field">
-                                    <label className="add-destination-label">Departure airport</label>
-                                    <AirportAutocomplete
-                                        value={destination.flightInfo?.departAirport ?? ''}
-                                        onChange={(code) =>
-                                            handleOnFlightInfo('departAirport', code)
+                                        required={false}
+                                        onChange={(e) =>
+                                            setDestination((prev) => ({
+                                                ...prev,
+                                                flightInfo: {
+                                                    ...(prev.flightInfo ?? {}),
+                                                    cost: e.target.value,
+                                                },
+                                            }))
                                         }
-                                        placeholder="IATA code, city, or airport"
                                     />
-                                </div>
-                                <div className="add-destination-row">
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">Departure date</label>
-                                        <InputField
-                                            defaultValue={destination.flightInfo?.departDate}
-                                            type="date"
-                                            disablePast
-                                            disabled
-                                            maxDate={normalizedTripMaxDate}
-                                            name="departDate"
-                                            onChange={(e) => handleOnFlightInfo('departDate', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">Departure time</label>
-                                        <InputField
-                                            defaultValue={destination.flightInfo?.departTime}
-                                            name="departTime"
-                                            type="time"
-                                            label=""
-                                            onChange={(e) => handleOnFlightInfo('departTime', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section className="add-destination-group">
-                                <header className="add-destination-group-head">
-                                    <span className="add-destination-group-num">3</span>
-                                    <h4 className="add-destination-group-title">
-                                        Arrival
-                                    </h4>
-                                </header>
-                                <div className="add-destination-field">
-                                    <label className="add-destination-label">Arrival airport</label>
-                                    <AirportAutocomplete
-                                        value={destination.flightInfo?.arrivalAirport ?? ''}
-                                        onChange={(code) =>
-                                            handleOnFlightInfo('arrivalAirport', code)
-                                        }
-                                        placeholder="IATA code, city, or airport"
-                                    />
-                                </div>
-                                <div className="add-destination-row">
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">Arrival date</label>
-                                        <InputField
-                                            defaultValue={destination.flightInfo?.arrivalDate}
-                                            type="date"
-                                            minDate={isoDate(destination.flightInfo?.departDate)}
-                                            name="arrivalDate"
-                                            maxDate={normalizedTripMaxDate}
-                                            disablePast
-                                            onChange={(e) => handleOnFlightInfo('arrivalDate', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">Arrival time</label>
-                                        <InputField
-                                            defaultValue={destination.flightInfo?.arrivalTime}
-                                            name="arrivalTime"
-                                            type="time"
-                                            label=""
-                                            onChange={(e) => handleOnFlightInfo('arrivalTime', e.target.value)}
-                                        />
-                                    </div>
                                 </div>
                             </section>
 

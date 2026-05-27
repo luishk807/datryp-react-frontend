@@ -23,7 +23,7 @@
  */
 import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import type { SyntheticEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAirports } from 'api/hooks/useAirports';
 import type { AirportOption } from 'api/airportsApi';
 import './index.scss';
@@ -57,8 +57,14 @@ const AirportAutocomplete = ({
 }: AirportAutocompleteProps) => {
     // Track the input string separately from the persisted IATA code.
     // This lets the user clear the field, retype, and see fresh search
-    // results without us re-deriving the input from the value prop.
+    // results. Sync from `value` when the parent updates it externally
+    // (e.g. an edit-mode form seeding the field after data loads) so
+    // saved airports show up; once the user starts typing, the local
+    // state is the source of truth for what renders in the input.
     const [inputValue, setInputValue] = useState<string>(value);
+    useEffect(() => {
+        setInputValue(value);
+    }, [value]);
     const { data, isFetching } = useAirports(inputValue);
     const options = data?.items ?? [];
 
@@ -101,10 +107,25 @@ const AirportAutocomplete = ({
             // surface it via inputValue rather than try to map back to
             // an AirportOption object.
             value={null}
-            inputValue={inputValue || value || ''}
+            // `inputValue` alone — no `|| value` fallback. The fallback
+            // made a cleared field snap back to the saved IATA code,
+            // which read as "I can't change this airport". The
+            // useEffect above keeps `inputValue` in sync with `value`
+            // when the parent updates it externally.
+            inputValue={inputValue}
             onInputChange={(_event, newInput, reason) => {
                 if (reason === 'reset' && !newInput) return;
                 setInputValue(newInput);
+                // Push every keystroke up to the parent too — without
+                // this, free-typed text only persisted when the user
+                // pressed Enter or picked from the dropdown, so people
+                // who typed an IATA code and hit Save found their
+                // change silently dropped. On selection, the
+                // Autocomplete's own onChange (handleChange below)
+                // fires with the option's iataCode and overrides this.
+                if (reason === 'input') {
+                    onChange(newInput.toUpperCase());
+                }
             }}
             onChange={handleChange}
             getOptionLabel={(option) =>

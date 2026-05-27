@@ -95,6 +95,64 @@ const apiFlightSegmentToFlightInfo = (s: {
     };
 };
 
+/** Map a destination-level ApiFlightInfo (headline + segments) into the
+ *  frontend's FlightInfo shape. The headline drives the flat fields;
+ *  each segment becomes one entry in the nested `segments` list. Both
+ *  are split into date + time pairs since the form expects them
+ *  separate (tripMapper recombines on save). When the API omits the
+ *  segments list (legacy / pre-migration rows), a one-element list is
+ *  synthesized from the headline so the form's segment-based UI doesn't
+ *  collapse to an empty state on first open. */
+const apiFlightInfoToFlightInfo = (
+    f: {
+        departDate: string | null;
+        arrivalDate: string | null;
+        flightNumber: string | null;
+        departAirport: string | null;
+        arrivalAirport: string | null;
+        cost?: number | null;
+        paidBy?: { id: string; name: string | null } | null;
+        budgets?: Array<{
+            id: string;
+            user: { id: string; email: string; name: string | null };
+            amount: number;
+        }>;
+        segments?: Array<{
+            departDate: string | null;
+            arrivalDate: string | null;
+            flightNumber: string | null;
+            departAirport: string | null;
+            arrivalAirport: string | null;
+        }>;
+    } | null,
+): FlightInfo => {
+    if (!f) return {};
+    const headline = apiFlightSegmentToFlightInfo(f);
+    const segments = f.segments?.length
+        ? f.segments.map(apiFlightSegmentToFlightInfo)
+        : [headline];
+    const budgets = f.budgets?.length
+        ? f.budgets.map((b) => ({
+              // Frontend uses numeric ids for budget entries; numeric
+              // hash of the backend UUID would collide rarely but isn't
+              // worth the complexity — just use a fresh local id since
+              // the UI keys on user, not entry id.
+              id: Date.now() + Math.floor(Math.random() * 1000),
+              user: apiUserToFriend(b.user),
+              budget: b.amount,
+          }))
+        : undefined;
+    return {
+        ...headline,
+        cost: f.cost ?? undefined,
+        paidBy: f.paidBy
+            ? { id: f.paidBy.id, name: f.paidBy.name }
+            : null,
+        budgets,
+        segments,
+    };
+};
+
 const normalizeKind = (k: string | null | undefined): ActivityKind | undefined => {
     if (k === ACTIVITY_KIND.FLIGHT) return ACTIVITY_KIND.FLIGHT;
     if (k === ACTIVITY_KIND.NOTE) return ACTIVITY_KIND.NOTE;
@@ -200,7 +258,7 @@ export const apiToTripEntry = (
         return {
             ...shared,
             country: it.country ?? { id: 0, name: '' },
-            flightInfo: it.flightInfo ?? {},
+            flightInfo: apiFlightInfoToFlightInfo(it.flightInfo),
             intenaryDates: it.intenaryDates.map((d) => ({
                 id: uuidToNumericId(d.id),
                 date: d.date,
@@ -215,7 +273,7 @@ export const apiToTripEntry = (
             id: uuidToNumericId(d.id),
             date: d.date,
             country: d.country ?? { id: 0, name: '' },
-            flightInfo: d.flightInfo ?? {},
+            flightInfo: apiFlightInfoToFlightInfo(d.flightInfo),
             activities: d.activities.map(apiActivityToActivity),
         })),
     } as unknown as MultipleDestinations & { apiId: string };
@@ -233,7 +291,9 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
             {
                 id: uuidToNumericId(it.id),
                 country: it.country ?? { id: 0, name: '' },
-                flightInfo: it.flightInfo ?? undefined,
+                flightInfo: it.flightInfo
+                    ? apiFlightInfoToFlightInfo(it.flightInfo)
+                    : undefined,
                 itinerary: it.intenaryDates.map((d) => ({
                     id: uuidToNumericId(d.id),
                     date: d.date,
@@ -252,7 +312,9 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
             return {
                 id: uuidToNumericId(d.id),
                 country: d.country ?? { id: 0, name: '' },
-                flightInfo: d.flightInfo ?? undefined,
+                flightInfo: d.flightInfo
+                    ? apiFlightInfoToFlightInfo(d.flightInfo)
+                    : undefined,
                 startDate: d.date,
                 endDate,
                 itinerary: [

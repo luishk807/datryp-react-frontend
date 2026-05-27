@@ -1,14 +1,23 @@
 import _ from 'lodash';
-import { formatDate, isValidDate, reformatDate } from 'utils';
+import { convertMoney, formatDate, isValidDate, reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
+import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import './index.scss';
 import { TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
+import AddBudget from 'components/DestinationDetail/AddBudget';
 import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
-import type { ActionType, Destination, Friend } from 'types';
+import type {
+    ActionType,
+    BudgetEntry,
+    BudgetItem,
+    Destination,
+    Friend,
+} from 'types';
 
 const formatLegDate = (value?: string) =>
     value && isValidDate(value) ? formatDate(value, 'MMM D, YYYY') : '';
@@ -96,11 +105,11 @@ const Multiple = ({
                                     lg={6}
                                     md={6}
                                     xs={12}
-                                    className="flex justify-end justify-font-medium"
+                                    className="destination-actions"
                                 >
                                     {!isViewMode && (
-                                        <>
-                                            <span>
+                                        <div className="destination-actions-group">
+                                            <span className="destination-action destination-action-edit">
                                                 <AddDestinationBtn
                                                     defaultDate={defaultDate}
                                                     tripMaxDate={tripMaxDate}
@@ -111,8 +120,7 @@ const Multiple = ({
                                                     data={trip}
                                                 />
                                             </span>
-                                            &#47;
-                                            <span>
+                                            <span className="destination-action destination-action-delete">
                                                 <DialogBox
                                                     isViewMode={isViewMode}
                                                     title="Delete this destination"
@@ -123,42 +131,219 @@ const Multiple = ({
                                                     You are about to delete {country}. Are you sure you want to delete this item
                                                 </DialogBox>
                                             </span>
-                                        </>
+                                        </div>
                                     )}
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12} className="content-info">
-                                    <div className="flight-leg">
-                                        <FlightTakeoffIcon className="leg-icon" />
-                                        <div className="leg-detail">
-                                            <span className="leg-label">Depart</span>
-                                            <span className="leg-airport">
-                                                {flightInfo?.departAirport || 'Not set'}
-                                            </span>
-                                            <span className="leg-meta">
-                                                {formatLegMeta(
-                                                    flightInfo?.departDate,
-                                                    flightInfo?.departTime
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flight-divider" aria-hidden="true" />
-                                    <div className="flight-leg">
-                                        <FlightLandIcon className="leg-icon" />
-                                        <div className="leg-detail">
-                                            <span className="leg-label">Arrive</span>
-                                            <span className="leg-airport">
-                                                {flightInfo?.arrivalAirport || 'Not set'}
-                                            </span>
-                                            <span className="leg-meta">
-                                                {formatLegMeta(
-                                                    flightInfo?.arrivalDate,
-                                                    flightInfo?.arrivalTime
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    {(() => {
+                                        // Render one Depart/Arrive pair per segment so stopovers
+                                        // read as discrete legs stacked vertically. Each leg is
+                                        // wrapped in its own `.flight-leg-row` so the parent
+                                        // container can stack legs as columns without the
+                                        // depart/arrive halves wrapping into a tangled grid.
+                                        // Fall back to the headline flat fields when no
+                                        // `segments` list is present (legacy single-leg
+                                        // destinations saved before the table existed).
+                                        const segs =
+                                            flightInfo?.segments?.length
+                                                ? flightInfo.segments
+                                                : flightInfo
+                                                  ? [flightInfo]
+                                                  : [];
+                                        if (segs.length === 0) {
+                                            return (
+                                                <div className="flight-leg-row">
+                                                    <div className="flight-leg">
+                                                        <FlightTakeoffIcon className="leg-icon" />
+                                                        <div className="leg-detail">
+                                                            <span className="leg-label">Depart</span>
+                                                            <span className="leg-airport">Not set</span>
+                                                            <span className="leg-meta">Not set</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flight-divider" aria-hidden="true" />
+                                                    <div className="flight-leg">
+                                                        <FlightLandIcon className="leg-icon" />
+                                                        <div className="leg-detail">
+                                                            <span className="leg-label">Arrive</span>
+                                                            <span className="leg-airport">Not set</span>
+                                                            <span className="leg-meta">Not set</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        const blocks: React.ReactNode[] = [];
+                                        segs.forEach((seg, idx) => {
+                                            if (idx > 0) {
+                                                blocks.push(
+                                                    <div
+                                                        key={`gap-${idx}`}
+                                                        className="flight-stopover-gap"
+                                                        aria-label="stopover"
+                                                    >
+                                                        <KeyboardArrowDownRoundedIcon
+                                                            fontSize="small"
+                                                            aria-hidden="true"
+                                                        />
+                                                    </div>
+                                                );
+                                            }
+                                            const legLabel =
+                                                segs.length > 1
+                                                    ? `Depart · Leg ${idx + 1}`
+                                                    : 'Depart';
+                                            const arriveLabel =
+                                                segs.length > 1
+                                                    ? `Arrive · Leg ${idx + 1}`
+                                                    : 'Arrive';
+                                            blocks.push(
+                                                <div
+                                                    key={`leg-${idx}`}
+                                                    className="flight-leg-row"
+                                                >
+                                                    <div className="flight-leg">
+                                                        <FlightTakeoffIcon className="leg-icon" />
+                                                        <div className="leg-detail">
+                                                            <span className="leg-label">{legLabel}</span>
+                                                            <span className="leg-airport">
+                                                                {seg.departAirport || 'Not set'}
+                                                            </span>
+                                                            <span className="leg-meta">
+                                                                {formatLegMeta(seg.departDate, seg.departTime)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className="flight-divider"
+                                                        aria-hidden="true"
+                                                    />
+                                                    <div className="flight-leg">
+                                                        <FlightLandIcon className="leg-icon" />
+                                                        <div className="leg-detail">
+                                                            <span className="leg-label">{arriveLabel}</span>
+                                                            <span className="leg-airport">
+                                                                {seg.arrivalAirport || 'Not set'}
+                                                            </span>
+                                                            <span className="leg-meta">
+                                                                {formatLegMeta(seg.arrivalDate, seg.arrivalTime)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                        return <>{blocks}</>;
+                                    })()}
                                 </Grid>
+                                {((flightInfo?.cost != null &&
+                                    flightInfo.cost !== '') ||
+                                    flightInfo?.paidBy ||
+                                    (flightInfo?.budgets &&
+                                        flightInfo.budgets.length > 0)) && (
+                                    <Grid
+                                        item
+                                        lg={12}
+                                        md={12}
+                                        xs={12}
+                                        className="content-flight-money"
+                                    >
+                                        {flightInfo?.cost != null &&
+                                            flightInfo.cost !== '' && (
+                                                <div className="content-flight-cost">
+                                                    <PaymentsOutlinedIcon className="flight-cost-icon" />
+                                                    <span className="flight-cost-label">
+                                                        Flight cost
+                                                    </span>
+                                                    <span className="flight-cost-value">
+                                                        {convertMoney(flightInfo.cost)}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        {/* "Paid by" block: when budgets exist, render
+                                            the chips inline + edit pencil. When empty,
+                                            AddBudget itself renders as the prominent
+                                            "Who is paying?" pill. Either way the pencil
+                                            stays anchored to the chip group instead of
+                                            floating on its own line. */}
+                                        <div className="content-flight-paidby-wrap">
+                                            {flightInfo?.budgets &&
+                                                flightInfo.budgets.length > 0 && (
+                                                    <>
+                                                        <span className="flight-paidby-label">
+                                                            Paid by
+                                                        </span>
+                                                        <div className="flight-paidby-chips">
+                                                            {flightInfo.budgets.map(
+                                                                (entry) => (
+                                                                    <span
+                                                                        key={entry.id}
+                                                                        className="flight-paidby-chip"
+                                                                    >
+                                                                        <span className="flight-paidby-chip-name">
+                                                                            {entry.user.name ??
+                                                                                entry.user.label ??
+                                                                                'Friend'}
+                                                                        </span>
+                                                                        <span className="flight-paidby-chip-amount">
+                                                                            {convertMoney(
+                                                                                entry.budget,
+                                                                            )}
+                                                                        </span>
+                                                                    </span>
+                                                                ),
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            <AddBudget
+                                                isViewMode={isViewMode}
+                                                participants={participants}
+                                                budget={flightInfo?.budgets as BudgetItem[] | undefined}
+                                                cost={flightInfo?.cost}
+                                                onSubmit={(entries: BudgetEntry[]) => {
+                                                const budgets = entries.map((e, idx) => ({
+                                                    // Local-only id keeps React keys
+                                                    // stable until the save mutation
+                                                    // assigns the backend UUID. Mirrors
+                                                    // the placeholder ids used by the
+                                                    // activity flow.
+                                                    id: Date.now() + idx,
+                                                    user: e.user,
+                                                    budget: e.budget,
+                                                }));
+                                                // When the split has exactly one entry,
+                                                // auto-derive `paidBy` for the legacy
+                                                // single-payer chip readers. Otherwise
+                                                // clear paidBy — the split is the
+                                                // source of truth for who paid.
+                                                const nextPaidBy =
+                                                    budgets.length === 1
+                                                        ? {
+                                                              id:
+                                                                  budgets[0].user.userId ??
+                                                                  String(
+                                                                      budgets[0].user.id,
+                                                                  ),
+                                                              name:
+                                                                  budgets[0].user.name ??
+                                                                  budgets[0].user.label ??
+                                                                  'Friend',
+                                                          }
+                                                        : null;
+                                                onChangeDestination('edit', {
+                                                    ...trip,
+                                                    flightInfo: {
+                                                        ...(flightInfo ?? {}),
+                                                        paidBy: nextPaidBy,
+                                                        budgets,
+                                                    },
+                                                });
+                                            }}
+                                        />
+                                        </div>
+                                    </Grid>
+                                )}
                                 <Grid item lg={12} md={12} xs={12} className="activity-button">
                                     <Activities
                                         isViewMode={isViewMode}
