@@ -11,6 +11,7 @@ import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
 import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
+import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
 import CommuteRoundedIcon from '@mui/icons-material/CommuteRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import InputField from 'components/common/FormFields/InputField';
@@ -105,10 +106,13 @@ const emptySegment = (defaultDate?: string): FlightInfo => ({
         : {}),
 });
 
-const emptyTransitSegment = (defaultDate?: string): TransitInfo =>
-    defaultDate
+const emptyTransitSegment = (defaultDate?: string): TransitInfo => ({
+    departTime: '00:00',
+    arrivalTime: '00:00',
+    ...(defaultDate
         ? { departDate: defaultDate, arrivalDate: defaultDate }
-        : {};
+        : {}),
+});
 
 export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activity> {
     tripTypeId?: number;
@@ -393,7 +397,9 @@ const AddPlaceBtn = ({
             next === ACTIVITY_KIND.HOTEL_CHECKIN ||
             next === ACTIVITY_KIND.HOTEL_CHECKOUT;
         const isTransit =
-            next === ACTIVITY_KIND.TRAIN || next === ACTIVITY_KIND.BUS;
+            next === ACTIVITY_KIND.TRAIN ||
+            next === ACTIVITY_KIND.BUS ||
+            next === ACTIVITY_KIND.RENTAL_CAR;
         setPlace((prev) => ({
             ...prev,
             kind: next,
@@ -520,29 +526,36 @@ const AddPlaceBtn = ({
             if (!place.startTime?.trim()) missing.push(timeLabel);
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
-            kind === ACTIVITY_KIND.BUS
+            kind === ACTIVITY_KIND.BUS ||
+            kind === ACTIVITY_KIND.RENTAL_CAR
         ) {
-            // Train + bus: at least one segment with operator + number +
-            // depart station + depart datetime. Arrival station + time
-            // are encouraged but not required (the user might be
-            // adding a partial booking before they know the arrival
-            // time precisely).
+            // Train + bus + rental car: at least one segment with
+            // operator + number + depart station/pickup + depart
+            // datetime. Arrival station/dropoff + time are encouraged
+            // but not required (the user might be adding a partial
+            // booking before they know the dropoff time precisely).
+            const isRental = kind === ACTIVITY_KIND.RENTAL_CAR;
+            const operatorLabel = isRental ? 'rental company' : 'operator';
+            const numberLabel = isRental
+                ? 'confirmation #'
+                : `${kind === ACTIVITY_KIND.TRAIN ? 'train' : 'bus'} number`;
+            const departLabel = isRental ? 'pickup location' : 'depart station';
+            const departDateLabel = isRental ? 'pickup date' : 'depart date';
+            const departTimeLabel = isRental ? 'pickup time' : 'depart time';
             const segments = place.transitSegments ?? [];
             if (!segments.length) missing.push('a transit segment');
             segments.forEach((seg, i) => {
                 const label = segments.length > 1 ? ` (leg ${i + 1})` : '';
                 if (!seg.operator?.trim())
-                    missing.push(`operator${label}`);
+                    missing.push(`${operatorLabel}${label}`);
                 if (!seg.number?.trim())
-                    missing.push(
-                        `${kind === ACTIVITY_KIND.TRAIN ? 'train' : 'bus'} number${label}`,
-                    );
+                    missing.push(`${numberLabel}${label}`);
                 if (!seg.departStation?.trim())
-                    missing.push(`depart station${label}`);
+                    missing.push(`${departLabel}${label}`);
                 if (!seg.departDate?.trim())
-                    missing.push(`depart date${label}`);
+                    missing.push(`${departDateLabel}${label}`);
                 if (!seg.departTime?.trim())
-                    missing.push(`depart time${label}`);
+                    missing.push(`${departTimeLabel}${label}`);
             });
         } else {
             if (!place.name?.trim()) missing.push('name');
@@ -575,18 +588,24 @@ const AddPlaceBtn = ({
                 })();
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
-            kind === ACTIVITY_KIND.BUS
+            kind === ACTIVITY_KIND.BUS ||
+            kind === ACTIVITY_KIND.RENTAL_CAR
         ) {
-            // "Train Renfe AVE 4123" / "Bus FlixBus N1900" — operator
-            // + number is the most recognizable label for a transit
-            // entry on the day timeline.
+            // "Train Renfe AVE 4123" / "Bus FlixBus N1900" / "Rental
+            // car Hertz ABC123" — prefix + operator + number is the
+            // most recognizable label for a transit entry on the day
+            // timeline.
             finalName =
                 place.name?.trim() ||
                 (() => {
                     const seg = place.transitSegments?.[0];
                     if (!seg) return '';
                     const prefix =
-                        kind === ACTIVITY_KIND.TRAIN ? 'Train' : 'Bus';
+                        kind === ACTIVITY_KIND.TRAIN
+                            ? 'Train'
+                            : kind === ACTIVITY_KIND.BUS
+                              ? 'Bus'
+                              : 'Rental car';
                     const bits = [
                         prefix,
                         seg.operator?.trim(),
@@ -610,15 +629,17 @@ const AddPlaceBtn = ({
         // headline time on the day timeline. Mirror to top-level
         // startTime so existing rendering paths show the right slot
         // without needing transit-aware logic.
-        const transitStartTime =
-            (kind === ACTIVITY_KIND.TRAIN || kind === ACTIVITY_KIND.BUS)
-                ? place.transitSegments?.[0]?.departTime
-                : undefined;
-        const transitEndTime =
-            (kind === ACTIVITY_KIND.TRAIN || kind === ACTIVITY_KIND.BUS)
-                ? (place.transitSegments?.[place.transitSegments.length - 1]
-                      ?.arrivalTime)
-                : undefined;
+        const isTransitKind =
+            kind === ACTIVITY_KIND.TRAIN ||
+            kind === ACTIVITY_KIND.BUS ||
+            kind === ACTIVITY_KIND.RENTAL_CAR;
+        const transitStartTime = isTransitKind
+            ? place.transitSegments?.[0]?.departTime
+            : undefined;
+        const transitEndTime = isTransitKind
+            ? place.transitSegments?.[place.transitSegments.length - 1]
+                  ?.arrivalTime
+            : undefined;
 
         // Lift the draft's freeform `confirmationNumber` into the
         // structured `hotelInfo` shape that Activity expects, and only
@@ -662,7 +683,8 @@ const AddPlaceBtn = ({
                 dataKind === ACTIVITY_KIND.HOTEL_CHECKOUT;
             const isTransitEdit =
                 dataKind === ACTIVITY_KIND.TRAIN ||
-                dataKind === ACTIVITY_KIND.BUS;
+                dataKind === ACTIVITY_KIND.BUS ||
+                dataKind === ACTIVITY_KIND.RENTAL_CAR;
             // Strip the "Check in: " / "Check out: " prefix the submit
             // helper added on create, so the editable hotel-name field
             // shows just the hotel itself rather than the synthesized
@@ -816,25 +838,26 @@ const AddPlaceBtn = ({
                                         ],
                                     },
                                     {
-                                        // Ground folds the two surface-
-                                        // transit kinds behind one chip.
-                                        // Click defaults to Train; an
-                                        // in-form toggle switches to Bus
-                                        // (and back) without leaving the
-                                        // shared transit form. Same
-                                        // pattern as the Hotel chip
-                                        // above — keeps the top-level
-                                        // toggle compact while still
-                                        // persisting each event with a
-                                        // distinct ACTIVITY_KIND so the
+                                        // Ground folds the three surface-
+                                        // transit kinds (train, bus, rental
+                                        // car) behind one chip. Click
+                                        // defaults to Train; an in-form
+                                        // toggle switches between the three
+                                        // without leaving the shared
+                                        // transit form. Same pattern as the
+                                        // Hotel chip above — keeps the
+                                        // top-level toggle compact while
+                                        // still persisting each event with
+                                        // a distinct ACTIVITY_KIND so the
                                         // timeline shows the correct
-                                        // train vs bus icon.
+                                        // train / bus / rental-car icon.
                                         value: ACTIVITY_KIND.TRAIN,
                                         label: 'Ground',
                                         Icon: CommuteRoundedIcon,
                                         activeKinds: [
                                             ACTIVITY_KIND.TRAIN,
                                             ACTIVITY_KIND.BUS,
+                                            ACTIVITY_KIND.RENTAL_CAR,
                                         ],
                                     },
                                 ].map(({ value, label, Icon, activeKinds }) => {
@@ -1346,19 +1369,19 @@ const AddPlaceBtn = ({
                             )}
 
                             {(place.kind === ACTIVITY_KIND.TRAIN ||
-                                place.kind === ACTIVITY_KIND.BUS) && (
+                                place.kind === ACTIVITY_KIND.BUS ||
+                                place.kind === ACTIVITY_KIND.RENTAL_CAR) && (
                                 <Grid container>
                                     {/* In-form mode toggle — picks
-                                        Train or Bus. Same sliding-thumb
-                                        treatment as the hotel side
-                                        toggle above; persists as
-                                        ACTIVITY_KIND.TRAIN or
-                                        ACTIVITY_KIND.BUS so the
-                                        timeline icon + labels stay
-                                        accurate. Hidden on EDIT to
-                                        match the rest of the modal's
-                                        "kind locks at create time"
-                                        contract. */}
+                                        Train, Bus, or Rental car. Same
+                                        sliding-thumb treatment as the
+                                        hotel side toggle above;
+                                        persists as ACTIVITY_KIND.TRAIN /
+                                        BUS / RENTAL_CAR so the timeline
+                                        icon + labels stay accurate.
+                                        Hidden on EDIT to match the rest
+                                        of the modal's "kind locks at
+                                        create time" contract. */}
                                     {isAdd && (
                                         <Grid
                                             item
@@ -1369,7 +1392,14 @@ const AddPlaceBtn = ({
                                             <div
                                                 className={classNames(
                                                     'hotel-side-toggle',
-                                                    `is-${place.kind === ACTIVITY_KIND.BUS ? 'bus' : 'train'}`,
+                                                    'is-three',
+                                                    `is-${
+                                                        place.kind === ACTIVITY_KIND.BUS
+                                                            ? 'bus'
+                                                            : place.kind === ACTIVITY_KIND.RENTAL_CAR
+                                                              ? 'rental-car'
+                                                              : 'train'
+                                                    }`,
                                                 )}
                                                 role="tablist"
                                                 aria-label="Ground transport mode"
@@ -1388,6 +1418,11 @@ const AddPlaceBtn = ({
                                                         value: ACTIVITY_KIND.BUS,
                                                         label: 'Bus',
                                                         Icon: DirectionsBusRoundedIcon,
+                                                    },
+                                                    {
+                                                        value: ACTIVITY_KIND.RENTAL_CAR,
+                                                        label: 'Rental car',
+                                                        Icon: CarRentalRoundedIcon,
                                                     },
                                                 ].map(({ value, label, Icon }) => {
                                                     const active = place.kind === value;
@@ -1486,7 +1521,10 @@ const AddPlaceBtn = ({
                                                                 place.kind ===
                                                                 ACTIVITY_KIND.TRAIN
                                                                     ? 'Operator (e.g. Renfe, JR)'
-                                                                    : 'Operator (e.g. FlixBus, Greyhound)'
+                                                                    : place.kind ===
+                                                                        ACTIVITY_KIND.RENTAL_CAR
+                                                                      ? 'Rental company (e.g. Hertz, Avis)'
+                                                                      : 'Operator (e.g. FlixBus, Greyhound)'
                                                             }
                                                             onChange={(e) =>
                                                                 handleTransitField(
@@ -1505,7 +1543,10 @@ const AddPlaceBtn = ({
                                                                 place.kind ===
                                                                 ACTIVITY_KIND.TRAIN
                                                                     ? 'Train number'
-                                                                    : 'Bus number / route'
+                                                                    : place.kind ===
+                                                                        ACTIVITY_KIND.RENTAL_CAR
+                                                                      ? 'Confirmation #'
+                                                                      : 'Bus number / route'
                                                             }
                                                             onChange={(e) =>
                                                                 handleTransitField(
@@ -1520,7 +1561,12 @@ const AddPlaceBtn = ({
                                                         <InputField
                                                             value={segment.departStation ?? ''}
                                                             name={`transitDepartStation-${segIdx}`}
-                                                            label="Depart station"
+                                                            label={
+                                                                place.kind ===
+                                                                ACTIVITY_KIND.RENTAL_CAR
+                                                                    ? 'Pickup location'
+                                                                    : 'Depart station'
+                                                            }
                                                             onChange={(e) =>
                                                                 handleTransitField(
                                                                     segIdx,
@@ -1534,7 +1580,12 @@ const AddPlaceBtn = ({
                                                         <InputField
                                                             value={segment.arrivalStation ?? ''}
                                                             name={`transitArrivalStation-${segIdx}`}
-                                                            label="Arrival station (optional)"
+                                                            label={
+                                                                place.kind ===
+                                                                ACTIVITY_KIND.RENTAL_CAR
+                                                                    ? 'Dropoff location (optional)'
+                                                                    : 'Arrival station (optional)'
+                                                            }
                                                             required={false}
                                                             onChange={(e) =>
                                                                 handleTransitField(
@@ -1550,7 +1601,12 @@ const AddPlaceBtn = ({
                                                             value={segment.departDate ?? ''}
                                                             name={`transitDepartDate-${segIdx}`}
                                                             type="date"
-                                                            label="Depart date"
+                                                            label={
+                                                                place.kind ===
+                                                                ACTIVITY_KIND.RENTAL_CAR
+                                                                    ? 'Pickup date'
+                                                                    : 'Depart date'
+                                                            }
                                                             labelOnTop
                                                             onChange={(e) =>
                                                                 handleTransitField(
@@ -1566,7 +1622,12 @@ const AddPlaceBtn = ({
                                                             value={segment.departTime ?? ''}
                                                             name={`transitDepartTime-${segIdx}`}
                                                             type="time"
-                                                            label="Depart time"
+                                                            label={
+                                                                place.kind ===
+                                                                ACTIVITY_KIND.RENTAL_CAR
+                                                                    ? 'Pickup time'
+                                                                    : 'Depart time'
+                                                            }
                                                             labelOnTop
                                                             onChange={(e) =>
                                                                 handleTransitField(
@@ -1582,7 +1643,12 @@ const AddPlaceBtn = ({
                                                             value={segment.arrivalDate ?? ''}
                                                             name={`transitArrivalDate-${segIdx}`}
                                                             type="date"
-                                                            label="Arrival date (optional)"
+                                                            label={
+                                                                place.kind ===
+                                                                ACTIVITY_KIND.RENTAL_CAR
+                                                                    ? 'Dropoff date (optional)'
+                                                                    : 'Arrival date (optional)'
+                                                            }
                                                             labelOnTop
                                                             required={false}
                                                             minDate={segment.departDate || undefined}
@@ -1600,7 +1666,12 @@ const AddPlaceBtn = ({
                                                             value={segment.arrivalTime ?? ''}
                                                             name={`transitArrivalTime-${segIdx}`}
                                                             type="time"
-                                                            label="Arrival time (optional)"
+                                                            label={
+                                                                place.kind ===
+                                                                ACTIVITY_KIND.RENTAL_CAR
+                                                                    ? 'Dropoff time (optional)'
+                                                                    : 'Arrival time (optional)'
+                                                            }
                                                             labelOnTop
                                                             required={false}
                                                             onChange={(e) =>
@@ -1620,7 +1691,10 @@ const AddPlaceBtn = ({
                                                                 place.kind ===
                                                                 ACTIVITY_KIND.TRAIN
                                                                     ? 'Class / seat (optional)'
-                                                                    : 'Seat (optional)'
+                                                                    : place.kind ===
+                                                                        ACTIVITY_KIND.RENTAL_CAR
+                                                                      ? 'Car class (e.g. Compact, SUV) (optional)'
+                                                                      : 'Seat (optional)'
                                                             }
                                                             required={false}
                                                             onChange={(e) =>
@@ -1669,7 +1743,9 @@ const AddPlaceBtn = ({
                                             className="flight-segment-add"
                                             onClick={handleAddTransitSegment}
                                         >
-                                            + Add leg (transfer)
+                                            {place.kind === ACTIVITY_KIND.RENTAL_CAR
+                                                ? '+ Add stopover'
+                                                : '+ Add leg (transfer)'}
                                         </button>
                                     </Grid>
                                 </Grid>

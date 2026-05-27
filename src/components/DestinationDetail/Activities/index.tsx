@@ -25,6 +25,7 @@ import HotelRoundedIcon from '@mui/icons-material/HotelRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
 import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
+import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
@@ -94,6 +95,7 @@ const isCompletedStatus = (status: Activity['status']): boolean => {
  *   - hotel check-out → outbound-arrow (departure) icon
  *   - train → transit/train icon
  *   - bus → bus icon
+ *   - rental car → car-rental icon
  *   - note → lined notepad (reads as "note" — a sticky-note icon is
  *     too generic to differentiate)
  *   - place WITHOUT an image → map pin (the image was the visual cue
@@ -107,6 +109,7 @@ const titleIconFor = (a: Activity) => {
     if (kind === ACTIVITY_KIND.HOTEL_CHECKOUT) return LogoutRoundedIcon;
     if (kind === ACTIVITY_KIND.TRAIN) return DirectionsTransitRoundedIcon;
     if (kind === ACTIVITY_KIND.BUS) return DirectionsBusRoundedIcon;
+    if (kind === ACTIVITY_KIND.RENTAL_CAR) return CarRentalRoundedIcon;
     if (kind === ACTIVITY_KIND.NOTE) return EditNoteRoundedIcon;
     if (!a.image?.url) return PlaceRoundedIcon;
     return null;
@@ -295,7 +298,8 @@ const Activities = ({
                         : getActivityProgress(activity, date, now);
                     const isTransit =
                         activityKind === ACTIVITY_KIND.TRAIN ||
-                        activityKind === ACTIVITY_KIND.BUS;
+                        activityKind === ACTIVITY_KIND.BUS ||
+                        activityKind === ACTIVITY_KIND.RENTAL_CAR;
                     const isHotel =
                         activityKind === ACTIVITY_KIND.HOTEL_CHECKIN ||
                         activityKind === ACTIVITY_KIND.HOTEL_CHECKOUT;

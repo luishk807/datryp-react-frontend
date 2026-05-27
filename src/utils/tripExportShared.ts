@@ -70,9 +70,10 @@ export const formatTimeRange = (
  *  - Flight: depart→arrival pulled from the first/last `flightSegments`
  *    entry (top-level startTime/endTime aren't reliable for multi-leg
  *    flights and are sometimes blank).
- *  - Train / Bus: same depart→arrival logic but against `transitSegments`,
- *    falling back to top-level startTime/endTime when the segments
- *    haven't shipped yet (legacy / pre-segment-persistence rows).
+ *  - Train / Bus / Rental car: same depart→arrival logic but against
+ *    `transitSegments` (for rental cars: pickup→dropoff), falling back
+ *    to top-level startTime/endTime when the segments haven't shipped
+ *    yet (legacy / pre-segment-persistence rows).
  *  - Hotel check-in / check-out: single time only — the activity is
  *    a single bookend event, never a range.
  *  - Note: blank, notes are timeless.
@@ -92,7 +93,11 @@ export const formatActivityTime = (a: Activity): string => {
         // flight saved before the segment join-table shipped.
         return formatTimeRange(a.startTime, a.endTime);
     }
-    if (kind === ACTIVITY_KIND.TRAIN || kind === ACTIVITY_KIND.BUS) {
+    if (
+        kind === ACTIVITY_KIND.TRAIN ||
+        kind === ACTIVITY_KIND.BUS ||
+        kind === ACTIVITY_KIND.RENTAL_CAR
+    ) {
         const segs = a.transitSegments ?? [];
         if (segs.length) {
             const first = segs[0];

@@ -147,6 +147,27 @@
   transform: translateX(100%);
 }
 
+// Three-position variant — used by the Ground transport toggle when it
+// expands to Train | Bus | Rental car. Widens the toggle to fit the
+// extra button and resizes the thumb to a third of the track. The
+// `is-bus` rule above still applies for the middle position; the
+// rental-car rule below handles the rightmost slot.
+.hotel-side-toggle.is-three {
+  max-width: 380px;
+}
+
+.hotel-side-toggle.is-three .hotel-side-thumb {
+  width: calc(33.333% - 2px);
+}
+
+.hotel-side-toggle.is-three.is-bus .hotel-side-thumb {
+  transform: translateX(100%);
+}
+
+.hotel-side-toggle.is-three.is-rental-car .hotel-side-thumb {
+  transform: translateX(200%);
+}
+
 .hotel-side-btn {
   position: relative;
   z-index: 1;
