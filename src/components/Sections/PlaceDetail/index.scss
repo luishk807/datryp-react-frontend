@@ -100,6 +100,43 @@
   }
 }
 
+// Entire Google rating row is one clickable link to the place's
+// Google Maps listing. Multi-color G glyph + Stars + review count.
+// Cursor + subtle hover affordance telegraphs the link without
+// fighting the global rating row above (which is static).
+a.place-detail-google-rating {
+  text-decoration: none;
+  cursor: pointer;
+  color: inherit;
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin-left: -4px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 2px;
+  }
+}
+
+.place-detail-google-icon {
+  // Override the default meta-icon green tint — we want the colored
+  // G glyph to read as itself, not as another green icon.
+  color: inherit;
+  width: auto;
+  height: auto;
+}
+
+.place-detail-google-count {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
+}
+
 .place-detail-best-time {
   display: inline-flex;
   align-items: center;

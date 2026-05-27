@@ -19,6 +19,8 @@ import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import AddToItineraryButton from "components/AddToItineraryButton";
 import Stars from "components/common/Stars";
 import CostBadge from "components/common/CostBadge";
+import GoogleGlyph from "components/common/GoogleGlyph";
+import { usePlaceRating } from "api/hooks/usePlaceRating";
 import ReviewSection from "components/Review/ReviewSection";
 import ReviewSummary from "components/Review/ReviewSummary";
 import ParagraphSection from "components/PlaceDetail/ParagraphSection";
@@ -125,6 +127,15 @@ const PlaceDetail = () => {
     place?.imageUrl
       ? place.photographerUrl
       : fallbackPhoto?.photographerUrl ?? null;
+
+  // Google Places rating for this place. Disabled until we actually have
+  // a place to query (the page can render in loading / error states
+  // before `place` resolves).
+  const { data: googleRating } = usePlaceRating(
+    place?.name ?? '',
+    place ? `${place.city}, ${place.country}` : '',
+    Boolean(place),
+  );
 
   // Visited-state lookup. Same cached list powers the toolbar button and the
   // "Visited on …" indicator under the title — single source of truth so the
@@ -311,6 +322,34 @@ const PlaceDetail = () => {
             </Tooltip>
             <Stars rating={place.rating} />
           </div>
+          {googleRating?.rating != null && (
+            <Tooltip title="View on Google Maps" arrow>
+              <a
+                className="place-detail-meta place-detail-google-rating"
+                href={googleRating.googleMapsUri ?? '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={
+                  `Google rating ${googleRating.rating.toFixed(1)} out of 5` +
+                  (googleRating.userRatingCount
+                    ? ` based on ${googleRating.userRatingCount.toLocaleString()} reviews`
+                    : '') +
+                  ' (opens Google Maps)'
+                }
+              >
+                <span className="place-detail-meta-icon place-detail-google-icon">
+                  <GoogleGlyph size={18} />
+                </span>
+                <Stars rating={googleRating.rating} />
+                {googleRating.userRatingCount != null &&
+                  googleRating.userRatingCount > 0 && (
+                    <span className="place-detail-google-count">
+                      ({googleRating.userRatingCount.toLocaleString()})
+                    </span>
+                  )}
+              </a>
+            </Tooltip>
+          )}
           <ReviewSummary
             placeName={place.name}
             placeCity={place.city}

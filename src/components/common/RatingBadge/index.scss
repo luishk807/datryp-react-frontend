@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Star-rating pill rendered from /places/rating. Two variants:
+//   .rating-badge-chip    — full pill with star + rating + review count
+//   .rating-badge-compact — inline "★ 4.6" only, for tight cards
+//
+// Sits inline with other meta info (price, badges). Default yellow/
+// amber palette matches the Google star vibe without leaning too
+// hard on a specific brand color.
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: theme('colors.primary');
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rating-badge-chip {
+  padding: 4px 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 999px;
+}
+
+.rating-badge-compact {
+  // No background — just inline text with the star icon.
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.rating-badge-star {
+  color: #f59e0b; // amber-500 — Google-Maps-ish star color
+  font-size: 16px !important;
+}
+
+.rating-badge-compact .rating-badge-star {
+  font-size: 14px !important;
+}
+
+.rating-badge-value {
+  font-weight: 700;
+}
+
+.rating-badge-count {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
+  margin-left: 2px;
+}
+
+// Clickable variant — wrapped in an <a> to the place's Google Maps
+// listing. Subtle hover lift so the affordance is visible.
+.rating-badge-link {
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.45);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(245, 158, 11, 0.6);
+    outline-offset: 2px;
+  }
+}

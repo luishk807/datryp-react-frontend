@@ -5,6 +5,7 @@ import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRou
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
+import RatingBadge from 'components/common/RatingBadge';
 import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
 import type { PlaceRecommendation } from 'types';
 import './index.scss';
@@ -180,6 +181,12 @@ const PlaceSuggestions = ({
                                           <span className="place-suggestions-card-loc">
                                               {item.city}
                                           </span>
+                                          <RatingBadge
+                                              name={item.name}
+                                              location={`${item.city}, ${item.country}`}
+                                              variant="compact"
+                                              linkToMaps={false}
+                                          />
                                       </div>
                                       <div className="place-suggestions-actions">
                                           <a

@@ -1,0 +1,54 @@
+/**
+ * `/places/rating` — Google Places (New) proxy on our backend.
+ * Resolves a place name (+ optional location context) to a rating +
+ * review count. Backend caches aggressively; we just speak JSON.
+ *
+ * Returns `null` on no-match, missing-key (503), or any error — the
+ * caller renders nothing in that case (silent-fail UX).
+ */
+const API_BASE =
+    import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
+
+export interface PlaceRating {
+    placeId: string | null;
+    name: string | null;
+    rating: number | null;
+    userRatingCount: number | null;
+    googleMapsUri: string | null;
+}
+
+interface PlaceRatingRaw {
+    place_id: string | null;
+    name: string | null;
+    rating: number | null;
+    user_rating_count: number | null;
+    google_maps_uri: string | null;
+}
+
+interface PlaceRatingResponseRaw {
+    result: PlaceRatingRaw | null;
+}
+
+const toRating = (r: PlaceRatingRaw): PlaceRating => ({
+    placeId: r.place_id,
+    name: r.name,
+    rating: r.rating,
+    userRatingCount: r.user_rating_count,
+    googleMapsUri: r.google_maps_uri,
+});
+
+export const fetchPlaceRating = async (
+    name: string,
+    location?: string,
+): Promise<PlaceRating | null> => {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+    const params = new URLSearchParams({ name: trimmed });
+    if (location?.trim()) {
+        params.set('location', location.trim());
+    }
+    const resp = await fetch(`${API_BASE}/places/rating?${params.toString()}`);
+    if (!resp.ok) return null;
+    const body = (await resp.json()) as PlaceRatingResponseRaw;
+    return body.result ? toRating(body.result) : null;
+};

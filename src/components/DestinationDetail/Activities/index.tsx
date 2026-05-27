@@ -37,6 +37,7 @@ import {
 import ImageBlock from 'components/DestinationDetail/ImageBlock';
 import AddPlaceBtn from 'components/common/AddPlaceBtn';
 import AddBudget from 'components/DestinationDetail/AddBudget';
+import RatingBadge from 'components/common/RatingBadge';
 import DraggableActivity from 'components/DestinationDetail/Activities/DraggableActivity';
 import IconConfirmButton from 'components/common/IconConfirmButton';
 import { convertMoney } from 'utils';
@@ -692,6 +693,12 @@ const Activities = ({
                                                             >
                                                                 <DirectionsRoundedIcon fontSize="small" />
                                                             </IconButton>
+                                                            <RatingBadge
+                                                                name={activity.name ?? ''}
+                                                                location={displayLocation}
+                                                                variant="compact"
+                                                                enabled={!isFlight && !isNote}
+                                                            />
                                                         </div>
                                                     );
                                                 })()}
