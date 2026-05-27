@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type ComponentType } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { Alert, Grid, Snackbar } from '@mui/material';
-import { now } from 'utils';
+import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
@@ -86,8 +86,27 @@ interface PlaceDraft {
     longitude?: number | null;
 }
 
-const emptySegment = (): FlightInfo => ({});
-const emptyTransitSegment = (): TransitInfo => ({});
+/** Seed a fresh flight segment. When `defaultDate` is provided (the
+ *  date of the day block the user opened "+ Add Activity" from), the
+ *  depart + arrival dates start there instead of empty — so the date
+ *  picker opens on that day's month rather than today. Saves the user
+ *  from manually scrolling months back when the trip is far out.
+ *
+ *  Times default to 00:00 (12:00 AM) so the time picker isn't blank —
+ *  users typically tweak the time anyway and an unset time looked
+ *  like a "you forgot something" warning. */
+const emptySegment = (defaultDate?: string): FlightInfo => ({
+    departTime: '00:00',
+    arrivalTime: '00:00',
+    ...(defaultDate
+        ? { departDate: defaultDate, arrivalDate: defaultDate }
+        : {}),
+});
+
+const emptyTransitSegment = (defaultDate?: string): TransitInfo =>
+    defaultDate
+        ? { departDate: defaultDate, arrivalDate: defaultDate }
+        : {};
 
 export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activity> {
     tripTypeId?: number;
@@ -101,6 +120,13 @@ export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activit
     /** Optional class for the modal trigger — used by inline edit pencils
      *  that want compact MUI IconButton-style padding. */
     triggerClassName?: string;
+    /** Date of the day block the user opened "+ Add Activity" from.
+     *  When provided, fresh flight/ground segments default their
+     *  depart/arrival dates to this date so the picker opens on the
+     *  right month — saves the user from scrolling from today when
+     *  the trip is months out. Accepts either MM/DD/YYYY (the
+     *  display format used by DateBlock) or YYYY-MM-DD. */
+    defaultDate?: string;
 }
 
 const AddPlaceBtn = ({
@@ -113,8 +139,18 @@ const AddPlaceBtn = ({
     triggerClassName,
     buttonType = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
+    defaultDate,
 }: AddPlaceBtnProps) => {
     const modelRef = useRef<ModalButtonHandle>(null);
+
+    // Normalize the day-block date (which may arrive as MM/DD/YYYY from
+    // DateBlock's formatted string) into the YYYY-MM-DD shape the date
+    // pickers expect. Invalid / missing → undefined so `emptySegment`
+    // falls back to its no-default branch.
+    const isoDefaultDate: string | undefined = (() => {
+        if (!defaultDate) return undefined;
+        return isValidDate(defaultDate) ? formatDate(defaultDate) : undefined;
+    })();
 
     const isAdd = type === ACTION.ADD;
 
@@ -195,7 +231,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
-                : [emptySegment()];
+                : [emptySegment(isoDefaultDate)];
             const current = segments[index];
             const updated = { ...current, [name]: value };
             // Auto-fill arrival date from depart date when arrival is empty
@@ -221,7 +257,7 @@ const AddPlaceBtn = ({
             ...prev,
             flightSegments: [
                 ...(prev.flightSegments ?? []),
-                emptySegment(),
+                emptySegment(isoDefaultDate),
             ],
         }));
     };
@@ -251,7 +287,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.transitSegments?.length
                 ? [...prev.transitSegments]
-                : [emptyTransitSegment()];
+                : [emptyTransitSegment(isoDefaultDate)];
             const current = segments[index];
             const updated = { ...current, [name]: value };
             // Mirror the flight cascade: auto-fill arrival date when the
@@ -276,7 +312,7 @@ const AddPlaceBtn = ({
             ...prev,
             transitSegments: [
                 ...(prev.transitSegments ?? []),
-                emptyTransitSegment(),
+                emptyTransitSegment(isoDefaultDate),
             ],
         }));
     };
@@ -352,12 +388,12 @@ const AddPlaceBtn = ({
                 next === ACTIVITY_KIND.FLIGHT
                     ? prev.flightSegments?.length
                         ? prev.flightSegments
-                        : [emptySegment()]
+                        : [emptySegment(isoDefaultDate)]
                     : undefined,
             transitSegments: isTransit
                 ? prev.transitSegments?.length
                     ? prev.transitSegments
-                    : [emptyTransitSegment()]
+                    : [emptyTransitSegment(isoDefaultDate)]
                 : undefined,
             confirmationNumber: isHotel ? prev.confirmationNumber : undefined,
         }));
@@ -624,12 +660,12 @@ const AddPlaceBtn = ({
                     dataKind === ACTIVITY_KIND.FLIGHT
                         ? data.flightSegments?.length
                             ? data.flightSegments
-                            : [emptySegment()]
+                            : [emptySegment(isoDefaultDate)]
                         : undefined,
                 transitSegments: isTransitEdit
                     ? data.transitSegments?.length
                         ? data.transitSegments
-                        : [emptyTransitSegment()]
+                        : [emptyTransitSegment(isoDefaultDate)]
                     : undefined,
                 confirmationNumber: isHotelEdit
                     ? data.hotelInfo?.confirmationNumber
@@ -900,7 +936,7 @@ const AddPlaceBtn = ({
                                             }
                                         />
                                     </Grid>
-                                    {(place.flightSegments ?? [emptySegment()]).map(
+                                    {(place.flightSegments ?? [emptySegment(isoDefaultDate)]).map(
                                         (segment, segIdx, allSegs) => (
                                             <Grid
                                                 key={segIdx}
@@ -1358,7 +1394,7 @@ const AddPlaceBtn = ({
                                             }
                                         />
                                     </Grid>
-                                    {(place.transitSegments ?? [emptyTransitSegment()]).map(
+                                    {(place.transitSegments ?? [emptyTransitSegment(isoDefaultDate)]).map(
                                         (segment, segIdx, allSegs) => (
                                             <Grid
                                                 key={segIdx}

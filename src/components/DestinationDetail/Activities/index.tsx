@@ -609,6 +609,7 @@ const Activities = ({
                                                     countryScope={country}
                                                     triggerIcon={EditRoundedIcon}
                                                     triggerClassName="activity-edit-btn"
+                                                    defaultDate={date}
                                                     onChange={(e) =>
                                                         onChangePlace('edit', {
                                                             index: indx,
@@ -815,6 +816,7 @@ const Activities = ({
                             isViewMode={isViewMode}
                             tripTypeId={tripTypeId}
                             countryScope={country}
+                            defaultDate={date}
                             onChange={(e) => onChangePlace('add', e)}
                         />
                     </Grid>
