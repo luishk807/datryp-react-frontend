@@ -1,0 +1,67 @@
+// Shared bare-variant styles for FormFields/* primitives. Imported via
+// `@use` from each leaf field's index.scss so InputField, DropDown,
+// CityAutocomplete, AirportAutocomplete, etc. all read from one source
+// of truth.
+//
+// Usage:
+//
+//     @use '../bare' as bare;
+//
+//     .my-field-bare {
+//         @include bare.stack;
+//     }
+//     .my-field-bare-label {
+//         @include bare.label;
+//     }
+//     .my-field-bare-input {
+//         @include bare.input;
+//     }
+//     .my-field-bare-input:focus {
+//         @include bare.focus;
+//     }
+
+// Outer stack: caps label above the input, 6px gap. Matches the spacing
+// the bare InputField has used since the settings form was first
+// styled.
+@mixin stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Uppercase caps label above a bare field. 0.76rem with letter-
+// spacing tightens to read as a section label rather than body copy.
+@mixin label {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 600;
+}
+
+// Flat rounded input box — 10px radius, hairline grey border, white
+// background, primary-color text. Padding matches the bare InputField.
+@mixin input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: theme('colors.primary');
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+// Focus state: green border + green-tinted box-shadow glow.
+@mixin focus {
+  border-color: theme('colors.primaryGreen');
+  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.15);
+}
+
+// Placeholder color for bare inputs — softer than the typed-value
+// color so empty fields read as prompts.
+@mixin placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}

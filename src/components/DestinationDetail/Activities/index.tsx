@@ -1,5 +1,6 @@
 import './index.scss';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import moment from 'moment';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import { useNow } from 'hooks/useNow';
@@ -41,6 +42,11 @@ import AddBudget from 'components/DestinationDetail/AddBudget';
 import RatingBadge from 'components/common/RatingBadge';
 import DraggableActivity from 'components/DestinationDetail/Activities/DraggableActivity';
 import IconConfirmButton from 'components/common/IconConfirmButton';
+import MarkPaidModal, {
+    type MarkPaidModalHandle,
+    type MarkPaidValue,
+} from 'components/MarkPaidModal';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import { convertMoney } from 'utils';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { ACTIVITY_KIND, TRIP_STATUS } from 'constants';
@@ -87,6 +93,117 @@ const isCompletedStatus = (status: Activity['status']): boolean => {
         return (status as ActivityStatus).name === TRIP_STATUS.COMPLETED;
     }
     return false;
+};
+
+/** Compact "Jul 15" / "Jul 15, 2026" formatting for the paid-by chip.
+ *  Omits the year when the date falls in the current calendar year so
+ *  the chip stays short on the common case; surfaces it only when the
+ *  payment crosses a year boundary. */
+const formatPaidDate = (iso: string | null | undefined): string => {
+    if (!iso) return '';
+    const m = moment(iso, ['YYYY-MM-DD', moment.ISO_8601], true);
+    if (!m.isValid()) return '';
+    const fmt =
+        m.year() === moment().year() ? 'MMM D' : 'MMM D, YYYY';
+    return m.format(fmt);
+};
+
+interface PaidByRowProps {
+    activity: Activity;
+    indx: number;
+    participants: Friend[];
+    isViewMode: boolean;
+    onChangePlace: (type: ActionType, value: unknown) => void;
+}
+
+/** Per-activity paid-attestation affordance. Three render states:
+ *   - paid + organizer:   green chip + edit pencil (opens modal)
+ *   - paid + non-organizer: green chip, no pencil
+ *   - unpaid + organizer:   subtle "Mark as paid" pill (opens modal)
+ *   - unpaid + non-organizer: nothing (returns null)
+ *  The modal lives at the bottom of the row regardless of trigger
+ *  rendering so `markPaidRef` is stable across re-renders. */
+const PaidByRow = ({
+    activity,
+    indx,
+    participants,
+    isViewMode,
+    onChangePlace,
+}: PaidByRowProps) => {
+    const markPaidRef = useRef<MarkPaidModalHandle>(null);
+    const isPaid = Boolean(activity.paidAt);
+    if (!isPaid && isViewMode) return null;
+
+    const handleSubmit = (value: MarkPaidValue) => {
+        onChangePlace('edit', {
+            index: indx,
+            value: {
+                id: activity.id,
+                paidAt: value.paidAt,
+                paidBy: value.paidBy,
+            },
+        });
+    };
+
+    const handleClear = () => {
+        onChangePlace('edit', {
+            index: indx,
+            value: {
+                id: activity.id,
+                paidAt: null,
+                paidBy: null,
+            },
+        });
+    };
+
+    const payerLabel =
+        activity.paidBy?.name ?? 'Unknown';
+    const dateLabel = formatPaidDate(activity.paidAt);
+
+    return (
+        <div className="meta-row meta-row-paid">
+            <CheckCircleOutlineRoundedIcon className="meta-icon" />
+            {isPaid ? (
+                <span className="paid-by-chip">
+                    <span className="paid-by-chip-text">
+                        Paid by {payerLabel}
+                        {dateLabel && (
+                            <span className="paid-by-chip-date">
+                                {' · '}
+                                {dateLabel}
+                            </span>
+                        )}
+                    </span>
+                    {!isViewMode && (
+                        <IconButton
+                            size="small"
+                            className="paid-by-edit-trigger"
+                            aria-label="Edit payment"
+                            onClick={() => markPaidRef.current?.open()}
+                        >
+                            <EditRoundedIcon fontSize="small" />
+                        </IconButton>
+                    )}
+                </span>
+            ) : (
+                <button
+                    type="button"
+                    className="mark-paid-pill"
+                    onClick={() => markPaidRef.current?.open()}
+                >
+                    Mark as paid
+                </button>
+            )}
+            <MarkPaidModal
+                ref={markPaidRef}
+                participants={participants}
+                initialPaidAt={activity.paidAt}
+                initialPaidBy={activity.paidBy}
+                onSubmit={handleSubmit}
+                onClear={handleClear}
+            />
+        </div>
+    );
 };
 
 /** Icon to show on the left of an activity title, based on its kind:
@@ -393,7 +510,13 @@ const Activities = ({
                     const numericCost = Number(activity.cost);
                     const hasCost =
                         Number.isFinite(numericCost) && numericCost !== 0;
-                    const showBudgetRow = hasBudget || hasCost;
+                    // Show the budget row when there's already a split OR
+                    // when we're in the editor and the activity has cost
+                    // (so the user can add a split). On view-only pages
+                    // (/trip-detail) the empty placeholder icon is noise
+                    // — hide it when no one is set as paying yet.
+                    const showBudgetRow =
+                        hasBudget || (hasCost && !isViewMode);
                     const card = (
                         <Grid
                             item
@@ -782,6 +905,22 @@ const Activities = ({
                                                             participants={participants}
                                                         />
                                                     </div>
+                                                )}
+                                                {/* Paid-by attestation. Only meaningful when the
+                                                    activity has cost — a free note doesn't need a
+                                                    "paid" record. Edit gating matches the activity
+                                                    status toggle (trip-level `isViewMode`, not the
+                                                    activity-confirmed lock) — settling a payment is
+                                                    operational and should stay open after the rest
+                                                    of the activity is locked in. */}
+                                                {hasCost && (
+                                                    <PaidByRow
+                                                        activity={activity}
+                                                        indx={indx}
+                                                        participants={participants}
+                                                        isViewMode={isViewMode}
+                                                        onChangePlace={onChangePlace}
+                                                    />
                                                 )}
                                                 {activity.note && (
                                                     <div className="meta-row meta-row-note">

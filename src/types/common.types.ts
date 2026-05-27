@@ -73,6 +73,10 @@ export interface FlightInfo {
    *  `budgets` has exactly one entry, this auto-derives from it for
    *  callers that only render the headline. */
   paidBy?: { id: string; name: string | null } | null;
+  /** Date the booking was paid (ISO `YYYY-MM-DD`). Cleared together
+   *  with `paidBy` when the organizer marks the flight as unpaid.
+   *  Same organizer-only edit gating as the activity-level fields. */
+  paidAt?: string | null;
   /** Per-friend split of the flight cost. Same shape as `BudgetItem`
    *  (from activity.types) but inlined here to avoid a circular import
    *  between common.types and activity.types. Empty / missing means

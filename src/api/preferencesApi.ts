@@ -24,6 +24,11 @@ interface PreferencesRaw {
     traveler_styles: string[];
     dream_destinations: string[];
     onboarding_completed_at: string | null;
+    home_city: string | null;
+    home_country: string | null;
+    home_country_code: string | null;
+    home_latitude: number | null;
+    home_longitude: number | null;
 }
 
 interface InterestsCatalogRaw {
@@ -63,6 +68,11 @@ const toPreferences = (r: PreferencesRaw): Preferences => ({
     travelerStyles: r.traveler_styles ?? [],
     dreamDestinations: r.dream_destinations ?? [],
     onboardingCompletedAt: r.onboarding_completed_at,
+    homeCity: r.home_city,
+    homeCountry: r.home_country,
+    homeCountryCode: r.home_country_code,
+    homeLatitude: r.home_latitude,
+    homeLongitude: r.home_longitude,
 });
 
 export const fetchMyPreferences = async (): Promise<Preferences> => {
@@ -96,6 +106,24 @@ export const updateMyPreferences = async (
     }
     if (payload.markComplete !== undefined) {
         body.mark_complete = payload.markComplete;
+    }
+    // Home-base fields. The server treats explicit `null` as "clear
+    // this field" — important so the Account page's "Clear home city"
+    // button reaches the DB instead of being filtered out.
+    if (payload.homeCity !== undefined) {
+        body.home_city = payload.homeCity;
+    }
+    if (payload.homeCountry !== undefined) {
+        body.home_country = payload.homeCountry;
+    }
+    if (payload.homeCountryCode !== undefined) {
+        body.home_country_code = payload.homeCountryCode;
+    }
+    if (payload.homeLatitude !== undefined) {
+        body.home_latitude = payload.homeLatitude;
+    }
+    if (payload.homeLongitude !== undefined) {
+        body.home_longitude = payload.homeLongitude;
     }
 
     const resp = await fetch(`${API_BASE}/me/preferences`, {

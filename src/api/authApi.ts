@@ -65,6 +65,15 @@ export interface MeResponse {
     dream_destinations: string[];
     onboarding_completed_at: string | null;
     profile_image_url: string | null;
+    /** City-level "home base" used to seed the depart leg of new trips.
+     *  All five fields move together; null when the user hasn't picked
+     *  a home city yet. Privacy-by-design: city is the deepest granularity
+     *  we capture (no street address). */
+    home_city: string | null;
+    home_country: string | null;
+    home_country_code: string | null;
+    home_latitude: number | null;
+    home_longitude: number | null;
 }
 
 class AuthError extends Error {

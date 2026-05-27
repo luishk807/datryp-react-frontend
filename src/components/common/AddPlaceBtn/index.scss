@@ -275,3 +275,199 @@
     border-color: theme('colors.primaryGreen');
   }
 }
+
+// Auto-fill hint row: explains the AeroDataBox lookup + offers the
+// expand toggle. Sits between the flight number and the (collapsed by
+// default) airport / date / time grid.
+.flight-segment-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.35;
+  flex-wrap: wrap;
+}
+
+.flight-segment-hint-icon {
+  color: theme('colors.primaryOrange');
+  // MUI's small fontSize lands around 1.25rem; pull it down a touch so
+  // it sits inline with the text instead of dominating.
+  font-size: 1rem !important;
+}
+
+.flight-segment-hint-spinner {
+  color: theme('colors.primaryOrange');
+}
+
+.flight-segment-hint-text {
+  flex: 1;
+  min-width: 140px;
+}
+
+.flight-segment-toggle {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(60, 181, 75, 0.08);
+    outline: none;
+  }
+
+  svg {
+    font-size: 1rem !important;
+  }
+}
+
+// Whole-segment collapse toggle. Lives in the segment header to the
+// left of the optional Remove button. Flat / borderless so the header
+// reads as a row, not a button strip.
+.flight-segment-open-toggle {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 4px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  flex: 1;
+  text-align: left;
+  transition: background-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(0, 0, 0, 0.04);
+    outline: none;
+  }
+
+  svg {
+    font-size: 1.2rem !important;
+    color: rgba(0, 0, 0, 0.55);
+  }
+}
+
+// Sub-label that appears next to "Segment 1" once the segment has a
+// flight number — gives the user a quick way to identify what's
+// inside without expanding.
+.flight-segment-label-sub {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.85rem;
+}
+
+// ---------- Smart entry (AI-tinted flight input) ----------
+//
+// Reads as a real textfield first, AI shortcut second. Borrows the
+// shared `bare.input` look so the field aesthetic matches the rest
+// of the form, but ships a few AI signals on top:
+//   - "AI Smart entry" pill above the input
+//   - sparkle icon as start adornment
+//   - orange focus glow instead of the standard green
+.flight-smart-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Reads as a real textfield first, AI shortcut second. The 1px
+// border uses the `background-clip` two-layer trick to paint a
+// soft warm→cool gradient (primaryOrange → primaryGreen) along
+// the edge — same hue as the AI suggestion cards. A slow gradient
+// pan animation hints at the smart layer without overwhelming.
+.flight-smart-entry-field {
+  // Match PlaceAutocomplete (default outlined TextField): MUI's stock
+  // 4px radius, 56px height, 1rem font. Keeps the two fields visually
+  // siblings — the smart entry just adds the gradient edge.
+  .MuiOutlinedInput-root {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 0 14px;
+    min-height: 56px;
+    font-size: 1rem;
+    color: theme('colors.primary');
+    // Two layered backgrounds: the inner padding-box gets a solid
+    // white fill, the outer border-box carries the gradient — what
+    // remains visible in the 1px gap is the gradient as the border.
+    background:
+      linear-gradient(#fff, #fff) padding-box,
+      linear-gradient(
+          135deg,
+          rgba(247, 159, 38, 0.85) 0%,
+          rgba(60, 181, 75, 0.85) 50%,
+          rgba(247, 159, 38, 0.85) 100%
+        )
+        border-box;
+    background-size: 100% 100%, 200% 200%;
+    animation: flight-smart-entry-pan 8s ease-in-out infinite;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .MuiOutlinedInput-root.Mui-focused {
+    box-shadow: 0 0 0 3px rgba(247, 159, 38, 0.18);
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border: none;
+  }
+
+  .MuiOutlinedInput-input {
+    // MUI's default outlined input padding (16.5px top/bottom + the
+    // root's 14px horizontal) — matches the Activity name input's
+    // vertical centering.
+    padding: 16.5px 0;
+    font: inherit;
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.4);
+      opacity: 1;
+    }
+  }
+
+  .MuiInputAdornment-root {
+    margin-right: 8px;
+  }
+}
+
+@keyframes flight-smart-entry-pan {
+  0%, 100% {
+    background-position:
+      0% 0%,
+      0% 50%;
+  }
+  50% {
+    background-position:
+      0% 0%,
+      100% 50%;
+  }
+}
+
+.flight-smart-entry-input-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 1.2rem !important;
+}
+
+.flight-smart-entry-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.4;
+}

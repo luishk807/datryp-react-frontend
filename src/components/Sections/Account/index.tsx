@@ -10,6 +10,8 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
 import SearchablePicker from 'components/common/FormFields/SearchablePicker';
+import type { CitySelection } from 'components/common/FormFields/CityAutocomplete';
+import HomeBaseField from 'components/common/FormFields/HomeBaseField';
 import SubscriptionSection from './SubscriptionSection';
 import { useUser } from 'context/UserContext';
 import { useCountries } from 'api/hooks/useCountries';
@@ -91,6 +93,21 @@ export const Account = () => {
         text: string;
     } | null>(null);
 
+    // Home base — city-level (privacy: never street). Seeds the depart
+    // airport / station on the first transport leg of new trips. Lives
+    // server-side via /me/preferences; null when the user hasn't set
+    // one yet.
+    const [homeBase, setHomeBase] = useState<CitySelection | null>(
+        user?.homeCity && user?.homeCountry && user?.homeCountryCode
+            ? {
+                  city: user.homeCity,
+                  country: user.homeCountry,
+                  countryCode: user.homeCountryCode,
+                  latitude: user.homeLatitude,
+                  longitude: user.homeLongitude,
+              }
+            : null
+    );
     // Year-of-birth dropdown options, most-recent first (so a 30-year-old
     // doesn't have to scroll past 1900 to find their year).
     const yearOptions = useMemo(() => {
@@ -112,6 +129,17 @@ export const Account = () => {
         setInterests(user.interests ?? []);
         setTravelerStyles(user.travelerStyles ?? []);
         setDreamDestinations(user.dreamDestinations ?? []);
+        setHomeBase(
+            user.homeCity && user.homeCountry && user.homeCountryCode
+                ? {
+                      city: user.homeCity,
+                      country: user.homeCountry,
+                      countryCode: user.homeCountryCode,
+                      latitude: user.homeLatitude,
+                      longitude: user.homeLongitude,
+                  }
+                : null
+        );
     }, [user]);
 
     const interestOptions = useMemo(
@@ -210,13 +238,36 @@ export const Account = () => {
             birthYear: typeof birthYear === 'number' ? birthYear : undefined,
             countryOfBirth: countryOfBirth.trim() || undefined,
         });
-        // Gender persists on the server (drives the monthly best-place
-        // recommender + invalidates its cache) so it goes through the
+        // Gender + home-base persist on the server (gender drives the
+        // monthly best-place recommender + invalidates its cache; home
+        // base seeds the nearest-airport lookup) so they go through the
         // preferences mutation, not the local-only updateUser overlay.
-        if ((genderId || null) !== (user?.genderId ?? null)) {
+        // Batched into one PATCH so a single save flushes everything.
+        const genderChanged =
+            (genderId || null) !== (user?.genderId ?? null);
+        const prevHomeCity = user?.homeCity ?? null;
+        const homeBaseChanged = (homeBase?.city ?? null) !== prevHomeCity;
+        if (genderChanged || homeBaseChanged) {
             try {
                 await updatePrefs.mutateAsync({
-                    genderId: genderId || null,
+                    ...(genderChanged ? { genderId: genderId || null } : {}),
+                    ...(homeBaseChanged
+                        ? homeBase
+                            ? {
+                                  homeCity: homeBase.city,
+                                  homeCountry: homeBase.country,
+                                  homeCountryCode: homeBase.countryCode,
+                                  homeLatitude: homeBase.latitude,
+                                  homeLongitude: homeBase.longitude,
+                              }
+                            : {
+                                  homeCity: null,
+                                  homeCountry: null,
+                                  homeCountryCode: null,
+                                  homeLatitude: null,
+                                  homeLongitude: null,
+                              }
+                        : {}),
                 });
             } catch {
                 /* surface via the travel-prefs message slot below if it
@@ -577,6 +628,16 @@ export const Account = () => {
                                         : ''
                                 )
                             }
+                        />
+                        {/* Home base lives inside Profile so the same Save
+                            button persists it alongside name / email / etc.
+                            Granularity is city-only (we never store street
+                            address) — used to seed the depart airport or
+                            station on new trips. */}
+                        <HomeBaseField
+                            value={homeBase}
+                            onChange={setHomeBase}
+                            disabled={updatePrefs.isPending}
                         />
                         <div className="account-actions">
                             <ButtonCustom

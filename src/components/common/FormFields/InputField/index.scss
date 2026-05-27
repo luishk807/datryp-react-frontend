@@ -1,3 +1,9 @@
+// `@use` must be the first directive — Sass forbids it after any rule.
+// Shared visual tokens for the bare variant live in `../_bare.scss` so
+// DropDown, CityAutocomplete, and any future bare field stay in
+// lockstep with this file.
+@use '../bare' as bare;
+
 .inputFieldCustom > .fileStyle input {
   opacity: 0 !important;
 }
@@ -16,37 +22,21 @@
 /* Settings-form aesthetic: stacked label above a plain rounded input.
  * Use via <InputField variant="bare" label="..." /> — no surrounding wrapper needed. */
 .input-field-bare {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  @include bare.stack;
 }
 
 .input-field-bare-label {
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(0, 0, 0, 0.55);
-  font-weight: 600;
+  @include bare.label;
 }
 
 .input-field-bare-input {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: theme('colors.primary');
-  background: #fff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  outline: none;
-  box-sizing: border-box;
+  @include bare.input;
 }
 
 .input-field-bare-input:focus {
-  border-color: theme('colors.primaryGreen');
-  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.15);
+  @include bare.focus;
 }
 
 .input-field-bare-input::placeholder {
-  color: rgba(0, 0, 0, 0.35);
+  @include bare.placeholder;
 }

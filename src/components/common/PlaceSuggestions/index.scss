@@ -31,6 +31,51 @@
   letter-spacing: 0.04em;
 }
 
+// Action cluster on the right side of the header — refresh + hide
+// sit side-by-side as small round buttons. Refresh disappears when
+// the panel is hidden (nothing to refresh), the hide toggle is
+// always visible so the user can bring the panel back.
+.place-suggestions-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// Hide / unhide toggle. Same circular footprint as the refresh
+// button so the two read as siblings. When the panel is hidden, the
+// whole `.place-suggestions` block tightens up (no body padding) so
+// only the header remains.
+.place-suggestions-toggle {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.6);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+  }
+}
+
+.place-suggestions.is-hidden {
+  // Collapse the panel to just its header — keep the green/orange
+  // gradient strip so the user knows the suggestions are still
+  // there, just hidden.
+  padding: 8px 14px;
+
+  .place-suggestions-head {
+    margin: 0;
+  }
+}
+
 .place-suggestions-shuffle {
   appearance: none;
   background: rgba(255, 255, 255, 0.7);

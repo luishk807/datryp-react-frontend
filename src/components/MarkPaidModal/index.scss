@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mark-paid-modal {
+  gap: 16px;
+  padding: 8px 0 4px;
+
+  .field-row {
+    width: 100%;
+  }
+
+  .mark-paid-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+
+    @media (max-width: 480px) {
+      flex-direction: column-reverse;
+      align-items: stretch;
+      gap: 8px;
+    }
+  }
+}

@@ -109,6 +109,7 @@ const flightToInput = (
         arrivalAirport: headline.arrivalAirport,
         cost: toNumber(flight.cost),
         paidByUserId,
+        paidAt: flight.paidAt ?? null,
         budgets: budgetInputs,
         segments: segmentInputs,
     };
@@ -195,26 +196,37 @@ const activityToInput = (
     activity: Activity,
     dayDate: string | undefined,
     statusLookup: Map<string, string> | undefined
-): ActivityInput => ({
-    name: activity.name?.trim() || 'Untitled activity',
-    place: activity.place ?? null,
-    location: activity.location ?? null,
-    startTime: combineDateTime(dayDate, activity.startTime),
-    endTime: combineDateTime(dayDate, activity.endTime),
-    cost: toNumber(activity.cost),
-    notes: activity.note ?? null,
-    image: activity.image?.url ?? null,
-    budget: sumBudget(activity.budget),
-    tripStatusId: activityStatusIdOf(activity.status, statusLookup),
-    budgets: budgetEntriesToInput(activity.budget),
-    kind: activity.kind ?? null,
-    flightSegments: flightSegmentsToInput(activity.flightSegments),
-    placeCity: activity.placeCity ?? null,
-    placeCountry: activity.placeCountry ?? null,
-    countryCode: activity.countryCode ?? null,
-    latitude: activity.latitude ?? null,
-    longitude: activity.longitude ?? null,
-});
+): ActivityInput => {
+    // `paidBy.id` carries a backend user UUID — only forward when it
+    // looks like one. Mock-friend ids (numeric or local-only strings)
+    // can't be saved, so drop them silently rather than 500 the save.
+    // Matches the legacy flight-side handling in `flightToInput`.
+    const payerId = activity.paidBy?.id;
+    const paidByUserId =
+        payerId && UUID_RE.test(payerId) ? payerId : null;
+    return {
+        name: activity.name?.trim() || 'Untitled activity',
+        place: activity.place ?? null,
+        location: activity.location ?? null,
+        startTime: combineDateTime(dayDate, activity.startTime),
+        endTime: combineDateTime(dayDate, activity.endTime),
+        cost: toNumber(activity.cost),
+        notes: activity.note ?? null,
+        image: activity.image?.url ?? null,
+        budget: sumBudget(activity.budget),
+        tripStatusId: activityStatusIdOf(activity.status, statusLookup),
+        paidByUserId,
+        paidAt: activity.paidAt ?? null,
+        budgets: budgetEntriesToInput(activity.budget),
+        kind: activity.kind ?? null,
+        flightSegments: flightSegmentsToInput(activity.flightSegments),
+        placeCity: activity.placeCity ?? null,
+        placeCountry: activity.placeCountry ?? null,
+        countryCode: activity.countryCode ?? null,
+        latitude: activity.latitude ?? null,
+        longitude: activity.longitude ?? null,
+    };
+};
 
 export interface MapTripOptions {
     /** UUID from useItineraryTypes (Single Destination Trip / Multi Destination Trip). */

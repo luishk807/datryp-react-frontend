@@ -1,0 +1,124 @@
+// Shared bare-variant tokens. MUI's Autocomplete needs a TextField
+// under `renderInput` (it spreads `params` into MUI's Input contract),
+// so we keep the MUI shell but reskin it to match the rest of the
+// `variant="bare"` family.
+@use '../bare' as bare;
+
+.city-autocomplete {
+  width: 100%;
+}
+
+// Bare variant — strips MUI's floating-label outlined pill so the
+// field reads as a flat rounded input matching InputField/DropDown
+// `variant="bare"`. The wrapper <label> provides the stacked
+// uppercase caps label above.
+.city-autocomplete-bare {
+  @include bare.stack;
+}
+
+.city-autocomplete-bare-label {
+  @include bare.label;
+}
+
+.city-autocomplete.is-bare {
+  // Flatten MUI's outlined notched fieldset into the same rounded box
+  // the shared `bare.input` mixin paints — same radius, border color,
+  // background — by reskinning the .MuiOutlinedInput-* hooks instead
+  // of styling a plain <input>. The legend slot (the gap MUI cuts for
+  // the floating label) is hidden since we render the label outside.
+  //
+  // Heights: bare InputField is ~46px tall (font line + 11px*2 padding
+  // + 2px border). Pin this root to the same min-height with
+  // `align-items: center` so MUI's intrinsic input height doesn't add
+  // on top of our padding and overshoot the rest of the bare family.
+  .MuiOutlinedInput-root {
+    @include bare.input;
+    padding: 0 6px 0 14px;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+  }
+  .MuiOutlinedInput-notchedOutline {
+    // Reskin: bare.input owns the visible border. Hide MUI's fieldset
+    // and its floating-label legend slot so nothing draws on top.
+    border: none;
+    legend {
+      display: none;
+    }
+  }
+  .MuiOutlinedInput-root.Mui-focused {
+    @include bare.focus;
+  }
+  // Inner <input> is vertically centered by the flex root above, so
+  // it doesn't carry padding of its own.
+  .MuiOutlinedInput-input {
+    padding: 0;
+    height: auto;
+    font-size: 0.95rem;
+    color: theme('colors.primary');
+    &::placeholder {
+      @include bare.placeholder;
+      opacity: 1;
+    }
+  }
+  // Adornment cluster (loading spinner + clear X) sits flush right.
+  .MuiAutocomplete-endAdornment {
+    position: static;
+    display: flex;
+    align-items: center;
+  }
+  // Soften the clear (×) button: smaller glyph, muted color, no
+  // background ring on hover so it stays a hint rather than a chip.
+  .MuiAutocomplete-clearIndicator {
+    padding: 2px;
+    color: rgba(0, 0, 0, 0.4);
+    background: transparent;
+    border-radius: 999px;
+    transition: color 0.15s ease, background 0.15s ease;
+    svg {
+      font-size: 1rem;
+    }
+    &:hover,
+    &:focus-visible {
+      color: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+// Mirror AirportAutocomplete's dropdown layout — name / country /
+// ISO-2 code — so the two pickers feel like siblings.
+.city-autocomplete-option {
+  display: grid !important;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px !important;
+  font-size: 0.9rem;
+}
+
+.city-autocomplete-option-name {
+  font-weight: 500;
+  color: theme('colors.primary');
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.city-autocomplete-option-country {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+}
+
+.city-autocomplete-option-code {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: theme('colors.primary');
+  background: rgba(60, 181, 75, 0.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.78rem;
+}

@@ -112,6 +112,7 @@ const apiFlightInfoToFlightInfo = (
         arrivalAirport: string | null;
         cost?: number | null;
         paidBy?: { id: string; name: string | null } | null;
+        paidAt?: string | null;
         budgets?: Array<{
             id: string;
             user: { id: string; email: string; name: string | null };
@@ -142,12 +143,18 @@ const apiFlightInfoToFlightInfo = (
               budget: b.amount,
           }))
         : undefined;
+    // Backend may serialize `paidAt` as a full ISO datetime; collapse to
+    // `YYYY-MM-DD` so the date picker in MarkPaidModal hydrates cleanly.
+    const paidAt = f.paidAt
+        ? (isValidDate(f.paidAt) ? formatDate(f.paidAt, 'YYYY-MM-DD') : f.paidAt)
+        : null;
     return {
         ...headline,
         cost: f.cost ?? undefined,
         paidBy: f.paidBy
             ? { id: f.paidBy.id, name: f.paidBy.name }
             : null,
+        paidAt,
         budgets,
         segments,
     };
@@ -199,6 +206,13 @@ const apiActivityToActivity = (a: ApiActivity): Activity => ({
     countryCode: a.countryCode,
     latitude: a.latitude,
     longitude: a.longitude,
+    // Backend may serialize `paidAt` as a full ISO datetime; collapse to
+    // `YYYY-MM-DD` so the date picker in MarkPaidModal hydrates cleanly
+    // and the chip renders a stable date regardless of TZ.
+    paidAt: a.paidAt
+        ? (isValidDate(a.paidAt) ? formatDate(a.paidAt, 'YYYY-MM-DD') : a.paidAt)
+        : null,
+    paidBy: a.paidBy ? { id: a.paidBy.id, name: a.paidBy.name } : null,
 });
 
 const apiUserToFriend = (u: { id: string; name: string | null; email: string }): Friend => ({

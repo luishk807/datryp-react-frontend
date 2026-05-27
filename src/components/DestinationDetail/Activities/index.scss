@@ -609,6 +609,75 @@
   font-style: italic;
 }
 
+/* ── Paid-by row: green chip when paid, soft orange pill when unpaid ──── */
+.activity-content-trip .content-detail .info .meta-row-paid {
+  align-items: center;
+}
+
+.activity-content-trip .content-detail .info .paid-by-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px 3px 12px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  border: 1px solid rgba(60, 181, 75, 0.32);
+  color: theme("colors.primaryGreen");
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.activity-content-trip .content-detail .info .paid-by-chip-text {
+  color: theme("colors.primaryGreen");
+  white-space: normal;
+}
+
+.activity-content-trip .content-detail .info .paid-by-chip-date {
+  color: rgba(60, 181, 75, 0.85);
+  font-weight: 400;
+}
+
+.activity-content-trip .content-detail .info .paid-by-edit-trigger {
+  flex-shrink: 0;
+  padding: 2px;
+  margin-left: 2px;
+  color: theme("colors.primaryGreen");
+
+  .MuiSvgIcon-root {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.18);
+  }
+}
+
+/* Unpaid affordance: dashed orange pill, mirrors the AddBudget
+ * "Who is paying?" empty-state but in the secondary/orange palette so
+ * it reads as distinct from the budget-split CTA. */
+.activity-content-trip .content-detail .info .mark-paid-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(247, 159, 38, 0.55);
+  background: rgba(247, 159, 38, 0.08);
+  color: #b45309;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: rgba(247, 159, 38, 0.18);
+    border-color: rgba(247, 159, 38, 0.85);
+    color: theme("colors.primaryOrange");
+  }
+}
+
 .activity-content-trip .content-detail .info .meta-row-note {
   align-items: flex-start;
 }

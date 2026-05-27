@@ -49,7 +49,7 @@ import {
     walkItinerary,
 } from 'utils/tripExportShared';
 import { TRIP_STATUS } from 'constants';
-import type { TripState } from 'types';
+import type { Activity, TripState } from 'types';
 
 /** The logo SVG ships with Adobe Illustrator's CSS-class fills
  *  (`<style>.st0 { fill: #3EB549 }</style>`). pdfmake's SVG renderer
@@ -169,7 +169,10 @@ const buildMetaBlock = (trip: TripState): Content => {
  *  the Activity column only. Matches the mockup's compact layout.
  *  Per-activity participants are no longer shown in the itinerary
  *  table; the full participant list lives in the header block at the
- *  top of the page. */
+ *  top of the page. When the organizer has marked the activity paid,
+ *  a small grey line "Paid by [Name] · [Date]" hangs under the row so
+ *  the printed itinerary doubles as a receipt — unpaid activities
+ *  skip the line entirely to avoid bloating the table. */
 const buildActivityCell = (row: ItineraryRow): TableCell => {
     const stack: Content[] = [];
     stack.push({
@@ -178,7 +181,26 @@ const buildActivityCell = (row: ItineraryRow): TableCell => {
     });
     const loc = activityLocation(row.activity);
     if (loc) stack.push({ text: loc });
+    const paidLine = formatPaidLine(row.activity);
+    if (paidLine) {
+        stack.push({
+            text: paidLine,
+            fontSize: 8,
+            color: COLORS.muted,
+            italics: true,
+        });
+    }
     return { stack };
+};
+
+/** "Paid by [Name] · [MM/DD/YYYY]" suffix for a paid activity. Empty
+ *  string when the activity isn't marked paid (so callers can early-
+ *  return without nesting). */
+const formatPaidLine = (activity: Activity): string => {
+    if (!activity.paidAt) return '';
+    const name = activity.paidBy?.name?.trim() || 'Unknown';
+    const date = formatDate(activity.paidAt);
+    return date ? `Paid by ${name} · ${date}` : `Paid by ${name}`;
 };
 
 /** Total cost of the activity. Prefer the per-row sum of budget splits

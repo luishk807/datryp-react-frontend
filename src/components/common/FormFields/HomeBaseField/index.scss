@@ -1,0 +1,18 @@
+// Stacked block: privacy hint over the bare city picker. Lives inside
+// a parent form's flex column, so we re-create the same gap as
+// `.account-form` would have given a regular bare field.
+.home-base-field {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  margin-top: 4px;
+}
+
+.home-base-field-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.6);
+}

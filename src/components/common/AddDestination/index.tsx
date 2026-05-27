@@ -12,6 +12,7 @@ import SearchBar from 'components/SearchBar';
 import PlaceAutocomplete, {
     type PlaceSuggestion,
 } from 'components/common/PlaceAutocomplete';
+import { useNearestAirport } from 'api/hooks/useHomeDeparture';
 import classNames from 'classnames';
 import { ACTION, BUTTON_VARIANT } from 'constants';
 import type {
@@ -59,6 +60,11 @@ const AddDestinationBtn = ({
     const [firstPlaceText, setFirstPlaceText] = useState('');
     const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
     const modelRef = useRef<ModalButtonHandle>(null);
+    // Home-base lookup: when the user opens AddDestination to plan a
+    // flight to a new country, the depart airport is almost always
+    // their home airport. Hook returns null when no home city is set —
+    // in that case the seeding effect is a no-op, no UI prompt.
+    const { data: nearestAirport } = useNearestAirport();
 
     /** Per-segment field setter. The segments array is the source of
      *  truth; the parent `flightInfo`'s flat fields are kept in sync with
@@ -219,6 +225,27 @@ const AddDestinationBtn = ({
             });
         }
     }, [data, defaultDate, type]);
+
+    // Home → destination auto-seed. Once the nearest-airport hook
+    // resolves (after the user's set their home city in Account), drop
+    // the IATA code into segment 0's depart slot if it's still empty.
+    // EDIT mode opts out — the saved destination already has whatever
+    // depart airport the user chose. Subsequent legs (segIdx > 0) are
+    // internal to the trip so we don't touch them either.
+    useEffect(() => {
+        if (type !== ACTION.ADD || !nearestAirport) return;
+        setDestination((prev) => {
+            const segs = prev.flightInfo?.segments ?? [];
+            if (!segs.length) return prev;
+            if (segs[0].departAirport) return prev;
+            const next = [...segs];
+            next[0] = { ...next[0], departAirport: nearestAirport.iataCode };
+            return {
+                ...prev,
+                flightInfo: { ...(prev.flightInfo ?? {}), segments: next },
+            };
+        });
+    }, [nearestAirport, type]);
 
     const normalizedTripMaxDate = isoDate(tripMaxDate ?? undefined);
 

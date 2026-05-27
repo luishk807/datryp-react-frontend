@@ -93,6 +93,15 @@ export interface User {
      *  they haven't uploaded one. Drives the circle avatar on the
      *  Account page and in the Header. */
     profileImageUrl: string | null;
+    /** City-level home base. All five fields move together; null when
+     *  the user hasn't set a home city. Used by trip creation to seed
+     *  the depart-airport / station of the first transport leg. Privacy:
+     *  city granularity only — we deliberately don't capture street. */
+    homeCity: string | null;
+    homeCountry: string | null;
+    homeCountryCode: string | null;
+    homeLatitude: number | null;
+    homeLongitude: number | null;
 }
 
 /**
@@ -212,6 +221,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             genderId: me.gender_id,
             onboardingCompletedAt: me.onboarding_completed_at,
             profileImageUrl: me.profile_image_url,
+            homeCity: me.home_city,
+            homeCountry: me.home_country,
+            homeCountryCode: me.home_country_code,
+            homeLatitude: me.home_latitude,
+            homeLongitude: me.home_longitude,
             ...overlay,
         };
     }, [me, overlay]);

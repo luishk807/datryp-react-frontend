@@ -7,6 +7,7 @@ import {
     DialogContent,
     DialogActions,
 } from '@mui/material';
+import classNames from 'classnames';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { BUTTON_VARIANT } from 'constants';
 import type { ButtonVariant } from 'types';
@@ -20,6 +21,15 @@ export interface DialogBoxProps {
     buttonType?: ButtonVariant;
     children?: ReactNode;
     isViewMode?: boolean;
+    /** Label on the confirm button. Defaults to "Confirm" — callers
+     *  doing a delete pass "Delete", a save pass "Save", etc. */
+    confirmLabel?: string;
+    /** Label on the cancel button. Defaults to "Cancel". */
+    cancelLabel?: string;
+    /** When true, the confirm button renders in a destructive red style
+     *  to signal an irreversible action (delete, remove, cancel trip).
+     *  Cancel becomes the visually safe default. */
+    destructive?: boolean;
 }
 
 const DialogBox = ({
@@ -29,10 +39,13 @@ const DialogBox = ({
     buttonType = BUTTON_VARIANT.STANDARD,
     children,
     isViewMode = false,
+    confirmLabel = 'Confirm',
+    cancelLabel = 'Cancel',
+    destructive = false,
 }: DialogBoxProps) => {
     const [open, setOpen] = useState(false);
 
-    const handleConfirmDelete = () => {
+    const handleConfirm = () => {
         setOpen(false);
         onConfirm?.();
     };
@@ -51,7 +64,9 @@ const DialogBox = ({
                 onClose={() => setOpen(false)}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
-                className="datryp-dialog"
+                className={classNames('datryp-dialog', {
+                    'is-destructive': destructive,
+                })}
             >
                 <DialogTitle className="datryp-title" id="alert-dialog-title">
                     {title}
@@ -64,17 +79,22 @@ const DialogBox = ({
                         {children}
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions>
+                <DialogActions className="datryp-dialog-actions">
+                    {/* Cancel = soft / outlined secondary so the
+                        primary action carries the visual weight.
+                        Destructive flag tints that primary red. */}
                     <ButtonCustom
-                        type={BUTTON_VARIANT.STANDARD_SMALL}
+                        type={BUTTON_VARIANT.LINE}
                         onClick={() => setOpen(false)}
-                        label="Cancel"
+                        label={cancelLabel}
                     />
                     <ButtonCustom
-                        style={{ marginLeft: '35px' }}
                         type={BUTTON_VARIANT.STANDARD_SMALL}
-                        onClick={handleConfirmDelete}
-                        label="Agree"
+                        onClick={handleConfirm}
+                        label={confirmLabel}
+                        className={
+                            destructive ? 'datryp-dialog-destructive' : undefined
+                        }
                     />
                 </DialogActions>
             </Dialog>

@@ -12,6 +12,16 @@ export interface Preferences {
     travelerStyles: string[];
     dreamDestinations: string[];
     onboardingCompletedAt: string | null;
+    /** City-level home base — used to suggest a depart airport / train
+     *  station when the user starts planning a new trip. Privacy-by-
+     *  design: we deliberately stop at city granularity (no street
+     *  address). All five fields move together — when one is set they
+     *  should all be set; clearing the home city nulls all five. */
+    homeCity: string | null;
+    homeCountry: string | null;
+    homeCountryCode: string | null;
+    homeLatitude: number | null;
+    homeLongitude: number | null;
 }
 
 /** Partial update for `PATCH /me/preferences`. Any field set to
@@ -24,6 +34,11 @@ export interface PreferencesUpdate {
     travelerStyles?: string[];
     dreamDestinations?: string[];
     markComplete?: boolean;
+    homeCity?: string | null;
+    homeCountry?: string | null;
+    homeCountryCode?: string | null;
+    homeLatitude?: number | null;
+    homeLongitude?: number | null;
 }
 
 /** One row in a slug-based catalog (interests, traveler styles).

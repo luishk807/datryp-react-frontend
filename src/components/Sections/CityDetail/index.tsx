@@ -42,6 +42,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
+import { useNearestAirport } from "api/hooks/useHomeDeparture";
 import { useIsStuck } from "hooks/useIsStuck";
 import {
     basicInfo,
@@ -49,13 +50,18 @@ import {
     useTripDispatch,
 } from "context/TripContext";
 import { now } from "utils";
-import { TRIP_BASIC } from "constants";
-import type { Destination } from "types";
+import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
+import type { Activity, Destination } from "types";
 
 const CityDetail = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const dispatch = useTripDispatch();
+    // Home-base airport drives the Day-1 "Flight to <city>" auto-seed.
+    // Hook returns `null` when the user hasn't set a home city — we skip
+    // the activity injection in that case, same silent-skip pattern as
+    // AddPlaceBtn's segment seeding.
+    const { data: nearestAirport } = useNearestAirport();
     // Scroll-activated chrome — toolbar grows a translucent bg + drop
     // shadow once the user has scrolled past a small threshold, and
     // reverts to a flat in-flow look when they scroll back to the top.
@@ -92,13 +98,44 @@ const CityDetail = () => {
         //
         // Seed the destination's own `flightInfo.arrivalAirport` with the
         // catalog's best-guess airport so the destination card's built-in
-        // Depart/Arrive UI is pre-filled. Previously we also added a
-        // separate `Flight to <city>` Activity inside the destination —
-        // that produced two flight UIs for the same flight (the
-        // destination-level Depart/Arrive row PLUS a redundant Flight
-        // activity below). One source of truth: the destination's own
-        // flightInfo. The user fills in the rest (depart airport, dates,
-        // times) on the destination card.
+        // Depart/Arrive UI is pre-filled. We ALSO seed a Day-1 "Flight to
+        // <city>" Activity below when the user has a home airport set —
+        // the two surfaces serve different jobs: `flightInfo` is the
+        // destination-level headline (depart/arrive airports + dates),
+        // while the Day-1 activity is the timeline entry the user will
+        // edit with flight number / times / cost once they book. Both
+        // can be filled in independently; the activity is skipped when
+        // no home airport is available so we never ship a half-empty
+        // segment with a placeholder depart.
+        const today = now();
+        // Day-1 "Flight to <city>" auto-seed. Only fires when BOTH the
+        // user has a home airport (from their saved home city) AND the
+        // destination has a known primary airport — otherwise we'd ship
+        // a half-baked activity the user has to clean up. Silent skip
+        // (no toast / warning) matches AddPlaceBtn's seeding behaviour.
+        // Arrival date is set explicitly to depart date so the
+        // segment's internal dates are coherent without relying on the
+        // form's depart→arrival cascade.
+        const seededActivities: Activity[] =
+            nearestAirport?.iataCode && args.arrivalAirportCode
+                ? [
+                      {
+                          id: 0,
+                          kind: ACTIVITY_KIND.FLIGHT,
+                          name: `Flight to ${args.cityName}`,
+                          flightSegments: [
+                              {
+                                  departAirport: nearestAirport.iataCode,
+                                  arrivalAirport: args.arrivalAirportCode,
+                                  departDate: today,
+                                  departTime: "00:00",
+                                  arrivalDate: today,
+                                  arrivalTime: "00:00",
+                              },
+                          ],
+                      },
+                  ]
+                : [];
         const destinations = [
             {
                 // Frontend-local numeric id. The trip reducer's `editDestination`
@@ -121,9 +158,19 @@ const CityDetail = () => {
                           },
                       }
                     : {}),
+                ...(seededActivities.length
+                    ? {
+                          itinerary: [
+                              {
+                                  id: 0,
+                                  date: today,
+                                  activities: seededActivities,
+                              },
+                          ],
+                      }
+                    : {}),
             },
         ] as Destination[];
-        const today = now();
         dispatch(resetTrip());
         // Seed the trip-level image with the city's hero photo so the trip
         // card has a thumbnail (and the save mutation persists it to

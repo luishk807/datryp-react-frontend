@@ -1,14 +1,57 @@
-.datryp-dialog > .datryp-dialog-content {
-  color: inherit;
-  padding: 10px
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.datryp-dialog  .datryp-title {
-  text-align: center;
-  text-transform: capitalize;
-  color: green;
-}
+.datryp-dialog {
+  .MuiPaper-root {
+    padding: 8px;
+    border-radius: 14px;
+    min-width: 320px;
+    max-width: 440px;
+  }
 
-.datryp-dialog .MuiPaper-root {
-  padding: 5px
+  .datryp-title {
+    text-align: center;
+    text-transform: capitalize;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+    padding-bottom: 4px;
+  }
+
+  // Destructive dialogs (delete, remove, cancel trip) get a red tinted
+  // title so the user notices the severity at a glance — paired with
+  // the red confirm button below.
+  &.is-destructive .datryp-title {
+    color: #c0392b;
+  }
+
+  .datryp-dialog-content {
+    color: rgba(0, 0, 0, 0.7);
+    text-align: center;
+    padding: 4px 8px 8px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+
+  // Side-by-side actions with breathing room. Replaces the old
+  // hand-rolled marginLeft inline style.
+  .datryp-dialog-actions {
+    padding: 12px 16px 16px;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  // Red confirm button for destructive actions. Reskins the primary
+  // ButtonCustom (STANDARD_SMALL) so its green background + shadow
+  // get swapped for the destructive red palette.
+  .datryp-dialog-destructive {
+    background: #c0392b !important;
+    box-shadow: 0 2px 6px rgba(192, 57, 43, 0.25) !important;
+
+    &:hover {
+      background: #a93324 !important;
+      box-shadow: 0 4px 10px rgba(192, 57, 43, 0.32) !important;
+    }
+  }
 }

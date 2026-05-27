@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFlightLookup } from 'api/hooks/useFlightLookup';
 import type { FlightLookupResult } from 'api/flightLookupApi';
+import { parseFlightInfo } from './parseFlightInfo';
 
 interface FlightSegmentLookupWatcherProps {
     flightNumber?: string;
     departDate?: string;
     onResult: (result: FlightLookupResult) => void;
+    /** Forwards `isFetching` from the underlying TanStack query so the
+     *  parent can render a loading spinner near the flight number
+     *  input. Optional — older call sites don't have to provide it. */
+    onLoadingChange?: (loading: boolean) => void;
 }
 
 /**
@@ -28,6 +33,7 @@ const FlightSegmentLookupWatcher = ({
     flightNumber,
     departDate,
     onResult,
+    onLoadingChange,
 }: FlightSegmentLookupWatcherProps) => {
     const [debouncedNumber, setDebouncedNumber] = useState('');
     const [debouncedDate, setDebouncedDate] = useState('');
@@ -39,13 +45,30 @@ const FlightSegmentLookupWatcher = ({
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedNumber((flightNumber ?? '').trim());
-            setDebouncedDate(departDate ?? '');
+            // Parse natural-language input so users can type
+            // "UA123 today" or "my flight is BA245 tomorrow" and the
+            // lookup still finds the right flight. Falls back to the
+            // raw trimmed input when no flight-number pattern is
+            // detected (which keeps the lookup disabled — useFlightLookup
+            // requires ≥3 chars, and partial junk won't match).
+            const parsed = parseFlightInfo(flightNumber);
+            setDebouncedNumber(
+                parsed.flightNumber ?? (flightNumber ?? '').trim()
+            );
+            // If the user mentioned a date in the natural-language
+            // input (e.g. "UA123 today"), prefer that over the
+            // segment's stored departDate. Parent state still holds
+            // the auto-seeded day-block date as the fallback.
+            setDebouncedDate(parsed.departDate ?? departDate ?? '');
         }, 600);
         return () => clearTimeout(timer);
     }, [flightNumber, departDate]);
 
-    const { data } = useFlightLookup(debouncedNumber, debouncedDate);
+    const { data, isFetching } = useFlightLookup(debouncedNumber, debouncedDate);
+
+    useEffect(() => {
+        onLoadingChange?.(isFetching);
+    }, [isFetching, onLoadingChange]);
 
     useEffect(() => {
         if (!data) return;

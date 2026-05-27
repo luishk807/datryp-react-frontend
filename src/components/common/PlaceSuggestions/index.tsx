@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import classNames from 'classnames';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import RatingBadge from 'components/common/RatingBadge';
 import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
@@ -56,6 +59,31 @@ const PlaceSuggestions = ({
     // recommender returns a fresh set instead of the cached top-3.
     const [shuffleNonce, setShuffleNonce] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
+    // Persisted hide/unhide preference. Defaults to HIDDEN — the
+    // form opens clean and the user opts in to the AI panel via the
+    // chevron in the header. Scoped per-topic so hiding the hotel
+    // panel doesn't also hide the places panel. Values: '1' = hidden,
+    // '0' = explicitly shown, null = no preference yet (uses default).
+    const storageKey = `place-suggestions:hidden:${topic}`;
+    const [hidden, setHidden] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return true;
+        try {
+            const stored = window.localStorage.getItem(storageKey);
+            if (stored === null) return true; // default hidden
+            return stored === '1';
+        } catch {
+            return true;
+        }
+    });
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        try {
+            window.localStorage.setItem(storageKey, hidden ? '1' : '0');
+        } catch {
+            /* localStorage unavailable (private mode / quota) — fall
+               back to in-memory only; user can re-toggle next session. */
+        }
+    }, [hidden, storageKey]);
 
     // `q=<name>&i=0` matches the convention used by Saved / Visited /
     // NearbyGrid. The recommender chokes on verbose
@@ -108,34 +136,53 @@ const PlaceSuggestions = ({
 
     return (
         <section
-            className="place-suggestions"
+            className={classNames('place-suggestions', {
+                'is-hidden': hidden,
+            })}
             aria-label={`Suggested places in ${trimmedCountry}`}
         >
             <header className="place-suggestions-head">
                 <h4 className="place-suggestions-title">
                     {headingPrefix} {trimmedCountry}
                 </h4>
-                <button
-                    type="button"
-                    className="place-suggestions-shuffle"
-                    onClick={() => {
-                        setShuffleNonce((n) => n + 1);
-                        setPicked(null);
-                    }}
-                    aria-label="Refresh suggestions"
-                    disabled={isFetching}
-                >
-                    <RefreshRoundedIcon fontSize="small" />
-                </button>
+                <div className="place-suggestions-head-actions">
+                    {!hidden && (
+                        <button
+                            type="button"
+                            className="place-suggestions-shuffle"
+                            onClick={() => {
+                                setShuffleNonce((n) => n + 1);
+                                setPicked(null);
+                            }}
+                            aria-label="Refresh suggestions"
+                            disabled={isFetching}
+                        >
+                            <RefreshRoundedIcon fontSize="small" />
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className="place-suggestions-toggle"
+                        onClick={() => setHidden((h) => !h)}
+                        aria-label={hidden ? 'Show suggestions' : 'Hide suggestions'}
+                        aria-expanded={!hidden}
+                    >
+                        {hidden ? (
+                            <ExpandMoreRoundedIcon fontSize="small" />
+                        ) : (
+                            <ExpandLessRoundedIcon fontSize="small" />
+                        )}
+                    </button>
+                </div>
             </header>
 
-            {isError && (
+            {!hidden && isError && (
                 <p className="place-suggestions-error">
                     Couldn't load suggestions — type a place above instead.
                 </p>
             )}
 
-            {!isError && (
+            {!hidden && !isError && (
                 <ul className="place-suggestions-list">
                     {isFetching && items.length === 0
                         ? Array.from({ length: LIMIT }).map((_, idx) => (

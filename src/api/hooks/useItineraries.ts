@@ -56,6 +56,9 @@ export interface ApiFlightInfo {
     /** Single payer (one participant covered the booking). Auto-
      *  derived from `budgets` when the split has exactly one entry. */
     paidBy: ApiUserPublic | null;
+    /** ISO date (`YYYY-MM-DD`) the booking was paid on, set by the
+     *  organizer. Null when unpaid; cleared together with `paidBy`. */
+    paidAt: string | null;
     /** Per-friend split of the cost. Empty when no split is set. */
     budgets: ApiFlightInfoBudgetEntry[];
     /** Per-leg breakdown for stopover flights on destination-level
@@ -84,6 +87,11 @@ export interface ApiActivity {
     budget: number | null;
     status: { id: string; name: string } | null;
     budgets: ApiActivityBudget[];
+    /** Organizer attestation that this activity was paid for. `paidAt`
+     *  is the ISO date (`YYYY-MM-DD`) of the payment; `paidBy` is the
+     *  participant who paid. Cleared together when unmarked. */
+    paidAt: string | null;
+    paidBy: ApiUserPublic | null;
     /** `'place' | 'note' | 'flight'`. Null on rows persisted before
      *  the kind column shipped; frontend defaults those to `'place'`. */
     kind: string | null;
@@ -150,6 +158,8 @@ export interface FlightInfoInput {
     /** UUID of the participant who paid. Null to clear. Auto-derived
      *  server-side when `budgets` has exactly one entry. */
     paidByUserId?: string | null;
+    /** ISO date (`YYYY-MM-DD`) the booking was paid on. Null to clear. */
+    paidAt?: string | null;
     /** Per-friend split entries. Omit / empty list = no split. */
     budgets?: FlightInfoBudgetInput[];
     /** Per-leg breakdown for stopover flights. Backward-compatible:
@@ -178,6 +188,11 @@ export interface ActivityInput {
     /** Backend `trip_statuses.id` UUID. Same lookup as the trip-level status —
      *  Planning / Confirmed / Completed / Cancelled. Null means unset. */
     tripStatusId?: string | null;
+    /** Organizer attestation. `paidByUserId` is the participant's UUID
+     *  who paid; `paidAt` is the ISO date. Both null clears the
+     *  attestation. */
+    paidByUserId?: string | null;
+    paidAt?: string | null;
     budgets?: ActivityBudgetInput[];
     /** `'place' | 'note' | 'flight'`. */
     kind?: string | null;
@@ -278,6 +293,7 @@ const ITINERARY_FIELDS = gql`
             departAirport
             arrivalAirport
             cost
+            paidAt
             paidBy {
                 id
                 email
@@ -317,6 +333,22 @@ const ITINERARY_FIELDS = gql`
                 flightNumber
                 departAirport
                 arrivalAirport
+                cost
+                paidAt
+                paidBy {
+                    id
+                    email
+                    name
+                }
+                budgets {
+                    id
+                    user {
+                        id
+                        email
+                        name
+                    }
+                    amount
+                }
                 segments {
                     segmentIndex
                     departDate
@@ -349,6 +381,12 @@ const ITINERARY_FIELDS = gql`
                         name
                     }
                     amount
+                }
+                paidAt
+                paidBy {
+                    id
+                    email
+                    name
                 }
                 kind
                 flightSegments {

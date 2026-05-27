@@ -1,6 +1,16 @@
 import { useState, useRef, useEffect, type ComponentType } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
-import { Alert, Grid, Snackbar } from '@mui/material';
+import {
+    Alert,
+    CircularProgress,
+    Grid,
+    InputAdornment,
+    Snackbar,
+    TextField,
+} from '@mui/material';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
@@ -18,7 +28,10 @@ import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import FlightSegmentLookupWatcher from './FlightSegmentLookupWatcher';
+import { parseFlightInfo } from './parseFlightInfo';
+import PlaceSmartEntryWatcher from './PlaceSmartEntryWatcher';
 import type { FlightLookupResult } from 'api/flightLookupApi';
+import type { PlaceRecommendation } from 'types';
 import PlaceAutocomplete, {
     type PlaceSuggestion,
 } from 'components/common/PlaceAutocomplete';
@@ -26,6 +39,11 @@ import PlaceSuggestions from 'components/common/PlaceSuggestions';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import classNames from 'classnames';
 import { ACTION, ACTIVITY_KIND, BUTTON_VARIANT, TRIP_BASIC } from 'constants';
+import {
+    useNearestAirport,
+    useNearestTrainStation,
+} from 'api/hooks/useHomeDeparture';
+import { useTripState } from 'context/TripContext';
 import './index.scss';
 import type {
     Activity,
@@ -184,11 +202,113 @@ const AddPlaceBtn = ({
     const [place, setPlace] = useState<PlaceDraft>(buildInitialPlace);
     const [formKey, setFormKey] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    // Flight-segment detail collapse — by default only the flight
+    // number is visible per segment; airport / date / time are hidden
+    // behind a "Show details" toggle to keep the form simple. The
+    // AeroDataBox lookup populates those fields silently. A segment
+    // auto-expands once it has any user-meaningful airport data, so
+    // edit-mode + post-lookup populations reveal what got filled.
+    const [expandedSegments, setExpandedSegments] = useState<Set<number>>(
+        () => new Set()
+    );
+    const [lookupLoading, setLookupLoading] = useState<Set<number>>(
+        () => new Set()
+    );
+    // Whole-segment collapse — independent of the airport/date/time
+    // details panel. Closed by default so the form stays compact;
+    // segments auto-open when they pick up a flight number from the
+    // smart-entry parser above, or when the user clicks the header.
+    const [openSegments, setOpenSegments] = useState<Set<number>>(
+        () => new Set()
+    );
+    // "Smart entry" textfield: a natural-language input above the
+    // segments list ("UA123 tomorrow, stopover BA245") that the user
+    // can use INSTEAD of filling each segment manually. The parser
+    // creates / populates the segment rows; per-segment fields stay
+    // plain so the smart layer is opt-in.
+    const [smartEntry, setSmartEntry] = useState('');
+    // Same idea for the PLACE kind: a smart-entry textfield above the
+    // Activity name field that accepts either a plain place name
+    // ("Eiffel Tower") OR a Google Maps share link. The watcher
+    // searches and applies the top result via `handlePlacePicked`.
+    const [placeSmartEntry, setPlaceSmartEntry] = useState('');
+    const [placeSmartLoading, setPlaceSmartLoading] = useState(false);
+    // Whole-block collapse for the PLACE form's location → cost →
+    // time → note → image rows. Closed by default so the form stays
+    // compact for the common case (smart entry filled everything);
+    // user can expand to verify / tweak.
+    const [placeDetailsExpanded, setPlaceDetailsExpanded] = useState(false);
     // City of the most-recently picked arrival airport — drives the
     // optional auto-fetch of a hero image for the flight activity.
     // Resets when the modal closes or the kind toggles away from
     // FLIGHT.
     const [arrivalCity, setArrivalCity] = useState<string | null>(null);
+
+    // Home-base auto-seed: when the user toggles to FLIGHT (or a transit
+    // kind) on the very FIRST flight/transit activity of the trip, drop
+    // the IATA / station code from their home city into segment 0's
+    // depart slot. Skips on EDIT (we trust whatever the user saved) and
+    // on the second-onwards flight (by then they're planning an
+    // internal-to-trip leg, not the home-to-destination one).
+    const tripState = useTripState();
+    const { data: nearestAirport } = useNearestAirport();
+    const { data: nearestStation } = useNearestTrainStation();
+    const isFirstFlightActivity = isAdd && !tripState.destinations.some((d) =>
+        d.itinerary?.some((day) =>
+            day.activities.some((a) => a.kind === ACTIVITY_KIND.FLIGHT)
+        )
+    );
+    const isFirstTransitActivity = isAdd && !tripState.destinations.some((d) =>
+        d.itinerary?.some((day) =>
+            day.activities.some(
+                (a) =>
+                    a.kind === ACTIVITY_KIND.TRAIN ||
+                    a.kind === ACTIVITY_KIND.BUS
+            )
+        )
+    );
+
+    useEffect(() => {
+        if (place.kind !== ACTIVITY_KIND.FLIGHT) return;
+        if (!isFirstFlightActivity || !nearestAirport) return;
+        setPlace((prev) => {
+            const segments = prev.flightSegments ?? [];
+            if (!segments.length) return prev;
+            if (segments[0].departAirport) return prev;
+            const next = [...segments];
+            next[0] = {
+                ...next[0],
+                departAirport: nearestAirport.iataCode,
+            };
+            return { ...prev, flightSegments: next };
+        });
+    }, [place.kind, isFirstFlightActivity, nearestAirport]);
+
+    useEffect(() => {
+        // Transit kinds (train + bus). RENTAL_CAR intentionally
+        // excluded — pickup location is usually at the destination
+        // airport, not the user's home, so seeding from home would be
+        // wrong more often than right.
+        const isTransitKind =
+            place.kind === ACTIVITY_KIND.TRAIN ||
+            place.kind === ACTIVITY_KIND.BUS;
+        if (!isTransitKind) return;
+        if (!isFirstTransitActivity || !nearestStation) return;
+        setPlace((prev) => {
+            const segments = prev.transitSegments ?? [];
+            if (!segments.length) return prev;
+            if (segments[0].departStation) return prev;
+            const next = [...segments];
+            next[0] = {
+                ...next[0],
+                // Prefer the proper station name over the bare code —
+                // depart-station is a free-text field, not a code
+                // catalog, so the human-readable label persists better.
+                departStation: nearestStation.name,
+            };
+            return { ...prev, transitSegments: next };
+        });
+    }, [place.kind, isFirstTransitActivity, nearestStation]);
 
     // Fetch one image for the arrival city. Reuses the recommendations
     // endpoint (already cached server-side) so this is essentially free
@@ -241,7 +361,9 @@ const AddPlaceBtn = ({
 
     /** Update one field on segment `index`. Initializes `flightSegments`
      *  with a single entry if it hasn't been populated yet (defensive —
-     *  the kind toggle should already have done that). */
+     *  the kind toggle should already have done that). Plain edits
+     *  only — natural-language parsing lives on the separate "Smart
+     *  entry" textfield above the segments list. */
     const handleSegmentField = <K extends keyof FlightInfo>(
         index: number,
         name: K,
@@ -321,7 +443,108 @@ const AddPlaceBtn = ({
             };
             return { ...prev, flightSegments: segments };
         });
+        // Note: we intentionally do NOT auto-expand the details panel
+        // here. Once the smart-entry / lookup populates airports +
+        // times, the header reads "Segment 1 · UA123" and that's
+        // usually enough — the user can click "Show details" to
+        // verify the fields. Auto-expanding felt cluttered.
     };
+
+    const toggleSegmentExpanded = (segIdx: number) => {
+        setExpandedSegments((prev) => {
+            const next = new Set(prev);
+            if (next.has(segIdx)) next.delete(segIdx);
+            else next.add(segIdx);
+            return next;
+        });
+    };
+
+    const toggleSegmentOpen = (segIdx: number) => {
+        setOpenSegments((prev) => {
+            const next = new Set(prev);
+            if (next.has(segIdx)) next.delete(segIdx);
+            else next.add(segIdx);
+            return next;
+        });
+    };
+
+    /** Natural-language smart entry. Parses things like
+     *      "UA123 tomorrow"
+     *      "UA123 today stopover BA245"
+     *  and rebuilds `flightSegments` so each detected leg becomes a
+     *  row (with its existing FlightSegmentLookupWatcher firing the
+     *  per-leg lookup). Auto-opens every populated segment so the
+     *  user sees the result without hunting for a toggle. */
+    const handleSmartEntry = (text: string) => {
+        setSmartEntry(text);
+        setError(null);
+        const parsed = parseFlightInfo(text);
+        // Empty / no-match: leave segments alone so the user's manual
+        // edits aren't blown away by typing then deleting in this
+        // field.
+        if (parsed.segments.length === 0) return;
+        setPlace((prev) => {
+            const existing = prev.flightSegments ?? [];
+            // Propagate the most-recent date forward: when a downstream
+            // leg ("stopover BA245") doesn't get its own date keyword,
+            // a same-day connection is the overwhelmingly common case
+            // — so fall back to the prior leg's departDate. Without
+            // this, the per-leg lookup stays disabled (it needs a
+            // YYYY-MM-DD) and BA245 reads as an unpopulated stub.
+            let runningDate: string | undefined;
+            const merged = parsed.segments.map((p, i) => {
+                const base = existing[i] ?? emptySegment(isoDefaultDate);
+                const resolvedDate =
+                    p.departDate ?? runningDate ?? base.departDate;
+                if (resolvedDate) runningDate = resolvedDate;
+                return {
+                    ...base,
+                    flightNumber: p.flightNumber ?? base.flightNumber,
+                    ...(resolvedDate
+                        ? {
+                              departDate: resolvedDate,
+                              arrivalDate:
+                                  base.arrivalDate &&
+                                  base.arrivalDate !== base.departDate
+                                      ? base.arrivalDate
+                                      : resolvedDate,
+                          }
+                        : {}),
+                };
+            });
+            // If the parser found fewer legs than already exist, keep
+            // the trailing segments untouched (user might be mid-edit
+            // and the parser hasn't caught up). Multi-leg shrinking
+            // is rare; expanding is the common case.
+            const finalSegments =
+                merged.length >= existing.length
+                    ? merged
+                    : [...merged, ...existing.slice(merged.length)];
+            return { ...prev, flightSegments: finalSegments };
+        });
+        // Intentionally leave openSegments alone: the user wants to
+        // see only the flight numbers (visible in the segment header
+        // sub-label) after smart entry. The segment body stays
+        // collapsed until they click the header to expand.
+    };
+
+    const handleLookupLoadingChange = (segIdx: number, loading: boolean) => {
+        setLookupLoading((prev) => {
+            const has = prev.has(segIdx);
+            if (loading && has) return prev;
+            if (!loading && !has) return prev;
+            const next = new Set(prev);
+            if (loading) next.add(segIdx);
+            else next.delete(segIdx);
+            return next;
+        });
+    };
+
+    // No auto-expand. Both the outer segment block and the inner
+    // airport/date/time panel stay collapsed by default — the user
+    // sees a compact list of segment headers (each showing the
+    // flight number once populated) and clicks the row to expand.
+    // Less visual noise after smart-entry parsing or edit hydrate.
 
     const handleRemoveSegment = (index: number) => {
         setError(null);
@@ -792,10 +1015,26 @@ const AddPlaceBtn = ({
 
     if (isViewMode) return null;
 
+    // Reset per-modal-instance state when the modal closes. Without
+    // this, reopening the modal would show stale smart-entry text,
+    // stale per-segment loading flags, and leftover segment open /
+    // detail-expand states from the previous editing session.
+    const handleModalClose = () => {
+        setSmartEntry('');
+        setPlaceSmartEntry('');
+        setPlaceSmartLoading(false);
+        setPlaceDetailsExpanded(false);
+        setOpenSegments(new Set());
+        setExpandedSegments(new Set());
+        setLookupLoading(new Set());
+        setError(null);
+    };
+
     const modalElement = (
         <ModalButton
             ref={modelRef}
             title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
+            onClose={handleModalClose}
             // Activity form is content-heavy; flips to a full-viewport
             // sheet on mobile so the user doesn't fight a tiny centered
             // window with double scrollbars on every device under 480px.
@@ -932,6 +1171,91 @@ const AddPlaceBtn = ({
                                             />
                                         </Grid>
                                     )}
+                                    {/* Smart entry — accepts either a plain
+                                        place name OR a Google Maps share
+                                        link. The watcher debounces, unwraps
+                                        the URL if any, searches, and applies
+                                        the top match via handlePlacePicked
+                                        so name / location / image / city /
+                                        coords all populate in one shot. */}
+                                    {isAdd && (
+                                        <Grid item lg={12} xs={12} className="py-5">
+                                            <div className="flight-smart-entry">
+                                                <div className="flight-smart-entry-field">
+                                                    <TextField
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        value={placeSmartEntry}
+                                                        onChange={(e) =>
+                                                            setPlaceSmartEntry(e.target.value)
+                                                        }
+                                                        placeholder={
+                                                            countryScope
+                                                                ? `e.g. "Ankole Grill at 10am-12pm, around $50" — searched in ${countryScope}`
+                                                                : 'e.g. "Ankole Grill at 10am-12pm, around $50", or paste a Google Maps link'
+                                                        }
+                                                        InputProps={{
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    {placeSmartLoading ? (
+                                                                        <CircularProgress
+                                                                            size={16}
+                                                                            className="flight-smart-entry-input-icon"
+                                                                        />
+                                                                    ) : (
+                                                                        <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
+                                                                    )}
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="flight-smart-entry-hint">
+                                                    <span>
+                                                        {placeSmartLoading
+                                                            ? 'Looking up the place…'
+                                                            : countryScope
+                                                              ? `Type a place, sentence, or paste a Google Maps link. We'll search ${countryScope} and fill in the details below.`
+                                                              : "Type a place, sentence, or paste a Google Maps link. We'll search and fill in the details below."}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <PlaceSmartEntryWatcher
+                                                rawInput={placeSmartEntry}
+                                                country={countryScope}
+                                                onResult={(item: PlaceRecommendation, parsed) => {
+                                                    handlePlacePicked({
+                                                        name: item.name,
+                                                        location: `${item.city}, ${item.country}`,
+                                                        city: item.city,
+                                                        country: item.country,
+                                                        countryCode: item.countryCode,
+                                                        imageUrl: item.imageUrl,
+                                                        latitude: item.latitude,
+                                                        longitude: item.longitude,
+                                                    });
+                                                    // Apply any times / cost the
+                                                    // user typed in the same
+                                                    // sentence. handlePlacePicked
+                                                    // only fills name + location
+                                                    // + image; these other fields
+                                                    // are independent so we set
+                                                    // them through the standard
+                                                    // form handler.
+                                                    if (parsed.startTime) {
+                                                        handleOnChange('startTime', parsed.startTime);
+                                                    }
+                                                    if (parsed.endTime) {
+                                                        handleOnChange('endTime', parsed.endTime);
+                                                    }
+                                                    if (parsed.cost != null) {
+                                                        handleOnChange('cost', String(parsed.cost));
+                                                    }
+                                                }}
+                                                onLoadingChange={setPlaceSmartLoading}
+                                            />
+                                        </Grid>
+                                    )}
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <PlaceAutocomplete
                                             value={place.name ?? ''}
@@ -948,6 +1272,34 @@ const AddPlaceBtn = ({
                                             placeholder="Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')"
                                         />
                                     </Grid>
+                                    {/* Location → image fields are hidden by
+                                        default — the smart entry above usually
+                                        fills them in. User clicks "Show details"
+                                        to verify or tweak. */}
+                                    <Grid item lg={12} xs={12} className="py-1">
+                                        <button
+                                            type="button"
+                                            className="flight-segment-toggle"
+                                            onClick={() =>
+                                                setPlaceDetailsExpanded((v) => !v)
+                                            }
+                                            aria-expanded={placeDetailsExpanded}
+                                        >
+                                            {placeDetailsExpanded ? (
+                                                <>
+                                                    Hide details
+                                                    <ExpandLessRoundedIcon fontSize="small" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Show details (location, cost, time, note, image)
+                                                    <ExpandMoreRoundedIcon fontSize="small" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </Grid>
+                                    {placeDetailsExpanded && (
+                                    <>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
                                             value={place.location ?? ''}
@@ -999,6 +1351,8 @@ const AddPlaceBtn = ({
                                             onChange={handleImageChange}
                                         />
                                     </Grid>
+                                    </>
+                                    )}
                                 </Grid>
                             )}
 
@@ -1039,6 +1393,51 @@ const AddPlaceBtn = ({
                                             }
                                         />
                                     </Grid>
+                                    {/* Smart entry — natural-language shortcut.
+                                        Sits above the segments list so users can
+                                        type "UA123 tomorrow" or "UA123 today
+                                        stopover BA245" and the parser builds /
+                                        populates the segment rows. The segment
+                                        fields below stay plain (no per-field
+                                        parser) — this is the only place that
+                                        accepts free-form input. AI-flavored
+                                        styling (gradient border + sparkle
+                                        adornment) signals it's not a regular
+                                        form field. */}
+                                    <Grid item lg={12} xs={12} className="py-5">
+                                        <div className="flight-smart-entry">
+                                            <div className="flight-smart-entry-field">
+                                                <TextField
+                                                    fullWidth
+                                                    multiline
+                                                    minRows={1}
+                                                    maxRows={3}
+                                                    variant="outlined"
+                                                    value={smartEntry}
+                                                    onChange={(e) =>
+                                                        handleSmartEntry(e.target.value)
+                                                    }
+                                                    placeholder='Try: "UA123 tomorrow" or "UA123 today stopover BA245"'
+                                                    InputProps={{
+                                                        startAdornment: (
+                                                            <InputAdornment position="start">
+                                                                <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="flight-smart-entry-hint">
+                                                <span>
+                                                    Type your flight(s) here and
+                                                    we&rsquo;ll auto-create the
+                                                    segments below. Or expand a
+                                                    segment and fill it in
+                                                    manually.
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Grid>
                                     {(place.flightSegments ?? [emptySegment(isoDefaultDate)]).map(
                                         (segment, segIdx, allSegs) => (
                                             <Grid
@@ -1049,9 +1448,29 @@ const AddPlaceBtn = ({
                                                 className="flight-segment-block"
                                             >
                                                 <div className="flight-segment-header">
-                                                    <span className="flight-segment-label">
-                                                        {`Segment ${segIdx + 1}`}
-                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        className="flight-segment-open-toggle"
+                                                        onClick={() =>
+                                                            toggleSegmentOpen(segIdx)
+                                                        }
+                                                        aria-expanded={openSegments.has(segIdx)}
+                                                    >
+                                                        {openSegments.has(segIdx) ? (
+                                                            <ExpandLessRoundedIcon fontSize="small" />
+                                                        ) : (
+                                                            <ExpandMoreRoundedIcon fontSize="small" />
+                                                        )}
+                                                        <span className="flight-segment-label">
+                                                            {`Segment ${segIdx + 1}`}
+                                                            {segment.flightNumber?.trim() && (
+                                                                <span className="flight-segment-label-sub">
+                                                                    {' · '}
+                                                                    {segment.flightNumber.trim().toUpperCase()}
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    </button>
                                                     {allSegs.length > 1 && (
                                                         <button
                                                             type="button"
@@ -1069,20 +1488,28 @@ const AddPlaceBtn = ({
                                                     times when the user types a real flight
                                                     number and a depart date. Silent on
                                                     failure (no match / no API key) — the
-                                                    user's typed values stay untouched. */}
+                                                    user's typed values stay untouched. The
+                                                    watcher stays mounted across collapse so
+                                                    the lookup completes even if the user
+                                                    closes the segment mid-fetch. */}
                                                 <FlightSegmentLookupWatcher
                                                     flightNumber={segment.flightNumber}
                                                     departDate={segment.departDate}
                                                     onResult={(result) =>
                                                         applyFlightLookup(segIdx, result)
                                                     }
+                                                    onLoadingChange={(loading) =>
+                                                        handleLookupLoadingChange(segIdx, loading)
+                                                    }
                                                 />
+                                                {openSegments.has(segIdx) && (
                                                 <Grid container>
                                                     <Grid item lg={12} xs={12} className="py-5">
                                                         <InputField
                                                             value={segment.flightNumber ?? ''}
                                                             name={`flightNumber-${segIdx}`}
                                                             label="Flight number"
+                                                            placeholder="e.g. UA123"
                                                             onChange={(e) =>
                                                                 handleSegmentField(
                                                                     segIdx,
@@ -1092,6 +1519,52 @@ const AddPlaceBtn = ({
                                                             }
                                                         />
                                                     </Grid>
+                                                    {/* Hint + lookup spinner — explains why the
+                                                        airport / date / time fields stay hidden
+                                                        until the user expands them. Spinner shows
+                                                        while AeroDataBox is queried. */}
+                                                    <Grid item lg={12} xs={12} className="py-1">
+                                                        <div className="flight-segment-hint">
+                                                            {lookupLoading.has(segIdx) ? (
+                                                                <CircularProgress
+                                                                    size={14}
+                                                                    className="flight-segment-hint-spinner"
+                                                                />
+                                                            ) : (
+                                                                <AutoAwesomeRoundedIcon
+                                                                    fontSize="small"
+                                                                    className="flight-segment-hint-icon"
+                                                                />
+                                                            )}
+                                                            <span className="flight-segment-hint-text">
+                                                                {lookupLoading.has(segIdx)
+                                                                    ? 'Looking up flight details…'
+                                                                    : "We'll auto-fill the airport, date, and time once you enter a flight number."}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                className="flight-segment-toggle"
+                                                                onClick={() =>
+                                                                    toggleSegmentExpanded(segIdx)
+                                                                }
+                                                                aria-expanded={expandedSegments.has(segIdx)}
+                                                            >
+                                                                {expandedSegments.has(segIdx) ? (
+                                                                    <>
+                                                                        Hide details
+                                                                        <ExpandLessRoundedIcon fontSize="small" />
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        Show details
+                                                                        <ExpandMoreRoundedIcon fontSize="small" />
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    </Grid>
+                                                    {expandedSegments.has(segIdx) && (
+                                                    <>
                                                     <Grid item lg={6} xs={12} className="py-5">
                                                         <AirportAutocomplete
                                                             value={segment.departAirport ?? ''}
@@ -1196,7 +1669,10 @@ const AddPlaceBtn = ({
                                                             }
                                                         />
                                                     </Grid>
+                                                    </>
+                                                    )}
                                                 </Grid>
+                                                )}
                                             </Grid>
                                         )
                                     )}

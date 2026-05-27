@@ -316,6 +316,11 @@ interface ItineraryWriteRow {
     activityCell: string;
     cost: number | null;
     whoIsPaying: string;
+    /** Organizer's "marked paid" attestation. Empty strings when unpaid
+     *  so the cell renders blank. `paidOn` is a JS Date so Excel's
+     *  date-format styling applies. */
+    paidBy: string;
+    paidOn: Date | null;
 }
 
 const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
@@ -333,6 +338,10 @@ const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
                     activityCell: activityCellLines(activity),
                     cost: activityCost(activity, budgetItems),
                     whoIsPaying: payerCellLines(budgetItems),
+                    paidBy: activity.paidAt
+                        ? activity.paidBy?.name?.trim() || 'Unknown'
+                        : '',
+                    paidOn: activity.paidAt ? parseDate(activity.paidAt) : null,
                 });
                 const note = collapseWs(activity.note);
                 if (note) {
@@ -344,6 +353,8 @@ const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
                         activityCell: `Note: ${note}`,
                         cost: null,
                         whoIsPaying: '',
+                        paidBy: '',
+                        paidOn: null,
                     });
                 }
             }
@@ -363,17 +374,24 @@ const buildItinerarySheet = async (
         { width: 18 }, // Time
         { width: 36 }, // Activity (multi-line)
         { width: 12 }, // Cost
-        { width: 26 }, // Who is Paying
+        { width: 16 }, // Paid By (organizer attestation)
+        { width: 12 }, // Paid On
+        { width: 26 }, // Who is Paying (per-friend budget split)
     ];
 
     // Per the sample, Itinerary has no logo at the top — column
     // headers sit at row 1, data immediately below. The Overview
     // sheet carries the logo for the whole workbook.
+    // Paid By / Paid On sit right after Cost so the columns flow
+    // chronologically along the row: schedule → cost → payment
+    // attestation → budget split.
     const HEADER = [
         'Date',
         'Time',
         'Activity',
         'Cost',
+        'Paid By',
+        'Paid On',
         'Who is Paying',
     ];
     const headerRowIdx = 1;
@@ -438,8 +456,19 @@ const buildItinerarySheet = async (
             c.numFmt = CURRENCY_FORMAT;
             styleBodyCell(c);
         }
-        if (row.whoIsPaying) {
+        if (row.paidBy) {
             const c = ws.getCell(r, 5);
+            c.value = row.paidBy;
+            styleBodyCell(c);
+        }
+        if (row.paidOn) {
+            const c = ws.getCell(r, 6);
+            c.value = row.paidOn;
+            c.numFmt = DATE_FORMAT;
+            styleBodyCell(c);
+        }
+        if (row.whoIsPaying) {
+            const c = ws.getCell(r, 7);
             c.value = row.whoIsPaying;
             styleBodyCell(c);
         }

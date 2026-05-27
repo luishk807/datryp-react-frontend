@@ -6,6 +6,10 @@ import {
     fetchTravelerStylesCatalog,
     updateMyPreferences,
 } from 'api/preferencesApi';
+import {
+    nearestAirportKey,
+    nearestTrainStationKey,
+} from 'api/hooks/useHomeDeparture';
 import { useUser } from 'context/UserContext';
 import { queryKeys } from 'api/queryKeys';
 import type {
@@ -71,12 +75,27 @@ export const useUpdateMyPreferences = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (payload: PreferencesUpdate) => updateMyPreferences(payload),
-        onSuccess: (data) => {
+        onSuccess: (data, variables) => {
             qc.setQueryData(preferencesKey, data);
             // /auth/me embeds the same fields — invalidate so the
             // UserContext picks up the new state (which gates the
             // wizard's auto-launch).
             qc.invalidateQueries({ queryKey: queryKeys.currentUser });
+            // Home base touched → recompute the cached nearest-airport
+            // and nearest-station rows. Skip the invalidation when the
+            // mutation didn't touch any home_* field so a plain
+            // interests-save doesn't trigger two extra round-trips on
+            // every save.
+            const homeChanged =
+                variables.homeCity !== undefined ||
+                variables.homeCountry !== undefined ||
+                variables.homeCountryCode !== undefined ||
+                variables.homeLatitude !== undefined ||
+                variables.homeLongitude !== undefined;
+            if (homeChanged) {
+                qc.invalidateQueries({ queryKey: nearestAirportKey });
+                qc.invalidateQueries({ queryKey: nearestTrainStationKey });
+            }
         },
     });
 };

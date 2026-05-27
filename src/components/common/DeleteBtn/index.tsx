@@ -28,8 +28,11 @@ const DeleteBtn = ({
             buttonType={buttonType}
             onConfirm={onConfirm}
             isViewMode={isViewMode}
+            confirmLabel="Delete"
+            destructive
         >
-            You are about to delete {targetName ?? 'this item'}. Are you sure you want to delete it?
+            You are about to delete{' '}
+            <strong>{targetName ?? 'this item'}</strong>. This can&rsquo;t be undone.
         </DialogBox>
     );
 };

@@ -78,6 +78,14 @@ export interface Activity {
   countryCode?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** Set by the organizer when they confirm a participant has paid for
+   *  this activity. `paidAt` is the date the payment was made (ISO
+   *  `YYYY-MM-DD`); `paidBy` is the participant who paid. Both are
+   *  organizer-only writes — non-organizers see the chip read-only. The
+   *  pair is cleared together when the organizer marks an activity as
+   *  unpaid. */
+  paidAt?: string | null;
+  paidBy?: { id: string; name: string | null } | null;
 }
 
 export interface ItineraryDay {
