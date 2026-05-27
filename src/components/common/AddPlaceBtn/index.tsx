@@ -37,6 +37,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import FlightSegmentLookupWatcher from './FlightSegmentLookupWatcher';
 import { parseFlightInfo } from './parseFlightInfo';
 import PlaceSmartEntryWatcher from './PlaceSmartEntryWatcher';
+import { parseTransitEntry } from './parseTransitQuery';
 import { pickSmartEntryLocation } from './pickSmartEntryLocation';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { PlaceRecommendation } from 'types';
@@ -260,6 +261,13 @@ const AddPlaceBtn = ({
     const [hotelSmartLoading, setHotelSmartLoading] = useState(false);
     const [hotelSmartWarning, setHotelSmartWarning] = useState<string | null>(null);
     const [hotelDetailsExpanded, setHotelDetailsExpanded] = useState(false);
+    // Parallel state for the GROUND TRANSPORT form (train / bus /
+    // rental car). Same smart-entry + collapse pattern: a natural-
+    // language input below the trip-name field auto-fills depart /
+    // arrival station + time + cost on the first segment, with the
+    // detailed per-segment fields hidden behind a Show details toggle.
+    const [transitSmartEntry, setTransitSmartEntry] = useState('');
+    const [transitDetailsExpanded, setTransitDetailsExpanded] = useState(false);
     // Pending HOTEL_CHECKOUT to spawn alongside the primary
     // HOTEL_CHECKIN once the user clicks Save. Populated by the hotel
     // smart entry when the input mentions a separate check-out time
@@ -379,6 +387,90 @@ const AddPlaceBtn = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [arrivalImageQuery.data, place.kind]);
 
+    // Ground-transport smart-entry watcher. Mirrors the place watcher's
+    // shape but does its work synchronously — no backend lookup needed
+    // for transit; we just parse the natural-language text and fan out
+    // the result onto the first segment + cost + trip name. Debounced
+    // at 600ms so each keystroke doesn't thrash the form state.
+    useEffect(() => {
+        const isTransit =
+            place.kind === ACTIVITY_KIND.TRAIN ||
+            place.kind === ACTIVITY_KIND.BUS ||
+            place.kind === ACTIVITY_KIND.RENTAL_CAR;
+        if (!isTransit) return;
+        if (!transitSmartEntry.trim()) return;
+        const kindAtFire = place.kind;
+        const timer = setTimeout(() => {
+            const parsed = parseTransitEntry(transitSmartEntry);
+            if (!parsed) return;
+            // Build the kind-specific trip-name wrapper. The parser
+            // returns just the operator string (e.g. "Hertz") and we
+            // wrap it here so the headline reads naturally for the
+            // chosen kind. Falls through to whatever the parser
+            // suggested (station-pair, or residual text) when no
+            // operator was detected.
+            const wrappedTripName = (() => {
+                if (!parsed.tripName) return undefined;
+                if (parsed.operator) {
+                    if (kindAtFire === ACTIVITY_KIND.RENTAL_CAR) {
+                        return `Car reservation with ${parsed.operator}`;
+                    }
+                    if (kindAtFire === ACTIVITY_KIND.TRAIN) {
+                        return `Train with ${parsed.operator}`;
+                    }
+                    if (kindAtFire === ACTIVITY_KIND.BUS) {
+                        return `Bus with ${parsed.operator}`;
+                    }
+                }
+                return parsed.tripName;
+            })();
+            setPlace((prev) => {
+                const baseSegs = prev.transitSegments?.length
+                    ? [...prev.transitSegments]
+                    : [emptyTransitSegment(isoDefaultDate)];
+                const first = { ...baseSegs[0] };
+                if (parsed.operator) first.operator = parsed.operator;
+                if (parsed.departStation) first.departStation = parsed.departStation;
+                if (parsed.arrivalStation) first.arrivalStation = parsed.arrivalStation;
+                if (parsed.departTime) first.departTime = parsed.departTime;
+                if (parsed.arrivalTime) first.arrivalTime = parsed.arrivalTime;
+                if (parsed.departDate) first.departDate = parsed.departDate;
+                if (parsed.arrivalDate) first.arrivalDate = parsed.arrivalDate;
+                if (parsed.classOrSeat) first.classOrSeat = parsed.classOrSeat;
+                // The form's "Confirmation #" / "Train number" /
+                // "Bus number" field is `segment.number` (handleSubmit
+                // strips draft-level `confirmationNumber` for transit
+                // kinds). Apply parsed confirmation here so it shows
+                // up in the right form field and persists on save.
+                if (parsed.confirmationNumber && !first.number) {
+                    first.number = parsed.confirmationNumber;
+                }
+                baseSegs[0] = first;
+                return {
+                    ...prev,
+                    transitSegments: baseSegs,
+                    // Only overwrite cost when the user hadn't already
+                    // typed one — same defensive pattern as the place
+                    // and hotel watchers.
+                    cost:
+                        parsed.cost != null && !prev.cost
+                            ? String(parsed.cost)
+                            : prev.cost,
+                    name:
+                        prev.name?.trim() || !wrappedTripName
+                            ? prev.name
+                            : wrappedTripName,
+                };
+            });
+            // Reveal the details so the user sees what got filled —
+            // otherwise the smart entry silently changes hidden state
+            // and the form looks unresponsive.
+            setTransitDetailsExpanded(true);
+        }, 600);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transitSmartEntry, place.kind]);
+
     const handleOnChange = <K extends keyof PlaceDraft>(name: K, value: PlaceDraft[K] | Friend) => {
         setError(null);
         setPlace((prev) => {
@@ -421,6 +513,71 @@ const AddPlaceBtn = ({
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
                 : [emptySegment(isoDefaultDate)];
+
+            // Multi-flight rescue: when the user types two-or-more flight
+            // numbers into a single Flight Number field (e.g. "UA123 with
+            // stopover BA345"), treat it as multi-leg shorthand and split
+            // the legs into separate segments — same outcome as the smart
+            // entry above. Without this, the raw sentence gets stored as
+            // one segment.flightNumber and bleeds across when the user
+            // clicks "+ Add segment" (which inherits the previous leg's
+            // number).
+            if (name === 'flightNumber' && typeof value === 'string') {
+                const parsed = parseFlightInfo(value);
+                if (parsed.segments.length > 1) {
+                    const before = segments.slice(0, index);
+                    const tail = segments.slice(index + 1);
+                    let runningDate: string | undefined =
+                        segments[index]?.departDate;
+                    const newLegs = parsed.segments.map((p, i) => {
+                        const dateToUse = p.departDate ?? runningDate;
+                        if (dateToUse) runningDate = dateToUse;
+                        const base =
+                            i === 0
+                                ? segments[index]
+                                : emptySegment(isoDefaultDate);
+                        return {
+                            ...base,
+                            flightNumber:
+                                p.flightNumber ?? base.flightNumber,
+                            ...(dateToUse
+                                ? {
+                                      departDate: dateToUse,
+                                      arrivalDate:
+                                          base.arrivalDate &&
+                                          base.arrivalDate !== base.departDate
+                                              ? base.arrivalDate
+                                              : dateToUse,
+                                  }
+                                : {}),
+                        };
+                    });
+                    return {
+                        ...prev,
+                        flightSegments: [...before, ...newLegs, ...tail],
+                    };
+                }
+                // Single-leg path: when the input contains a recognizable
+                // flight number AND extra noise (e.g. "UA123 with stopover"
+                // without a second flight number yet — user might still be
+                // typing the second leg), collapse to just the parsed
+                // number so the lookup fires and the input doesn't carry
+                // free-form text into the saved record. Pure "UA123" or
+                // mid-typing partials (no match) pass through unchanged.
+                if (
+                    parsed.segments.length === 1 &&
+                    parsed.flightNumber &&
+                    value.trim().toUpperCase() !== parsed.flightNumber
+                ) {
+                    const updated = {
+                        ...segments[index],
+                        flightNumber: parsed.flightNumber,
+                    };
+                    segments[index] = updated;
+                    return { ...prev, flightSegments: segments };
+                }
+            }
+
             const current = segments[index];
             const updated = { ...current, [name]: value };
             // Auto-fill arrival date from depart date when arrival is empty
@@ -714,6 +871,8 @@ const AddPlaceBtn = ({
         setHotelSmartLoading(false);
         setHotelSmartWarning(null);
         setHotelDetailsExpanded(false);
+        setTransitSmartEntry('');
+        setTransitDetailsExpanded(false);
         setPendingHotelCheckout(null);
         const isHotel =
             next === ACTIVITY_KIND.HOTEL_CHECKIN ||
@@ -903,6 +1062,12 @@ const AddPlaceBtn = ({
                 ?.trim() ?? '';
             finalName = place.name?.trim() || firstLine.slice(0, 80);
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
+            // No user-facing flight-name field anymore — derive
+            // entirely from the segments. Two strategies in priority
+            // order: (1) route chain "JFK → LAX → SFO" when the user
+            // typed any airports; (2) flight number chain "UA123 +
+            // BA245" when only flight numbers are filled. The smart
+            // entry above usually populates one or the other.
             finalName =
                 place.name?.trim() ||
                 (() => {
@@ -911,8 +1076,12 @@ const AddPlaceBtn = ({
                     const chain = [
                         segs[0]?.departAirport ?? '',
                         ...segs.map((s) => s.arrivalAirport ?? ''),
-                    ];
-                    return chain.filter(Boolean).join(' → ');
+                    ].filter((s) => s && s.trim());
+                    if (chain.length) return chain.join(' → ');
+                    const numbers = segs
+                        .map((s) => s.flightNumber?.trim() ?? '')
+                        .filter(Boolean);
+                    return numbers.join(' + ');
                 })();
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
@@ -1129,6 +1298,8 @@ const AddPlaceBtn = ({
         setHotelSmartLoading(false);
         setHotelSmartWarning(null);
         setHotelDetailsExpanded(false);
+        setTransitSmartEntry('');
+        setTransitDetailsExpanded(false);
         setPendingHotelCheckout(null);
         setOpenSegments(new Set());
         setExpandedSegments(new Set());
@@ -1432,26 +1603,10 @@ const AddPlaceBtn = ({
                                             />
                                         </Grid>
                                     )}
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <PlaceAutocomplete
-                                            value={place.name ?? ''}
-                                            onTextChange={(text) =>
-                                                handleOnChange('name', text)
-                                            }
-                                            onSelect={handlePlacePicked}
-                                            country={countryScope}
-                                            label={
-                                                countryScope
-                                                    ? `Activity name (or place in ${countryScope})`
-                                                    : 'Activity name'
-                                            }
-                                            placeholder="Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')"
-                                        />
-                                    </Grid>
-                                    {/* Location → image fields are hidden by
-                                        default — the smart entry above usually
-                                        fills them in. User clicks "Show details"
-                                        to verify or tweak. */}
+                                    {/* Name + location → image fields are hidden
+                                        by default — the smart entry above
+                                        usually fills them in. User clicks
+                                        "Show details" to verify or tweak. */}
                                     <Grid item lg={12} xs={12} className="py-1">
                                         <button
                                             type="button"
@@ -1468,7 +1623,7 @@ const AddPlaceBtn = ({
                                                 </>
                                             ) : (
                                                 <>
-                                                    Show details (location, cost, time, note, image)
+                                                    Show details (name, location, cost, time, note, image)
                                                     <ExpandMoreRoundedIcon fontSize="small" />
                                                 </>
                                             )}
@@ -1476,6 +1631,22 @@ const AddPlaceBtn = ({
                                     </Grid>
                                     {placeDetailsExpanded && (
                                     <>
+                                    <Grid item lg={12} xs={12} className="py-5">
+                                        <PlaceAutocomplete
+                                            value={place.name ?? ''}
+                                            onTextChange={(text) =>
+                                                handleOnChange('name', text)
+                                            }
+                                            onSelect={handlePlacePicked}
+                                            country={countryScope}
+                                            label={
+                                                countryScope
+                                                    ? `Activity name (or place in ${countryScope})`
+                                                    : 'Activity name'
+                                            }
+                                            placeholder="Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')"
+                                        />
+                                    </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
                                             value={place.location ?? ''}
@@ -1587,21 +1758,15 @@ const AddPlaceBtn = ({
 
                             {place.kind === ACTIVITY_KIND.FLIGHT && (
                                 <Grid container>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.name ?? ''}
-                                            name="name"
-                                            label="Flight name (optional — auto-fills from route)"
-                                            onChange={(e) =>
-                                                handleOnChange('name', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
                                     {/* Smart entry — natural-language shortcut.
                                         Sits above the segments list so users can
                                         type "UA123 tomorrow" or "UA123 today
                                         stopover BA245" and the parser builds /
-                                        populates the segment rows. The segment
+                                        populates the segment rows. Moved above
+                                        the Flight-name field because the smart
+                                        entry now auto-derives a name from the
+                                        route, so most users never need to fill
+                                        the name field at all. The segment
                                         fields below stay plain (no per-field
                                         parser) — this is the only place that
                                         accepts free-form input. AI-flavored
@@ -2133,27 +2298,10 @@ const AddPlaceBtn = ({
                                             />
                                         </Grid>
                                     )}
-                                    <Grid item lg={12} xs={12} className="pt-2 pb-5">
-                                        <PlaceAutocomplete
-                                            value={place.name ?? ''}
-                                            onTextChange={(text) =>
-                                                handleOnChange('name', text)
-                                            }
-                                            onSelect={handlePlacePicked}
-                                            country={countryScope}
-                                            queryPrefix="hotel"
-                                            label={
-                                                countryScope
-                                                    ? `Hotel name (or search in ${countryScope})`
-                                                    : 'Hotel name'
-                                            }
-                                            placeholder="Type a hotel name — we'll suggest matches"
-                                        />
-                                    </Grid>
-                                    {/* Address → notes hidden by default.
+                                    {/* Name + address → notes hidden by default.
                                         Smart entry above usually fills the
-                                        address + time + cost; user expands
-                                        to verify or tweak. */}
+                                        name + address + time + cost; user
+                                        expands to verify or tweak. */}
                                     <Grid item lg={12} xs={12} className="py-1">
                                         <button
                                             type="button"
@@ -2170,7 +2318,7 @@ const AddPlaceBtn = ({
                                                 </>
                                             ) : (
                                                 <>
-                                                    Show details (address, time, confirmation, cost, notes)
+                                                    Show details (name, address, time, confirmation, cost, notes)
                                                     <ExpandMoreRoundedIcon fontSize="small" />
                                                 </>
                                             )}
@@ -2178,6 +2326,23 @@ const AddPlaceBtn = ({
                                     </Grid>
                                     {hotelDetailsExpanded && (
                                     <>
+                                    <Grid item lg={12} xs={12} className="py-5">
+                                        <PlaceAutocomplete
+                                            value={place.name ?? ''}
+                                            onTextChange={(text) =>
+                                                handleOnChange('name', text)
+                                            }
+                                            onSelect={handlePlacePicked}
+                                            country={countryScope}
+                                            queryPrefix="hotel"
+                                            label={
+                                                countryScope
+                                                    ? `Hotel name (or search in ${countryScope})`
+                                                    : 'Hotel name'
+                                            }
+                                            placeholder="Type a hotel name — we'll suggest matches"
+                                        />
+                                    </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
                                         <InputField
                                             value={place.location ?? ''}
@@ -2357,6 +2522,78 @@ const AddPlaceBtn = ({
                                             </div>
                                         </Grid>
                                     )}
+                                    {/* Smart entry — natural language →
+                                        fills depart/arrival station + times
+                                        + cost on the first segment in one
+                                        shot. Synchronous parser, no backend
+                                        call (transit doesn't have an AI
+                                        recommender). Always visible; the
+                                        per-segment fields below stay hidden
+                                        behind Show details to keep the form
+                                        compact for the common case. */}
+                                    {isAdd && (
+                                        <Grid item lg={12} xs={12} className="py-5">
+                                            <div className="flight-smart-entry">
+                                                <div className="flight-smart-entry-field">
+                                                    <TextField
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        value={transitSmartEntry}
+                                                        onChange={(e) =>
+                                                            setTransitSmartEntry(e.target.value)
+                                                        }
+                                                        placeholder={
+                                                            place.kind === ACTIVITY_KIND.RENTAL_CAR
+                                                                ? 'e.g. "Hertz pickup JFK 10am $50"'
+                                                                : 'e.g. "Tokyo to Kyoto 9am-12pm $100"'
+                                                        }
+                                                        InputProps={{
+                                                            startAdornment: (
+                                                                <InputAdornment position="start">
+                                                                    <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
+                                                                </InputAdornment>
+                                                            ),
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="flight-smart-entry-hint">
+                                                    <span>
+                                                        Type stations, times, and cost — we&rsquo;ll fill the details below.
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </Grid>
+                                    )}
+                                    {/* Show details toggle — collapses the
+                                        whole per-segment form (trip name,
+                                        legs, times, cost) so the smart entry
+                                        alone is enough for the common single-
+                                        leg case. Auto-expands once the smart
+                                        entry resolves anything. */}
+                                    <Grid item lg={12} xs={12} className="py-1">
+                                        <button
+                                            type="button"
+                                            className="flight-segment-toggle"
+                                            onClick={() =>
+                                                setTransitDetailsExpanded((v) => !v)
+                                            }
+                                            aria-expanded={transitDetailsExpanded}
+                                        >
+                                            {transitDetailsExpanded ? (
+                                                <>
+                                                    <ExpandLessRoundedIcon fontSize="small" />
+                                                    Hide details
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ExpandMoreRoundedIcon fontSize="small" />
+                                                    Show details (trip name, segments, times, cost)
+                                                </>
+                                            )}
+                                        </button>
+                                    </Grid>
+                                    {transitDetailsExpanded && (
+                                    <>
                                     <Grid item lg={12} xs={12} className="pt-5 pb-5">
                                         <InputField
                                             value={place.name ?? ''}
@@ -2632,6 +2869,8 @@ const AddPlaceBtn = ({
                                                 : '+ Add leg (transfer)'}
                                         </button>
                                     </Grid>
+                                    </>
+                                    )}
                                 </Grid>
                             )}
                         </Grid>

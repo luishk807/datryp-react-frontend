@@ -21,13 +21,13 @@ import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import LoginBtn from 'components/common/LoginBtn';
 import SearchBar from 'components/SearchBar';
+import type { PlaceResult } from 'api/hooks/usePlaces';
 import IconLink from 'components/common/IconLink';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import NotificationBell from 'components/NotificationBell';
 import { useUser } from 'context/UserContext';
 import type { LoginForm } from 'components/common/LoginBtn';
 import { BUTTON_VARIANT, LOGO_ICON_IMAGE, LOGO_IMAGE } from 'constants';
-import type { Country } from 'types';
 import './index.scss';
 
 interface HeaderProps {
@@ -58,13 +58,26 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
     const showUpgradeLink = !!user && !isAdmin && !user.isPaidMember;
     const showSubscriptionLink = !!user && !isAdmin && user.isPaidMember;
 
-    const handleSearchSelected = (country: Country) => {
-        if (!country?.code) return;
-        // Route through the country preview page. The hero search doesn't
-        // expose a mode picker, so hand 'single' as the default — matches
-        // the most common path (single-destination trip).
+    // Header search uses the unified PLACE mode (cities + countries) so
+    // queries like "Hawaii" or "Honolulu" resolve to a city preview
+    // instead of returning nothing — the previous country-only flow
+    // silently failed on anything that wasn't a sovereign-state name.
+    // Routes cities to /city and countries to /country, same as the
+    // homepage hero. Single-destination by convention; the user can
+    // switch to multi from inside the trip-builder.
+    const handlePlaceSelected = (place: PlaceResult) => {
+        if (!place?.countryCode) return;
+        if (place.kind === 'country') {
+            navigate(
+                `/country?code=${encodeURIComponent(place.countryCode)}&mode=single`
+            );
+            return;
+        }
         navigate(
-            `/country?code=${encodeURIComponent(country.code)}&mode=single`
+            `/city?name=${encodeURIComponent(place.name)}` +
+                `&country=${encodeURIComponent(place.countryName)}` +
+                `&code=${encodeURIComponent(place.countryCode)}` +
+                `&mode=single`
         );
     };
 
@@ -158,7 +171,8 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                         <SearchBarIcon className="app-header-search-icon" />
                         <SearchBar
                             type="simple"
-                            onSelected={handleSearchSelected}
+                            mode="place"
+                            onPlaceSelected={handlePlaceSelected}
                         />
                     </div>
                 )}

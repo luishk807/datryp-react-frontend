@@ -171,7 +171,7 @@ const parseClockToken = (token: string): string | null => {
 /** Match a time range — "10:00am - 12:00pm" / "10am to 12pm" / "10-12".
  *  Returns the match info so callers can also know which slice of the
  *  input to strip when computing the place-name query. */
-interface TimeRangeMatch {
+export interface TimeRangeMatch {
     startTime: string;
     endTime: string;
     start: number;
@@ -181,7 +181,7 @@ interface TimeRangeMatch {
 const TIME_RANGE_RE =
     /(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.)?)/i;
 
-const extractTimeRange = (text: string): TimeRangeMatch | null => {
+export const extractTimeRange = (text: string): TimeRangeMatch | null => {
     const m = text.match(TIME_RANGE_RE);
     if (!m || m.index === undefined) return null;
     const start = parseClockToken(m[1].trim());
@@ -197,7 +197,7 @@ const extractTimeRange = (text: string): TimeRangeMatch | null => {
 
 /** Match a single clock time when no range is present — e.g.
  *  "Eiffel Tower at 2pm". */
-interface TimeMatch {
+export interface TimeMatch {
     startTime: string;
     start: number;
     end: number;
@@ -329,7 +329,7 @@ const extractHotelTimes = (text: string): HotelTimes | null => {
 const SINGLE_TIME_RE =
     /\b(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.))\b/i;
 
-const extractSingleTime = (text: string): TimeMatch | null => {
+export const extractSingleTime = (text: string): TimeMatch | null => {
     const m = text.match(SINGLE_TIME_RE);
     if (!m || m.index === undefined) return null;
     const t = parseClockToken(m[1].trim());
@@ -339,7 +339,7 @@ const extractSingleTime = (text: string): TimeMatch | null => {
 
 // ---------- Cost helpers ----------
 
-interface CostMatch {
+export interface CostMatch {
     cost: number;
     start: number;
     end: number;
@@ -367,7 +367,7 @@ const COST_PATTERNS: RegExp[] = [
     /(?:around|about|roughly|~)\s*\$?\s*(\d{1,5}(?:\.\d{1,2})?)\b/i,
 ];
 
-const extractCost = (text: string): CostMatch | null => {
+export const extractCost = (text: string): CostMatch | null => {
     for (const re of COST_PATTERNS) {
         const m = text.match(re);
         if (!m || m.index === undefined) continue;
@@ -384,7 +384,7 @@ const extractCost = (text: string): CostMatch | null => {
 
 // ---------- Confirmation # helpers ----------
 
-interface ConfirmationMatch {
+export interface ConfirmationMatch {
     confirmationNumber: string;
     start: number;
     end: number;
@@ -405,7 +405,7 @@ const CONFIRMATION_PATTERNS: RegExp[] = [
     /\bcode\b\s*[:#]?\s*([A-Z0-9][A-Z0-9-/]{3,19})\b/i,
 ];
 
-const extractConfirmation = (text: string): ConfirmationMatch | null => {
+export const extractConfirmation = (text: string): ConfirmationMatch | null => {
     for (const re of CONFIRMATION_PATTERNS) {
         const m = text.match(re);
         if (!m || m.index === undefined) continue;
