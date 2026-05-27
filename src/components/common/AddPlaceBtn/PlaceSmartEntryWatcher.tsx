@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { usePhotoSearch } from 'api/hooks/usePhotoSearch';
 import { usePlaceRating } from 'api/hooks/usePlaceRating';
+import {
+    isShortLinkUrl,
+    useResolveShortLink,
+} from 'api/hooks/useResolveShortLink';
 import type { PlaceRecommendation } from 'types';
 import { parsePlaceEntry, type ParsedPlaceEntry } from './parsePlaceQuery';
 
@@ -71,12 +75,30 @@ const PlaceSmartEntryWatcher = ({
     const [parsed, setParsed] = useState<ParsedPlaceEntry | null>(null);
     const appliedRef = useRef<string | null>(null);
 
+    // Short-link unwrap: `maps.app.goo.gl/...` URLs are opaque and
+    // need a backend redirect-follow before we can extract a place.
+    // The hook returns null until the resolve lands; the resolve is
+    // cached for 24h so re-pastes are instant.
+    const isShort = useMemo(
+        () => isShortLinkUrl((rawInput ?? '').trim()),
+        [rawInput],
+    );
+    const { data: resolvedShortUrl, isFetching: shortLinkFetching } =
+        useResolveShortLink((rawInput ?? '').trim(), { enabled: isShort });
+    // Once a short link resolves, route the resolved URL through the
+    // existing parser. If it didn't resolve yet, sit on a null parse
+    // (no search fires) — the loading indicator covers the wait.
+    const effectiveInput = useMemo(() => {
+        if (!isShort) return rawInput;
+        return resolvedShortUrl ?? '';
+    }, [isShort, resolvedShortUrl, rawInput]);
+
     useEffect(() => {
         const timer = setTimeout(() => {
-            setParsed(parsePlaceEntry(rawInput));
+            setParsed(parsePlaceEntry(effectiveInput));
         }, 600);
         return () => clearTimeout(timer);
-    }, [rawInput]);
+    }, [effectiveInput]);
 
     // Surface URL-extraction failures back to the caller. Cleared
     // whenever a usable parse lands (empty / plain text / URL with a
@@ -124,8 +146,19 @@ const PlaceSmartEntryWatcher = ({
     );
 
     useEffect(() => {
-        onLoadingChange?.(searchFetching || photoFetching || ratingFetching);
-    }, [searchFetching, photoFetching, ratingFetching, onLoadingChange]);
+        onLoadingChange?.(
+            shortLinkFetching ||
+                searchFetching ||
+                photoFetching ||
+                ratingFetching,
+        );
+    }, [
+        shortLinkFetching,
+        searchFetching,
+        photoFetching,
+        ratingFetching,
+        onLoadingChange,
+    ]);
 
     useEffect(() => {
         if (!parsed) return;
@@ -135,40 +168,64 @@ const PlaceSmartEntryWatcher = ({
         // on cache hit, so the wait is short for repeat queries.
         if (searchFetching || photoFetching || ratingFetching) return;
         const top = searchData?.items?.[0];
+        // Distinctive-token check: both backends (AI recommender and
+        // Google Places) occasionally return a popular-in-country
+        // place when they can't find the user's actual query — e.g.
+        // searching "tokyo skytree" returns "Rokurinsha Tokyo Ramen
+        // Street" because both names share "tokyo". A simple any-
+        // token overlap accepts that as a hit; we need all
+        // distinctive (≥4 char, so stopwords like "the"/"and"
+        // drop out) tokens in the user's query to appear in the
+        // result name, or we treat the backend as having missed.
+        const queryTokens = parsed.query
+            .toLowerCase()
+            .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+            .split(/\s+/)
+            .filter((t) => t.length >= 4);
+        const nameMatchesQuery = (name: string | null | undefined): boolean => {
+            if (queryTokens.length === 0) return true;
+            if (!name) return false;
+            const lowered = name.toLowerCase();
+            return queryTokens.every((t) => lowered.includes(t));
+        };
+        const topTrustworthy = top ? nameMatchesQuery(top.name) : false;
+        // Coordinate fallback: a single place often has multiple
+        // legitimate names — e.g. "Hiroshima Peace Memorial (Atomic
+        // Bomb Dome)" (AI) vs. "Atomic Bomb Dome" (Google's short
+        // label). The name-token check rejects the Google match,
+        // which then strips its address / photo / coords from the
+        // result even though it's the same building. When the AI
+        // result IS trustworthy AND Google's lat/lng land within
+        // ~100m of the AI's, treat Google as the same place under
+        // an alternate label.
+        const coordsAgreeWithTop = (() => {
+            if (!topTrustworthy || !top) return false;
+            if (top.latitude == null || top.longitude == null) return false;
+            if (ratingData?.latitude == null || ratingData?.longitude == null) {
+                return false;
+            }
+            const latDiff = Math.abs(top.latitude - ratingData.latitude);
+            const lngDiff = Math.abs(top.longitude - ratingData.longitude);
+            return latDiff < 0.001 && lngDiff < 0.001;
+        })();
+        const ratingTrustworthy =
+            nameMatchesQuery(ratingData?.name) || coordsAgreeWithTop;
         // Image priority:
         //   1. Google Places photo (real business photo — works for
         //      niche / local / non-English-named venues that Unsplash
-        //      doesn't cover).
+        //      doesn't cover) — but ONLY when ratingData's name
+        //      matches the query. Without this gate, a stale-cache
+        //      Rokurinsha rating leaks its interior photo onto a
+        //      Mount-Fuji query even though we reject the name.
         //   2. Unsplash search match (generic landscape / cityscape
-        //      fallback when Google has no photo).
+        //      fallback when Google has no photo, or when we don't
+        //      trust the Google match).
         const photoUrl =
-            ratingData?.photoUrl ?? photoData?.imageUrl ?? null;
-        // Token-overlap check: the AI recommendation engine sometimes
-        // returns a tangentially-related "top attraction" for an
-        // arbitrary name lookup (e.g. searching "Marina Bay Horizon"
-        // in Kenya gets back "Nairobi National Park"). When the top
-        // hit shares NO meaningful words with the user's typed query,
-        // treat it as a miss and fall back to the synthetic record
-        // built from the parsed query + photo-search image.
-        const queryTokens = new Set(
-            parsed.query
-                .toLowerCase()
-                .split(/\s+/)
-                .filter((t) => t.length > 2),
-        );
-        const topTokens = top
-            ? new Set(
-                  top.name
-                      .toLowerCase()
-                      .split(/\s+/)
-                      .filter((t) => t.length > 2),
-              )
-            : new Set<string>();
-        const sharesToken =
-            queryTokens.size > 0 &&
-            [...queryTokens].some((t) => topTokens.has(t));
+            (ratingTrustworthy ? ratingData?.photoUrl : undefined) ??
+            photoData?.imageUrl ??
+            null;
         let merged: PlaceRecommendation | null = null;
-        if (top && sharesToken) {
+        if (top && topTrustworthy) {
             // Real recommendation hit. Use the photo-search image as
             // a fallback only when the recommendation itself doesn't
             // carry one.
@@ -180,12 +237,11 @@ const PlaceSmartEntryWatcher = ({
                 photographerUrl:
                     top.photographerUrl ?? photoData?.photographerUrl ?? null,
             };
-        } else if (ratingData?.formattedAddress || photoUrl || parsed.query) {
-            // No recommendation match — fall back to a synthetic record
-            // built from Google's place data (when found) + the
-            // Unsplash photo. Google's `formatted_address` is the real
-            // street address ("Champ de Mars, 5 Av. Anatole France,
-            // 75007 Paris, France") instead of just "Paris, France".
+        } else if (ratingTrustworthy && (ratingData?.formattedAddress || photoUrl)) {
+            // Google Places matched the query — use its address /
+            // coords / name. `formatted_address` is the real street
+            // address ("Champ de Mars, 5 Av. Anatole France, 75007
+            // Paris, France") instead of just "Paris, France".
             merged = {
                 name: ratingData?.name ?? parsed.query,
                 // We don't get city/country from Google directly, but
@@ -204,24 +260,44 @@ const PlaceSmartEntryWatcher = ({
                 latitude: ratingData?.latitude ?? null,
                 longitude: ratingData?.longitude ?? null,
             };
+        } else if (parsed.query) {
+            // Bare synthetic: neither backend matched the user's
+            // query. We still ship the typed name + (maybe) a photo
+            // so the user has something to save and edit. Crucially
+            // we do NOT leak ratingData's address / coords here —
+            // they belong to a different place that happened to share
+            // a city / country with the user's input.
+            merged = {
+                name: parsed.query,
+                city: '',
+                country: country ?? '',
+                countryCode: null,
+                rating: 0,
+                bestTimeToVisit: '',
+                description: '',
+                imageUrl: photoUrl,
+                photographerName: photoData?.photographerName ?? null,
+                photographerUrl: photoData?.photographerUrl ?? null,
+                latitude: null,
+                longitude: null,
+            };
         }
         if (!merged) return;
-        // Layer Google's real coordinates on top whenever we got
-        // them — the recommender's lat/lng can be a city centroid
-        // while Google's points at the actual building. (For the
-        // synthetic-fallback path the lat/lng were already pulled
-        // from ratingData; the assign is a no-op there.)
-        if (ratingData?.latitude != null && !merged.latitude) {
+        // Layer Google's real coordinates on top only when the
+        // rating result was trustworthy (see above). Without this
+        // gate the bare-synthetic path inherits the wrong place's
+        // lat/lng.
+        if (ratingTrustworthy && ratingData?.latitude != null && !merged.latitude) {
             merged = { ...merged, latitude: ratingData.latitude };
         }
-        if (ratingData?.longitude != null && !merged.longitude) {
+        if (ratingTrustworthy && ratingData?.longitude != null && !merged.longitude) {
             merged = { ...merged, longitude: ratingData.longitude };
         }
         const extras: SmartEntryExtras = {};
-        if (ratingData?.formattedAddress) {
+        if (ratingTrustworthy && ratingData?.formattedAddress) {
             extras.formattedAddress = ratingData.formattedAddress;
         }
-        if (ratingData?.placeId) {
+        if (ratingTrustworthy && ratingData?.placeId) {
             extras.placeId = ratingData.placeId;
         }
         const key = `${parsed.query}|${merged.name}|${merged.imageUrl ?? ''}|${extras.formattedAddress ?? ''}`;

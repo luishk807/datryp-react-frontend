@@ -47,6 +47,11 @@ interface DestinationDetailProps {
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Opt-in override for the per-activity status pill — forwarded
+     *  unchanged to Activities. Set on /trip-detail so the
+     *  Planning↔Confirmed quick-toggle is live without first dropping
+     *  into the stepper editor. */
+    allowStatusToggle?: boolean;
     /** Current trip status name (e.g. "confirmed", "completed"). Drives
      *  the activity card's post-planning UI: when the trip is Confirmed
      *  each activity gets a "Complete" button in place of delete and
@@ -120,6 +125,7 @@ const DestinationDetail = ({
     onChangeDestination = undefined,
     isViewMode = false,
     lockActivityStatus = false,
+    allowStatusToggle,
     tripStatusName,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
@@ -287,6 +293,7 @@ const DestinationDetail = ({
                     <DateBlock
                         isViewMode={isViewMode}
                         lockActivityStatus={lockActivityStatus}
+                        allowStatusToggle={allowStatusToggle}
                         tripStatusName={tripStatusName}
                         key={indx}
                         index={indx}

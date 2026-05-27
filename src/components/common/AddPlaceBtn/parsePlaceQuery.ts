@@ -73,16 +73,26 @@ export const extractPlaceFromUrl = (text: string): string | null => {
 
 const extractFromGoogleMaps = (url: URL): string | null => {
     const host = url.hostname.toLowerCase();
-    const isGoogleMaps =
-        host === 'www.google.com' ||
-        host === 'google.com' ||
-        host === 'maps.google.com' ||
-        host.endsWith('.google.com');
-    if (!isGoogleMaps) return null;
+    // Only accept Google MAPS hosts/paths. Without this gate, a
+    // `www.google.com/travel/search?q=hotel%20in%20tokyo` URL would
+    // match (host is google.com, has a `?q=`) and the smart entry
+    // would search for "hotel in tokyo" — returning the top-rated
+    // hotel in the city instead of warning that the URL isn't a real
+    // place link.
+    const isMapsHost =
+        host === 'maps.google.com' || host === 'maps.googleapis.com';
+    // Accept both `/maps` (the bare search page — "Search this area"
+    // links emit `/maps?q=…`) and `/maps/...` (place/search subpaths).
+    // The travel/search/etc. paths still fail this gate.
+    const isMapsPath =
+        url.pathname === '/maps' || url.pathname.startsWith('/maps/');
+    if (!isMapsHost && !isMapsPath) return null;
     const pathMatch = url.pathname.match(/\/maps\/(?:place|search)\/([^/]+)/);
     if (pathMatch) {
         return decodePlaceSlug(pathMatch[1]);
     }
+    // `?q=` is the older share format — only honor it when we already
+    // know this is a maps URL (gate above passed).
     const q = url.searchParams.get('q');
     if (q) {
         if (/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(q.trim())) return null;
@@ -322,12 +332,26 @@ interface CostMatch {
     end: number;
 }
 
-// Three flavours: "$50", "50 bucks/usd/dollars/euros/eur/€", or a
-// loose "around 50" / "about 50" when the previous patterns miss.
+// Cost extraction needs to handle these phrasings (real user inputs):
+//   "$50"               — leading dollar sign
+//   "$50.00"            — leading dollar sign with cents
+//   "50 bucks"          — trailing currency word
+//   "50 dollars"        — trailing currency word
+//   "for 50"            — "for X" cost prefix
+//   "for $50.00"        — "for $X" (the $ path matches first, but this also covers it)
+//   "for 50.00"         — bare decimal under "for" context
+//   "cost 50" / "costs 50" / "costs me 50" — explicit cost word
+//   "around 50"         — hedge prefix
+// We deliberately don't match bare numbers without ANY context — that would
+// scoop up flight numbers, room numbers, phone digits, etc. The "for" and
+// "cost" patterns include a negative lookahead so they don't eat time
+// tokens ("for 2pm") or durations ("for 2 hours / 3 days / 2 nights").
 const COST_PATTERNS: RegExp[] = [
     /\$\s*(\d+(?:\.\d{1,2})?)/i,
     /(\d+(?:\.\d{1,2})?)\s*(?:bucks|dollars?|usd|euros?|eur|€|pounds?|gbp|£)/i,
-    /(?:around|about|roughly|~)\s*(\d{1,5}(?:\.\d{1,2})?)\b/i,
+    /\bfor\s+\$?\s*(\d+(?:\.\d{1,2})?)(?!\s*(?:am|pm|a\.m\.|p\.m\.|hours?|hrs?|mins?|minutes?|days?|weeks?|months?|nights?|people|persons?|guests?|pax))\b/i,
+    /\bcosts?\s+(?:me\s+)?\$?\s*(\d+(?:\.\d{1,2})?)\b/i,
+    /(?:around|about|roughly|~)\s*\$?\s*(\d{1,5}(?:\.\d{1,2})?)\b/i,
 ];
 
 const extractCost = (text: string): CostMatch | null => {
@@ -389,40 +413,114 @@ const extractConfirmation = (text: string): ConfirmationMatch | null => {
 // ---------- Query cleanup ----------
 
 // Connector phrases the user is likely to type around the place name
-// ("i'd like to go to X", "let's visit X at ..."). Stripped from the
-// start of the residual text before it becomes the search query.
+// ("i'd like to go to X", "i'm going to X", "let's visit X at ...").
+// Stripped from the start of the residual text before it becomes the
+// search query. Match order matters: list longer phrases first so the
+// "i'm going to" match wins over a hypothetical "going to" prefix.
 const LEADING_FILLERS = [
     "i'd like to go to",
     "i'd like to go",
     'i would like to go to',
     'i would like to go',
+    "i'm going to",
+    "im going to",
+    'i am going to',
+    "i'm planning to go to",
+    "i'm planning to visit",
     "let's go to",
     'lets go to',
     "let's visit",
     'lets visit',
-    'go to',
-    'visit',
     'i want to go to',
     'i want to visit',
+    'planning to go to',
+    'planning to visit',
+    'going to',
+    'go to',
+    'visit',
 ];
 
-// Trailing connector words ("at", "for", "around"...) that are likely
-// orphaned once the time / cost matches are stripped.
-const STRIP_CONNECTORS = /(\s+(?:at|for|around|about|roughly|on)\s*)+$/i;
+// Trailing connector words / phrases — orphaned bits left over once
+// the time / cost / date matches are stripped. "cost me" / "costs me"
+// get pulled here when only the dollar number was matched by the
+// cost extractor.
+const STRIP_CONNECTORS =
+    /(\s+(?:at|for|around|about|roughly|on|near|costs?\s+me|costs?|will\s+cost|that\s+(?:will\s+)?costs?)\s*)+$/i;
 
-const cleanQuery = (text: string): string => {
-    let out = text.trim();
-    // Lowercase comparison for the leading-filler scan, but preserve
-    // the original casing for the returned query.
-    const lower = out.toLowerCase();
-    for (const filler of LEADING_FILLERS) {
-        if (lower.startsWith(filler)) {
-            out = out.slice(filler.length).trim();
-            break;
+// Date phrases anywhere in the text. We don't use these dates for
+// places (the day-block already pins the date), but stripping them
+// keeps the search query clean — "Mount Fuji on may 27" would
+// otherwise reach Google as a noisy multi-token phrase. Patterns
+// cover "on may 27", "may 27", "5/27", "5/27/2026", "on 2026-05-27".
+const DATE_PHRASE_RES: RegExp[] = [
+    // "on" + month-name + day (+ optional year)
+    /\b(?:on\s+)?(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+\d{1,2}(?:(?:st|nd|rd|th)?)(?:[,\s]+\d{4})?\b/i,
+    // "on" + M/D (+ optional /Y)
+    /\b(?:on\s+)?\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/,
+    // ISO YYYY-MM-DD (with optional "on" prefix)
+    /\b(?:on\s+)?\d{4}-\d{2}-\d{2}\b/,
+    // Keyword-based dates ("on today" / "for tomorrow")
+    /\b(?:on|for)\s+(?:today|tomorrow|yesterday|tonight)\b/i,
+];
+
+const findDatePhraseRanges = (text: string): Array<{ start: number; end: number }> => {
+    const out: Array<{ start: number; end: number }> = [];
+    for (const re of DATE_PHRASE_RES) {
+        const m = text.match(re);
+        if (m && m.index !== undefined) {
+            out.push({ start: m.index, end: m.index + m[0].length });
         }
     }
-    out = out.replace(STRIP_CONNECTORS, '').trim();
-    // Trim trailing punctuation left over from the original sentence.
+    return out;
+};
+
+const cleanQuery = (text: string, isExplicit: boolean): string => {
+    let out = text.trim();
+    // Drop surrounding quotes (single, double, smart) so a quoted
+    // place name reaches the search backend as a clean token.
+    out = out.replace(/^["'`‘’“”]+/, '');
+    out = out.replace(/["'`‘’“”]+$/, '');
+    // Strip all `#` markers — they're a user-facing shorthand that
+    // says "treat what follows as the literal place name, skip the
+    // natural-language scrubbing." The flag was already captured at
+    // the top of parsePlaceEntry; here we just remove the character
+    // so it doesn't leak into the search query.
+    out = out.replace(/#/g, '').trim();
+    // Lowercase comparison for the leading-filler scan, but preserve
+    // the original casing for the returned query. Skip the scrub
+    // entirely when the user used an explicit `#` marker — they've
+    // already told us what the name is, don't second-guess them.
+    if (!isExplicit) {
+        let progressed = true;
+        while (progressed) {
+            progressed = false;
+            const lower = out.toLowerCase().trim();
+            for (const filler of LEADING_FILLERS) {
+                if (lower.startsWith(filler + ' ') || lower === filler) {
+                    out = out.trim().slice(filler.length).trim();
+                    progressed = true;
+                    break;
+                }
+            }
+        }
+    }
+    // Loop STRIP_CONNECTORS until stable. After cost + time get stripped,
+    // a sentence like "hiroshima park at 2pm for $50" leaves the residual
+    // "hiroshima park at  for" — the regex only catches one trailing
+    // connector per pass, so without the loop the leftover "at" leaks
+    // into the search query.
+    let connectorProgressed = true;
+    while (connectorProgressed) {
+        const before = out;
+        out = out.replace(STRIP_CONNECTORS, '').trim();
+        connectorProgressed = out !== before;
+    }
+    // Mid-sentence quotes around the place name ("'Mount Fuji'") —
+    // strip after the leading-filler pass since some fillers contain
+    // apostrophes ("let's") that we don't want collapsed.
+    out = out.replace(/["'`‘’“”]/g, '');
+    // Collapse internal whitespace + trim trailing punctuation.
+    out = out.replace(/\s+/g, ' ').trim();
     out = out.replace(/[\s,.;:!?-]+$/g, '').trim();
     return out;
 };
@@ -495,6 +593,15 @@ export const parsePlaceEntry = (
     if (confMatch) {
         confirmationNumber = confMatch.confirmationNumber;
         ranges.push({ start: confMatch.start, end: confMatch.end });
+    }
+
+    // Date phrases — "on may 27", "5/27/2026", "tomorrow" — get
+    // stripped from the residual so the search query is just the
+    // place name. We don't surface a date back to the caller for
+    // place activities (the day-block pins the date); this is purely
+    // noise removal.
+    for (const range of findDatePhraseRanges(trimmed)) {
+        ranges.push(range);
     }
 
     // Build the residual text — everything outside the matched ranges

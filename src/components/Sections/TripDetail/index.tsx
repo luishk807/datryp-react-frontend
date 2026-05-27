@@ -253,6 +253,25 @@ export const TripDetail = () => {
       status.name === TRIP_STATUS.COMPLETED
     );
   };
+  // Sibling to the Completed-tap auto-save: detects the Planning↔Confirmed
+  // quick-toggle fired from the status pill on /trip-detail. Same shape as
+  // the Completed event (patch carries a status object), just a different
+  // name. We auto-save these too so the user doesn't have to first enter
+  // the stepper editor just to lock in a place.
+  const isPlanningStatusToggleEvent = (event: TripPlaceEvent): boolean => {
+    const { activity } = event;
+    if (activity.type !== "edit") return false;
+    const wrapper = activity.value as
+      | { value?: Partial<Activity> }
+      | undefined;
+    const status = wrapper?.value?.status as ActivityStatus | undefined;
+    return (
+      !!status &&
+      typeof status === "object" &&
+      (status.name === TRIP_STATUS.PLANNING ||
+        status.name === TRIP_STATUS.CONFIRMED)
+    );
+  };
 
   const handleChangePlace = useCallback(
     (event: TripPlaceEvent) => {
@@ -312,13 +331,15 @@ export const TripDetail = () => {
       // but doesn't update" bug. The activity card disables the tick
       // when its own copy of `completedStatus.id` is 0, but the lookup
       // races with the trip fetch, so belt-and-suspenders this here.
-      if (
+      const shouldAutoSaveStatusEdit =
         apiTrip &&
         apiTrip.interaryType?.id &&
-        persistedStatusName === TRIP_STATUS.CONFIRMED &&
-        isMarkActivityCompletedEvent(event) &&
-        activityStatusLookup.size > 0
-      ) {
+        activityStatusLookup.size > 0 &&
+        ((persistedStatusName === TRIP_STATUS.CONFIRMED &&
+          isMarkActivityCompletedEvent(event)) ||
+          (persistedStatusName === TRIP_STATUS.PLANNING &&
+            isPlanningStatusToggleEvent(event)));
+      if (shouldAutoSaveStatusEdit) {
         const input = tripStateToSaveInput(next, {
           id: apiTrip.id,
           interaryTypeId: apiTrip.interaryType.id,
@@ -330,7 +351,7 @@ export const TripDetail = () => {
           setSaveError(
             err instanceof Error
               ? err.message
-              : "Failed to mark the activity completed.",
+              : "Failed to update the activity status.",
           );
         });
       }
@@ -747,10 +768,17 @@ export const TripDetail = () => {
         <Grid item lg={12}>
           {/* Activity cards on /trip-detail are read-only by design — the
               Edit Trip button (and the trip-name pencil) navigate to the
-              stepper editor where the inline edit affordances live. */}
+              stepper editor where the inline edit affordances live. The
+              one exception is the per-activity status pill: organizers
+              can flip Planning↔Confirmed in-place while the trip itself
+              is still Planning, and handleChangePlace auto-saves that
+              change so it doesn't sit in local-only state. */}
           <DestinationDetail
             type={tripData.type}
             isViewMode={true}
+            allowStatusToggle={
+              isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING
+            }
             startDate={tripData.startDate}
             participants={participants}
             endDate={tripData.endDate}

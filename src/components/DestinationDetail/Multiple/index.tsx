@@ -45,6 +45,8 @@ export interface MultipleProps {
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Opt-in override for the status pill — forwarded unchanged. */
+    allowStatusToggle?: boolean;
     /** Forwarded to Activities so post-planning UI can render. */
     tripStatusName?: string;
 }
@@ -60,6 +62,7 @@ const Multiple = ({
     participants = [],
     isViewMode = false,
     lockActivityStatus = false,
+    allowStatusToggle,
     tripStatusName,
 }: MultipleProps) => {
     return (
@@ -349,6 +352,7 @@ const Multiple = ({
                                         isViewMode={isViewMode}
                                         tripTypeId={TRIP_BASIC.MULTIPLE.id}
                                         activities={activities}
+                                        destinations={allDestinations}
                                         onChangePlace={(type, e) => onChangePlace(type, e, realDestIdx)}
                                         participants={participants}
                                         onChangeBudget={(type, e) => onChangeBudget(type, e, realDestIdx)}
@@ -356,6 +360,7 @@ const Multiple = ({
                                         date={trip.startDate ?? defaultDate ?? ''}
                                         country={country ?? ''}
                                         lockActivityStatus={lockActivityStatus}
+                                        allowStatusToggle={allowStatusToggle}
                                         tripStatusName={tripStatusName}
                                     />
                                 </Grid>

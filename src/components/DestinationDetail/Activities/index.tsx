@@ -52,7 +52,13 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import { convertMoney } from 'utils';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { ACTIVITY_KIND, TRIP_STATUS } from 'constants';
-import type { ActionType, Activity, ActivityStatus, Friend } from 'types';
+import type {
+    ActionType,
+    Activity,
+    ActivityStatus,
+    Destination,
+    Friend,
+} from 'types';
 
 export interface ActivitiesProps {
     onChangePlace: (type: ActionType, value: unknown) => void;
@@ -61,6 +67,14 @@ export interface ActivitiesProps {
     participants?: Friend[];
     tripTypeId?: number;
     isViewMode?: boolean;
+    /** Full destinations array for the trip — needed by
+     *  `pickSmartEntryLocation` so the per-card directions link can
+     *  resolve an origin that respects the user's other activities.
+     *  Without this, the function falls back to a stale TripContext
+     *  snapshot, and directions don't reflect activities the user
+     *  just added on a page (like /trip-detail) where the context
+     *  isn't kept in sync on every local change. */
+    destinations?: Destination[];
     /** Source destination index for any activity dragged out of this list.
      *  Defaults to 0 (single-trip case). */
     destIdx?: number;
@@ -75,6 +89,13 @@ export interface ActivitiesProps {
      *  is disabled. Used during new-trip creation so brand-new activities
      *  stay locked to Planning until the trip is actually saved. */
     lockActivityStatus?: boolean;
+    /** Opt-in override for the status pill's interactivity. When set
+     *  explicitly, takes precedence over the default `!isViewMode`
+     *  derivation. Used by /trip-detail to keep the Planning→Confirmed
+     *  quick-toggle live while the rest of the card stays read-only —
+     *  callers handle organizer permissioning + auto-save on the parent
+     *  side. */
+    allowStatusToggle?: boolean;
     /** Current trip status name. When `'confirmed'`, the activity card
      *  switches into post-planning UI: status pill is hidden, the X
      *  delete button is replaced with a "Complete" button, and
@@ -241,12 +262,20 @@ const Activities = ({
     participants = [],
     tripTypeId,
     isViewMode = false,
+    destinations,
     destIdx = 0,
     date = '',
     country = '',
     lockActivityStatus = false,
+    allowStatusToggle,
     tripStatusName,
 }: ActivitiesProps) => {
+    // Default-derive the status-pill interactivity from view mode so
+    // existing callers (stepper editor, new-trip creation) keep their
+    // current behaviour. /trip-detail passes `allowStatusToggle={true}`
+    // explicitly to enable a one-tap Planning↔Confirmed flip without
+    // first dropping into the stepper editor.
+    const statusToggleEnabled = allowStatusToggle ?? !isViewMode;
     // Post-planning UI: once the trip itself is Confirmed (or beyond),
     // each activity gets a "Complete" button instead of delete and
     // the status pill is hidden. After Completed/Cancelled the actions
@@ -738,6 +767,52 @@ const Activities = ({
                                                             aria-hidden="true"
                                                         />
                                                     </a>
+                                                ) : isHotel && activity.name?.trim() ? (
+                                                    // Hotel title → Google Maps. Builds the
+                                                    // search URL from the hotel name + (free-text
+                                                    // location || structured city/country) so the
+                                                    // user lands directly on the hotel's place
+                                                    // card. lat/lng-anchored URL when coords are
+                                                    // available — points Google straight at the
+                                                    // building rather than relying on name match.
+                                                    <a
+                                                        className="title title-link"
+                                                        href={(() => {
+                                                            const loc =
+                                                                activity.location?.trim() ||
+                                                                [
+                                                                    activity.placeCity,
+                                                                    activity.placeCountry,
+                                                                ]
+                                                                    .filter(Boolean)
+                                                                    .join(', ');
+                                                            const hasCoords =
+                                                                activity.latitude != null &&
+                                                                activity.longitude != null;
+                                                            const query = [
+                                                                activity.name,
+                                                                loc,
+                                                            ]
+                                                                .filter(Boolean)
+                                                                .join(', ');
+                                                            if (hasCoords) {
+                                                                return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}&query_place_id=&center=${activity.latitude},${activity.longitude}`;
+                                                            }
+                                                            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+                                                        })()}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        title={`Open ${activity.name} on Google Maps`}
+                                                    >
+                                                        <span className="title-link-text">
+                                                            {activity.name}
+                                                        </span>
+                                                        <OpenInNewRoundedIcon
+                                                            className="title-link-icon"
+                                                            fontSize="small"
+                                                            aria-hidden="true"
+                                                        />
+                                                    </a>
                                                 ) : (
                                                     <span className="title">{activity.name}</span>
                                                 )}
@@ -772,7 +847,7 @@ const Activities = ({
                                                                 'status-toggle ' +
                                                                 (confirmed ? 'is-confirmed' : 'is-pending')
                                                             }
-                                                            disabled={isViewMode || lockActivityStatus}
+                                                            disabled={!statusToggleEnabled || lockActivityStatus}
                                                             aria-label={`Status: ${confirmed ? 'Confirmed' : 'Planning'}. Click to toggle.`}
                                                             onClick={() =>
                                                                 onChangePlace('edit', {
@@ -822,13 +897,38 @@ const Activities = ({
                                                                 // Pick the origin via the trip-
                                                                 // context priority chain — excluding
                                                                 // THIS activity so directions never
-                                                                // resolve "from X to X".
+                                                                // resolve "from X to X". Prefer the
+                                                                // `destinations` prop when present —
+                                                                // it's the live source-of-truth from
+                                                                // the page's local state and updates
+                                                                // every time the user adds or edits
+                                                                // an activity. The TripContext
+                                                                // fallback only kicks in for pages
+                                                                // that haven't been migrated to pass
+                                                                // destinations down (mainly the
+                                                                // stepper, which dispatches to the
+                                                                // context on every change).
                                                                 const origin = pickSmartEntryLocation({
                                                                     destinations:
-                                                                        tripState.destinations ?? [],
+                                                                        destinations ??
+                                                                        tripState.destinations ??
+                                                                        [],
                                                                     currentDate: date,
                                                                     fallbackCountry: country,
                                                                     excludeActivityId: activity.id,
+                                                                    // Time-anchor the origin so it
+                                                                    // resolves to the closest
+                                                                    // PRECEDING activity, not
+                                                                    // whatever comes later in the
+                                                                    // day. Flight activities store
+                                                                    // their headline time on
+                                                                    // flightSegments[0].departTime
+                                                                    // instead of startTime, so we
+                                                                    // fall back through both.
+                                                                    currentActivityTime:
+                                                                        activity.startTime ||
+                                                                        activity.flightSegments?.[0]
+                                                                            ?.departTime,
                                                                 });
                                                                 const href = origin
                                                                     ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(mapsDestination)}`

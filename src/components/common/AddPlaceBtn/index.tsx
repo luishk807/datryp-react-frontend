@@ -784,9 +784,14 @@ const AddPlaceBtn = ({
             ...prev,
             name: suggestion.name,
             location: suggestion.location,
+            // Picking a new place clears the previous image — keeping
+            // `prev.image` would leak the previous smart-entry hit's
+            // photo (e.g. Rokurinsha) onto a freshly-picked place
+            // (e.g. Mount Fuji) when the new pick happens to lack
+            // its own photo URL.
             image: suggestion.imageUrl
                 ? { url: suggestion.imageUrl, name: suggestion.name }
-                : prev.image,
+                : null,
             placeCity: suggestion.city || null,
             placeCountry: suggestion.country || null,
             countryCode: suggestion.countryCode ?? null,

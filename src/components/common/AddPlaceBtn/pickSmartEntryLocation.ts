@@ -25,6 +25,7 @@
  * `fallbackCountry` is available.
  */
 import { ACTIVITY_KIND } from 'constants';
+import { isSameDay } from 'utils';
 import type { Activity, ItineraryDay } from 'types';
 import type { Destination } from 'types';
 
@@ -57,6 +58,12 @@ interface PickArgs {
      *  directions link so the origin doesn't end up being the same
      *  activity the user just clicked. */
     excludeActivityId?: number;
+    /** `HH:mm` start time of the activity being routed TO. When set,
+     *  the helper only considers same-day activities that start
+     *  BEFORE this time — directions to "Mount Fuji at 11:40" should
+     *  start from the hotel checked in at 11:15, not from the ramen
+     *  shop the user plans to hit at 12:00. */
+    currentActivityTime?: string;
 }
 
 export const pickSmartEntryLocation = ({
@@ -64,6 +71,7 @@ export const pickSmartEntryLocation = ({
     currentDate,
     fallbackCountry,
     excludeActivityId,
+    currentActivityTime,
 }: PickArgs): string | undefined => {
     // Flatten all itinerary days across destinations into a single
     // chronological list — multi-destination trips still want the
@@ -79,33 +87,64 @@ export const pickSmartEntryLocation = ({
     const fallback = fallbackCountry?.trim() || undefined;
     if (!currentDate || !allDays.length) return fallback;
 
-    const currentIdx = allDays.findIndex((d) => d.date === currentDate);
+    // Day-equality via moment so we tolerate format drift between
+    // ItineraryDay.date (YYYY-MM-DD from the reducer) and the
+    // caller's date prop (sometimes MM/DD/YYYY from DateBlock or
+    // an ISO timestamp on edit-mode hydrate). Strict `===` was the
+    // bug — a mismatched format made the lookup return -1, the
+    // helper returned the country fallback, and the directions
+    // origin missed the obvious "hotel on this day" anchor.
+    const currentIdx = allDays.findIndex((d) =>
+        isSameDay(d.date, currentDate),
+    );
     if (currentIdx === -1) return fallback;
 
     const currentDay = allDays[currentIdx];
 
-    // Rule 1: most recent activity on the current day with an address.
-    // Skip the calling activity itself (set via excludeActivityId)
-    // so the directions origin never resolves to the destination.
+    // Rule 1: closest preceding activity on the current day with an
+    // address. When the caller passes currentActivityTime, we sort by
+    // startTime and only consider activities that start BEFORE that
+    // — so directions to Mount Fuji at 11:40 start from the hotel
+    // check-in at 11:15, NOT from the ramen lunch at 12:00. Skip the
+    // calling activity itself so the origin never resolves to the
+    // destination.
     const todays = currentDay.activities ?? [];
-    for (let i = todays.length - 1; i >= 0; i--) {
-        if (
-            excludeActivityId !== undefined &&
-            todays[i].id === excludeActivityId
-        ) {
+    const isBefore = (a: Activity): boolean => {
+        if (!currentActivityTime) return true;
+        const t = a.startTime?.trim();
+        if (!t) return false; // No time → unsortable → ignore.
+        return t < currentActivityTime;
+    };
+    // Build a list of valid candidates (with address, not excluded,
+    // before current time). Sort by startTime DESCENDING so the
+    // closest-preceding activity wins.
+    const candidates: Array<{ activity: Activity; addr: string }> = [];
+    for (const a of todays) {
+        if (excludeActivityId !== undefined && a.id === excludeActivityId) {
             continue;
         }
-        const addr = addressOf(todays[i]);
-        if (addr) return addr;
+        if (!isBefore(a)) continue;
+        const addr = addressOf(a);
+        if (addr) candidates.push({ activity: a, addr });
     }
+    candidates.sort((a, b) => {
+        // Activities without a time sort last (oldest), so timed
+        // activities win the closest-preceding contest.
+        const ta = a.activity.startTime?.trim() ?? '';
+        const tb = b.activity.startTime?.trim() ?? '';
+        return tb.localeCompare(ta);
+    });
+    if (candidates.length) return candidates[0].addr;
 
-    // Rule 2: any hotel on the current day (defensive — addressOf
-    // above will usually have caught hotels, but a hotel saved
-    // without a location string would fall through to here).
+    // Rule 2: any hotel on the current day BEFORE current time
+    // (defensive — addressOf above usually catches hotels, but a
+    // hotel saved without a location string would fall through to
+    // here).
     const todaysHotel = todays.find(
         (a) =>
             isHotel(a) &&
-            (excludeActivityId === undefined || a.id !== excludeActivityId),
+            (excludeActivityId === undefined || a.id !== excludeActivityId) &&
+            isBefore(a),
     );
     if (todaysHotel?.name?.trim()) {
         return todaysHotel.name.trim();

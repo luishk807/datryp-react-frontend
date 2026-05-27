@@ -23,6 +23,8 @@ interface DateBlockProps {
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Opt-in override for the status pill — forwarded unchanged. */
+    allowStatusToggle?: boolean;
     /** Forwarded to Activities so post-planning UI (Complete button,
      *  hidden status pill, dim-when-completed cards) can light up. */
     tripStatusName?: string;
@@ -41,6 +43,7 @@ const DateBlock = ({
     onChangeDestination,
     isViewMode = false,
     lockActivityStatus = false,
+    allowStatusToggle,
     tripStatusName,
 }: DateBlockProps) => {
     const showsRange = useMemo(
@@ -137,9 +140,11 @@ const DateBlock = ({
                                 participants={participants}
                                 onChangeBudget={onChangeBudget}
                                 trips={trips as Activity[] | null}
+                                destinations={destinations}
                                 date={startDate}
                                 country={destinations[0]?.country?.name ?? ''}
                                 lockActivityStatus={lockActivityStatus}
+                                allowStatusToggle={allowStatusToggle}
                                 tripStatusName={tripStatusName}
                             />
                         ) : (
@@ -154,6 +159,7 @@ const DateBlock = ({
                                 participants={participants}
                                 onChangeBudget={onChangeBudget}
                                 lockActivityStatus={lockActivityStatus}
+                                allowStatusToggle={allowStatusToggle}
                                 tripStatusName={tripStatusName}
                             />
                         )}

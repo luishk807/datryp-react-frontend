@@ -1,10 +1,13 @@
 import React from 'react';
 import './index.scss';
 import Activities from 'components/DestinationDetail/Activities';
-import type { ActionType, Activity, Friend } from 'types';
+import type { ActionType, Activity, Destination, Friend } from 'types';
 
 interface SingleProps {
     trips?: Activity[] | null;
+    /** Full destinations array — forwarded to Activities so its
+     *  per-card directions origin reflects the live trip state. */
+    destinations?: Destination[];
     participants?: Friend[];
     onChangePlace: (type: ActionType, value: unknown) => void;
     onChangeBudget: (type: ActionType, value: unknown) => void;
@@ -17,6 +20,8 @@ interface SingleProps {
     country?: string;
     /** Disable the per-activity status pill (new-trip flow only). */
     lockActivityStatus?: boolean;
+    /** Opt-in override for the status pill — forwarded unchanged. */
+    allowStatusToggle?: boolean;
     /** Forwarded to Activities so post-planning UI can render. */
     tripStatusName?: string;
 }
@@ -26,6 +31,7 @@ interface SingleProps {
  *  stays inside the same wrapper. */
 const Single = ({
     trips = null,
+    destinations,
     participants = [],
     onChangePlace,
     onChangeBudget,
@@ -33,18 +39,21 @@ const Single = ({
     date = '',
     country = '',
     lockActivityStatus = false,
+    allowStatusToggle,
     tripStatusName,
 }: SingleProps) => (
     <Activities
         isViewMode={isViewMode}
         onChangePlace={onChangePlace}
         activities={trips ?? []}
+        destinations={destinations}
         onChangeBudget={onChangeBudget}
         participants={participants}
         destIdx={0}
         date={date}
         country={country}
         lockActivityStatus={lockActivityStatus}
+        allowStatusToggle={allowStatusToggle}
         tripStatusName={tripStatusName}
     />
 );
