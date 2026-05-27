@@ -35,6 +35,7 @@ import {
     activityLocation,
     collapseWs,
     computePayerTotals,
+    confirmedPaidEntries,
     formatActivityTime,
     joinNames,
     safeFilename,
@@ -321,6 +322,11 @@ interface ItineraryWriteRow {
      *  date-format styling applies. */
     paidBy: string;
     paidOn: Date | null;
+    /** Per-person confirmation breakdown: each line = "<name>
+     *  <amount> · <date>". Joined with `\n` so Excel renders the
+     *  multi-payer split as a wrapped cell. Empty when the activity
+     *  isn't marked paid. */
+    confirmedPaid: string;
 }
 
 const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
@@ -342,6 +348,7 @@ const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
                         ? activity.paidBy?.name?.trim() || 'Unknown'
                         : '',
                     paidOn: activity.paidAt ? parseDate(activity.paidAt) : null,
+                    confirmedPaid: confirmedPaidEntries(activity).join('\n'),
                 });
                 const note = collapseWs(activity.note);
                 if (note) {
@@ -355,6 +362,7 @@ const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
                         whoIsPaying: '',
                         paidBy: '',
                         paidOn: null,
+                        confirmedPaid: '',
                     });
                 }
             }
@@ -377,6 +385,7 @@ const buildItinerarySheet = async (
         { width: 16 }, // Paid By (organizer attestation)
         { width: 12 }, // Paid On
         { width: 26 }, // Who is Paying (per-friend budget split)
+        { width: 34 }, // Confirmed Paid (per-person name · amount · date)
     ];
 
     // Per the sample, Itinerary has no logo at the top — column
@@ -393,6 +402,7 @@ const buildItinerarySheet = async (
         'Paid By',
         'Paid On',
         'Who is Paying',
+        'Confirmed Paid',
     ];
     const headerRowIdx = 1;
     const headerRow = ws.getRow(headerRowIdx);
@@ -471,6 +481,14 @@ const buildItinerarySheet = async (
             const c = ws.getCell(r, 7);
             c.value = row.whoIsPaying;
             styleBodyCell(c);
+        }
+        if (row.confirmedPaid) {
+            const c = ws.getCell(r, 8);
+            c.value = row.confirmedPaid;
+            styleBodyCell(c);
+            // Multi-payer breakdowns join lines with `\n` — Excel
+            // only renders the wrap when `wrapText` is on.
+            c.alignment = { ...(c.alignment ?? {}), wrapText: true };
         }
         r += 1;
     }

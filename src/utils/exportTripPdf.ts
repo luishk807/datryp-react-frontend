@@ -40,6 +40,7 @@ import {
     activityLocation,
     collapseWs,
     computePayerTotals,
+    confirmedPaidEntries,
     formatActivityTime,
     formatCurrency,
     formatDate,
@@ -223,13 +224,37 @@ const buildPaidByCell = (row: ItineraryRow): TableCell => {
     return { text: parts.join(', ') };
 };
 
+/** "Confirmed Paid" column — per-person confirmation lines built from
+ *  the modal's saved state (paidBy + paidAt + budget breakdown). Each
+ *  confirmed payer gets one line: "<name> <amount> · <date>". Blank
+ *  cell for unpaid activities. Stacked text so the per-row layout
+ *  reads as a payment receipt instead of a comma-mash. */
+const buildConfirmedPaidCell = (row: ItineraryRow): TableCell => {
+    const entries = confirmedPaidEntries(row.activity);
+    if (entries.length === 0) return { text: '' };
+    if (entries.length === 1) return { text: entries[0] };
+    return { stack: entries.map((line) => ({ text: line })) };
+};
+
 /** Build the 4-column itinerary table. Date column is rowSpanned
  *  across activities sharing the same calendar day so the visual
  *  matches the mockup. */
 const buildItineraryTable = (rows: ItineraryRow[]): Content => {
     const tableBody: TableCell[][] = [];
     // Header
-    const HEADERS = ['Date', 'Time', 'Activity', 'Cost', 'Paid By'];
+    const HEADERS = [
+        'Date',
+        'Time',
+        'Activity',
+        'Cost',
+        // Matches the Excel "Who is Paying" column — the cell shows
+        // the per-person budget split (the *allocation*, not the
+        // confirmation of payment). Renamed from "Paid By" because
+        // that label confused readers expecting an attestation rather
+        // than a budgeted-amount breakdown.
+        'Who is Paying',
+        'Confirmed Paid',
+    ];
     tableBody.push(
         HEADERS.map((label) => ({
             text: label,
@@ -275,6 +300,7 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
                 buildActivityCell(r),
                 buildCostCell(r),
                 buildPaidByCell(r),
+                buildConfirmedPaidCell(r),
             ]);
 
             const note = collapseWs(r.activity.note);
@@ -289,6 +315,7 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
                     },
                     { text: '' }, // cost
                     { text: '' }, // paid by
+                    { text: '' }, // confirmed paid
                 ]);
             }
         }
@@ -298,9 +325,10 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
     return {
         table: {
             headerRows: 1,
-            // Date/Time/Cost compact; Activity/Paid By get the flex
-            // space.
-            widths: ['auto', 'auto', '*', 'auto', '*'],
+            // Date/Time/Cost compact; Activity/Paid By/Confirmed Paid
+            // get the flex space (split into three * columns so the
+            // confirmation receipt has room to breathe).
+            widths: ['auto', 'auto', '*', 'auto', '*', '*'],
             body: tableBody,
             dontBreakRows: true,
         },

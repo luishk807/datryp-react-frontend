@@ -214,7 +214,22 @@ const PaidByRow = ({
     });
   };
 
-  const payerLabel = activity.paidBy?.name ?? "Unknown";
+  // Derive the chip label from the budget breakdown when one
+  // exists — `activity.paidBy.name` is the backend-resolved single
+  // user (e.g. "luis ho") which loses multi-payer info. Falls back
+  // to paidBy.name for activities without a per-person budget.
+  // Same heuristic as the PDF / Excel exports' Confirmed Paid
+  // column (see `confirmedPaidEntries`).
+  const payerLabel = (() => {
+    const budget = activity.budget ?? [];
+    const names = budget
+      .map((b) => (b.user?.label ?? b.user?.name ?? "").trim())
+      .filter(Boolean);
+    if (names.length === 0) return activity.paidBy?.name ?? "Unknown";
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} & ${names[1]}`;
+    return `${names[0]} + ${names.length - 1} others`;
+  })();
   const dateLabel = formatPaidDate(activity.paidAt);
 
   return (

@@ -157,29 +157,23 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
     // pre-filled and the organizer just checks each one off.
     //
     // Pre-confirmation strategy — backend only stores a single
-    // `paidByUserId` + `paidAt`, so per-person confirmation has to
-    // round-trip via the formatted `paidBy.name` we write on save:
-    //   "Alice"                → only Alice is confirmed
-    //   "Alice & Bob"          → both Alice and Bob are confirmed
-    //   "Alice + 2 others"     → only Alice is recoverable (the
-    //                             trailing N are lost in the format,
-    //                             so they default to unconfirmed —
-    //                             user can re-check them on reopen)
-    // Plus the primary `paidBy.id` is always treated as confirmed
-    // since that's the canonical "this person paid" record.
-    const confirmedNameSet = useMemo<Set<string>>(() => {
-      const name = initialPaidBy?.name ?? '';
-      if (!name) return new Set();
-      // Strip the "+ N others" tail — we can't recover the hidden
-      // names from that suffix.
-      const cleaned = name.replace(/\s*\+\s*\d+\s+others?$/i, '').trim();
-      const parts = cleaned
-        .split(/\s*&\s*/)
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean);
-      return new Set(parts);
-    }, [initialPaidBy?.name]);
-
+    // `paidByUserId` + `paidAt`, and resolves `paidBy.name` from the
+    // User entity on refetch. That means a formatted multi-payer
+    // string ("Alice & Bob") written on save gets overwritten back to
+    // the resolved User.name ("Alice") next time the trip loads — so
+    // `paidBy.name` is NOT a reliable channel for "who else paid".
+    //
+    // The `budget` array IS persisted as a first-class field, so it's
+    // the durable signal: when the activity is marked paid AND has a
+    // per-person budget, every budget entry counts as confirmed. This
+    // mirrors the PDF / Excel exports (see `confirmedPaidEntries`) and
+    // matches the user's mental model — "I split this and marked it
+    // paid, so everyone in the split paid their share."
+    //
+    // Trade-off: there's no way to record "Alice paid, Bob still owes"
+    // until backend gains a per-person confirmation column. The user
+    // can drop someone from the split entirely (× the row) to express
+    // "they don't owe me", but partial confirmation isn't persisted.
     const initialSplit = useMemo<PaidSplitEntry[]>(() => {
       if (!budget || budget.length === 0) return [];
       return budget
@@ -190,31 +184,20 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
             typeof b.budget === "number"
               ? b.budget
               : parseFloat(String(b.budget)) || 0;
-          const entryName = (
-            b.user?.label ??
-            b.user?.name ??
-            ''
-          ).toLowerCase();
-          const matchesPaidName =
-            entryName.length > 0 && confirmedNameSet.has(entryName);
-          const isPrimary =
-            !!initialPaidBy?.id && initialPaidBy.id === uid;
           return {
             userId: uid,
             name: b.user?.label ?? b.user?.name ?? null,
             amount: amt,
             paidAt: initialPaidAt ?? todayIso(),
-            // Confirm when this entry's name was encoded into the
-            // saved `paidBy.name` OR when this entry IS the primary
-            // payer (always known via `paidBy.id`). Activity must
-            // be paid (`paidAt` set) for any pre-confirmation —
-            // unpaid rows always start unchecked.
-            confirmed: !!initialPaidAt && (isPrimary || matchesPaidName),
+            // Confirmed = activity is paid. Unpaid rows start
+            // unchecked so the organizer has to opt each one in
+            // (which, on save, marks the activity paid).
+            confirmed: !!initialPaidAt,
           };
         })
         .filter((e): e is PaidSplitEntry => e !== null);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [budget, initialPaidAt, initialPaidBy?.id, confirmedNameSet]);
+    }, [budget, initialPaidAt]);
 
     const [paidAt, setPaidAt] = useState<string>(initialPaidAt ?? todayIso());
     const [payerId, setPayerId] = useState<string | null>(defaultPayerId);

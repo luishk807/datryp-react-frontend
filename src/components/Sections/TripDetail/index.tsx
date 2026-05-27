@@ -356,11 +356,17 @@ export const TripDetail = () => {
             isPlanningStatusToggleEvent(event)));
       // Paid-edit auto-save runs at every lifecycle stage except
       // Cancelled — payment settlement is operational and should
-      // persist even on Confirmed / Completed trips.
+      // persist even on Confirmed / Completed trips. The
+      // `activityStatusLookup` guard from the status-edit branch
+      // doesn't belong here: paid edits don't change any activity's
+      // status, so an empty lookup wouldn't corrupt the saved
+      // payload. Without this fix, a paid edit on a Confirmed trip
+      // silently dropped the save whenever the lookup hadn't loaded
+      // yet (or had been invalidated by an earlier refetch), and
+      // the next baseTripData refetch wiped the user's change.
       const shouldAutoSavePaidEdit =
         apiTrip &&
         apiTrip.interaryType?.id &&
-        activityStatusLookup.size > 0 &&
         persistedStatusName !== TRIP_STATUS.CANCELLED &&
         isPaidEditEvent(event);
       if (shouldAutoSaveStatusEdit || shouldAutoSavePaidEdit) {

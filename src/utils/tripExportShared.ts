@@ -224,6 +224,59 @@ export const formatCurrency = (amount: number): string =>
         maximumFractionDigits: 2,
     })}`;
 
+/** Per-person confirmed-payment line for the Confirmed Paid column on
+ *  both the PDF + Excel exports. Returns one line per confirmed payer:
+ *  "<name> <amount> · <date>".
+ *
+ *  Source-of-truth note: the backend resolves `paidByUserId` to
+ *  `paidBy.name` on refetch, so any formatted multi-payer string we
+ *  write into `paidBy.name` ("Alice & Bob") gets overwritten back to
+ *  the single resolved user name on the next load. That makes
+ *  `paidBy.name` an unreliable channel for "who else confirmed".
+ *
+ *  Instead we treat the `budget` array as canonical: when the activity
+ *  is marked paid AND has a per-person budget breakdown, every budget
+ *  entry counts as confirmed. This matches the user's mental model
+ *  ("if I split this and marked it paid, everyone in the split paid
+ *  their share") and is the only durable signal until backend gains a
+ *  per-person confirmation column. */
+export const confirmedPaidEntries = (activity: Activity): string[] => {
+    if (!activity.paidAt) return [];
+    const dateLabel = formatDate(activity.paidAt);
+    const budget = (activity.budget ?? []) as BudgetItem[];
+
+    if (budget.length > 0) {
+        return budget.map((b) => {
+            const name = (
+                b.user?.label ??
+                b.user?.name ??
+                '(unknown)'
+            ).trim();
+            const amt =
+                typeof b.budget === 'number'
+                    ? b.budget
+                    : Number(b.budget) || 0;
+            const amountPart = amt > 0 ? ` ${formatCurrency(amt)}` : '';
+            return dateLabel
+                ? `${name}${amountPart} · ${dateLabel}`
+                : `${name}${amountPart}`;
+        });
+    }
+
+    // Fallback for paid activities without a budget breakdown — surface
+    // the single payer + total activity cost so the column isn't
+    // empty when the user just hit "Mark as paid" without setting a
+    // split.
+    const fallbackName = activity.paidBy?.name?.trim() || 'Unknown';
+    const cost = activityCostOf(activity);
+    const amountPart = cost > 0 ? ` ${formatCurrency(cost)}` : '';
+    return [
+        dateLabel
+            ? `${fallbackName}${amountPart} · ${dateLabel}`
+            : `${fallbackName}${amountPart}`,
+    ];
+};
+
 /** Walk every activity in the trip, yielding rows of (date, activity,
  *  participants, budgetItems, costSubtotal). The PDF generator's
  *  itinerary table and expense report both iterate this shape. */
@@ -241,9 +294,20 @@ export interface ItineraryRow {
 
 export const walkItinerary = (trip: TripState): ItineraryRow[] => {
     const rows: ItineraryRow[] = [];
+    // Dedupe by activity.id — a stale or corrupted backend state can
+    // surface the same activity in multiple itinerary days (saw this
+    // on /trip-detail where a single Manuel Antonio entry rendered
+    // twice in the exported PDF). Track IDs we've already emitted and
+    // skip repeats. Activities without an id (rare; fresh drafts
+    // before save) still render — they can't be deduped reliably.
+    const seenIds = new Set<number>();
     for (const dest of trip.destinations ?? []) {
         for (const day of dest.itinerary ?? []) {
             for (const activity of day.activities ?? []) {
+                if (activity.id != null) {
+                    if (seenIds.has(activity.id)) continue;
+                    seenIds.add(activity.id);
+                }
                 const budgetItems = (activity.budget ?? []) as BudgetItem[];
                 // The data model doesn't track per-activity participants
                 // as a separate field — they're implicit via the budget
