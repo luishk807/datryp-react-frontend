@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 /**
  * Natural-language parser for the Place smart-entry textfield. Users
  * can paste a Google Maps share link, type a plain place name, or
@@ -207,6 +209,17 @@ interface TimeMatch {
 // "check-out side" before extracting per-side times + dates.
 const CHECKIN_RE = /\bcheck[\s-]?in\b/i;
 const CHECKOUT_RE = /\bcheck[\s-]?out\b/i;
+
+// Date keywords recognized inside hotel slices ("check-in tonight",
+// "check-out tomorrow"). Each entry resolves to a Moment so the
+// harvest function can call `.format('YYYY-MM-DD')` on it. Kept narrow
+// — full date-phrase parsing happens elsewhere via DATE_PHRASE_RES.
+const DATE_KEYWORDS: Record<string, () => moment.Moment> = {
+    today: () => moment(),
+    tonight: () => moment(),
+    tomorrow: () => moment().add(1, 'day'),
+    yesterday: () => moment().subtract(1, 'day'),
+};
 
 interface HotelTimes {
     checkInTime?: string;
@@ -539,6 +552,14 @@ export const parsePlaceEntry = (
     // is a homepage / generic root with no business in it, flag the
     // failure so the caller can warn the user instead of searching
     // for "https://..." verbatim.
+    // Leading `#` is the user-facing escape hatch: "I'm telling you
+    // exactly what the place name is — don't second-guess me via
+    // filler / connector scrubbing." Detected here and forwarded to
+    // cleanQuery so the natural-language stripping passes get skipped
+    // for the explicit-marker path. The `#` chars themselves are
+    // stripped inside cleanQuery so they don't leak into the search.
+    const isExplicit = /^\s*#/.test(trimmed);
+
     if (/^https?:\/\//i.test(trimmed)) {
         const fromUrl = extractPlaceFromUrl(trimmed);
         if (fromUrl) {
@@ -613,7 +634,7 @@ export const parsePlaceEntry = (
             residual = residual.slice(0, r.start) + ' ' + residual.slice(r.end);
         }
     }
-    const query = cleanQuery(residual);
+    const query = cleanQuery(residual, isExplicit);
     if (!query) return null;
 
     return {

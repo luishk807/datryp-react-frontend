@@ -15,6 +15,7 @@ import {
     TextField,
 } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { formatDate, isValidDate, now } from 'utils';
@@ -1008,11 +1009,11 @@ const AddPlaceBtn = ({
                 hotelInfo,
                 // Cost lives on the check-in activity (whole-stay
                 // total). Don't double-charge by repeating it on the
-                // check-out row.
+                // check-out row. Budget split is on the check-in row
+                // for the same reason — it's not in PlaceDraft so we
+                // don't need to clear it here; the spread can't carry
+                // it across.
                 cost: undefined,
-                // Carry the budget split across? Same answer — split
-                // belongs to the check-in row.
-                budget: undefined,
             });
             setPendingHotelCheckout(null);
         }
@@ -1509,6 +1510,29 @@ const AddPlaceBtn = ({
                                         />
                                     </Grid>
                                     <Grid item lg={12} xs={12} className="py-5">
+                                        {/* Show the current image when set
+                                            — covers both file uploads and
+                                            smart-entry URL hits. Without
+                                            this, the file input shows
+                                            nothing for URL-sourced images
+                                            and users think the smart entry
+                                            never set one. */}
+                                        {place.image?.url && (
+                                            <div className="place-image-preview">
+                                                <img
+                                                    src={place.image.url}
+                                                    alt={place.image.name ?? place.name ?? 'Activity image'}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="place-image-preview-clear"
+                                                    onClick={() => handleOnChange('image', undefined as unknown as ImageRef)}
+                                                    aria-label="Remove image"
+                                                >
+                                                    <CloseRoundedIcon fontSize="small" />
+                                                </button>
+                                            </div>
+                                        )}
                                         <InputField
                                             type="file"
                                             label="image"
@@ -1948,7 +1972,7 @@ const AddPlaceBtn = ({
                                         </Grid>
                                     )}
                                     {isAdd && countryScope && (
-                                        <Grid item lg={12} xs={12} className="pt-2 pb-5">
+                                        <Grid item lg={12} xs={12} className="pt-8 pb-5">
                                             <PlaceSuggestions
                                                 country={countryScope}
                                                 topic="top hotels"
@@ -2318,7 +2342,7 @@ const AddPlaceBtn = ({
                                             </div>
                                         </Grid>
                                     )}
-                                    <Grid item lg={12} xs={12} className="pt-2 pb-5">
+                                    <Grid item lg={12} xs={12} className="pt-5 pb-5">
                                         <InputField
                                             value={place.name ?? ''}
                                             name="name"
