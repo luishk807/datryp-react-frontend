@@ -83,7 +83,23 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                     onClose={handleClose}
                     aria-labelledby="modal-modal-title"
                 >
-                    <div className={classNames('modalCustom', containerClassName)}>
+                    <div
+                        className={classNames('modalCustom', containerClassName)}
+                        // React's synthetic events bubble through the
+                        // fiber tree, not the DOM tree — so a keystroke
+                        // inside a portaled modal still reaches the
+                        // React parent that opened it. dnd-kit's
+                        // KeyboardSensor (mounted on the activity card
+                        // wrapper in DestinationDetail) was picking up
+                        // Enter from inside AddBudget / AddPlaceBtn
+                        // modals and starting a drag that never
+                        // resolved, leaving the day's drop-target
+                        // highlight stuck on until a browser refresh.
+                        // Containing keyboard events at the modal seam
+                        // is the cleanest place to break that — every
+                        // ModalButton-based modal gets the fix.
+                        onKeyDown={(e) => e.stopPropagation()}
+                    >
                         <span className="modalCustom-stripe" aria-hidden="true" />
                         <div className="modalCustom-header">
                             <h2

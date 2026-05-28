@@ -276,6 +276,17 @@ const PlaceAutocomplete = ({
                     placeholder={placeholder}
                     variant="outlined"
                     fullWidth
+                    // Space is a printable character but MUI's open
+                    // listbox treats it as a "select highlighted option"
+                    // signal — typing "san" → results land → press
+                    // space → space is swallowed and the user is stuck
+                    // at "san" unable to reach "san blas". Stopping
+                    // propagation on the input's onKeyDown keeps the
+                    // space in the input where it belongs without
+                    // disabling the dropdown.
+                    onKeyDown={(e) => {
+                        if (e.key === ' ') e.stopPropagation();
+                    }}
                     InputProps={{
                         ...params.InputProps,
                         endAdornment: (

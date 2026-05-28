@@ -1319,13 +1319,23 @@ const AddPlaceBtn = ({
      *  the two values clearly describe the same country (or when
      *  either is missing, since we can't compare). Used to block the
      *  smart-entry auto-populate when a pasted Yelp / Google link
-     *  resolves to a place outside the trip's destination country. */
+     *  resolves to a place outside the trip's destination country.
+     *
+     *  Recommender occasionally returns `country` as a malformed
+     *  "City, Country" string (e.g. "Panama City, Panama" on a Panama
+     *  trip) — comparing the whole thing to "Panama" would falsely
+     *  fire the warning. Take the last comma segment as the country
+     *  so the tail still matches. */
     const sameCountry = (
         tripCountry?: string,
         itemCountry?: string | null,
     ): boolean => {
         if (!tripCountry || !itemCountry) return true;
-        return tripCountry.trim().toLowerCase() === itemCountry.trim().toLowerCase();
+        const tail = (s: string): string => {
+            const parts = s.split(',').map((p) => p.trim()).filter(Boolean);
+            return (parts[parts.length - 1] ?? s).toLowerCase();
+        };
+        return tail(tripCountry) === tail(itemCountry);
     };
 
     const modalElement = (
@@ -1525,7 +1535,18 @@ const AddPlaceBtn = ({
                                             </div>
                                             <PlaceSmartEntryWatcher
                                                 rawInput={placeSmartEntry}
-                                                country={smartEntryLocation ?? countryScope}
+                                                // Bias just to the trip country, not the
+                                                // per-day pickSmartEntryLocation context.
+                                                // Place activities are often tourist
+                                                // destinations hours from the user's
+                                                // current hotel — biasing to "Quepos,
+                                                // Costa Rica" while searching "san blas"
+                                                // for a Panama trip made the recommender
+                                                // return malformed unrelated matches.
+                                                // Hotel form below keeps the tighter
+                                                // bias since hotel searches really are
+                                                // local.
+                                                country={countryScope}
                                                 onResult={(item: PlaceRecommendation, parsed, extras) => {
                                                     // Warn but don't block: a
                                                     // resolved place outside the
