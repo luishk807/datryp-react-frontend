@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
@@ -59,31 +59,11 @@ const PlaceSuggestions = ({
     // recommender returns a fresh set instead of the cached top-3.
     const [shuffleNonce, setShuffleNonce] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
-    // Persisted hide/unhide preference. Defaults to HIDDEN — the
-    // form opens clean and the user opts in to the AI panel via the
-    // chevron in the header. Scoped per-topic so hiding the hotel
-    // panel doesn't also hide the places panel. Values: '1' = hidden,
-    // '0' = explicitly shown, null = no preference yet (uses default).
-    const storageKey = `place-suggestions:hidden:${topic}`;
-    const [hidden, setHidden] = useState<boolean>(() => {
-        if (typeof window === 'undefined') return true;
-        try {
-            const stored = window.localStorage.getItem(storageKey);
-            if (stored === null) return true; // default hidden
-            return stored === '1';
-        } catch {
-            return true;
-        }
-    });
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        try {
-            window.localStorage.setItem(storageKey, hidden ? '1' : '0');
-        } catch {
-            /* localStorage unavailable (private mode / quota) — fall
-               back to in-memory only; user can re-toggle next session. */
-        }
-    }, [hidden, storageKey]);
+    // Always start HIDDEN on every modal open. The AI panel is opt-in
+    // per session via the chevron in the header — no persistence
+    // across openings, so users who don't want it never see it after
+    // the first dismiss, and users who do can re-expand it any time.
+    const [hidden, setHidden] = useState<boolean>(true);
 
     // `q=<name>&i=0` matches the convention used by Saved / Visited /
     // NearbyGrid. The recommender chokes on verbose

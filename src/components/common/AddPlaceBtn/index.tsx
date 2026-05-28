@@ -958,6 +958,14 @@ const AddPlaceBtn = ({
             latitude: suggestion.latitude ?? null,
             longitude: suggestion.longitude ?? null,
         }));
+        // Reveal the details panel so the just-populated name /
+        // location / image are visible. Same intent as the smart-
+        // entry onResult: a successful pick should never silently
+        // change hidden state. Both the PlaceSuggestions chip pick
+        // and the hotel-suggestions pick route through here, so this
+        // covers both surfaces.
+        setPlaceDetailsExpanded(true);
+        setHotelDetailsExpanded(true);
     };
 
     const handleImageChange = (e: { target: { value: string } } | React.ChangeEvent<HTMLInputElement>) => {
@@ -1606,18 +1614,19 @@ const AddPlaceBtn = ({
                                                         handleOnChange('cost', String(parsed.cost));
                                                     }
                                                     // Open the collapsed
-                                                    // details panel when the
-                                                    // smart entry populated a
-                                                    // field that lives inside
-                                                    // it — otherwise the user
-                                                    // can't see what got filled.
-                                                    if (
-                                                        parsed.startTime ||
-                                                        parsed.endTime ||
-                                                        parsed.cost != null
-                                                    ) {
-                                                        setPlaceDetailsExpanded(true);
-                                                    }
+                                                    // details panel any time
+                                                    // the smart entry lands a
+                                                    // result. handlePlacePicked
+                                                    // above writes name /
+                                                    // location / image into
+                                                    // fields that live inside
+                                                    // this panel, so leaving
+                                                    // it collapsed means the
+                                                    // user types something,
+                                                    // the search succeeds,
+                                                    // and they see no visible
+                                                    // change — looks broken.
+                                                    setPlaceDetailsExpanded(true);
                                                 }}
                                                 onLoadingChange={setPlaceSmartLoading}
                                                 onWarning={setPlaceSmartWarning}
