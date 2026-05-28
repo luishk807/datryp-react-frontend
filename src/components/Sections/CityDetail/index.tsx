@@ -124,19 +124,21 @@ const CityDetail = () => {
                 user.homeCountryCode.toUpperCase() ===
                     args.countryCode.toUpperCase(),
         );
-        // Day-1 outbound auto-seed. Silent skip (no toast / warning)
-        // when we don't have enough info to populate a meaningful
-        // activity — same pattern as AddPlaceBtn's segment seeding.
-        // Arrival date is set explicitly to depart date so the
-        // segment's internal dates are coherent without relying on the
-        // form's depart→arrival cascade.
+        // Day-1 outbound + return auto-seed. Silent skip (no toast /
+        // warning) when we don't have enough info to populate a
+        // meaningful activity — same pattern as AddPlaceBtn's segment
+        // seeding. Arrival date is set explicitly to depart date so
+        // the segment's internal dates are coherent without relying
+        // on the form's depart→arrival cascade.
         //
-        // NOTE: the symmetric "return" activity on the trip's LAST day
-        // isn't seeded here — we don't know the end date until the
-        // user picks it in the stepper. The destination's `flightInfo`
-        // carries the depart/arrive airports symmetrically though, so
-        // a follow-up can hook into the stepper's end-date pick to
-        // spawn the return.
+        // BOTH legs are seeded on `today` (the default start/end date)
+        // so a same-day default trip still ships with the round trip
+        // visible. When the user picks a real multi-day end date in
+        // the stepper, `BasicsStep.handleEndDateChange` sees the
+        // existing return via its idempotency check and skips — the
+        // return stays on day 1 and the user can drag it to the last
+        // day if they want. (A future enhancement could move the
+        // return automatically, but that's a bigger UX call.)
         let seededActivities: Activity[] = [];
         if (isSameCountry && user?.homeCity && args.cityName) {
             seededActivities = [
@@ -155,6 +157,21 @@ const CityDetail = () => {
                         },
                     ],
                 },
+                {
+                    id: 0,
+                    kind: ACTIVITY_KIND.TRAIN,
+                    name: `Train back to ${user.homeCity}`,
+                    transitSegments: [
+                        {
+                            departStation: args.cityName,
+                            arrivalStation: user.homeCity,
+                            departDate: today,
+                            departTime: "00:00",
+                            arrivalDate: today,
+                            arrivalTime: "00:00",
+                        },
+                    ],
+                },
             ];
         } else if (nearestAirport?.iataCode && args.arrivalAirportCode) {
             seededActivities = [
@@ -166,6 +183,21 @@ const CityDetail = () => {
                         {
                             departAirport: nearestAirport.iataCode,
                             arrivalAirport: args.arrivalAirportCode,
+                            departDate: today,
+                            departTime: "00:00",
+                            arrivalDate: today,
+                            arrivalTime: "00:00",
+                        },
+                    ],
+                },
+                {
+                    id: 0,
+                    kind: ACTIVITY_KIND.FLIGHT,
+                    name: `Flight back to ${nearestAirport.iataCode}`,
+                    flightSegments: [
+                        {
+                            departAirport: args.arrivalAirportCode,
+                            arrivalAirport: nearestAirport.iataCode,
                             departDate: today,
                             departTime: "00:00",
                             arrivalDate: today,

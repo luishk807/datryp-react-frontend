@@ -6,9 +6,10 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import SearchBar from 'components/SearchBar';
 import InputField from 'components/common/FormFields/InputField';
-import { basicInfo, useTripDispatch } from 'context/TripContext';
-import { TRIP_BASIC, TRIP_MODE } from 'constants';
+import { addPlace, basicInfo, useTripDispatch } from 'context/TripContext';
+import { ACTIVITY_KIND, TRIP_BASIC, TRIP_MODE } from 'constants';
 import type {
+    Activity,
     Country,
     Destination,
     TripChangeEvent,
@@ -69,6 +70,123 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                 ? [{ ...destinations[0], country }, ...destinations.slice(1)]
                 : [{ id: 0, country, itinerary: [] } as Destination];
         dispatch(basicInfo({ destinations: next }));
+    };
+
+    /**
+     * End-date pick on a single-destination trip auto-seeds a "return
+     * leg" on the last day. The outbound (FLIGHT or TRAIN) was already
+     * seeded by CityDetail / CountryDetail on day 1 — we mirror it
+     * here with depart/arrival swapped and the date set to the
+     * just-picked end date, so the user lands in the People step with
+     * BOTH legs of their trip pre-populated.
+     *
+     * Idempotent: skipped if a return-shaped activity already exists
+     * anywhere in the itinerary. Skipped on same-day trips (no return
+     * needed). Doesn't auto-relocate the return when the user later
+     * shifts the end date — drag-and-drop in DestinationDetail covers
+     * that case.
+     */
+    const handleEndDateChange = (e: TripChangeEvent) => {
+        // Apply the date change first so the reducer's orphan-day
+        // reanchor pass runs against the OLD itinerary layout —
+        // otherwise our just-added return could be re-parked onto
+        // startDate by that same pass.
+        onChange('endDate', e);
+
+        const newEndDate =
+            typeof e.target.value === 'string' ? e.target.value : '';
+        const startDate = data?.startDate;
+        if (!newEndDate || !startDate) return;
+        // Backwards range (mid-edit / typo) → bail out. Same-day is
+        // OK: a one-day trip can still have a "fly there in the
+        // morning, fly back at night" pair.
+        if (newEndDate < startDate) return;
+
+        const dest = data?.destinations?.[0];
+        const itinerary = dest?.itinerary;
+        if (!itinerary?.length) return;
+
+        const day1 = itinerary[0];
+        const outbound = day1?.activities?.find(
+            (a) =>
+                a.kind === ACTIVITY_KIND.FLIGHT ||
+                a.kind === ACTIVITY_KIND.TRAIN,
+        );
+        if (!outbound) return;
+
+        // Pull the depart/arrival endpoints + build the mirror in a
+        // single kind-narrowed branch so TS keeps FlightInfo /
+        // TransitInfo straight (no `FlightInfo | TransitInfo` union
+        // gymnastics).
+        let outDepart: string | undefined;
+        let outArrival: string | undefined;
+        let returnActivity: Omit<Activity, 'id'> | null = null;
+        if (outbound.kind === ACTIVITY_KIND.FLIGHT) {
+            const seg = outbound.flightSegments?.[0];
+            outDepart = seg?.departAirport;
+            outArrival = seg?.arrivalAirport;
+            if (!outDepart || !outArrival) return;
+            returnActivity = {
+                kind: ACTIVITY_KIND.FLIGHT,
+                name: `Flight back to ${outDepart}`,
+                flightSegments: [
+                    {
+                        departAirport: outArrival,
+                        arrivalAirport: outDepart,
+                        departDate: newEndDate,
+                        departTime: '00:00',
+                        arrivalDate: newEndDate,
+                        arrivalTime: '00:00',
+                    },
+                ],
+            };
+        } else {
+            const seg = outbound.transitSegments?.[0];
+            outDepart = seg?.departStation;
+            outArrival = seg?.arrivalStation;
+            if (!outDepart || !outArrival) return;
+            returnActivity = {
+                kind: ACTIVITY_KIND.TRAIN,
+                name: `Train back to ${outDepart}`,
+                transitSegments: [
+                    {
+                        departStation: outArrival,
+                        arrivalStation: outDepart,
+                        departDate: newEndDate,
+                        departTime: '00:00',
+                        arrivalDate: newEndDate,
+                        arrivalTime: '00:00',
+                    },
+                ],
+            };
+        }
+
+        // Idempotency: skip if a return-shaped activity (same kind,
+        // endpoints swapped) already exists anywhere in the itinerary.
+        // Same kind-narrowed branch pattern as above so TS keeps the
+        // segment field names straight per kind.
+        const alreadyHasReturn = itinerary.some((day) =>
+            day.activities.some((a) => {
+                if (a.kind !== outbound.kind) return false;
+                if (outbound.kind === ACTIVITY_KIND.FLIGHT) {
+                    const seg = a.flightSegments?.[0];
+                    return (
+                        seg?.departAirport === outArrival &&
+                        seg?.arrivalAirport === outDepart
+                    );
+                }
+                const seg = a.transitSegments?.[0];
+                return (
+                    seg?.departStation === outArrival &&
+                    seg?.arrivalStation === outDepart
+                );
+            }),
+        );
+        if (alreadyHasReturn) return;
+
+        dispatch(
+            addPlace({ date: newEndDate, value: returnActivity, index: 0 }),
+        );
     };
 
     return (
@@ -177,7 +295,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                             value={end}
                             name="endDate"
                             type="date"
-                            onChange={(e) => onChange('endDate', e)}
+                            onChange={handleEndDateChange}
                         />
                     </div>
                 </div>
