@@ -94,9 +94,17 @@ const PlaceSmartEntryWatcher = ({
     }, [isShort, resolvedShortUrl, rawInput]);
 
     useEffect(() => {
+        // 1200ms (was 600ms): a place sentence with time + cost takes
+        // a beat to type — "bocas del toro from 2pm - 5pm with a cost
+        // of 20 dollars" is ~50 chars and users often pause mid-cost
+        // to remember the number. A short debounce fired the parser
+        // before the cost was typed, which then over-stripped the
+        // residual into a wrong name. The post-parse search itself
+        // still debounces on the query string downstream, so this only
+        // delays the moment the watcher commits a parsed result.
         const timer = setTimeout(() => {
             setParsed(parsePlaceEntry(effectiveInput));
-        }, 600);
+        }, 1200);
         return () => clearTimeout(timer);
     }, [effectiveInput]);
 

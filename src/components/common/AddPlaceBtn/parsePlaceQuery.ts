@@ -456,9 +456,21 @@ const LEADING_FILLERS = [
 // Trailing connector words / phrases — orphaned bits left over once
 // the time / cost / date matches are stripped. "cost me" / "costs me"
 // get pulled here when only the dollar number was matched by the
-// cost extractor.
+// cost extractor. `from` covers "<place> from 2pm - 5pm" where the
+// time range gets stripped and leaves a dangling "from".
 const STRIP_CONNECTORS =
-    /(\s+(?:at|for|around|about|roughly|on|near|costs?\s+me|costs?|will\s+cost|that\s+(?:will\s+)?costs?)\s*)+$/i;
+    /(\s+(?:at|for|from|around|about|roughly|on|near|costs?\s+me|costs?|will\s+cost|that\s+(?:will\s+)?costs?)\s*)+$/i;
+
+// Longer connector phrases. The single-word STRIP_CONNECTORS loop
+// can't safely strip `a`, `of`, or `with` on their own (they're real
+// words inside place names like "Statue of Liberty" or "Walk with
+// Lions"), but in specific multi-word chains they're clearly filler.
+// Run this BEFORE the single-word loop so a sentence like "bocas del
+// toro with a cost of 20 dollars" — where the cost extractor strips
+// "20 dollars" but leaves "with a cost of" — comes out as just
+// "bocas del toro".
+const STRIP_LONG_PHRASES =
+    /\s+(?:(?:for|with)\s+a\s+(?:cost|price|budget)\s+(?:of\s*)?|(?:for|with)\s+(?:cost|price|budget)\s+(?:of\s*)?|(?:cost|price|budget)\s+of|that\s+(?:will\s+)?costs?(?:\s+(?:about|around))?)\s*$/i;
 
 // Date phrases anywhere in the text. We don't use these dates for
 // places (the day-block already pins the date), but stripping them
@@ -516,6 +528,17 @@ const cleanQuery = (text: string, isExplicit: boolean): string => {
                 }
             }
         }
+    }
+    // First strip the long multi-word noise phrases ("with a cost of",
+    // "cost of", "that costs around") — these contain bare words like
+    // `a` / `of` that the single-word loop deliberately doesn't strip
+    // on their own. Run before the single-word loop so it can then
+    // peel off any remaining trailing "from" / "at" / etc.
+    let longProgressed = true;
+    while (longProgressed) {
+        const before = out;
+        out = out.replace(STRIP_LONG_PHRASES, '').trim();
+        longProgressed = out !== before;
     }
     // Loop STRIP_CONNECTORS until stable. After cost + time get stripped,
     // a sentence like "hiroshima park at 2pm for $50" leaves the residual
