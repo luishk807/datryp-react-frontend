@@ -44,16 +44,23 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetails } from "api/hooks/useCountryDetails";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
+import { useNearestAirport } from "api/hooks/useHomeDeparture";
+import { useUser } from "context/UserContext";
 import { useIsStuck } from "hooks/useIsStuck";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import { now } from "utils";
-import { TRIP_BASIC } from "constants";
-import type { Destination } from "types";
+import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
+import type { Activity, Destination } from "types";
 
 const CountryDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useTripDispatch();
+  // Home airport + user — drive the Day-1 flight auto-seed. Returns
+  // null until the user has a home city set; we silent-skip in that
+  // case, same pattern as CityDetail.
+  const { data: nearestAirport } = useNearestAirport();
+  const { user } = useUser();
   const code = (searchParams.get("code") ?? "").trim().toUpperCase();
   // Scroll-activated chrome — see useIsStuck.
   const toolbarIsStuck = useIsStuck();
@@ -91,9 +98,70 @@ const CountryDetail = () => {
 
   const startTrip = (
     country: { id: string; name: string; code: string; local: string | null; image: string | null },
+    arrivalAirportCode: string | null,
   ) => {
+    const today = now();
+
+    // Same-country country trip (e.g. user in USA planning "USA"
+    // trip) — skip the auto-seed entirely. No specific destination
+    // city to anchor a train/bus on, and a flight would be wrong
+    // for most domestic trips. The user picks the right activity
+    // type manually.
+    const isSameCountry = Boolean(
+      user?.homeCountryCode &&
+        country.code &&
+        user.homeCountryCode.toUpperCase() === country.code.toUpperCase(),
+    );
+
+    // Day-1 outbound + return flight auto-seed. Mirrors CityDetail's
+    // round-trip seeding so the user lands in the wizard with both
+    // legs of the journey ready to edit. Silent-skip when the user
+    // has no home airport set or the country has no known primary
+    // airport — partial flights with a placeholder depart side were
+    // worse UX than no seed at all.
+    const seededActivities: Activity[] = [];
+    if (
+      !isSameCountry &&
+      nearestAirport?.iataCode &&
+      arrivalAirportCode
+    ) {
+      seededActivities.push(
+        {
+          id: 0,
+          kind: ACTIVITY_KIND.FLIGHT,
+          name: `Flight to ${country.name}`,
+          flightSegments: [
+            {
+              departAirport: nearestAirport.iataCode,
+              arrivalAirport: arrivalAirportCode,
+              departDate: today,
+              departTime: "00:00",
+              arrivalDate: today,
+              arrivalTime: "00:00",
+            },
+          ],
+        },
+        {
+          id: 0,
+          kind: ACTIVITY_KIND.FLIGHT,
+          name: `Flight back to ${nearestAirport.iataCode}`,
+          flightSegments: [
+            {
+              departAirport: arrivalAirportCode,
+              arrivalAirport: nearestAirport.iataCode,
+              departDate: today,
+              departTime: "00:00",
+              arrivalDate: today,
+              arrivalTime: "00:00",
+            },
+          ],
+        },
+      );
+    }
+
     const destinations = [
       {
+        id: 0,
         country: {
           id: country.id,
           name: country.name,
@@ -101,9 +169,22 @@ const CountryDetail = () => {
           local: country.local ?? undefined,
           image: country.image ?? undefined,
         },
+        ...(arrivalAirportCode
+          ? { flightInfo: { arrivalAirport: arrivalAirportCode } }
+          : {}),
+        ...(seededActivities.length
+          ? {
+              itinerary: [
+                {
+                  id: 0,
+                  date: today,
+                  activities: seededActivities,
+                },
+              ],
+            }
+          : {}),
       },
     ] as Destination[];
-    const today = now();
     dispatch(resetTrip());
     dispatch(
       basicInfo({
@@ -260,7 +341,12 @@ const CountryDetail = () => {
             <button
               type="button"
               className="country-detail-plan-cta"
-              onClick={() => startTrip(country)}
+              onClick={() =>
+                startTrip(
+                  country,
+                  details.airports?.[0]?.iataCode ?? null,
+                )
+              }
             >
               <FlightTakeoffRoundedIcon className="country-detail-plan-cta-icon" />
               <span className="country-detail-plan-cta-text">

@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { CircularProgress } from '@mui/material';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
 import IconLink from 'components/common/IconLink';
+import PageLoader from 'components/common/PageLoader';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import { useUser } from 'context/UserContext';
 import { useGoogleSignin } from 'api/hooks/useAuth';
@@ -63,21 +63,7 @@ const AuthGate = ({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    if (isLoading) {
-        // Plain centered loader — NOT the split-grid `.authgate-page`
-        // shell, which would pin the spinner inside the left grid
-        // column (top-left of the viewport) instead of dead center.
-        return (
-            <div
-                className="authgate-loading-screen"
-                role="status"
-                aria-live="polite"
-            >
-                <CircularProgress size={44} thickness={4} />
-                <p className="authgate-loading-text">Loading…</p>
-            </div>
-        );
-    }
+    if (isLoading) return <PageLoader />;
     if (user) return <>{children}</>;
 
     const resetError = () => error && setError(null);

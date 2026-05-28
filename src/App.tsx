@@ -7,6 +7,7 @@ import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
 import BottomNav from 'components/BottomNav';
 import RouteErrorBoundary from 'components/common/RouteErrorBoundary';
+import PageLoader from 'components/common/PageLoader';
 const Home = lazy(() => import('components/Sections/Home'));
 const Dashboard = lazy(() => import('components/Sections/Dashboard'));
 const DashboardOverview = lazy(() => import('components/Sections/Dashboard/OverviewCard'));
@@ -59,7 +60,7 @@ const Gated = ({ children, title, subtitle }: {
     // /auth/me response) is still caught.
     <RouteErrorBoundary>
         <AuthGate title={title} subtitle={subtitle}>
-            <Suspense fallback={<>...</>}>{children}</Suspense>
+            <Suspense fallback={<PageLoader />}>{children}</Suspense>
         </AuthGate>
     </RouteErrorBoundary>
 );
@@ -69,7 +70,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Home />
                     </Suspense>
                 } />
@@ -140,7 +141,7 @@ function App() {
                     </Gated>
                 }/>
                 <Route path='/country' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <CountryDetail />
                     </Suspense>
                 }/>
@@ -150,7 +151,7 @@ function App() {
                     </Gated>
                 }/>
                 <Route path='/city' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <CityDetail />
                     </Suspense>
                 }/>
@@ -204,90 +205,90 @@ function App() {
                 }/>
                 <Route path='/dashboard' element={
                     <AdminGate>
-                        <Suspense fallback={<>...</>}>
+                        <Suspense fallback={<PageLoader />}>
                             <Dashboard />
                         </Suspense>
                     </AdminGate>
                 }>
                     <Route index element={<Navigate to="overview" replace />} />
                     <Route path='overview' element={
-                        <Suspense fallback={<>...</>}>
+                        <Suspense fallback={<PageLoader />}>
                             <DashboardOverview />
                         </Suspense>
                     } />
                     <Route path='subscription' element={
-                        <Suspense fallback={<>...</>}>
+                        <Suspense fallback={<PageLoader />}>
                             <DashboardSubscription />
                         </Suspense>
                     } />
                     <Route path='activity' element={
-                        <Suspense fallback={<>...</>}>
+                        <Suspense fallback={<PageLoader />}>
                             <DashboardActivity />
                         </Suspense>
                     } />
                     <Route path='users' element={
-                        <Suspense fallback={<>...</>}>
+                        <Suspense fallback={<PageLoader />}>
                             <DashboardUsers />
                         </Suspense>
                     } />
                     <Route path='cache' element={
-                        <Suspense fallback={<>...</>}>
+                        <Suspense fallback={<PageLoader />}>
                             <DashboardCache />
                         </Suspense>
                     } />
                 </Route>
                 <Route path='/terms' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Terms />
                     </Suspense>
                 }/>
                 <Route path='/privacy' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Privacy />
                     </Suspense>
                 }/>
                 <Route path='/about' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <About />
                     </Suspense>
                 }/>
                 <Route path='/contact' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Contact />
                     </Suspense>
                 }/>
                 <Route path='/membership' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Membership />
                     </Suspense>
                 }/>
                 <Route path='/membership/welcome' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <MembershipWelcome />
                     </Suspense>
                 }/>
                 <Route path='/signup' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Signup />
                     </Suspense>
                 }/>
                 <Route path='/login' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <Login />
                     </Suspense>
                 }/>
                 <Route path='/forgot-password' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <ForgotPassword />
                     </Suspense>
                 }/>
                 <Route path='/reset-password' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <ResetPassword />
                     </Suspense>
                 }/>
                 <Route path='*' element={
-                    <Suspense fallback={<>...</>}>
+                    <Suspense fallback={<PageLoader />}>
                         <ErrorPage
                             pageTitle="Page not found"
                             title="We can't find that page"

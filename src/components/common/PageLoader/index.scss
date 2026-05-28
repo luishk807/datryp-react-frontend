@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fixed full-viewport centered loader — shared by App's Suspense
+ * fallbacks for every lazy route AND AuthGate's auth-resolving
+ * placeholder. Sits above the page-shell so it covers any partial
+ * layout that may have started painting. */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #fff;
+  z-index: 50;
+}
+
+.page-loader-spinner.MuiCircularProgress-root {
+  color: theme('colors.primaryGreen');
+}
+
+.page-loader-label {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.55);
+}
