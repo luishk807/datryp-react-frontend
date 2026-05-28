@@ -292,6 +292,47 @@ export interface ItineraryRow {
     rowTotal: number;
 }
 
+/** Stable content signature for dedupe — used when two backend rows
+ *  share the same activity content but carry different ids (e.g. a
+ *  save race that double-inserted). Mirrors the fields a human would
+ *  use to decide "these are the same activity": kind, name, time
+ *  window, cost, and the first transport segment's endpoints. */
+const activityContentSig = (a: Activity): string => {
+    const kind = a.kind ?? ACTIVITY_KIND.PLACE;
+    let segHint = '';
+    if (kind === ACTIVITY_KIND.FLIGHT) {
+        const s = a.flightSegments?.[0];
+        segHint = [
+            s?.departAirport ?? '',
+            s?.arrivalAirport ?? '',
+            s?.flightNumber ?? '',
+            s?.departDate ?? '',
+            s?.departTime ?? '',
+        ].join('|');
+    } else if (
+        kind === ACTIVITY_KIND.TRAIN ||
+        kind === ACTIVITY_KIND.BUS ||
+        kind === ACTIVITY_KIND.RENTAL_CAR
+    ) {
+        const s = a.transitSegments?.[0];
+        segHint = [
+            s?.departStation ?? '',
+            s?.arrivalStation ?? '',
+            s?.number ?? '',
+            s?.departDate ?? '',
+            s?.departTime ?? '',
+        ].join('|');
+    }
+    return [
+        kind,
+        (a.name ?? '').trim().toLowerCase(),
+        a.startTime ?? '',
+        a.endTime ?? '',
+        String(a.cost ?? ''),
+        segHint,
+    ].join('::');
+};
+
 export const walkItinerary = (trip: TripState): ItineraryRow[] => {
     const rows: ItineraryRow[] = [];
     // Dedupe by activity.id — a stale or corrupted backend state can
@@ -301,6 +342,12 @@ export const walkItinerary = (trip: TripState): ItineraryRow[] => {
     // skip repeats. Activities without an id (rare; fresh drafts
     // before save) still render — they can't be deduped reliably.
     const seenIds = new Set<number>();
+    // Secondary dedupe by content signature, scoped to the day. A save
+    // race / duplicate insert produces two backend rows with DIFFERENT
+    // ids but identical content — the id-based pass above misses them.
+    // Scoped per-date so the same recurring activity ("Breakfast") on
+    // two different days still both render.
+    const seenSigsByDate = new Map<string, Set<string>>();
     for (const dest of trip.destinations ?? []) {
         for (const day of dest.itinerary ?? []) {
             for (const activity of day.activities ?? []) {
@@ -308,6 +355,15 @@ export const walkItinerary = (trip: TripState): ItineraryRow[] => {
                     if (seenIds.has(activity.id)) continue;
                     seenIds.add(activity.id);
                 }
+                const sig = activityContentSig(activity);
+                const dayKey = day.date ?? '';
+                let dateSigs = seenSigsByDate.get(dayKey);
+                if (!dateSigs) {
+                    dateSigs = new Set<string>();
+                    seenSigsByDate.set(dayKey, dateSigs);
+                }
+                if (dateSigs.has(sig)) continue;
+                dateSigs.add(sig);
                 const budgetItems = (activity.budget ?? []) as BudgetItem[];
                 // The data model doesn't track per-activity participants
                 // as a separate field — they're implicit via the budget

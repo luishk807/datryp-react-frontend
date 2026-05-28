@@ -12,6 +12,7 @@
  * AuthGate's existing login UI, but the broader hardening lives here.
  */
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import ErrorPage from 'components/common/ErrorPage';
 
 interface RouteErrorBoundaryProps {
@@ -27,7 +28,7 @@ interface RouteErrorBoundaryState {
     errorMessage?: string;
 }
 
-class RouteErrorBoundary extends Component<
+class RouteErrorBoundaryClass extends Component<
     RouteErrorBoundaryProps,
     RouteErrorBoundaryState
 > {
@@ -81,5 +82,16 @@ class RouteErrorBoundary extends Component<
         );
     }
 }
+
+/** Wrapper that re-mounts the boundary on every navigation so a stale
+ *  `hasError=true` state doesn't survive a Sign in / Go home click and
+ *  leave the user staring at the same fallback page after navigating
+ *  away. React reuses the same component instance across route
+ *  changes when only the URL differs, so `state.hasError` would stick
+ *  unless we explicitly key the boundary by pathname. */
+const RouteErrorBoundary = (props: RouteErrorBoundaryProps) => {
+    const location = useLocation();
+    return <RouteErrorBoundaryClass key={location.pathname} {...props} />;
+};
 
 export default RouteErrorBoundary;

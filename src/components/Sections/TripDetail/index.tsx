@@ -370,6 +370,25 @@ export const TripDetail = () => {
         persistedStatusName !== TRIP_STATUS.CANCELLED &&
         isPaidEditEvent(event);
       if (shouldAutoSaveStatusEdit || shouldAutoSavePaidEdit) {
+        // Skip when a save is already in flight. The backend's
+        // save_itinerary uses soft-delete-then-reinsert semantics —
+        // two concurrent saves on the same trip will each soft-delete
+        // the existing rows (the second is a no-op since they're
+        // already gone) and then each insert a fresh copy, leaving
+        // two sets of "active" activity rows with different ids but
+        // identical content. That's exactly the duplicate we saw on
+        // /trip-detail and in the exported PDF. Until the backend
+        // serializes per-itinerary writes (SELECT ... FOR UPDATE on
+        // the itinerary row), guard the client side. The change is
+        // already applied to localTripData above so the UI reflects
+        // it; the next status/paid edit picks up the latest state
+        // and persists it in one save.
+        if (saveItinerary.isPending) {
+          setSaveError(
+            "Still saving the previous change. Try again in a moment.",
+          );
+          return;
+        }
         const input = tripStateToSaveInput(next, {
           id: apiTrip.id,
           interaryTypeId: apiTrip.interaryType.id,
