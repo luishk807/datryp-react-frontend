@@ -3,6 +3,7 @@ import './index.scss';
 import Layout from 'components/common/Layout/SubLayout';
 import PlaceResultCard from 'components/PlaceResultCard';
 import PlaceResultCardSkeleton from 'components/PlaceResultCardSkeleton';
+import AiSearchLoader from 'components/AiSearchLoader';
 import PlanCards from 'components/PlanCards';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { isQueryBlockedError } from 'api/moderationError';
@@ -42,11 +43,7 @@ const SearchResults = () => {
             );
         }
         if (isLoading) {
-            return (
-                <div className="search-results-grid" aria-live="polite" aria-busy="true">
-                    <PlaceResultCardSkeleton count={SKELETON_COUNT} />
-                </div>
-            );
+            return <AiSearchLoader query={query} />;
         }
         if (isError) {
             if (isQueryBlockedError(error)) {
