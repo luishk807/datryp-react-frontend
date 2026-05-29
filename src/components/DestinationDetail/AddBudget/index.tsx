@@ -54,6 +54,17 @@ export const AddBudget = ({
 
     const [isSplit, setIsSplit] = useState<boolean>(initialIsSplit);
     const [solePayer, setSolePayer] = useState<Friend | null>(initialSolePayer);
+
+    // Solo trip: auto-pick the single participant so the static
+    // "Paid by" row below renders with their name and the Save
+    // button has a payer to attribute the budget to. Skips when
+    // the user has already chosen someone or the split toggle is
+    // active.
+    useEffect(() => {
+        if (!isSplit && !solePayer && participants.length === 1) {
+            setSolePayer(participants[0]);
+        }
+    }, [isSplit, solePayer, participants]);
     const [splitBudget, setSplitBudget] = useState<BudgetEntry[]>(() =>
         budget.map(({ user, budget: b }) => ({ user, budget: b }))
     );
@@ -191,32 +202,54 @@ export const AddBudget = ({
                 <Grid item lg={12} xs={12} md={12} className="description">
                     Who is paying for this?
                 </Grid>
-                <Grid item lg={12} xs={12} md={12} className="payer-search">
-                    <Autocomplete<PayerOption, false, false, false>
-                        disabled={isSplit}
-                        options={payerOptions}
-                        value={soleOption}
-                        onChange={(_e, val) =>
-                            setSolePayer(val ? val.friend : null)
-                        }
-                        isOptionEqualToValue={(o, v) => o.id === v.id}
-                        getOptionLabel={(o) => o.label}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Select a payer"
-                                placeholder="Search a friend…"
-                            />
-                        )}
-                    />
-                </Grid>
-                <Grid item lg={12} xs={12} md={12} className="split-toggle">
-                    <Toggle
-                        label="Split payment"
-                        checked={isSplit}
-                        onChange={handleToggleSplit}
-                    />
-                </Grid>
+                {/* Picker only renders when there's more than one
+                    option. Solo trip → auto-pick the single
+                    participant and replace the dropdown with a
+                    static "Paid by <name>" line; nothing for the
+                    user to choose so a picker is just noise. */}
+                {payerOptions.length > 1 ? (
+                    <Grid item lg={12} xs={12} md={12} className="payer-search">
+                        <Autocomplete<PayerOption, false, false, false>
+                            disabled={isSplit}
+                            options={payerOptions}
+                            value={soleOption}
+                            onChange={(_e, val) =>
+                                setSolePayer(val ? val.friend : null)
+                            }
+                            isOptionEqualToValue={(o, v) => o.id === v.id}
+                            getOptionLabel={(o) => o.label}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Select a payer"
+                                    placeholder="Search a friend…"
+                                />
+                            )}
+                        />
+                    </Grid>
+                ) : (
+                    <Grid item lg={12} xs={12} md={12} className="payer-search">
+                        <div className="travel-budget-solo-payer">
+                            <span className="travel-budget-solo-payer-label">
+                                Paid by
+                            </span>
+                            <span className="travel-budget-solo-payer-name">
+                                {payerOptions[0]?.label ?? 'You'}
+                            </span>
+                        </div>
+                    </Grid>
+                )}
+                {/* Split toggle only when there's actually somebody
+                    to split with. Solo trip → no toggle. */}
+                {payerOptions.length > 1 && (
+                    <Grid item lg={12} xs={12} md={12} className="split-toggle">
+                        <Toggle
+                            label="Split payment"
+                            checked={isSplit}
+                            onChange={handleToggleSplit}
+                        />
+                    </Grid>
+                )}
                 {isSplit && (
                     <Grid item lg={12} xs={12} md={12} className="items">
                         {participants.map((participant) => {

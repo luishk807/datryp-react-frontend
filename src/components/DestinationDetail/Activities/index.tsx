@@ -227,22 +227,45 @@ const PaidByRow = ({
   // to paidBy.name for activities without a per-person budget.
   // Same heuristic as the PDF / Excel exports' Confirmed Paid
   // column (see `confirmedPaidEntries`).
-  const payerLabel = (() => {
+  const { payerLabel, hasAssignedPayer } = (() => {
     const budget = activity.budget ?? [];
     const names = budget
       .map((b) => (b.user?.label ?? b.user?.name ?? "").trim())
       .filter(Boolean);
-    if (names.length === 0) return activity.paidBy?.name ?? "Unknown";
-    if (names.length === 1) return names[0];
-    if (names.length === 2) return `${names[0]} & ${names[1]}`;
-    return `${names[0]} + ${names.length - 1} others`;
+    const backendName = activity.paidBy?.name?.trim() ?? "";
+    if (names.length === 0) {
+      return {
+        payerLabel: backendName || "Unknown",
+        hasAssignedPayer: backendName.length > 0,
+      };
+    }
+    if (names.length === 1) {
+      return { payerLabel: names[0], hasAssignedPayer: true };
+    }
+    if (names.length === 2) {
+      return {
+        payerLabel: `${names[0]} & ${names[1]}`,
+        hasAssignedPayer: true,
+      };
+    }
+    return {
+      payerLabel: `${names[0]} + ${names.length - 1} others`,
+      hasAssignedPayer: true,
+    };
   })();
   const dateLabel = formatPaidDate(activity.paidAt);
+
+  // Suppress the chip entirely when there's no real payer
+  // attribution — a date alone doesn't tell the user anything
+  // useful, and "Paid by Unknown" reads as a data error. Falls
+  // through to the "Mark as paid" pill so the user can still
+  // assign someone.
+  const showChip = isPaid && hasAssignedPayer;
 
   return (
     <div className="meta-row meta-row-paid">
       <CheckCircleOutlineRoundedIcon className="meta-icon" />
-      {isPaid ? (
+      {showChip ? (
         <span className="paid-by-chip">
           <span className="paid-by-chip-text">
             Paid by {payerLabel}

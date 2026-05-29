@@ -17,6 +17,12 @@ export interface AsyncDetailSectionProps<T> {
   errorMessage: string;
   /** Skeleton paragraph line count while loading. Defaults to 3. */
   skeletonLines?: number;
+  /** Short status hint shown above the skeleton while loading —
+   *  tells the user WHAT is being fetched so a wall of shimmer
+   *  doesn't read as "the page is broken". Per-section copy
+   *  (e.g., "Fetching weather…", "Looking up currency…") set by
+   *  the consumer. Hidden once `data` resolves. */
+  loadingHint?: string;
   /** Render prop called with the resolved data. Kept as a render prop
    *  (rather than `ReactNode` children) so consumers don't need their
    *  own `data && ...` guard. */
@@ -37,6 +43,7 @@ const AsyncDetailSection = <T,>({
   isError = false,
   errorMessage,
   skeletonLines = 3,
+  loadingHint,
   children,
 }: AsyncDetailSectionProps<T>) => (
   <DetailSection title={title} icon={icon}>
@@ -47,7 +54,17 @@ const AsyncDetailSection = <T,>({
         {errorMessage}
       </p>
     ) : (
-      <ParagraphSkeleton lines={skeletonLines} />
+      <>
+        {loadingHint && (
+          <p
+            className="async-detail-section-loading-hint"
+            aria-live="polite"
+          >
+            {loadingHint}
+          </p>
+        )}
+        <ParagraphSkeleton lines={skeletonLines} />
+      </>
     )}
   </DetailSection>
 );

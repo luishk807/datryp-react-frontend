@@ -11,7 +11,23 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     Helvetica, Arial, sans-serif;
   overflow: auto;
+  /* Guard against horizontal overflow from any child (GoogleSignIn
+   * iframe occasionally rounds up its width past 100%, MUI form
+   * controls with absolutely-positioned adornments, etc). The
+   * page should never scroll sideways even when a descendant
+   * computes wider than the viewport. */
+  overflow-x: hidden;
+  max-width: 100vw;
   z-index: 50;
+}
+
+/* Belt-and-braces: every descendant inherits border-box so padding
+ * doesn't push the panel past 100vw on mobile. Tailwind's preflight
+ * already does this globally, but the AuthGate is rendered through
+ * MUI which sometimes resets box-sizing on its own roots. */
+.authgate-page,
+.authgate-page * {
+  box-sizing: border-box;
 }
 
 
@@ -318,10 +334,29 @@
   .authgate-panel {
     padding: 32px 16px calc(96px + env(safe-area-inset-bottom));
     align-items: flex-start;
+    /* Without explicit width:100% the panel was inheriting the
+     * desktop grid-cell width (1fr of a 2-column grid) and
+     * overflowing on phones once the grid collapsed to 1fr. */
+    width: 100%;
+    min-width: 0;
+    max-width: 100vw;
   }
 
   .authgate-form-wrap {
+    width: 100%;
     max-width: 100%;
+    min-width: 0;
+  }
+
+  /* MUI's OutlinedInput renders an inner notched-border element
+   * that can push past the input's width on narrow viewports.
+   * Pin every form control to 100% of its column. */
+  .authgate-form .MuiFormControl-root,
+  .authgate-form .MuiOutlinedInput-root,
+  .authgate-form .MuiOutlinedInput-input {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   // Google's iframe ignores `max-width` from the parent — its rendered

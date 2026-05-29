@@ -12,6 +12,34 @@
     width: 100%;
   }
 
+  /* Solo-payer row — renders instead of the Paid-by Autocomplete
+   * when the trip has only one participant. Static "Paid by"
+   * label + the person's name; no picker to interact with since
+   * there's no choice to make. */
+  .mark-paid-solo-payer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .mark-paid-solo-payer-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(0, 0, 0, 0.5);
+    font-weight: 600;
+  }
+
+  .mark-paid-solo-payer-name {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+  }
+
   // Subhead under the title — gives the dialog a short purpose hint
   // without needing a separate paragraph block above the form.
   .mark-paid-subhead {

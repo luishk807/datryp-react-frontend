@@ -174,22 +174,58 @@ export interface PayerSummary {
 export interface PayerTotals {
     grandTotal: number;
     perPayer: PayerSummary[];
+    /** Sum of activity costs across the trip that aren't marked
+     *  paid yet — the "still need to bring this much cash" total.
+     *  Drives the new Outstanding row in the PDF totals table so
+     *  the user has a concrete out-of-pocket number to budget for
+     *  before the trip starts. */
+    unpaidTotal: number;
 }
 
 export const computePayerTotals = (trip: TripState): PayerTotals => {
     const totals = new Map<string, number>();
     let grandTotal = 0;
+    let unpaidTotal = 0;
     for (const dest of trip.destinations ?? []) {
         for (const day of dest.itinerary ?? []) {
             for (const activity of day.activities ?? []) {
-                for (const b of activity.budget ?? []) {
-                    const name = b.user?.label ?? b.user?.name ?? '(unknown)';
-                    const amt =
-                        typeof b.budget === 'number'
-                            ? b.budget
-                            : Number(b.budget) || 0;
-                    totals.set(name, (totals.get(name) ?? 0) + amt);
-                    grandTotal += amt;
+                const budget = activity.budget ?? [];
+                if (budget.length > 0) {
+                    for (const b of budget) {
+                        const name =
+                            b.user?.label ?? b.user?.name ?? '(unknown)';
+                        const amt =
+                            typeof b.budget === 'number'
+                                ? b.budget
+                                : Number(b.budget) || 0;
+                        totals.set(name, (totals.get(name) ?? 0) + amt);
+                        grandTotal += amt;
+                    }
+                } else if (activity.paidAt && activity.paidBy?.name) {
+                    // Single-payer fallback — when the user hit
+                    // "Mark as paid" with one assigned payer (no
+                    // split), the budget array stays empty but
+                    // the payer + activity cost are still real
+                    // attribution data. Without this branch the
+                    // payer-totals table was silently dropping
+                    // every single-payer activity, which read as
+                    // "I assigned who paid but the report is
+                    // missing them."
+                    const name = activity.paidBy.name.trim();
+                    const cost = activityCostOf(activity);
+                    if (name) {
+                        totals.set(name, (totals.get(name) ?? 0) + cost);
+                        grandTotal += cost;
+                    }
+                }
+                // Outstanding = sum of activity costs for any
+                // activity NOT marked paid. Independent of who's
+                // assigned to pay — even unassigned-but-priced
+                // activities still drain cash. Skip when the
+                // activity has no cost so a free "Note" entry
+                // doesn't inflate the unpaid bucket.
+                if (!activity.paidAt) {
+                    unpaidTotal += activityCostOf(activity);
                 }
             }
         }
@@ -197,7 +233,7 @@ export const computePayerTotals = (trip: TripState): PayerTotals => {
     const perPayer = Array.from(totals.entries())
         .map(([name, total]) => ({ name, total }))
         .sort((a, b) => b.total - a.total);
-    return { grandTotal, perPayer };
+    return { grandTotal, perPayer, unpaidTotal };
 };
 
 /** Sum of `activity.cost` (per-row cost, separate from the per-payer

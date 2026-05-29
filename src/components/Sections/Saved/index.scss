@@ -164,4 +164,20 @@
 
 .saved-card-actions {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Shrink the bucket icon down for inline-row use — the 44px
+ * detail-page treatment is overkill alongside a small "Remove"
+ * text button. 36px keeps the tap target ≥32px while letting
+ * the row stay slim. */
+.saved-card-actions .saved-card-bucket-icon.is-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.saved-card-actions .saved-card-bucket-icon .add-to-bucket-trigger-icon {
+  font-size: 1.25rem !important;
 }

@@ -2,12 +2,24 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Global horizontal-overflow guard. Any descendant that
+   * computes wider than the viewport (Google Sign-In iframe,
+   * MUI form notch borders rounding up, accidental fixed-width
+   * elements, etc) gets clipped instead of pushing the whole
+   * page into a sideways scroll on mobile. The page-shell wraps
+   * every route, so this catches every screen at once. */
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 .page-content {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .root {

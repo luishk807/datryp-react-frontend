@@ -3,6 +3,7 @@ import './index.scss';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import DeleteBtn from 'components/common/DeleteBtn';
+import AddToBucketButton from 'components/AddToBucketButton';
 import { useSavedPlaces, useUnsavePlace } from 'api/hooks/useSavedPlaces';
 import { useSavedCities, useUnsaveCity } from 'api/hooks/useSavedCities';
 import {
@@ -101,6 +102,11 @@ const Saved = () => {
                                             </div>
                                         </Link>
                                         <div className="saved-card-actions">
+                                            <AddToBucketButton
+                                                kind="country"
+                                                name={b.countryName}
+                                                triggerClassName="saved-card-bucket-icon"
+                                            />
                                             <DeleteBtn
                                                 title="Remove from saved"
                                                 label="Remove"
@@ -167,6 +173,12 @@ const Saved = () => {
                                             </div>
                                         </Link>
                                         <div className="saved-card-actions">
+                                            <AddToBucketButton
+                                                kind="city"
+                                                name={b.cityName}
+                                                context={b.countryName}
+                                                triggerClassName="saved-card-bucket-icon"
+                                            />
                                             <DeleteBtn
                                                 title="Remove from saved"
                                                 label="Remove"
@@ -236,6 +248,17 @@ const Saved = () => {
                                             </div>
                                         </Link>
                                         <div className="saved-card-actions">
+                                            <AddToBucketButton
+                                                kind="place"
+                                                name={b.placeName}
+                                                context={[
+                                                    b.placeCity,
+                                                    b.placeCountry,
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(', ')}
+                                                variant="pill"
+                                            />
                                             <DeleteBtn
                                                 title="Remove from saved"
                                                 label="Remove"

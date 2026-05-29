@@ -24,6 +24,7 @@ const WeatherSection = ({ weather, isError }: WeatherSectionProps) => (
     data={weather}
     isError={isError}
     errorMessage="Could not load weather."
+    loadingHint="Fetching the weather…"
     skeletonLines={3}
   >
     {(text) => <WeatherWidget text={text} />}

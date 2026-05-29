@@ -15,6 +15,7 @@ import LoadingFacts from "components/common/LoadingFacts";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
 import VisitedButton from "components/VisitedButton";
+import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import AddToItineraryButton from "components/AddToItineraryButton";
 import Stars from "components/common/Stars";
@@ -221,6 +222,11 @@ const PlaceDetail = () => {
                 place={place}
                 coordinates={detailsQuery.data?.details.coordinates}
                 visa={detailsQuery.data?.details.visa}
+              />
+              <AddToBucketButton
+                kind="place"
+                name={place.name}
+                context={`${place.city ?? ''}${place.country ? `, ${place.country}` : ''}`}
               />
               <ShareButton
                 title={place.name}

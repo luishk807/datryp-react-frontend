@@ -50,12 +50,14 @@ import SearchBar from 'components/SearchBar';
 import { useUser } from 'context/UserContext';
 import { useUnreadNotificationCount } from 'api/hooks/useNotifications';
 import type { Country } from 'types';
+import type { PlaceResult } from 'api/hooks/usePlaces';
 import './index.scss';
 
-// Local UI mode label. SearchBar's exported `SearchMode` uses
-// 'recommend' for AI; we keep the friendlier 'ai' here and map at the
-// SearchBar boundary below.
-type BottomNavSearchMode = 'country' | 'ai';
+// Local UI mode label. Matches the homepage hero toggle —
+// `'place'` is the picker (cities + countries), `'describe'` is
+// the AI-curated sentence search. The 'plan with AI' button is a
+// separate sibling CTA, not a third toggle position.
+type BottomNavSearchMode = 'place' | 'describe';
 
 const BottomNav = () => {
     const navigate = useNavigate();
@@ -64,7 +66,7 @@ const BottomNav = () => {
     const [accountOpen, setAccountOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchMode, setSearchMode] =
-        useState<BottomNavSearchMode>('country');
+        useState<BottomNavSearchMode>('place');
 
     // Hook must be called unconditionally before the bail-out below
     // (React rules of hooks). The hook itself gates on the auth
@@ -171,11 +173,26 @@ const BottomNav = () => {
         navigate('/');
     };
 
-    const handleSearchSelected = (country: Country) => {
-        if (!country?.code) return;
+    /** Place picker callback — mirrors the homepage hero handler so
+     *  the bottom-nav search behaves identically to the homepage
+     *  search bar: countries go to /country, cities go to /city,
+     *  closing the overlay in either case. Replaces the old country-
+     *  only `handleSearchSelected` since the new `mode='place'`
+     *  surface returns either kind. */
+    const handlePlaceSelected = (place: PlaceResult) => {
+        if (!place?.countryCode) return;
         setSearchOpen(false);
+        if (place.kind === 'country') {
+            navigate(
+                `/country?code=${encodeURIComponent(place.countryCode)}&mode=single`,
+            );
+            return;
+        }
         navigate(
-            `/country?code=${encodeURIComponent(country.code)}&mode=single`,
+            `/city?name=${encodeURIComponent(place.name)}` +
+                `&country=${encodeURIComponent(place.countryName)}` +
+                `&code=${encodeURIComponent(place.countryCode)}` +
+                `&mode=single`,
         );
     };
 
@@ -424,13 +441,15 @@ const BottomNav = () => {
                             Where to next?
                         </h2>
 
-                        {/* Mode toggle — same shape as the homepage hero's
-                            country / AI pill so users see a familiar UI
-                            without context switching. */}
+                        {/* Mode toggle — mirrors the homepage hero's
+                            Place / Description pill so users see a
+                            familiar UI without context switching.
+                            "Search by" prefix collapses on phones via
+                            CSS so the labels fit the narrow toggle. */}
                         <div
                             className={classNames(
                                 'bottom-nav-search-toggle',
-                                { 'is-ai': searchMode === 'ai' },
+                                { 'is-describe': searchMode === 'describe' },
                             )}
                             role="tablist"
                             aria-label="Search mode"
@@ -442,38 +461,47 @@ const BottomNav = () => {
                             <button
                                 type="button"
                                 role="tab"
-                                aria-selected={searchMode === 'country'}
+                                aria-selected={searchMode === 'place'}
+                                aria-label="Search by place"
                                 className={classNames(
                                     'bottom-nav-search-toggle-btn',
                                     {
-                                        selected: searchMode === 'country',
+                                        selected: searchMode === 'place',
                                     },
                                 )}
-                                onClick={() => setSearchMode('country')}
+                                onClick={() => setSearchMode('place')}
                             >
                                 <PublicRoundedIcon
                                     className="bottom-nav-search-toggle-icon"
                                     fontSize="small"
                                 />
-                                <span>Country</span>
+                                <span>
+                                    <span className="bottom-nav-search-toggle-prefix">
+                                        Search by{' '}
+                                    </span>
+                                    Place
+                                </span>
                             </button>
                             <button
                                 type="button"
                                 role="tab"
-                                aria-selected={searchMode === 'ai'}
+                                aria-selected={searchMode === 'describe'}
+                                aria-label="Search by description"
                                 className={classNames(
                                     'bottom-nav-search-toggle-btn',
-                                    { selected: searchMode === 'ai' },
+                                    { selected: searchMode === 'describe' },
                                 )}
-                                onClick={() => setSearchMode('ai')}
+                                onClick={() => setSearchMode('describe')}
                             >
-                                <AutoAwesomeRoundedIcon
+                                <SearchRoundedIcon
                                     className="bottom-nav-search-toggle-icon"
                                     fontSize="small"
                                 />
-                                <span>AI</span>
-                                <span className="bottom-nav-search-toggle-badge">
-                                    BETA
+                                <span>
+                                    <span className="bottom-nav-search-toggle-prefix">
+                                        Search by{' '}
+                                    </span>
+                                    Description
                                 </span>
                             </button>
                         </div>
@@ -482,13 +510,47 @@ const BottomNav = () => {
                             <SearchBar
                                 type="simple"
                                 mode={
-                                    searchMode === 'ai'
+                                    searchMode === 'describe'
                                         ? 'recommend'
-                                        : 'country'
+                                        : 'place'
                                 }
-                                onSelected={handleSearchSelected}
+                                onPlaceSelected={handlePlaceSelected}
                                 onAiSearchSubmit={handleAiSearchSubmit}
                             />
+                        </div>
+
+                        {/* "Let AI plan your trip" CTA — matches the
+                            homepage hero callout so the third path
+                            (real AI trip-builder) is one tap away
+                            from the bottom-nav search too. Separated
+                            from the toggle by an OR divider so it
+                            doesn't read as a submit button for the
+                            search input above. */}
+                        <div
+                            className="bottom-nav-search-or"
+                            aria-hidden="true"
+                        >
+                            <span>or</span>
+                        </div>
+                        <div className="bottom-nav-search-ai-callout">
+                            <span className="bottom-nav-search-ai-callout-tagline">
+                                Not sure where to go?
+                            </span>
+                            <Link
+                                to="/plan-trip-ai"
+                                className="bottom-nav-search-ai-cta"
+                                aria-label="Let AI plan a trip for you"
+                                onClick={() => setSearchOpen(false)}
+                            >
+                                <AutoAwesomeRoundedIcon
+                                    className="bottom-nav-search-ai-cta-icon"
+                                    fontSize="small"
+                                />
+                                <span>Let AI plan your trip</span>
+                                <span className="bottom-nav-search-ai-cta-badge">
+                                    Pro
+                                </span>
+                            </Link>
                         </div>
 
                         <div className="bottom-nav-search-shortcuts">

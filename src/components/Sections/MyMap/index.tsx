@@ -36,6 +36,7 @@ import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
 import { useVisitedCities } from 'api/hooks/useVisitedCities';
+import { useMyItineraries } from 'api/hooks/useItineraries';
 import MyMapStatDropdown, {
     type MyMapStatDropdownOption,
 } from './MyMapStatDropdown';
@@ -154,10 +155,40 @@ const MyMap = () => {
     const { data: countriesData } = useVisitedCountries();
     const { data: citiesData } = useVisitedCities();
     const { data: placesData } = useVisitedPlaces();
+    // Live trips list — drives the stale-trip filter below.
+    // visited_place_trips join rows aren't cascade-deleted when a
+    // trip is removed today, so the visitedPlaces[].trips array
+    // can carry tripIds that no longer exist. Cross-referencing
+    // against the live trips list strips those out so deleted
+    // trips don't ghost-appear on Mapper pin popups or pump up
+    // the trip-count dot.
+    const { data: myTrips } = useMyItineraries();
+    const liveTripIds = useMemo<Set<string>>(() => {
+        const ids = new Set<string>();
+        for (const t of myTrips ?? []) {
+            if (t.id) ids.add(t.id);
+        }
+        return ids;
+    }, [myTrips]);
 
     const visitedCountries = countriesData?.items ?? [];
     const visitedCities = citiesData?.items ?? [];
-    const visitedPlaces = placesData?.items ?? [];
+    const rawVisitedPlaces = placesData?.items ?? [];
+    // Filter each visited place's `trips` array to only include
+    // trips that still exist on the server. Deleted itineraries
+    // leave their visited_place_trips join rows behind today, so
+    // without this every page (popup, dropdown dot, trips panel,
+    // trip-count aggregator) would surface ghosted trip names.
+    // Skip the filter while the trips list is still loading
+    // (myTrips === undefined) so we don't briefly strip every
+    // trip from every place pin on first paint.
+    const visitedPlaces = useMemo(() => {
+        if (!myTrips) return rawVisitedPlaces;
+        return rawVisitedPlaces.map((p) => ({
+            ...p,
+            trips: (p.trips ?? []).filter((t) => liveTripIds.has(t.tripId)),
+        }));
+    }, [rawVisitedPlaces, myTrips, liveTripIds]);
 
     // Country shading is the UNION of:
     //   1. countries the user explicitly marked as visited

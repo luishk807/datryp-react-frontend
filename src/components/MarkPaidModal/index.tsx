@@ -229,6 +229,18 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initSignature]);
 
+    // Solo trip safety net — when there's exactly one possible
+    // payer and no explicit selection, pin them automatically so
+    // the static "Paid by" label below has a name to render and
+    // the Save button isn't blocked on a phantom picker. Skipped
+    // when the user is already on a split or already picked
+    // someone manually.
+    useEffect(() => {
+      if (!payerId && payerOptions.length === 1) {
+        setPayerId(payerOptions[0].id);
+      }
+    }, [payerId, payerOptions]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -453,62 +465,88 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                         has a multi-entry budget — those rows would be
                         lost if we silently collapsed back to single
                         mode. */}
-          <Grid
-            item
-            lg={12}
-            xs={12}
-            className="field-row mark-paid-split-toggle"
-          >
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isSplit}
-                  onChange={(_e, val) => {
-                    setIsSplit(val);
-                    // When flipping to split with
-                    // no rows yet, seed the list
-                    // with the current single
-                    // payer so the user sees a
-                    // starting point instead of
-                    // an empty editor.
-                    if (val && splitEntries.length === 0 && payerId) {
-                      const opt = payerOptions.find((o) => o.id === payerId);
-                      if (opt) {
-                        setSplitEntries([
-                          {
-                            userId: opt.id,
-                            name: opt.label,
-                            amount: equalShare(1),
-                            paidAt,
-                            confirmed: true,
-                          },
-                        ]);
+          {/* Split toggle only makes sense when there's more than
+              one person to split with. Solo trips collapse this
+              entire row + the Paid-by dropdown below into a static
+              "Paid by you / them" line. */}
+          {payerOptions.length > 1 && (
+            <Grid
+              item
+              lg={12}
+              xs={12}
+              className="field-row mark-paid-split-toggle"
+            >
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={isSplit}
+                    onChange={(_e, val) => {
+                      setIsSplit(val);
+                      // When flipping to split with
+                      // no rows yet, seed the list
+                      // with the current single
+                      // payer so the user sees a
+                      // starting point instead of
+                      // an empty editor.
+                      if (val && splitEntries.length === 0 && payerId) {
+                        const opt = payerOptions.find(
+                          (o) => o.id === payerId,
+                        );
+                        if (opt) {
+                          setSplitEntries([
+                            {
+                              userId: opt.id,
+                              name: opt.label,
+                              amount: equalShare(1),
+                              paidAt,
+                              confirmed: true,
+                            },
+                          ]);
+                        }
                       }
-                    }
-                  }}
-                />
-              }
-              label="Split this payment among multiple people"
-            />
-          </Grid>
+                    }}
+                  />
+                }
+                label="Split this payment among multiple people"
+              />
+            </Grid>
+          )}
           {!isSplit && (
             <>
-              <Grid item lg={12} md={12} xs={12} className="field-row">
-                <Autocomplete<PayerOption, false, false, false>
-                  options={payerOptions}
-                  value={selectedOption}
-                  onChange={(_e, val) => setPayerId(val ? val.id : null)}
-                  isOptionEqualToValue={(o, v) => o.id === v.id}
-                  getOptionLabel={(o) => o.label}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Paid by"
-                      placeholder="Pick a participant"
-                    />
-                  )}
-                />
-              </Grid>
+              {payerOptions.length > 1 ? (
+                <Grid item lg={12} md={12} xs={12} className="field-row">
+                  <Autocomplete<PayerOption, false, false, false>
+                    options={payerOptions}
+                    value={selectedOption}
+                    onChange={(_e, val) => setPayerId(val ? val.id : null)}
+                    isOptionEqualToValue={(o, v) => o.id === v.id}
+                    getOptionLabel={(o) => o.label}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Paid by"
+                        placeholder="Pick a participant"
+                      />
+                    )}
+                  />
+                </Grid>
+              ) : (
+                /* Single-person trip — auto-pick that person and
+                 * render a static label instead of a dropdown with
+                 * one option (which would just be a redundant
+                 * picker). The payerId effect above already pinned
+                 * them via the single-option fallback. */
+                <Grid item lg={12} md={12} xs={12} className="field-row">
+                  <div className="mark-paid-solo-payer">
+                    <span className="mark-paid-solo-payer-label">
+                      Paid by
+                    </span>
+                    <span className="mark-paid-solo-payer-name">
+                      {payerOptions[0]?.label ?? 'You'}
+                    </span>
+                  </div>
+                </Grid>
+              )}
               <Grid item lg={12} md={12} xs={12} className="field-row">
                 <InputField
                   type="date"

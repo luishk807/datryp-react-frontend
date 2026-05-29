@@ -6,6 +6,34 @@
   padding: 5px
 }
 
+/* Solo-payer row — renders instead of the picker on a single-
+ * person trip. Same shape as the equivalent row in MarkPaidModal
+ * so the two budget surfaces feel consistent. */
+.travel-budget-solo-payer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  margin: 8px 0;
+}
+
+.travel-budget-solo-payer-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+}
+
+.travel-budget-solo-payer-name {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
 .travel-budget .item {
   margin: 10px 0px
 }

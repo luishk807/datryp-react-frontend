@@ -466,28 +466,49 @@ const buildPayerTable = (trip: TripState): Content => {
     };
 };
 
-const buildTotalsTable = (rows: ItineraryRow[]): Content => {
+const buildTotalsTable = (rows: ItineraryRow[], unpaidTotal: number): Content => {
     const subtotal = rows.reduce((acc, r) => acc + r.rowTotal, 0);
+    const body: TableCell[][] = [
+        [
+            { text: 'Subtotal', alignment: 'right' },
+            {
+                text: formatCurrency(subtotal),
+                alignment: 'right',
+            },
+        ],
+    ];
+    // Outstanding row — only renders when there's actually an
+    // unpaid balance, so a fully-settled trip's totals table
+    // doesn't grow a meaningless "$0.00" row. Orange tint so the
+    // amount reads as a heads-up (different signal from the
+    // neutral subtotal / grand total).
+    if (unpaidTotal > 0) {
+        body.push([
+            {
+                text: 'Outstanding (unpaid)',
+                alignment: 'right',
+                color: '#b45309',
+            },
+            {
+                text: formatCurrency(unpaidTotal),
+                alignment: 'right',
+                color: '#b45309',
+                bold: true,
+            },
+        ]);
+    }
+    body.push([
+        { text: 'Grand Total', alignment: 'right', bold: true },
+        {
+            text: formatCurrency(subtotal),
+            alignment: 'right',
+            bold: true,
+        },
+    ]);
     return {
         table: {
             widths: ['*', 'auto'],
-            body: [
-                [
-                    { text: 'Subtotal', alignment: 'right' },
-                    {
-                        text: formatCurrency(subtotal),
-                        alignment: 'right',
-                    },
-                ],
-                [
-                    { text: 'Grand Total', alignment: 'right', bold: true },
-                    {
-                        text: formatCurrency(subtotal),
-                        alignment: 'right',
-                        bold: true,
-                    },
-                ],
-            ],
+            body,
         },
         layout: {
             hLineWidth: () => 0.5,
@@ -584,7 +605,7 @@ const buildTripDocDefinition = (trip: TripState): TDocumentDefinitions => {
             },
             buildExpenseItemTable(rows),
             buildPayerTable(trip),
-            buildTotalsTable(rows),
+            buildTotalsTable(rows, computePayerTotals(trip).unpaidTotal),
         ],
     };
 };

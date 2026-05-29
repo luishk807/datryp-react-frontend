@@ -45,6 +45,7 @@ const PopularitySection = ({ popularity, isError }: PopularitySectionProps) => {
       data={popularity}
       isError={isError}
       errorMessage="Could not load popularity."
+      loadingHint="Gauging this year's traveler interest…"
       skeletonLines={3}
     >
       {(info) => <PopularityWidget info={info} />}

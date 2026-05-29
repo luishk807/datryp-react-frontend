@@ -18,6 +18,7 @@ import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
 import ReviewSummary from "components/Review/ReviewSummary";
 import VisitedCountryButton from "components/VisitedCountryButton";
+import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import BookmarkCountryButton from "components/BookmarkCountryButton";
 import ShareButton from "components/ShareButton";
@@ -318,6 +319,7 @@ const CountryDetail = () => {
                 countryCode={country.code}
                 countryName={country.name}
               />
+              <AddToBucketButton kind="country" name={country.name} />
               <ShareButton
                 title={country.name}
                 subtitle="Country"

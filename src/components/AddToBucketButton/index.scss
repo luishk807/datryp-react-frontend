@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Trigger — two visual variants. Icon-only for cramped toolbars
+ * (city/country/place detail header), pill for list rows on the
+ * Saved page where there's room for a small label. */
+
+/* Icon variant — mirrors the BookmarkCityButton / VisitedCityButton /
+ * ShareButton sibling treatment exactly (plain <button>, 44px
+ * circle, transparent background, dark monochrome glyph). Same
+ * markup shape + sizing so the four icons line up perfectly on
+ * the detail-page toolbar without specificity wars. */
+.add-to-bucket-trigger.is-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  align-items: center;
+  display: inline-flex;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.95);
+  }
+
+  /* Active "already on bucket list" — green tint matching the
+   * project's primary brand color, same intensity as the
+   * bookmark's saturated-red active state. */
+  &.is-already-added {
+    color: theme('colors.primaryGreen');
+
+    &:hover {
+      background: rgba(60, 181, 75, 0.1);
+      color: theme('colors.primaryGreen');
+    }
+  }
+}
+
+.add-to-bucket-trigger-icon {
+  font-size: 1.7rem !important;
+}
+
+/* Mobile hero-overlay variant — when the bucket button sits inside
+ * `.city-detail-overlay-actions` / `.country-detail-overlay-actions`
+ * / `.place-detail-overlay-actions` on phones, App.scss flips
+ * those rows to a white-on-photo treatment. Match the inherited
+ * style for our trigger so the row reads as one strip. */
+@media (max-width: 720px) {
+  .place-detail-overlay-actions,
+  .country-detail-overlay-actions,
+  .city-detail-overlay-actions {
+    .add-to-bucket-trigger.is-icon {
+      color: rgba(255, 255, 255, 0.92);
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.28);
+        color: #fff;
+      }
+
+      &.is-already-added {
+        color: #5ad368;
+      }
+
+      .add-to-bucket-trigger-icon {
+        font-size: 1.45rem !important;
+        width: 1.45rem;
+        height: 1.45rem;
+      }
+    }
+  }
+}
+
+.add-to-bucket-trigger.is-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.06);
+    border-color: rgba(60, 181, 75, 0.45);
+    color: theme('colors.primaryGreen');
+    transform: translateY(-1px);
+  }
+
+  &.is-already-added {
+    background: rgba(60, 181, 75, 0.12);
+    border-color: rgba(60, 181, 75, 0.45);
+    color: theme('colors.primaryGreen');
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 16px;
+  }
+}
+
+/* Modal body — single text field + actions. Consistent with
+ * MarkPaid / AddBudget modal padding so all three feel like one
+ * family. */
+.add-to-bucket-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.add-to-bucket-modal-sub {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
+}
+
+.add-to-bucket-modal-error {
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(192, 57, 43, 0.08);
+  border-left: 3px solid #c0392b;
+  color: #c0392b;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.add-to-bucket-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.add-to-bucket-modal-added {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.add-to-bucket-modal-spinner.MuiCircularProgress-root {
+  color: theme('colors.primaryGreen');
+}

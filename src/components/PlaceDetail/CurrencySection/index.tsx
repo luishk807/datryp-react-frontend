@@ -24,6 +24,7 @@ const CurrencySection = ({ currency, isError }: CurrencySectionProps) => (
     data={currency}
     isError={isError}
     errorMessage="Could not load currency."
+    loadingHint="Looking up the local currency…"
     skeletonLines={2}
   >
     {(info) => <CurrencyWidget info={info} />}

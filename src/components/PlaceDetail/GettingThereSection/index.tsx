@@ -33,6 +33,7 @@ const GettingThereSection = ({
     data={coordinates}
     isError={isError}
     errorMessage="Could not load travel info."
+    loadingHint="Calculating distance from your home base…"
     skeletonLines={3}
   >
     {(coords) => <TravelWidget placeName={placeName} placeCoords={coords} />}

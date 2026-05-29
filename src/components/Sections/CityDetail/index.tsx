@@ -19,6 +19,7 @@ import ReviewSection from "components/Review/ReviewSection";
 import ReviewSummary from "components/Review/ReviewSummary";
 import BookmarkCityButton from "components/BookmarkCityButton";
 import VisitedCityButton from "components/VisitedCityButton";
+import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import ShareButton from "components/ShareButton";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
@@ -355,6 +356,11 @@ const CityDetail = () => {
                                 cityName={city.name}
                                 countryName={city.country}
                                 countryCode={city.countryCode}
+                            />
+                            <AddToBucketButton
+                                kind="city"
+                                name={city.name}
+                                context={city.country}
                             />
                             <ShareButton
                                 title={city.name}

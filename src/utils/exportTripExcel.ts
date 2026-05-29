@@ -609,7 +609,7 @@ const buildExpenseSheet = async (
     paidByHeaderRow.height = 22;
     r += 1;
 
-    const { grandTotal, perPayer } = computePayerTotals(trip);
+    const { grandTotal, perPayer, unpaidTotal } = computePayerTotals(trip);
     for (const p of perPayer) {
         const nameCell = ws.getCell(r, 2);
         nameCell.value = p.name;
@@ -638,6 +638,12 @@ const buildExpenseSheet = async (
         r += 1;
     };
     writeSummaryRow('Subtotal', grandTotal);
+    // Outstanding row — only when there's actually an unpaid
+    // balance. Same reasoning as the PDF: a fully-settled trip
+    // shouldn't get a noise row of "$0.00 outstanding".
+    if (unpaidTotal > 0) {
+        writeSummaryRow('Outstanding (unpaid)', unpaidTotal);
+    }
     writeSummaryRow('Grand Total', grandTotal);
 };
 

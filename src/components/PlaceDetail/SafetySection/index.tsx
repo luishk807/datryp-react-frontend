@@ -24,6 +24,7 @@ const SafetySection = ({ safety, isError }: SafetySectionProps) => (
     data={safety}
     isError={isError}
     errorMessage="Could not load safety."
+    loadingHint="Checking safety reports…"
     skeletonLines={3}
   >
     {(info) => <SafetyWidget info={info} />}
