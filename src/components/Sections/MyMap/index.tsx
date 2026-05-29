@@ -667,6 +667,66 @@ const MyMap = () => {
         );
     }, [selection, visitedPlaces, visitedCities]);
 
+    /** Aggregate trip counts per region — drives the "has trips" dot
+     *  on each dropdown option. Built off `visitedPlaces[].trips`
+     *  since that's the only source carrying trip joins today.
+     *  - Countries: deduped trip count across every place in the
+     *    country.
+     *  - Cities: same, scoped to places whose city matches.
+     *  - Places: just the row's own trips array length.
+     *  All three return Maps so the option-builder useMemos below
+     *  can do a single O(1) lookup per option. */
+    const tripCountByCountry = useMemo<Map<string, number>>(() => {
+        const byCode = new Map<string, Set<string>>();
+        for (const p of visitedPlaces) {
+            const code = (p.countryCode ?? '').toUpperCase();
+            if (!code) continue;
+            for (const t of p.trips ?? []) {
+                let set = byCode.get(code);
+                if (!set) {
+                    set = new Set();
+                    byCode.set(code, set);
+                }
+                set.add(t.tripId);
+            }
+        }
+        const counts = new Map<string, number>();
+        for (const [code, set] of byCode) counts.set(code, set.size);
+        return counts;
+    }, [visitedPlaces]);
+
+    const tripCountByCity = useMemo<Map<string, number>>(() => {
+        // City keying uses citySlug. We look up each visited place's
+        // (placeCity, countryCode) against the visitedCities list to
+        // find a matching slug.
+        const counts = new Map<string, number>();
+        for (const city of visitedCities) {
+            const slug = city.citySlug;
+            if (!slug) continue;
+            const tripIds = new Set<string>();
+            for (const p of visitedPlaces) {
+                if (
+                    (p.placeCity ?? '').toLowerCase() ===
+                        city.cityName.toLowerCase() &&
+                    (p.countryCode ?? '').toUpperCase() ===
+                        city.countryCode.toUpperCase()
+                ) {
+                    for (const t of p.trips ?? []) tripIds.add(t.tripId);
+                }
+            }
+            counts.set(slug, tripIds.size);
+        }
+        return counts;
+    }, [visitedCities, visitedPlaces]);
+
+    const tripCountByPlace = useMemo<Map<string, number>>(() => {
+        const counts = new Map<string, number>();
+        for (const p of visitedPlaces) {
+            counts.set(p.id, p.trips?.length ?? 0);
+        }
+        return counts;
+    }, [visitedPlaces]);
+
     // Build dropdown options. Each is keyed by a stable id (code / slug
     // / place-id) so the onSelect handler can look up coords or markers
     // without re-deriving from the option label.
@@ -701,8 +761,9 @@ const MyMap = () => {
                 id: c.code,
                 label: c.name,
                 sublabel: c.code,
+                tripCount: tripCountByCountry.get(c.code) ?? 0,
             }));
-    }, [visitedCountries, visitedCities, visitedPlaces]);
+    }, [visitedCountries, visitedCities, visitedPlaces, tripCountByCountry]);
 
     const cityOptions = useMemo<MyMapStatDropdownOption[]>(() => {
         return visitedCities
@@ -736,9 +797,10 @@ const MyMap = () => {
                     disabledReason: hasCoords
                         ? undefined
                         : 'No coordinates yet for this city',
+                    tripCount: tripCountByCity.get(c.citySlug) ?? 0,
                 };
             });
-    }, [visitedCities, visitedPlaces]);
+    }, [visitedCities, visitedPlaces, tripCountByCity]);
 
     const placeOptions = useMemo<MyMapStatDropdownOption[]>(() => {
         return visitedPlaces
@@ -755,12 +817,13 @@ const MyMap = () => {
                         .filter(Boolean)
                         .join(', '),
                     disabled: !hasCoords,
+                    tripCount: tripCountByPlace.get(p.id) ?? 0,
                     disabledReason: hasCoords
                         ? undefined
                         : 'No coordinates for this place yet',
                 };
             });
-    }, [visitedPlaces]);
+    }, [visitedPlaces, tripCountByPlace]);
 
     // Compute a bounding box from the country-boundaries source. Mapbox
     // returns the feature(s) only after the relevant tiles have loaded;
@@ -1380,10 +1443,14 @@ const MyMap = () => {
                      *  (or picks one from the dropdowns). Shows every
                      *  trip whose itinerary touched the selected
                      *  region, with the places visited on each trip
-                     *  and a click-through to /trip-detail. Desktop-
-                     *  only (CSS hides on phones) so the map keeps
-                     *  the full viewport on small screens. */}
-                    {selection && selectionTrips && (
+                     *  and a click-through to /trip-detail. Skipped
+                     *  entirely when there are zero trips — the
+                     *  pin popup + camera fly already confirm the
+                     *  click, no need for a panel that just says
+                     *  "nothing to show here." */}
+                    {selection &&
+                        selectionTrips &&
+                        selectionTrips.length > 0 && (
                         <aside
                             className="my-map-trips-panel"
                             aria-labelledby="my-map-trips-panel-title"
@@ -1426,25 +1493,11 @@ const MyMap = () => {
                                 </button>
                             </header>
                             <div className="my-map-trips-panel-stat">
-                                {selectionTrips.length === 0 ? (
-                                    'No trips on file'
-                                ) : (
-                                    <>
-                                        <strong>{selectionTrips.length}</strong>{' '}
-                                        trip{selectionTrips.length === 1 ? '' : 's'}
-                                    </>
-                                )}
+                                <strong>{selectionTrips.length}</strong>{' '}
+                                trip{selectionTrips.length === 1 ? '' : 's'}
                             </div>
                             <div className="my-map-trips-panel-list">
-                                {selectionTrips.length === 0 ? (
-                                    <p className="my-map-trips-panel-empty">
-                                        You haven&rsquo;t saved any trips
-                                        that visited this {selection.kind} yet.
-                                        Mark a place visited from a trip&rsquo;s
-                                        detail page to see it here.
-                                    </p>
-                                ) : (
-                                    selectionTrips.map((trip) => {
+                                {selectionTrips.map((trip) => {
                                         const visitedOn = formatVisitedAt(
                                             trip.visitedAt,
                                         );
@@ -1497,8 +1550,7 @@ const MyMap = () => {
                                                     )}
                                             </Link>
                                         );
-                                    })
-                                )}
+                                    })}
                             </div>
                         </aside>
                     )}

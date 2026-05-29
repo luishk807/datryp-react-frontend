@@ -12,6 +12,12 @@ export interface MyMapStatDropdownOption {
     sublabel?: string;
     disabled?: boolean;
     disabledReason?: string;
+    /** Count of trips linked to this entry. When > 0 the dropdown
+     *  item shows a small green dot + a faint "1 trip" / "3 trips"
+     *  caption so the user can scan the list and tell at a glance
+     *  which entries will actually populate the trips panel after
+     *  click. Falsy / 0 = no dot. */
+    tripCount?: number;
 }
 
 export interface MyMapStatDropdownProps {
@@ -120,6 +126,14 @@ const MyMapStatDropdown = ({
                                         }}
                                     >
                                         <span className="my-map-stat-dropdown-item-label">
+                                            {opt.tripCount &&
+                                                opt.tripCount > 0 && (
+                                                    <span
+                                                        className="my-map-stat-dropdown-item-dot"
+                                                        aria-label={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
+                                                        title={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
+                                                    />
+                                                )}
                                             {opt.label}
                                         </span>
                                         {opt.sublabel && (

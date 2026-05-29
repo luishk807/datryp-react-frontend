@@ -113,6 +113,22 @@
   font-size: 0.92rem;
   font-weight: 600;
   color: theme('colors.primary');
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tiny green dot next to entries that have at least one trip on
+ * file — surfaces "click me, there's something to see" without
+ * burning real-estate on a full count chip. Hover title carries
+ * the exact trip count for users who want the number. */
+.my-map-stat-dropdown-item-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: theme('colors.primaryGreen');
+  box-shadow: 0 0 0 2px rgba(60, 181, 75, 0.18);
 }
 
 .my-map-stat-dropdown-item-sub {
