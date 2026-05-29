@@ -380,8 +380,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                         <PaymentsOutlinedIcon /> Total budget
                     </label>
                     <InputField
-                        key={`budget-${budget}`}
-                        defaultValue={budget}
+                        value={budget}
                         name="budget"
                         placeholder="e.g. 2000"
                         onChange={(e) => onChange('budget', e)}
