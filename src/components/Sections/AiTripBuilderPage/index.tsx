@@ -41,7 +41,6 @@ import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import CircularProgress from '@mui/material/CircularProgress';
 import Layout from 'components/common/Layout/SubLayout';
 import AiTripLoader from 'components/AiTripLoader';
-import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import {
     generateTripOptions,
     planTripWithAi,
@@ -662,18 +661,22 @@ const AiTripBuilderPage = () => {
                                     <span>Back</span>
                                 </button>
                                 {stepIndex === WIZARD_STEPS.length - 1 ? (
-                                    <ButtonCustom
+                                    <button
+                                        type="button"
                                         onClick={handleGenerateOptions}
-                                        label={
-                                            optionsMutation.isPending
-                                                ? 'Finding your matches…'
-                                                : 'Show me destination options'
-                                        }
-                                        type="standard"
-                                        capitalizeType="none"
                                         disabled={optionsMutation.isPending}
                                         className="ai-trip-builder-page-submit"
-                                    />
+                                    >
+                                        <AutoAwesomeRoundedIcon
+                                            fontSize="small"
+                                            className="ai-trip-builder-page-submit-sparkle"
+                                        />
+                                        <span>
+                                            {optionsMutation.isPending
+                                                ? 'Finding your matches…'
+                                                : 'Show me destination options'}
+                                        </span>
+                                    </button>
                                 ) : (
                                     <button
                                         type="button"

@@ -519,16 +519,97 @@
   }
 }
 
-// Reuse ButtonCustom's `.main-button` for the submit (green) but
-// extend it a touch — slightly taller padding, full width on mobile.
-.ai-trip-builder-page-submit.main-button.main-button {
+// "Show me destination options" — the moment the user actually
+// hands the form over to AI. Promote it from the standard green
+// CTA to the AI palette (violet → blue gradient + sparkle) so it
+// reads as the marquee AI action, matching the homepage hero pill,
+// the AiTripBuilderCard, the user-menu entry, and the bucket-list
+// build pill. All AI affordances now share one design language.
+.ai-trip-builder-page-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   width: auto;
   min-width: 220px;
   padding: 14px 24px;
+  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  color: #fff;
+  border: none;
   border-radius: 999px;
   font-size: 1rem;
   font-weight: 700;
-  box-shadow: 0 4px 14px rgba(60, 181, 75, 0.28);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.42);
+  transition: transform 0.18s ease, filter 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.ai-trip-builder-page-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06) saturate(1.05);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55);
+  color: #fff;
+}
+
+.ai-trip-builder-page-submit:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(1);
+}
+
+.ai-trip-builder-page-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  filter: saturate(0.85);
+  box-shadow: none;
+}
+
+// Sparkle icon — gentle ambient pulse at rest, quick 360° spin on
+// hover. Same keyframe family as the other AI CTAs in the app.
+.ai-trip-builder-page-submit-sparkle {
+  transform-origin: center;
+  animation: ai-trip-builder-page-submit-sparkle-ambient 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6));
+}
+
+.ai-trip-builder-page-submit:hover:not(:disabled)
+  .ai-trip-builder-page-submit-sparkle {
+  animation: ai-trip-builder-page-submit-sparkle-hover 0.8s ease-out;
+}
+
+@keyframes ai-trip-builder-page-submit-sparkle-ambient {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: rotate(15deg) scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes ai-trip-builder-page-submit-sparkle-hover {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.35) rotate(180deg);
+  }
+  70% {
+    transform: scale(1.1) rotate(330deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-trip-builder-page-submit-sparkle,
+  .ai-trip-builder-page-submit:hover:not(:disabled)
+    .ai-trip-builder-page-submit-sparkle {
+    animation: none;
+  }
 }
 
 // ── Options phase ──────────────────────────────────────────────────
@@ -732,6 +813,12 @@
   }
 }
 
+/* "Build this trip" — fires the actual AI build for the picked
+ * destination card. Promoted to the AI palette (violet → blue
+ * gradient + animated sparkle) so it matches the "Show me
+ * destination options" button on the previous step, the homepage
+ * hero pill, the bucket-list pills, and the user-menu entry.
+ * Single design language across every AI affordance. */
 .ai-trip-builder-page-option-cta {
   margin-top: 12px;
   appearance: none;
@@ -740,7 +827,7 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 18px;
-  background: theme('colors.primaryOrange');
+  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
   border: none;
   color: #fff;
   font: inherit;
@@ -748,27 +835,76 @@
   font-weight: 700;
   border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(246, 137, 31, 0.28);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
   transition: filter 0.15s ease, box-shadow 0.15s ease,
     transform 0.15s ease;
 
   &:hover:not(:disabled) {
-    filter: brightness(1.04);
+    filter: brightness(1.06) saturate(1.05);
     transform: translateY(-1px);
-    box-shadow: 0 8px 22px rgba(246, 137, 31, 0.36);
+    box-shadow: 0 8px 22px rgba(124, 58, 237, 0.55);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
+    filter: brightness(1);
   }
 
   &:disabled {
     cursor: default;
+    opacity: 0.7;
+    filter: saturate(0.85);
+    box-shadow: none;
   }
 }
 
+/* Sparkle icon — ambient pulse at rest, quick 360° spin on hover.
+ * Same keyframe family as every other AI CTA in the product. */
 .ai-trip-builder-page-option-cta-icon {
   font-size: 1.1rem !important;
+  transform-origin: center;
+  animation: ai-trip-builder-page-option-cta-sparkle-ambient 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.55));
+}
+
+.ai-trip-builder-page-option-cta:hover:not(:disabled)
+  .ai-trip-builder-page-option-cta-icon {
+  animation: ai-trip-builder-page-option-cta-sparkle-hover 0.8s ease-out;
+}
+
+@keyframes ai-trip-builder-page-option-cta-sparkle-ambient {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: rotate(15deg) scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes ai-trip-builder-page-option-cta-sparkle-hover {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.35) rotate(180deg);
+  }
+  70% {
+    transform: scale(1.1) rotate(330deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-trip-builder-page-option-cta-icon,
+  .ai-trip-builder-page-option-cta:hover:not(:disabled)
+    .ai-trip-builder-page-option-cta-icon {
+    animation: none;
+  }
 }
 
 // Mobile tweaks — tighten paddings, stack the review rows, and
@@ -817,7 +953,7 @@
   }
 
   .ai-trip-builder-page-next,
-  .ai-trip-builder-page-submit.main-button.main-button {
+  .ai-trip-builder-page-submit {
     flex: 1;
     min-width: 0;
   }
