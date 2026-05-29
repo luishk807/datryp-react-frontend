@@ -315,14 +315,14 @@
   gap: 6px;
   width: auto;
   padding: 7px 18px;
-  // Brand gradient — green (left) → orange (right). Mirrors the
-  // homepage hero treatment so the AI affordance reads as the
-  // brand's signature action.
-  background: linear-gradient(
-    135deg,
-    theme('colors.primaryGreen') 0%,
-    theme('colors.primaryOrange') 100%
-  );
+  // Violet → blue gradient — matches the homepage hero "Let AI plan
+  // your trip" pill, the user menu's "Plan with AI" entry, and the
+  // AiTripBuilderCard CTA so every AI affordance in the product
+  // reads as one design language. The previous green→orange was
+  // the standard brand gradient (used for primary actions in
+  // general), but reusing it for AI made the AI affordance
+  // indistinguishable from a regular "save" / "confirm" button.
+  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -331,18 +331,19 @@
   line-height: 1.2;
   letter-spacing: 0.01em;
   cursor: pointer;
-  // Subtle resting glow so the button feels "alive" before hover.
-  box-shadow: 0 2px 6px rgba(60, 181, 75, 0.25),
-    0 2px 6px rgba(246, 137, 31, 0.25);
+  // Subtle resting glow in the AI palette so the button feels
+  // "alive" before hover but still color-consistent with the
+  // gradient above.
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
   transition: box-shadow 0.18s ease, transform 0.18s ease,
     filter 0.18s ease;
 }
 
 .bucket-card-cta.bucket-card-cta:hover {
-  // Brighten the gradient + lift the button on hover.
+  // Brighten + lift on hover. Shadow grows but stays in the AI
+  // palette so it doesn't fight the gradient.
   filter: brightness(1.08) saturate(1.08);
-  box-shadow: 0 6px 18px rgba(60, 181, 75, 0.38),
-    0 6px 18px rgba(246, 137, 31, 0.38);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.5);
   transform: translateY(-1px);
   color: #fff;
 }
@@ -356,12 +357,18 @@
   font-size: 1rem;
 }
 
-// Sparkle icon — gentle twinkle so the button telegraphs "AI" without
-// being a flashing seizure trigger. Animation pauses on prefers-
-// reduced-motion via the standard query.
+// Sparkle icon — gentle ambient twinkle at rest, swaps to a quick
+// one-shot 360° spin on hover so the button visibly reacts to the
+// pointer. Same animation pattern as the homepage hero CTA and the
+// AiTripBuilderCard so all AI affordances feel like one family.
 .bucket-card-cta .bucket-card-cta-sparkle {
+  transform-origin: center;
   animation: bucket-cta-sparkle 2.4s ease-in-out infinite;
   filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.55));
+}
+
+.bucket-card-cta:hover .bucket-card-cta-sparkle {
+  animation: bucket-cta-sparkle-hover 0.8s ease-out;
 }
 
 @keyframes bucket-cta-sparkle {
@@ -376,8 +383,24 @@
   }
 }
 
+@keyframes bucket-cta-sparkle-hover {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.35) rotate(180deg);
+  }
+  70% {
+    transform: scale(1.1) rotate(330deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bucket-card-cta .bucket-card-cta-sparkle {
+  .bucket-card-cta .bucket-card-cta-sparkle,
+  .bucket-card-cta:hover .bucket-card-cta-sparkle {
     animation: none;
   }
 }

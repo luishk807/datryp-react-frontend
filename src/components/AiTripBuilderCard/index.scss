@@ -357,14 +357,15 @@
   font-weight: 800;
   text-decoration: none;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
-  transition: transform 0.18s ease, box-shadow 0.18s ease,
-    filter 0.18s ease;
+  transition: transform 0.18s ease, filter 0.18s ease;
 }
 
 .ai-trip-builder-card-cta:hover {
+  /* Just the lift + a hair more brightness. The sparkle spin
+   * below carries the "AI is alive" cue — a multicolor ring +
+   * shadow bump on top was over the top per design feedback. */
   transform: translateY(-1px);
   filter: brightness(1.02);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
   color: #4c1d95;
   text-decoration: none;
 }
@@ -376,7 +377,15 @@
 .ai-trip-builder-card-cta-sparkle {
   font-size: 1.15rem !important;
   color: theme('colors.primaryOrange');
+  transform-origin: center;
   animation: ai-card-cta-sparkle 2.6s ease-in-out infinite;
+}
+
+/* Hover swaps the gentle ambient pulse for a quick one-shot spin
+ * so the sparkle visibly reacts. The :not(:hover) selector restores
+ * the ambient loop when the pointer leaves. */
+.ai-trip-builder-card-cta:hover .ai-trip-builder-card-cta-sparkle {
+  animation: ai-card-cta-sparkle-hover 0.8s ease-out;
 }
 
 @keyframes ai-card-cta-sparkle {
@@ -390,8 +399,24 @@
   }
 }
 
+@keyframes ai-card-cta-sparkle-hover {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.35) rotate(180deg);
+  }
+  70% {
+    transform: scale(1.1) rotate(330deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ai-trip-builder-card-cta-sparkle {
+  .ai-trip-builder-card-cta-sparkle,
+  .ai-trip-builder-card-cta:hover .ai-trip-builder-card-cta-sparkle {
     animation: none;
   }
 }

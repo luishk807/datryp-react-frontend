@@ -278,6 +278,17 @@
   letter-spacing: 0.01em;
 }
 
+/* @property registers the conic-gradient angle as an animatable
+ * CSS custom property — without this, browsers can't tween between
+ * angle values and the rotation would be a step jump. Supported in
+ * all modern evergreen browsers; older ones gracefully degrade to
+ * the static gradient (no rotation, button still works). */
+@property --home-hero-ai-cta-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 .home-hero-ai-cta {
   display: inline-flex;
   align-items: center;
@@ -294,16 +305,102 @@
   transition: transform 0.18s ease, box-shadow 0.18s ease,
     background 0.18s ease;
   white-space: nowrap;
+  /* Needed so the ::before conic-gradient ring can be positioned
+   * behind the button via z-index: -1 without escaping the local
+   * stacking context. */
+  position: relative;
+  isolation: isolate;
+}
+
+/* AI-style flowing gradient ring — sits 3px outside the button and
+ * is invisible at rest. On hover, fades in and starts rotating via
+ * the registered @property angle, producing the "glowing AI border"
+ * effect popularized by Vercel / Linear / ChatGPT. */
+.home-hero-ai-cta::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--home-hero-ai-cta-angle),
+    #7c3aed,
+    #2563eb,
+    #06b6d4,
+    #ec4899,
+    #f59e0b,
+    #7c3aed
+  );
+  z-index: -1;
+  opacity: 0;
+  filter: blur(2px);
+  transition: opacity 0.35s ease;
 }
 
 .home-hero-ai-cta:hover {
+  /* Shadow intentionally NOT bumped on hover — the animated
+   * conic-gradient ring below now carries the "lit up" affordance,
+   * and stacking a brighter drop-shadow on top muddied the glow. */
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.6);
   color: #fff;
+}
+
+.home-hero-ai-cta:hover::before {
+  opacity: 1;
+  animation: home-hero-ai-cta-spin 2.4s linear infinite;
+}
+
+@keyframes home-hero-ai-cta-spin {
+  to {
+    --home-hero-ai-cta-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-ai-cta:hover::before {
+    animation: none;
+  }
 }
 
 .home-hero-ai-cta-icon {
   font-size: 18px !important;
+  // Origin at the sparkle's center so rotation pivots in place
+  // instead of arcing around the icon's bounding-box corner.
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+
+// Hover-triggered sparkle: a quick scale-up + spin-and-twinkle. The
+// animation only runs while the button is hovered, so it doesn't
+// loop forever on the page (drains attention if it does). Honors
+// `prefers-reduced-motion` so users who've opted out get the lift
+// without the spin.
+.home-hero-ai-cta:hover .home-hero-ai-cta-icon {
+  animation: home-hero-ai-sparkle 0.8s ease-out;
+}
+
+@keyframes home-hero-ai-sparkle {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+  35% {
+    transform: scale(1.35) rotate(180deg);
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
+  }
+  70% {
+    transform: scale(1.1) rotate(330deg);
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-ai-cta:hover .home-hero-ai-cta-icon {
+    animation: none;
+  }
 }
 
 .home-hero-ai-cta-badge {
