@@ -26,13 +26,12 @@ import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import PaywallModal from 'components/PaywallModal';
 import type { ModalButtonHandle } from 'components/ModalButton';
-import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
-import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
-import FilterCenterFocusRoundedIcon from '@mui/icons-material/FilterCenterFocusRounded';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
@@ -93,11 +92,36 @@ const MyMap = () => {
         new Map()
     );
 
-    const [mapHidden, setMapHidden] = useState(false);
     const [mapReady, setMapReady] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<StatDropdownKey | null>(
         null
     );
+    // Intro panel open/closed. First visit shows it (educational
+    // moment); subsequent visits start collapsed so the map gets the
+    // full canvas. The little floating "i" pill on the map always
+    // lets the user re-open it. Persisted in localStorage so the
+    // dismiss survives reloads.
+    const INTRO_STORAGE_KEY = 'my-map-intro-dismissed';
+    const [introOpen, setIntroOpen] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return true;
+        try {
+            return window.localStorage.getItem(INTRO_STORAGE_KEY) !== '1';
+        } catch {
+            return true;
+        }
+    });
+    const handleCloseIntro = useCallback(() => {
+        setIntroOpen(false);
+        try {
+            window.localStorage.setItem(INTRO_STORAGE_KEY, '1');
+        } catch {
+            /* localStorage unavailable (private mode / quota) —
+             * fall back to in-memory dismiss only. */
+        }
+    }, []);
+    const handleOpenIntro = useCallback(() => {
+        setIntroOpen(true);
+    }, []);
 
     const paywallRef = useRef<ModalButtonHandle>(null);
 
@@ -332,12 +356,26 @@ const MyMap = () => {
             }).setHTML(renderPinPopupHtml(pin));
             const marker = new mapboxgl.Marker({
                 element: el,
-                anchor: 'bottom',
-                // Lock the marker to the map surface — without these
-                // it stays viewport-aligned and visually slides
-                // around when the globe rotates. With `pitchAlignment`
-                // and `rotationAlignment` set to 'map', the pin
-                // tracks its lat/lng tightly on every camera move.
+                // Center-anchored so the pin's geometric center
+                // sits exactly on the lat/lng. With `anchor: 'bottom'`
+                // (the previous setting) the BOTTOM of the circle
+                // hugged the point, so as the camera tilted the dot
+                // "stood up" above the actual location — visually
+                // reading as the pin drifting off its spot when the
+                // map rotated. Since the pin is a plain circle
+                // (no teardrop stem), centering it is the right
+                // anchor.
+                anchor: 'center',
+                // Map-aligned for both pitch + rotation. The pin
+                // shape is a circle, so map alignment makes it
+                // behave like a sticker on the globe — flattens to
+                // an ellipse when the camera tilts, stays glued to
+                // the surface as the globe rotates. Viewport
+                // alignment would keep the circle perfectly round
+                // but combined with center-anchor produced subtle
+                // shifts because the marker's pixel position is
+                // re-projected on every frame; map alignment locks
+                // it to the geography hard.
                 pitchAlignment: 'map',
                 rotationAlignment: 'map',
             })
@@ -372,8 +410,10 @@ const MyMap = () => {
             const marker = new mapboxgl.Marker({
                 element: el,
                 anchor: 'center',
-                // Same map-anchored alignment as place pins so cities
-                // don't slide when the globe rotates.
+                // Map-aligned for the same reason as the place pins
+                // above — locks the city ring to the geography so
+                // it doesn't drift off the centroid as the globe
+                // rotates or tilts.
                 pitchAlignment: 'map',
                 rotationAlignment: 'map',
             })
@@ -471,19 +511,6 @@ const MyMap = () => {
             map.off('idle', tryFit);
         };
     }, [mapReady, countryCodes, placePins, cityPins, fitToVisitedWorld]);
-
-    const handleToggleMap = () => setMapHidden((h) => !h);
-
-    const handleFitToWorld = () => {
-        if (
-            countryCodes.length === 0 &&
-            placePins.length === 0 &&
-            cityPins.length === 0
-        ) {
-            return;
-        }
-        fitToVisitedWorld();
-    };
 
     const handleOpenPaywall = () => paywallRef.current?.openModel();
 
@@ -821,7 +848,25 @@ const MyMap = () => {
     return (
         <Layout title="Mapper" fullBleed>
             <div className="my-map-page">
-                <header className="my-map-header">
+                <div
+                    className={
+                        isPro
+                            ? 'my-map-canvas-wrap'
+                            : 'my-map-canvas-wrap is-locked'
+                    }
+                >
+                    <div
+                        ref={mapContainerRef}
+                        className="my-map-canvas"
+                        aria-label="World map of places you have visited"
+                    />
+
+                    {/* Stats dropdowns — absolute-positioned at the
+                     *  top-center of the map canvas so they sit
+                     *  alongside the intro panel (top-left) and the
+                     *  Mapbox zoom controls (top-right) without
+                     *  taking any vertical space from the map
+                     *  itself. */}
                     <div className="my-map-stats">
                         <MyMapStatDropdown
                             icon={<PublicRoundedIcon fontSize="small" />}
@@ -877,115 +922,125 @@ const MyMap = () => {
                             emptyHint="No visited places yet."
                         />
                     </div>
-                    <div className="my-map-controls">
-                        {isPro &&
-                            !mapHidden &&
-                            (countryCodes.length > 0 ||
-                                placePins.length > 0) && (
-                                <button
-                                    type="button"
-                                    className="my-map-toggle-btn"
-                                    onClick={handleFitToWorld}
-                                    title="Re-center the map on your visited countries and places"
-                                >
-                                    <FilterCenterFocusRoundedIcon fontSize="small" />
-                                    <span>Fit to my world</span>
-                                </button>
-                            )}
-                        <button
-                            type="button"
-                            className="my-map-toggle-btn"
-                            onClick={handleToggleMap}
-                            aria-pressed={mapHidden}
-                        >
-                            {mapHidden ? (
-                                <VisibilityRoundedIcon fontSize="small" />
-                            ) : (
-                                <VisibilityOffRoundedIcon fontSize="small" />
-                            )}
-                            <span>{mapHidden ? 'Show map' : 'Hide map'}</span>
-                        </button>
-                    </div>
-                </header>
 
-                {!mapHidden && (
-                    <div
-                        className={
-                            isPro
-                                ? 'my-map-canvas-wrap'
-                                : 'my-map-canvas-wrap is-locked'
-                        }
-                    >
-                        <div
-                            ref={mapContainerRef}
-                            className="my-map-canvas"
-                            aria-label="World map of places you have visited"
-                        />
-                        {!isPro && (
-                            <div className="my-map-paywall-overlay">
-                                <LockRoundedIcon
-                                    className="my-map-paywall-icon"
-                                />
-                                <h3 className="my-map-paywall-title">
-                                    Mapper is a Pro feature
-                                </h3>
-                                <p className="my-map-paywall-body">
-                                    Visualize every country and place
-                                    you&rsquo;ve visited, with shaded
-                                    regions and pinpoints. Upgrade to
-                                    unlock the full map.
-                                </p>
-                                <div className="my-map-paywall-actions">
-                                    <ButtonCustom
-                                        type="standard"
-                                        capitalizeType="none"
-                                        onClick={handleOpenPaywall}
-                                        label="Upgrade to Pro"
-                                    />
-                                    <ButtonCustom
-                                        type="line"
-                                        capitalizeType="none"
-                                        onClick={() => navigate('/visited')}
-                                        label="See visited list"
-                                    />
+                    {/* Intro panel + collapsed pill — absolute-
+                     *  positioned overlay on the map canvas so the
+                     *  map's height never shifts between states.
+                     *  First visit opens the panel; localStorage
+                     *  flag dismisses it for subsequent visits. The
+                     *  "ⓘ" pill always reopens it. */}
+                    {introOpen ? (
+                        <section
+                            className="my-map-intro"
+                            aria-labelledby="my-map-intro-title"
+                        >
+                            <button
+                                type="button"
+                                className="my-map-intro-close"
+                                onClick={handleCloseIntro}
+                                aria-label="Hide intro"
+                            >
+                                <CloseRoundedIcon fontSize="small" />
+                            </button>
+                            <div className="my-map-intro-headline">
+                                <span
+                                    className="my-map-intro-icon"
+                                    aria-hidden="true"
+                                >
+                                    <PublicRoundedIcon />
+                                </span>
+                                <div className="my-map-intro-headline-text">
+                                    <h2
+                                        id="my-map-intro-title"
+                                        className="my-map-intro-title"
+                                    >
+                                        Your travel atlas
+                                    </h2>
+                                    <p className="my-map-intro-sub">
+                                        Every country, city, and place
+                                        you&rsquo;ve visited — on one
+                                        living world map.
+                                    </p>
                                 </div>
                             </div>
-                        )}
-                    </div>
-                )}
-
-                {mapHidden && (
-                    <div className="my-map-list-view">
-                        <h2 className="my-map-list-title">
-                            Visited countries
-                        </h2>
-                        {visitedCountries.length === 0 ? (
-                            <p className="my-map-list-empty">
-                                No countries marked yet. Mark a country
-                                visited from any country page to see it
-                                here.
-                            </p>
-                        ) : (
-                            <ul className="my-map-list">
-                                {visitedCountries.map((c) => (
-                                    <li
-                                        className="my-map-list-row"
-                                        key={c.id}
-                                    >
-                                        <span className="my-map-list-flag">
-                                            {flagEmojiFromCode(
-                                                c.countryCode
-                                            )}
-                                        </span>
-                                        <span className="my-map-list-name">
-                                            {c.countryName}
-                                        </span>
-                                    </li>
-                                ))}
+                            <ul className="my-map-intro-legend">
+                                <li className="my-map-intro-legend-item">
+                                    <span
+                                        className="my-map-intro-legend-dot is-country"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <strong>Countries</strong> shaded green.
+                                    </span>
+                                </li>
+                                <li className="my-map-intro-legend-item">
+                                    <span
+                                        className="my-map-intro-legend-dot is-city"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <strong>Cities</strong> as green rings.
+                                    </span>
+                                </li>
+                                <li className="my-map-intro-legend-item">
+                                    <span
+                                        className="my-map-intro-legend-dot is-place"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <strong>Places</strong> as orange pins.
+                                    </span>
+                                </li>
                             </ul>
-                        )}
-                    </div>
-                )}
+                            <p className="my-map-intro-tip">
+                                Tap a country, pin, or dropdown to fly
+                                anywhere on the globe.
+                            </p>
+                        </section>
+                    ) : (
+                        <button
+                            type="button"
+                            className="my-map-intro-pill"
+                            onClick={handleOpenIntro}
+                            aria-label="About Mapper"
+                            title="About Mapper"
+                        >
+                            <InfoOutlinedIcon fontSize="small" />
+                            <span>About</span>
+                        </button>
+                    )}
+
+                    {!isPro && (
+                        <div className="my-map-paywall-overlay">
+                            <LockRoundedIcon
+                                className="my-map-paywall-icon"
+                            />
+                            <h3 className="my-map-paywall-title">
+                                Mapper is a Pro feature
+                            </h3>
+                            <p className="my-map-paywall-body">
+                                Visualize every country and place
+                                you&rsquo;ve visited, with shaded
+                                regions and pinpoints. Upgrade to
+                                unlock the full map.
+                            </p>
+                            <div className="my-map-paywall-actions">
+                                <ButtonCustom
+                                    type="standard"
+                                    capitalizeType="none"
+                                    onClick={handleOpenPaywall}
+                                    label="Upgrade to Pro"
+                                />
+                                <ButtonCustom
+                                    type="line"
+                                    capitalizeType="none"
+                                    onClick={() => navigate('/visited')}
+                                    label="See visited list"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <PaywallModal
@@ -1027,18 +1082,6 @@ const extendBoundsFromGeometry = (
         for (const c of coords) walk(c);
     };
     walk(geom.coordinates);
-};
-
-/** Convert ISO-2 country code to the regional-indicator flag emoji
- *  ("US" → 🇺🇸). Falls back to an empty string for malformed codes. */
-const flagEmojiFromCode = (code: string | null | undefined): string => {
-    if (!code || code.length !== 2) return '';
-    const base = 0x1f1e6;
-    const A = 'A'.charCodeAt(0);
-    const up = code.toUpperCase();
-    const c1 = up.charCodeAt(0) - A + base;
-    const c2 = up.charCodeAt(1) - A + base;
-    return String.fromCodePoint(c1, c2);
 };
 
 const escapeHtml = (s: string): string =>

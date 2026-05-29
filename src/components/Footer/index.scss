@@ -63,6 +63,17 @@
   }
 }
 
+/* Full-bleed pages (e.g. /my-map) hide the compact footer on phones
+ * so the map fills the viewport instead of getting a 60-80px green
+ * strip eating the bottom. Footer links are still reachable via the
+ * mobile bottom-nav account sheet, and the desktop view still shows
+ * the compact footer. */
+@media (max-width: 640px) {
+  .page-shell.is-full-bleed .footer.footer-compact {
+    display: none;
+  }
+}
+
 .footer-inner {
   max-width: 1280px;
   margin: 0 auto;

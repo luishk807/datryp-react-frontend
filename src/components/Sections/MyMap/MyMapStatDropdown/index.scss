@@ -133,4 +133,18 @@
     min-width: 200px;
     max-width: 80vw;
   }
+
+  /* Phones: drop the "countries / cities / places" label so the
+   * floating row collapses to icon + number, fitting all three
+   * pills side-by-side on a narrow viewport instead of stacking
+   * vertically. The icon already conveys the kind. */
+  .my-map-stat-dropdown-label {
+    display: none;
+  }
+
+  .my-map-stat-dropdown-trigger {
+    padding: 6px 8px;
+    gap: 4px;
+    font-size: 0.85rem;
+  }
 }

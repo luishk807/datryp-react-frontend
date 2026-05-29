@@ -23,45 +23,265 @@
   min-height: 70vh;
 }
 
-.my-map-header {
+/* "Your travel atlas" welcome panel — absolute-positioned overlay
+ * sitting in the bottom-right corner of the map canvas (the slot
+ * the Mapbox attribution used to occupy). Absolute (not inline
+ * above the map) so toggling its visibility never resizes the
+ * map. Capped at ~340px so it doesn't blanket too much of the
+ * globe. */
+.my-map-intro {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 4;
+  width: 340px;
+  max-width: calc(100% - 28px);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(60, 181, 75, 0.22);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: my-map-intro-in 0.25s ease-out;
 }
 
-.my-map-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+@keyframes my-map-intro-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.my-map-controls {
+/* Close X — top-right corner, only inside the expanded panel.
+ * Dismissing flips localStorage so future visits skip the panel
+ * (the floating "About" pill stays available to reopen). */
+.my-map-intro-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.my-map-toggle-btn {
+.my-map-intro-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* Collapsed-state pill — small floating "About" chip on the map
+ * when the panel is dismissed. Same anchor + look as the expanded
+ * panel so the user knows where to click to bring it back. */
+.my-map-intro-pill {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: #fff;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid rgba(60, 181, 75, 0.22);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
   color: theme('colors.primary');
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  .MuiSvgIcon-root {
+    color: theme('colors.primaryGreen');
+  }
 
   &:hover {
-    border-color: theme('colors.primaryGreen');
-    color: theme('colors.primaryGreen');
-    background: rgba(60, 181, 75, 0.04);
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+  }
+}
+
+.my-map-intro-headline {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-right: 28px; /* clear the close X in the corner */
+}
+
+.my-map-intro-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    theme('colors.primaryGreen') 0%,
+    theme('colors.primaryOrange') 100%
+  );
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(60, 181, 75, 0.3);
+
+  .MuiSvgIcon-root {
+    font-size: 18px;
+  }
+}
+
+.my-map-intro-headline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.my-map-intro-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+
+.my-map-intro-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.my-map-intro-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-map-intro-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.025);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.75);
+  line-height: 1.3;
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+}
+
+/* Legend dots match the actual map styling so the user can pattern-
+ * match the panel to the globe at a glance. */
+.my-map-intro-legend-dot {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+
+  &.is-country {
+    background: rgba(60, 181, 75, 0.5);
+    border: 1.5px solid #2d8f37;
+  }
+
+  &.is-city {
+    background: #fff;
+    border: 2.5px solid theme('colors.primaryGreen');
+  }
+
+  &.is-place {
+    background: theme('colors.primaryOrange');
+    box-shadow: 0 0 0 2px rgba(246, 137, 31, 0.25);
+  }
+}
+
+.my-map-intro-tip {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .my-map-intro {
+    width: calc(100% - 24px);
+    bottom: 12px;
+    right: 12px;
+    padding: 14px 14px 12px;
+    gap: 10px;
+  }
+
+  .my-map-intro-pill {
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .my-map-intro-title {
+    font-size: 0.95rem;
+  }
+
+  .my-map-intro-sub {
+    font-size: 0.78rem;
+  }
+
+  .my-map-intro-legend-item {
+    font-size: 0.78rem;
+  }
+}
+
+/* Stats dropdown row — absolute-positioned at the top-LEFT of the
+ * map canvas. The About panel/pill lives in the bottom-right now,
+ * so the top-left slot is free for stats. Single horizontal row
+ * (no wrap) so the three pills always read as one toolbar. */
+.my-map-stats {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 4;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  max-width: calc(100% - 28px);
+}
+
+@media (max-width: 720px) {
+  /* On phones keep them in one horizontal row anchored top-left;
+   * the labels are hidden (see MyMapStatDropdown SCSS), so the
+   * three pills collapse to icon + number and fit comfortably
+   * across a narrow viewport. */
+  .my-map-stats {
+    top: 12px;
+    left: 12px;
+    gap: 4px;
   }
 }
 
@@ -92,6 +312,14 @@
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Hide Mapbox's bottom-right attribution info "i" button — it
+ * cluttered the map corner without adding much. The bottom-left
+ * Mapbox wordmark + OSM credit (the actual ToS-required
+ * attribution) stays visible. */
+.my-map-canvas-wrap .mapboxgl-ctrl-bottom-right {
+  display: none;
 }
 
 .my-map-canvas-wrap.is-locked .my-map-canvas {
@@ -391,51 +619,6 @@
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-}
-
-// ───── List view (hide-map mode) ────────────────────────────────────────
-.my-map-list-view {
-  padding: 18px 4px 0;
-}
-
-.my-map-list-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0 0 12px;
-  color: theme('colors.primary');
-}
-
-.my-map-list-empty {
-  color: rgba(0, 0, 0, 0.55);
-  font-size: 0.92rem;
-}
-
-.my-map-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 8px;
-}
-
-.my-map-list-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.my-map-list-flag {
-  font-size: 1.4rem;
-}
-
-.my-map-list-name {
-  font-size: 0.94rem;
-  color: theme('colors.primary');
 }
 
 // ───── Setup-missing state ──────────────────────────────────────────────

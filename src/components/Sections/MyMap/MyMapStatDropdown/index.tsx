@@ -75,7 +75,10 @@ const MyMapStatDropdown = ({
             >
                 <span className="my-map-stat-dropdown-icon">{icon}</span>
                 <span className="my-map-stat-dropdown-count">
-                    <strong>{count}</strong> {label}
+                    <strong>{count}</strong>{' '}
+                    <span className="my-map-stat-dropdown-label">
+                        {label}
+                    </span>
                 </span>
                 <span className="my-map-stat-dropdown-caret" aria-hidden>
                     ▾
