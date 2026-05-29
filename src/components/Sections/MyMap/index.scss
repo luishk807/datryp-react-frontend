@@ -329,48 +329,6 @@
   pointer-events: none;
 }
 
-// Pinpoint marker. Plain div styled into a teardrop pin — using a
-// pseudo-element triangle for the stem so we don't need an SVG asset.
-.my-map-pin {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: theme('colors.primaryOrange');
-  border: 3px solid #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: transform 0.15s ease;
-
-  &:hover {
-    transform: scale(1.25);
-  }
-}
-
-// City-level marker. Visually distinct from `.my-map-pin` so the user
-// can tell "I visited Bangkok" (broad) from "I visited Wat Arun in
-// Bangkok" (narrow). White solid core stands out against the green
-// country shading (a tinted-green ring blended in too much there);
-// the green border keeps the color identity so cities still read as
-// part of the same family as the country-shading layer.
-.my-map-city-pin {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #fff;
-  border: 2.5px solid theme('colors.primaryGreen');
-  // Darker drop shadow than the place pin so the white core has
-  // enough separation from the light-style basemap. Without this the
-  // pin disappears over land/ocean tiles that happen to be near-white.
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-
-  &:hover {
-    transform: scale(1.2);
-    background: theme('colors.primaryGreen');
-  }
-}
-
 .my-map-pin-meta {
   display: inline-block;
   margin-top: 2px;

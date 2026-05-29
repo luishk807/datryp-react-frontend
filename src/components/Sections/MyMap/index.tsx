@@ -55,6 +55,18 @@ const MAP_STYLE = 'mapbox://styles/mapbox/light-v11';
 const COUNTRY_BOUNDARIES_SOURCE = 'mapbox-country-boundaries';
 const COUNTRY_BOUNDARIES_URL = 'mapbox://mapbox.country-boundaries-v1';
 
+/** Native circle-layer sources + layers for visited place / city pins.
+ *  Replaces the previous HTML `mapboxgl.Marker` approach, which
+ *  suffered from DOM↔WebGL desync during rotation (the marker's
+ *  `transform: translate(...)` rewrites lagged the basemap by a
+ *  frame, reading as the pin drifting off its lat/lng). Circle
+ *  layers render inside WebGL so the pin is glued to the geography
+ *  on every frame. */
+const PLACE_PINS_SOURCE = 'visited-place-pins';
+const PLACE_PINS_LAYER = 'visited-place-pins-layer';
+const CITY_PINS_SOURCE = 'visited-city-pins';
+const CITY_PINS_LAYER = 'visited-city-pins-layer';
+
 const MyMap = () => {
     const navigate = useNavigate();
     const { user, isAdmin } = useUser();
@@ -65,15 +77,12 @@ const MyMap = () => {
 
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
-    const markersRef = useRef<mapboxgl.Marker[]>([]);
-    // City markers live on their own list so the marker-sync effects
-    // for places vs cities can each rebuild their own pins without
-    // stepping on each other. Same lifecycle (cleared + repopulated
-    // when the source list changes) but distinct refs.
-    const cityMarkersRef = useRef<mapboxgl.Marker[]>([]);
-    const cityMarkersByIdRef = useRef<Map<string, mapboxgl.Marker>>(
-        new Map()
-    );
+    // The currently-open popup. Tracked so a fresh click / programmatic
+    // open can close the prior one without orphaning DOM. Replaces the
+    // previous mapboxgl.Marker[] approach where each marker owned its
+    // own popup; with native circle layers there's only one popup at
+    // a time.
+    const openPopupRef = useRef<mapboxgl.Popup | null>(null);
     // One-shot guard for the initial "fit to my world" camera fly.
     // Once the user has seen their continents framed up, subsequent
     // data refetches (new visited place lands in cache, etc.) must not
@@ -84,13 +93,14 @@ const MyMap = () => {
     // feature-state can be unset when the cursor moves to a new
     // country or off the layer entirely.
     const hoveredCountryRef = useRef<number | string | null>(null);
-    // Keyed by visited-place id so a dropdown selection can target the
-    // exact marker to open its popup. Lives alongside `markersRef`
-    // (which keeps a plain list for cleanup) — the two are written and
-    // cleared in lock-step in the marker-sync effect.
-    const markersByPlaceIdRef = useRef<Map<string, mapboxgl.Marker>>(
-        new Map()
-    );
+    // Currently-hovered pin feature id (place or city). Same role as
+    // hoveredCountryRef — toggles the `hover` feature-state that the
+    // circle layer's `circle-radius` expression reads to grow the pin
+    // on hover.
+    const hoveredPinRef = useRef<{
+        source: string;
+        id: string | null;
+    } | null>(null);
 
     const [mapReady, setMapReady] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<StatDropdownKey | null>(
@@ -299,6 +309,65 @@ const MyMap = () => {
                     'country-label'
                 );
             }
+            // Native pin sources / layers. GeoJSON sources start
+            // empty; the data sync effects below repopulate them as
+            // the visited lists resolve. `promoteId: 'id'` makes
+            // feature-state lookups + queryRenderedFeatures keying
+            // by our own place / city id work without an extra map.
+            if (!map.getSource(CITY_PINS_SOURCE)) {
+                map.addSource(CITY_PINS_SOURCE, {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] },
+                    promoteId: 'id',
+                });
+            }
+            if (!map.getLayer(CITY_PINS_LAYER)) {
+                map.addLayer({
+                    id: CITY_PINS_LAYER,
+                    source: CITY_PINS_SOURCE,
+                    type: 'circle',
+                    paint: {
+                        'circle-radius': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            10,
+                            8,
+                        ],
+                        'circle-color': '#ffffff',
+                        'circle-stroke-color': '#3cb54b',
+                        'circle-stroke-width': 2.5,
+                        // Hard surface — soft fade-in around the
+                        // dot would blur it against light tiles.
+                        'circle-opacity': 1,
+                    },
+                });
+            }
+            if (!map.getSource(PLACE_PINS_SOURCE)) {
+                map.addSource(PLACE_PINS_SOURCE, {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] },
+                    promoteId: 'id',
+                });
+            }
+            if (!map.getLayer(PLACE_PINS_LAYER)) {
+                map.addLayer({
+                    id: PLACE_PINS_LAYER,
+                    source: PLACE_PINS_SOURCE,
+                    type: 'circle',
+                    paint: {
+                        'circle-radius': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            9,
+                            7,
+                        ],
+                        'circle-color': '#f6891f',
+                        'circle-stroke-color': '#ffffff',
+                        'circle-stroke-width': 2.5,
+                        'circle-opacity': 1,
+                    },
+                });
+            }
             setMapReady(true);
             // Trigger a resize once layout has settled (style + sources
             // applied), in case the container grew between construction
@@ -334,95 +403,77 @@ const MyMap = () => {
         }
     }, [countryCodes, mapReady]);
 
-    // Sync place markers — clear, then add one per place with lat/lng.
-    // The popup carries enough context to recognize the place (name +
-    // city) and a primary CTA that opens the full place-detail page in
-    // a new tab. Visited-places don't carry a tripId, so we can't link
-    // back to a specific trip — the place page is the closest anchor.
+    // Sync place pins into the GeoJSON source backing the circle
+    // layer. Replaces the old `mapboxgl.Marker` loop — features are
+    // rendered inside WebGL, so the dot stays glued to its lat/lng
+    // on every frame regardless of how fast the user rotates. The
+    // popup is opened imperatively in the layer's click handler
+    // below; we stash the input shape needed for the popup HTML on
+    // `feature.properties` so the click handler can rebuild it
+    // without re-walking the visitedPlaces array.
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady) return;
-        for (const m of markersRef.current) m.remove();
-        markersRef.current = [];
-        markersByPlaceIdRef.current.clear();
-        for (const pin of placePins) {
-            const el = document.createElement('div');
-            el.className = 'my-map-pin';
-            const popup = new mapboxgl.Popup({
-                offset: 18,
-                closeButton: true,
-                maxWidth: '260px',
-                className: 'my-map-pin-popup',
-            }).setHTML(renderPinPopupHtml(pin));
-            const marker = new mapboxgl.Marker({
-                element: el,
-                // Center-anchored so the pin's geometric center
-                // sits exactly on the lat/lng. With `anchor: 'bottom'`
-                // (the previous setting) the BOTTOM of the circle
-                // hugged the point, so as the camera tilted the dot
-                // "stood up" above the actual location — visually
-                // reading as the pin drifting off its spot when the
-                // map rotated. Since the pin is a plain circle
-                // (no teardrop stem), centering it is the right
-                // anchor.
-                anchor: 'center',
-                // Map-aligned for both pitch + rotation. The pin
-                // shape is a circle, so map alignment makes it
-                // behave like a sticker on the globe — flattens to
-                // an ellipse when the camera tilts, stays glued to
-                // the surface as the globe rotates. Viewport
-                // alignment would keep the circle perfectly round
-                // but combined with center-anchor produced subtle
-                // shifts because the marker's pixel position is
-                // re-projected on every frame; map alignment locks
-                // it to the geography hard.
-                pitchAlignment: 'map',
-                rotationAlignment: 'map',
-            })
-                .setLngLat([pin.lng, pin.lat])
-                .setPopup(popup)
-                .addTo(map);
-            markersRef.current.push(marker);
-            markersByPlaceIdRef.current.set(pin.id, marker);
-        }
+        const source = map.getSource(PLACE_PINS_SOURCE) as
+            | mapboxgl.GeoJSONSource
+            | undefined;
+        if (!source) return;
+        source.setData({
+            type: 'FeatureCollection',
+            features: placePins.map((pin) => ({
+                type: 'Feature',
+                id: pin.id,
+                geometry: {
+                    type: 'Point',
+                    coordinates: [pin.lng, pin.lat],
+                },
+                properties: {
+                    id: pin.id,
+                    name: pin.name,
+                    city: pin.city,
+                    country: pin.country,
+                    source: pin.source,
+                    visitedAt: pin.visitedAt,
+                    // Trips ride along as JSON-encoded so it
+                    // round-trips through Mapbox's properties bag
+                    // (which serializes via JSON internally — nested
+                    // arrays survive as references in modern versions
+                    // but stringifying is the safe path).
+                    trips: JSON.stringify(pin.trips ?? []),
+                },
+            })),
+        });
     }, [placePins, mapReady]);
 
-    // Sync city markers. Same pattern as places but with a distinct
-    // CSS class so the city pins read as a different visual layer.
-    // City markers are anchored at the centroid (geocoded server-side)
-    // and have a lighter popup focused on the city itself rather than
-    // a trip back-link (the cascade doesn't write cities today).
+    // Sync city pins into the GeoJSON source — same pattern as
+    // places above. Cities don't carry trip joins today, so the
+    // properties bag is lighter.
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapReady) return;
-        for (const m of cityMarkersRef.current) m.remove();
-        cityMarkersRef.current = [];
-        cityMarkersByIdRef.current.clear();
-        for (const pin of cityPins) {
-            const el = document.createElement('div');
-            el.className = 'my-map-city-pin';
-            const popup = new mapboxgl.Popup({
-                offset: 14,
-                closeButton: true,
-                maxWidth: '240px',
-                className: 'my-map-pin-popup',
-            }).setHTML(renderCityPopupHtml(pin));
-            const marker = new mapboxgl.Marker({
-                element: el,
-                anchor: 'center',
-                // Map-aligned for the same reason as the place pins
-                // above — locks the city ring to the geography so
-                // it doesn't drift off the centroid as the globe
-                // rotates or tilts.
-                pitchAlignment: 'map',
-                rotationAlignment: 'map',
-            })
-                .setLngLat([pin.lng, pin.lat])
-                .setPopup(popup)
-                .addTo(map);
-            cityMarkersRef.current.push(marker);
-            cityMarkersByIdRef.current.set(pin.citySlug, marker);
-        }
+        const source = map.getSource(CITY_PINS_SOURCE) as
+            | mapboxgl.GeoJSONSource
+            | undefined;
+        if (!source) return;
+        source.setData({
+            type: 'FeatureCollection',
+            features: cityPins.map((pin) => ({
+                type: 'Feature',
+                id: pin.citySlug,
+                geometry: {
+                    type: 'Point',
+                    coordinates: [pin.lng, pin.lat],
+                },
+                properties: {
+                    id: pin.citySlug,
+                    cityName: pin.cityName,
+                    countryName: pin.countryName,
+                    countryCode: pin.countryCode,
+                    source: pin.source,
+                    visitedAt: pin.visitedAt,
+                },
+            })),
+        });
     }, [cityPins, mapReady]);
 
     // Frame the camera so every visited country polygon AND every
@@ -736,6 +787,131 @@ const MyMap = () => {
         };
     }, [mapReady, flyToCountry]);
 
+    // Pin layer interactions — click to open popup, mousemove to
+    // grow the dot via feature-state. Same wiring for both place
+    // and city layers; the popup builder branches on which layer
+    // fired. Pointer cursor on hover so users discover the pin is
+    // interactive.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+
+        const setPinHover = (
+            source: string,
+            id: string | null,
+        ) => {
+            const prev = hoveredPinRef.current;
+            if (prev && (prev.source !== source || prev.id !== id)) {
+                if (prev.id !== null) {
+                    map.setFeatureState(
+                        { source: prev.source, id: prev.id },
+                        { hover: false },
+                    );
+                }
+            }
+            hoveredPinRef.current = id !== null ? { source, id } : null;
+            if (id !== null) {
+                map.setFeatureState(
+                    { source, id },
+                    { hover: true },
+                );
+            }
+        };
+
+        const openPopupAt = (
+            lngLat: mapboxgl.LngLat | [number, number],
+            html: string,
+            offset: number,
+        ) => {
+            openPopupRef.current?.remove();
+            const popup = new mapboxgl.Popup({
+                offset,
+                closeButton: true,
+                maxWidth: '260px',
+                className: 'my-map-pin-popup',
+            })
+                .setLngLat(lngLat)
+                .setHTML(html)
+                .addTo(map);
+            openPopupRef.current = popup;
+        };
+
+        const onPlaceClick = (e: mapboxgl.MapLayerMouseEvent) => {
+            const feat = e.features?.[0];
+            if (!feat) return;
+            const props = feat.properties ?? {};
+            // `properties.trips` was JSON-stringified into the
+            // source so we can parse it back to the popup shape.
+            let trips: PinPopupTrip[] = [];
+            try {
+                const raw = props.trips;
+                if (typeof raw === 'string') {
+                    trips = JSON.parse(raw) as PinPopupTrip[];
+                }
+            } catch {
+                /* malformed — fall through with no trips. */
+            }
+            const html = renderPinPopupHtml({
+                name: String(props.name ?? ''),
+                city: String(props.city ?? ''),
+                country: String(props.country ?? ''),
+                source: props.source ? String(props.source) : undefined,
+                visitedAt: props.visitedAt
+                    ? String(props.visitedAt)
+                    : undefined,
+                trips,
+            });
+            openPopupAt(e.lngLat, html, 8);
+        };
+
+        const onCityClick = (e: mapboxgl.MapLayerMouseEvent) => {
+            const feat = e.features?.[0];
+            if (!feat) return;
+            const props = feat.properties ?? {};
+            const html = renderCityPopupHtml({
+                cityName: String(props.cityName ?? ''),
+                countryName: String(props.countryName ?? ''),
+                countryCode: String(props.countryCode ?? ''),
+                source: props.source ? String(props.source) : undefined,
+                visitedAt: props.visitedAt
+                    ? String(props.visitedAt)
+                    : undefined,
+            });
+            openPopupAt(e.lngLat, html, 10);
+        };
+
+        const onPinMove = (source: string) =>
+            (e: mapboxgl.MapLayerMouseEvent) => {
+                const id = e.features?.[0]?.id;
+                if (id === undefined || id === null) return;
+                map.getCanvas().style.cursor = 'pointer';
+                setPinHover(source, String(id));
+            };
+        const onPinLeave = () => {
+            map.getCanvas().style.cursor = '';
+            setPinHover('', null);
+        };
+
+        const onPlaceMove = onPinMove(PLACE_PINS_SOURCE);
+        const onCityMove = onPinMove(CITY_PINS_SOURCE);
+
+        map.on('click', PLACE_PINS_LAYER, onPlaceClick);
+        map.on('click', CITY_PINS_LAYER, onCityClick);
+        map.on('mousemove', PLACE_PINS_LAYER, onPlaceMove);
+        map.on('mousemove', CITY_PINS_LAYER, onCityMove);
+        map.on('mouseleave', PLACE_PINS_LAYER, onPinLeave);
+        map.on('mouseleave', CITY_PINS_LAYER, onPinLeave);
+        return () => {
+            map.off('click', PLACE_PINS_LAYER, onPlaceClick);
+            map.off('click', CITY_PINS_LAYER, onCityClick);
+            map.off('mousemove', PLACE_PINS_LAYER, onPlaceMove);
+            map.off('mousemove', CITY_PINS_LAYER, onCityMove);
+            map.off('mouseleave', PLACE_PINS_LAYER, onPinLeave);
+            map.off('mouseleave', CITY_PINS_LAYER, onPinLeave);
+            setPinHover('', null);
+        };
+    }, [mapReady]);
+
     const flyToCity = useCallback(
         (citySlug: string) => {
             const map = mapRef.current;
@@ -792,22 +968,41 @@ const MyMap = () => {
             ) {
                 return;
             }
+            const lng = place.longitude;
+            const lat = place.latitude;
             map.flyTo({
-                center: [place.longitude, place.latitude],
+                center: [lng, lat],
                 zoom: 13,
                 duration: 1200,
             });
-            // Open the matching marker's popup once the camera has
-            // settled — opening immediately makes the popup feel
-            // disconnected from the fly motion.
-            const marker = markersByPlaceIdRef.current.get(placeId);
-            if (marker) {
-                window.setTimeout(() => {
-                    if (!marker.getPopup()?.isOpen()) {
-                        marker.togglePopup();
-                    }
-                }, 900);
-            }
+            // Open the popup imperatively once the camera has
+            // settled — opening immediately makes it feel
+            // disconnected from the fly motion. Build it from the
+            // visited-place row directly since there's no marker ref
+            // anymore (native circle layer = no DOM element to
+            // toggle).
+            window.setTimeout(() => {
+                openPopupRef.current?.remove();
+                const popup = new mapboxgl.Popup({
+                    offset: 8,
+                    closeButton: true,
+                    maxWidth: '260px',
+                    className: 'my-map-pin-popup',
+                })
+                    .setLngLat([lng, lat])
+                    .setHTML(
+                        renderPinPopupHtml({
+                            name: place.placeName,
+                            city: place.placeCity ?? '',
+                            country: place.placeCountry ?? '',
+                            source: place.source,
+                            visitedAt: place.visitedAt,
+                            trips: place.trips,
+                        }),
+                    )
+                    .addTo(map);
+                openPopupRef.current = popup;
+            }, 900);
         },
         [visitedPlaces]
     );
