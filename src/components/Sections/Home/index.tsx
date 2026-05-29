@@ -1,8 +1,9 @@
 import { useMemo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
@@ -23,7 +24,7 @@ import { getUserFirstName } from 'utils/userName';
 import type { PlaceResult } from 'api/hooks/usePlaces';
 import type { HeroImage } from 'types';
 
-type HomeMode = 'place' | 'ai';
+type HomeMode = 'place' | 'describe';
 
 interface SelectedHero {
     url: string;
@@ -162,8 +163,8 @@ const Home = () => {
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">{heroTitle}</h1>
                     <p className="home-hero-subtitle">
-                        Search for a city or country, or let our AI pick the
-                        right destination for you.
+                        Search a place, describe your trip, or let AI plan
+                        it all.
                     </p>
 
                     <div
@@ -175,36 +176,70 @@ const Home = () => {
                         <button
                             role="tab"
                             aria-selected={homeMode === 'place'}
+                            aria-label="Search by place"
                             className={classnames('hero-option', {
                                 selected: homeMode === 'place',
                             })}
                             onClick={() => setHomeMode('place')}
                         >
                             <PublicRoundedIcon className="hero-option-icon" />
-                            <span>Search by Place</span>
+                            <span>
+                                <span className="hero-option-prefix">Search by </span>
+                                Place
+                            </span>
                         </button>
                         <button
                             role="tab"
-                            aria-selected={homeMode === 'ai'}
-                            className={classnames('hero-option', 'is-ai', {
-                                selected: homeMode === 'ai',
+                            aria-selected={homeMode === 'describe'}
+                            aria-label="Search by description"
+                            className={classnames('hero-option', {
+                                selected: homeMode === 'describe',
                             })}
-                            onClick={() => setHomeMode('ai')}
+                            onClick={() => setHomeMode('describe')}
                         >
-                            <AutoAwesomeIcon className="hero-option-icon" />
-                            <span>AI</span>
-                            <span className="hero-option-ai-badge">Beta</span>
+                            <SearchRoundedIcon className="hero-option-icon" />
+                            <span>
+                                <span className="hero-option-prefix">Search by </span>
+                                Description
+                            </span>
                         </button>
                     </div>
 
                     <div className="home-hero-search">
                         <SearchBar
                             onPlaceSelected={handlePlaceSelected}
-                            mode={homeMode === 'ai' ? 'recommend' : 'place'}
+                            mode={homeMode === 'describe' ? 'recommend' : 'place'}
                             onAiSearchSubmit={(q) =>
                                 navigate(`/search?q=${encodeURIComponent(q)}`)
                             }
                         />
+                    </div>
+
+                    {/* Marketing CTA — visually separated from the
+                        search field above by an explicit "or" divider
+                        so users don't read the button as a "submit
+                        the search" affordance. Clicking the button
+                        navigates to /plan-trip-ai, completely
+                        independent of whatever is in the search
+                        input. */}
+                    <div className="home-hero-or-divider" aria-hidden="true">
+                        <span>or</span>
+                    </div>
+                    <div className="home-hero-ai-callout">
+                        <span className="home-hero-ai-callout-tagline">
+                            Not sure where to go?
+                        </span>
+                        <Link
+                            to="/plan-trip-ai"
+                            className="home-hero-ai-cta"
+                            aria-label="Let AI plan a trip for you"
+                        >
+                            <AutoAwesomeIcon className="home-hero-ai-cta-icon" />
+                            <span className="home-hero-ai-cta-label">
+                                Let AI plan your trip
+                            </span>
+                            <span className="home-hero-ai-cta-badge">Pro</span>
+                        </Link>
                     </div>
                 </div>
             </section>

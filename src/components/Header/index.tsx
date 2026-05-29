@@ -236,6 +236,11 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     onClick={() => handleNavigate('/trips')}
                                 />
                                 <MenuActionItem
+                                    icon={<AutoAwesomeRoundedIcon />}
+                                    label="Plan with AI"
+                                    onClick={() => handleNavigate('/plan-trip-ai')}
+                                />
+                                <MenuActionItem
                                     icon={<CheckCircleRoundedIcon />}
                                     label="Visited Places"
                                     onClick={() => handleNavigate('/visited')}
@@ -369,6 +374,13 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     className="drawer-link"
                                     label="My Trips"
                                     onClick={() => handleNavigate('/trips')}
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.NONE}
+                                    capitalizeType="none"
+                                    className="drawer-link"
+                                    label="Plan with AI"
+                                    onClick={() => handleNavigate('/plan-trip-ai')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}

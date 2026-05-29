@@ -338,6 +338,11 @@ const BottomNav = () => {
                             onClick={() => handleNavigate('/trips')}
                         />
                         <AccountItem
+                            icon={<AutoAwesomeRoundedIcon />}
+                            label="Plan with AI"
+                            onClick={() => handleNavigate('/plan-trip-ai')}
+                        />
+                        <AccountItem
                             icon={<CheckCircleRoundedIcon />}
                             label="Visited Places"
                             onClick={() => handleNavigate('/visited')}

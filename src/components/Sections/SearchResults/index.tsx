@@ -3,7 +3,6 @@ import './index.scss';
 import Layout from 'components/common/Layout/SubLayout';
 import PlaceResultCard from 'components/PlaceResultCard';
 import PlaceResultCardSkeleton from 'components/PlaceResultCardSkeleton';
-import AiSearchLoader from 'components/AiSearchLoader';
 import PlanCards from 'components/PlanCards';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { isQueryBlockedError } from 'api/moderationError';
@@ -43,7 +42,21 @@ const SearchResults = () => {
             );
         }
         if (isLoading) {
-            return <AiSearchLoader query={query} />;
+            // Skeleton cards mirror the eventual result grid so the
+            // page doesn't shift on load. The old AI-orb loader
+            // implied this was an AI-trip-building endpoint, which
+            // it isn't — Description search is just sentence-based
+            // place lookup. The real AI trip-builder loader lives
+            // on /plan-trip-ai behind its own wizard.
+            return (
+                <div
+                    className="search-results-grid"
+                    aria-live="polite"
+                    aria-busy="true"
+                >
+                    <PlaceResultCardSkeleton count={SKELETON_COUNT} />
+                </div>
+            );
         }
         if (isError) {
             if (isQueryBlockedError(error)) {
