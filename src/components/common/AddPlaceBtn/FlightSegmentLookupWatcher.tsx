@@ -11,6 +11,14 @@ interface FlightSegmentLookupWatcherProps {
      *  parent can render a loading spinner near the flight number
      *  input. Optional — older call sites don't have to provide it. */
     onLoadingChange?: (loading: boolean) => void;
+    /** Fires once when the lookup settles with no match (number was
+     *  long enough to query but the backend returned null). Lets the
+     *  parent surface a friendly "couldn't find flight — fill in
+     *  manually" message per segment instead of silently dropping
+     *  the lookup. The flight number passed back is the one we
+     *  actually queried (post-parseFlightInfo), so the caller's copy
+     *  reflects what the AI / API tried. */
+    onNotFound?: (flightNumber: string) => void;
 }
 
 /**
@@ -34,6 +42,7 @@ const FlightSegmentLookupWatcher = ({
     departDate,
     onResult,
     onLoadingChange,
+    onNotFound,
 }: FlightSegmentLookupWatcherProps) => {
     const [debouncedNumber, setDebouncedNumber] = useState('');
     const [debouncedDate, setDebouncedDate] = useState('');
@@ -64,23 +73,36 @@ const FlightSegmentLookupWatcher = ({
         return () => clearTimeout(timer);
     }, [flightNumber, departDate]);
 
-    const { data, isFetching } = useFlightLookup(debouncedNumber, debouncedDate);
+    const { data, isFetching, isSuccess } = useFlightLookup(
+        debouncedNumber,
+        debouncedDate,
+    );
 
     useEffect(() => {
         onLoadingChange?.(isFetching);
     }, [isFetching, onLoadingChange]);
 
     useEffect(() => {
-        if (!data) return;
         const key = `${debouncedNumber}|${debouncedDate}`;
         if (appliedKeyRef.current === key) return;
-        appliedKeyRef.current = key;
-        onResult(data);
-        // `onResult` is recreated each render in the parent; we only
-        // re-run when a fresh `data` lands for a new key, so we can
-        // safely exclude it from deps.
+        if (data) {
+            appliedKeyRef.current = key;
+            onResult(data);
+            return;
+        }
+        // Settled-but-no-match: the query ran AND returned null (the
+        // backend's silent-fail convention). Signal once so the parent
+        // can show a "couldn't find this flight" hint. Guarded behind
+        // `isSuccess` to skip the loading / error states.
+        if (isSuccess && !data && debouncedNumber && debouncedDate) {
+            appliedKeyRef.current = key;
+            onNotFound?.(debouncedNumber);
+        }
+        // `onResult` / `onNotFound` are recreated each render in the
+        // parent; we only re-run when a fresh `data` / settle lands
+        // for a new key, so we can safely exclude them from deps.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data, debouncedNumber, debouncedDate]);
+    }, [data, isSuccess, debouncedNumber, debouncedDate]);
 
     return null;
 };

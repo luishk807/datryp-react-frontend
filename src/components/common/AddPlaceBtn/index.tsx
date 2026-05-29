@@ -35,6 +35,7 @@ import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import FlightSegmentLookupWatcher from './FlightSegmentLookupWatcher';
+import TransitSegmentLookupWatcher from './TransitSegmentLookupWatcher';
 import { parseFlightInfo } from './parseFlightInfo';
 import PlaceSmartEntryWatcher from './PlaceSmartEntryWatcher';
 import { parseTransitEntry } from './parseTransitQuery';
@@ -223,6 +224,21 @@ const AddPlaceBtn = ({
     const [lookupLoading, setLookupLoading] = useState<Set<number>>(
         () => new Set()
     );
+    // Per-segment "couldn't find this flight" message, keyed by
+    // segment index. Populated by FlightSegmentLookupWatcher's
+    // onNotFound when the API returns null for a typed number; cleared
+    // when a fresh lookup succeeds or the user re-edits the number.
+    const [lookupNotFound, setLookupNotFound] = useState<Record<number, string>>({});
+    // Per-transit-segment lookup state — parallels the flight maps
+    // above but keyed by the transit segment index. The transit
+    // watcher hits OpenAI to resolve "<operator> <number>" into
+    // station + time data the same way the flight watcher hits
+    // AeroDataBox. Loading + not-found surface the same friendly
+    // hints under the operator/number fields.
+    const [transitLookupLoading, setTransitLookupLoading] = useState<Set<number>>(
+        () => new Set()
+    );
+    const [transitLookupNotFound, setTransitLookupNotFound] = useState<Record<number, string>>({});
     // Whole-segment collapse — independent of the airport/date/time
     // details panel. Closed by default so the form stays compact;
     // segments auto-open when they pick up a flight number from the
@@ -268,6 +284,7 @@ const AddPlaceBtn = ({
     // detailed per-segment fields hidden behind a Show details toggle.
     const [transitSmartEntry, setTransitSmartEntry] = useState('');
     const [transitDetailsExpanded, setTransitDetailsExpanded] = useState(false);
+    const [transitSmartWarning, setTransitSmartWarning] = useState<string | null>(null);
     // Pending HOTEL_CHECKOUT to spawn alongside the primary
     // HOTEL_CHECKIN once the user clicks Save. Populated by the hotel
     // smart entry when the input mentions a separate check-out time
@@ -402,7 +419,36 @@ const AddPlaceBtn = ({
         const kindAtFire = place.kind;
         const timer = setTimeout(() => {
             const parsed = parseTransitEntry(transitSmartEntry);
-            if (!parsed) return;
+            if (!parsed) {
+                setTransitSmartWarning(
+                    `Couldn't pick anything useful out of “${transitSmartEntry.trim()}”. Fill in operator / station / time using the form below.`,
+                );
+                setTransitDetailsExpanded(true);
+                return;
+            }
+            // "Nothing useful" sanity check — the parser is permissive
+            // and will sometimes return {} when no operator / number /
+            // stations / times were detected. Treat that as a parse
+            // failure too so the user gets the same friendly nudge to
+            // fill the form by hand instead of silently doing nothing.
+            const hasContent = Boolean(
+                parsed.operator ||
+                    parsed.number ||
+                    parsed.departStation ||
+                    parsed.arrivalStation ||
+                    parsed.departTime ||
+                    parsed.arrivalTime ||
+                    parsed.confirmationNumber ||
+                    parsed.cost != null,
+            );
+            if (!hasContent) {
+                setTransitSmartWarning(
+                    `Couldn't pick anything useful out of “${transitSmartEntry.trim()}”. Fill in operator / station / time using the form below.`,
+                );
+                setTransitDetailsExpanded(true);
+                return;
+            }
+            setTransitSmartWarning(null);
             // Build the kind-specific trip-name wrapper. The parser
             // returns just the operator string (e.g. "Hertz") and we
             // wrap it here so the headline reads naturally for the
@@ -509,6 +555,17 @@ const AddPlaceBtn = ({
         value: FlightInfo[K]
     ) => {
         setError(null);
+        // Editing the flight number wipes the stale "not found" hint
+        // for this segment so the user doesn't see the old number's
+        // message while typing the new one.
+        if (name === 'flightNumber') {
+            setLookupNotFound((prev) => {
+                if (!(index in prev)) return prev;
+                const next = { ...prev };
+                delete next[index];
+                return next;
+            });
+        }
         setPlace((prev) => {
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
@@ -744,6 +801,50 @@ const AddPlaceBtn = ({
         });
     };
 
+    /** Apply a /transit/lookup result to a transit segment. Same
+     *  posture as `applyFlightLookup`: the user is explicitly
+     *  re-querying (operator + number changed), so overwrite every
+     *  field the lookup returned. Fields the model didn't fill keep
+     *  whatever was already typed in. */
+    const applyTransitLookup = (
+        segIdx: number,
+        result: import('api/transitLookupApi').TransitLookupResult,
+    ) => {
+        setPlace((prev) => {
+            const segments = prev.transitSegments?.length
+                ? [...prev.transitSegments]
+                : [emptyTransitSegment(isoDefaultDate)];
+            const current = segments[segIdx] ?? {};
+            segments[segIdx] = {
+                ...current,
+                operator: result.operator ?? current.operator,
+                number: result.number ?? current.number,
+                departStation: result.departStation ?? current.departStation,
+                arrivalStation: result.arrivalStation ?? current.arrivalStation,
+                departTime: result.departTime ?? current.departTime,
+                arrivalTime: result.arrivalTime ?? current.arrivalTime,
+                departDate: result.departDate ?? current.departDate,
+                arrivalDate: result.arrivalDate ?? current.arrivalDate,
+            };
+            return { ...prev, transitSegments: segments };
+        });
+    };
+
+    const handleTransitLookupLoadingChange = (
+        segIdx: number,
+        loading: boolean,
+    ) => {
+        setTransitLookupLoading((prev) => {
+            const has = prev.has(segIdx);
+            if (loading && has) return prev;
+            if (!loading && !has) return prev;
+            const next = new Set(prev);
+            if (loading) next.add(segIdx);
+            else next.delete(segIdx);
+            return next;
+        });
+    };
+
     // No auto-expand. Both the outer segment block and the inner
     // airport/date/time panel stay collapsed by default — the user
     // sees a compact list of segment headers (each showing the
@@ -772,6 +873,17 @@ const AddPlaceBtn = ({
         value: TransitInfo[K]
     ) => {
         setError(null);
+        // Editing operator or number wipes the stale "not found" hint
+        // for this segment — same defensive clear as the flight form
+        // does on flightNumber edits.
+        if (name === 'operator' || name === 'number') {
+            setTransitLookupNotFound((prev) => {
+                if (!(index in prev)) return prev;
+                const next = { ...prev };
+                delete next[index];
+                return next;
+            });
+        }
         setPlace((prev) => {
             const segments = prev.transitSegments?.length
                 ? [...prev.transitSegments]
@@ -873,6 +985,7 @@ const AddPlaceBtn = ({
         setHotelDetailsExpanded(false);
         setTransitSmartEntry('');
         setTransitDetailsExpanded(false);
+        setTransitSmartWarning(null);
         setPendingHotelCheckout(null);
         const isHotel =
             next === ACTIVITY_KIND.HOTEL_CHECKIN ||
@@ -1308,10 +1421,14 @@ const AddPlaceBtn = ({
         setHotelDetailsExpanded(false);
         setTransitSmartEntry('');
         setTransitDetailsExpanded(false);
+        setTransitSmartWarning(null);
         setPendingHotelCheckout(null);
         setOpenSegments(new Set());
         setExpandedSegments(new Set());
         setLookupLoading(new Set());
+        setLookupNotFound({});
+        setTransitLookupLoading(new Set());
+        setTransitLookupNotFound({});
         setError(null);
         // ADD mode: drop the in-progress form too so reopening the
         // modal shows a clean activity-name field. EDIT mode keeps the
@@ -1556,25 +1673,75 @@ const AddPlaceBtn = ({
                                                 // local.
                                                 country={countryScope}
                                                 onResult={(item: PlaceRecommendation, parsed, extras) => {
-                                                    // Warn but don't block: a
-                                                    // resolved place outside the
-                                                    // trip's country gets a soft
-                                                    // notice so the user can
-                                                    // double-check, but we still
-                                                    // populate the fields in
-                                                    // case the resolution was
-                                                    // imperfect and the user
-                                                    // actually wants it.
-                                                    if (
-                                                        countryScope &&
-                                                        !sameCountry(countryScope, item.country)
-                                                    ) {
+                                                    // Two failure modes get a
+                                                    // friendly "add manually"
+                                                    // message instead of
+                                                    // silently populating
+                                                    // wrong/empty data:
+                                                    //
+                                                    // 1) Wrong country. Famous
+                                                    //    landmarks (Mount Fuji,
+                                                    //    Eiffel Tower) leak
+                                                    //    through the country
+                                                    //    bias and would write
+                                                    //    foreign coords /
+                                                    //    place_key / image
+                                                    //    into a Panama trip.
+                                                    // 2) Bare synthetic — the
+                                                    //    PlaceSmartEntryWatcher
+                                                    //    fell back to a stub
+                                                    //    when no recommender,
+                                                    //    Google Places, OR
+                                                    //    photo match landed
+                                                    //    (lat/lng null AND no
+                                                    //    formatted address).
+                                                    //    Populating the name
+                                                    //    is fine but we should
+                                                    //    tell the user we
+                                                    //    couldn't enrich it.
+                                                    //
+                                                    // User can prefix with `#`
+                                                    // to force-keep the typed
+                                                    // name as a free-text
+                                                    // reminder.
+                                                    const isWrongCountry =
+                                                        Boolean(countryScope) &&
+                                                        !sameCountry(countryScope, item.country);
+                                                    const isBareMatch =
+                                                        item.latitude == null &&
+                                                        item.longitude == null &&
+                                                        !extras?.formattedAddress?.trim();
+                                                    if (isWrongCountry) {
                                                         setPlaceSmartWarning(
-                                                            `Found "${item.name}" in ${item.country || 'a different country'} — your trip is in ${countryScope}. Double-check before saving.`,
+                                                            `Couldn't find “${item.name}” in ${countryScope}` +
+                                                                (item.country
+                                                                    ? ` — closest match is in ${item.country}.`
+                                                                    : '.') +
+                                                                ` Add it manually using the details form below, or prefix the search with # to keep this exact name.`,
                                                         );
-                                                    } else {
-                                                        setPlaceSmartWarning(null);
+                                                        return;
                                                     }
+                                                    if (isBareMatch) {
+                                                        setPlaceSmartWarning(
+                                                            `Couldn't find an exact match for “${item.name}”. Fill in the location / cost / time using the form below.`,
+                                                        );
+                                                        // Populate name only — leave city /
+                                                        // country / coords blank so we don't
+                                                        // ship bogus place_key data on save.
+                                                        handleOnChange('name', item.name);
+                                                        if (parsed.startTime) {
+                                                            handleOnChange('startTime', parsed.startTime);
+                                                        }
+                                                        if (parsed.endTime) {
+                                                            handleOnChange('endTime', parsed.endTime);
+                                                        }
+                                                        if (parsed.cost != null) {
+                                                            handleOnChange('cost', String(parsed.cost));
+                                                        }
+                                                        setPlaceDetailsExpanded(true);
+                                                        return;
+                                                    }
+                                                    setPlaceSmartWarning(null);
                                                     handlePlacePicked({
                                                         name: item.name,
                                                         // Prefer Google's
@@ -1901,11 +2068,26 @@ const AddPlaceBtn = ({
                                                 <FlightSegmentLookupWatcher
                                                     flightNumber={segment.flightNumber}
                                                     departDate={segment.departDate}
-                                                    onResult={(result) =>
-                                                        applyFlightLookup(segIdx, result)
-                                                    }
+                                                    onResult={(result) => {
+                                                        applyFlightLookup(segIdx, result);
+                                                        // Successful lookup clears any
+                                                        // stale "not found" hint that
+                                                        // a prior typo had set.
+                                                        setLookupNotFound((prev) => {
+                                                            if (!(segIdx in prev)) return prev;
+                                                            const next = { ...prev };
+                                                            delete next[segIdx];
+                                                            return next;
+                                                        });
+                                                    }}
                                                     onLoadingChange={(loading) =>
                                                         handleLookupLoadingChange(segIdx, loading)
+                                                    }
+                                                    onNotFound={(num) =>
+                                                        setLookupNotFound((prev) => ({
+                                                            ...prev,
+                                                            [segIdx]: num,
+                                                        }))
                                                     }
                                                 />
                                                 {openSegments.has(segIdx) && (
@@ -1928,7 +2110,10 @@ const AddPlaceBtn = ({
                                                     {/* Hint + lookup spinner — explains why the
                                                         airport / date / time fields stay hidden
                                                         until the user expands them. Spinner shows
-                                                        while AeroDataBox is queried. */}
+                                                        while AeroDataBox is queried. The
+                                                        not-found nudge below replaces the generic
+                                                        hint when a lookup settled empty so the
+                                                        user knows to fill in the segment by hand. */}
                                                     <Grid item lg={12} xs={12} className="py-1">
                                                         <div className="flight-segment-hint">
                                                             {lookupLoading.has(segIdx) ? (
@@ -1945,7 +2130,9 @@ const AddPlaceBtn = ({
                                                             <span className="flight-segment-hint-text">
                                                                 {lookupLoading.has(segIdx)
                                                                     ? 'Looking up flight details…'
-                                                                    : "We'll auto-fill the airport, date, and time once you enter a flight number."}
+                                                                    : lookupNotFound[segIdx]
+                                                                      ? `Couldn't find flight ${lookupNotFound[segIdx]}. Fill in the airport, date, and time below manually.`
+                                                                      : "We'll auto-fill the airport, date, and time once you enter a flight number."}
                                                             </span>
                                                             <button
                                                                 type="button"
@@ -2254,16 +2441,49 @@ const AddPlaceBtn = ({
                                                 rawInput={hotelSmartEntry}
                                                 country={smartEntryLocation ?? countryScope}
                                                 onResult={(item: PlaceRecommendation, parsed, extras) => {
-                                                    if (
-                                                        countryScope &&
-                                                        !sameCountry(countryScope, item.country)
-                                                    ) {
+                                                    // Same two-failure handling as the
+                                                    // PLACE smart entry above — wrong-
+                                                    // country and bare-match get a clear
+                                                    // "add manually below" message instead
+                                                    // of silently populating bogus data.
+                                                    const isWrongCountry =
+                                                        Boolean(countryScope) &&
+                                                        !sameCountry(countryScope, item.country);
+                                                    const isBareMatch =
+                                                        item.latitude == null &&
+                                                        item.longitude == null &&
+                                                        !extras?.formattedAddress?.trim();
+                                                    if (isWrongCountry) {
                                                         setHotelSmartWarning(
-                                                            `Found "${item.name}" in ${item.country || 'a different country'} — your trip is in ${countryScope}. Double-check before saving.`,
+                                                            `Couldn't find “${item.name}” in ${countryScope}` +
+                                                                (item.country
+                                                                    ? ` — closest match is in ${item.country}.`
+                                                                    : '.') +
+                                                                ` Add it manually using the details form below, or prefix the search with # to keep this exact name.`,
                                                         );
-                                                    } else {
-                                                        setHotelSmartWarning(null);
+                                                        return;
                                                     }
+                                                    if (isBareMatch) {
+                                                        setHotelSmartWarning(
+                                                            `Couldn't find an exact match for “${item.name}”. Fill in the address / cost / time using the form below.`,
+                                                        );
+                                                        handleOnChange('name', item.name);
+                                                        if (parsed.startTime) {
+                                                            handleOnChange('startTime', parsed.startTime);
+                                                        }
+                                                        if (parsed.cost != null) {
+                                                            handleOnChange('cost', String(parsed.cost));
+                                                        }
+                                                        if (parsed.confirmationNumber) {
+                                                            handleOnChange(
+                                                                'confirmationNumber',
+                                                                parsed.confirmationNumber,
+                                                            );
+                                                        }
+                                                        setHotelDetailsExpanded(true);
+                                                        return;
+                                                    }
+                                                    setHotelSmartWarning(null);
                                                     handlePlacePicked({
                                                         name: item.name,
                                                         // Prefer Google's
@@ -2598,6 +2818,11 @@ const AddPlaceBtn = ({
                                                         Type stations, times, and cost — we&rsquo;ll fill the details below.
                                                     </span>
                                                 </div>
+                                                {transitSmartWarning && (
+                                                    <div className="flight-smart-entry-warning">
+                                                        {transitSmartWarning}
+                                                    </div>
+                                                )}
                                             </div>
                                         </Grid>
                                     )}
@@ -2670,6 +2895,71 @@ const AddPlaceBtn = ({
                                                         </button>
                                                     )}
                                                 </div>
+                                                {/* OpenAI-backed schedule lookup, train + bus
+                                                    only. Rental cars carry private booking
+                                                    codes that aren't schedule-lookupable, so
+                                                    they're excluded — same reason
+                                                    parseTransitEntry doesn't try to enrich
+                                                    rental confirmations. Hint row below
+                                                    surfaces loading / not-found state per
+                                                    segment, mirroring the flight form. */}
+                                                {(place.kind === ACTIVITY_KIND.TRAIN ||
+                                                    place.kind === ACTIVITY_KIND.BUS) && (
+                                                    <>
+                                                        <TransitSegmentLookupWatcher
+                                                            operator={segment.operator}
+                                                            number={segment.number}
+                                                            kind={
+                                                                place.kind === ACTIVITY_KIND.TRAIN
+                                                                    ? 'train'
+                                                                    : 'bus'
+                                                            }
+                                                            departDate={segment.departDate}
+                                                            country={countryScope}
+                                                            onResult={(result) => {
+                                                                applyTransitLookup(segIdx, result);
+                                                                setTransitLookupNotFound((prev) => {
+                                                                    if (!(segIdx in prev)) return prev;
+                                                                    const next = { ...prev };
+                                                                    delete next[segIdx];
+                                                                    return next;
+                                                                });
+                                                            }}
+                                                            onLoadingChange={(loading) =>
+                                                                handleTransitLookupLoadingChange(
+                                                                    segIdx,
+                                                                    loading,
+                                                                )
+                                                            }
+                                                            onNotFound={(label) =>
+                                                                setTransitLookupNotFound((prev) => ({
+                                                                    ...prev,
+                                                                    [segIdx]: label,
+                                                                }))
+                                                            }
+                                                        />
+                                                        <div className="flight-segment-hint">
+                                                            {transitLookupLoading.has(segIdx) ? (
+                                                                <CircularProgress
+                                                                    size={14}
+                                                                    className="flight-segment-hint-spinner"
+                                                                />
+                                                            ) : (
+                                                                <AutoAwesomeRoundedIcon
+                                                                    fontSize="small"
+                                                                    className="flight-segment-hint-icon"
+                                                                />
+                                                            )}
+                                                            <span className="flight-segment-hint-text">
+                                                                {transitLookupLoading.has(segIdx)
+                                                                    ? 'Looking up schedule…'
+                                                                    : transitLookupNotFound[segIdx]
+                                                                      ? `Couldn't find ${transitLookupNotFound[segIdx]}. Fill in the stations, date, and time below manually.`
+                                                                      : "Type the operator + number and we'll try to auto-fill the stations and times."}
+                                                            </span>
+                                                        </div>
+                                                    </>
+                                                )}
                                                 <Grid container>
                                                     <Grid item lg={6} xs={12} className="py-5">
                                                         <InputField

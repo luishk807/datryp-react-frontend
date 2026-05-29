@@ -18,6 +18,21 @@ export interface SmartEntryExtras {
     placeId?: string;
 }
 
+/** Pull the country name out of a Google Places `formattedAddress`.
+ *  Google formats addresses as "<street>, <city>, <state> <zip>,
+ *  <country>" — the country is the last comma-separated segment. The
+ *  watcher uses this so a foreign-country match (Mount Fuji in Japan
+ *  while the trip is in Panama) reaches the parent with its real
+ *  country instead of inheriting the trip's bias country. */
+const countryFromAddress = (
+    address: string | null | undefined,
+): string | null => {
+    if (!address) return null;
+    const parts = address.split(',').map((p) => p.trim()).filter(Boolean);
+    if (!parts.length) return null;
+    return parts[parts.length - 1];
+};
+
 interface PlaceSmartEntryWatcherProps {
     /** Free text the user typed into the smart-entry field — may be a
      *  plain place name ("Eiffel Tower"), a Google Maps share URL,
@@ -250,6 +265,12 @@ const PlaceSmartEntryWatcher = ({
             // coords / name. `formatted_address` is the real street
             // address ("Champ de Mars, 5 Av. Anatole France, 75007
             // Paris, France") instead of just "Paris, France".
+            //
+            // Country: parse from the last comma segment of the
+            // formattedAddress. Falling back to the bias country was
+            // a bug — it let foreign landmarks like Mount Fuji slip
+            // through the parent's `sameCountry` check because the
+            // merged result claimed to be in the trip country.
             merged = {
                 name: ratingData?.name ?? parsed.query,
                 // We don't get city/country from Google directly, but
@@ -257,7 +278,10 @@ const PlaceSmartEntryWatcher = ({
                 // full street. Leave city blank so the parent's
                 // location-string builder uses the address below.
                 city: '',
-                country: country ?? '',
+                country:
+                    countryFromAddress(ratingData?.formattedAddress) ??
+                    country ??
+                    '',
                 countryCode: null,
                 rating: ratingData?.rating ?? 0,
                 bestTimeToVisit: '',

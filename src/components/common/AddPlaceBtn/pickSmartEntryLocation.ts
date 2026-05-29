@@ -165,15 +165,47 @@ export const pickSmartEntryLocation = ({
         }
     }
 
-    // Rule 4: most recent flight's arrival airport (today or prior).
-    for (let d = currentIdx; d >= 0; d--) {
+    // Rule 4: arrival airport of the first OUTBOUND flight in the
+    // trip — i.e. the destination side of "fly there", which is
+    // where the user actually is during the trip. Earlier versions
+    // walked backwards and grabbed the most-recent flight's arrival,
+    // but that picked the RETURN flight's arrival when both legs
+    // were seeded (the return arrives at the user's home airport,
+    // which is exactly what we never want to use as a directions
+    // origin).
+    //
+    // Two defenses:
+    //   1. Walk forward chronologically so the outbound's arrival is
+    //      hit before the return's arrival.
+    //   2. Snapshot the FIRST flight's depart airport up front — that
+    //      is, by construction, the user's home / origin airport for
+    //      round-trip itineraries. Any later flight whose arrival
+    //      matches it is a "back home" leg, which must never be the
+    //      directions origin. Skip those and fall through to the
+    //      trip-country fallback (Rule 5).
+    const homeAirport = (() => {
+        for (const day of allDays) {
+            for (const a of day.activities ?? []) {
+                if (isFlight(a)) {
+                    const firstSeg = a.flightSegments?.[0];
+                    if (firstSeg?.departAirport?.trim()) {
+                        return firstSeg.departAirport.trim();
+                    }
+                }
+            }
+        }
+        return null;
+    })();
+    for (let d = 0; d <= currentIdx; d++) {
         const acts = allDays[d].activities ?? [];
-        for (let i = acts.length - 1; i >= 0; i--) {
+        for (let i = 0; i < acts.length; i++) {
             const a = acts[i];
             if (isFlight(a) && a.flightSegments?.length) {
                 const lastSeg = a.flightSegments[a.flightSegments.length - 1];
                 const arr = lastSeg?.arrivalAirport?.trim();
-                if (arr) return arr;
+                if (!arr) continue;
+                if (homeAirport && arr === homeAirport) continue;
+                return arr;
             }
         }
     }
