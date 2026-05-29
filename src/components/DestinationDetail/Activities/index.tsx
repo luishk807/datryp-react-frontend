@@ -109,6 +109,13 @@ export interface ActivitiesProps {
    *  activities with their own `'completed'` status render dimmed +
    *  non-interactive. */
   tripStatusName?: string;
+  /** True while the parent's auto-save mutation is in flight. The
+   *  status pill (and any other auto-save-triggered control) is
+   *  disabled so a second click can't fire a concurrent save —
+   *  which the parent guards anyway, but blocking the click
+   *  outright is better UX than letting it appear active and then
+   *  showing the "Still saving" toast. */
+  isAutoSaving?: boolean;
 }
 
 const isConfirmedStatus = (status: Activity["status"]): boolean => {
@@ -321,6 +328,7 @@ const Activities = ({
   allowStatusToggle,
   allowPaidEdits,
   tripStatusName,
+  isAutoSaving = false,
 }: ActivitiesProps) => {
   // Default-derive the status-pill interactivity from view mode so
   // existing callers (stepper editor, new-trip creation) keep their
@@ -878,7 +886,9 @@ const Activities = ({
                                   (confirmed ? "is-confirmed" : "is-pending")
                                 }
                                 disabled={
-                                  !statusToggleEnabled || lockActivityStatus
+                                  !statusToggleEnabled ||
+                                  lockActivityStatus ||
+                                  isAutoSaving
                                 }
                                 aria-label={`Status: ${confirmed ? "Confirmed" : "Planning"}. Click to toggle.`}
                                 onClick={() =>

@@ -106,6 +106,22 @@ const MyMap = () => {
     const [openDropdown, setOpenDropdown] = useState<StatDropdownKey | null>(
         null
     );
+    // Active map selection — populates the left-side trips panel.
+    // Set when the user clicks a country shading, a city pin, or a
+    // place pin (and when those targets are chosen from the
+    // dropdowns above). null collapses the panel. Country uses
+    // ISO-2 code, city uses citySlug, place uses the place id.
+    type SelectionKind = 'country' | 'city' | 'place';
+    interface MapSelection {
+        kind: SelectionKind;
+        id: string;
+        label: string;
+        /** Sub-line under the title — e.g. "ISO PA · Country" or
+         *  "Quepos, Costa Rica" for a city. */
+        sublabel?: string;
+    }
+    const [selection, setSelection] = useState<MapSelection | null>(null);
+    const handleClearSelection = useCallback(() => setSelection(null), []);
     // Intro panel open/closed. First visit shows it (educational
     // moment); subsequent visits start collapsed so the map gets the
     // full canvas. The little floating "i" pill on the map always
@@ -565,6 +581,92 @@ const MyMap = () => {
 
     const handleOpenPaywall = () => paywallRef.current?.openModel();
 
+    /** Derive the trip list for the current selection. Trips live on
+     *  `visitedPlaces[].trips`; a country / city's trip list is the
+     *  union of trips across every place inside that region. Returns
+     *  an array sorted newest-visit-first; each entry carries a
+     *  `places` array of which places were visited on that trip (so
+     *  the panel can show "Tokyo trip · 4 places" with the list of
+     *  place names).
+     *
+     *  Returns null when no selection is active. */
+    interface SelectionTripPlace {
+        id: string;
+        name: string;
+    }
+    interface SelectionTrip {
+        tripId: string;
+        tripName: string | null;
+        /** Newest visit date across the places visited on this trip
+         *  within the selected region. */
+        visitedAt: string;
+        places: SelectionTripPlace[];
+    }
+    const selectionTrips = useMemo<SelectionTrip[] | null>(() => {
+        if (!selection) return null;
+        // Filter the visited-places pool down to those matching the
+        // selected region. Place selection narrows to a single row;
+        // city / country aggregate.
+        const placesInScope = visitedPlaces.filter((p) => {
+            if (selection.kind === 'place') return p.id === selection.id;
+            if (selection.kind === 'city') {
+                // Cities are keyed by slug; visited-place rows store
+                // city + country code. Match on lowercased name +
+                // country code (mirroring how cityOptions builds the
+                // borrowed-coords fallback).
+                const cityMatch = visitedCities.find(
+                    (c) => c.citySlug === selection.id,
+                );
+                if (!cityMatch) return false;
+                return (
+                    (p.placeCity ?? '').toLowerCase() ===
+                        cityMatch.cityName.toLowerCase() &&
+                    (p.countryCode ?? '').toUpperCase() ===
+                        cityMatch.countryCode.toUpperCase()
+                );
+            }
+            return (p.countryCode ?? '').toUpperCase() === selection.id;
+        });
+
+        const byTrip = new Map<string, SelectionTrip>();
+        for (const p of placesInScope) {
+            for (const t of p.trips ?? []) {
+                const existing = byTrip.get(t.tripId);
+                const placeEntry: SelectionTripPlace = {
+                    id: p.id,
+                    name: p.placeName,
+                };
+                if (existing) {
+                    // Dedupe by place id in case the same place was
+                    // visited twice on the same trip.
+                    if (!existing.places.some((x) => x.id === p.id)) {
+                        existing.places.push(placeEntry);
+                    }
+                    // Keep the newest visit date as the trip's
+                    // visited-at headline.
+                    if (
+                        new Date(t.visitedAt).getTime() >
+                        new Date(existing.visitedAt).getTime()
+                    ) {
+                        existing.visitedAt = t.visitedAt;
+                    }
+                } else {
+                    byTrip.set(t.tripId, {
+                        tripId: t.tripId,
+                        tripName: t.tripName,
+                        visitedAt: t.visitedAt,
+                        places: [placeEntry],
+                    });
+                }
+            }
+        }
+        return Array.from(byTrip.values()).sort(
+            (a, b) =>
+                new Date(b.visitedAt).getTime() -
+                new Date(a.visitedAt).getTime(),
+        );
+    }, [selection, visitedPlaces, visitedCities]);
+
     // Build dropdown options. Each is keyed by a stable id (code / slug
     // / place-id) so the onSelect handler can look up coords or markers
     // without re-deriving from the option label.
@@ -759,6 +861,18 @@ const MyMap = () => {
                 (feat.properties?.iso_3166_1 as string | undefined) ?? '';
             if (!code) return;
             flyToCountry(code);
+            // Surface a trip list for this country in the left panel.
+            // Look up the display name from any source that has it
+            // (visited countries / cities / places all carry country
+            // labels), falling back to the ISO code so the panel
+            // always has a usable title.
+            const meta = countryOptions.find((o) => o.id === code);
+            setSelection({
+                kind: 'country',
+                id: code,
+                label: meta?.label ?? code,
+                sublabel: `Country · ${code}`,
+            });
         };
         const onMove = (e: mapboxgl.MapLayerMouseEvent) => {
             const id = e.features?.[0]?.id;
@@ -785,7 +899,7 @@ const MyMap = () => {
             // brightened country.
             setHover(null);
         };
-    }, [mapReady, flyToCountry]);
+    }, [mapReady, flyToCountry, countryOptions]);
 
     // Pin layer interactions — click to open popup, mousemove to
     // grow the dot via feature-state. Same wiring for both place
@@ -862,6 +976,18 @@ const MyMap = () => {
                 trips,
             });
             openPopupAt(e.lngLat, html, 8);
+            const placeId = String(feat.id ?? props.id ?? '');
+            if (placeId) {
+                setSelection({
+                    kind: 'place',
+                    id: placeId,
+                    label: String(props.name ?? ''),
+                    sublabel: [props.city, props.country]
+                        .filter(Boolean)
+                        .map(String)
+                        .join(', ') || 'Place',
+                });
+            }
         };
 
         const onCityClick = (e: mapboxgl.MapLayerMouseEvent) => {
@@ -878,6 +1004,15 @@ const MyMap = () => {
                     : undefined,
             });
             openPopupAt(e.lngLat, html, 10);
+            const citySlug = String(feat.id ?? props.id ?? '');
+            if (citySlug) {
+                setSelection({
+                    kind: 'city',
+                    id: citySlug,
+                    label: String(props.cityName ?? ''),
+                    sublabel: `${String(props.countryName ?? '')} · City`,
+                });
+            }
         };
 
         const onPinMove = (source: string) =>
@@ -1011,9 +1146,44 @@ const MyMap = () => {
         key: StatDropdownKey,
         id: string
     ) => {
-        if (key === 'countries') flyToCountry(id);
-        else if (key === 'cities') flyToCity(id);
-        else flyToPlace(id);
+        if (key === 'countries') {
+            flyToCountry(id);
+            const meta = countryOptions.find((o) => o.id === id);
+            setSelection({
+                kind: 'country',
+                id,
+                label: meta?.label ?? id,
+                sublabel: `Country · ${id}`,
+            });
+        } else if (key === 'cities') {
+            flyToCity(id);
+            const meta = visitedCities.find((c) => c.citySlug === id);
+            setSelection({
+                kind: 'city',
+                id,
+                label: meta?.cityName ?? id,
+                sublabel: meta
+                    ? `${meta.countryName} · City`
+                    : 'City',
+            });
+        } else {
+            flyToPlace(id);
+            const meta = visitedPlaces.find((p) => p.id === id);
+            setSelection({
+                kind: 'place',
+                id,
+                label: meta?.placeName ?? id,
+                sublabel:
+                    meta &&
+                    [meta.placeCity, meta.placeCountry]
+                        .filter(Boolean)
+                        .join(', ')
+                        ? [meta.placeCity, meta.placeCountry]
+                              .filter(Boolean)
+                              .join(', ')
+                        : 'Place',
+            });
+        }
         setOpenDropdown(null);
     };
 

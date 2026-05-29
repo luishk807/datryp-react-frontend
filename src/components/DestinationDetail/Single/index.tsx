@@ -26,6 +26,9 @@ interface SingleProps {
     allowPaidEdits?: boolean;
     /** Forwarded to Activities so post-planning UI can render. */
     tripStatusName?: string;
+    /** Forwarded to Activities so the status pill disables itself
+     *  while the parent's auto-save is in flight. */
+    isAutoSaving?: boolean;
 }
 
 /** Single-destination day. Always renders Activities (even when empty) so
@@ -44,6 +47,7 @@ const Single = ({
     allowStatusToggle,
     allowPaidEdits,
     tripStatusName,
+    isAutoSaving = false,
 }: SingleProps) => (
     <Activities
         isViewMode={isViewMode}
@@ -59,6 +63,7 @@ const Single = ({
         allowStatusToggle={allowStatusToggle}
         allowPaidEdits={allowPaidEdits}
         tripStatusName={tripStatusName}
+        isAutoSaving={isAutoSaving}
     />
 );
 

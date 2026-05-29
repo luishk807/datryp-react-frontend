@@ -865,6 +865,11 @@ export const TripDetail = () => {
             onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}
             tripStatusName={persistedStatusName}
+            // The status pill auto-saves on click. While that save
+            // is in flight, propagate the pending flag downward so
+            // Activities can disable the pill — prevents a second
+            // click from firing the "Still saving" guard toast.
+            isAutoSaving={saveItinerary.isPending}
           />
         </Grid>
         {/* End-of-trip cap — visual full-stop after the day list, regardless

@@ -31,6 +31,10 @@ interface DateBlockProps {
     /** Forwarded to Activities so post-planning UI (Complete button,
      *  hidden status pill, dim-when-completed cards) can light up. */
     tripStatusName?: string;
+    /** True while the parent's auto-save mutation is in flight.
+     *  Forwarded to Activities so the status pill disables itself
+     *  during the round-trip. */
+    isAutoSaving?: boolean;
 }
 
 const DateBlock = ({
@@ -49,6 +53,7 @@ const DateBlock = ({
     allowStatusToggle,
     allowPaidEdits,
     tripStatusName,
+    isAutoSaving = false,
 }: DateBlockProps) => {
     const showsRange = useMemo(
         () => !isSameDay(startDate, endDate),
@@ -151,6 +156,7 @@ const DateBlock = ({
                                 allowStatusToggle={allowStatusToggle}
                                 allowPaidEdits={allowPaidEdits}
                                 tripStatusName={tripStatusName}
+                                isAutoSaving={isAutoSaving}
                             />
                         ) : (
                             <MultipleTrips
@@ -167,6 +173,7 @@ const DateBlock = ({
                                 allowStatusToggle={allowStatusToggle}
                                 allowPaidEdits={allowPaidEdits}
                                 tripStatusName={tripStatusName}
+                                isAutoSaving={isAutoSaving}
                             />
                         )}
                     </Grid>

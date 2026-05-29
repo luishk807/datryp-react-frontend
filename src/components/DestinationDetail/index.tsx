@@ -61,6 +61,12 @@ interface DestinationDetailProps {
      *  each activity gets a "Complete" button in place of delete and
      *  the per-activity status pill is hidden. */
     tripStatusName?: string;
+    /** True while the parent's auto-save mutation is in flight.
+     *  Forwarded down to Activities so the one-tap status pill
+     *  disables itself for the round-trip — prevents the user from
+     *  firing a second click that would hit the in-flight guard
+     *  and surface the "Still saving" toast. */
+    isAutoSaving?: boolean;
 }
 
 const fmt = (m: moment.Moment) => m.format('MM/DD/YYYY');
@@ -131,6 +137,7 @@ const DestinationDetail = ({
     lockActivityStatus = false,
     allowStatusToggle,
     allowPaidEdits,
+    isAutoSaving = false,
     tripStatusName,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
@@ -300,6 +307,7 @@ const DestinationDetail = ({
                         lockActivityStatus={lockActivityStatus}
                         allowStatusToggle={allowStatusToggle}
                         allowPaidEdits={allowPaidEdits}
+                        isAutoSaving={isAutoSaving}
                         tripStatusName={tripStatusName}
                         key={indx}
                         index={indx}

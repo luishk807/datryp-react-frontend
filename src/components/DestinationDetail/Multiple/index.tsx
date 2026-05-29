@@ -51,6 +51,9 @@ export interface MultipleProps {
     allowPaidEdits?: boolean;
     /** Forwarded to Activities so post-planning UI can render. */
     tripStatusName?: string;
+    /** Forwarded to Activities so the status pill disables itself
+     *  while the parent's auto-save is in flight. */
+    isAutoSaving?: boolean;
 }
 
 const Multiple = ({
@@ -67,6 +70,7 @@ const Multiple = ({
     allowStatusToggle,
     allowPaidEdits,
     tripStatusName,
+    isAutoSaving = false,
 }: MultipleProps) => {
     return (
         <>
@@ -366,6 +370,7 @@ const Multiple = ({
                                         allowStatusToggle={allowStatusToggle}
                                         allowPaidEdits={allowPaidEdits}
                                         tripStatusName={tripStatusName}
+                                        isAutoSaving={isAutoSaving}
                                     />
                                 </Grid>
                             </Grid>
