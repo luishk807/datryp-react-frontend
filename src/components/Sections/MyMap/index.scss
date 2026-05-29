@@ -261,12 +261,16 @@
 /* Stats dropdown row — absolute-positioned at the top-LEFT of the
  * map canvas. The About panel/pill lives in the bottom-right now,
  * so the top-left slot is free for stats. Single horizontal row
- * (no wrap) so the three pills always read as one toolbar. */
+ * (no wrap) so the three pills always read as one toolbar.
+ *
+ * z-index 6 — sits ABOVE the trips panel (z 5) so the dropdown
+ * lists that open downward from these pills aren't occluded by
+ * the trips panel sitting directly underneath them. */
 .my-map-stats {
   position: absolute;
   top: 14px;
   left: 14px;
-  z-index: 4;
+  z-index: 6;
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
@@ -320,6 +324,356 @@
  * attribution) stays visible. */
 .my-map-canvas-wrap .mapboxgl-ctrl-bottom-right {
   display: none;
+}
+
+/* ── Trips panel ─────────────────────────────────────────────────────
+ * Slides in from the left when the user clicks a country / city /
+ * place on the map (or picks one from the dropdowns above). Shows
+ * the trip list scoped to that selection. Desktop-only — hidden on
+ * phones via the breakpoint at the bottom of this block since the
+ * panel would eat too much of a narrow viewport. */
+.my-map-trips-panel {
+  position: absolute;
+  top: 62px;
+  left: 14px;
+  z-index: 5;
+  width: 320px;
+  max-height: calc(100% - 80px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(60, 181, 75, 0.22);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
+  animation: my-map-trips-panel-in 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes my-map-trips-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.my-map-trips-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.my-map-trips-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.my-map-trips-panel-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  &.is-country {
+    background: theme('colors.primaryGreen');
+  }
+
+  &.is-city {
+    background: #fff;
+    color: theme('colors.primaryGreen');
+    border: 2px solid theme('colors.primaryGreen');
+    box-shadow: 0 2px 6px rgba(60, 181, 75, 0.25);
+  }
+
+  &.is-place {
+    background: theme('colors.primaryOrange');
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 18px;
+  }
+}
+
+.my-map-trips-panel-heading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.my-map-trips-panel-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.my-map-trips-panel-sub {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.my-map-trips-panel-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.my-map-trips-panel-stat {
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  background: rgba(60, 181, 75, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 600;
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 700;
+  }
+}
+
+.my-map-trips-panel-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  /* Slim scrollbar so the list doesn't reserve a chunky gutter. */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.28);
+    background-clip: content-box;
+  }
+}
+
+.my-map-trips-panel-empty {
+  margin: 18px 12px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.my-map-trips-panel-trip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.025);
+  color: theme('colors.primary');
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.08);
+    border-color: rgba(60, 181, 75, 0.22);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.my-map-trips-panel-trip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.my-map-trips-panel-trip-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.my-map-trips-panel-trip-date {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.55);
+  letter-spacing: 0.01em;
+}
+
+.my-map-trips-panel-trip-places {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-map-trips-panel-trip-place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.35;
+
+  &.is-more {
+    color: rgba(0, 0, 0, 0.45);
+    font-style: italic;
+    padding-left: 18px;
+  }
+}
+
+.my-map-trips-panel-trip-place-icon {
+  font-size: 0.85rem !important;
+  color: theme('colors.primaryOrange');
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  /* Phone: dock the panel at the bottom of the map and scroll the
+   * trip cards horizontally — bottom-sheet style. Keeps the map
+   * viewport usable while still surfacing the trips list one swipe
+   * away. The header sits as a thin row across the top of the
+   * panel; the list flips to a horizontal row of fixed-width cards
+   * below it. */
+  .my-map-trips-panel {
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-height: none;
+    animation-name: my-map-trips-panel-in-bottom;
+  }
+
+  .my-map-trips-panel-header {
+    padding: 8px 12px;
+  }
+
+  .my-map-trips-panel-icon {
+    width: 26px;
+    height: 26px;
+
+    .MuiSvgIcon-root {
+      font-size: 15px;
+    }
+  }
+
+  .my-map-trips-panel-title {
+    font-size: 0.9rem;
+  }
+
+  .my-map-trips-panel-sub {
+    font-size: 0.7rem;
+  }
+
+  /* Stat row goes inline with the header on mobile — saves a row
+   * of vertical space. Anchor it to the right edge using
+   * `margin-left: auto` would conflict with the absolutely-
+   * positioned close button, so collapse the stat row's own
+   * padding and let it sit between the header and the list. */
+  .my-map-trips-panel-stat {
+    padding: 4px 12px 8px;
+    font-size: 0.7rem;
+    background: transparent;
+    border-bottom: none;
+  }
+
+  /* Horizontal swipe-scroll row. `scroll-snap` makes the swipe
+   * land card-aligned instead of mid-card, mirroring the Google
+   * Maps places-strip pattern. */
+  .my-map-trips-panel-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 12px 12px;
+    gap: 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .my-map-trips-panel-trip {
+    /* Narrower fixed-width cards so two cards + a peek of the
+     * third fit on a typical phone viewport — gives the user a
+     * clear horizontal-scroll affordance without each card
+     * dominating the row. */
+    flex: 0 0 180px;
+    max-width: 200px;
+    scroll-snap-align: start;
+  }
+
+  /* Trim the per-trip places list on mobile — the cards are
+   * already narrow, and the trip name + date is the main signal
+   * the user is scanning for. The full list is one tap away on
+   * /trip-detail. */
+  .my-map-trips-panel-trip-places {
+    max-height: 48px;
+    overflow: hidden;
+  }
+}
+
+@keyframes my-map-trips-panel-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .my-map-canvas-wrap.is-locked .my-map-canvas {

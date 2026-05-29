@@ -19,7 +19,7 @@ import {
     useRef,
     useState,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Layout from 'components/common/Layout/SubLayout';
@@ -1373,6 +1373,134 @@ const MyMap = () => {
                             <InfoOutlinedIcon fontSize="small" />
                             <span>About</span>
                         </button>
+                    )}
+
+                    {/* Trips panel — slides in from the left side
+                     *  when the user clicks a country / city / place
+                     *  (or picks one from the dropdowns). Shows every
+                     *  trip whose itinerary touched the selected
+                     *  region, with the places visited on each trip
+                     *  and a click-through to /trip-detail. Desktop-
+                     *  only (CSS hides on phones) so the map keeps
+                     *  the full viewport on small screens. */}
+                    {selection && selectionTrips && (
+                        <aside
+                            className="my-map-trips-panel"
+                            aria-labelledby="my-map-trips-panel-title"
+                        >
+                            <header className="my-map-trips-panel-header">
+                                <div className="my-map-trips-panel-heading">
+                                    <span
+                                        className={`my-map-trips-panel-icon is-${selection.kind}`}
+                                        aria-hidden="true"
+                                    >
+                                        {selection.kind === 'country' ? (
+                                            <PublicRoundedIcon fontSize="small" />
+                                        ) : selection.kind === 'city' ? (
+                                            <LocationCityRoundedIcon fontSize="small" />
+                                        ) : (
+                                            <PlaceRoundedIcon fontSize="small" />
+                                        )}
+                                    </span>
+                                    <div className="my-map-trips-panel-heading-text">
+                                        <h2
+                                            id="my-map-trips-panel-title"
+                                            className="my-map-trips-panel-title"
+                                        >
+                                            {selection.label}
+                                        </h2>
+                                        {selection.sublabel && (
+                                            <p className="my-map-trips-panel-sub">
+                                                {selection.sublabel}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="my-map-trips-panel-close"
+                                    onClick={handleClearSelection}
+                                    aria-label="Close trips panel"
+                                >
+                                    <CloseRoundedIcon fontSize="small" />
+                                </button>
+                            </header>
+                            <div className="my-map-trips-panel-stat">
+                                {selectionTrips.length === 0 ? (
+                                    'No trips on file'
+                                ) : (
+                                    <>
+                                        <strong>{selectionTrips.length}</strong>{' '}
+                                        trip{selectionTrips.length === 1 ? '' : 's'}
+                                    </>
+                                )}
+                            </div>
+                            <div className="my-map-trips-panel-list">
+                                {selectionTrips.length === 0 ? (
+                                    <p className="my-map-trips-panel-empty">
+                                        You haven&rsquo;t saved any trips
+                                        that visited this {selection.kind} yet.
+                                        Mark a place visited from a trip&rsquo;s
+                                        detail page to see it here.
+                                    </p>
+                                ) : (
+                                    selectionTrips.map((trip) => {
+                                        const visitedOn = formatVisitedAt(
+                                            trip.visitedAt,
+                                        );
+                                        return (
+                                            <Link
+                                                key={trip.tripId}
+                                                to={`/trip-detail?id=${encodeURIComponent(
+                                                    trip.tripId,
+                                                )}`}
+                                                className="my-map-trips-panel-trip"
+                                            >
+                                                <div className="my-map-trips-panel-trip-head">
+                                                    <span className="my-map-trips-panel-trip-name">
+                                                        {trip.tripName?.trim() ||
+                                                            'Untitled trip'}
+                                                    </span>
+                                                    {visitedOn && (
+                                                        <span className="my-map-trips-panel-trip-date">
+                                                            {visitedOn}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {selection.kind !== 'place' &&
+                                                    trip.places.length > 0 && (
+                                                        <ul className="my-map-trips-panel-trip-places">
+                                                            {trip.places
+                                                                .slice(0, 6)
+                                                                .map((pl) => (
+                                                                    <li
+                                                                        key={pl.id}
+                                                                        className="my-map-trips-panel-trip-place"
+                                                                    >
+                                                                        <PlaceRoundedIcon className="my-map-trips-panel-trip-place-icon" />
+                                                                        <span>
+                                                                            {pl.name}
+                                                                        </span>
+                                                                    </li>
+                                                                ))}
+                                                            {trip.places.length >
+                                                                6 && (
+                                                                <li className="my-map-trips-panel-trip-place is-more">
+                                                                    +{' '}
+                                                                    {trip.places
+                                                                        .length -
+                                                                        6}{' '}
+                                                                    more
+                                                                </li>
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                            </Link>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </aside>
                     )}
 
                     {!isPro && (
