@@ -4,10 +4,14 @@ import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import SearchBar from 'components/SearchBar';
 import InputField from 'components/common/FormFields/InputField';
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import { addPlace, basicInfo, useTripDispatch } from 'context/TripContext';
-import { ACTIVITY_KIND, TRIP_BASIC, TRIP_MODE } from 'constants';
+import { useBudgetSuggestion } from 'api/hooks/useBudgetSuggestion';
+import { useUser } from 'context/UserContext';
+import { ACTIVITY_KIND, BUTTON_VARIANT, TRIP_BASIC, TRIP_MODE } from 'constants';
 import type {
     Activity,
     Country,
@@ -37,6 +41,8 @@ interface BasicsStepProps {
  */
 const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     const dispatch = useTripDispatch();
+    const { user } = useUser();
+    const budgetSuggestion = useBudgetSuggestion();
     const selectedId = data?.type?.id;
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
     const isMulti = selectedId === TRIP_BASIC.MULTIPLE.id;
@@ -54,6 +60,55 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         );
         return Number.isFinite(diff) && diff >= 0 ? diff : null;
     })();
+
+    // "Suggest a budget" — fires `POST /budgets/suggest`. Disabled
+    // until the user has picked a country AND a date range so the
+    // request always has both required inputs. On multi-destination
+    // trips we use the first leg's country: the BasicsStep budget
+    // input is trip-wide (per-leg budgets live further into the
+    // wizard), so one suggestion covers everything.
+    const suggestableDays = (() => {
+        if (nights === null) return null;
+        // `nights` is end - start; trip length in days is nights + 1
+        // (a same-day trip is 1 day, not 0). Cap at 90 to match the
+        // backend's accepted range.
+        const d = nights + 1;
+        return d >= 1 && d <= 90 ? d : null;
+    })();
+    const countryCode = rootCountry?.code ?? null;
+    const canSuggestBudget = Boolean(countryCode) && suggestableDays !== null;
+
+    const handleSuggestBudget = async () => {
+        if (!countryCode || suggestableDays === null) return;
+        // Use the first traveler-style slug as a free-text hint —
+        // the model treats unknown slugs as descriptive prose, so
+        // passing "solo" or "family" verbatim works fine.
+        const styleHint = user?.travelerStyles?.[0] ?? null;
+        try {
+            const result = await budgetSuggestion.mutateAsync({
+                countryCode,
+                days: suggestableDays,
+                travelStyle: styleHint,
+            });
+            if (result?.suggestedTotal != null) {
+                // Mirror the real onChange shape so the reducer
+                // doesn't care that the value came from a button
+                // instead of a keystroke.
+                onChange('budget', {
+                    target: { value: String(result.suggestedTotal) },
+                });
+            }
+        } catch {
+            // Errors surface in `budgetSuggestion.isError`; the inline
+            // hint below the field renders the message.
+        }
+    };
+
+    const suggestion = budgetSuggestion.data;
+    const suggestNote = suggestion?.note ?? null;
+    const suggestNoResult =
+        budgetSuggestion.isSuccess && suggestion === null;
+    const suggestError = budgetSuggestion.isError;
 
     const pickMode = (
         mode: typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE
@@ -325,11 +380,53 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                         <PaymentsOutlinedIcon /> Total budget
                     </label>
                     <InputField
+                        key={`budget-${budget}`}
                         defaultValue={budget}
                         name="budget"
                         placeholder="e.g. 2000"
                         onChange={(e) => onChange('budget', e)}
                     />
+                    <div className="trip-basics-budget-suggest">
+                        <ButtonIcon
+                            type={BUTTON_VARIANT.TEXT}
+                            title={
+                                budgetSuggestion.isPending
+                                    ? 'Asking datryp…'
+                                    : 'Suggest a budget'
+                            }
+                            Icon={AutoAwesomeRoundedIcon}
+                            iconPosition="start"
+                            iconProps={{ fontSize: 'small' }}
+                            disabled={
+                                !canSuggestBudget ||
+                                budgetSuggestion.isPending
+                            }
+                            ariaLabel="Suggest an average budget for this trip"
+                            onClick={handleSuggestBudget}
+                            className="trip-basics-budget-suggest-btn"
+                        />
+                        {!canSuggestBudget && (
+                            <span className="trip-basics-budget-suggest-hint">
+                                Pick a destination and dates first.
+                            </span>
+                        )}
+                    </div>
+                    {suggestNote && (
+                        <p className="trip-basics-budget-suggest-note">
+                            {suggestNote}
+                        </p>
+                    )}
+                    {suggestNoResult && (
+                        <p className="trip-basics-budget-suggest-note is-warn">
+                            Couldn't generate a suggestion — type your own
+                            ballpark.
+                        </p>
+                    )}
+                    {suggestError && (
+                        <p className="trip-basics-budget-suggest-note is-warn">
+                            Couldn't reach the suggester. Try again in a moment.
+                        </p>
+                    )}
                     <p className="trip-basics-hint">
                         Ballpark is fine — split per activity later. Leave blank
                         if you're flexible.
