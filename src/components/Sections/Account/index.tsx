@@ -62,7 +62,7 @@ export const Account = () => {
     const [phone, setPhone] = useState(user?.phone ?? '');
     const [birthYear, setBirthYear] = useState<number | ''>(user?.birthYear ?? '');
     const [countryOfBirth, setCountryOfBirth] = useState(
-        user?.countryOfBirth ?? ''
+        user?.countryOfBirthCode ?? ''
     );
     const [genderId, setGenderId] = useState<string>(user?.genderId ?? '');
     const [profileSaved, setProfileSaved] = useState(false);
@@ -135,7 +135,7 @@ export const Account = () => {
         setEmail(user.email ?? '');
         setPhone(user.phone ?? '');
         setBirthYear(user.birthYear ?? '');
-        setCountryOfBirth(user.countryOfBirth ?? '');
+        setCountryOfBirth(user.countryOfBirthCode ?? '');
         setGenderId(user.genderId ?? '');
         setInterests(user.interests ?? []);
         setTravelerStyles(user.travelerStyles ?? []);
@@ -248,26 +248,46 @@ export const Account = () => {
             });
             return;
         }
+        // `name` / `email` aren't editable server-side yet — they stay in
+        // the localStorage overlay until we wire a /me/profile route for
+        // them. The other profile fields all live on the User row and go
+        // through the preferences mutation so they survive a re-login on a
+        // fresh browser.
         updateUser({
             name: name.trim(),
             email: email.trim() || undefined,
-            phone: phone.trim() || undefined,
-            birthYear: typeof birthYear === 'number' ? birthYear : undefined,
-            countryOfBirth: countryOfBirth.trim() || undefined,
         });
-        // Gender + home-base persist on the server (gender drives the
-        // monthly best-place recommender + invalidates its cache; home
-        // base seeds the nearest-airport lookup) so they go through the
-        // preferences mutation, not the local-only updateUser overlay.
-        // Batched into one PATCH so a single save flushes everything.
+        // Diff against the hydrated user so we only PATCH fields the user
+        // actually changed. `undefined` skips the field server-side; `null`
+        // clears it. The empty-string-to-null normalization mirrors what
+        // the schema validator does on the backend.
+        const trimmedPhone = phone.trim();
+        const phoneVal = trimmedPhone === '' ? null : trimmedPhone;
+        const birthVal = typeof birthYear === 'number' ? birthYear : null;
+        const countryVal = countryOfBirth || null;
+        const phoneChanged = phoneVal !== (user?.phone ?? null);
+        const birthYearChanged = birthVal !== (user?.birthYear ?? null);
+        const countryChanged =
+            countryVal !== (user?.countryOfBirthCode ?? null);
         const genderChanged =
             (genderId || null) !== (user?.genderId ?? null);
         const prevHomeCity = user?.homeCity ?? null;
         const homeBaseChanged = (homeBase?.city ?? null) !== prevHomeCity;
+        const anyServerFieldChanged =
+            phoneChanged ||
+            birthYearChanged ||
+            countryChanged ||
+            genderChanged ||
+            homeBaseChanged;
         let prefsError: string | null = null;
-        if (genderChanged || homeBaseChanged) {
+        if (anyServerFieldChanged) {
             try {
                 await updatePrefs.mutateAsync({
+                    ...(phoneChanged ? { phone: phoneVal } : {}),
+                    ...(birthYearChanged ? { birthYear: birthVal } : {}),
+                    ...(countryChanged
+                        ? { countryOfBirthCode: countryVal }
+                        : {}),
                     ...(genderChanged ? { genderId: genderId || null } : {}),
                     ...(homeBaseChanged
                         ? homeBase
@@ -291,13 +311,13 @@ export const Account = () => {
                 prefsError =
                     err instanceof Error
                         ? err.message
-                        : 'Could not save home base / gender.';
+                        : 'Could not save profile fields.';
             }
         }
         if (prefsError) {
             setProfileToast({
                 type: 'error',
-                text: `Profile saved, but: ${prefsError}`,
+                text: `Saved partially, but: ${prefsError}`,
             });
         } else {
             setProfileToast({

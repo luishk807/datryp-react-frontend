@@ -3,6 +3,11 @@
  *  embedded on `/auth/me` so the UserContext can decide whether to
  *  auto-launch the wizard without an extra round-trip. */
 export interface Preferences {
+    /** Editable profile fields, persisted on the User row. Embedded on
+     *  both `/me/preferences` and `/auth/me` so the same shape is reused
+     *  by the Account page and the UserContext. */
+    phone: string | null;
+    birthYear: number | null;
     countryOfBirthCode: string | null;
     /** UUID of the row in the `genders` catalog. Null when the user
      *  hasn't picked one (or chose to skip). Powers the personalized
@@ -28,6 +33,8 @@ export interface Preferences {
  *  `undefined` is omitted from the request (server treats it as
  *  unchanged); pass `null` to explicitly clear a field. */
 export interface PreferencesUpdate {
+    phone?: string | null;
+    birthYear?: number | null;
     countryOfBirthCode?: string | null;
     genderId?: string | null;
     interests?: string[];

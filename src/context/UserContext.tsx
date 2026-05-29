@@ -36,14 +36,14 @@ export interface User {
     id: string;
     name: string;
     email?: string;
-    phone?: string;
-    /** Year of birth — replaces the previous full-DOB field. Used only for
-     *  the COPPA gate, never displayed in birthday-style features (we don't
-     *  have any). */
-    birthYear?: number;
-    countryOfBirth?: string;
     paymentType?: PaymentType;
     friends?: UserFriend[];
+    /** Server-authoritative phone, year-of-birth, and ISO-2 country of
+     *  birth. Persisted via `PATCH /me/preferences`; read off `/auth/me`.
+     *  Previously these lived in localStorage and silently vanished on a
+     *  new browser / re-login — see git history for the migration. */
+    phone: string | null;
+    birthYear: number | null;
     /** Authoritative role from the backend's `users.role` column. Drives
      *  admin bypass on paywalls and tier gates — never derive this from the
      *  client or trust localStorage. */
@@ -68,9 +68,9 @@ export interface User {
     /** True when the user has cancelled via the Customer Portal but the
      *  current period is still active. */
     cancelAtPeriodEnd: boolean;
-    /** Server-authoritative ISO-2 country code from `/me/preferences`. The
-     *  Account page also keeps a localStorage `countryOfBirth` overlay for
-     *  legacy users; prefer this field when set. */
+    /** Server-authoritative ISO-2 country code from `/me/preferences`.
+     *  Persisted on the User row; replaced the localStorage `countryOfBirth`
+     *  overlay so it survives a new browser / re-login. */
     countryOfBirthCode: string | null;
     /** Interest slugs the user picked during onboarding (or later on the
      *  Account page). Empty array = none chosen yet. */
@@ -105,18 +105,12 @@ export interface User {
 }
 
 /**
- * Fields the Python backend doesn't yet model (friends list, payment type,
- * notification prefs, etc). We store them per-user in localStorage and merge
- * them on top of the authenticated user from /auth/me.
+ * Fields the Python backend doesn't yet model (friends list, payment type).
+ * We store them per-user in localStorage and merge them on top of the
+ * authenticated user from /auth/me. phone / birthYear / countryOfBirthCode
+ * used to live here too and have since moved server-side.
  */
-type LocalOverlay = Pick<
-    User,
-    | 'phone'
-    | 'birthYear'
-    | 'countryOfBirth'
-    | 'paymentType'
-    | 'friends'
->;
+type LocalOverlay = Pick<User, 'paymentType' | 'friends'>;
 
 interface UserContextValue {
     user: User | null;
@@ -206,6 +200,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             id: me.id,
             name: me.name ?? me.email,
             email: me.email,
+            phone: me.phone,
+            birthYear: me.birth_year,
             role: me.role,
             subscriptionPlan: me.subscription_plan,
             subscriptionStatus: me.subscription_status,

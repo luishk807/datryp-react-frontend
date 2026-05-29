@@ -18,6 +18,8 @@ const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
 
 interface PreferencesRaw {
+    phone: string | null;
+    birth_year: number | null;
     country_of_birth_code: string | null;
     gender_id: string | null;
     interests: string[];
@@ -62,6 +64,8 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
 };
 
 const toPreferences = (r: PreferencesRaw): Preferences => ({
+    phone: r.phone,
+    birthYear: r.birth_year,
     countryOfBirthCode: r.country_of_birth_code,
     genderId: r.gender_id,
     interests: r.interests ?? [],
@@ -89,6 +93,12 @@ export const updateMyPreferences = async (
     // Drop undefined fields so we only PATCH what the caller intends to
     // change. Explicit `null` is preserved (clears the field server-side).
     const body: Record<string, unknown> = {};
+    if (payload.phone !== undefined) {
+        body.phone = payload.phone;
+    }
+    if (payload.birthYear !== undefined) {
+        body.birth_year = payload.birthYear;
+    }
     if (payload.countryOfBirthCode !== undefined) {
         body.country_of_birth_code = payload.countryOfBirthCode;
     }

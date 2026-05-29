@@ -54,6 +54,11 @@ export interface MeResponse {
      *  current period is still active. UI shows a "cancelling on Y" state
      *  in that case instead of the normal "Renews on Y" copy. */
     subscription_cancel_at_period_end: boolean;
+    /** Editable profile fields. Persisted server-side via
+     *  `PATCH /me/preferences`; embedded here so the UserContext picks
+     *  them up on `/auth/me` without an extra round-trip. */
+    phone: string | null;
+    birth_year: number | null;
     /** Onboarding state — embedded here so the UserContext can decide
      *  whether to auto-launch the wizard without an extra `/me/preferences`
      *  round-trip on every page load. Null `onboarding_completed_at` means
