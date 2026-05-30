@@ -429,7 +429,13 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                                 className="trip-basics-budget-ai-badge-icon"
                                 fontSize="small"
                             />
-                            <span>Updating AI estimate for these dates…</span>
+                            <span>
+                                Updating AI estimate
+                                {rootCountry?.name
+                                    ? ` for ${rootCountry.name}`
+                                    : ''}
+                                …
+                            </span>
                         </p>
                     )}
                     {!isLoadingSuggestion && showAiBadge && (
@@ -440,6 +446,9 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                             />
                             <span>
                                 AI suggested budget
+                                {rootCountry?.name
+                                    ? ` for ${rootCountry.name}`
+                                    : ''}
                                 {aiNote ? ` — ${aiNote}` : ''}
                             </span>
                         </p>
