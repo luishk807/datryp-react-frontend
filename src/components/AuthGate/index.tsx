@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
+import PhoneInput from 'components/common/FormFields/PhoneInput';
 import DropDown from 'components/common/FormFields/DropDown';
 import IconLink from 'components/common/IconLink';
 import PageLoader from 'components/common/PageLoader';
@@ -309,13 +310,11 @@ const AuthGate = ({
                                     </label>
                                 </div>
                                 <div className="authgate-field">
-                                    <InputField
-                                        name="phone"
+                                    <PhoneInput
                                         label="Phone (optional)"
-                                        type="tel"
-                                        defaultValue={phone}
-                                        onChange={(e) => {
-                                            setPhone(e.target.value);
+                                        value={phone}
+                                        onChange={(next) => {
+                                            setPhone(next);
                                             resetError();
                                         }}
                                     />

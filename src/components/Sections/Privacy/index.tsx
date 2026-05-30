@@ -1,7 +1,7 @@
 import Layout from 'components/common/Layout/SubLayout';
 import './index.scss';
 
-const LAST_UPDATED = 'May 22, 2026';
+const LAST_UPDATED = 'May 30, 2026';
 
 const Privacy = () => (
     <Layout title="Privacy Policy">
@@ -27,6 +27,21 @@ const Privacy = () => (
                     and travel interests. If you sign in with Google, we receive
                     your name, email, and Google profile ID — never your Google
                     password.
+                </p>
+                <p>
+                    <strong>Optional travel-companion preferences</strong> you
+                    can set on the Account page: whether you usually travel
+                    solo, as a couple, with friends, or as a family with kids.
+                    If you indicate &ldquo;family with kids,&rdquo; you may also
+                    pick the age <em>ranges</em> of your kids (e.g.
+                    &ldquo;3–5&rdquo;, &ldquo;6–9&rdquo;). We deliberately
+                    collect <em>only</em> coarse age ranges — never exact
+                    ages, names, dates of birth, or marital status. These
+                    fields are opt-in, default empty, and editable or
+                    clearable at any time. We use them to bias trip
+                    recommendations (e.g. Disney + toddler-friendly picks
+                    for families with young kids; couple-style activities
+                    when you select &ldquo;couple&rdquo;).
                 </p>
                 <p>
                     <strong>Travel data</strong> you create inside DaTryp.com: trips,
@@ -92,6 +107,18 @@ const Privacy = () => (
                         styles. We never send your name, email, friends
                         list, payment info, or any other directly
                         identifying field.
+                    </li>
+                    <li>
+                        <strong>Trip recommendations</strong> (when you
+                        ask the AI for trip ideas) may also send the
+                        opt-in travel-companion slugs and kids-age
+                        ranges you set on the Account page — so a
+                        Disney query knows whether to surface
+                        toddler-friendly attractions and a couples
+                        retreat knows to skip the kid-club. Like
+                        everything else in this list, these fields are
+                        slugs / coarse ranges only, never names or
+                        exact ages.
                     </li>
                 </ul>
                 <p>

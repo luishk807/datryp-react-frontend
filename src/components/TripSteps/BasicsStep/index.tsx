@@ -8,7 +8,13 @@ import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import SearchBar from 'components/SearchBar';
 import InputField from 'components/common/FormFields/InputField';
-import { addPlace, basicInfo, useTripDispatch } from 'context/TripContext';
+import {
+    addPlace,
+    basicInfo,
+    editPlace,
+    movePlace,
+    useTripDispatch,
+} from 'context/TripContext';
 import { suggestBudget, type BudgetSuggestResult } from 'api/budgetApi';
 import { useUser } from 'context/UserContext';
 import { ACTIVITY_KIND, TRIP_BASIC, TRIP_MODE } from 'constants';
@@ -205,23 +211,20 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     };
 
     /**
-     * End-date pick on a single-destination trip auto-seeds a "return
-     * leg" on the last day. The outbound (FLIGHT or TRAIN) was already
-     * seeded by CityDetail / CountryDetail on day 1 — we mirror it
-     * here with depart/arrival swapped and the date set to the
-     * just-picked end date, so the user lands in the People step with
-     * BOTH legs of their trip pre-populated.
-     *
-     * Idempotent: skipped if a return-shaped activity already exists
-     * anywhere in the itinerary. Skipped on same-day trips (no return
-     * needed). Doesn't auto-relocate the return when the user later
-     * shifts the end date — drag-and-drop in DestinationDetail covers
-     * that case.
+     * End-date pick on a single-destination trip relocates the seeded
+     * return leg to the new last day. The outbound + return (FLIGHT or
+     * TRAIN) were both seeded on day-1 by CityDetail / CountryDetail so
+     * a same-day default trip ships with the round trip visible; once
+     * the user picks a real multi-day end date here we MOVE the return
+     * to the new end-date so it always sits on the last day block. If
+     * no return is found (rare — user manually deleted it), we add a
+     * fresh one. Same-day end-date pick is a no-op for the return move
+     * (it's already on the only day).
      */
     const handleEndDateChange = (e: TripChangeEvent) => {
         // Apply the date change first so the reducer's orphan-day
         // reanchor pass runs against the OLD itinerary layout —
-        // otherwise our just-added return could be re-parked onto
+        // otherwise our just-moved return could be re-parked onto
         // startDate by that same pass.
         onChange('endDate', e);
 
@@ -229,15 +232,14 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
             typeof e.target.value === 'string' ? e.target.value : '';
         const startDate = data?.startDate;
         if (!newEndDate || !startDate) return;
-        // Backwards range (mid-edit / typo) → bail out. Same-day is
-        // OK: a one-day trip can still have a "fly there in the
-        // morning, fly back at night" pair.
+        // Backwards range (mid-edit / typo) → bail out.
         if (newEndDate < startDate) return;
 
         const dest = data?.destinations?.[0];
         const itinerary = dest?.itinerary;
         if (!itinerary?.length) return;
 
+        // Find the outbound activity (first FLIGHT/TRAIN on day 1).
         const day1 = itinerary[0];
         const outbound = day1?.activities?.find(
             (a) =>
@@ -246,76 +248,148 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         );
         if (!outbound) return;
 
-        // Pull the depart/arrival endpoints + build the mirror in a
-        // single kind-narrowed branch so TS keeps FlightInfo /
-        // TransitInfo straight (no `FlightInfo | TransitInfo` union
-        // gymnastics).
+        // Pull outbound depart/arrival endpoints — needed both to
+        // build a fresh return (if missing) and to match the existing
+        // return via endpoint-swap.
         let outDepart: string | undefined;
         let outArrival: string | undefined;
-        let returnActivity: Omit<Activity, 'id'> | null = null;
         if (outbound.kind === ACTIVITY_KIND.FLIGHT) {
             const seg = outbound.flightSegments?.[0];
             outDepart = seg?.departAirport;
             outArrival = seg?.arrivalAirport;
-            if (!outDepart || !outArrival) return;
-            returnActivity = {
-                kind: ACTIVITY_KIND.FLIGHT,
-                name: `Flight back to ${outDepart}`,
-                flightSegments: [
-                    {
-                        departAirport: outArrival,
-                        arrivalAirport: outDepart,
-                        departDate: newEndDate,
-                        departTime: '00:00',
-                        arrivalDate: newEndDate,
-                        arrivalTime: '00:00',
-                    },
-                ],
-            };
         } else {
             const seg = outbound.transitSegments?.[0];
             outDepart = seg?.departStation;
             outArrival = seg?.arrivalStation;
-            if (!outDepart || !outArrival) return;
-            returnActivity = {
-                kind: ACTIVITY_KIND.TRAIN,
-                name: `Train back to ${outDepart}`,
-                transitSegments: [
-                    {
-                        departStation: outArrival,
-                        arrivalStation: outDepart,
-                        departDate: newEndDate,
-                        departTime: '00:00',
-                        arrivalDate: newEndDate,
-                        arrivalTime: '00:00',
-                    },
-                ],
-            };
         }
+        if (!outDepart || !outArrival) return;
 
-        // Idempotency: skip if a return-shaped activity (same kind,
-        // endpoints swapped) already exists anywhere in the itinerary.
-        // Same kind-narrowed branch pattern as above so TS keeps the
-        // segment field names straight per kind.
-        const alreadyHasReturn = itinerary.some((day) =>
-            day.activities.some((a) => {
-                if (a.kind !== outbound.kind) return false;
-                if (outbound.kind === ACTIVITY_KIND.FLIGHT) {
+        // Locate the existing return — same kind, endpoints swapped.
+        // Excludes day-1's outbound row by id so a same-day default
+        // doesn't mis-target the outbound when both legs share day 1.
+        let existingReturn:
+            | { dayIdx: number; activity: Activity }
+            | null = null;
+        for (let i = 0; i < itinerary.length; i++) {
+            const day = itinerary[i];
+            for (const a of day.activities ?? []) {
+                if (a.id === outbound.id) continue;
+                if (a.kind !== outbound.kind) continue;
+                if (a.kind === ACTIVITY_KIND.FLIGHT) {
                     const seg = a.flightSegments?.[0];
-                    return (
+                    if (
                         seg?.departAirport === outArrival &&
                         seg?.arrivalAirport === outDepart
+                    ) {
+                        existingReturn = { dayIdx: i, activity: a };
+                        break;
+                    }
+                } else {
+                    const seg = a.transitSegments?.[0];
+                    if (
+                        seg?.departStation === outArrival &&
+                        seg?.arrivalStation === outDepart
+                    ) {
+                        existingReturn = { dayIdx: i, activity: a };
+                        break;
+                    }
+                }
+            }
+            if (existingReturn) break;
+        }
+
+        if (existingReturn) {
+            const { activity } = existingReturn;
+            // Update the return's internal segment dates to the new
+            // end date so the depart/arrival columns on its card
+            // match the day it lives on. editPlace targets by `id`,
+            // which the reducer assigned to every seeded activity.
+            if (activity.kind === ACTIVITY_KIND.FLIGHT) {
+                const seg = activity.flightSegments?.[0];
+                if (seg) {
+                    dispatch(
+                        editPlace({
+                            value: {
+                                id: activity.id,
+                                flightSegments: [
+                                    {
+                                        ...seg,
+                                        departDate: newEndDate,
+                                        arrivalDate: newEndDate,
+                                    },
+                                ],
+                            },
+                            itineraryIndex: 0,
+                            activityIndex: 0,
+                        }),
                     );
                 }
-                const seg = a.transitSegments?.[0];
-                return (
-                    seg?.departStation === outArrival &&
-                    seg?.arrivalStation === outDepart
-                );
-            }),
-        );
-        if (alreadyHasReturn) return;
+            } else {
+                const seg = activity.transitSegments?.[0];
+                if (seg) {
+                    dispatch(
+                        editPlace({
+                            value: {
+                                id: activity.id,
+                                transitSegments: [
+                                    {
+                                        ...seg,
+                                        departDate: newEndDate,
+                                        arrivalDate: newEndDate,
+                                    },
+                                ],
+                            },
+                            itineraryIndex: 0,
+                            activityIndex: 0,
+                        }),
+                    );
+                }
+            }
+            // Relocate to the new last day. movePlace is a no-op when
+            // the activity is already on a day matching newEndDate.
+            dispatch(
+                movePlace({
+                    activityId: activity.id,
+                    fromDestIndx: 0,
+                    toDestIndx: 0,
+                    toDate: newEndDate,
+                }),
+            );
+            return;
+        }
 
+        // No existing return (user deleted it manually) — add a fresh
+        // one on the new end date.
+        const returnActivity: Omit<Activity, 'id'> =
+            outbound.kind === ACTIVITY_KIND.FLIGHT
+                ? {
+                      kind: ACTIVITY_KIND.FLIGHT,
+                      name: `Flight back to ${outDepart}`,
+                      flightSegments: [
+                          {
+                              departAirport: outArrival,
+                              arrivalAirport: outDepart,
+                              departDate: newEndDate,
+                              departTime: '00:00',
+                              arrivalDate: newEndDate,
+                              arrivalTime: '00:00',
+                          },
+                      ],
+                  }
+                : {
+                      kind: ACTIVITY_KIND.TRAIN,
+                      name: `Train back to ${outDepart}`,
+                      transitSegments: [
+                          {
+                              departStation: outArrival,
+                              arrivalStation: outDepart,
+                              departDate: newEndDate,
+                              departTime: '00:00',
+                              arrivalDate: newEndDate,
+                              arrivalTime: '00:00',
+                          },
+                      ],
+                  };
         dispatch(
             addPlace({ date: newEndDate, value: returnActivity, index: 0 }),
         );

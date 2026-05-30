@@ -114,6 +114,19 @@ const GoogleSignInButton = ({
         return () => observer.disconnect();
     }, [width]);
 
+    // Stash the latest credential callback in a ref so the render
+    // effect below doesn't list `onCredential` in its deps. The host
+    // (AuthGate) re-renders on every keystroke in its email/password
+    // fields, and `useGoogleSignin()` returns a new mutation object
+    // each render — so `handleGoogleCredential` upstream gets a new
+    // identity every keystroke. Without this ref, that new identity
+    // re-fires `renderButton` and Google rebuilds its iframe in
+    // place, producing a visible flicker on every character typed.
+    const onCredentialRef = useRef(onCredential);
+    useEffect(() => {
+        onCredentialRef.current = onCredential;
+    }, [onCredential]);
+
     useEffect(() => {
         if (!clientId) return;
         if (!hostRef.current) return;
@@ -124,7 +137,7 @@ const GoogleSignInButton = ({
             if (!g || !hostRef.current) return;
             g.accounts.id.initialize({
                 client_id: clientId,
-                callback: (resp) => onCredential(resp.credential),
+                callback: (resp) => onCredentialRef.current(resp.credential),
                 ux_mode: 'popup',
                 auto_select: false,
             });
@@ -155,7 +168,7 @@ const GoogleSignInButton = ({
         script.defer = true;
         script.onload = init;
         document.head.appendChild(script);
-    }, [clientId, onCredential, text, measuredWidth]);
+    }, [clientId, text, measuredWidth]);
 
     if (!clientId) {
         return (

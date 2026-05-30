@@ -111,71 +111,22 @@ const CityDetail = () => {
         // no home airport is available so we never ship a half-empty
         // segment with a placeholder depart.
         const today = now();
-        // Transport-mode heuristic: when the destination is in the
-        // same country as the user's home, a train / ground trip is
-        // usually more realistic than a flight. Cross-country defaults
-        // to flight. Cheap proxy in lieu of a real home-to-destination
-        // distance lookup (the city summary doesn't carry lat/lng).
-        // User can switch the kind via the form if the heuristic
-        // picked wrong (e.g. NYC → LA is same country but should be
-        // flight).
-        const isSameCountry = Boolean(
-            user?.homeCountryCode &&
-                args.countryCode &&
-                user.homeCountryCode.toUpperCase() ===
-                    args.countryCode.toUpperCase(),
-        );
-        // Day-1 outbound + return auto-seed. Silent skip (no toast /
-        // warning) when we don't have enough info to populate a
-        // meaningful activity — same pattern as AddPlaceBtn's segment
-        // seeding. Arrival date is set explicitly to depart date so
-        // the segment's internal dates are coherent without relying
-        // on the form's depart→arrival cascade.
+        // Day-1 outbound + return flight auto-seed. Unlike the
+        // country-level seed (which skips for same-country because
+        // there's no specific city anchor), city-level seeding goes
+        // ahead even for same-country trips — a specific destination
+        // city has a known arrival airport, so NYC→SEA still benefits
+        // from pre-populated flights. The only requirement is that we
+        // know both the user's nearest airport AND the destination's
+        // arrival airport.
         //
-        // BOTH legs are seeded on `today` (the default start/end date)
-        // so a same-day default trip still ships with the round trip
-        // visible. When the user picks a real multi-day end date in
-        // the stepper, `BasicsStep.handleEndDateChange` sees the
-        // existing return via its idempotency check and skips — the
-        // return stays on day 1 and the user can drag it to the last
-        // day if they want. (A future enhancement could move the
-        // return automatically, but that's a bigger UX call.)
-        let seededActivities: Activity[] = [];
-        if (isSameCountry && user?.homeCity && args.cityName) {
-            seededActivities = [
-                {
-                    id: 0,
-                    kind: ACTIVITY_KIND.TRAIN,
-                    name: `Train to ${args.cityName}`,
-                    transitSegments: [
-                        {
-                            departStation: user.homeCity,
-                            arrivalStation: args.cityName,
-                            departDate: today,
-                            departTime: "00:00",
-                            arrivalDate: today,
-                            arrivalTime: "00:00",
-                        },
-                    ],
-                },
-                {
-                    id: 0,
-                    kind: ACTIVITY_KIND.TRAIN,
-                    name: `Train back to ${user.homeCity}`,
-                    transitSegments: [
-                        {
-                            departStation: args.cityName,
-                            arrivalStation: user.homeCity,
-                            departDate: today,
-                            departTime: "00:00",
-                            arrivalDate: today,
-                            arrivalTime: "00:00",
-                        },
-                    ],
-                },
-            ];
-        } else if (nearestAirport?.iataCode && args.arrivalAirportCode) {
-            seededActivities = [
+        // BOTH legs are seeded on `today`; when the user picks a
+        // multi-day end date in the stepper, `BasicsStep.handle-
+        // EndDateChange` MOVES the return leg to the new end date so
+        // it always sits on the last day block.
+        const seededActivities: Activity[] = [];
+        if (nearestAirport?.iataCode && args.arrivalAirportCode) {
+            seededActivities.push(
                 {
                     id: 0,
                     kind: ACTIVITY_KIND.FLIGHT,
@@ -185,9 +136,9 @@ const CityDetail = () => {
                             departAirport: nearestAirport.iataCode,
                             arrivalAirport: args.arrivalAirportCode,
                             departDate: today,
-                            departTime: "00:00",
+                            departTime: '00:00',
                             arrivalDate: today,
-                            arrivalTime: "00:00",
+                            arrivalTime: '00:00',
                         },
                     ],
                 },
@@ -200,13 +151,13 @@ const CityDetail = () => {
                             departAirport: args.arrivalAirportCode,
                             arrivalAirport: nearestAirport.iataCode,
                             departDate: today,
-                            departTime: "00:00",
+                            departTime: '00:00',
                             arrivalDate: today,
-                            arrivalTime: "00:00",
+                            arrivalTime: '00:00',
                         },
                     ],
                 },
-            ];
+            );
         }
         const destinations = [
             {

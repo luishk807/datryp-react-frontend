@@ -79,6 +79,17 @@ export interface MeResponse {
     home_country_code: string | null;
     home_latitude: number | null;
     home_longitude: number | null;
+    /** OPT-IN travel preferences. See backend `app.core.travel_companions`
+     *  for the slug catalog + privacy rationale. Empty list means the
+     *  user hasn't opted in. */
+    travel_companions: string[];
+    kids_age_buckets: string[];
+    /** Per-request geolocation hint derived from the connecting client's
+     *  IP at the edge (Cloudflare / Vercel / Fly geo headers). NOT
+     *  persisted to the user row — surfaces here so the FE can reorder
+     *  country dropdowns to put the user's likely country at the top.
+     *  Null when no upstream geo header is set (local dev). */
+    detected_country_code: string | null;
 }
 
 class AuthError extends Error {

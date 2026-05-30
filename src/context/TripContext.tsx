@@ -180,6 +180,26 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
             }
             Object.assign(draft, action.payload);
 
+            // Assign real ids to any seeded destinations / itinerary
+            // days / activities that came in with id=0. CityDetail and
+            // CountryDetail seed the day-1 outbound + return flights
+            // with placeholder id=0; without this pass, every seeded
+            // activity shares the same id, which breaks `movePlace`
+            // (`findIndex(a => a.id === activityId)` matches the FIRST
+            // id=0 row, not the intended one). Walking the destinations
+            // here centralizes the fix so the seed callers don't each
+            // need their own id generator.
+            for (const dest of draft.destinations ?? []) {
+                if (!dest.id) dest.id = generateId();
+                if (!dest.itinerary) continue;
+                for (const day of dest.itinerary) {
+                    if (!day.id) day.id = generateId();
+                    for (const act of day.activities ?? []) {
+                        if (!act.id) act.id = generateId();
+                    }
+                }
+            }
+
             // Re-anchor orphan activities after a single-trip date change.
             // The "/place → Add to itinerary → start fresh trip" flow stamps
             // a place activity at today before the user picks real dates;

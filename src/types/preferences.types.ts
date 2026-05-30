@@ -27,6 +27,13 @@ export interface Preferences {
     homeCountryCode: string | null;
     homeLatitude: number | null;
     homeLongitude: number | null;
+    /** OPT-IN travel preferences used by the trip recommender to bias
+     *  picks (Disney-friendly when kids are present, couple-style
+     *  activities for "couple", etc). Stored as coarse slugs only —
+     *  see `src/constants/travelCompanions.ts` for the catalog and the
+     *  privacy rationale. Empty array means the user hasn't opted in. */
+    travelCompanions: string[];
+    kidsAgeBuckets: string[];
 }
 
 /** Partial update for `PATCH /me/preferences`. Any field set to
@@ -46,6 +53,8 @@ export interface PreferencesUpdate {
     homeCountryCode?: string | null;
     homeLatitude?: number | null;
     homeLongitude?: number | null;
+    travelCompanions?: string[];
+    kidsAgeBuckets?: string[];
 }
 
 /** One row in a slug-based catalog (interests, traveler styles).

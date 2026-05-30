@@ -102,6 +102,18 @@ export interface User {
     homeCountryCode: string | null;
     homeLatitude: number | null;
     homeLongitude: number | null;
+    /** OPT-IN travel preferences. See `src/constants/travelCompanions.ts`
+     *  for the catalog + privacy posture (coarse slugs, age buckets only,
+     *  no names, no marital status). Empty array = the user hasn't
+     *  opted in. */
+    travelCompanions: string[];
+    kidsAgeBuckets: string[];
+    /** ISO-3166 alpha-2 country code the backend inferred from the
+     *  request's edge-geo header. NOT persisted to the user row —
+     *  derived per request — so used only as a hint to pre-select /
+     *  reorder country dropdowns (Country of birth, etc). Null when
+     *  no geo header is set (local dev without a CDN in front). */
+    detectedCountryCode: string | null;
 }
 
 /**
@@ -222,6 +234,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             homeCountryCode: me.home_country_code,
             homeLatitude: me.home_latitude,
             homeLongitude: me.home_longitude,
+            travelCompanions: me.travel_companions ?? [],
+            kidsAgeBuckets: me.kids_age_buckets ?? [],
+            detectedCountryCode: me.detected_country_code ?? null,
             ...overlay,
         };
     }, [me, overlay]);

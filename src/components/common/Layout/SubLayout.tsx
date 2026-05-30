@@ -12,8 +12,9 @@ interface SubLayoutProps {
     /** When true, skip the constrained grid + title bar and render
      *  children directly in `<main>`. Used by the /my-map page so the
      *  Mapbox canvas can span the full viewport width. The footer is
-     *  rendered in a compact one-line variant on full-bleed pages so
-     *  the map gets every available pixel. */
+     *  the same minimal one-line strip every other route uses; it's
+     *  hidden on phones for full-bleed pages so the map gets every
+     *  available pixel (see Footer/index.scss). */
     fullBleed?: boolean;
 }
 
@@ -34,7 +35,7 @@ const Layout = ({
                 <main className="page-content page-content-full-bleed">
                     {children}
                 </main>
-                <Footer compact />
+                <Footer />
             </div>
         );
     }

@@ -2,6 +2,7 @@ import React, { forwardRef, useState } from 'react';
 import { Grid } from '@mui/material';
 import ModalButton, { type ModalButtonHandle } from '../../ModalButton';
 import InputField from '../../common/FormFields/InputField';
+import PhoneInput from '../../common/FormFields/PhoneInput';
 import ButtonCustom from '../../common/FormFields/ButtonCustom';
 
 export interface NewFriendInput {
@@ -55,7 +56,11 @@ const AddFriendBtn = forwardRef<ModalButtonHandle, AddFriendBtnProps>(({
                             <InputField label="Email" name="email" onChange={(e) => handleOnChange('email', e.target.value)}/>
                         </Grid>
                         <Grid item lg={12} xs={12} className="py-5">
-                            <InputField label="Phone" name="phone" onChange={(e) => handleOnChange('phone', e.target.value)}/>
+                            <PhoneInput
+                                label="Phone"
+                                value={friend?.phone ?? ''}
+                                onChange={(next) => handleOnChange('phone', next)}
+                            />
                         </Grid>
                         <Grid item lg={12}>
                             <ButtonCustom 

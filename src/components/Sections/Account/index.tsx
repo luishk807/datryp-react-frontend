@@ -9,8 +9,14 @@ import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
+import PhoneInput from 'components/common/FormFields/PhoneInput';
 import DropDown from 'components/common/FormFields/DropDown';
 import SearchablePicker from 'components/common/FormFields/SearchablePicker';
+import {
+    KIDS_AGE_BUCKETS,
+    TRAVEL_COMPANIONS,
+    shouldShowKidsAgePicker,
+} from 'constants/travelCompanions';
 import type { CitySelection } from 'components/common/FormFields/CityAutocomplete';
 import HomeBaseField from 'components/common/FormFields/HomeBaseField';
 import SubscriptionSection from './SubscriptionSection';
@@ -34,9 +40,27 @@ import './index.scss';
 export const Account = () => {
     const { user, updateUser } = useUser();
     const { hash } = useLocation();
-    const { data: countries = [], isLoading: countriesLoading } = useCountries('', {
+    const { data: rawCountries = [], isLoading: countriesLoading } = useCountries('', {
         limit: 300,
     });
+    // Move the user's likely country to the top of the picker. Preference
+    // order: backend-detected (per-request edge geo) → already-set home
+    // country. Either signal pinpoints the country far better than
+    // alphabetical scroll, and the rest of the list stays in its
+    // catalog order so an unfamiliar user can still scan A-Z.
+    const countries = useMemo(() => {
+        const hint =
+            user?.detectedCountryCode || user?.homeCountryCode || null;
+        if (!hint || rawCountries.length === 0) return rawCountries;
+        const hi = hint.toUpperCase();
+        const idx = rawCountries.findIndex(
+            (c) => (c.code ?? '').toUpperCase() === hi,
+        );
+        if (idx <= 0) return rawCountries;
+        const next = [...rawCountries];
+        const [picked] = next.splice(idx, 1);
+        return [picked, ...next];
+    }, [rawCountries, user?.detectedCountryCode, user?.homeCountryCode]);
     const { data: genders = [], isLoading: gendersLoading } = useGendersCatalog();
 
     // Scroll to the section referenced by the URL hash on mount / hash change.
@@ -99,6 +123,15 @@ export const Account = () => {
     const [dreamDestinations, setDreamDestinations] = useState<string[]>(
         user?.dreamDestinations ?? []
     );
+    // OPT-IN travel companions + kids age buckets. Both default empty;
+    // see [src/constants/travelCompanions.ts] for the catalog and the
+    // privacy posture (coarse buckets only, no exact ages, no names).
+    const [travelCompanions, setTravelCompanions] = useState<string[]>(
+        user?.travelCompanions ?? []
+    );
+    const [kidsAgeBuckets, setKidsAgeBuckets] = useState<string[]>(
+        user?.kidsAgeBuckets ?? []
+    );
     const [travelPrefsMessage, setTravelPrefsMessage] = useState<{
         type: 'success' | 'error';
         text: string;
@@ -140,6 +173,8 @@ export const Account = () => {
         setInterests(user.interests ?? []);
         setTravelerStyles(user.travelerStyles ?? []);
         setDreamDestinations(user.dreamDestinations ?? []);
+        setTravelCompanions(user.travelCompanions ?? []);
+        setKidsAgeBuckets(user.kidsAgeBuckets ?? []);
         setHomeBase(
             user.homeCity && user.homeCountry && user.homeCountryCode
                 ? {
@@ -354,11 +389,20 @@ export const Account = () => {
 
     const handleTravelPrefsSave = async () => {
         setTravelPrefsMessage(null);
+        // If the user has un-picked "family_kids" we proactively clear
+        // the age-bucket selection so we never persist orphan kid
+        // buckets without the parent flag. Keeps the AI prompt clean
+        // and the privacy footprint minimal.
+        const effectiveKidsBuckets = travelCompanions.includes('family_kids')
+            ? kidsAgeBuckets
+            : [];
         try {
             await updatePrefs.mutateAsync({
                 interests,
                 travelerStyles,
                 dreamDestinations,
+                travelCompanions,
+                kidsAgeBuckets: effectiveKidsBuckets,
             });
             setTravelPrefsMessage({
                 type: 'success',
@@ -626,14 +670,11 @@ export const Account = () => {
                             placeholder="you@example.com"
                             required={false}
                         />
-                        <InputField
-                            variant="bare"
+                        <PhoneInput
                             label="Phone"
-                            type="tel"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="+1 555 123 4567"
-                            required={false}
+                            onChange={setPhone}
+                            placeholder="(555) 123-4567"
                         />
                         <DropDown
                             variant="bare"
@@ -800,6 +841,35 @@ export const Account = () => {
                             maxSelected={8}
                             helperText="Pick up to 8 countries."
                         />
+                        {/* OPT-IN travel companions. Helps the AI bias picks
+                          * (Disney + toddler picks for "family with kids",
+                          * couple-style activities for "couple", etc).
+                          * Coarse buckets only — see our Privacy Policy for
+                          * what we collect and why. */}
+                        <SearchablePicker
+                            label="Who do you usually travel with?"
+                            options={TRAVEL_COMPANIONS.map((c) => ({
+                                value: c.slug,
+                                label: c.label,
+                            }))}
+                            value={travelCompanions}
+                            onChange={setTravelCompanions}
+                            placeholder="Pick any that apply…"
+                            helperText="Optional. We use this to bias trip suggestions."
+                        />
+                        {shouldShowKidsAgePicker(travelCompanions) && (
+                            <SearchablePicker
+                                label="Kids' age ranges"
+                                options={KIDS_AGE_BUCKETS.map((b) => ({
+                                    value: b.slug,
+                                    label: b.label,
+                                }))}
+                                value={kidsAgeBuckets}
+                                onChange={setKidsAgeBuckets}
+                                placeholder="Pick any that apply…"
+                                helperText="Optional. Coarse ranges only — we don't store exact ages or names."
+                            />
+                        )}
                         {travelPrefsMessage && (
                             <div
                                 className={`account-message account-message-${travelPrefsMessage.type}`}

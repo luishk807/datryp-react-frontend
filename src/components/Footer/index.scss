@@ -2,202 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Minimal-inline footer. Neutral light-gray background that recedes,
+ * small muted text, no section labels — same on every route. Replaces
+ * the previous brand-green full-bleed footer + the compact one-row
+ * variant; both have been unified into this single layout. */
 .footer {
   width: 100%;
-  background: theme('colors.primaryGreen');
-  color: #fff;
-}
-
-// Compact one-line variant — used on full-bleed pages (e.g. /my-map)
-// where the footer should not eat vertical space. Logo + tagline are
-// suppressed; copyright + quick links sit inline.
-.footer.footer-compact {
-  padding: 0;
-}
-
-.footer-compact-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 10px 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  background: #f8fafc; // slate-50
+  color: rgb(100, 116, 139); // slate-500
+  border-top: 1px solid rgba(15, 23, 42, 0.06); // slate-900 @ 6%
   font-size: 0.84rem;
-}
-
-.footer-compact-copy {
-  opacity: 0.92;
-  white-space: nowrap;
-}
-
-.footer-compact-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-
-  li a {
-    color: #fff;
-    text-decoration: none;
-    opacity: 0.9;
-    transition: opacity 0.15s ease;
-
-    &:hover {
-      opacity: 1;
-      text-decoration: underline;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .footer-compact-inner {
-    padding: 8px 14px;
-    gap: 10px;
-    font-size: 0.78rem;
-  }
-  .footer-compact-links {
-    gap: 10px;
-  }
-}
-
-/* Full-bleed pages (e.g. /my-map) hide the compact footer on phones
- * so the map fills the viewport instead of getting a 60-80px green
- * strip eating the bottom. Footer links are still reachable via the
- * mobile bottom-nav account sheet, and the desktop view still shows
- * the compact footer. */
-@media (max-width: 640px) {
-  .page-shell.is-full-bleed .footer.footer-compact {
-    display: none;
-  }
 }
 
 .footer-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 36px 24px 16px;
-}
-
-.footer-top {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 40px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-/* Brand column */
-.footer-brand {
+  padding: 14px 24px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.footer-logo {
-  width: 140px;
-  display: block;
-}
-
-.footer-tagline {
-  font-size: 0.92rem;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0;
-  max-width: 320px;
-  line-height: 1.5;
-}
-
-/* Section heading */
-.footer-heading {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 14px;
-}
-
-/* Links */
-.footer-links ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.footer-links a {
-  color: rgba(255, 255, 255, 0.82);
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.15s ease;
-}
-
-.footer-links a:hover {
-  color: #fff;
-}
-
-/* Social */
-.footer-social-icons {
-  display: flex;
-  gap: 10px;
-}
-
-.footer-social-icons a {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  gap: 18px;
+  flex-wrap: wrap;
 }
 
-.footer-social-icons a:hover {
-  background: theme('colors.primaryOrange');
-  transform: translateY(-2px);
+.footer-brand {
+  font-weight: 600;
+  color: rgb(51, 65, 85); // slate-700 — a notch darker so the name reads
+  letter-spacing: -0.005em;
+  white-space: nowrap;
 }
 
-.footer-social-icons .MuiSvgIcon-root {
-  font-size: 20px;
+.footer-nav {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: theme('colors.primaryGreen');
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
 }
 
-/* Bottom bar */
-.footer-bottom {
-  padding-top: 16px;
-  text-align: center;
+.footer-social {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  // Push social + copy to the right end of the row on desktop. On
+  // mobile this collapses naturally because the row wraps.
+  margin-left: auto;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: rgb(100, 116, 139);
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: theme('colors.primaryGreen');
+      background: rgba(60, 181, 75, 0.08);
+    }
+  }
 }
 
 .footer-copy {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(148, 163, 184); // slate-400 — quietest item in the row
+  white-space: nowrap;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .footer-top {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    text-align: center;
-  }
+@media (max-width: 640px) {
   .footer-inner {
-    padding: 28px 18px 14px;
-  }
-  .footer-logo {
-    width: 120px;
-    margin: 0 auto;
-  }
-  .footer-brand {
-    align-items: center;
-  }
-  .footer-tagline {
-    margin: 0 auto;
-  }
-  .footer-social-icons {
+    padding: 12px 16px;
+    gap: 12px;
     justify-content: center;
+  }
+  .footer-social {
+    margin-left: 0;
+  }
+  .footer-nav {
+    gap: 12px;
+  }
+}
+
+/* Full-bleed pages (e.g. /my-map) hide the footer on phones so the
+ * map fills the viewport. Footer links are reachable via the mobile
+ * bottom-nav account sheet; desktop full-bleed pages still show the
+ * footer. */
+@media (max-width: 640px) {
+  .page-shell.is-full-bleed .footer {
+    display: none;
   }
 }

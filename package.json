@@ -33,6 +33,7 @@
     "graphql-request": "^7.4.0",
     "immer": "^11.1.8",
     "leaflet": "^1.9.4",
+    "libphonenumber-js": "^1.13.4",
     "lodash": "^4.17.21",
     "mapbox-gl": "^3.24.0",
     "moment": "^2.30.1",
