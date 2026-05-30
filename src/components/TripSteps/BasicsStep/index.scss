@@ -88,53 +88,31 @@
   max-width: 320px;
 }
 
-// "Suggest a budget" — small AI-driven affordance under the budget
-// input. Inline so the input still feels like the primary control
-// and the button reads as a supporting nudge.
-.trip-basics-budget-suggest {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-top: 2px;
-
-  .trip-basics-budget-suggest-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 0;
-    color: theme('colors.primaryGreen');
-    font-size: 0.85rem;
-    font-weight: 600;
-
-    svg {
-      color: theme('colors.primaryOrange');
-    }
-
-    &:disabled {
-      color: rgba(0, 0, 0, 0.35);
-      cursor: not-allowed;
-      svg {
-        color: rgba(0, 0, 0, 0.25);
-      }
-    }
-  }
-}
-
-.trip-basics-budget-suggest-hint {
-  font-size: 0.78rem;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.trip-basics-budget-suggest-note {
+// "AI suggested budget" badge — appears under the input only while the
+// value still matches what the model returned. The moment the user
+// edits the amount, the badge auto-hides (they've taken ownership of
+// the number).
+.trip-basics-budget-ai-badge {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
   margin: 6px 0 0;
-  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(60, 181, 75, 0.08);
+  color: theme('colors.primaryGreen');
+  font-size: 0.78rem;
+  font-weight: 600;
   line-height: 1.4;
-  color: rgba(0, 0, 0, 0.65);
 
-  &.is-warn {
-    color: theme('colors.primaryOrange');
+  span {
+    flex: 1;
   }
+}
+
+.trip-basics-budget-ai-badge-icon {
+  color: theme('colors.primaryOrange');
+  margin-top: 1px;
 }
 
 .trip-basics-hint {

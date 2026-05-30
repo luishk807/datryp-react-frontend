@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -7,11 +8,10 @@ import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import SearchBar from 'components/SearchBar';
 import InputField from 'components/common/FormFields/InputField';
-import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import { addPlace, basicInfo, useTripDispatch } from 'context/TripContext';
 import { useBudgetSuggestion } from 'api/hooks/useBudgetSuggestion';
 import { useUser } from 'context/UserContext';
-import { ACTIVITY_KIND, BUTTON_VARIANT, TRIP_BASIC, TRIP_MODE } from 'constants';
+import { ACTIVITY_KIND, TRIP_BASIC, TRIP_MODE } from 'constants';
 import type {
     Activity,
     Country,
@@ -61,12 +61,11 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         return Number.isFinite(diff) && diff >= 0 ? diff : null;
     })();
 
-    // "Suggest a budget" — fires `POST /budgets/suggest`. Disabled
-    // until the user has picked a country AND a date range so the
-    // request always has both required inputs. On multi-destination
-    // trips we use the first leg's country: the BasicsStep budget
-    // input is trip-wide (per-leg budgets live further into the
-    // wizard), so one suggestion covers everything.
+    // Auto-fill budget via `POST /budgets/suggest`. Fires as soon as
+    // we have a country + a valid date range — no button, no extra
+    // click. On multi-destination trips we use the first leg's country
+    // since the BasicsStep budget is trip-wide (per-leg budgets live
+    // later in the wizard).
     const suggestableDays = (() => {
         if (nights === null) return null;
         // `nights` is end - start; trip length in days is nights + 1
@@ -76,47 +75,66 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         return d >= 1 && d <= 90 ? d : null;
     })();
     const countryCode = rootCountry?.code ?? null;
-    const canSuggestBudget = Boolean(countryCode) && suggestableDays !== null;
 
-    const handleSuggestBudget = async (
-        e?: React.MouseEvent<HTMLButtonElement>
-    ) => {
-        // The shared ButtonIcon renders a <button> WITHOUT type="button",
-        // so inside a wizard step a click would otherwise default to
-        // type="submit" and trigger the surrounding form's submit /
-        // navigation handler before our mutation ever ran. Stop that.
-        e?.preventDefault();
-        e?.stopPropagation();
+    // Tracks the most recent AI total so we (a) avoid refetching the
+    // same (country, days, style) combo and (b) know when the input
+    // still holds the AI value vs the user has edited it (drives the
+    // "AI suggested budget" badge under the field).
+    const lastAiTotalRef = useRef<number | null>(null);
+    const lastRequestKeyRef = useRef<string | null>(null);
+    const budgetSuggestionMutate = budgetSuggestion.mutate;
+
+    useEffect(() => {
         if (!countryCode || suggestableDays === null) return;
-        // Use the first traveler-style slug as a free-text hint —
-        // the model treats unknown slugs as descriptive prose, so
-        // passing "solo" or "family" verbatim works fine.
         const styleHint = user?.travelerStyles?.[0] ?? null;
-        try {
-            const result = await budgetSuggestion.mutateAsync({
+        const requestKey = `${countryCode}|${suggestableDays}|${styleHint ?? ''}`;
+        if (lastRequestKeyRef.current === requestKey) return;
+        // If the user has typed their own value (input differs from the
+        // last AI total), don't override it on a context change — they
+        // took ownership. They can clear the field to opt back in.
+        const currentBudget = data?.budget ?? '';
+        const userEdited =
+            currentBudget !== '' &&
+            currentBudget !== 0 &&
+            String(currentBudget) !== String(lastAiTotalRef.current ?? '');
+        if (userEdited) return;
+        lastRequestKeyRef.current = requestKey;
+        budgetSuggestionMutate(
+            {
                 countryCode,
                 days: suggestableDays,
                 travelStyle: styleHint,
-            });
-            if (result?.suggestedTotal != null) {
-                // Mirror the real onChange shape so the reducer
-                // doesn't care that the value came from a button
-                // instead of a keystroke.
-                onChange('budget', {
-                    target: { value: String(result.suggestedTotal) },
-                });
+            },
+            {
+                onSuccess: (result) => {
+                    if (result?.suggestedTotal != null) {
+                        lastAiTotalRef.current = result.suggestedTotal;
+                        onChange('budget', {
+                            target: {
+                                value: String(result.suggestedTotal),
+                            },
+                        });
+                    }
+                },
             }
-        } catch {
-            // Errors surface in `budgetSuggestion.isError`; the inline
-            // hint below the field renders the message.
-        }
-    };
+        );
+    }, [
+        countryCode,
+        suggestableDays,
+        user?.travelerStyles,
+        data?.budget,
+        budgetSuggestionMutate,
+        onChange,
+    ]);
 
     const suggestion = budgetSuggestion.data;
-    const suggestNote = suggestion?.note ?? null;
-    const suggestNoResult =
-        budgetSuggestion.isSuccess && suggestion === null;
-    const suggestError = budgetSuggestion.isError;
+    const isLoadingSuggestion = budgetSuggestion.isPending;
+    // Badge only shows when the field still matches the AI value —
+    // typing over it hides the badge automatically.
+    const showAiBadge =
+        suggestion?.suggestedTotal != null &&
+        budget === String(suggestion.suggestedTotal);
+    const aiNote = showAiBadge ? suggestion?.note ?? null : null;
 
     const pickMode = (
         mode: typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE
@@ -390,48 +408,23 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                     <InputField
                         value={budget}
                         name="budget"
-                        placeholder="e.g. 2000"
+                        placeholder={
+                            isLoadingSuggestion
+                                ? 'Asking datryp for an estimate…'
+                                : 'e.g. 2000'
+                        }
                         onChange={(e) => onChange('budget', e)}
                     />
-                    <div className="trip-basics-budget-suggest">
-                        <ButtonIcon
-                            type={BUTTON_VARIANT.TEXT}
-                            title={
-                                budgetSuggestion.isPending
-                                    ? 'Asking datryp…'
-                                    : 'Suggest a budget'
-                            }
-                            Icon={AutoAwesomeRoundedIcon}
-                            iconPosition="start"
-                            iconProps={{ fontSize: 'small' }}
-                            disabled={
-                                !canSuggestBudget ||
-                                budgetSuggestion.isPending
-                            }
-                            ariaLabel="Suggest an average budget for this trip"
-                            onClick={handleSuggestBudget}
-                            className="trip-basics-budget-suggest-btn"
-                        />
-                        {!canSuggestBudget && (
-                            <span className="trip-basics-budget-suggest-hint">
-                                Pick a destination and dates first.
+                    {showAiBadge && (
+                        <p className="trip-basics-budget-ai-badge">
+                            <AutoAwesomeRoundedIcon
+                                className="trip-basics-budget-ai-badge-icon"
+                                fontSize="small"
+                            />
+                            <span>
+                                AI suggested budget
+                                {aiNote ? ` — ${aiNote}` : ''}
                             </span>
-                        )}
-                    </div>
-                    {suggestNote && (
-                        <p className="trip-basics-budget-suggest-note">
-                            {suggestNote}
-                        </p>
-                    )}
-                    {suggestNoResult && (
-                        <p className="trip-basics-budget-suggest-note is-warn">
-                            Couldn't generate a suggestion — type your own
-                            ballpark.
-                        </p>
-                    )}
-                    {suggestError && (
-                        <p className="trip-basics-budget-suggest-note is-warn">
-                            Couldn't reach the suggester. Try again in a moment.
                         </p>
                     )}
                     <p className="trip-basics-hint">
