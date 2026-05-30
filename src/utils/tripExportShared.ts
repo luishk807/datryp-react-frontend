@@ -180,15 +180,26 @@ export interface PayerTotals {
      *  the user has a concrete out-of-pocket number to budget for
      *  before the trip starts. */
     unpaidTotal: number;
+    /** Sum of every activity's cost across the trip, independent of
+     *  paid status, payer attribution, or whether the cost was split.
+     *  Drives the "Total cost" row in the PDF + Excel overview blocks
+     *  — a stable headline figure that always equals what the user
+     *  typed into each activity. `grandTotal` differs in that it only
+     *  counts costs that have been attributed to a payer (split or
+     *  single-payer + marked paid), which excludes upcoming /
+     *  unassigned activities and would read as $0 on planning trips. */
+    totalCost: number;
 }
 
 export const computePayerTotals = (trip: TripState): PayerTotals => {
     const totals = new Map<string, number>();
     let grandTotal = 0;
     let unpaidTotal = 0;
+    let totalCost = 0;
     for (const dest of trip.destinations ?? []) {
         for (const day of dest.itinerary ?? []) {
             for (const activity of day.activities ?? []) {
+                totalCost += activityCostOf(activity);
                 const budget = activity.budget ?? [];
                 if (budget.length > 0) {
                     for (const b of budget) {
@@ -233,7 +244,7 @@ export const computePayerTotals = (trip: TripState): PayerTotals => {
     const perPayer = Array.from(totals.entries())
         .map(([name, total]) => ({ name, total }))
         .sort((a, b) => b.total - a.total);
-    return { grandTotal, perPayer, unpaidTotal };
+    return { grandTotal, perPayer, unpaidTotal, totalCost };
 };
 
 /** Sum of `activity.cost` (per-row cost, separate from the per-payer

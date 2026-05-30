@@ -299,12 +299,12 @@ const buildOverviewSheet = async (
     writeRow('To Date', parseDate(trip.endDate), DATE_FORMAT);
     writeRow('Organizer', joinNames(trip.organizer));
     writeRow('Participants', joinNames(trip.friends));
-    // Replaces the prior "Budget" row with the same totals the
-    // Expense Report sheet shows further on — total cost across all
-    // activities plus the amount still unpaid — so the Overview gives
-    // the same out-of-pocket picture without re-deriving it.
+    // Replaces the prior "Budget" row with the raw activity-cost
+    // total (independent of paid status / split) and the still-unpaid
+    // amount — same numbers the Expense Report sheet uses, so the
+    // Overview reads consistently.
     const totals = computePayerTotals(trip);
-    writeRow('Total cost', totals.grandTotal, CURRENCY_FORMAT);
+    writeRow('Total cost', totals.totalCost, CURRENCY_FORMAT);
     writeRow('Unpaid', totals.unpaidTotal, CURRENCY_FORMAT);
 };
 

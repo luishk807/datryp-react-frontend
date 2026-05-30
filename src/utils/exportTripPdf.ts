@@ -127,14 +127,15 @@ const tripStatusLabel = (trip: TripState): string => {
 const buildMetaBlock = (trip: TripState): Content => {
     // Total + unpaid come from the same payer-totals pass the expense
     // report uses, so both surfaces stay in lockstep when the report
-    // logic changes. `grandTotal` is the sum of every activity's
-    // cost (split or single-payer); `unpaidTotal` is the sum of any
-    // activity not yet marked paid.
+    // logic changes. `totalCost` is the raw sum of every activity's
+    // cost regardless of paid status (so planning trips show a real
+    // number, not $0); `unpaidTotal` is the sum of any activity not
+    // yet marked paid.
     const totals = computePayerTotals(trip);
     const rows: [string, string][] = [
         ['From:', formatDate(trip.startDate)],
         ['To:', formatDate(trip.endDate)],
-        ['Total cost:', formatCurrency(totals.grandTotal)],
+        ['Total cost:', formatCurrency(totals.totalCost)],
         ['Unpaid:', formatCurrency(totals.unpaidTotal)],
         ['Status:', tripStatusLabel(trip)],
     ];
