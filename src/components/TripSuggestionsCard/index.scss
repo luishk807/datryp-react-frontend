@@ -2,14 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-// Standalone lightbulb trigger that lives between the Planning banner
-// and the day blocks. Idle state is JUST this pill — no big container,
-// no marketing copy. The suggestions card below only mounts when there's
-// something to show (loading / error / results).
+// Standalone lightbulb trigger row that lives between the Planning
+// banner and the day blocks. Idle state is JUST these pills — no big
+// container, no marketing copy. The suggestions card below only
+// mounts when there's something to show (loading / error / results).
 .trip-suggestions-trigger-row {
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
     margin: 8px 0 14px;
+    flex-wrap: wrap;
 }
 
 .trip-suggestions-trigger {
@@ -36,6 +38,20 @@
     &:disabled {
         opacity: 0.6;
         cursor: progress;
+    }
+}
+
+// Hide/Show pill — visually muted vs the lightbulb generate trigger
+// so the primary action still draws the eye.
+.trip-suggestions-trigger.trip-suggestions-trigger-hide {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.6);
+
+    &:hover:not(:disabled) {
+        background: rgba(0, 0, 0, 0.08);
+        border-color: rgba(0, 0, 0, 0.2);
+        color: rgba(0, 0, 0, 0.8);
     }
 }
 
@@ -72,53 +88,121 @@
         font-size: 13px;
     }
 
+    // 4-up grid on desktop, collapses to 2-up on mid, 1-up on phone.
+    // Fixed 4 columns (instead of auto-fill) so the row always reads
+    // as a complete set — BE caps at 4 suggestions to match.
     .trip-suggestions-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px;
     }
 
+    @media (max-width: 960px) {
+        .trip-suggestions-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 560px) {
+        .trip-suggestions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .trip-suggestion-card {
+        position: relative;
         background: #fff;
         border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 12px;
-        padding: 14px 14px 12px;
+        border-radius: 14px;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+            transform 0.15s ease;
     }
 
     .trip-suggestion-card:hover {
         border-color: theme('colors.primaryOrange');
-        box-shadow: 0 2px 10px rgba(247, 159, 38, 0.15);
+        box-shadow: 0 6px 18px rgba(247, 159, 38, 0.18);
+        transform: translateY(-2px);
     }
 
-    .trip-suggestion-card-head {
+    // Image / hero strip at the top of the card.
+    .trip-suggestion-card-media {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 244, 214, 0.85) 0%,
+            rgba(247, 159, 38, 0.18) 100%
+        );
+        overflow: hidden;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+    }
+
+    .trip-suggestion-card-media-fallback {
+        width: 100%;
+        height: 100%;
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        color: theme('colors.primaryOrange');
+        opacity: 0.5;
+    }
+
+    // Floating category chip over the image — keeps the chip visible
+    // without crowding the card title.
+    .trip-suggestion-card-chip {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        color: theme('colors.primaryGreen');
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(4px);
+    }
+
+    .trip-suggestion-card-credit {
+        position: absolute;
+        bottom: 4px;
+        right: 6px;
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.85);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        text-decoration: none;
+
+        &:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+    }
+
+    .trip-suggestion-card-body {
+        padding: 12px 14px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
     }
 
     .trip-suggestion-card-name {
         font-size: 14px;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.85);
+        font-weight: 700;
+        color: rgba(0, 0, 0, 0.88);
         margin: 0;
         line-height: 1.3;
-        flex: 1;
-    }
-
-    .trip-suggestion-card-chip {
-        font-size: 11px;
-        font-weight: 500;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: rgba(60, 181, 75, 0.12);
-        color: theme('colors.primaryGreen');
-        white-space: nowrap;
-        flex-shrink: 0;
     }
 
     .trip-suggestion-card-place {
@@ -138,6 +222,7 @@
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        flex: 1;
     }
 
     .trip-suggestion-card-meta {
@@ -148,9 +233,39 @@
         margin-top: 6px;
     }
 
+    // Filled "Add to trip" CTA — solid orange so it reads as a real
+    // primary action rather than a faded link. Sits at the bottom of
+    // each card and stretches full width.
     .trip-suggestion-card-add {
-        margin-top: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         width: 100%;
+        margin-top: 10px;
+        padding: 9px 12px;
+        border: 1px solid theme('colors.primaryOrange');
+        border-radius: 10px;
+        background: theme('colors.primaryOrange');
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease,
+            box-shadow 0.15s ease;
+
+        &:hover:not(:disabled) {
+            background: #e88a1a;
+            border-color: #e88a1a;
+            box-shadow: 0 3px 10px rgba(247, 159, 38, 0.3);
+        }
+
+        &:disabled {
+            background: rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.1);
+            color: rgba(0, 0, 0, 0.4);
+            cursor: not-allowed;
+        }
     }
 
     .trip-suggestions-dont-forget {

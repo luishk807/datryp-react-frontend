@@ -21,6 +21,11 @@ export interface TripSuggestionItem {
     why: string;
     estimatedCostUsd: number | null;
     durationHours: number | null;
+    /** Unsplash hero photo for the card. Null when no match — the
+     *  card falls back to a neutral gradient placeholder. */
+    imageUrl: string | null;
+    photographerName: string | null;
+    photographerUrl: string | null;
 }
 
 export interface TripSuggestionsResult {
@@ -35,6 +40,9 @@ interface RawSuggestion {
     why: string;
     estimated_cost_usd: number | null;
     duration_hours: number | null;
+    image_url: string | null;
+    photographer_name: string | null;
+    photographer_url: string | null;
 }
 
 interface RawResponse {
@@ -70,6 +78,9 @@ const toSuggestion = (r: RawSuggestion): TripSuggestionItem => ({
     why: r.why,
     estimatedCostUsd: r.estimated_cost_usd,
     durationHours: r.duration_hours,
+    imageUrl: r.image_url,
+    photographerName: r.photographer_name,
+    photographerUrl: r.photographer_url,
 });
 
 export const fetchTripSuggestions = async (

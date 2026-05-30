@@ -11,8 +11,9 @@ import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import LightbulbRoundedIcon from "@mui/icons-material/LightbulbRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
-import ButtonIcon from "components/common/FormFields/ButtonIcon";
 import { useTripSuggestions } from "api/hooks/useTripSuggestions";
 import { TripSuggestionsBackendError } from "api/tripSuggestionsApi";
 import { capture } from "lib/posthog";
@@ -119,6 +120,11 @@ const TripSuggestionsCard = ({
     const [pickerSuggestion, setPickerSuggestion] =
         useState<TripSuggestionItem | null>(null);
     const [addedToast, setAddedToast] = useState<string | null>(null);
+    // Local collapse state. Defaults to false (visible) so a fresh
+    // generate auto-expands; the user can hide once they're satisfied
+    // and unhide later without re-firing the AI call. Reset on every
+    // new generation by the handleGenerate flow below.
+    const [isHidden, setIsHidden] = useState(false);
 
     // Pro-gating + lifecycle: lightbulb is wasted real estate on free
     // accounts and on trips past Planning. Server also enforces both
@@ -133,7 +139,16 @@ const TripSuggestionsCard = ({
 
     const handleGenerate = () => {
         capture("lightbulb_clicked", { trip_id: tripId });
+        setIsHidden(false);
         mutation.mutate({ tripId });
+    };
+
+    const handleToggleHide = () => {
+        capture("lightbulb_toggled", {
+            trip_id: tripId,
+            next_hidden: !isHidden,
+        });
+        setIsHidden((h) => !h);
     };
 
     const handlePickDay = (suggestion: TripSuggestionItem, day: PickerDay) => {
@@ -195,8 +210,14 @@ const TripSuggestionsCard = ({
     };
 
     const hasResults = !!mutation.data && !mutation.isPending;
+    // Panel renders during loading + error states regardless of hide,
+    // and when results exist + the user hasn't hidden them. The hide
+    // toggle only applies to the results state — loading/error always
+    // surface so the user knows the AI call is in flight or failed.
     const showPanel =
-        mutation.isPending || mutation.isError || hasResults;
+        mutation.isPending ||
+        mutation.isError ||
+        (hasResults && !isHidden);
     const triggerLabel = mutation.isPending
         ? "Conjuring ideas…"
         : hasResults
@@ -206,6 +227,21 @@ const TripSuggestionsCard = ({
     return (
         <>
             <div className="trip-suggestions-trigger-row">
+                {hasResults && (
+                    <button
+                        type="button"
+                        className="trip-suggestions-trigger trip-suggestions-trigger-hide"
+                        onClick={handleToggleHide}
+                        aria-label={isHidden ? "Show suggestions" : "Hide suggestions"}
+                    >
+                        {isHidden ? (
+                            <VisibilityOutlinedIcon fontSize="small" />
+                        ) : (
+                            <VisibilityOffOutlinedIcon fontSize="small" />
+                        )}
+                        <span>{isHidden ? "Show ideas" : "Hide ideas"}</span>
+                    </button>
+                )}
                 <button
                     type="button"
                     className="trip-suggestions-trigger"
@@ -245,48 +281,76 @@ const TripSuggestionsCard = ({
                                         key={`${s.name}-${i}`}
                                         className="trip-suggestion-card"
                                     >
-                                        <div className="trip-suggestion-card-head">
-                                            <h4 className="trip-suggestion-card-name">
-                                                {s.name}
-                                            </h4>
+                                        <div className="trip-suggestion-card-media">
+                                            {s.imageUrl ? (
+                                                <img
+                                                    src={s.imageUrl}
+                                                    alt={s.name}
+                                                    loading="lazy"
+                                                />
+                                            ) : (
+                                                <div
+                                                    className="trip-suggestion-card-media-fallback"
+                                                    aria-hidden="true"
+                                                >
+                                                    <LightbulbOutlinedIcon
+                                                        fontSize="large"
+                                                    />
+                                                </div>
+                                            )}
                                             {s.category && (
                                                 <span className="trip-suggestion-card-chip">
                                                     {s.category}
                                                 </span>
                                             )}
+                                            {s.photographerName && s.photographerUrl && (
+                                                <a
+                                                    href={s.photographerUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="trip-suggestion-card-credit"
+                                                >
+                                                    © {s.photographerName}
+                                                </a>
+                                            )}
                                         </div>
-                                        {s.place && (
-                                            <p className="trip-suggestion-card-place">
-                                                {s.place}
+                                        <div className="trip-suggestion-card-body">
+                                            <h4 className="trip-suggestion-card-name">
+                                                {s.name}
+                                            </h4>
+                                            {s.place && (
+                                                <p className="trip-suggestion-card-place">
+                                                    {s.place}
+                                                </p>
+                                            )}
+                                            <p className="trip-suggestion-card-why">
+                                                {s.why}
                                             </p>
-                                        )}
-                                        <p className="trip-suggestion-card-why">
-                                            {s.why}
-                                        </p>
-                                        <div className="trip-suggestion-card-meta">
-                                            {s.estimatedCostUsd != null && (
-                                                <span>
-                                                    ~${s.estimatedCostUsd}
-                                                </span>
-                                            )}
-                                            {s.durationHours != null && (
-                                                <span>
-                                                    ~{s.durationHours}h
-                                                </span>
-                                            )}
+                                            <div className="trip-suggestion-card-meta">
+                                                {s.estimatedCostUsd != null && (
+                                                    <span>
+                                                        ~${s.estimatedCostUsd}
+                                                    </span>
+                                                )}
+                                                {s.durationHours != null && (
+                                                    <span>
+                                                        ~{s.durationHours}h
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="trip-suggestion-card-add"
+                                                onClick={() =>
+                                                    setPickerSuggestion(s)
+                                                }
+                                                disabled={!isOrganizer}
+                                                aria-label={`Add ${s.name} to trip`}
+                                            >
+                                                <AddRoundedIcon fontSize="small" />
+                                                <span>Add to trip</span>
+                                            </button>
                                         </div>
-                                        <ButtonIcon
-                                            type="standard"
-                                            title="Add to trip"
-                                            Icon={AddRoundedIcon}
-                                            iconPosition="start"
-                                            iconProps={{ fontSize: "small" }}
-                                            onClick={() =>
-                                                setPickerSuggestion(s)
-                                            }
-                                            disabled={!isOrganizer}
-                                            className="trip-suggestion-card-add"
-                                        />
                                     </article>
                                 ))}
                             </div>
