@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Alert, CircularProgress } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import classnames from "classnames";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import { useTripCheckup } from "api/hooks/useTripCheckup";
@@ -24,16 +25,16 @@ interface TripCheckupCardProps {
     isPlanning: boolean;
 }
 
-const tone = (score: number): "great" | "good" | "warn" | "bad" => {
+type ToneKey = "great" | "good" | "warn" | "bad";
+
+const scoreTone = (score: number): ToneKey => {
     if (score >= 85) return "great";
     if (score >= 70) return "good";
     if (score >= 50) return "warn";
     return "bad";
 };
 
-const dimensionTone = (
-    verdict: string,
-): "great" | "good" | "warn" | "bad" => {
+const dimensionTone = (verdict: string): ToneKey => {
     switch (verdict) {
         case "Strong":
             return "great";
@@ -48,27 +49,52 @@ const dimensionTone = (
     }
 };
 
-const DimensionMeter = ({
+const DimensionChip = ({
     label,
     data,
+    isOpen,
+    onToggle,
 }: {
     label: string;
     data: TripCheckupDimension;
+    isOpen: boolean;
+    onToggle: () => void;
 }) => {
     const t = dimensionTone(data.verdict);
     return (
-        <div className={classnames("trip-checkup-dim", `trip-checkup-tone-${t}`)}>
-            <div className="trip-checkup-dim-head">
-                <span className="trip-checkup-dim-label">{label}</span>
-                <span className="trip-checkup-dim-verdict">{data.verdict}</span>
-            </div>
+        <div
+            className={classnames(
+                "trip-checkup-dim",
+                `trip-checkup-tone-${t}`,
+                isOpen && "is-open",
+            )}
+        >
+            <button
+                type="button"
+                className="trip-checkup-dim-head"
+                onClick={onToggle}
+                aria-expanded={isOpen}
+            >
+                <div className="trip-checkup-dim-head-text">
+                    <span className="trip-checkup-dim-label">{label}</span>
+                    <span className="trip-checkup-dim-verdict">
+                        {data.verdict}
+                    </span>
+                </div>
+                <ExpandMoreRoundedIcon
+                    className="trip-checkup-dim-chevron"
+                    fontSize="small"
+                />
+            </button>
             <div className="trip-checkup-dim-bar">
                 <span
                     className="trip-checkup-dim-bar-fill"
-                    style={{ width: `${Math.max(2, Math.min(100, data.score))}%` }}
+                    style={{
+                        width: `${Math.max(2, Math.min(100, data.score))}%`,
+                    }}
                 />
             </div>
-            <p className="trip-checkup-dim-why">{data.why}</p>
+            {isOpen && <p className="trip-checkup-dim-why">{data.why}</p>}
         </div>
     );
 };
@@ -78,20 +104,18 @@ const TripCheckupCard = ({
     isPro,
     isPlanning,
 }: TripCheckupCardProps) => {
-    const mutation = useTripCheckup();
+    const enabled = isPro && isPlanning;
+    const query = useTripCheckup({ tripId, enabled });
     const [isHidden, setIsHidden] = useState(false);
+    const [openDim, setOpenDim] = useState<"budget" | "time" | "activities" | null>(
+        null,
+    );
 
-    if (!isPro || !isPlanning) return null;
+    if (!enabled || isHidden) return null;
 
-    const hasResults = !!mutation.data && !mutation.isPending;
-    const hasPanelContent =
-        mutation.isPending || mutation.isError || hasResults;
-    const showPanel = hasPanelContent && !isHidden;
-
-    const handleGenerate = () => {
-        capture("trip_checkup_clicked", { trip_id: tripId });
-        setIsHidden(false);
-        mutation.mutate({ tripId });
+    const handleRefresh = () => {
+        capture("trip_checkup_refreshed", { trip_id: tripId });
+        void query.refetch();
     };
 
     const handleClose = () => {
@@ -99,8 +123,12 @@ const TripCheckupCard = ({
         setIsHidden(true);
     };
 
+    const toggleDim = (key: "budget" | "time" | "activities") => {
+        setOpenDim((prev) => (prev === key ? null : key));
+    };
+
     const renderError = () => {
-        const err = mutation.error;
+        const err = query.error;
         let message = "Couldn't run the checkup. Try again in a moment.";
         if (err instanceof TripCheckupBackendError) {
             if (err.kind === "trip_checkup_not_planning") {
@@ -124,7 +152,7 @@ const TripCheckupCard = ({
                     <ButtonCustom
                         type="text"
                         label="Retry"
-                        onClick={handleGenerate}
+                        onClick={handleRefresh}
                     />
                 }
             >
@@ -133,144 +161,157 @@ const TripCheckupCard = ({
         );
     };
 
-    const triggerLabel = mutation.isPending
-        ? "Scoring trip…"
-        : hasResults
-          ? "Re-check"
-          : "Check my trip";
-
-    const overallTone = hasResults ? tone(mutation.data!.score) : null;
+    const data = query.data ?? null;
+    const overallTone: ToneKey | null = data ? scoreTone(data.score) : null;
+    const score = data?.score ?? null;
+    // Marker position along the 0-100 horizontal meter. Clamp inset so
+    // the marker doesn't clip the rail's rounded end caps.
+    const markerLeft =
+        score == null ? null : Math.max(2, Math.min(98, score));
 
     return (
-        <>
-            <div className="trip-checkup-trigger-row">
-                <button
-                    type="button"
-                    className="trip-checkup-trigger"
-                    onClick={handleGenerate}
-                    disabled={mutation.isPending}
-                    aria-label={triggerLabel}
-                >
-                    <HealthAndSafetyRoundedIcon
-                        className="trip-checkup-trigger-icon"
-                        fontSize="small"
-                    />
-                    <span>{triggerLabel}</span>
-                </button>
-            </div>
+        <section
+            className={classnames(
+                "trip-checkup-box",
+                overallTone && `trip-checkup-tone-${overallTone}`,
+                !data && "is-pending",
+            )}
+            aria-label="Trip readiness checkup"
+        >
+            <button
+                type="button"
+                className="trip-checkup-close"
+                onClick={handleClose}
+                aria-label="Hide trip checkup"
+            >
+                <CloseRoundedIcon fontSize="small" />
+            </button>
 
-            {showPanel && (
-                <section
-                    className={classnames(
-                        "trip-checkup-card",
-                        overallTone && `trip-checkup-tone-${overallTone}`,
+            <header className="trip-checkup-head">
+                <span className="trip-checkup-head-icon">
+                    <HealthAndSafetyRoundedIcon />
+                </span>
+                <div className="trip-checkup-head-text">
+                    <h3 className="trip-checkup-title">Trip readiness</h3>
+                    {query.isLoading && (
+                        <span className="trip-checkup-sub">
+                            <CircularProgress size={12} /> Analyzing your
+                            plan…
+                        </span>
                     )}
-                    aria-label="Trip readiness checkup"
-                >
+                    {!query.isLoading && data && (
+                        <span className="trip-checkup-sub">
+                            <strong>{data.verdict}</strong>
+                            {' · '}
+                            {data.summary}
+                        </span>
+                    )}
+                    {!query.isLoading && !data && query.isError && (
+                        <span className="trip-checkup-sub">
+                            Couldn&rsquo;t score the trip — try again.
+                        </span>
+                    )}
+                </div>
+                {data && (
                     <button
                         type="button"
-                        className="trip-checkup-close"
-                        onClick={handleClose}
-                        aria-label="Hide trip checkup"
+                        className="trip-checkup-refresh"
+                        onClick={handleRefresh}
+                        disabled={query.isFetching}
+                        aria-label="Re-check trip"
+                        title="Re-check"
                     >
-                        <CloseRoundedIcon fontSize="small" />
+                        <RefreshRoundedIcon
+                            fontSize="small"
+                            className={query.isFetching ? "is-spinning" : ""}
+                        />
                     </button>
+                )}
+            </header>
 
-                    {mutation.isPending && (
-                        <div className="trip-checkup-loading">
-                            <CircularProgress size={20} />
-                            <span>
-                                Reviewing your plan — budget, time,
-                                activities…
-                            </span>
-                        </div>
-                    )}
+            {query.isError && !data && renderError()}
 
-                    {mutation.isError && renderError()}
-
-                    {hasResults && (
-                        <>
-                            <header className="trip-checkup-head">
-                                <div
-                                    className="trip-checkup-score"
-                                    aria-label={`Trip readiness ${mutation.data!.score} out of 100`}
-                                >
-                                    <span className="trip-checkup-score-num">
-                                        {mutation.data!.score}
-                                    </span>
-                                    <span className="trip-checkup-score-out">
-                                        / 100
-                                    </span>
-                                </div>
-                                <div className="trip-checkup-headline">
-                                    <span className="trip-checkup-verdict">
-                                        <HealthAndSafetyOutlinedIcon
-                                            className="trip-checkup-verdict-icon"
-                                            fontSize="small"
-                                        />
-                                        {mutation.data!.verdict}
-                                    </span>
-                                    <p className="trip-checkup-summary">
-                                        {mutation.data!.summary}
-                                    </p>
-                                </div>
-                            </header>
-
-                            <div className="trip-checkup-dims">
-                                <DimensionMeter
-                                    label="Budget"
-                                    data={mutation.data!.budgetAssessment}
-                                />
-                                <DimensionMeter
-                                    label="Time"
-                                    data={mutation.data!.timeAssessment}
-                                />
-                                <DimensionMeter
-                                    label="Activities"
-                                    data={mutation.data!.activityAssessment}
-                                />
+            {(query.isLoading || data) && (
+                <div className="trip-checkup-meter-wrap">
+                    <div className="trip-checkup-meter">
+                        <div className="trip-checkup-meter-grad" />
+                        {markerLeft !== null && (
+                            <div
+                                className="trip-checkup-meter-marker"
+                                style={{ left: `${markerLeft}%` }}
+                                aria-label={`Score ${score}`}
+                            >
+                                <span className="trip-checkup-meter-marker-pin" />
+                                <span className="trip-checkup-meter-marker-num">
+                                    {score}
+                                </span>
                             </div>
+                        )}
+                    </div>
+                    <div className="trip-checkup-meter-scale">
+                        <span>0</span>
+                        <span>50</span>
+                        <span>100</span>
+                    </div>
+                </div>
+            )}
 
-                            {(mutation.data!.strengths.length > 0 ||
-                                mutation.data!.gaps.length > 0) && (
-                                <div className="trip-checkup-lists">
-                                    {mutation.data!.strengths.length > 0 && (
-                                        <div className="trip-checkup-list trip-checkup-list-strengths">
-                                            <h4>
-                                                <CheckCircleRoundedIcon fontSize="small" />
-                                                What&rsquo;s working
-                                            </h4>
-                                            <ul>
-                                                {mutation.data!.strengths.map(
-                                                    (s, i) => (
-                                                        <li key={i}>{s}</li>
-                                                    ),
-                                                )}
-                                            </ul>
-                                        </div>
-                                    )}
-                                    {mutation.data!.gaps.length > 0 && (
-                                        <div className="trip-checkup-list trip-checkup-list-gaps">
-                                            <h4>
-                                                <ErrorOutlineRoundedIcon fontSize="small" />
-                                                What to address
-                                            </h4>
-                                            <ul>
-                                                {mutation.data!.gaps.map(
-                                                    (g, i) => (
-                                                        <li key={i}>{g}</li>
-                                                    ),
-                                                )}
-                                            </ul>
-                                        </div>
-                                    )}
+            {data && (
+                <>
+                    <div className="trip-checkup-dims">
+                        <DimensionChip
+                            label="Budget"
+                            data={data.budgetAssessment}
+                            isOpen={openDim === "budget"}
+                            onToggle={() => toggleDim("budget")}
+                        />
+                        <DimensionChip
+                            label="Time"
+                            data={data.timeAssessment}
+                            isOpen={openDim === "time"}
+                            onToggle={() => toggleDim("time")}
+                        />
+                        <DimensionChip
+                            label="Activities"
+                            data={data.activityAssessment}
+                            isOpen={openDim === "activities"}
+                            onToggle={() => toggleDim("activities")}
+                        />
+                    </div>
+
+                    {(data.strengths.length > 0 || data.gaps.length > 0) && (
+                        <div className="trip-checkup-lists">
+                            {data.strengths.length > 0 && (
+                                <div className="trip-checkup-list trip-checkup-list-strengths">
+                                    <h4>
+                                        <CheckCircleRoundedIcon fontSize="small" />
+                                        What&rsquo;s working
+                                    </h4>
+                                    <ul>
+                                        {data.strengths.map((s, i) => (
+                                            <li key={i}>{s}</li>
+                                        ))}
+                                    </ul>
                                 </div>
                             )}
-                        </>
+                            {data.gaps.length > 0 && (
+                                <div className="trip-checkup-list trip-checkup-list-gaps">
+                                    <h4>
+                                        <ErrorOutlineRoundedIcon fontSize="small" />
+                                        What to address
+                                    </h4>
+                                    <ul>
+                                        {data.gaps.map((g, i) => (
+                                            <li key={i}>{g}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                     )}
-                </section>
+                </>
             )}
-        </>
+        </section>
     );
 };
 
