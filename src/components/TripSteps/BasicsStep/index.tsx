@@ -76,6 +76,31 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     })();
     const countryCode = rootCountry?.code ?? null;
 
+    // Pull the seeded "Flight to <city>" / "Train to <city>" activity
+    // name when we have one — that's where CityDetail entry stashes
+    // the city. Lets us show "Going to Paris, France" instead of just
+    // "Going to France" when the trip was started from a city page,
+    // and lets the AI budget request anchor to that city for more
+    // realistic pricing.
+    const inferredCity = (() => {
+        const firstDayActivities =
+            data?.destinations?.[0]?.itinerary?.[0]?.activities ?? [];
+        for (const a of firstDayActivities) {
+            const m =
+                typeof a.name === 'string'
+                    ? /^(?:Flight|Train) to (.+)$/.exec(a.name)
+                    : null;
+            if (m && m[1]) return m[1];
+        }
+        return null;
+    })();
+
+    const destinationLabel = (() => {
+        if (!rootCountry?.name) return null;
+        if (inferredCity) return `${inferredCity}, ${rootCountry.name}`;
+        return rootCountry.name;
+    })();
+
     // Tracks the most recent AI total so we (a) avoid refetching the
     // same (country, days, start_date, style) combo and (b) know when
     // the input still holds the AI value vs the user has edited it
@@ -280,30 +305,6 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
             addPlace({ date: newEndDate, value: returnActivity, index: 0 }),
         );
     };
-
-    // Pull the seeded "Flight to <city>" / "Train to <city>" activity
-    // name when we have one — that's where CityDetail entry stashes
-    // the city. Lets us show "Going to Paris, France" instead of just
-    // "Going to France" when the trip was started from a city page.
-    // Falls back gracefully when the activity wasn't seeded that way.
-    const inferredCity = (() => {
-        const firstDayActivities =
-            data?.destinations?.[0]?.itinerary?.[0]?.activities ?? [];
-        for (const a of firstDayActivities) {
-            const m =
-                typeof a.name === 'string'
-                    ? /^(?:Flight|Train) to (.+)$/.exec(a.name)
-                    : null;
-            if (m && m[1]) return m[1];
-        }
-        return null;
-    })();
-
-    const destinationLabel = (() => {
-        if (!rootCountry?.name) return null;
-        if (inferredCity) return `${inferredCity}, ${rootCountry.name}`;
-        return rootCountry.name;
-    })();
 
     return (
         <div className="trip-basics-step">
