@@ -145,6 +145,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
             currentBudgetStr !== lastAiStr;
         if (userEdited) return;
         lastRequestKeyRef.current = requestKey;
+        console.log('[budget-ai] firing', requestKey);
         budgetSuggestionMutate(
             {
                 countryCode,
@@ -157,6 +158,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
             },
             {
                 onSuccess: (result) => {
+                    console.log('[budget-ai] success', result);
                     if (result?.suggestedTotal != null) {
                         lastAiTotalRef.current = result.suggestedTotal;
                         onChange('budget', {
@@ -165,6 +167,9 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                             },
                         });
                     }
+                },
+                onError: (err) => {
+                    console.warn('[budget-ai] error', err);
                 },
             }
         );
