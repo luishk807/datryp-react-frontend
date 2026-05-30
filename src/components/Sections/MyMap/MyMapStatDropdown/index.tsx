@@ -126,14 +126,19 @@ const MyMapStatDropdown = ({
                                         }}
                                     >
                                         <span className="my-map-stat-dropdown-item-label">
-                                            {opt.tripCount &&
-                                                opt.tripCount > 0 && (
-                                                    <span
-                                                        className="my-map-stat-dropdown-item-dot"
-                                                        aria-label={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
-                                                        title={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
-                                                    />
-                                                )}
+                                            {/* Guard with a strict > 0 ternary
+                                              * because `opt.tripCount && …` renders
+                                              * the literal `0` before the label
+                                              * when tripCount === 0 (React renders
+                                              * the number 0, only false/null/undef
+                                              * are skipped). */}
+                                            {(opt.tripCount ?? 0) > 0 ? (
+                                                <span
+                                                    className="my-map-stat-dropdown-item-dot"
+                                                    aria-label={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
+                                                    title={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
+                                                />
+                                            ) : null}
                                             {opt.label}
                                         </span>
                                         {opt.sublabel && (

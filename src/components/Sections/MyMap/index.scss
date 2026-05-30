@@ -234,14 +234,16 @@
 @media (max-width: 720px) {
   .my-map-intro {
     width: calc(100% - 24px);
-    bottom: 12px;
+    // Lifted to clear the fixed BottomNav (~88px tall with safe-area).
+    bottom: 96px;
     right: 12px;
     padding: 14px 14px 12px;
     gap: 10px;
   }
 
   .my-map-intro-pill {
-    bottom: 12px;
+    // Same BottomNav-clearance lift as the expanded panel.
+    bottom: 96px;
     right: 12px;
   }
 
@@ -583,18 +585,21 @@
 }
 
 @media (max-width: 720px) {
-  /* Phone: dock the panel at the bottom of the map and scroll the
-   * trip cards horizontally — bottom-sheet style. Keeps the map
-   * viewport usable while still surfacing the trips list one swipe
-   * away. The header sits as a thin row across the top of the
-   * panel; the list flips to a horizontal row of fixed-width cards
-   * below it. */
+  /* Phone: dock the panel above the BottomNav, narrower than the
+   * full viewport so it doesn't feel like a slab. Centered
+   * horizontally and capped to ~360px so the trip-card row inside
+   * still reads as a tight focused widget instead of a panel with a
+   * lonely card on the left and dead space on the right. The cards
+   * scroll horizontally bottom-sheet style — header on top, list
+   * below. */
   .my-map-trips-panel {
     top: auto;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    width: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    // Lift above the fixed BottomNav (~88px tall with safe-area).
+    bottom: 96px;
+    width: min(360px, calc(100vw - 24px));
     max-height: none;
     animation-name: my-map-trips-panel-in-bottom;
   }
@@ -666,13 +671,17 @@
 }
 
 @keyframes my-map-trips-panel-in-bottom {
+  /* Includes the translateX(-50%) centering offset applied via the
+   * @media rule above — without it, the keyframe's transform would
+   * override centering and the panel would snap to the left edge
+   * mid-animation. */
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translate(-50%, 12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
   }
 }
 

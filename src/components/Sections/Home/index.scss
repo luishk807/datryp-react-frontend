@@ -690,13 +690,14 @@
     font-size: 0.72rem;
   }
 
-  /* Phone sizing for the AI trip-builder callout — full-width CTA
-   * so the tap target meets the iOS 44pt minimum. Tagline shrinks
-   * slightly so the column doesn't push the next homepage section
-   * too far down on small screens. */
+  /* Phone sizing for the AI trip-builder callout — match the search
+   * pill's full-width treatment so the CTA reads as a peer affordance
+   * instead of a smaller, centered button with breathing room only on
+   * the right. Tagline shrinks slightly so the column doesn't push
+   * the next homepage section too far down on small screens. */
   .home-hero-ai-callout {
     width: 100%;
-    max-width: 380px;
+    max-width: none;
     margin-top: 0;
     gap: 6px;
   }
