@@ -1,6 +1,7 @@
 import {
     createContext,
     useContext,
+    useEffect,
     useMemo,
     useRef,
     useState,
@@ -224,17 +225,18 @@ const StepperComp = ({
     // single-page edit layout instead of the new-trip wizard.
     const isEditing = !!data?.apiId;
 
-    const [activeStep, setActiveStepRaw] = useState(0);
-    // Wrap setActiveStep so any caller fires the parent callback too.
-    // Keeps TripSteps' tour-aware copy of the active step in lockstep
-    // with the stepper's internal state.
-    const setActiveStep = (next: number | ((prev: number) => number)) => {
-        setActiveStepRaw((prev) => {
-            const resolved = typeof next === 'function' ? next(prev) : next;
-            onActiveStepChange?.(resolved);
-            return resolved;
-        });
-    };
+    const [activeStep, setActiveStep] = useState(0);
+    // Mirror the active step out to TripSteps via the parent callback.
+    // PREVIOUSLY this was fired inline inside a setState updater fn,
+    // which is run during render → calling the parent's setState
+    // there produced "Cannot update a component while rendering a
+    // different component" warnings AND aborted the current render
+    // (e.g. dispatched trip-seed activities silently failed to commit
+    // when this stepper rendered them). Sync via useEffect instead:
+    // fires post-commit, never during render.
+    useEffect(() => {
+        onActiveStepChange?.(activeStep);
+    }, [activeStep, onActiveStepChange]);
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
     // Per-save opt-out for participant notifications. Defaults ON;

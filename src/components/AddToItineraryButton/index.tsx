@@ -8,6 +8,8 @@ import { useTripDispatch } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
 import { useItineraryTypes, useTripStatuses } from 'api/hooks/useLookups';
 import { useMyItineraries, useSaveItinerary } from 'api/hooks/useItineraries';
+import { useNearestAirport } from 'api/hooks/useHomeDeparture';
+import { fetchNearestAirportForCoords } from 'api/homeDepartureApi';
 import { apiToTripState } from 'utils/itineraryAdapter';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
 import {
@@ -67,6 +69,11 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
     const { data: itineraryTypes = [] } = useItineraryTypes();
     const { data: tripStatuses = [] } = useTripStatuses();
     const saveItinerary = useSaveItinerary();
+    // User's home airport — drives the OUTBOUND depart side of the
+    // seeded Day-1 flight pair. Null when the user hasn't set a home
+    // base; in that case we skip the flight seed entirely (same as
+    // CityDetail / CountryDetail).
+    const { data: nearestAirport } = useNearestAirport();
 
     if (!user) return null;
 
@@ -98,9 +105,40 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
         return undefined;
     })();
 
-    const startFreshFlow = () => {
+    const startFreshFlow = async () => {
         if (!country) return;
-        dispatchStartFreshTrip(place, country, dispatch);
+        // Look up the destination's nearest airport from the place's
+        // lat/lng. We seed flights only when BOTH home + destination
+        // airports resolve — partial seeds with one side missing are
+        // worse UX than skipping the seed (same rule as CityDetail).
+        // The lookup is a single auth-gated GET and tolerates a slow
+        // network: we await it, but a 1-2s wait is fine for an
+        // explicit "Start a new trip" click.
+        let airports: { departAirportCode: string; arrivalAirportCode: string } | undefined;
+        if (
+            nearestAirport?.iataCode &&
+            place.latitude != null &&
+            place.longitude != null
+        ) {
+            try {
+                const destAirport = await fetchNearestAirportForCoords(
+                    place.latitude,
+                    place.longitude,
+                );
+                if (destAirport?.iataCode) {
+                    airports = {
+                        departAirportCode: nearestAirport.iataCode,
+                        arrivalAirportCode: destAirport.iataCode,
+                    };
+                }
+            } catch {
+                // Silent skip — a transient lookup failure shouldn't
+                // block the user from starting the trip. They land
+                // without flights seeded, same as the no-home-base
+                // case.
+            }
+        }
+        dispatchStartFreshTrip(place, country, dispatch, airports);
         setToast(`Started a new trip with ${place.name}`);
         navigate(TRIP_BASIC.SINGLE.route);
     };

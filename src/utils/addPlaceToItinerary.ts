@@ -21,7 +21,7 @@ import {
     resetTrip,
     type TripAction,
 } from 'context/TripContext';
-import { TRIP_BASIC } from 'constants';
+import { ACTIVITY_KIND, TRIP_BASIC } from 'constants';
 import { now, isSameDay } from 'utils';
 import type {
     Activity,
@@ -120,15 +120,33 @@ const earliestDateOf = (dest: Destination, tripStart?: string): string => {
     return dest.startDate ?? tripStart ?? now();
 };
 
+/** Optional pair of IATA codes (home + destination) used to seed Day-1
+ *  outbound + return flight activities alongside the place. Caller is
+ *  expected to look both up via `useNearestAirport()` (home) and
+ *  `fetchNearestAirportForCoords(place.lat, place.lng)` (destination)
+ *  and pass them in; if either is missing we silently skip the flight
+ *  seed, same as CityDetail/CountryDetail. */
+export interface FlightSeedAirports {
+    departAirportCode: string;
+    arrivalAirportCode: string;
+}
+
 /** Wipe the current draft and seed a fresh single-destination trip
  *  centered on `place`. Both the trip-level image (for the trip card
  *  thumbnail) and the activity image (for the place row inside the
- *  itinerary) are populated when `place.imageUrl` is set — that fixes
- *  the "main image is also saved" requirement. */
+ *  itinerary) are populated when `place.imageUrl` is set.
+ *
+ *  When `airports` is passed (home + destination IATA known), we also
+ *  seed BOTH Day-1 flight activities — outbound and return — so the
+ *  user lands with a round-trip already on the timeline, same shape
+ *  as the CityDetail / CountryDetail "Start planning" path. The
+ *  return leg gets relocated to the new end date when the user picks
+ *  a multi-day end date in the BasicsStep stepper. */
 export const dispatchStartFreshTrip = (
     place: AddablePlace,
     country: Country,
-    dispatch: (action: TripAction) => void
+    dispatch: (action: TripAction) => void,
+    airports?: FlightSeedAirports,
 ): void => {
     const today = now();
     dispatch(resetTrip());
@@ -136,7 +154,24 @@ export const dispatchStartFreshTrip = (
         basicInfo({
             type: TRIP_BASIC.SINGLE,
             name: `Trip to ${country.name}`,
-            destinations: [{ country }] as Destination[],
+            destinations: [
+                {
+                    country,
+                    // Seed the destination-level `flightInfo.arrivalAirport`
+                    // when known — same pattern as CityDetail. Filled in
+                    // here (not in a follow-up dispatch) so the
+                    // destination card has the arrival side pre-set on
+                    // first paint.
+                    ...(airports?.arrivalAirportCode
+                        ? {
+                              flightInfo: {
+                                  arrivalAirport:
+                                      airports.arrivalAirportCode,
+                              },
+                          }
+                        : {}),
+                },
+            ] as Destination[],
             startDate: today,
             endDate: today,
             // Seed the trip-level image so the /trips card has a
@@ -146,6 +181,54 @@ export const dispatchStartFreshTrip = (
             image: place.imageUrl ?? country.image ?? undefined,
         })
     );
+    // Day-1 round-trip flights — only when BOTH airports are known.
+    // Reducer's `basicInfo` handler assigns real ids to id:0 seeded
+    // activities, so `BasicsStep.handleEndDateChange` can identify
+    // the return leg and move it to the last day on end-date pick.
+    if (airports) {
+        dispatch(
+            addPlace({
+                value: {
+                    kind: ACTIVITY_KIND.FLIGHT,
+                    name: `Flight to ${place.city}`,
+                    flightSegments: [
+                        {
+                            departAirport: airports.departAirportCode,
+                            arrivalAirport: airports.arrivalAirportCode,
+                            departDate: today,
+                            departTime: '00:00',
+                            arrivalDate: today,
+                            arrivalTime: '00:00',
+                        },
+                    ],
+                },
+                index: 0,
+                date: today,
+                destinationIndx: 0,
+            })
+        );
+        dispatch(
+            addPlace({
+                value: {
+                    kind: ACTIVITY_KIND.FLIGHT,
+                    name: `Flight back to ${airports.departAirportCode}`,
+                    flightSegments: [
+                        {
+                            departAirport: airports.arrivalAirportCode,
+                            arrivalAirport: airports.departAirportCode,
+                            departDate: today,
+                            departTime: '00:00',
+                            arrivalDate: today,
+                            arrivalTime: '00:00',
+                        },
+                    ],
+                },
+                index: 0,
+                date: today,
+                destinationIndx: 0,
+            })
+        );
+    }
     dispatch(
         addPlace({
             value: placeToActivity(place),

@@ -105,6 +105,33 @@ export const fetchNearestAirport = async (): Promise<NearestAirport | null> => {
     return body.airport ? toAirport(body.airport) : null;
 };
 
+/** Generic coord-based airport lookup — "what's the airport closest to
+ *  these coordinates" without reference to the caller's home. Used by
+ *  the "Start fresh trip from a place result" flow so it can seed the
+ *  destination's arrival airport without the FE knowing the airport
+ *  code up front. Returns null when no airport in the catalog can be
+ *  resolved (rare; mainly mid-ocean coords). Auth-gated server-side. */
+export const fetchNearestAirportForCoords = async (
+    lat: number,
+    lng: number,
+): Promise<NearestAirport | null> => {
+    const params = new URLSearchParams({
+        lat: String(lat),
+        lng: String(lng),
+    });
+    const resp = await fetch(
+        `${API_BASE}/airports/nearest?${params}`,
+        { headers: authHeaders() },
+    );
+    if (!resp.ok) {
+        throw new Error(
+            `/airports/nearest ${resp.status} ${resp.statusText}`,
+        );
+    }
+    const body = (await resp.json()) as { airport: NearestAirportRaw | null };
+    return body.airport ? toAirport(body.airport) : null;
+};
+
 export const fetchNearestTrainStation = async (): Promise<NearestStation | null> => {
     const resp = await fetch(`${API_BASE}/me/nearest-train-station`, {
         headers: authHeaders(),
