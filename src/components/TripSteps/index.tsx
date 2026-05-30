@@ -270,6 +270,19 @@ const TripSteps = ({
                           onChangeBudget={onChangeBudget}
                           onChangeDestination={onChangeDestination}
                           lockActivityStatus={!tripInfo.apiId}
+                          // Forward the trip's lifecycle name to
+                          // DateBlock so the date dot / rail / soft
+                          // fill behind activities recolor to match
+                          // status (orange for Planning, etc.).
+                          // Without this, DateBlock defaulted to
+                          // status-confirmed (green) in the stepper
+                          // edit view.
+                          tripStatusName={
+                              tripInfo.status &&
+                              typeof tripInfo.status === 'object'
+                                  ? tripInfo.status.name
+                                  : undefined
+                          }
                       />
                   ),
               },

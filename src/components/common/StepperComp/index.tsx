@@ -489,8 +489,19 @@ const StepperComp = ({
     // the equivalent action for budget-only edits; this page handles the
     // bigger structural edits (name, dates, friends, places).
     if (isEditing) {
+        // Reuse TripDetail's status-themed wrapper so the basic-info
+        // card, budget summary, friend chips, and stat icons render in
+        // the trip's lifecycle color (orange for Planning, green for
+        // Confirmed, etc.) instead of the default green wash. Same
+        // CSS variables defined in src/components/Sections/TripDetail/index.scss.
+        const editStatusName = (
+            (data?.status && typeof data.status === 'object' && data.status.name) ||
+            'Planning'
+        ).toLowerCase();
         return (
-            <div className="stepperMain stepperMain--edit">
+            <div
+                className={`stepperMain stepperMain--edit trip-detail-themed trip-detail-status-${editStatusName}`}
+            >
                 {saveItinerary.isPending ? (
                     <div
                         style={{
