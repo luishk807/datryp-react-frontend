@@ -16,6 +16,12 @@ export interface PlaceSuggestionsProps {
     /** Country to constrain suggestions to. When empty the widget hides
      *  entirely — the recommender needs context to be useful. */
     country?: string;
+    /** City the trip is centered on. When provided, the recommender
+     *  query asks for top things in `<city>, <country>` instead of
+     *  the whole country, so a Boston trip stops surfacing the Statue
+     *  of Liberty or the Golden Gate Bridge. The heading also flips
+     *  to "Suggested for <city>". */
+    city?: string;
     /** Optional bias term — e.g. an arrival airport code, last visited
      *  city, or activity-type hint. Appended to the recommender query so
      *  results lean toward the user's current trip context. */
@@ -43,12 +49,22 @@ const LIMIT = 3;
  */
 const PlaceSuggestions = ({
     country,
+    city,
     bias,
     topic = 'top things to do',
     headingPrefix = 'Suggested for',
     onPick,
 }: PlaceSuggestionsProps) => {
     const trimmedCountry = country?.trim();
+    const trimmedCity = city?.trim();
+    // The recommender hits OpenAI with this geo string — prefer a
+    // city+country pair when known so a Boston trip doesn't keep
+    // suggesting the Golden Gate Bridge. Falls back to country-only
+    // when we don't have a city yet.
+    const geoScope = trimmedCity
+        ? `${trimmedCity}, ${trimmedCountry}`
+        : trimmedCountry;
+    const headingScope = trimmedCity || trimmedCountry;
     // Picker is rendered inside the trip editor — read the trip id off
     // the URL so the per-card "View" link carries it into /place. A new
     // /place tab with the trip id lets "Add to itinerary" persist
@@ -85,7 +101,7 @@ const PlaceSuggestions = ({
     const queryParts = [
         topic,
         bias?.trim() || '',
-        trimmedCountry ? `in ${trimmedCountry}` : '',
+        geoScope ? `in ${geoScope}` : '',
         shuffleNonce ? `(shuffle ${shuffleNonce})` : '',
     ].filter(Boolean);
     const query = queryParts.join(' ');
@@ -119,11 +135,11 @@ const PlaceSuggestions = ({
             className={classNames('place-suggestions', {
                 'is-hidden': hidden,
             })}
-            aria-label={`Suggested places in ${trimmedCountry}`}
+            aria-label={`Suggested places in ${headingScope}`}
         >
             <header className="place-suggestions-head">
                 <h4 className="place-suggestions-title">
-                    {headingPrefix} {trimmedCountry}
+                    {headingPrefix} {headingScope}
                 </h4>
                 <div className="place-suggestions-head-actions">
                     {!hidden && (

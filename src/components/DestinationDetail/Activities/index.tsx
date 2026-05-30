@@ -360,6 +360,43 @@ const Activities = ({
   // first dropping into the stepper editor.
   const statusToggleEnabled = allowStatusToggle ?? !isViewMode;
 
+  // Infer the trip's primary city from the activities we already
+  // have on this day so the AI suggestion strip narrows to that
+  // city instead of the whole country (a Boston trip shouldn't
+  // surface the Statue of Liberty / Golden Gate). Three sources, in
+  // order of trustworthiness:
+  //   1. The first activity with a structured `placeCity`
+  //   2. The city embedded in a seeded "Flight to <city>" or
+  //      "Train to <city>" activity name (the entry path from
+  //      CityDetail seeds these)
+  //   3. Walk all destinations' activities as a last-resort
+  //      fallback (covers the new-trip wizard before per-day data
+  //      is filled in)
+  const cityScope = useMemo<string | undefined>(() => {
+    const FROM_NAME = /^(?:Flight|Train) to (.+)$/i;
+    const scan = (list: Activity[] | null | undefined): string | undefined => {
+      for (const a of list ?? []) {
+        const city = a.placeCity?.trim();
+        if (city) return city;
+      }
+      for (const a of list ?? []) {
+        if (typeof a.name !== "string") continue;
+        const m = FROM_NAME.exec(a.name);
+        if (m && m[1]) return m[1].trim();
+      }
+      return undefined;
+    };
+    const direct = scan(activities);
+    if (direct) return direct;
+    for (const d of destinations ?? []) {
+      for (const day of d.itinerary ?? []) {
+        const fromDay = scan(day.activities);
+        if (fromDay) return fromDay;
+      }
+    }
+    return undefined;
+  }, [activities, destinations]);
+
   // Tracks the activity whose status pill the user just clicked, so
   // we can render "Saving…" + disable just that one pill until the
   // parent's autosave completes. The other pills stay live so the
@@ -894,6 +931,7 @@ const Activities = ({
                           type="edit"
                           data={activity}
                           countryScope={country}
+                          cityScope={cityScope}
                           triggerIcon={EditRoundedIcon}
                           triggerClassName="activity-edit-btn"
                           defaultDate={date}
@@ -1187,6 +1225,7 @@ const Activities = ({
               isViewMode={isViewMode}
               tripTypeId={tripTypeId}
               countryScope={country}
+              cityScope={cityScope}
               defaultDate={date}
               onChange={(e) => onChangePlace("add", e)}
             />

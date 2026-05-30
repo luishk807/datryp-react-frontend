@@ -147,6 +147,11 @@ export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activit
     /** Country scope for the AI autocomplete — keeps a Spain trip from
      *  suggesting the Eiffel Tower. Omit for a global search. */
     countryScope?: string;
+    /** Optional city scope. When provided, the AI suggestion strip
+     *  asks for top things in that city rather than the whole
+     *  country, so a Boston trip stops surfacing the Statue of
+     *  Liberty / Disney World / Golden Gate. */
+    cityScope?: string;
     /** When set, the modal trigger renders as an icon-only button with
      *  this icon (no text label). Use for inline edit affordances next to
      *  an activity title. Falls back to the text/standard button when omitted. */
@@ -169,6 +174,7 @@ const AddPlaceBtn = ({
     data = null,
     tripTypeId,
     countryScope,
+    cityScope,
     triggerIcon,
     triggerClassName,
     buttonType = BUTTON_VARIANT.STANDARD,
@@ -1600,6 +1606,7 @@ const AddPlaceBtn = ({
                                         <Grid item lg={12} xs={12} className="py-5">
                                             <PlaceSuggestions
                                                 country={countryScope}
+                                                city={cityScope}
                                                 onPick={handlePlacePicked}
                                             />
                                         </Grid>
@@ -2379,6 +2386,7 @@ const AddPlaceBtn = ({
                                         <Grid item lg={12} xs={12} className="pt-8 pb-5">
                                             <PlaceSuggestions
                                                 country={countryScope}
+                                                city={cityScope}
                                                 topic="top hotels"
                                                 headingPrefix="Suggested hotels in"
                                                 onPick={handlePlacePicked}
