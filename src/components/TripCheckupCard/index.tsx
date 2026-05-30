@@ -192,7 +192,7 @@ const TripCheckupCard = ({
                     <HealthAndSafetyRoundedIcon />
                 </span>
                 <div className="trip-checkup-head-text">
-                    <h3 className="trip-checkup-title">Trip readiness</h3>
+                    <h3 className="trip-checkup-title">Trip review</h3>
                     {query.isLoading && (
                         <span className="trip-checkup-sub">
                             <CircularProgress size={12} /> Analyzing your
