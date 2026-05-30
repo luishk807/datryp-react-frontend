@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+// Standalone lightbulb trigger that lives between the Planning banner
+// and the day blocks. Idle state is JUST this pill — no big container,
+// no marketing copy. The suggestions card below only mounts when there's
+// something to show (loading / error / results).
+.trip-suggestions-trigger-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: 8px 0 14px;
+}
+
+.trip-suggestions-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(247, 159, 38, 0.45);
+    background: rgba(255, 247, 230, 0.9);
+    color: theme('colors.primaryOrange');
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease,
+        transform 0.15s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(247, 159, 38, 0.14);
+        border-color: theme('colors.primaryOrange');
+        transform: translateY(-1px);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: progress;
+    }
+}
+
+.trip-suggestions-trigger-icon {
+    color: theme('colors.primaryOrange');
+}
+
 .trip-suggestions-card {
     width: 100%;
     box-sizing: border-box;
@@ -13,48 +54,11 @@
     border: 1px solid rgba(247, 159, 38, 0.35);
     border-radius: 16px;
     padding: 20px 22px;
-    margin: 12px 0 20px;
+    margin: 4px 0 20px;
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
     gap: 16px;
-
-    .trip-suggestions-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-        flex-wrap: wrap;
-    }
-
-    .trip-suggestions-headline {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        flex: 1;
-        min-width: 0;
-    }
-
-    .trip-suggestions-icon {
-        color: theme('colors.primaryOrange');
-        font-size: 28px;
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .trip-suggestions-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.85);
-        margin: 0 0 4px;
-    }
-
-    .trip-suggestions-sub {
-        font-size: 13px;
-        line-height: 1.4;
-        color: rgba(0, 0, 0, 0.6);
-        margin: 0;
-    }
 
     .trip-suggestions-loading {
         display: flex;

@@ -194,130 +194,120 @@ const TripSuggestionsCard = ({
         );
     };
 
+    const hasResults = !!mutation.data && !mutation.isPending;
+    const showPanel =
+        mutation.isPending || mutation.isError || hasResults;
+    const triggerLabel = mutation.isPending
+        ? "Conjuring ideas…"
+        : hasResults
+          ? "More ideas"
+          : "Get activity ideas";
+
     return (
         <>
-            <section
-                className="trip-suggestions-card"
-                aria-label="Lightbulb activity suggestions"
-            >
-                <header className="trip-suggestions-header">
-                    <div className="trip-suggestions-headline">
-                        <LightbulbRoundedIcon className="trip-suggestions-icon" />
-                        <div>
-                            <h3 className="trip-suggestions-title">
-                                Need more ideas?
-                            </h3>
-                            <p className="trip-suggestions-sub">
-                                Get 4–6 fresh activities tailored to where
-                                you&rsquo;re going and what you&rsquo;ve
-                                already planned.
-                            </p>
+            <div className="trip-suggestions-trigger-row">
+                <button
+                    type="button"
+                    className="trip-suggestions-trigger"
+                    onClick={handleGenerate}
+                    disabled={mutation.isPending}
+                    aria-label={triggerLabel}
+                >
+                    <LightbulbRoundedIcon
+                        className="trip-suggestions-trigger-icon"
+                        fontSize="small"
+                    />
+                    <span>{triggerLabel}</span>
+                </button>
+            </div>
+
+            {showPanel && (
+                <section
+                    className="trip-suggestions-card"
+                    aria-label="Lightbulb activity suggestions"
+                >
+                    {mutation.isPending && (
+                        <div className="trip-suggestions-loading">
+                            <CircularProgress size={20} />
+                            <span>
+                                Asking the AI for ideas that fit your trip…
+                            </span>
                         </div>
-                    </div>
-                    {mutation.data ? (
-                        <ButtonCustom
-                            type="line"
-                            label={
-                                mutation.isPending
-                                    ? "Conjuring…"
-                                    : "More ideas"
-                            }
-                            onClick={handleGenerate}
-                            disabled={mutation.isPending}
-                        />
-                    ) : (
-                        <ButtonCustom
-                            type="standard"
-                            label={
-                                mutation.isPending
-                                    ? "Conjuring ideas…"
-                                    : "Get suggestions"
-                            }
-                            onClick={handleGenerate}
-                            disabled={mutation.isPending}
-                        />
                     )}
-                </header>
 
-                {mutation.isPending && (
-                    <div className="trip-suggestions-loading">
-                        <CircularProgress size={20} />
-                        <span>
-                            Asking the AI for ideas that fit your trip…
-                        </span>
-                    </div>
-                )}
+                    {mutation.isError && renderError()}
 
-                {mutation.isError && renderError()}
-
-                {mutation.data && !mutation.isPending && (
-                    <>
-                        <div className="trip-suggestions-grid">
-                            {mutation.data.suggestions.map((s, i) => (
-                                <article
-                                    key={`${s.name}-${i}`}
-                                    className="trip-suggestion-card"
-                                >
-                                    <div className="trip-suggestion-card-head">
-                                        <h4 className="trip-suggestion-card-name">
-                                            {s.name}
-                                        </h4>
-                                        {s.category && (
-                                            <span className="trip-suggestion-card-chip">
-                                                {s.category}
-                                            </span>
+                    {hasResults && (
+                        <>
+                            <div className="trip-suggestions-grid">
+                                {mutation.data!.suggestions.map((s, i) => (
+                                    <article
+                                        key={`${s.name}-${i}`}
+                                        className="trip-suggestion-card"
+                                    >
+                                        <div className="trip-suggestion-card-head">
+                                            <h4 className="trip-suggestion-card-name">
+                                                {s.name}
+                                            </h4>
+                                            {s.category && (
+                                                <span className="trip-suggestion-card-chip">
+                                                    {s.category}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {s.place && (
+                                            <p className="trip-suggestion-card-place">
+                                                {s.place}
+                                            </p>
                                         )}
-                                    </div>
-                                    {s.place && (
-                                        <p className="trip-suggestion-card-place">
-                                            {s.place}
+                                        <p className="trip-suggestion-card-why">
+                                            {s.why}
                                         </p>
-                                    )}
-                                    <p className="trip-suggestion-card-why">
-                                        {s.why}
-                                    </p>
-                                    <div className="trip-suggestion-card-meta">
-                                        {s.estimatedCostUsd != null && (
-                                            <span>
-                                                ~${s.estimatedCostUsd}
-                                            </span>
-                                        )}
-                                        {s.durationHours != null && (
-                                            <span>~{s.durationHours}h</span>
-                                        )}
-                                    </div>
-                                    <ButtonIcon
-                                        type="standard"
-                                        title="Add to trip"
-                                        Icon={AddRoundedIcon}
-                                        iconPosition="start"
-                                        iconProps={{ fontSize: "small" }}
-                                        onClick={() =>
-                                            setPickerSuggestion(s)
-                                        }
-                                        disabled={!isOrganizer}
-                                        className="trip-suggestion-card-add"
-                                    />
-                                </article>
-                            ))}
-                        </div>
-                        <aside
-                            className="trip-suggestions-dont-forget"
-                            aria-label="Don't forget tip"
-                        >
-                            <LightbulbOutlinedIcon className="trip-suggestions-dont-forget-icon" />
-                            <div>
-                                <span className="trip-suggestions-dont-forget-label">
-                                    Don&rsquo;t forget
-                                </span>
-                                <span className="trip-suggestions-dont-forget-text">
-                                    {mutation.data.dontForget}
-                                </span>
+                                        <div className="trip-suggestion-card-meta">
+                                            {s.estimatedCostUsd != null && (
+                                                <span>
+                                                    ~${s.estimatedCostUsd}
+                                                </span>
+                                            )}
+                                            {s.durationHours != null && (
+                                                <span>
+                                                    ~{s.durationHours}h
+                                                </span>
+                                            )}
+                                        </div>
+                                        <ButtonIcon
+                                            type="standard"
+                                            title="Add to trip"
+                                            Icon={AddRoundedIcon}
+                                            iconPosition="start"
+                                            iconProps={{ fontSize: "small" }}
+                                            onClick={() =>
+                                                setPickerSuggestion(s)
+                                            }
+                                            disabled={!isOrganizer}
+                                            className="trip-suggestion-card-add"
+                                        />
+                                    </article>
+                                ))}
                             </div>
-                        </aside>
-                    </>
-                )}
-            </section>
+                            <aside
+                                className="trip-suggestions-dont-forget"
+                                aria-label="Don't forget tip"
+                            >
+                                <LightbulbOutlinedIcon className="trip-suggestions-dont-forget-icon" />
+                                <div>
+                                    <span className="trip-suggestions-dont-forget-label">
+                                        Don&rsquo;t forget
+                                    </span>
+                                    <span className="trip-suggestions-dont-forget-text">
+                                        {mutation.data!.dontForget}
+                                    </span>
+                                </div>
+                            </aside>
+                        </>
+                    )}
+                </section>
+            )}
 
             <Dialog
                 open={pickerSuggestion !== null}
