@@ -75,7 +75,20 @@
 }
 
 .bottom-nav-icon {
-  font-size: 22px !important;
+  // Bumped from 22px so the tab icons read clearly on small phone
+  // screens — at 22 they competed with the label text for legibility
+  // and felt undersized for the iOS 44pt touch-target convention.
+  font-size: 26px !important;
+}
+
+@media (max-width: 720px) {
+  .bottom-nav-icon {
+    font-size: 28px !important;
+  }
+  .bottom-nav-item {
+    font-size: 0.7rem;
+    gap: 3px;
+  }
 }
 
 .bottom-nav-icon-wrap {
