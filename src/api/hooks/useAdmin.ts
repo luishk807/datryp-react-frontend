@@ -22,6 +22,12 @@ import {
     type CityCacheStatus,
     type CountryCacheStatus,
 } from 'api/adminApi';
+import {
+    fetchFreeEverything,
+    updateFreeEverything,
+    type FreeEverythingStatus,
+    type FreeEverythingUpdate,
+} from 'api/adminSettingsApi';
 import { useUser } from 'context/UserContext';
 import type {
     ActivityStats,
@@ -46,6 +52,7 @@ export const adminKeys = {
     ageDistribution: ['admin', 'age-distribution'] as const,
     aiUsage: (months: number) => ['admin', 'ai-usage', months] as const,
     users: (q: string) => ['admin', 'users', q] as const,
+    freeEverything: ['admin', 'free-everything'] as const,
     userTrips: (id: string) => ['admin', 'user-trips', id] as const,
     countryCache: (code: string) =>
         ['admin', 'cache', 'country', code.toUpperCase()] as const,
@@ -263,6 +270,40 @@ export const useClearCityCache = () => {
             qc.invalidateQueries({
                 queryKey: adminKeys.cityCache(vars.name, vars.code),
             });
+        },
+    });
+};
+
+// ── Free-everything toggle ──────────────────────────────────────────────
+/** Read the current state of the global "free everything" override.
+ *  Returns `{ active, until }` — `active` is true iff the toggle is on
+ *  AND not expired. The 30-second `staleTime` keeps the dashboard
+ *  reactive enough to reflect manual flips from other admins without
+ *  hammering the endpoint on every paint. */
+export const useFreeEverything = () => {
+    const { isAdmin } = useUser();
+    return useQuery<FreeEverythingStatus>({
+        queryKey: adminKeys.freeEverything,
+        queryFn: fetchFreeEverything,
+        enabled: isAdmin,
+        staleTime: 30 * 1000,
+    });
+};
+
+/** Flip the free-everything toggle on or off, with an optional
+ *  duration. On success the cache is invalidated so the dashboard
+ *  shows the new state immediately. */
+export const useUpdateFreeEverything = () => {
+    const qc = useQueryClient();
+    return useMutation<FreeEverythingStatus, Error, FreeEverythingUpdate>({
+        mutationFn: updateFreeEverything,
+        onSuccess: (data) => {
+            qc.setQueryData(adminKeys.freeEverything, data);
+            // Also invalidate the current user's /me so isPaidMember
+            // re-fetches and unlocks Pro features immediately for this
+            // session (the same is_paid_member override applies to all
+            // users; the admin's own profile updates first).
+            qc.invalidateQueries({ queryKey: ['me'] });
         },
     });
 };

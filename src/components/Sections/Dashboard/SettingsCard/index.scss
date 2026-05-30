@@ -1,0 +1,99 @@
+.settings-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 14px;
+}
+
+.settings-card-state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.settings-card-state-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.settings-card-state-pill.is-active {
+  background: rgba(60, 181, 75, 0.16);
+  color: theme('colors.primaryGreen');
+}
+
+.settings-card-state-pill.is-inactive {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.settings-card-state-meta {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.settings-card-duration {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-card-duration-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.settings-card-duration-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-card-duration-chip {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: theme('colors.primaryGreen');
+    color: theme('colors.primaryGreen');
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &.is-selected {
+    background: theme('colors.primaryGreen');
+    border-color: theme('colors.primaryGreen');
+    color: #fff;
+  }
+}
+
+.settings-card-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+}
