@@ -992,5 +992,20 @@
 @media (max-width: 720px) {
   .my-map-page {
     padding: 12px 14px 10px;
+    // Drop the 70vh floor on phones — combined with `min-height: 60vh`
+    // on the canvas wrap and the page-shell's `min-height: 100vh`, the
+    // page overflowed the visible viewport (especially with Safari's
+    // dynamic URL bar visible), forcing the user to scroll just to see
+    // the About pill anchored at the canvas's bottom.
+    min-height: 0;
+  }
+  .my-map-canvas-wrap {
+    min-height: 0;
+  }
+  // Use dynamic viewport height so the layout fits the actually-
+  // visible area on iOS Safari (vh includes the URL bar's collapsed
+  // height which isn't always there).
+  .page-shell.is-full-bleed {
+    min-height: 100dvh;
   }
 }

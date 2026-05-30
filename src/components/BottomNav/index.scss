@@ -19,11 +19,11 @@
     display: flex;
     align-items: stretch;
     justify-content: space-between;
-    // Roomier top padding so the icon+label stack sits visually
-    // lower within the bar — gives more breathing room between the
-    // tab content and the page above. Bottom honors safe-area for
-    // iPhone home-indicator clearance.
-    padding: 12px 6px max(10px, env(safe-area-inset-bottom));
+    // Roomier top + bottom padding so the icon+label stack sits
+    // visually lower in the bar and the whole tab strip reads as
+    // grounded rather than glued to the page above. Bottom honors
+    // safe-area for iPhone home-indicator clearance.
+    padding: 14px 6px max(16px, env(safe-area-inset-bottom));
     background: rgba(255, 255, 255, 0.97);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.06);
@@ -35,8 +35,9 @@
   // doesn't slide under the fixed bar. Each page-shell adds this
   // padding via a global selector on the layout container.
   .page-shell {
-    // Bumped from 76px to match the taller padded BottomNav above.
-    padding-bottom: 88px;
+    // Bumped to match the taller padded BottomNav above (14px top
+    // + ~30px icon+label stack + max(16px, safe-area) bottom).
+    padding-bottom: 96px;
   }
 }
 
