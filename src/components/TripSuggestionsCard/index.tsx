@@ -11,8 +11,6 @@ import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import LightbulbRoundedIcon from "@mui/icons-material/LightbulbRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import { useTripSuggestions } from "api/hooks/useTripSuggestions";
 import { TripSuggestionsBackendError } from "api/tripSuggestionsApi";
@@ -143,12 +141,12 @@ const TripSuggestionsCard = ({
         mutation.mutate({ tripId });
     };
 
-    const handleToggleHide = () => {
+    const handleClosePanel = () => {
         capture("lightbulb_toggled", {
             trip_id: tripId,
-            next_hidden: !isHidden,
+            next_hidden: true,
         });
-        setIsHidden((h) => !h);
+        setIsHidden(true);
     };
 
     const handlePickDay = (suggestion: TripSuggestionItem, day: PickerDay) => {
@@ -227,21 +225,6 @@ const TripSuggestionsCard = ({
     return (
         <>
             <div className="trip-suggestions-trigger-row">
-                {hasPanelContent && (
-                    <button
-                        type="button"
-                        className="trip-suggestions-trigger trip-suggestions-trigger-hide"
-                        onClick={handleToggleHide}
-                        aria-label={isHidden ? "Show suggestions" : "Hide suggestions"}
-                    >
-                        {isHidden ? (
-                            <VisibilityOutlinedIcon fontSize="small" />
-                        ) : (
-                            <VisibilityOffOutlinedIcon fontSize="small" />
-                        )}
-                        <span>{isHidden ? "Show ideas" : "Hide ideas"}</span>
-                    </button>
-                )}
                 <button
                     type="button"
                     className="trip-suggestions-trigger"
@@ -262,6 +245,14 @@ const TripSuggestionsCard = ({
                     className="trip-suggestions-card"
                     aria-label="Lightbulb activity suggestions"
                 >
+                    <button
+                        type="button"
+                        className="trip-suggestions-close"
+                        onClick={handleClosePanel}
+                        aria-label="Hide suggestions"
+                    >
+                        <CloseRoundedIcon fontSize="small" />
+                    </button>
                     {mutation.isPending && (
                         <div className="trip-suggestions-loading">
                             <CircularProgress size={20} />

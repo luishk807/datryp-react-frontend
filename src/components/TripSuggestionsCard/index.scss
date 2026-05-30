@@ -41,25 +41,12 @@
     }
 }
 
-// Hide/Show pill — visually muted vs the lightbulb generate trigger
-// so the primary action still draws the eye.
-.trip-suggestions-trigger.trip-suggestions-trigger-hide {
-    background: rgba(0, 0, 0, 0.04);
-    border-color: rgba(0, 0, 0, 0.12);
-    color: rgba(0, 0, 0, 0.6);
-
-    &:hover:not(:disabled) {
-        background: rgba(0, 0, 0, 0.08);
-        border-color: rgba(0, 0, 0, 0.2);
-        color: rgba(0, 0, 0, 0.8);
-    }
-}
-
 .trip-suggestions-trigger-icon {
     color: theme('colors.primaryOrange');
 }
 
 .trip-suggestions-card {
+    position: relative;
     width: 100%;
     box-sizing: border-box;
     background: linear-gradient(
@@ -75,6 +62,32 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+
+    // Close X at the panel's top-right corner. Single dismiss
+    // affordance — clicking sets isHidden=true. Reopening fires a
+    // fresh AI call via the "Get activity ideas" pill above.
+    .trip-suggestions-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+        color: rgba(0, 0, 0, 0.55);
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+        z-index: 1;
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: rgba(0, 0, 0, 0.85);
+        }
+    }
 
     .trip-suggestions-loading {
         display: flex;
