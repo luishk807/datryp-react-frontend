@@ -88,6 +88,47 @@
   max-width: 320px;
 }
 
+// "Going to <city>, <country>" chip — shown when the user entered the
+// wizard with a destination preset (CityDetail / CountryDetail / AI
+// search), in which case the destination picker section is hidden and
+// the user would otherwise have no on-page reminder of where they're
+// going. Lives directly under the page sub-headline so it reads as
+// context for the form, not as a form field.
+.trip-basics-destination-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px auto 22px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1px solid rgba(60, 181, 75, 0.25);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-size: 0.9rem;
+  color: theme('colors.primary');
+}
+
+.trip-basics-step .trip-basics-destination-chip {
+  // Center the chip horizontally beneath the headline + sub.
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+}
+
+.trip-basics-destination-chip-icon {
+  color: theme('colors.primaryGreen');
+}
+
+.trip-basics-destination-chip-label {
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 500;
+}
+
+.trip-basics-destination-chip-value {
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
 // "AI suggested budget" badge — appears under the input only while the
 // value still matches what the model returned. The moment the user
 // edits the amount, the badge auto-hides (they've taken ownership of

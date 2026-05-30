@@ -87,12 +87,13 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     useEffect(() => {
         if (!countryCode || suggestableDays === null || !start) return;
         const styleHint = user?.travelerStyles?.[0] ?? null;
-        // Include `start` in the key so a date shift that keeps the
-        // same trip length (e.g. moving the whole window by a week
-        // into a different season) still triggers a fresh estimate —
-        // pricing in July vs January for the same destination can be
-        // very different.
-        const requestKey = `${countryCode}|${suggestableDays}|${start}|${styleHint ?? ''}`;
+        const cityHint = inferredCity;
+        // Include `start` and the inferred city in the key so a date
+        // shift that keeps the same trip length (different season) OR
+        // a different inferred city still triggers a fresh estimate —
+        // city granularity matters a lot more than country-only for
+        // pricing (Tokyo vs Sapporo, NYC vs Buffalo).
+        const requestKey = `${countryCode}|${cityHint ?? ''}|${suggestableDays}|${start}|${styleHint ?? ''}`;
         if (lastRequestKeyRef.current === requestKey) return;
         // If the user has typed their own value (input differs from
         // the last AI total), don't override it on a context change —
@@ -108,6 +109,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         budgetSuggestionMutate(
             {
                 countryCode,
+                city: cityHint,
                 days: suggestableDays,
                 travelStyle: styleHint,
                 startDate: start,
@@ -127,6 +129,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         );
     }, [
         countryCode,
+        inferredCity,
         suggestableDays,
         start,
         user?.travelerStyles,
@@ -278,12 +281,54 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         );
     };
 
+    // Pull the seeded "Flight to <city>" / "Train to <city>" activity
+    // name when we have one — that's where CityDetail entry stashes
+    // the city. Lets us show "Going to Paris, France" instead of just
+    // "Going to France" when the trip was started from a city page.
+    // Falls back gracefully when the activity wasn't seeded that way.
+    const inferredCity = (() => {
+        const firstDayActivities =
+            data?.destinations?.[0]?.itinerary?.[0]?.activities ?? [];
+        for (const a of firstDayActivities) {
+            const m =
+                typeof a.name === 'string'
+                    ? /^(?:Flight|Train) to (.+)$/.exec(a.name)
+                    : null;
+            if (m && m[1]) return m[1];
+        }
+        return null;
+    })();
+
+    const destinationLabel = (() => {
+        if (!rootCountry?.name) return null;
+        if (inferredCity) return `${inferredCity}, ${rootCountry.name}`;
+        return rootCountry.name;
+    })();
+
     return (
         <div className="trip-basics-step">
             <h2 className="trip-step-headline">Tell us about your trip</h2>
             <p className="trip-step-sub">
                 A few quick details — you can tweak everything later.
             </p>
+
+            {!showDestination && destinationLabel && (
+                <div
+                    className="trip-basics-destination-chip"
+                    aria-label="Trip destination"
+                >
+                    <PlaceOutlinedIcon
+                        className="trip-basics-destination-chip-icon"
+                        fontSize="small"
+                    />
+                    <span className="trip-basics-destination-chip-label">
+                        Going to
+                    </span>
+                    <span className="trip-basics-destination-chip-value">
+                        {destinationLabel}
+                    </span>
+                </div>
+            )}
 
             <section className="trip-basics-section">
                 <header className="trip-basics-section-head">
@@ -431,8 +476,8 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                             />
                             <span>
                                 Updating AI estimate
-                                {rootCountry?.name
-                                    ? ` for ${rootCountry.name}`
+                                {destinationLabel
+                                    ? ` for ${destinationLabel}`
                                     : ''}
                                 …
                             </span>
@@ -446,8 +491,8 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                             />
                             <span>
                                 AI suggested budget
-                                {rootCountry?.name
-                                    ? ` for ${rootCountry.name}`
+                                {destinationLabel
+                                    ? ` for ${destinationLabel}`
                                     : ''}
                                 {aiNote ? ` — ${aiNote}` : ''}
                             </span>
