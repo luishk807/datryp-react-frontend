@@ -6,6 +6,7 @@ import { Navigate, Route, Routes, BrowserRouter as Router } from 'react-router-d
 import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
 import BottomNav from 'components/BottomNav';
+import OfflineGate from 'components/OfflineGate';
 import RouteErrorBoundary from 'components/common/RouteErrorBoundary';
 import PageLoader from 'components/common/PageLoader';
 const Home = lazy(() => import('components/Sections/Home'));
@@ -68,7 +69,8 @@ const Gated = ({ children, title, subtitle }: {
 function App() {
     return (
         <Router>
-            <Routes>
+            <OfflineGate>
+                <Routes>
                 <Route path="/" element={
                     <Suspense fallback={<PageLoader />}>
                         <Home />
@@ -296,10 +298,11 @@ function App() {
                         />
                     </Suspense>
                 }/>
-            </Routes>
-            {/* Mobile-only fixed bottom nav. Hidden ≥720px by CSS;
-                hidden for signed-out users by the component itself. */}
-            <BottomNav />
+                </Routes>
+                {/* Mobile-only fixed bottom nav. Hidden ≥720px by CSS;
+                    hidden for signed-out users by the component itself. */}
+                <BottomNav />
+            </OfflineGate>
         </Router>
     );
 }
