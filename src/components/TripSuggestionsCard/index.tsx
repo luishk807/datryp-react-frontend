@@ -78,20 +78,27 @@ const suggestionToActivityDraft = (
 ): Partial<Activity> => {
     // Map the lightbulb shape onto a Partial<Activity> the parent's
     // `handleChangePlace` add branch already knows how to merge into a
-    // day. We deliberately don't set startTime / endTime / cost — the
-    // user fills those in the Edit Trip stepper if they care. The
-    // `place` and `note` fields preserve the AI's context.
+    // day. Everything the AI returned that has a place on the Activity
+    // schema rides through — name, place, cost, image, and the "why"
+    // as the note. Duration appends to the note since the schema has
+    // no dedicated duration field.
     const noteBits = [s.why];
-    if (s.estimatedCostUsd != null) {
-        noteBits.push(`Est. cost: $${s.estimatedCostUsd}`);
-    }
     if (s.durationHours != null) {
-        noteBits.push(`~${s.durationHours}h`);
+        noteBits.push(`~${s.durationHours}h on site`);
     }
     return {
         kind: "place",
         name: s.name,
         place: s.place ?? undefined,
+        // Address mirrors place for now — the BE flat lookup uses
+        // `location` for the searchable text and `place` for the
+        // display label. Setting both keeps the saved row consistent
+        // with manually-added places.
+        location: s.place ?? undefined,
+        cost: s.estimatedCostUsd ?? undefined,
+        // Image carries the Unsplash hero photo + the activity name
+        // as the alt-text "name" the ImageRef schema requires.
+        image: s.imageUrl ? { url: s.imageUrl, name: s.name } : undefined,
         note: noteBits.join(" · "),
     };
 };

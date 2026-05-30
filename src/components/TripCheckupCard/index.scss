@@ -89,26 +89,35 @@
     flex-direction: column;
     gap: 16px;
 
+    // Solid contrasty close X — same treatment as the lightbulb panel
+    // so the dismiss affordance is unmistakable on both cards.
     .trip-checkup-close {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 12px;
+        right: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
-        border: none;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--checkup-tone-border, rgba(53, 122, 189, 0.4));
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.6);
-        color: rgba(0, 0, 0, 0.55);
+        background: #fff;
+        color: var(--checkup-tone, #1f6fb5);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease;
-        z-index: 1;
+        transition: background 0.15s ease, color 0.15s ease,
+            transform 0.15s ease;
+        z-index: 2;
 
         &:hover {
-            background: rgba(0, 0, 0, 0.08);
-            color: rgba(0, 0, 0, 0.85);
+            background: var(--checkup-tone, #1f6fb5);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        svg {
+            font-size: 1.1rem !important;
         }
     }
 
