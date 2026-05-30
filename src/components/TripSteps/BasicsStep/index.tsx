@@ -186,12 +186,25 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         onChange,
     ]);
 
-    // Badge only shows when the field still matches the AI value —
-    // typing over it hides the badge automatically.
-    const showAiBadge =
-        suggestion?.suggestedTotal != null &&
-        budget === String(suggestion.suggestedTotal);
-    const aiNote = showAiBadge ? suggestion?.note ?? null : null;
+    // Suggestion shows whenever the AI returned a value, regardless of
+    // what the user has typed. Previously this was gated on "input
+    // value still equals the AI's suggestion" so typing over the field
+    // hid the helper. Per UX feedback the suggestion should stay
+    // visible as a reference figure ("Average suggested for Norway in
+    // July: $1,800") even after the user enters their own number.
+    // Refreshes naturally when destination / dates change because the
+    // useEffect deps above include countryCode, inferredCity, days,
+    // start, and home base.
+    const showAiSuggestion = suggestion?.suggestedTotal != null;
+    const aiNote = showAiSuggestion ? suggestion?.note ?? null : null;
+    const suggestedTotalFormatted = showAiSuggestion
+        ? `$${(suggestion?.suggestedTotal ?? 0).toLocaleString()}`
+        : null;
+    // Highlight (a) when the input is empty + we have a suggestion, or
+    // (b) when the input matches the suggestion. Otherwise render it
+    // muted so the user's own value visually wins.
+    const inputMatchesAi =
+        showAiSuggestion && budget === String(suggestion?.suggestedTotal);
 
     const pickMode = (
         mode: typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE
@@ -573,17 +586,25 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                             </span>
                         </p>
                     )}
-                    {!isLoadingSuggestion && showAiBadge && (
-                        <p className="trip-basics-budget-ai-badge">
+                    {!isLoadingSuggestion && showAiSuggestion && (
+                        <p
+                            className={classnames(
+                                'trip-basics-budget-ai-badge',
+                                { 'is-reference': !inputMatchesAi },
+                            )}
+                        >
                             <AutoAwesomeRoundedIcon
                                 className="trip-basics-budget-ai-badge-icon"
                                 fontSize="small"
                             />
                             <span>
-                                AI suggested budget
+                                {inputMatchesAi
+                                    ? 'AI suggested budget'
+                                    : 'Average suggested'}
                                 {destinationLabel
                                     ? ` for ${destinationLabel}`
                                     : ''}
+                                : {suggestedTotalFormatted}
                                 {aiNote ? ` — ${aiNote}` : ''}
                             </span>
                         </p>

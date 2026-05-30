@@ -129,10 +129,15 @@
   letter-spacing: -0.005em;
 }
 
-// "AI suggested budget" badge — appears under the input only while the
-// value still matches what the model returned. The moment the user
-// edits the amount, the badge auto-hides (they've taken ownership of
-// the number).
+// "AI suggested budget" badge — appears under the input whenever the
+// AI returned a number for the current destination + dates. Two modes:
+//
+//   - default (input is blank OR matches the suggestion): full green
+//     chip, reads as "this is YOUR budget right now".
+//   - `.is-reference` (input is a user-typed value that differs from
+//     the AI estimate): muted slate text, no chip background — reads
+//     as helper context ("for comparison: AI estimates $X for this
+//     destination").
 .trip-basics-budget-ai-badge {
   display: inline-flex;
   align-items: flex-start;
@@ -148,6 +153,18 @@
 
   span {
     flex: 1;
+  }
+}
+
+.trip-basics-budget-ai-badge.is-reference {
+  background: transparent;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 500;
+  padding-left: 0;
+  padding-right: 0;
+
+  .trip-basics-budget-ai-badge-icon {
+    color: rgba(0, 0, 0, 0.4);
   }
 }
 

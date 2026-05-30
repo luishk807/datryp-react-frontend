@@ -15,6 +15,7 @@ import PlacesYouMightLove from 'components/PlacesYouMightLove';
 import SimilarToSaves from 'components/SimilarToSaves';
 import UpcomingHoliday from 'components/UpcomingHoliday';
 import WorldEvent from 'components/WorldEvent';
+import CountryOfBirthEvent from 'components/CountryOfBirthEvent';
 import MonthlyBestPlace from 'components/MonthlyBestPlace';
 import SeasonalBestPlaces from 'components/SeasonalBestPlaces';
 import AiTripBuilderCard from 'components/AiTripBuilderCard';
@@ -250,6 +251,15 @@ const Home = () => {
                 cards. Holiday, monthly pick, and seasonal sit below
                 it. */}
             <WorldEvent />
+            {/* Same shape as WorldEvent but scoped to the user's
+                country of birth — a heritage/diaspora signal that
+                surfaces big events in their home country (Carnaval
+                for a Brazilian-born user, Tour de France for a
+                French-born user). Self-hides when the user hasn't
+                set a country of birth or the AI returns no event
+                of sufficient scale (backend 204 → hook resolves to
+                null). */}
+            <CountryOfBirthEvent />
             {/* "Best for <Next Month>" — driven by the user's saved
                 destinations whose best_time_to_visit window covers
                 next month, minus anywhere they've already been. Self-
