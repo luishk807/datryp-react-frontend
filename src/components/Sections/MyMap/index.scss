@@ -977,6 +977,11 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  // Without border-box the BottomNav's `padding-bottom: 96px` on
+  // `.page-shell` stacks on top of the 100vh/100dvh min-height,
+  // adding 96px of vertical overflow — which is why the Mapper kept
+  // scrolling on mobile even after we removed the inner min-heights.
+  box-sizing: border-box;
 }
 
 .page-shell.is-full-bleed .page-content-full-bleed {
