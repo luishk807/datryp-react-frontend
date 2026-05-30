@@ -78,7 +78,15 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     const countryCode = rootCountry?.code ?? null;
     const canSuggestBudget = Boolean(countryCode) && suggestableDays !== null;
 
-    const handleSuggestBudget = async () => {
+    const handleSuggestBudget = async (
+        e?: React.MouseEvent<HTMLButtonElement>
+    ) => {
+        // The shared ButtonIcon renders a <button> WITHOUT type="button",
+        // so inside a wizard step a click would otherwise default to
+        // type="submit" and trigger the surrounding form's submit /
+        // navigation handler before our mutation ever ran. Stop that.
+        e?.preventDefault();
+        e?.stopPropagation();
         if (!countryCode || suggestableDays === null) return;
         // Use the first traveler-style slug as a free-text hint —
         // the model treats unknown slugs as descriptive prose, so
