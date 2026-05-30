@@ -39,7 +39,6 @@ import {
     formatActivityTime,
     joinNames,
     safeFilename,
-    tripBudgetTotal,
 } from 'utils/tripExportShared';
 
 const CURRENCY_FORMAT = '"$"#,##0.00';
@@ -300,7 +299,13 @@ const buildOverviewSheet = async (
     writeRow('To Date', parseDate(trip.endDate), DATE_FORMAT);
     writeRow('Organizer', joinNames(trip.organizer));
     writeRow('Participants', joinNames(trip.friends));
-    writeRow('Budget', tripBudgetTotal(trip), CURRENCY_FORMAT);
+    // Replaces the prior "Budget" row with the same totals the
+    // Expense Report sheet shows further on — total cost across all
+    // activities plus the amount still unpaid — so the Overview gives
+    // the same out-of-pocket picture without re-deriving it.
+    const totals = computePayerTotals(trip);
+    writeRow('Total cost', totals.grandTotal, CURRENCY_FORMAT);
+    writeRow('Unpaid', totals.unpaidTotal, CURRENCY_FORMAT);
 };
 
 // ── Sheet 2: Itinerary ──────────────────────────────────────────────────────

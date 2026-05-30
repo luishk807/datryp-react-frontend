@@ -46,7 +46,6 @@ import {
     formatDate,
     joinNames,
     safeFilename,
-    tripBudgetTotal,
     walkItinerary,
 } from 'utils/tripExportShared';
 import { TRIP_STATUS } from 'constants';
@@ -114,11 +113,6 @@ const tripStatusLabel = (trip: TripState): string => {
     return TRIP_STATUS.PLANNING;
 };
 
-const tripCountries = (trip: TripState): string =>
-    (trip.destinations ?? [])
-        .map((d) => d.country?.name)
-        .filter((n): n is string => Boolean(n))
-        .join(', ');
 
 /** Right-aligned label/value meta block on page 1. Mirrors the
  *  mockup's "From / To / Country / Budget / Status" stack.
@@ -131,11 +125,17 @@ const tripCountries = (trip: TripState): string =>
  *  swallows the remaining width on the left, and the table sits with
  *  `width: 'auto'` on the right. */
 const buildMetaBlock = (trip: TripState): Content => {
+    // Total + unpaid come from the same payer-totals pass the expense
+    // report uses, so both surfaces stay in lockstep when the report
+    // logic changes. `grandTotal` is the sum of every activity's
+    // cost (split or single-payer); `unpaidTotal` is the sum of any
+    // activity not yet marked paid.
+    const totals = computePayerTotals(trip);
     const rows: [string, string][] = [
         ['From:', formatDate(trip.startDate)],
         ['To:', formatDate(trip.endDate)],
-        ['Country:', tripCountries(trip) || '—'],
-        ['Budget:', formatCurrency(tripBudgetTotal(trip))],
+        ['Total cost:', formatCurrency(totals.grandTotal)],
+        ['Unpaid:', formatCurrency(totals.unpaidTotal)],
         ['Status:', tripStatusLabel(trip)],
     ];
     return {
@@ -585,18 +585,23 @@ const buildTripDocDefinition = (trip: TripState): TDocumentDefinitions => {
             buildItineraryTable(rows),
 
             // ── Page 2: Expense Report ───────────────────────────────
+            // `pageBreak: 'before'` is attached directly to the next
+            // section's header rather than to a standalone empty
+            // `{ text: '', pageBreak: 'after' }` marker — the marker
+            // approach silently produced a blank page when the
+            // itinerary table already filled page 1, because the
+            // 'after' break fires regardless of where the cursor sits.
             {
-                text: '',
-                pageBreak: 'after',
+                ...buildPageHeader({
+                    text: [
+                        { text: 'Date', bold: true },
+                        `: ${formatToday()}`,
+                    ],
+                    alignment: 'right',
+                    margin: [0, 6, 0, 0],
+                }),
+                pageBreak: 'before',
             },
-            buildPageHeader({
-                text: [
-                    { text: 'Date', bold: true },
-                    `: ${formatToday()}`,
-                ],
-                alignment: 'right',
-                margin: [0, 6, 0, 0],
-            }),
             {
                 text: 'Expense Report',
                 fontSize: 16,
