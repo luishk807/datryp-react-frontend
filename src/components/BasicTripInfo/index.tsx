@@ -15,6 +15,10 @@ import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Tooltip } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
@@ -22,6 +26,8 @@ import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ErrorAlert from 'components/common/ErrorAlert';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import TripStatusBadge from 'components/TripStatusBadge';
+import { useBudgetSuggestion } from 'hooks/useBudgetSuggestion';
+import { useUser } from 'context/UserContext';
 import { convertMoney } from 'utils';
 import { TRIP_STATUS } from 'constants';
 import type { TripState, TripStatus } from 'types';
@@ -176,6 +182,86 @@ export const BasicTripInfo = ({
 
     const statusName = deriveStatusName(data.status);
     const friends = data.friends ?? [];
+
+    // AI budget verdict — fires the same `/budgets/suggest` call the
+    // wizard + edit modal use, then maps the comparison (user budget
+    // vs AI estimate) onto a colored arrow + a "why" tooltip directly
+    // under the BUDGET tile. The hook is read-only here (autoFill =
+    // false): the user's saved budget is the source of truth; we just
+    // surface whether it's tight / right-sized / cushioned relative
+    // to what the AI would suggest for this destination + length.
+    const { user: currentUser, isLoading: isUserLoading } = useUser();
+    const tripDays = (() => {
+        if (!isValidDate(data.startDate) || !isValidDate(data.endDate)) {
+            return null;
+        }
+        const ms =
+            new Date(data.endDate).getTime() -
+            new Date(data.startDate).getTime();
+        if (!Number.isFinite(ms) || ms < 0) return null;
+        const days = Math.round(ms / (1000 * 60 * 60 * 24)) + 1;
+        return days >= 1 && days <= 90 ? days : null;
+    })();
+    const budgetCountryCode = data.destinations?.[0]?.country?.code ?? null;
+    const budgetCountryName = data.destinations?.[0]?.country?.name ?? null;
+    const { suggestion: budgetSuggestion } = useBudgetSuggestion({
+        countryCode: budgetCountryCode,
+        city: null,
+        days: tripDays,
+        startDate: data.startDate ?? null,
+        travelStyle: currentUser?.travelerStyles?.[0] ?? null,
+        homeCountryCode: currentUser?.homeCountryCode ?? null,
+        homeCity: currentUser?.homeCity ?? null,
+        enabled: !isUserLoading,
+        currentBudget: String(data.budget ?? ''),
+        autoFill: false,
+    });
+
+    // Map (user budget / AI estimate) onto a 3-state verdict. Bands
+    // are intentionally wide (0.7–1.3) so small rounding differences
+    // don't keep flipping the indicator. The "why" text leans on the
+    // AI's own `note` when available, falling back to a generic
+    // comparison sentence otherwise.
+    const budgetNum = Number(data.budget);
+    const suggestedTotal = budgetSuggestion?.suggestedTotal ?? null;
+    const aiNote = budgetSuggestion?.note ?? null;
+    const budgetVerdict = (() => {
+        if (suggestedTotal == null || !suggestedTotal) return null;
+        if (!Number.isFinite(budgetNum) || budgetNum <= 0) return null;
+        const ratio = budgetNum / suggestedTotal;
+        const suggestedLabel = `$${suggestedTotal.toLocaleString()}`;
+        const destination = budgetCountryName ? ` for ${budgetCountryName}` : '';
+        if (ratio < 0.7) {
+            return {
+                tone: 'low' as const,
+                label: 'Tight',
+                why:
+                    `AI estimates about ${suggestedLabel}${destination}. ` +
+                    `Your budget is ${Math.round((1 - ratio) * 100)}% under — ` +
+                    `you may need to economize on lodging or dining.` +
+                    (aiNote ? ` ${aiNote}` : ''),
+            };
+        }
+        if (ratio > 1.3) {
+            return {
+                tone: 'high' as const,
+                label: 'Comfortable',
+                why:
+                    `AI estimates about ${suggestedLabel}${destination}. ` +
+                    `You have ${Math.round((ratio - 1) * 100)}% cushion — ` +
+                    `room for upgrades or memorable splurges.` +
+                    (aiNote ? ` ${aiNote}` : ''),
+            };
+        }
+        return {
+            tone: 'on' as const,
+            label: 'On target',
+            why:
+                `AI estimates about ${suggestedLabel}${destination}. ` +
+                `Your budget lines up with typical spend for this trip.` +
+                (aiNote ? ` ${aiNote}` : ''),
+        };
+    })();
 
     // Mark Completed is a one-click promote that owns its own save (the parent
     // resolves the Completed UUID and calls saveItinerary directly). When this
@@ -461,6 +547,50 @@ export const BasicTripInfo = ({
                     <div className="stat-text">
                         <span className="stat-label">Budget</span>
                         <span className="stat-value">{convertMoney(data.budget)}</span>
+                        {budgetVerdict && (
+                            <span
+                                className={classnames(
+                                    'budget-verdict',
+                                    `budget-verdict-${budgetVerdict.tone}`,
+                                )}
+                            >
+                                {budgetVerdict.tone === 'low' && (
+                                    <TrendingDownRoundedIcon
+                                        className="budget-verdict-arrow"
+                                        fontSize="small"
+                                    />
+                                )}
+                                {budgetVerdict.tone === 'on' && (
+                                    <TrendingFlatRoundedIcon
+                                        className="budget-verdict-arrow"
+                                        fontSize="small"
+                                    />
+                                )}
+                                {budgetVerdict.tone === 'high' && (
+                                    <TrendingUpRoundedIcon
+                                        className="budget-verdict-arrow"
+                                        fontSize="small"
+                                    />
+                                )}
+                                <span className="budget-verdict-label">
+                                    {budgetVerdict.label}
+                                </span>
+                                <Tooltip
+                                    title={budgetVerdict.why}
+                                    arrow
+                                    placement="top"
+                                    enterTouchDelay={0}
+                                    leaveTouchDelay={6000}
+                                >
+                                    <InfoOutlinedIcon
+                                        className="budget-verdict-why"
+                                        fontSize="small"
+                                        tabIndex={0}
+                                        aria-label={budgetVerdict.why}
+                                    />
+                                </Tooltip>
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

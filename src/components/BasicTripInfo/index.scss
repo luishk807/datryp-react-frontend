@@ -383,6 +383,74 @@
   word-break: break-word;
 }
 
+// AI-budget verdict chip — sits under the Budget tile's $ value, on
+// /trip-detail AND in the StepperComp edit view. Three tones:
+//
+//   - `.budget-verdict-low`  → user budget < 70% of AI estimate.
+//     Red arrow-down + "Tight" label.
+//   - `.budget-verdict-on`   → user budget within 70-130%. Green
+//     trending-flat + "On target" label.
+//   - `.budget-verdict-high` → user budget > 130%. Blue arrow-up +
+//     "Comfortable" label.
+//
+// The `ⓘ` icon on the right opens an MUI Tooltip with the "why"
+// sentence (AI's note + the magnitude of the difference). Touch UA
+// support comes from enterTouchDelay=0 on the Tooltip — tap to
+// reveal, auto-hide after a few seconds. Don't add a click handler;
+// the tooltip is the only interaction.
+.basic-trip-info .budget-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  // Each tone overrides bg + color below; default just so the chip
+  // never renders fully transparent if a new tone slips through
+  // without styling.
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.basic-trip-info .budget-verdict-arrow {
+  font-size: 1rem !important;
+}
+
+.basic-trip-info .budget-verdict-why {
+  font-size: 0.95rem !important;
+  opacity: 0.7;
+  cursor: help;
+  margin-left: 2px;
+  outline: none;
+
+  &:focus-visible {
+    opacity: 1;
+    box-shadow: 0 0 0 2px currentColor;
+    border-radius: 999px;
+  }
+}
+
+.basic-trip-info .budget-verdict-low {
+  background: rgba(220, 60, 60, 0.1);
+  color: #c0392b;
+}
+
+.basic-trip-info .budget-verdict-on {
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+}
+
+.basic-trip-info .budget-verdict-high {
+  // Comfortable cushion reads as positive but a different shade than
+  // "on target" so the user sees these are distinct outcomes. Cool
+  // blue for "you've got headroom."
+  background: rgba(53, 122, 189, 0.12);
+  color: #1f6fb5;
+}
+
 // Country links inside the "Where" stat — visible affordance at rest
 // (orange + dashed underline) so users see they can click through to
 // the country detail page in a new tab. Matches the place-name link
