@@ -210,14 +210,14 @@ const TripSuggestionsCard = ({
     };
 
     const hasResults = !!mutation.data && !mutation.isPending;
-    // Panel renders during loading + error states regardless of hide,
-    // and when results exist + the user hasn't hidden them. The hide
-    // toggle only applies to the results state — loading/error always
-    // surface so the user knows the AI call is in flight or failed.
-    const showPanel =
-        mutation.isPending ||
-        mutation.isError ||
-        (hasResults && !isHidden);
+    // Whenever the panel has something to show (in-flight call, an
+    // error from a previous attempt, or successful results), expose a
+    // Hide toggle. Hiding just collapses the panel — it doesn't abort
+    // an in-flight mutation, so an unhide right after restores the
+    // same content without a re-fetch.
+    const hasPanelContent =
+        mutation.isPending || mutation.isError || hasResults;
+    const showPanel = hasPanelContent && !isHidden;
     const triggerLabel = mutation.isPending
         ? "Conjuring ideas…"
         : hasResults
@@ -227,7 +227,7 @@ const TripSuggestionsCard = ({
     return (
         <>
             <div className="trip-suggestions-trigger-row">
-                {hasResults && (
+                {hasPanelContent && (
                     <button
                         type="button"
                         className="trip-suggestions-trigger trip-suggestions-trigger-hide"
