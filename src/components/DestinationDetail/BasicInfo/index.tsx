@@ -7,8 +7,11 @@ import InputField from 'components/common/FormFields/InputField';
 import DropDown from 'components/common/FormFields/DropDown';
 import FriendPicker from '../FriendPicker';
 import SearchBar from 'components/SearchBar';
+import BudgetSuggestionBadge from 'components/BudgetSuggestionBadge';
 import { basicInfo, useTripDispatch } from 'context/TripContext';
 import { useTripStatuses } from 'api/hooks/useLookups';
+import { useUser } from 'context/UserContext';
+import { useBudgetSuggestion } from 'hooks/useBudgetSuggestion';
 import { TRIP_BASIC } from 'constants';
 import type {
     Country,
@@ -26,6 +29,7 @@ interface BasicInfoProps {
 const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
     const today = useMemo(() => now(), []);
     const dispatch = useTripDispatch();
+    const { user, isLoading: isUserLoading } = useUser();
     const isSingle = data?.type?.id === TRIP_BASIC.SINGLE.id;
     const rootCountry = data?.destinations?.[0]?.country;
 
@@ -76,6 +80,37 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
             .filter((n): n is string => !!n);
         return Array.from(new Set(names));
     }, [data]);
+
+    // AI budget reference for the Edit Trip Info modal — read-only
+    // (autoFill: false). The user's saved budget is the source of
+    // truth; we just surface what the AI would suggest as a comparison
+    // figure under the input. Mirrors BasicsStep's badge so editing
+    // and creating feel consistent. Days derived from the trip's
+    // start/end (inclusive), capped at 90 to match the BE.
+    const tripDays = (() => {
+        const s = data?.startDate;
+        const e = data?.endDate;
+        if (!s || !e) return null;
+        const ms =
+            new Date(e).getTime() - new Date(s).getTime();
+        if (!Number.isFinite(ms) || ms < 0) return null;
+        const days = Math.round(ms / (1000 * 60 * 60 * 24)) + 1;
+        return days >= 1 && days <= 90 ? days : null;
+    })();
+    const budgetCurrent = String(data?.budget ?? '');
+    const { suggestion: budgetSuggestion, isLoading: isBudgetSuggestionLoading, inputMatchesAi: budgetMatchesAi } =
+        useBudgetSuggestion({
+            countryCode: rootCountry?.code ?? null,
+            city: null,
+            days: tripDays,
+            startDate: data?.startDate ?? null,
+            travelStyle: user?.travelerStyles?.[0] ?? null,
+            homeCountryCode: user?.homeCountryCode ?? null,
+            homeCity: user?.homeCity ?? null,
+            enabled: !isUserLoading,
+            currentBudget: budgetCurrent,
+            autoFill: false,
+        });
 
     useEffect(() => {
         if (!data?.startDate) onChange('startDate', { target: { value: today } });
@@ -143,7 +178,14 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                         <InputField
                             defaultValue={String(view.budget)}
                             name="budget"
+                            label="Budget"
                             onChange={(e) => onChange('budget', e)}
+                        />
+                        <BudgetSuggestionBadge
+                            suggestion={budgetSuggestion}
+                            isLoading={isBudgetSuggestionLoading}
+                            destinationLabel={rootCountry?.name ?? null}
+                            inputMatchesAi={budgetMatchesAi}
                         />
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">

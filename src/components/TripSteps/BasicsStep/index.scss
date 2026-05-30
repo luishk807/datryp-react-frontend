@@ -129,63 +129,10 @@
   letter-spacing: -0.005em;
 }
 
-// "AI suggested budget" badge — appears under the input whenever the
-// AI returned a number for the current destination + dates. Two modes:
-//
-//   - default (input is blank OR matches the suggestion): full green
-//     chip, reads as "this is YOUR budget right now".
-//   - `.is-reference` (input is a user-typed value that differs from
-//     the AI estimate): muted slate text, no chip background — reads
-//     as helper context ("for comparison: AI estimates $X for this
-//     destination").
-.trip-basics-budget-ai-badge {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin: 6px 0 0;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(60, 181, 75, 0.08);
-  color: theme('colors.primaryGreen');
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1.4;
-
-  span {
-    flex: 1;
-  }
-}
-
-.trip-basics-budget-ai-badge.is-reference {
-  background: transparent;
-  color: rgba(0, 0, 0, 0.55);
-  font-weight: 500;
-  padding-left: 0;
-  padding-right: 0;
-
-  .trip-basics-budget-ai-badge-icon {
-    color: rgba(0, 0, 0, 0.4);
-  }
-}
-
-.trip-basics-budget-ai-badge-icon {
-  color: theme('colors.primaryOrange');
-  margin-top: 1px;
-}
-
-.trip-basics-budget-ai-badge.is-loading {
-  background: rgba(255, 145, 0, 0.08);
-  color: theme('colors.primaryOrange');
-
-  .trip-basics-budget-ai-badge-icon {
-    animation: trip-basics-budget-ai-pulse 1.1s ease-in-out infinite;
-  }
-}
-
-@keyframes trip-basics-budget-ai-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
+// AI budget suggestion badge styles now live in
+// `components/BudgetSuggestionBadge/index.scss` so both BasicsStep
+// (this file) and BasicInfo's Edit Trip Info modal share them. Don't
+// re-add the `.trip-basics-budget-ai-badge` rules here.
 
 .trip-basics-hint {
   margin: 4px 0 0;

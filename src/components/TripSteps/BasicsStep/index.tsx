@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import classnames from 'classnames';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import SearchBar from 'components/SearchBar';
 import InputField from 'components/common/FormFields/InputField';
+import BudgetSuggestionBadge from 'components/BudgetSuggestionBadge';
 import {
     addPlace,
     basicInfo,
@@ -15,7 +15,7 @@ import {
     movePlace,
     useTripDispatch,
 } from 'context/TripContext';
-import { suggestBudget, type BudgetSuggestResult } from 'api/budgetApi';
+import { useBudgetSuggestion } from 'hooks/useBudgetSuggestion';
 import { useUser } from 'context/UserContext';
 import { ACTIVITY_KIND, TRIP_BASIC, TRIP_MODE } from 'constants';
 import type {
@@ -48,15 +48,6 @@ interface BasicsStepProps {
 const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     const dispatch = useTripDispatch();
     const { user, isLoading: isUserLoading } = useUser();
-    // Direct local state for the AI budget call. We deliberately do
-    // NOT use a TanStack Query mutation here — in dev StrictMode the
-    // component is unmounted + remounted, which recreates the
-    // mutation observer and orphans the in-flight result so `data`
-    // never settles. Owning the state locally keeps the result
-    // reachable through any re-mount the framework throws at us.
-    const [suggestion, setSuggestion] =
-        useState<BudgetSuggestResult | null>(null);
-    const [isLoadingSuggestion, setIsLoadingSuggestion] = useState(false);
     const selectedId = data?.type?.id;
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
     const isMulti = selectedId === TRIP_BASIC.MULTIPLE.id;
@@ -115,96 +106,31 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         return rootCountry.name;
     })();
 
-    // Tracks the most recent AI total so we know whether the input
-    // still holds the AI value (drives the "AI suggested budget"
-    // badge — typing over it hides the badge automatically).
-    const lastAiTotalRef = useRef<number | null>(null);
+    // Auto-fill on the wizard — the field starts blank, and the hook
+    // dispatches the AI's suggestedTotal back through onChange only
+    // when the user hasn't typed their own value. See useBudgetSuggestion
+    // for the user-edited guard.
+    const handleAutoFill = useCallback(
+        (total: number) => {
+            onChange('budget', { target: { value: String(total) } });
+        },
+        [onChange],
+    );
 
-    useEffect(() => {
-        if (!countryCode || suggestableDays === null || !start) return;
-        // Wait for the auth/me fetch to settle so the very first
-        // request has the user's home base in it — otherwise the
-        // initial call ships an empty home (wrong transport mode)
-        // and we'd waste an OpenAI call.
-        if (isUserLoading) return;
-        const styleHint = user?.travelerStyles?.[0] ?? null;
-        const cityHint = inferredCity;
-        const homeCountryHint = user?.homeCountryCode ?? null;
-        const homeCityHint = user?.homeCity ?? null;
-        // Don't overwrite a value the user typed themselves. They
-        // can clear the field to opt back into auto-fill.
-        const currentBudgetStr = String(data?.budget ?? '').trim();
-        const userEdited =
-            currentBudgetStr !== '' &&
-            currentBudgetStr !== '0' &&
-            currentBudgetStr !== String(lastAiTotalRef.current ?? '');
-        if (userEdited) return;
-
-        const ac = new AbortController();
-        setIsLoadingSuggestion(true);
-        suggestBudget(
-            {
-                countryCode,
-                city: cityHint,
-                days: suggestableDays,
-                travelStyle: styleHint,
-                startDate: start,
-                homeCountryCode: homeCountryHint,
-                homeCity: homeCityHint,
-            },
-            ac.signal
-        )
-            .then((result) => {
-                if (ac.signal.aborted) return;
-                setSuggestion(result);
-                setIsLoadingSuggestion(false);
-                if (result?.suggestedTotal != null) {
-                    lastAiTotalRef.current = result.suggestedTotal;
-                    onChange('budget', {
-                        target: { value: String(result.suggestedTotal) },
-                    });
-                }
-            })
-            .catch((err) => {
-                if (ac.signal.aborted) return;
-                if (err?.name === 'AbortError') return;
-                setIsLoadingSuggestion(false);
-            });
-
-        return () => {
-            ac.abort();
-        };
-    }, [
-        countryCode,
-        inferredCity,
-        suggestableDays,
-        start,
-        isUserLoading,
-        user?.travelerStyles,
-        user?.homeCountryCode,
-        user?.homeCity,
-        onChange,
-    ]);
-
-    // Suggestion shows whenever the AI returned a value, regardless of
-    // what the user has typed. Previously this was gated on "input
-    // value still equals the AI's suggestion" so typing over the field
-    // hid the helper. Per UX feedback the suggestion should stay
-    // visible as a reference figure ("Average suggested for Norway in
-    // July: $1,800") even after the user enters their own number.
-    // Refreshes naturally when destination / dates change because the
-    // useEffect deps above include countryCode, inferredCity, days,
-    // start, and home base.
-    const showAiSuggestion = suggestion?.suggestedTotal != null;
-    const aiNote = showAiSuggestion ? suggestion?.note ?? null : null;
-    const suggestedTotalFormatted = showAiSuggestion
-        ? `$${(suggestion?.suggestedTotal ?? 0).toLocaleString()}`
-        : null;
-    // Highlight (a) when the input is empty + we have a suggestion, or
-    // (b) when the input matches the suggestion. Otherwise render it
-    // muted so the user's own value visually wins.
-    const inputMatchesAi =
-        showAiSuggestion && budget === String(suggestion?.suggestedTotal);
+    const { suggestion, isLoading: isLoadingSuggestion, inputMatchesAi } =
+        useBudgetSuggestion({
+            countryCode,
+            city: inferredCity,
+            days: suggestableDays,
+            startDate: start,
+            travelStyle: user?.travelerStyles?.[0] ?? null,
+            homeCountryCode: user?.homeCountryCode ?? null,
+            homeCity: user?.homeCity ?? null,
+            enabled: !isUserLoading,
+            currentBudget: budget,
+            autoFill: true,
+            onAutoFill: handleAutoFill,
+        });
 
     const pickMode = (
         mode: typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE
@@ -571,44 +497,12 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                         }
                         onChange={(e) => onChange('budget', e)}
                     />
-                    {isLoadingSuggestion && (
-                        <p className="trip-basics-budget-ai-badge is-loading">
-                            <AutoAwesomeRoundedIcon
-                                className="trip-basics-budget-ai-badge-icon"
-                                fontSize="small"
-                            />
-                            <span>
-                                Updating AI estimate
-                                {destinationLabel
-                                    ? ` for ${destinationLabel}`
-                                    : ''}
-                                …
-                            </span>
-                        </p>
-                    )}
-                    {!isLoadingSuggestion && showAiSuggestion && (
-                        <p
-                            className={classnames(
-                                'trip-basics-budget-ai-badge',
-                                { 'is-reference': !inputMatchesAi },
-                            )}
-                        >
-                            <AutoAwesomeRoundedIcon
-                                className="trip-basics-budget-ai-badge-icon"
-                                fontSize="small"
-                            />
-                            <span>
-                                {inputMatchesAi
-                                    ? 'AI suggested budget'
-                                    : 'Average suggested'}
-                                {destinationLabel
-                                    ? ` for ${destinationLabel}`
-                                    : ''}
-                                : {suggestedTotalFormatted}
-                                {aiNote ? ` — ${aiNote}` : ''}
-                            </span>
-                        </p>
-                    )}
+                    <BudgetSuggestionBadge
+                        suggestion={suggestion}
+                        isLoading={isLoadingSuggestion}
+                        destinationLabel={destinationLabel}
+                        inputMatchesAi={inputMatchesAi}
+                    />
                     <p className="trip-basics-hint">
                         Ballpark is fine — split per activity later. Leave blank
                         if you're flexible.
