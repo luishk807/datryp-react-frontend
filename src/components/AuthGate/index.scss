@@ -185,13 +185,14 @@
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
-  // Pin to 320px on desktop so the Google button width matches the
-  // email/password submit button below it. Inner div hits 100% so on
-  // mobile (where this rule is overridden to width: 100%) the iframe
-  // still stretches to the panel.
+  // Inner div fills the form column so the Google button width matches
+  // the Email / Password / Continue elements below (the form-wrap caps
+  // the whole column at 380px on desktop; Google's renderButton then
+  // clamps the measured value to 200..400 internally, so the iframe
+  // ends up the same width as the green Continue button).
   > div {
     width: 100%;
-    max-width: 320px;
+    max-width: 100%;
   }
 }
 
@@ -370,16 +371,9 @@
   // Google's iframe ignores `max-width` from the parent — its rendered
   // pixel width comes from the `width` prop. Keep the host element
   // overflow-hidden so the iframe can't push a horizontal scroll on
-  // narrow phones if Google rounds up its layout. Also lift the
-  // desktop's 320px inner-div cap so the host (and the measured width
-  // we pass to Google) actually equals the full panel width on phones,
-  // not 320 in the middle of a 360pt column.
+  // narrow phones if Google rounds up its layout.
   .authgate-google {
     width: 100%;
     overflow: hidden;
-
-    > div {
-      max-width: 100%;
-    }
   }
 }
