@@ -41,6 +41,7 @@ import ModalButton, {
 import NotifyParticipantsCheckbox from "components/NotifyParticipantsCheckbox";
 import TripStatusBadge from "components/TripStatusBadge";
 import TripSuggestionsCard from "components/TripSuggestionsCard";
+import TripCheckupCard from "components/TripCheckupCard";
 import { useUser } from "context/UserContext";
 import { basicInfo, useTripDispatch } from "context/TripContext";
 import {
@@ -842,6 +843,11 @@ export const TripDetail = () => {
         )}
         {apiTrip && (
           <Grid item lg={12} md={12} xs={12}>
+            <TripCheckupCard
+              tripId={apiTrip.id}
+              isPro={Boolean(currentUser?.isPaidMember || isAdmin)}
+              isPlanning={persistedStatusName === TRIP_STATUS.PLANNING}
+            />
             <TripSuggestionsCard
               tripId={apiTrip.id}
               isPro={Boolean(currentUser?.isPaidMember || isAdmin)}

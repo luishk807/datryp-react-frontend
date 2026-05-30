@@ -1,0 +1,322 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Trip Checkup trigger pill — sits next to the lightbulb suggestions
+// trigger above the day blocks. Different palette (cool blue) so the
+// two affordances read as distinct features rather than two variants
+// of the same button.
+.trip-checkup-trigger-row {
+    display: flex;
+    justify-content: flex-end;
+    margin: 4px 0 12px;
+}
+
+.trip-checkup-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(53, 122, 189, 0.45);
+    background: rgba(53, 122, 189, 0.06);
+    color: #1f6fb5;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease,
+        transform 0.15s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(53, 122, 189, 0.14);
+        border-color: #1f6fb5;
+        transform: translateY(-1px);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: progress;
+    }
+}
+
+.trip-checkup-trigger-icon {
+    color: #1f6fb5;
+}
+
+// Tone palette. Drives the score-text color, dimension bar fills,
+// verdict-icon color, and the score band on the top-left of the
+// card. Four buckets matched 1:1 with the BE verdict bands:
+//   - great:  85-100 (Excellent / Strong)
+//   - good:   70-84  (Solid / On track)
+//   - warn:   50-69  (Needs work)
+//   - bad:    <50    (Concerning / Weak)
+.trip-checkup-tone-great {
+    --checkup-tone: theme('colors.primaryGreen');
+    --checkup-tone-soft: rgba(60, 181, 75, 0.1);
+    --checkup-tone-border: rgba(60, 181, 75, 0.3);
+}
+.trip-checkup-tone-good {
+    --checkup-tone: #5fb55c;
+    --checkup-tone-soft: rgba(95, 181, 92, 0.1);
+    --checkup-tone-border: rgba(95, 181, 92, 0.3);
+}
+.trip-checkup-tone-warn {
+    --checkup-tone: theme('colors.primaryOrange');
+    --checkup-tone-soft: rgba(247, 159, 38, 0.1);
+    --checkup-tone-border: rgba(247, 159, 38, 0.3);
+}
+.trip-checkup-tone-bad {
+    --checkup-tone: #c0392b;
+    --checkup-tone-soft: rgba(192, 57, 43, 0.08);
+    --checkup-tone-border: rgba(192, 57, 43, 0.3);
+}
+
+.trip-checkup-card {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.85) 0%,
+        var(--checkup-tone-soft, rgba(53, 122, 189, 0.06)) 100%
+    );
+    border: 1px solid var(--checkup-tone-border, rgba(53, 122, 189, 0.22));
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin: 4px 0 20px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .trip-checkup-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+        color: rgba(0, 0, 0, 0.55);
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+        z-index: 1;
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: rgba(0, 0, 0, 0.85);
+        }
+    }
+
+    .trip-checkup-loading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    .trip-checkup-error {
+        font-size: 13px;
+    }
+}
+
+// Headline row — big score on the left, verdict + summary on the right.
+.trip-checkup-head {
+    display: flex;
+    align-items: stretch;
+    gap: 18px;
+    padding-right: 32px; // breathing room for the close button
+}
+
+.trip-checkup-score {
+    flex-shrink: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    min-width: 96px;
+    padding: 18px 14px;
+    border-radius: 14px;
+    background: var(--checkup-tone-soft, rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--checkup-tone-border, rgba(0, 0, 0, 0.1));
+    color: var(--checkup-tone, rgba(0, 0, 0, 0.7));
+}
+
+.trip-checkup-score-num {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.trip-checkup-score-out {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+.trip-checkup-headline {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+}
+
+.trip-checkup-verdict {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--checkup-tone, rgba(0, 0, 0, 0.85));
+}
+
+.trip-checkup-verdict-icon {
+    color: currentColor;
+}
+
+.trip-checkup-summary {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.72);
+    margin: 0;
+}
+
+// Dimension row — 3 mini-meters for Budget / Time / Activities.
+.trip-checkup-dims {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (max-width: 720px) {
+    .trip-checkup-dims {
+        grid-template-columns: 1fr;
+    }
+    .trip-checkup-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .trip-checkup-score {
+        min-width: 0;
+        padding: 14px;
+    }
+    .trip-checkup-score-num {
+        font-size: 1.8rem;
+    }
+}
+
+.trip-checkup-dim {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.trip-checkup-dim-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.trip-checkup-dim-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.trip-checkup-dim-verdict {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--checkup-tone-soft, rgba(0, 0, 0, 0.04));
+    color: var(--checkup-tone, rgba(0, 0, 0, 0.7));
+}
+
+.trip-checkup-dim-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.trip-checkup-dim-bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--checkup-tone, rgba(0, 0, 0, 0.4));
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.trip-checkup-dim-why {
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.68);
+    margin: 0;
+}
+
+// Strengths + Gaps — two columns side-by-side, stack on mobile.
+.trip-checkup-lists {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (max-width: 560px) {
+    .trip-checkup-lists {
+        grid-template-columns: 1fr;
+    }
+}
+
+.trip-checkup-list {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    padding: 12px 14px;
+
+    h4 {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0 0 8px;
+    }
+
+    ul {
+        margin: 0;
+        padding-left: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    li {
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: rgba(0, 0, 0, 0.72);
+    }
+}
+
+.trip-checkup-list-strengths h4 {
+    color: theme('colors.primaryGreen');
+}
+
+.trip-checkup-list-gaps h4 {
+    color: theme('colors.primaryOrange');
+}
