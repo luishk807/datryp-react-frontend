@@ -99,6 +99,14 @@ export const useBudgetSuggestion = ({
             if (userEdited) return;
         }
 
+        // BE schema caps `start_date` at YYYY-MM-DD (10 chars). On
+        // /trip-detail the trip's startDate comes back from GraphQL as
+        // a full ISO datetime ("2026-06-29T00:00:00") which trips a 422.
+        // Normalize to date-only before shipping.
+        const startDateOnly = startDate
+            ? startDate.slice(0, 10)
+            : null;
+
         const ac = new AbortController();
         setIsLoading(true);
         suggestBudget(
@@ -107,7 +115,7 @@ export const useBudgetSuggestion = ({
                 city,
                 days,
                 travelStyle,
-                startDate,
+                startDate: startDateOnly,
                 homeCountryCode,
                 homeCity,
             },

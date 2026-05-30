@@ -4,6 +4,76 @@
   text-align: center;
 }
 
+// ────────────────────────────────────────────────────────────────────
+// Status theme. The TripDetail wrapper carries a
+// `trip-detail-status-<name>` class derived from the persisted trip
+// status; descendants tint themselves via these CSS custom
+// properties so cards / chips / banners feel consistent with the
+// lifecycle stage at a glance.
+//
+//   - Planning  → orange (primaryOrange). Still being shaped.
+//   - Confirmed → green  (primaryGreen).  Locked in, happening.
+//   - Completed → gold-ish trophy tone. Sealed record.
+//   - Cancelled → muted slate. Read-only, dimmed.
+//
+// Defaults to Planning if no class matches — the most common state.
+// New status names should pick a hue here AND in the status-pill
+// styles further down (search for `.trip-detail-status-completed`
+// etc.) so badge + theme agree.
+.trip-detail-themed {
+  // Layout containment — the wrapper sits between Layout and the
+  // page Grid, and must not introduce any new sizing constraints.
+  // Without these, descendants that exceed their natural width
+  // (long titles, wide tables, etc.) push the wrapper past the
+  // viewport on mobile and the right edge of activity cards gets
+  // cropped off-screen.
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip; // belt-and-suspenders; prefer clip over hidden so a
+                    // sticky descendant isn't accidentally captured.
+
+  --trip-status-accent: theme('colors.primaryOrange');
+  --trip-status-accent-rgb: 247, 159, 38;
+  --trip-status-soft: rgba(247, 159, 38, 0.06);
+  --trip-status-soft-strong: rgba(247, 159, 38, 0.12);
+  --trip-status-border: rgba(247, 159, 38, 0.22);
+
+  &.trip-detail-status-confirmed {
+    --trip-status-accent: theme('colors.primaryGreen');
+    --trip-status-accent-rgb: 60, 181, 75;
+    --trip-status-soft: rgba(60, 181, 75, 0.06);
+    --trip-status-soft-strong: rgba(60, 181, 75, 0.12);
+    --trip-status-border: rgba(60, 181, 75, 0.22);
+  }
+
+  &.trip-detail-status-completed {
+    --trip-status-accent: #c9912b;
+    --trip-status-accent-rgb: 201, 145, 43;
+    --trip-status-soft: rgba(201, 145, 43, 0.07);
+    --trip-status-soft-strong: rgba(201, 145, 43, 0.14);
+    --trip-status-border: rgba(201, 145, 43, 0.25);
+  }
+
+  &.trip-detail-status-cancelled {
+    --trip-status-accent: rgba(0, 0, 0, 0.45);
+    --trip-status-accent-rgb: 110, 110, 110;
+    --trip-status-soft: rgba(0, 0, 0, 0.03);
+    --trip-status-soft-strong: rgba(0, 0, 0, 0.06);
+    --trip-status-border: rgba(0, 0, 0, 0.12);
+  }
+
+  // Wash the BasicTripInfo card + budget summary card in the soft
+  // status tint instead of plain white. Bordered with the status
+  // accent so the cards read as part of the same lifecycle bucket.
+  .basic-trip-info,
+  .budget-summary {
+    background: var(--trip-status-soft);
+    border-color: var(--trip-status-border);
+  }
+}
+
 // Row holding the Show/Hide detail toggle + the "Take the tour"
 // launcher. Sits between the trip header (name + action buttons,
 // always visible) and the collapsible detail cards (basic info

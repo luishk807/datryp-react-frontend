@@ -694,6 +694,9 @@ export const TripDetail = () => {
 
   return (
     <Layout>
+      <div
+        className={`trip-detail-themed trip-detail-status-${persistedStatusName.toLowerCase()}`}
+      >
       <Snackbar
         open={!!saveError}
         autoHideDuration={6000}
@@ -903,6 +906,7 @@ export const TripDetail = () => {
         run={detailTourRun}
         onClose={handleDetailTourClose}
       />
+      </div>
     </Layout>
   );
 };

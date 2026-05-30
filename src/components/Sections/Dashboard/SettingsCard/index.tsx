@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { Snackbar, Switch } from '@mui/material';
+import {
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Snackbar,
+    Switch,
+} from '@mui/material';
 import classnames from 'classnames';
 import './index.scss';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import {
     useFreeEverything,
     useUpdateFreeEverything,
@@ -28,8 +37,24 @@ const SettingsCard = () => {
     const update = useUpdateFreeEverything();
     const [duration, setDuration] = useState<number>(24);
     const [toast, setToast] = useState<string | null>(null);
+    // Pending toggle target — `null` means no confirm dialog open.
+    // The Switch's `checked` doesn't flip until the dialog is
+    // confirmed, so a cancel just dismisses the dialog without any
+    // round-trip. Both directions (ON → confirm, OFF → confirm) go
+    // through this gate so the admin always types-of-confirms before
+    // touching a global flag.
+    const [pendingToggle, setPendingToggle] = useState<boolean | null>(null);
 
-    const handleToggle = async (next: boolean) => {
+    const requestToggle = (next: boolean) => {
+        setPendingToggle(next);
+    };
+
+    const cancelToggle = () => setPendingToggle(null);
+
+    const confirmToggle = async () => {
+        if (pendingToggle === null) return;
+        const next = pendingToggle;
+        setPendingToggle(null);
         try {
             const result = await update.mutateAsync(
                 next
@@ -52,6 +77,16 @@ const SettingsCard = () => {
             );
         }
     };
+
+    const durationLabel = (() => {
+        const opt = [
+            { hours: 1, label: '1 hour' },
+            { hours: 24, label: '24 hours' },
+            { hours: 24 * 7, label: '7 days' },
+            { hours: 24 * 30, label: '30 days' },
+        ].find((o) => o.hours === duration);
+        return opt?.label ?? `${duration} hours`;
+    })();
 
     return (
         <>
@@ -94,7 +129,7 @@ const SettingsCard = () => {
                     <Switch
                         checked={Boolean(status?.active)}
                         disabled={isLoading || update.isPending}
-                        onChange={(e) => handleToggle(e.target.checked)}
+                        onChange={(e) => requestToggle(e.target.checked)}
                         inputProps={{
                             'aria-label': 'Toggle free-everything mode',
                         }}
@@ -132,6 +167,70 @@ const SettingsCard = () => {
                     </p>
                 </div>
             </section>
+
+            <Dialog
+                open={pendingToggle !== null}
+                onClose={cancelToggle}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>
+                    {pendingToggle
+                        ? 'Turn on Free Everything?'
+                        : 'Turn off Free Everything?'}
+                </DialogTitle>
+                <DialogContent>
+                    {pendingToggle ? (
+                        <DialogContentText component="div">
+                            <p>
+                                This grants <strong>every authenticated user</strong>{' '}
+                                full Pro access for{' '}
+                                <strong>{durationLabel}</strong> — including
+                                AI trip building, lightbulb suggestions,
+                                seasonal picks, monthly best place,
+                                holiday suggestions, and unlimited trip
+                                creation.
+                            </p>
+                            <p>
+                                Billable AI calls (OpenAI tokens) will be
+                                made on behalf of free users while this is
+                                on. The toggle auto-reverts on expiry, but
+                                you can flip it off sooner from here.
+                            </p>
+                        </DialogContentText>
+                    ) : (
+                        <DialogContentText>
+                            Every authenticated user will revert to their
+                            actual subscription tier on their next
+                            request. In-flight requests already serving
+                            Pro content will finish normally; subsequent
+                            requests follow the new state.
+                        </DialogContentText>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <ButtonCustom
+                        type="line"
+                        capitalizeType="uppercase"
+                        label="Cancel"
+                        onClick={cancelToggle}
+                        disabled={update.isPending}
+                    />
+                    <ButtonCustom
+                        type="standard"
+                        capitalizeType="uppercase"
+                        label={
+                            update.isPending
+                                ? 'Saving…'
+                                : pendingToggle
+                                  ? `Turn ON for ${durationLabel}`
+                                  : 'Turn OFF'
+                        }
+                        onClick={confirmToggle}
+                        disabled={update.isPending}
+                    />
+                </DialogActions>
+            </Dialog>
 
             <Snackbar
                 open={Boolean(toast)}
