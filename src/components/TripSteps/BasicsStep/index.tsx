@@ -146,33 +146,23 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         if (userEdited) return;
         lastRequestKeyRef.current = requestKey;
         console.log('[budget-ai] firing', requestKey);
-        budgetSuggestionMutate(
-            {
-                countryCode,
-                city: cityHint,
-                days: suggestableDays,
-                travelStyle: styleHint,
-                startDate: start,
-                homeCountryCode: homeCountryHint,
-                homeCity: homeCityHint,
-            },
-            {
-                onSuccess: (result) => {
-                    console.log('[budget-ai] success', result);
-                    if (result?.suggestedTotal != null) {
-                        lastAiTotalRef.current = result.suggestedTotal;
-                        onChange('budget', {
-                            target: {
-                                value: String(result.suggestedTotal),
-                            },
-                        });
-                    }
-                },
-                onError: (err) => {
-                    console.warn('[budget-ai] error', err);
-                },
-            }
-        );
+        budgetSuggestionMutate({
+            countryCode,
+            city: cityHint,
+            days: suggestableDays,
+            travelStyle: styleHint,
+            startDate: start,
+            homeCountryCode: homeCountryHint,
+            homeCity: homeCityHint,
+        });
+        // NOTE: deliberately NOT attaching an onSuccess callback here.
+        // When the effect re-runs (StrictMode in dev, or any dep
+        // change while a request is in flight), the per-call
+        // onSuccess closure can be orphaned and never fired even
+        // though the network request settles. A dedicated effect
+        // below watches `budgetSuggestion.data` instead, which is
+        // tied to the mutation observer's own state and fires
+        // reliably on settle.
     }, [
         countryCode,
         inferredCity,
@@ -184,8 +174,39 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         user?.homeCity,
         data?.budget,
         budgetSuggestionMutate,
-        onChange,
     ]);
+
+    // Apply the latest mutation result whenever it arrives. Decoupled
+    // from the mutate() call so we don't depend on a per-call onSuccess
+    // callback that React Query can orphan when the effect re-fires.
+    const suggestionData = budgetSuggestion.data;
+    useEffect(() => {
+        if (!suggestionData?.suggestedTotal) return;
+        const total = suggestionData.suggestedTotal;
+        const currentBudgetStr = String(data?.budget ?? '').trim();
+        // Skip the write when the input already shows this exact AI
+        // total (or the user has typed something different — leave
+        // their value alone).
+        if (currentBudgetStr === String(total)) return;
+        if (
+            currentBudgetStr !== '' &&
+            currentBudgetStr !== '0' &&
+            currentBudgetStr !== String(lastAiTotalRef.current ?? '')
+        ) {
+            return;
+        }
+        console.log('[budget-ai] applying', total);
+        lastAiTotalRef.current = total;
+        onChange('budget', {
+            target: { value: String(total) },
+        });
+    }, [suggestionData, data?.budget, onChange]);
+
+    useEffect(() => {
+        if (budgetSuggestion.isError) {
+            console.warn('[budget-ai] error', budgetSuggestion.error);
+        }
+    }, [budgetSuggestion.isError, budgetSuggestion.error]);
 
     const suggestion = budgetSuggestion.data;
     const isLoadingSuggestion = budgetSuggestion.isPending;
