@@ -546,14 +546,15 @@ export const BasicTripInfo = ({
                     <PaymentsOutlinedIcon className="stat-icon" />
                     <div className="stat-text">
                         <span className="stat-label">Budget</span>
-                        <span className="stat-value">{convertMoney(data.budget)}</span>
-                        {budgetVerdict && (
-                            <span
-                                className={classnames(
-                                    'budget-verdict',
-                                    `budget-verdict-${budgetVerdict.tone}`,
-                                )}
-                            >
+                        <div className="stat-value-row">
+                            <span className="stat-value">{convertMoney(data.budget)}</span>
+                            {budgetVerdict && (
+                                <span
+                                    className={classnames(
+                                        'budget-verdict',
+                                        `budget-verdict-${budgetVerdict.tone}`,
+                                    )}
+                                >
                                 {budgetVerdict.tone === 'low' && (
                                     <TrendingDownRoundedIcon
                                         className="budget-verdict-arrow"
@@ -589,8 +590,9 @@ export const BasicTripInfo = ({
                                         aria-label={budgetVerdict.why}
                                     />
                                 </Tooltip>
-                            </span>
-                        )}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

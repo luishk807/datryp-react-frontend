@@ -398,11 +398,26 @@
 // support comes from enterTouchDelay=0 on the Tooltip — tap to
 // reveal, auto-hide after a few seconds. Don't add a click handler;
 // the tooltip is the only interaction.
+// Wrapper row that puts `$value` + verdict chip on the same line so
+// the chip sits next to the budget number, not stacked below it.
+// Flex-wrap so a long "Comfortable" chip on a narrow mobile column
+// can wrap underneath instead of overflowing the tile.
+.basic-trip-info .stat-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+
+  .stat-value {
+    margin-top: 0;
+  }
+}
+
 .basic-trip-info .budget-verdict {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 6px;
   padding: 3px 8px;
   border-radius: 999px;
   font-size: 0.74rem;

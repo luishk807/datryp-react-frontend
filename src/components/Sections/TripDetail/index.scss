@@ -72,6 +72,23 @@
     background: var(--trip-status-soft);
     border-color: var(--trip-status-border);
   }
+
+  // BasicTripInfo's stat-icons (Organizer person, Where globe, When
+  // calendar, Budget payments, Who's going group) all default to the
+  // theme primaryGreen color, but that fights the orange-tint Planning
+  // wash. Repaint them with the status accent so icon + card chrome
+  // agree at a glance.
+  .basic-trip-info .stat-icon {
+    color: var(--trip-status-accent);
+  }
+
+  // Friend chips ("luis ho") were hardcoded to orange; rebrand to
+  // the status accent so a Confirmed trip's participant chips read
+  // green, a Completed trip's read gold, etc.
+  .basic-trip-info .friend-chip {
+    background: var(--trip-status-soft-strong);
+    color: var(--trip-status-accent);
+  }
 }
 
 // Row holding the Show/Hide detail toggle + the "Take the tour"
