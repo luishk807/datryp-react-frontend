@@ -64,7 +64,8 @@ const authHeaders = (): Record<string, string> => {
 };
 
 export const suggestBudget = async (
-    payload: BudgetSuggestRequest
+    payload: BudgetSuggestRequest,
+    signal?: AbortSignal
 ): Promise<BudgetSuggestResult | null> => {
     const body = {
         country_code: payload.countryCode,
@@ -82,6 +83,7 @@ export const suggestBudget = async (
             ...authHeaders(),
         },
         body: JSON.stringify(body),
+        signal,
     });
     if (!resp.ok) {
         throw new Error(

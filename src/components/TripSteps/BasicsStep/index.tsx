@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import classnames from 'classnames';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -9,7 +9,7 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import SearchBar from 'components/SearchBar';
 import InputField from 'components/common/FormFields/InputField';
 import { addPlace, basicInfo, useTripDispatch } from 'context/TripContext';
-import { useBudgetSuggestion } from 'api/hooks/useBudgetSuggestion';
+import { suggestBudget, type BudgetSuggestResult } from 'api/budgetApi';
 import { useUser } from 'context/UserContext';
 import { ACTIVITY_KIND, TRIP_BASIC, TRIP_MODE } from 'constants';
 import type {
@@ -42,7 +42,15 @@ interface BasicsStepProps {
 const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     const dispatch = useTripDispatch();
     const { user, isLoading: isUserLoading } = useUser();
-    const budgetSuggestion = useBudgetSuggestion();
+    // Direct local state for the AI budget call. We deliberately do
+    // NOT use a TanStack Query mutation here — in dev StrictMode the
+    // component is unmounted + remounted, which recreates the
+    // mutation observer and orphans the in-flight result so `data`
+    // never settles. Owning the state locally keeps the result
+    // reachable through any re-mount the framework throws at us.
+    const [suggestion, setSuggestion] =
+        useState<BudgetSuggestResult | null>(null);
+    const [isLoadingSuggestion, setIsLoadingSuggestion] = useState(false);
     const selectedId = data?.type?.id;
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
     const isMulti = selectedId === TRIP_BASIC.MULTIPLE.id;
@@ -101,67 +109,65 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         return rootCountry.name;
     })();
 
-    // Tracks the most recent AI total so we (a) avoid refetching the
-    // same (country, days, start_date, style) combo and (b) know when
-    // the input still holds the AI value vs the user has edited it
-    // (drives the "AI suggested budget" badge under the field).
+    // Tracks the most recent AI total so we know whether the input
+    // still holds the AI value (drives the "AI suggested budget"
+    // badge — typing over it hides the badge automatically).
     const lastAiTotalRef = useRef<number | null>(null);
-    const lastRequestKeyRef = useRef<string | null>(null);
-    const budgetSuggestionMutate = budgetSuggestion.mutate;
 
     useEffect(() => {
         if (!countryCode || suggestableDays === null || !start) return;
-        // Wait for the auth/me fetch to settle before firing so the
-        // very first request has the user's home base in it. Without
-        // this gate the effect fires once with empty home (wrong
-        // transport mode), then again when /auth/me resolves with the
-        // real home — two concurrent OpenAI calls would race, and the
-        // loading badge could stick if either hung.
+        // Wait for the auth/me fetch to settle so the very first
+        // request has the user's home base in it — otherwise the
+        // initial call ships an empty home (wrong transport mode)
+        // and we'd waste an OpenAI call.
         if (isUserLoading) return;
         const styleHint = user?.travelerStyles?.[0] ?? null;
         const cityHint = inferredCity;
-        // Origin for the round-trip transport leg. When the user has
-        // a home base saved (Account → Home base), the backend uses it
-        // to pick the right transport mode (train if same country,
-        // flight otherwise). Falls back to a regional default when
-        // neither is set.
         const homeCountryHint = user?.homeCountryCode ?? null;
         const homeCityHint = user?.homeCity ?? null;
-        // Include `start`, the inferred destination city, and the
-        // origin in the key so a date shift, a different inferred
-        // city, or a changed home base all trigger a fresh estimate —
-        // any of those flips the transport mode or the seasonal /
-        // city-level pricing significantly.
-        const requestKey = `${countryCode}|${cityHint ?? ''}|${suggestableDays}|${start}|${styleHint ?? ''}|${homeCountryHint ?? ''}|${homeCityHint ?? ''}`;
-        if (lastRequestKeyRef.current === requestKey) return;
-        // If the user has typed their own value (input differs from
-        // the last AI total), don't override it on a context change —
-        // they took ownership. Clearing the field opts back in.
+        // Don't overwrite a value the user typed themselves. They
+        // can clear the field to opt back into auto-fill.
         const currentBudgetStr = String(data?.budget ?? '').trim();
-        const lastAiStr = String(lastAiTotalRef.current ?? '');
         const userEdited =
             currentBudgetStr !== '' &&
             currentBudgetStr !== '0' &&
-            currentBudgetStr !== lastAiStr;
+            currentBudgetStr !== String(lastAiTotalRef.current ?? '');
         if (userEdited) return;
-        lastRequestKeyRef.current = requestKey;
-        budgetSuggestionMutate({
-            countryCode,
-            city: cityHint,
-            days: suggestableDays,
-            travelStyle: styleHint,
-            startDate: start,
-            homeCountryCode: homeCountryHint,
-            homeCity: homeCityHint,
-        });
-        // NOTE: deliberately NOT attaching an onSuccess callback here.
-        // When the effect re-runs (StrictMode in dev, or any dep
-        // change while a request is in flight), the per-call
-        // onSuccess closure can be orphaned and never fired even
-        // though the network request settles. A dedicated effect
-        // below watches `budgetSuggestion.data` instead, which is
-        // tied to the mutation observer's own state and fires
-        // reliably on settle.
+
+        const ac = new AbortController();
+        setIsLoadingSuggestion(true);
+        suggestBudget(
+            {
+                countryCode,
+                city: cityHint,
+                days: suggestableDays,
+                travelStyle: styleHint,
+                startDate: start,
+                homeCountryCode: homeCountryHint,
+                homeCity: homeCityHint,
+            },
+            ac.signal
+        )
+            .then((result) => {
+                if (ac.signal.aborted) return;
+                setSuggestion(result);
+                setIsLoadingSuggestion(false);
+                if (result?.suggestedTotal != null) {
+                    lastAiTotalRef.current = result.suggestedTotal;
+                    onChange('budget', {
+                        target: { value: String(result.suggestedTotal) },
+                    });
+                }
+            })
+            .catch((err) => {
+                if (ac.signal.aborted) return;
+                if (err?.name === 'AbortError') return;
+                setIsLoadingSuggestion(false);
+            });
+
+        return () => {
+            ac.abort();
+        };
     }, [
         countryCode,
         inferredCity,
@@ -171,48 +177,9 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         user?.travelerStyles,
         user?.homeCountryCode,
         user?.homeCity,
-        data?.budget,
-        budgetSuggestionMutate,
+        onChange,
     ]);
 
-    // Apply the latest mutation result whenever it arrives. Decoupled
-    // from the mutate() call so we don't depend on a per-call onSuccess
-    // callback that React Query can orphan when the effect re-fires.
-    const suggestionData = budgetSuggestion.data;
-    useEffect(() => {
-        console.log('[budget-ai apply] tick', {
-            suggested: suggestionData?.suggestedTotal,
-            currentBudget: data?.budget,
-            lastAi: lastAiTotalRef.current,
-        });
-        if (!suggestionData?.suggestedTotal) return;
-        const total = suggestionData.suggestedTotal;
-        const currentBudgetStr = String(data?.budget ?? '').trim();
-        // Skip the write when the input already shows this exact AI
-        // total (or the user has typed something different — leave
-        // their value alone).
-        if (currentBudgetStr === String(total)) {
-            console.log('[budget-ai apply] skip: already matches');
-            return;
-        }
-        if (
-            currentBudgetStr !== '' &&
-            currentBudgetStr !== '0' &&
-            currentBudgetStr !== String(lastAiTotalRef.current ?? '')
-        ) {
-            console.log('[budget-ai apply] skip: user edited', currentBudgetStr);
-            return;
-        }
-        lastAiTotalRef.current = total;
-        console.log('[budget-ai apply] dispatching', total);
-        onChange('budget', {
-            target: { value: String(total) },
-        });
-    }, [suggestionData, data?.budget, onChange]);
-
-
-    const suggestion = budgetSuggestion.data;
-    const isLoadingSuggestion = budgetSuggestion.isPending;
     // Badge only shows when the field still matches the AI value —
     // typing over it hides the badge automatically.
     const showAiBadge =
