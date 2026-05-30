@@ -41,7 +41,7 @@ interface BasicsStepProps {
  */
 const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     const dispatch = useTripDispatch();
-    const { user } = useUser();
+    const { user, isLoading: isUserLoading } = useUser();
     const budgetSuggestion = useBudgetSuggestion();
     const selectedId = data?.type?.id;
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
@@ -111,6 +111,13 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
 
     useEffect(() => {
         if (!countryCode || suggestableDays === null || !start) return;
+        // Wait for the auth/me fetch to settle before firing so the
+        // very first request has the user's home base in it. Without
+        // this gate the effect fires once with empty home (wrong
+        // transport mode), then again when /auth/me resolves with the
+        // real home — two concurrent OpenAI calls would race, and the
+        // loading badge could stick if either hung.
+        if (isUserLoading) return;
         const styleHint = user?.travelerStyles?.[0] ?? null;
         const cityHint = inferredCity;
         // Origin for the round-trip transport leg. When the user has
@@ -166,6 +173,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         inferredCity,
         suggestableDays,
         start,
+        isUserLoading,
         user?.travelerStyles,
         user?.homeCountryCode,
         user?.homeCity,
