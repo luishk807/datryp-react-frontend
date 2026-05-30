@@ -1,5 +1,5 @@
 import "./index.scss";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import moment from "moment";
 import { useSearchParams } from "react-router-dom";
 import classNames from "classnames";
@@ -359,6 +359,21 @@ const Activities = ({
   // explicitly to enable a one-tap Planning↔Confirmed flip without
   // first dropping into the stepper editor.
   const statusToggleEnabled = allowStatusToggle ?? !isViewMode;
+
+  // Tracks the activity whose status pill the user just clicked, so
+  // we can render "Saving…" + disable just that one pill until the
+  // parent's autosave completes. The other pills stay live so the
+  // user can queue toggles on different activities without waiting.
+  const [pendingStatusActivityId, setPendingStatusActivityId] =
+    useState<number | null>(null);
+  // Clear the pending marker as soon as the parent's autosave
+  // finishes — the parent flips `isAutoSaving` from true → false on
+  // settle, which is our cue that the toggle landed.
+  useEffect(() => {
+    if (!isAutoSaving && pendingStatusActivityId !== null) {
+      setPendingStatusActivityId(null);
+    }
+  }, [isAutoSaving, pendingStatusActivityId]);
   // Post-planning UI: once the trip itself is Confirmed (or beyond),
   // each activity gets a "Complete" button instead of delete and
   // the status pill is hidden. After Completed/Cancelled the actions
@@ -901,30 +916,46 @@ const Activities = ({
                             const nextStatus = confirmed
                               ? plannedStatus
                               : confirmedStatus;
+                            const isSavingThisPill =
+                              pendingStatusActivityId === activity.id;
                             return (
                               <button
                                 type="button"
                                 className={
                                   "status-toggle " +
-                                  (confirmed ? "is-confirmed" : "is-pending")
+                                  (confirmed ? "is-confirmed" : "is-pending") +
+                                  (isSavingThisPill ? " is-saving" : "")
                                 }
                                 disabled={
                                   !statusToggleEnabled ||
                                   lockActivityStatus ||
-                                  isAutoSaving
+                                  isAutoSaving ||
+                                  isSavingThisPill
                                 }
+                                aria-busy={isSavingThisPill}
                                 aria-label={`Status: ${confirmed ? "Confirmed" : "Planning"}. Click to toggle.`}
-                                onClick={() =>
+                                onClick={() => {
+                                  // Mark THIS pill as saving so the
+                                  // label flips to "Saving…" and only
+                                  // this button disables — other
+                                  // pills stay live. Cleared by the
+                                  // effect above when the parent's
+                                  // isAutoSaving settles.
+                                  setPendingStatusActivityId(activity.id);
                                   onChangePlace("edit", {
                                     index: indx,
                                     value: {
                                       id: activity.id,
                                       status: nextStatus,
                                     },
-                                  })
-                                }
+                                  });
+                                }}
                               >
-                                {confirmed ? "Confirmed" : "Planning"}
+                                {isSavingThisPill
+                                  ? "Saving…"
+                                  : confirmed
+                                    ? "Confirmed"
+                                    : "Planning"}
                               </button>
                             );
                           })()}
