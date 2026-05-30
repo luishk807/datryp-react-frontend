@@ -76,7 +76,7 @@ const BudgetSummary = ({
             <div className="budget-header">
                 <div className="budget-eyebrow-wrap">
                     <AccountBalanceWalletOutlinedIcon className="budget-eyebrow-icon" />
-                    <span className="budget-eyebrow">Trip budget</span>
+                    <span className="budget-eyebrow">Trip expenses meter</span>
                 </div>
                 <div className="budget-amounts">
                     <span className="budget-spent">{convertMoney(spent)}</span>
