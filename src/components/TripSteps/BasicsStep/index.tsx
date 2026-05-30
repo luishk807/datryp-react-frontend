@@ -113,12 +113,19 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         if (!countryCode || suggestableDays === null || !start) return;
         const styleHint = user?.travelerStyles?.[0] ?? null;
         const cityHint = inferredCity;
-        // Include `start` and the inferred city in the key so a date
-        // shift that keeps the same trip length (different season) OR
-        // a different inferred city still triggers a fresh estimate —
-        // city granularity matters a lot more than country-only for
-        // pricing (Tokyo vs Sapporo, NYC vs Buffalo).
-        const requestKey = `${countryCode}|${cityHint ?? ''}|${suggestableDays}|${start}|${styleHint ?? ''}`;
+        // Origin for the round-trip transport leg. When the user has
+        // a home base saved (Account → Home base), the backend uses it
+        // to pick the right transport mode (train if same country,
+        // flight otherwise). Falls back to a regional default when
+        // neither is set.
+        const homeCountryHint = user?.homeCountryCode ?? null;
+        const homeCityHint = user?.homeCity ?? null;
+        // Include `start`, the inferred destination city, and the
+        // origin in the key so a date shift, a different inferred
+        // city, or a changed home base all trigger a fresh estimate —
+        // any of those flips the transport mode or the seasonal /
+        // city-level pricing significantly.
+        const requestKey = `${countryCode}|${cityHint ?? ''}|${suggestableDays}|${start}|${styleHint ?? ''}|${homeCountryHint ?? ''}|${homeCityHint ?? ''}`;
         if (lastRequestKeyRef.current === requestKey) return;
         // If the user has typed their own value (input differs from
         // the last AI total), don't override it on a context change —
@@ -138,6 +145,8 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                 days: suggestableDays,
                 travelStyle: styleHint,
                 startDate: start,
+                homeCountryCode: homeCountryHint,
+                homeCity: homeCityHint,
             },
             {
                 onSuccess: (result) => {
@@ -158,6 +167,8 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         suggestableDays,
         start,
         user?.travelerStyles,
+        user?.homeCountryCode,
+        user?.homeCity,
         data?.budget,
         budgetSuggestionMutate,
         onChange,

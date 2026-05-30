@@ -29,6 +29,12 @@ export interface BudgetSuggestRequest {
      *  hurricane risk) so the same destination in July vs January
      *  doesn't return the same number. */
     startDate?: string | null;
+    /** Where the traveller is coming FROM — drives the round-trip
+     *  transport leg of the estimate (flight vs train vs drive). Both
+     *  fields optional; the backend falls back to a regional default
+     *  when neither is supplied. */
+    homeCountryCode?: string | null;
+    homeCity?: string | null;
 }
 
 export interface BudgetSuggestResult {
@@ -65,6 +71,9 @@ export const suggestBudget = async (
         city: payload.city ?? null,
         days: payload.days,
         travel_style: payload.travelStyle ?? null,
+        start_date: payload.startDate ?? null,
+        home_country_code: payload.homeCountryCode ?? null,
+        home_city: payload.homeCity ?? null,
     };
     const resp = await fetch(`${API_BASE}/budgets/suggest`, {
         method: 'POST',
