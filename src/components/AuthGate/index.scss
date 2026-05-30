@@ -181,19 +181,17 @@
   color: rgba(0, 0, 0, 0.55);
 }
 
+// Width is controlled HERE on the parent, not on the inner host div.
+// The inner `.google-signin-host` already declares `width: 100%` in
+// its own scss, so it follows whatever this parent is — no override
+// needed. To resize the Google button, change this parent's width
+// (or constrain it via the surrounding form-wrap); the iframe Google
+// injects measures its host and renders to match.
 .authgate-google {
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
-  // Inner div fills the form column so the Google button width matches
-  // the Email / Password / Continue elements below (the form-wrap caps
-  // the whole column at 380px on desktop; Google's renderButton then
-  // clamps the measured value to 200..400 internally, so the iframe
-  // ends up the same width as the green Continue button).
-  > div {
-    width: 100%;
-    max-width: 100%;
-  }
+  width: 100%;
 }
 
 .authgate-divider {

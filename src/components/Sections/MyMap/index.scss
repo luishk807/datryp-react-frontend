@@ -335,6 +335,10 @@
  * the trip list scoped to that selection. Desktop-only — hidden on
  * phones via the breakpoint at the bottom of this block since the
  * panel would eat too much of a narrow viewport. */
+// Trips panel is just a positioned layout container now — no card
+// chrome of its own. Each trip row carries its own white-blur backdrop
+// (see .my-map-trips-panel-trip below) so the cards float on the map
+// directly without a wrapping rectangle around them.
 .my-map-trips-panel {
   position: absolute;
   top: 62px;
@@ -344,12 +348,9 @@
   max-height: calc(100% - 80px);
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(60, 181, 75, 0.22);
-  border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: transparent;
+  border: none;
+  box-shadow: none;
   overflow: hidden;
   animation: my-map-trips-panel-in 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -365,13 +366,33 @@
   }
 }
 
+// "Summary card" — wraps the header (country icon + label + close X)
+// and the "N trip(s)" stat so they read as ONE chip floating on the
+// map. The trip rows below get their own per-card backdrops; this
+// summary stays distinct from them.
+//
+// Horizontal margin matches the `.my-map-trips-panel-list` padding
+// (8px) so the summary's left/right edges line up with the trip
+// cards below it. Without this the summary sat at full panel-edge
+// while the trip cards were inset by the list's gutter padding,
+// producing visibly mismatched right edges.
+.my-map-trips-panel-summary {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(60, 181, 75, 0.18);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  margin: 0 8px 10px;
+  overflow: hidden;
+}
+
 .my-map-trips-panel-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
   padding: 14px 14px 10px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .my-map-trips-panel-heading {
@@ -461,12 +482,14 @@
   }
 }
 
+// "1 TRIP" / "2 TRIPS" label floats above the cards. The green tint
+// + border that used to band across the inside of the white panel
+// don't make sense on a transparent panel — drop both so the label
+// is just compact text over the map.
 .my-map-trips-panel-stat {
   padding: 8px 14px;
   font-size: 0.78rem;
   color: rgba(0, 0, 0, 0.55);
-  background: rgba(60, 181, 75, 0.04);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-weight: 600;
@@ -509,24 +532,59 @@
   text-align: center;
 }
 
+// Each trip card now floats on the map directly (the parent panel is
+// transparent), so the card carries its own white-blur backdrop +
+// shadow to stay readable against varied basemap colors. Stronger
+// hover ramp than before because there's no surrounding chrome
+// hinting that the card is clickable.
+//
+// Entry animation: each card fades in + slides down a few pixels.
+// `animation-fill-mode: both` keeps the from-state applied during
+// the delay so cards don't flash visible before their turn. The
+// nth-child stagger gives a quick cascade — under 0.5s total even
+// for the max-6-card visible window.
 .my-map-trips-panel-trip {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.025);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
   color: theme('colors.primary');
   text-decoration: none;
   transition: background 0.15s ease, transform 0.15s ease,
     box-shadow 0.15s ease;
-  border: 1px solid transparent;
+  border: 1px solid rgba(60, 181, 75, 0.18);
+  animation: my-map-trip-card-in 0.32s cubic-bezier(0.2, 0, 0.2, 1)
+    both;
+
+  &:nth-child(1) { animation-delay: 0.04s; }
+  &:nth-child(2) { animation-delay: 0.10s; }
+  &:nth-child(3) { animation-delay: 0.16s; }
+  &:nth-child(4) { animation-delay: 0.22s; }
+  &:nth-child(5) { animation-delay: 0.28s; }
+  &:nth-child(6) { animation-delay: 0.34s; }
+  &:nth-child(n + 7) { animation-delay: 0.40s; }
 
   &:hover {
-    background: rgba(60, 181, 75, 0.08);
-    border-color: rgba(60, 181, 75, 0.22);
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(60, 181, 75, 0.42);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  }
+}
+
+@keyframes my-map-trip-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -637,7 +695,10 @@
 
   /* Horizontal swipe-scroll row. `scroll-snap` makes the swipe
    * land card-aligned instead of mid-card, mirroring the Google
-   * Maps places-strip pattern. */
+   * Maps places-strip pattern. On phones we re-introduce ONE
+   * shared white-blur backdrop on this list container (desktop
+   * leaves it transparent) so a row of trip cards reads as a
+   * single bottom-docked strip instead of N floating chips. */
   .my-map-trips-panel-list {
     flex-direction: row;
     overflow-x: auto;
@@ -646,16 +707,35 @@
     gap: 10px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(60, 181, 75, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
   }
 
   .my-map-trips-panel-trip {
     /* Narrower fixed-width cards so two cards + a peek of the
      * third fit on a typical phone viewport — gives the user a
      * clear horizontal-scroll affordance without each card
-     * dominating the row. */
+     * dominating the row. The list container now carries the
+     * white backdrop, so individual cards drop their own — no
+     * card-on-card stacking. */
     flex: 0 0 180px;
     max-width: 200px;
     scroll-snap-align: start;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border-color: transparent;
+
+    &:hover {
+      background: rgba(60, 181, 75, 0.08);
+      border-color: rgba(60, 181, 75, 0.22);
+      box-shadow: none;
+    }
   }
 
   /* Trim the per-trip places list on mobile — the cards are
@@ -996,7 +1076,11 @@
 
 @media (max-width: 720px) {
   .my-map-page {
-    padding: 12px 14px 10px;
+    // Zero bottom padding so the canvas-wrap butts directly against
+    // the page-shell's bottom padding (which now exactly equals the
+    // BottomNav height — see override below). Any positive value here
+    // re-introduces the gap between the canvas and the BottomNav.
+    padding: 12px 14px 0;
     // Drop the 70vh floor on phones — combined with `min-height: 60vh`
     // on the canvas wrap and the page-shell's `min-height: 100vh`, the
     // page overflowed the visible viewport (especially with Safari's
@@ -1009,8 +1093,13 @@
   }
   // Use dynamic viewport height so the layout fits the actually-
   // visible area on iOS Safari (vh includes the URL bar's collapsed
-  // height which isn't always there).
+  // height which isn't always there). Override the global
+  // `.page-shell { padding-bottom: 96px }` from BottomNav.scss so the
+  // reserved bottom space EXACTLY matches the BottomNav height instead
+  // of leaving an ~10-20px dead strip above it. BottomNav math:
+  // 14px top + ~56px icon+label stack + max(16px, safe-area) bottom.
   .page-shell.is-full-bleed {
     min-height: 100dvh;
+    padding-bottom: calc(70px + max(16px, env(safe-area-inset-bottom)));
   }
 }

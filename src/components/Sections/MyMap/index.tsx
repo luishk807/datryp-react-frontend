@@ -949,6 +949,18 @@ const MyMap = () => {
         };
 
         const onClick = (e: mapboxgl.MapLayerMouseEvent) => {
+            // Pins sit on top of the country fill; a click on a pin
+            // also lands inside the country polygon, which would fire
+            // this handler and re-frame the camera via `flyToCountry`.
+            // The user clicked the pin specifically (they're already
+            // zoomed in on the pin layer), so suppress the country
+            // re-frame when a pin is at the same point — the pin's
+            // own click handler still runs and opens the popup.
+            const pinHit = map.queryRenderedFeatures(e.point, {
+                layers: [PLACE_PINS_LAYER, CITY_PINS_LAYER],
+            });
+            if (pinHit.length > 0) return;
+
             const feat = e.features?.[0];
             if (!feat) return;
             const code =
@@ -1236,6 +1248,65 @@ const MyMap = () => {
         [visitedPlaces]
     );
 
+    /** Open the pin-detail popup for the first place in a trip — used
+     *  on hover over the left-panel trip cards so the user can preview
+     *  the trip's detail without the map moving or zooming. Clicking
+     *  the card still navigates to /trip-detail (the card is a <Link>).
+     *
+     *  No `flyTo` / `fitBounds` here on purpose: the user keeps the
+     *  current map view (the selected country / city) and the popup
+     *  surfaces at the place's actual coords. If the place is off-
+     *  screen for the current zoom, the popup is offscreen too —
+     *  acceptable because the user is hovering, not navigating. */
+    const showTripPin = useCallback(
+        (trip: SelectionTrip) => {
+            const map = mapRef.current;
+            if (!map) return;
+            let place: (typeof visitedPlaces)[number] | undefined;
+            for (const tp of trip.places) {
+                const vp = visitedPlaces.find((p) => p.id === tp.id);
+                if (
+                    vp &&
+                    typeof vp.latitude === 'number' &&
+                    typeof vp.longitude === 'number'
+                ) {
+                    place = vp;
+                    break;
+                }
+            }
+            if (
+                !place ||
+                typeof place.latitude !== 'number' ||
+                typeof place.longitude !== 'number'
+            ) {
+                return;
+            }
+            const lng = place.longitude;
+            const lat = place.latitude;
+            openPopupRef.current?.remove();
+            const popup = new mapboxgl.Popup({
+                offset: 8,
+                closeButton: true,
+                maxWidth: '260px',
+                className: 'my-map-pin-popup',
+            })
+                .setLngLat([lng, lat])
+                .setHTML(
+                    renderPinPopupHtml({
+                        name: place.placeName,
+                        city: place.placeCity ?? '',
+                        country: place.placeCountry ?? '',
+                        source: place.source,
+                        visitedAt: place.visitedAt,
+                        trips: place.trips,
+                    }),
+                )
+                .addTo(map);
+            openPopupRef.current = popup;
+        },
+        [visitedPlaces]
+    );
+
     const handleSelectFromDropdown = (
         key: StatDropdownKey,
         id: string
@@ -1486,46 +1557,48 @@ const MyMap = () => {
                             className="my-map-trips-panel"
                             aria-labelledby="my-map-trips-panel-title"
                         >
-                            <header className="my-map-trips-panel-header">
-                                <div className="my-map-trips-panel-heading">
-                                    <span
-                                        className={`my-map-trips-panel-icon is-${selection.kind}`}
-                                        aria-hidden="true"
-                                    >
-                                        {selection.kind === 'country' ? (
-                                            <PublicRoundedIcon fontSize="small" />
-                                        ) : selection.kind === 'city' ? (
-                                            <LocationCityRoundedIcon fontSize="small" />
-                                        ) : (
-                                            <PlaceRoundedIcon fontSize="small" />
-                                        )}
-                                    </span>
-                                    <div className="my-map-trips-panel-heading-text">
-                                        <h2
-                                            id="my-map-trips-panel-title"
-                                            className="my-map-trips-panel-title"
+                            <div className="my-map-trips-panel-summary">
+                                <header className="my-map-trips-panel-header">
+                                    <div className="my-map-trips-panel-heading">
+                                        <span
+                                            className={`my-map-trips-panel-icon is-${selection.kind}`}
+                                            aria-hidden="true"
                                         >
-                                            {selection.label}
-                                        </h2>
-                                        {selection.sublabel && (
-                                            <p className="my-map-trips-panel-sub">
-                                                {selection.sublabel}
-                                            </p>
-                                        )}
+                                            {selection.kind === 'country' ? (
+                                                <PublicRoundedIcon fontSize="small" />
+                                            ) : selection.kind === 'city' ? (
+                                                <LocationCityRoundedIcon fontSize="small" />
+                                            ) : (
+                                                <PlaceRoundedIcon fontSize="small" />
+                                            )}
+                                        </span>
+                                        <div className="my-map-trips-panel-heading-text">
+                                            <h2
+                                                id="my-map-trips-panel-title"
+                                                className="my-map-trips-panel-title"
+                                            >
+                                                {selection.label}
+                                            </h2>
+                                            {selection.sublabel && (
+                                                <p className="my-map-trips-panel-sub">
+                                                    {selection.sublabel}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        className="my-map-trips-panel-close"
+                                        onClick={handleClearSelection}
+                                        aria-label="Close trips panel"
+                                    >
+                                        <CloseRoundedIcon fontSize="small" />
+                                    </button>
+                                </header>
+                                <div className="my-map-trips-panel-stat">
+                                    <strong>{selectionTrips.length}</strong>{' '}
+                                    trip{selectionTrips.length === 1 ? '' : 's'}
                                 </div>
-                                <button
-                                    type="button"
-                                    className="my-map-trips-panel-close"
-                                    onClick={handleClearSelection}
-                                    aria-label="Close trips panel"
-                                >
-                                    <CloseRoundedIcon fontSize="small" />
-                                </button>
-                            </header>
-                            <div className="my-map-trips-panel-stat">
-                                <strong>{selectionTrips.length}</strong>{' '}
-                                trip{selectionTrips.length === 1 ? '' : 's'}
                             </div>
                             <div className="my-map-trips-panel-list">
                                 {selectionTrips.map((trip) => {
@@ -1539,6 +1612,7 @@ const MyMap = () => {
                                                     trip.tripId,
                                                 )}`}
                                                 className="my-map-trips-panel-trip"
+                                                onMouseEnter={() => showTripPin(trip)}
                                             >
                                                 <div className="my-map-trips-panel-trip-head">
                                                     <span className="my-map-trips-panel-trip-name">
@@ -1551,34 +1625,33 @@ const MyMap = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                {selection.kind !== 'place' &&
-                                                    trip.places.length > 0 && (
-                                                        <ul className="my-map-trips-panel-trip-places">
-                                                            {trip.places
-                                                                .slice(0, 6)
-                                                                .map((pl) => (
-                                                                    <li
-                                                                        key={pl.id}
-                                                                        className="my-map-trips-panel-trip-place"
-                                                                    >
-                                                                        <PlaceRoundedIcon className="my-map-trips-panel-trip-place-icon" />
-                                                                        <span>
-                                                                            {pl.name}
-                                                                        </span>
-                                                                    </li>
-                                                                ))}
-                                                            {trip.places.length >
-                                                                6 && (
-                                                                <li className="my-map-trips-panel-trip-place is-more">
-                                                                    +{' '}
-                                                                    {trip.places
-                                                                        .length -
-                                                                        6}{' '}
-                                                                    more
+                                                {trip.places.length > 0 && (
+                                                    <ul className="my-map-trips-panel-trip-places">
+                                                        {trip.places
+                                                            .slice(0, 6)
+                                                            .map((pl) => (
+                                                                <li
+                                                                    key={pl.id}
+                                                                    className="my-map-trips-panel-trip-place"
+                                                                >
+                                                                    <PlaceRoundedIcon className="my-map-trips-panel-trip-place-icon" />
+                                                                    <span>
+                                                                        {pl.name}
+                                                                    </span>
                                                                 </li>
-                                                            )}
-                                                        </ul>
-                                                    )}
+                                                            ))}
+                                                        {trip.places.length >
+                                                            6 && (
+                                                            <li className="my-map-trips-panel-trip-place is-more">
+                                                                +{' '}
+                                                                {trip.places
+                                                                    .length -
+                                                                    6}{' '}
+                                                                more
+                                                            </li>
+                                                        )}
+                                                    </ul>
+                                                )}
                                             </Link>
                                         );
                                     })}
@@ -1703,7 +1776,7 @@ interface PinPopupInput {
  *  flow through `escapeHtml` since Mapbox injects this as innerHTML.
  *
  *  Trip-rendering branches:
- *  - **No trips** (`source='manual'` only): just "View details".
+ *  - **No trips** (`source='manual'` only): just "View detail".
  *  - **One trip**: header line "From <trip>" + a green primary CTA +
  *    an orange "View trip" CTA. Mirrors the pre-multi-trip behavior.
  *  - **Multiple trips**: an inline list of trips with per-row visit
@@ -1804,7 +1877,7 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                     href="${detailHref}"
                     target="_blank"
                     rel="noopener noreferrer"
-                >View details</a>
+                >View detail</a>
                 ${tripCta}
             </div>
         </div>
