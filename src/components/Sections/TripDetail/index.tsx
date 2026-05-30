@@ -40,6 +40,7 @@ import ModalButton, {
 } from "components/ModalButton";
 import NotifyParticipantsCheckbox from "components/NotifyParticipantsCheckbox";
 import TripStatusBadge from "components/TripStatusBadge";
+import TripSuggestionsCard from "components/TripSuggestionsCard";
 import { useUser } from "context/UserContext";
 import { basicInfo, useTripDispatch } from "context/TripContext";
 import {
@@ -107,7 +108,7 @@ export const TripDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useTripDispatch();
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isAdmin } = useUser();
   const idParam = searchParams.get("id");
 
   const { data: apiItineraries = [], isLoading } = useMyItineraries();
@@ -834,6 +835,18 @@ export const TripDetail = () => {
                 </span>
               </div>
             </div>
+          </Grid>
+        )}
+        {apiTrip && (
+          <Grid item lg={12} md={12} xs={12}>
+            <TripSuggestionsCard
+              tripId={apiTrip.id}
+              isPro={Boolean(currentUser?.isPaidMember || isAdmin)}
+              isPlanning={persistedStatusName === TRIP_STATUS.PLANNING}
+              isOrganizer={isOrganizer}
+              destinations={destinations}
+              onAddPlace={handleChangePlace}
+            />
           </Grid>
         )}
         <Grid item lg={12}>

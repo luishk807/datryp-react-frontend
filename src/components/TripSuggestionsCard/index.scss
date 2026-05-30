@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-suggestions-card {
+    width: 100%;
+    box-sizing: border-box;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 244, 214, 0.7) 0%,
+        rgba(247, 159, 38, 0.08) 100%
+    );
+    border: 1px solid rgba(247, 159, 38, 0.35);
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin: 12px 0 20px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .trip-suggestions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .trip-suggestions-headline {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .trip-suggestions-icon {
+        color: theme('colors.primaryOrange');
+        font-size: 28px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .trip-suggestions-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.85);
+        margin: 0 0 4px;
+    }
+
+    .trip-suggestions-sub {
+        font-size: 13px;
+        line-height: 1.4;
+        color: rgba(0, 0, 0, 0.6);
+        margin: 0;
+    }
+
+    .trip-suggestions-loading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    .trip-suggestions-error {
+        font-size: 13px;
+    }
+
+    .trip-suggestions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+    }
+
+    .trip-suggestion-card {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        padding: 14px 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .trip-suggestion-card:hover {
+        border-color: theme('colors.primaryOrange');
+        box-shadow: 0 2px 10px rgba(247, 159, 38, 0.15);
+    }
+
+    .trip-suggestion-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .trip-suggestion-card-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.85);
+        margin: 0;
+        line-height: 1.3;
+        flex: 1;
+    }
+
+    .trip-suggestion-card-chip {
+        font-size: 11px;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(60, 181, 75, 0.12);
+        color: theme('colors.primaryGreen');
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .trip-suggestion-card-place {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.55);
+        margin: 0;
+    }
+
+    .trip-suggestion-card-why {
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: rgba(0, 0, 0, 0.7);
+        margin: 4px 0 0;
+        // Cap to ~3 lines so cards stay even-height in the grid.
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .trip-suggestion-card-meta {
+        display: flex;
+        gap: 12px;
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-top: 6px;
+    }
+
+    .trip-suggestion-card-add {
+        margin-top: 8px;
+        width: 100%;
+    }
+
+    .trip-suggestions-dont-forget {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px dashed rgba(247, 159, 38, 0.45);
+        border-radius: 12px;
+        padding: 12px 14px;
+    }
+
+    .trip-suggestions-dont-forget-icon {
+        color: theme('colors.primaryOrange');
+        flex-shrink: 0;
+        font-size: 22px;
+    }
+
+    .trip-suggestions-dont-forget-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: theme('colors.primaryOrange');
+        margin-bottom: 2px;
+    }
+
+    .trip-suggestions-dont-forget-text {
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(0, 0, 0, 0.75);
+    }
+}
+
+// Day-picker dialog rules. Scoped on the dialog wrapper so the modal
+// title/content classes don't leak into the rest of the app — MUI's
+// Dialog renders into a portal, so these selectors live OUTSIDE
+// `.trip-suggestions-card` rather than nested under it.
+.trip-suggestions-picker-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.trip-suggestions-picker-close {
+    border: none;
+    background: transparent;
+    color: rgba(0, 0, 0, 0.55);
+    padding: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.trip-suggestions-picker-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: theme('colors.primary');
+}
+
+.trip-suggestions-picker-sub {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.7);
+    margin: 0 0 14px;
+}
+
+.trip-suggestions-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.trip-suggestions-picker-day {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 'num date count' 'num country count';
+    align-items: center;
+    gap: 4px 12px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.trip-suggestions-picker-day:hover {
+    border-color: theme('colors.primaryOrange');
+    background: rgba(247, 159, 38, 0.06);
+}
+
+.trip-suggestions-picker-day-num {
+    grid-area: num;
+    font-size: 13px;
+    font-weight: 600;
+    color: theme('colors.primaryOrange');
+}
+
+.trip-suggestions-picker-day-date {
+    grid-area: date;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.trip-suggestions-picker-day-country {
+    grid-area: country;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.trip-suggestions-picker-day-count {
+    grid-area: count;
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.5);
+}
