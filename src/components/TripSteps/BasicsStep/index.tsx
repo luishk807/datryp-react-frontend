@@ -77,26 +77,32 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     const countryCode = rootCountry?.code ?? null;
 
     // Tracks the most recent AI total so we (a) avoid refetching the
-    // same (country, days, style) combo and (b) know when the input
-    // still holds the AI value vs the user has edited it (drives the
-    // "AI suggested budget" badge under the field).
+    // same (country, days, start_date, style) combo and (b) know when
+    // the input still holds the AI value vs the user has edited it
+    // (drives the "AI suggested budget" badge under the field).
     const lastAiTotalRef = useRef<number | null>(null);
     const lastRequestKeyRef = useRef<string | null>(null);
     const budgetSuggestionMutate = budgetSuggestion.mutate;
 
     useEffect(() => {
-        if (!countryCode || suggestableDays === null) return;
+        if (!countryCode || suggestableDays === null || !start) return;
         const styleHint = user?.travelerStyles?.[0] ?? null;
-        const requestKey = `${countryCode}|${suggestableDays}|${styleHint ?? ''}`;
+        // Include `start` in the key so a date shift that keeps the
+        // same trip length (e.g. moving the whole window by a week
+        // into a different season) still triggers a fresh estimate —
+        // pricing in July vs January for the same destination can be
+        // very different.
+        const requestKey = `${countryCode}|${suggestableDays}|${start}|${styleHint ?? ''}`;
         if (lastRequestKeyRef.current === requestKey) return;
-        // If the user has typed their own value (input differs from the
-        // last AI total), don't override it on a context change — they
-        // took ownership. They can clear the field to opt back in.
-        const currentBudget = data?.budget ?? '';
+        // If the user has typed their own value (input differs from
+        // the last AI total), don't override it on a context change —
+        // they took ownership. Clearing the field opts back in.
+        const currentBudgetStr = String(data?.budget ?? '').trim();
+        const lastAiStr = String(lastAiTotalRef.current ?? '');
         const userEdited =
-            currentBudget !== '' &&
-            currentBudget !== 0 &&
-            String(currentBudget) !== String(lastAiTotalRef.current ?? '');
+            currentBudgetStr !== '' &&
+            currentBudgetStr !== '0' &&
+            currentBudgetStr !== lastAiStr;
         if (userEdited) return;
         lastRequestKeyRef.current = requestKey;
         budgetSuggestionMutate(
@@ -104,6 +110,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                 countryCode,
                 days: suggestableDays,
                 travelStyle: styleHint,
+                startDate: start,
             },
             {
                 onSuccess: (result) => {
@@ -121,6 +128,7 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     }, [
         countryCode,
         suggestableDays,
+        start,
         user?.travelerStyles,
         data?.budget,
         budgetSuggestionMutate,
@@ -415,7 +423,16 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
                         }
                         onChange={(e) => onChange('budget', e)}
                     />
-                    {showAiBadge && (
+                    {isLoadingSuggestion && (
+                        <p className="trip-basics-budget-ai-badge is-loading">
+                            <AutoAwesomeRoundedIcon
+                                className="trip-basics-budget-ai-badge-icon"
+                                fontSize="small"
+                            />
+                            <span>Updating AI estimate for these dates…</span>
+                        </p>
+                    )}
+                    {!isLoadingSuggestion && showAiBadge && (
                         <p className="trip-basics-budget-ai-badge">
                             <AutoAwesomeRoundedIcon
                                 className="trip-basics-budget-ai-badge-icon"

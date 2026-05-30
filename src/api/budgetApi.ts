@@ -24,6 +24,11 @@ export interface BudgetSuggestRequest {
      *  "mid-range", "luxury", "family", etc. Null = unspecified, the
      *  model assumes mid-range. */
     travelStyle?: string | null;
+    /** YYYY-MM-DD trip start. Optional — when set, the model factors
+     *  in seasonality (peak vs shoulder, holiday weeks, monsoon /
+     *  hurricane risk) so the same destination in July vs January
+     *  doesn't return the same number. */
+    startDate?: string | null;
 }
 
 export interface BudgetSuggestResult {
