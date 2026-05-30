@@ -585,22 +585,24 @@ const buildTripDocDefinition = (trip: TripState): TDocumentDefinitions => {
             buildItineraryTable(rows),
 
             // ── Page 2: Expense Report ───────────────────────────────
-            // `pageBreak: 'before'` is attached directly to the next
-            // section's header rather than to a standalone empty
+            // `pageBreak: 'before'` is attached to a stack wrapping the
+            // expense-report header rather than to a standalone empty
             // `{ text: '', pageBreak: 'after' }` marker — the marker
             // approach silently produced a blank page when the
             // itinerary table already filled page 1, because the
             // 'after' break fires regardless of where the cursor sits.
             {
-                ...buildPageHeader({
-                    text: [
-                        { text: 'Date', bold: true },
-                        `: ${formatToday()}`,
-                    ],
-                    alignment: 'right',
-                    margin: [0, 6, 0, 0],
-                }),
                 pageBreak: 'before',
+                stack: [
+                    buildPageHeader({
+                        text: [
+                            { text: 'Date', bold: true },
+                            `: ${formatToday()}`,
+                        ],
+                        alignment: 'right',
+                        margin: [0, 6, 0, 0],
+                    }),
+                ],
             },
             {
                 text: 'Expense Report',
