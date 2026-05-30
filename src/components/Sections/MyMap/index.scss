@@ -234,16 +234,17 @@
 @media (max-width: 720px) {
   .my-map-intro {
     width: calc(100% - 24px);
-    // Lifted to clear the fixed BottomNav (~88px tall with safe-area).
-    bottom: 96px;
+    // The page-shell already reserves 88px below the canvas for the
+    // fixed BottomNav, so the panel can sit at the canvas's natural
+    // bottom — adding more here just opens a big dead-space band.
+    bottom: 12px;
     right: 12px;
     padding: 14px 14px 12px;
     gap: 10px;
   }
 
   .my-map-intro-pill {
-    // Same BottomNav-clearance lift as the expanded panel.
-    bottom: 96px;
+    bottom: 12px;
     right: 12px;
   }
 
@@ -585,21 +586,18 @@
 }
 
 @media (max-width: 720px) {
-  /* Phone: dock the panel above the BottomNav, narrower than the
-   * full viewport so it doesn't feel like a slab. Centered
-   * horizontally and capped to ~360px so the trip-card row inside
-   * still reads as a tight focused widget instead of a panel with a
-   * lonely card on the left and dead space on the right. The cards
-   * scroll horizontally bottom-sheet style — header on top, list
-   * below. */
+  /* Phone: dock the panel just above the canvas bottom, centered
+   * horizontally and held narrow so a single trip card doesn't sit
+   * in a slab of dead space. The page-shell already reserves room
+   * for the fixed BottomNav, so we only need a small `bottom`
+   * offset here — extra clearance just opens a gap. */
   .my-map-trips-panel {
     top: auto;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    // Lift above the fixed BottomNav (~88px tall with safe-area).
-    bottom: 96px;
-    width: min(360px, calc(100vw - 24px));
+    bottom: 12px;
+    width: min(300px, calc(100vw - 24px));
     max-height: none;
     animation-name: my-map-trips-panel-in-bottom;
   }
