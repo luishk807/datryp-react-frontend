@@ -145,7 +145,6 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
             currentBudgetStr !== lastAiStr;
         if (userEdited) return;
         lastRequestKeyRef.current = requestKey;
-        console.log('[budget-ai] firing', requestKey);
         budgetSuggestionMutate({
             countryCode,
             city: cityHint,
@@ -195,18 +194,12 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
         ) {
             return;
         }
-        console.log('[budget-ai] applying', total);
         lastAiTotalRef.current = total;
         onChange('budget', {
             target: { value: String(total) },
         });
     }, [suggestionData, data?.budget, onChange]);
 
-    useEffect(() => {
-        if (budgetSuggestion.isError) {
-            console.warn('[budget-ai] error', budgetSuggestion.error);
-        }
-    }, [budgetSuggestion.isError, budgetSuggestion.error]);
 
     const suggestion = budgetSuggestion.data;
     const isLoadingSuggestion = budgetSuggestion.isPending;

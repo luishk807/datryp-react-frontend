@@ -173,7 +173,7 @@ const LoadingFacts = ({
                 className="loading-facts-card"
                 role="status"
                 aria-live="polite"
-                key={idx}
+                key={`card-${idx}`}
             >
                 <p className="loading-facts-title">{fact.title}</p>
                 <p className="loading-facts-body">{fact.body}</p>
@@ -189,7 +189,7 @@ const LoadingFacts = ({
                         ['--loading-facts-cycle' as string]: `${intervalMs}ms`,
                     } as CSSProperties
                 }
-                key={idx}
+                key={`progress-${idx}`}
             />
         </div>
     );
