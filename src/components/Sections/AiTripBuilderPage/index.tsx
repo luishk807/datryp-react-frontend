@@ -48,6 +48,7 @@ import {
     type AiTripBuilderResult,
 } from 'api/aiTripBuilderApi';
 import { BucketListPaywallError } from 'api/bucketListApi';
+import { capture as captureEvent } from 'lib/posthog';
 import { TRIP_BASIC } from 'constants';
 import './index.scss';
 
@@ -148,6 +149,16 @@ const AiTripBuilderPage = () => {
     const buildMutation = useMutation({
         mutationFn: planTripWithAi,
         onSuccess: (result: AiTripBuilderResult) => {
+            // Coarse trip-generation signal — kind="ai" distinguishes
+            // these from the manual-wizard "trip_saved" path. Only
+            // non-PII fields go on the event so we can segment funnels
+            // ("AI builds for couples vs solo travelers convert at...")
+            // without sending the trip name or country choice content.
+            captureEvent('trip_generated', {
+                kind: 'ai',
+                trip_type: result.tripType,
+                duration_days: result.durationDays,
+            });
             const route =
                 result.tripType === 'multi'
                     ? TRIP_BASIC.MULTIPLE.route

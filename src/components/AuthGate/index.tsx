@@ -11,6 +11,7 @@ import PageLoader from 'components/common/PageLoader';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import { useUser } from 'context/UserContext';
 import { useGoogleSignin } from 'api/hooks/useAuth';
+import { capture as captureEvent } from 'lib/posthog';
 import {
     MAX_BIRTH_YEAR,
     MIN_BIRTH_YEAR,
@@ -90,6 +91,10 @@ const AuthGate = ({
         setSubmitting(true);
         try {
             await login(trimmed, password);
+            // Fire BEFORE the reload — reloadAfterAuth() blows away the
+            // JS context. method='email' distinguishes from the Google
+            // path below.
+            captureEvent('login', { method: 'email' });
             reloadAfterAuth();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed.');
@@ -130,6 +135,14 @@ const AuthGate = ({
                 name: name.trim() || undefined,
                 phone: phone.trim() || undefined,
             });
+            // Fires before the reload so PostHog actually receives the
+            // event — `reloadAfterAuth()` blows away the JS context.
+            // Method = 'email' to differentiate from the Google path
+            // (Google fires its own version below). Provider gap: we
+            // can't yet distinguish a NEW Google account from a
+            // RETURNING Google login on the FE — that would need a
+            // backend `is_new_user` flag on the token response.
+            captureEvent('signup_completed', { method: 'email' });
             reloadAfterAuth();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Signup failed.');
@@ -158,7 +171,18 @@ const AuthGate = ({
     const handleGoogleCredential = useCallback(
         (credential: string) => {
             googleSignin.mutate(credential, {
-                onSuccess: reloadAfterAuth,
+                onSuccess: () => {
+                    // FE can't yet distinguish a NEW Google account
+                    // from a RETURNING login on the same response —
+                    // backend would need to return an `is_new_user`
+                    // flag for that. For now we always fire `login`
+                    // here and accept some events that are really
+                    // first-time signups; backend tracking (next
+                    // pass) will emit a clean `signup_completed`
+                    // for those.
+                    captureEvent('login', { method: 'google' });
+                    reloadAfterAuth();
+                },
                 onError: (err) =>
                     setError(
                         err instanceof Error

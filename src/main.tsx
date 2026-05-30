@@ -8,10 +8,17 @@ import App from './App';
 import { TripProvider } from 'context/TripContext';
 import { UserProvider } from 'context/UserContext';
 import { queryClient } from 'api/queryClient';
+import { initPosthog } from 'lib/posthog';
 
 // TanStack Query devtools dropped — the floating button cluttered the
 // corner during everyday dev. Re-add behind a feature flag if/when
 // it's actually useful for a debugging session.
+
+// Boot-time analytics init. Silent no-op when VITE_POSTHOG_KEY is
+// unset (dev without a key) or the SDK can't reach its host. Person
+// profiles + identify happen later from UserContext once the user
+// signs in.
+initPosthog();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -17,6 +17,7 @@ import {
 import { savedPlacesKey } from 'api/hooks/useSavedPlaces';
 import { savedCitiesKey } from 'api/hooks/useSavedCities';
 import { savedCountriesKey } from 'api/hooks/useSavedCountries';
+import { identifyPosthogUser, resetPosthog } from 'lib/posthog';
 import type { SignupPayload } from 'api/authApi';
 import { USER_ROLE } from 'constants';
 import type { SubscriptionPlan, SubscriptionStatus, UserRole } from 'types';
@@ -243,6 +244,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     const isAdmin = user?.role === USER_ROLE.ADMIN;
 
+    // Tell PostHog who's signed in once the hydrated user appears (and
+    // re-identify if the user id changes — e.g. logout-then-login on
+    // the same tab). Only the OPAQUE id + coarse plan flags flow to
+    // PostHog; no name, email, phone, country, etc. — that's the
+    // contract we promised in the Privacy Policy ("an opaque user id
+    // … never sensitive fields"). The reset path lives in `logout`
+    // below.
+    useEffect(() => {
+        if (!user?.id) return;
+        identifyPosthogUser({
+            id: user.id,
+            subscriptionPlan: user.subscriptionPlan ?? undefined,
+            isPaidMember: user.isPaidMember,
+            isAdmin,
+        });
+    }, [user?.id, user?.subscriptionPlan, user?.isPaidMember, isAdmin]);
+
     const login = useCallback(
         async (email: string, password: string) => {
             await loginMutation.mutateAsync({ email, password });
@@ -260,6 +278,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const logout = useCallback(() => {
         logoutFn();
         setOverlay({});
+        // Drop the PostHog distinct id so the next session on this
+        // browser starts anonymous — otherwise a shared device would
+        // attribute the next person's events to the previous person's
+        // profile.
+        resetPosthog();
     }, [logoutFn]);
 
     const updateUser = useCallback((updates: Partial<User>) => {

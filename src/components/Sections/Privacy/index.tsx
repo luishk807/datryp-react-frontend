@@ -63,6 +63,19 @@ const Privacy = () => (
                     basic request logs, browser/device info, and (if you opt in)
                     a push-notification subscription.
                 </p>
+                <p>
+                    <strong>Product analytics</strong> from your use of the
+                    site: which pages you visit, which features you click on,
+                    and a stable per-browser identifier so we can tell
+                    one user&rsquo;s session apart from another. When you
+                    sign in, we associate this identifier with your
+                    DaTryp.com account so we can answer questions like
+                    &ldquo;does the AI trip builder convert better than the
+                    manual flow?&rdquo; We do <em>not</em> record video of
+                    your sessions, and form inputs marked sensitive (phone
+                    number, password, payment fields) are masked in
+                    transit. We don&rsquo;t use this data for advertising.
+                </p>
             </section>
 
             <section className="privacy-section">
@@ -160,6 +173,18 @@ const Privacy = () => (
                         <strong>Unsplash</strong> — provides destination photos.
                         Your browser fetches images directly from Unsplash&rsquo;s
                         CDN, which means they see your IP address.
+                    </li>
+                    <li>
+                        <strong>PostHog</strong> — collects the product
+                        analytics events described above (pageviews, clicks,
+                        and a per-browser identifier). PostHog sees your IP
+                        address and approximate location at the city level
+                        for the purpose of analytics; per their data
+                        processing terms, they don&rsquo;t use your data
+                        for any purpose other than serving us. We send only
+                        feature-usage events and an opaque user id; we never
+                        send sensitive fields like phone, password, or
+                        payment info.
                     </li>
                 </ul>
                 <p>

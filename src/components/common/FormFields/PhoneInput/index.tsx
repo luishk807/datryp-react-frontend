@@ -236,13 +236,19 @@ const PhoneInput = ({
                     id={fieldId}
                     ref={inputRef}
                     type="tel"
-                    className="phone-input-bare-input"
+                    className="phone-input-bare-input ph-no-capture"
                     value={display}
                     onChange={handleNationalChange}
                     placeholder={placeholder}
                     disabled={disabled}
                     autoComplete="tel-national"
                     inputMode="tel"
+                    /* `ph-no-capture` strips this field from PostHog
+                       autocapture entirely — element + metadata + any
+                       label that might leak the phone number context.
+                       Belt-and-braces with the SDK's default behavior of
+                       not capturing <input> values; this also covers
+                       click events on the field itself. */
                 />
             </div>
             <Popover

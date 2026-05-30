@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClientError, gql } from 'graphql-request';
 import { pythonGqlClient } from 'api/pythonGqlClient';
 import { TripCapReachedError } from 'api/paywallError';
+import { capture as captureEvent } from 'lib/posthog';
 import { ITINERARY_TYPE } from 'constants';
 
 // ── Types mirroring the GraphQL schema ───────────────────────────────────────
@@ -477,9 +478,20 @@ export const useSaveItinerary = () => {
                 throw err;
             }
         },
-        onSuccess: () => {
+        onSuccess: (saved, input) => {
             queryClient.invalidateQueries({ queryKey: ['myItineraries'] });
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            // `trip_saved` covers both create (no `input.id`) and
+            // edit-and-save (`input.id` present), distinguished via
+            // `is_new`. Properties stay coarse — trip type slug —
+            // no place names, no friend ids, no destination content.
+            // The AI-build path emits its own `trip_generated` event
+            // and doesn't go through this mutation.
+            captureEvent('trip_saved', {
+                is_new: !input?.id,
+                trip_type: saved?.interaryType?.name ?? null,
+                day_count: saved?.intenaryDates?.length ?? 0,
+            });
         },
         // Don't retry a paywall hit — same input will block again.
         retry: (_failureCount, error) => !(error instanceof TripCapReachedError),
