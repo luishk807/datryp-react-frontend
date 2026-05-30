@@ -15,11 +15,16 @@
  * Hidden for signed-out + free-tier users — the query hook is gated on
  * Pro entitlement so the backend never sees a 402.
  */
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import PlaceCard from 'components/common/PlaceCard';
-import { useSeasonalBestPlaces } from 'api/hooks/useSeasonalBestPlaces';
+import {
+    currentMonthKey,
+    useSeasonalBestPlaces,
+} from 'api/hooks/useSeasonalBestPlaces';
 import type { SeasonalPlace } from 'api/seasonalBestPlacesApi';
 import { useUser } from 'context/UserContext';
 import { NO_IMAGE } from 'constants';
@@ -29,11 +34,17 @@ const monthLabel = (monthKey: string): string => {
     // monthKey looks like "2026-05". Convert to "May 2026" for the
     // headline. Defensive parse — fall back to the raw key if the
     // format is unexpected.
+    //
+    // Use a LOCAL-time Date constructor: `new Date(Date.UTC(y, m, 1))`
+    // followed by `toLocaleDateString` would shift the date back into the
+    // previous month for any negative-UTC-offset timezone (e.g. EDT
+    // "May 1 UTC" → "Apr 30 EDT" → formatted month "April"). Local
+    // constructor avoids that round-trip entirely.
     const m = /^(\d{4})-(\d{2})$/.exec(monthKey);
     if (!m) return monthKey;
     const year = Number(m[1]);
     const monthIdx = Number(m[2]) - 1;
-    const date = new Date(Date.UTC(year, monthIdx, 1));
+    const date = new Date(year, monthIdx, 1);
     return date.toLocaleDateString(undefined, {
         month: 'long',
         year: 'numeric',
@@ -52,7 +63,22 @@ const SeasonalBestPlaces = () => {
 
 const SeasonalBestPlacesActive = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { data, isLoading, isError } = useSeasonalBestPlaces();
+    const localKey = currentMonthKey();
+
+    // Defensive: if the backend response is for a different calendar
+    // month than the viewer's (stale server cache, mid-deploy drift,
+    // etc.), nudge React Query to refetch. The title falls back to the
+    // local month independently so the heading is never wrong even
+    // while the refetch is in flight.
+    useEffect(() => {
+        if (data && data.monthKey !== localKey) {
+            queryClient.invalidateQueries({
+                queryKey: ['seasonal-best-places'],
+            });
+        }
+    }, [data, localKey, queryClient]);
 
     const cardKey = (place: SeasonalPlace) =>
         `${place.name}--${place.countryCode}`;
@@ -104,7 +130,7 @@ const SeasonalBestPlacesActive = () => {
                     <span>Best places this month</span>
                 </span>
                 <h2 className="seasonal-best-places-title">
-                    Where the season is right in {monthLabel(data.monthKey)}
+                    Where the season is right in {monthLabel(localKey)}
                 </h2>
                 <p className="seasonal-best-places-subtitle">
                     Six destinations whose weather, festivals, or natural

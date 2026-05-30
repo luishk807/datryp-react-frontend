@@ -14,7 +14,7 @@ import {
     type SeasonalBestPlaces,
 } from 'api/seasonalBestPlacesApi';
 
-const currentMonthKey = (): string => {
+export const currentMonthKey = (): string => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 };

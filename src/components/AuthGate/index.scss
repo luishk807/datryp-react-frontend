@@ -370,9 +370,16 @@
   // Google's iframe ignores `max-width` from the parent — its rendered
   // pixel width comes from the `width` prop. Keep the host element
   // overflow-hidden so the iframe can't push a horizontal scroll on
-  // narrow phones if Google rounds up its layout.
+  // narrow phones if Google rounds up its layout. Also lift the
+  // desktop's 320px inner-div cap so the host (and the measured width
+  // we pass to Google) actually equals the full panel width on phones,
+  // not 320 in the middle of a 360pt column.
   .authgate-google {
     width: 100%;
     overflow: hidden;
+
+    > div {
+      max-width: 100%;
+    }
   }
 }
