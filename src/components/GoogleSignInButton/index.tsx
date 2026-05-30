@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './index.scss';
 
 /** Type sketch of the bits of Google Identity Services we use. The
@@ -46,10 +46,18 @@ export interface GoogleSignInButtonProps {
     /** Override the button's prompt text. Default: "continue_with". */
     text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
     /** Pixel width passed to Google's `renderButton`. Google clamps to
-     *  the 200..400 range; values outside that are ignored. Default 320
-     *  matches the original AuthGate width. */
+     *  the 200..400 range; values outside that are ignored. Omit to
+     *  auto-size to the host container's current width — that's the
+     *  right behavior on mobile, where a fixed 320 leaves a strip of
+     *  empty space inside a wider parent. */
     width?: number;
 }
+
+// Google's renderButton clamps width to 200..400px and ignores values
+// outside that band. Mirror the bounds here so the auto-measured value
+// stays inside the supported range.
+const GOOGLE_MIN_WIDTH = 200;
+const GOOGLE_MAX_WIDTH = 400;
 
 /** Lazy-loads Google Identity Services and renders Google's official
  *  "Sign in with Google" button into a hidden host div. The button is
@@ -62,16 +70,54 @@ export interface GoogleSignInButtonProps {
 const GoogleSignInButton = ({
     onCredential,
     text = 'continue_with',
-    width = 320,
+    width,
 }: GoogleSignInButtonProps) => {
     const hostRef = useRef<HTMLDivElement | null>(null);
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as
         | string
         | undefined;
+    // When `width` is omitted, we track the host container's measured
+    // width here. Starts as null so the initial render skips Google's
+    // renderButton until we've laid out at least once (Google's iframe
+    // is pixel-sized, so re-rendering at the right width up front is
+    // cheaper than re-laying it out after a wrong-width first paint).
+    const [measuredWidth, setMeasuredWidth] = useState<number | null>(
+        width ?? null
+    );
+
+    useEffect(() => {
+        // Skip measuring when the caller passed an explicit width — they
+        // want pixel-perfect control (e.g. a desktop card that needs a
+        // specific size regardless of container).
+        if (width !== undefined) {
+            setMeasuredWidth(width);
+            return;
+        }
+        if (!hostRef.current) return;
+        const el = hostRef.current;
+        const apply = (w: number) => {
+            const clamped = Math.max(
+                GOOGLE_MIN_WIDTH,
+                Math.min(GOOGLE_MAX_WIDTH, Math.round(w))
+            );
+            setMeasuredWidth(clamped);
+        };
+        // Initial measurement off the laid-out host. Use offsetWidth so
+        // we read the rendered box, not a CSS-declared width.
+        apply(el.offsetWidth);
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) return;
+            apply(entry.contentRect.width);
+        });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [width]);
 
     useEffect(() => {
         if (!clientId) return;
         if (!hostRef.current) return;
+        if (measuredWidth === null) return;
 
         const init = () => {
             const g = window.google;
@@ -92,7 +138,7 @@ const GoogleSignInButton = ({
                 size: 'large',
                 text,
                 shape: 'rectangular',
-                width,
+                width: measuredWidth,
             });
         };
 
@@ -109,7 +155,7 @@ const GoogleSignInButton = ({
         script.defer = true;
         script.onload = init;
         document.head.appendChild(script);
-    }, [clientId, onCredential, text, width]);
+    }, [clientId, onCredential, text, measuredWidth]);
 
     if (!clientId) {
         return (

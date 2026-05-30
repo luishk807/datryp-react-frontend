@@ -223,11 +223,10 @@ const AuthGate = ({
                                     ? 'continue_with'
                                     : 'signup_with'
                             }
-                            // 320 fits inside the narrowest common phone
-                            // viewport (360px) once the panel's mobile
-                            // padding is subtracted. Google clamps to
-                            // 200..400, so this stays inside the band.
-                            width={320}
+                            // Omit `width` so the button auto-sizes to
+                            // the host container — full panel width on
+                            // phones, ~max-400 on wider cards. Google
+                            // clamps to 200..400 internally.
                             onCredential={handleGoogleCredential}
                         />
                     </div>

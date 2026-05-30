@@ -1,6 +1,11 @@
 .google-signin-host {
     display: flex;
     justify-content: center;
+    // Stretch to the parent so the ResizeObserver measures the
+    // available width (Google clamps to 200..400 internally). Without
+    // this, `display: flex` would shrink-to-fit the iframe's intrinsic
+    // size and the measurement loop would never grow past it.
+    width: 100%;
 }
 
 .google-signin-missing {
