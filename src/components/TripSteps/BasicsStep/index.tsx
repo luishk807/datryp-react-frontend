@@ -180,21 +180,31 @@ const BasicsStep = ({ data, onChange, showDestination }: BasicsStepProps) => {
     // callback that React Query can orphan when the effect re-fires.
     const suggestionData = budgetSuggestion.data;
     useEffect(() => {
+        console.log('[budget-ai apply] tick', {
+            suggested: suggestionData?.suggestedTotal,
+            currentBudget: data?.budget,
+            lastAi: lastAiTotalRef.current,
+        });
         if (!suggestionData?.suggestedTotal) return;
         const total = suggestionData.suggestedTotal;
         const currentBudgetStr = String(data?.budget ?? '').trim();
         // Skip the write when the input already shows this exact AI
         // total (or the user has typed something different — leave
         // their value alone).
-        if (currentBudgetStr === String(total)) return;
+        if (currentBudgetStr === String(total)) {
+            console.log('[budget-ai apply] skip: already matches');
+            return;
+        }
         if (
             currentBudgetStr !== '' &&
             currentBudgetStr !== '0' &&
             currentBudgetStr !== String(lastAiTotalRef.current ?? '')
         ) {
+            console.log('[budget-ai apply] skip: user edited', currentBudgetStr);
             return;
         }
         lastAiTotalRef.current = total;
+        console.log('[budget-ai apply] dispatching', total);
         onChange('budget', {
             target: { value: String(total) },
         });
