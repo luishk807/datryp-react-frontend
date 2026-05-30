@@ -185,6 +185,14 @@
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
+  // Pin to 320px on desktop so the Google button width matches the
+  // email/password submit button below it. Inner div hits 100% so on
+  // mobile (where this rule is overridden to width: 100%) the iframe
+  // still stretches to the panel.
+  > div {
+    width: 100%;
+    max-width: 320px;
+  }
 }
 
 .authgate-divider {

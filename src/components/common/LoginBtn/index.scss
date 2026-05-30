@@ -11,6 +11,15 @@
 .login-google {
   display: flex;
   justify-content: center;
+  // Match the email CTA below (320 / 100%) so on desktop the two
+  // buttons line up at exactly the same width and on mobile both go
+  // full-bleed via the inner 100% fallback. The Google iframe reads
+  // its host width through ResizeObserver, so constraining the
+  // wrapper is all we need — no width prop on the component.
+  > div {
+    width: 100%;
+    max-width: 320px;
+  }
 }
 
 .login-email-cta {

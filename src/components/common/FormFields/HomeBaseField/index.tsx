@@ -36,14 +36,16 @@ const HomeBaseField = ({
     value,
     onChange,
     disabled,
-    label = 'Where you live',
+    label = 'Current place of residence',
 }: HomeBaseFieldProps) => {
     return (
         <div className="home-base-field">
             <p className="home-base-field-hint">
-                Home base — we only store your city, not your street
-                address. Used to suggest the nearest airport or train
-                station when planning trips.
+                Current place of residence — we only store your city, not
+                your street address. Drives the nearest-airport / train-
+                station suggestion on new trips, the depart-origin on
+                Google Maps directions, and the personalized homepage
+                picks.
             </p>
             <CityAutocomplete
                 variant="bare"
