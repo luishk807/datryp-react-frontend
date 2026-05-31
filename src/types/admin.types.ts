@@ -112,6 +112,44 @@ export interface UsersByGenderResponse {
     buckets: UsersByGenderItem[];
 }
 
+export type SubscriberSort =
+    | 'recent'
+    | 'newest_signup'
+    | 'email'
+    | 'period_end';
+
+export interface SubscriberItem {
+    id: string;
+    email: string;
+    name: string | null;
+    subscriptionPlan: SubscriptionPlan;
+    subscriptionStatus: SubscriptionStatus;
+    subscriptionCancelAtPeriodEnd: boolean;
+    currentPeriodEnd: string | null;
+    trialEndsAt: string | null;
+    updatedAt: string;
+    createdAt: string;
+}
+
+export interface SubscribersResponse {
+    items: SubscriberItem[];
+    total: number;
+    page: number;
+    perPage: number;
+}
+
+export interface TopSearchItem {
+    query: string;
+    count: number;
+}
+
+export interface TopSearchesResponse {
+    items: TopSearchItem[];
+    total: number;
+    page: number;
+    perPage: number;
+}
+
 export interface PostHogTopEvent {
     event: string;
     count: number;

@@ -1,6 +1,7 @@
 import './index.scss';
 import { useAdminActivityStats } from 'api/hooks/useAdmin';
 import StatTile from '../StatTile';
+import TopSearchesList from '../TopSearchesList';
 
 const ActivityCard = () => {
     const { data, isLoading, error } = useAdminActivityStats();
@@ -104,6 +105,8 @@ const ActivityCard = () => {
                             )}
                         </div>
                     </div>
+
+                    <TopSearchesList />
                 </>
             )}
         </section>

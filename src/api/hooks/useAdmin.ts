@@ -13,8 +13,10 @@ import {
     fetchGrowth,
     fetchOverview,
     fetchPostHogStats,
+    fetchSubscribers,
     fetchSubscriptionGrowth,
     fetchSubscriptionStats,
+    fetchTopSearches,
     fetchUsersByGender,
     setUserFree as setUserFreeReq,
     setUserPro as setUserProReq,
@@ -40,7 +42,10 @@ import type {
     DashboardOverview,
     GrowthResponse,
     PostHogStatsResponse,
+    SubscriberSort,
+    SubscribersResponse,
     SubscriptionStats,
+    TopSearchesResponse,
     UsersByGenderResponse,
 } from 'types';
 
@@ -55,6 +60,10 @@ export const adminKeys = {
         ['admin', 'subscription-growth', months] as const,
     ageDistribution: ['admin', 'age-distribution'] as const,
     usersByGender: ['admin', 'users-by-gender'] as const,
+    subscribers: (sort: string, page: number, perPage: number) =>
+        ['admin', 'subscribers', sort, page, perPage] as const,
+    topSearches: (page: number, perPage: number, days: number) =>
+        ['admin', 'top-searches', page, perPage, days] as const,
     posthogStats: (days: number) => ['admin', 'posthog', days] as const,
     aiUsage: (months: number) => ['admin', 'ai-usage', months] as const,
     users: (q: string) => ['admin', 'users', q] as const,
@@ -91,6 +100,46 @@ export const useAdminUsersByGender = () => {
         enabled: adminEnabled(isAdmin),
         refetchInterval: POLL_INTERVAL_MS,
         staleTime: 30 * 1000,
+    });
+};
+
+export const useAdminSubscribers = (params: {
+    sort?: SubscriberSort;
+    page?: number;
+    perPage?: number;
+}) => {
+    const { isAdmin } = useUser();
+    const sort = params.sort ?? 'recent';
+    const page = params.page ?? 1;
+    const perPage = params.perPage ?? 20;
+    return useQuery<SubscribersResponse>({
+        queryKey: adminKeys.subscribers(sort, page, perPage),
+        queryFn: () => fetchSubscribers({ sort, page, perPage }),
+        enabled: adminEnabled(isAdmin),
+        // Keep the previous page's rows visible while a new page fetches
+        // so pagination doesn't visibly flicker on click.
+        placeholderData: (prev) => prev,
+        refetchInterval: POLL_INTERVAL_MS,
+        staleTime: 10 * 1000,
+    });
+};
+
+export const useAdminTopSearches = (params: {
+    page?: number;
+    perPage?: number;
+    days?: number;
+}) => {
+    const { isAdmin } = useUser();
+    const page = params.page ?? 1;
+    const perPage = params.perPage ?? 20;
+    const days = params.days ?? 0;
+    return useQuery<TopSearchesResponse>({
+        queryKey: adminKeys.topSearches(page, perPage, days),
+        queryFn: () => fetchTopSearches({ page, perPage, days }),
+        enabled: adminEnabled(isAdmin),
+        placeholderData: (prev) => prev,
+        refetchInterval: POLL_INTERVAL_MS,
+        staleTime: 10 * 1000,
     });
 };
 

@@ -1,0 +1,233 @@
+.subscribers-list {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.subscribers-list-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.subscribers-list-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.subscribers-list-count {
+    color: rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.subscribers-list-sort {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 3px;
+    border-radius: 999px;
+}
+
+.subscribers-list-sort-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 5px 11px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.55);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        color: rgba(0, 0, 0, 0.8);
+    }
+
+    &.is-active {
+        background: #fff;
+        color: #f38e40;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+}
+
+.subscribers-list-status {
+    margin: 8px 0;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.88rem;
+    font-style: italic;
+}
+
+.subscribers-list-error {
+    color: #c0392b;
+    font-style: normal;
+}
+
+.subscribers-list-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subscriber-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) auto auto;
+    grid-template-areas: 'main tags dates';
+    align-items: center;
+    gap: 10px 16px;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.025);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 720px) {
+    .subscriber-row {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            'main'
+            'tags'
+            'dates';
+        gap: 6px;
+    }
+}
+
+.subscriber-row-main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.subscriber-row-email {
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.subscriber-row-name {
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.82rem;
+}
+
+.subscriber-row-tags {
+    grid-area: tags;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.subscriber-row-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.65);
+}
+
+.subscriber-row-plan-pro,
+.subscriber-row-plan-premium {
+    background: rgba(60, 181, 75, 0.16);
+    color: #228b22;
+}
+
+.subscriber-row-status-trialing {
+    background: rgba(53, 122, 189, 0.16);
+    color: #1f6fb5;
+}
+
+.subscriber-row-status-active {
+    background: rgba(60, 181, 75, 0.16);
+    color: #228b22;
+}
+
+.subscriber-row-status-past_due {
+    background: rgba(247, 159, 38, 0.18);
+    color: #c97a18;
+}
+
+.subscriber-row-status-canceled {
+    background: rgba(192, 57, 43, 0.14);
+    color: #c0392b;
+}
+
+.subscriber-row-cancel {
+    background: rgba(247, 159, 38, 0.18);
+    color: #c97a18;
+}
+
+.subscriber-row-dates {
+    grid-area: dates;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.76rem;
+    text-align: right;
+    gap: 2px;
+}
+
+@media (max-width: 720px) {
+    .subscriber-row-dates {
+        align-items: flex-start;
+        text-align: left;
+    }
+}
+
+.subscribers-list-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+}
+
+.subscribers-list-page-info {
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.82rem;
+}
+
+.subscribers-list-page-controls {
+    display: flex;
+    gap: 6px;
+
+    button {
+        appearance: none;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        background: #fff;
+        padding: 5px 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.7);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+
+        &:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+}

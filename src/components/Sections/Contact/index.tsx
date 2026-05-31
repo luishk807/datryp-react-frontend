@@ -88,10 +88,10 @@ const FAQ_ITEMS: FaqItem[] = [
             <>
                 We don&rsquo;t sell or share your personal data with
                 marketers. Names + emails go to SendGrid for
-                transactional email, Stripe for payments, and OpenAI
-                / Unsplash for AI trip-builder and photo lookups (as
-                request bodies, not for training). Full breakdown
-                lives on the{' '}
+                transactional email, Stripe for payments, and our
+                AI technology / Unsplash partners for the trip-
+                builder and photo lookups (as request bodies, not
+                for training). Full breakdown lives on the{' '}
                 <Link to="/privacy" className="contact-inline-link">
                     Privacy
                 </Link>{' '}

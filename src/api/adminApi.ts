@@ -16,7 +16,13 @@ import type {
     DashboardOverview,
     GrowthResponse,
     PostHogStatsResponse,
+    SubscriberItem,
+    SubscriberSort,
+    SubscribersResponse,
+    SubscriptionPlan,
     SubscriptionStats,
+    SubscriptionStatus,
+    TopSearchesResponse,
     UsersByGenderResponse,
 } from 'types';
 
@@ -267,6 +273,100 @@ export const fetchUsersByGender =
             })),
         };
     };
+
+interface SubscriberItemRaw {
+    id: string;
+    email: string;
+    name: string | null;
+    subscription_plan: string;
+    subscription_status: string;
+    subscription_cancel_at_period_end: boolean;
+    current_period_end: string | null;
+    trial_ends_at: string | null;
+    updated_at: string;
+    created_at: string;
+}
+
+interface SubscribersResponseRaw {
+    items: SubscriberItemRaw[];
+    total: number;
+    page: number;
+    per_page: number;
+}
+
+const toSubscriberItem = (r: SubscriberItemRaw): SubscriberItem => ({
+    id: r.id,
+    email: r.email,
+    name: r.name,
+    subscriptionPlan: r.subscription_plan as SubscriptionPlan,
+    subscriptionStatus: r.subscription_status as SubscriptionStatus,
+    subscriptionCancelAtPeriodEnd: r.subscription_cancel_at_period_end,
+    currentPeriodEnd: r.current_period_end,
+    trialEndsAt: r.trial_ends_at,
+    updatedAt: r.updated_at,
+    createdAt: r.created_at,
+});
+
+export const fetchSubscribers = async (params: {
+    sort?: SubscriberSort;
+    page?: number;
+    perPage?: number;
+}): Promise<SubscribersResponse> => {
+    const sort = params.sort ?? 'recent';
+    const page = params.page ?? 1;
+    const perPage = params.perPage ?? 20;
+    const qs = new URLSearchParams({
+        sort,
+        page: String(page),
+        per_page: String(perPage),
+    });
+    const resp = await fetch(
+        `${API_BASE}/admin/dashboard/subscribers?${qs.toString()}`,
+        { headers: authHeaders() },
+    );
+    if (!resp.ok) await handleError(resp, '/admin/dashboard/subscribers');
+    const r = (await resp.json()) as SubscribersResponseRaw;
+    return {
+        items: r.items.map(toSubscriberItem),
+        total: r.total,
+        page: r.page,
+        perPage: r.per_page,
+    };
+};
+
+interface TopSearchesRaw {
+    items: { query: string; count: number }[];
+    total: number;
+    page: number;
+    per_page: number;
+}
+
+export const fetchTopSearches = async (params: {
+    page?: number;
+    perPage?: number;
+    days?: number;
+}): Promise<TopSearchesResponse> => {
+    const page = params.page ?? 1;
+    const perPage = params.perPage ?? 20;
+    const days = params.days ?? 0;
+    const qs = new URLSearchParams({
+        page: String(page),
+        per_page: String(perPage),
+        days: String(days),
+    });
+    const resp = await fetch(
+        `${API_BASE}/admin/dashboard/top-searches?${qs.toString()}`,
+        { headers: authHeaders() },
+    );
+    if (!resp.ok) await handleError(resp, '/admin/dashboard/top-searches');
+    const r = (await resp.json()) as TopSearchesRaw;
+    return {
+        items: r.items,
+        total: r.total,
+        page: r.page,
+        perPage: r.per_page,
+    };
+};
 
 interface PostHogStatsRaw {
     configured: boolean;

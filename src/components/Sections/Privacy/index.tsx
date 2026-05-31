@@ -90,7 +90,7 @@ const Privacy = () => (
             </section>
 
             <section className="privacy-section">
-                <h2>AI personalization &amp; what we send to OpenAI</h2>
+                <h2>AI personalization &amp; what we send to our AI provider</h2>
                 <p>
                     Some AI features (AI search, AI itinerary suggestions,
                     bucket-list trip generation) only send the text of your
@@ -98,8 +98,8 @@ const Privacy = () => (
                 </p>
                 <p>
                     A few personalized features send a small set of
-                    profile fields to our AI provider (currently OpenAI)
-                    so the recommendation can match your situation:
+                    profile fields to our AI technology partner so the
+                    recommendation can match your situation:
                 </p>
                 <ul>
                     <li>
@@ -135,9 +135,10 @@ const Privacy = () => (
                     </li>
                 </ul>
                 <p>
-                    OpenAI processes these inputs only to generate that
-                    single response; per their API terms, they don&rsquo;t
-                    use the data to train their models. You can clear or
+                    Our AI technology processes these inputs only to
+                    generate that single response; per the provider&rsquo;s
+                    API terms, the data is not used to train models. You
+                    can clear or
                     change any of these fields any time from the Account
                     page — doing so wipes our cached recommendation and
                     regenerates it next time you visit.
@@ -158,8 +159,9 @@ const Privacy = () => (
                         share-a-place emails.
                     </li>
                     <li>
-                        <strong>OpenAI</strong> — generates AI search and
-                        itinerary recommendations from your query text.
+                        <strong>AI technology partners</strong> — generate
+                        AI search and itinerary recommendations from your
+                        query text.
                     </li>
                     <li>
                         <strong>Google</strong> — handles &ldquo;Sign in with

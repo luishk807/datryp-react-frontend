@@ -1,6 +1,7 @@
 import './index.scss';
 import { useAdminSubscriptionStats } from 'api/hooks/useAdmin';
 import StatTile from '../StatTile';
+import SubscribersList from '../SubscribersList';
 import type { CountByKey } from 'types';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -81,6 +82,8 @@ const SubscriptionCard = () => {
                         <h3 className="sub-section-title">By status</h3>
                         <Bar rows={data.byStatus} labels={STATUS_LABEL} />
                     </div>
+
+                    <SubscribersList />
                 </>
             )}
         </section>
