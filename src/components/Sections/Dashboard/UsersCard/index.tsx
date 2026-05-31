@@ -15,6 +15,7 @@ import {
     useAdminGrowth,
     useAdminSubscriptionStats,
     useAdminUsers,
+    useAdminUsersByGender,
     useSetUserFree,
     useSetUserPro,
     useSetUserRole,
@@ -282,6 +283,27 @@ const UsersCard = () => {
     const { data: growth } = useAdminGrowth(12);
     const { data: subStats } = useAdminSubscriptionStats();
     const { data: ageDist } = useAdminAgeDistribution();
+    const { data: genderDist } = useAdminUsersByGender();
+    // Reuses the PieChart slices shape used by Free-vs-paid and Age
+    // distribution above. Color map mirrors the standalone
+    // UsersByGenderCard so the two surfaces (if both ever render in
+    // the same session) stay visually consistent.
+    const genderSlices = useMemo(
+        () =>
+            (genderDist?.buckets ?? []).map((b) => ({
+                key: b.genderName,
+                label: b.genderName,
+                count: b.count,
+            })),
+        [genderDist],
+    );
+    const GENDER_COLORS: Record<string, string> = {
+        Male: '#3a86ff',
+        Female: '#f38e40',
+        'Non-binary': '#8338ec',
+        'Prefer not to say': '#9aa0a6',
+        Unset: '#cccccc',
+    };
 
     const actorId = user?.id ?? '';
 
@@ -389,6 +411,17 @@ const UsersCard = () => {
                             Age distribution
                         </h3>
                         <PieChart slices={ageSlices} />
+                    </div>
+                )}
+                {genderDist && genderDist.total > 0 && (
+                    <div className="users-card-insight">
+                        <h3 className="users-card-insight-title">
+                            Users by sex
+                        </h3>
+                        <PieChart
+                            slices={genderSlices}
+                            colorByKey={GENDER_COLORS}
+                        />
                     </div>
                 )}
             </div>

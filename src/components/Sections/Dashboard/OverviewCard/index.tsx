@@ -8,7 +8,6 @@ import {
 import { formatDate } from 'utils/date';
 import BarChart from '../BarChart';
 import LineChart from '../LineChart';
-import UsersByGenderCard from '../UsersByGenderCard';
 import PosthogStatsCard from '../PosthogStatsCard';
 
 const MONTH_LABELS = [
@@ -172,8 +171,6 @@ const OverviewCard = () => {
                     </>
                 )}
             </section>
-
-            <UsersByGenderCard />
 
             <PosthogStatsCard />
 
