@@ -22,6 +22,14 @@ export interface TripCheckupDimension {
     score: number;
 }
 
+export interface CheckupQuotaInfo {
+    used: number;
+    cap: number;
+    remaining: number;
+    resetsAt: string | null;
+    window: string;
+}
+
 export interface TripCheckupResult {
     /** 0-100 overall readiness score. */
     score: number;
@@ -33,12 +41,21 @@ export interface TripCheckupResult {
     budgetAssessment: TripCheckupDimension;
     timeAssessment: TripCheckupDimension;
     activityAssessment: TripCheckupDimension;
+    quota: CheckupQuotaInfo;
 }
 
 interface RawDimension {
     verdict: string;
     why: string;
     score: number;
+}
+
+interface RawQuota {
+    used: number;
+    cap: number;
+    remaining: number;
+    resets_at: string | null;
+    window: string;
 }
 
 interface RawResponse {
@@ -50,6 +67,7 @@ interface RawResponse {
     budget_assessment: RawDimension;
     time_assessment: RawDimension;
     activity_assessment: RawDimension;
+    quota: RawQuota;
 }
 
 export class TripCheckupBackendError extends Error {
@@ -120,5 +138,12 @@ export const fetchTripCheckup = async (
         budgetAssessment: toDimension(body.budget_assessment),
         timeAssessment: toDimension(body.time_assessment),
         activityAssessment: toDimension(body.activity_assessment),
+        quota: {
+            used: body.quota.used,
+            cap: body.quota.cap,
+            remaining: body.quota.remaining,
+            resetsAt: body.quota.resets_at,
+            window: body.quota.window,
+        },
     };
 };

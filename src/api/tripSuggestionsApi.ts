@@ -28,9 +28,22 @@ export interface TripSuggestionItem {
     photographerUrl: string | null;
 }
 
+export interface QuotaInfo {
+    used: number;
+    cap: number;
+    /** -1 sentinel means unlimited (admin bypass). Otherwise >= 0. */
+    remaining: number;
+    /** ISO-8601 UTC timestamp; null when unlimited. */
+    resetsAt: string | null;
+    /** "day" | "month" — drives the FE's "left today" vs "left this
+     *  month" copy. */
+    window: string;
+}
+
 export interface TripSuggestionsResult {
     suggestions: TripSuggestionItem[];
     dontForget: string;
+    quota: QuotaInfo;
 }
 
 interface RawSuggestion {
@@ -45,9 +58,18 @@ interface RawSuggestion {
     photographer_url: string | null;
 }
 
+interface RawQuota {
+    used: number;
+    cap: number;
+    remaining: number;
+    resets_at: string | null;
+    window: string;
+}
+
 interface RawResponse {
     suggestions: RawSuggestion[];
     dont_forget: string;
+    quota: RawQuota;
 }
 
 export class TripSuggestionsBackendError extends Error {
@@ -125,5 +147,12 @@ export const fetchTripSuggestions = async (
     return {
         suggestions: body.suggestions.map(toSuggestion),
         dontForget: body.dont_forget,
+        quota: {
+            used: body.quota.used,
+            cap: body.quota.cap,
+            remaining: body.quota.remaining,
+            resetsAt: body.quota.resets_at,
+            window: body.quota.window,
+        },
     };
 };
