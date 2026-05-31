@@ -164,7 +164,7 @@ const Home = () => {
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">{heroTitle}</h1>
                     <p className="home-hero-subtitle">
-                        Search a place, describe your trip, or let AI plan
+                        Search a place, describe your trip, or let us plan
                         it all.
                     </p>
 
@@ -233,11 +233,11 @@ const Home = () => {
                         <Link
                             to="/plan-trip-ai"
                             className="home-hero-ai-cta"
-                            aria-label="Let AI plan a trip for you"
+                            aria-label="Let us plan a trip for you"
                         >
                             <AutoAwesomeIcon className="home-hero-ai-cta-icon" />
                             <span className="home-hero-ai-cta-label">
-                                Let AI plan your trip
+                                Plan my trip for me
                             </span>
                             <span className="home-hero-ai-cta-badge">Pro</span>
                         </Link>

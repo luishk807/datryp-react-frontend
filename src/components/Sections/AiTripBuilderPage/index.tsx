@@ -313,7 +313,7 @@ const AiTripBuilderPage = () => {
     };
 
     return (
-        <Layout title="Plan a trip with AI">
+        <Layout title="Plan my trip">
             <article className="ai-trip-builder-page">
                 <header className="ai-trip-builder-page-hero">
                     <span className="ai-trip-builder-page-eyebrow">
@@ -321,7 +321,7 @@ const AiTripBuilderPage = () => {
                             className="ai-trip-builder-page-eyebrow-icon"
                             fontSize="small"
                         />
-                        <span>Pro — AI Trip Builder</span>
+                        <span>Pro — Trip Builder</span>
                     </span>
                     <h1 className="ai-trip-builder-page-headline">
                         {inOptionsPhase

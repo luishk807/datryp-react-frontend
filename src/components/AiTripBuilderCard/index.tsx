@@ -33,7 +33,7 @@ const STEPS = [
     },
     {
         Icon: EventRoundedIcon,
-        title: 'Let AI plan the trip',
+        title: 'Let us plan the trip',
         body: 'Day-by-day, saved as a draft.',
     },
 ];
@@ -107,8 +107,8 @@ const AiTripBuilderCard = () => {
                     trip for you.
                 </h2>
                 <p className="ai-trip-builder-card-lede">
-                    Tell us your budget and what you want to do. Our AI
-                    picks the destination, plans every day, and saves
+                    Tell us your budget and what you want to do. We
+                    pick the destination, plan every day, and save
                     a draft you can edit before confirming.
                 </p>
 
@@ -140,7 +140,7 @@ const AiTripBuilderCard = () => {
                     className="ai-trip-builder-card-cta"
                 >
                     <AutoAwesomeRoundedIcon className="ai-trip-builder-card-cta-sparkle" />
-                    <span>Plan my trip with AI</span>
+                    <span>Plan my trip for me</span>
                     <ArrowForwardRoundedIcon className="ai-trip-builder-card-cta-arrow" />
                 </Link>
 

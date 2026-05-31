@@ -356,7 +356,7 @@ const BottomNav = () => {
                         />
                         <AccountItem
                             icon={<AutoAwesomeRoundedIcon />}
-                            label="Plan with AI"
+                            label="Plan a trip"
                             onClick={() => handleNavigate('/plan-trip-ai')}
                         />
                         <AccountItem
@@ -539,14 +539,14 @@ const BottomNav = () => {
                             <Link
                                 to="/plan-trip-ai"
                                 className="bottom-nav-search-ai-cta"
-                                aria-label="Let AI plan a trip for you"
+                                aria-label="Let us plan a trip for you"
                                 onClick={() => setSearchOpen(false)}
                             >
                                 <AutoAwesomeRoundedIcon
                                     className="bottom-nav-search-ai-cta-icon"
                                     fontSize="small"
                                 />
-                                <span>Let AI plan your trip</span>
+                                <span>Plan my trip for me</span>
                                 <span className="bottom-nav-search-ai-cta-badge">
                                     Pro
                                 </span>

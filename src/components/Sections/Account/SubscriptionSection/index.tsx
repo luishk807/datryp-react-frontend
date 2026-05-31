@@ -166,7 +166,7 @@ const SubscriptionSection = () => {
                 <p className="account-card-subtitle">
                     {isCanceled
                         ? 'Your previous subscription has ended.'
-                        : 'Upgrade to Pro for unlimited trips and Advanced AI Search.'}
+                        : 'Upgrade to Pro for unlimited trips and Advanced Search.'}
                 </p>
             </div>
 
@@ -186,7 +186,7 @@ const SubscriptionSection = () => {
                 body={
                     isCanceled
                         ? 'Pick up where you left off — your saved trips are still there.'
-                        : 'Unlimited saved trips, Advanced AI Search, richer recommendations.'
+                        : 'Unlimited saved trips, Advanced Search, richer recommendations.'
                 }
             />
 

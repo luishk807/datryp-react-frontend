@@ -129,7 +129,7 @@ function App() {
                 }/>
                 <Route path='/search' element={
                     <Gated
-                        title="Sign in to use AI search"
+                        title="Sign in to search"
                         subtitle="Free accounts get 5 searches per day. Pro members get Advanced Search."
                     >
                         <SearchResults />
@@ -200,8 +200,8 @@ function App() {
                 }/>
                 <Route path='/plan-trip-ai' element={
                     <Gated
-                        title="Sign in to plan with AI"
-                        subtitle="Pro members get AI-built trips. Free users land on the pricing page after signing in."
+                        title="Sign in to plan a trip"
+                        subtitle="Pro members get trips built for them. Free users land on the pricing page after signing in."
                     >
                         <AiTripBuilderPage />
                     </Gated>

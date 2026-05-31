@@ -11,7 +11,7 @@ import './index.scss';
 const FEATURES = [
     {
         Icon: AutoAwesomeIcon,
-        title: 'AI that gets travel',
+        title: 'Travel that gets you',
         body: 'Describe the trip in plain language — "two weeks in Japan, mostly food" — and let the recommender propose destinations and activities.',
     },
     {

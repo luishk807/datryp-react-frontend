@@ -49,7 +49,7 @@ const BUILD_STEPS: Step[] = [
 
 const DEFAULT_TITLES: Record<LoaderPhase, string> = {
     options: 'Finding your destination matches',
-    build: 'Crafting your trip with AI',
+    build: 'Crafting your trip',
 };
 
 const DEFAULT_SUBTITLES: Record<LoaderPhase, string> = {

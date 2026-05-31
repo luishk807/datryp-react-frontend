@@ -325,7 +325,7 @@ const BucketList = () => {
                         <div className="bucket-howto-content">
                             <h3>2. We build the trip</h3>
                             <p>
-                                Tap <strong>AI-build trip</strong> on any
+                                Tap <strong>Build trip</strong> on any
                                 goal. We pick the destination, plan days
                                 and activities around it, and save it as
                                 a draft Planning trip.
@@ -476,7 +476,7 @@ const BucketList = () => {
                                                 )}
                                                 <span>
                                                     {isPro
-                                                        ? 'AI-build trip'
+                                                        ? 'Build trip'
                                                         : 'Create trip'}
                                                 </span>
                                                 {!isPro && (
