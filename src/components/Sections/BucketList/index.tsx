@@ -70,13 +70,13 @@ const paywallCopy = (
                     free plan.
                 </>
             ),
-            body: 'DaTryp.com Pro removes the limit so you can keep dreaming. Pro also unlocks "Create trip" — turn any bucket-list goal into a real itinerary with AI.',
+            body: 'DaTryp.com Pro removes the limit so you can keep dreaming. Pro also unlocks "Create trip" — turn any bucket-list goal into a real itinerary.',
         };
     }
     return {
         title: 'Pro feature',
         headline: <>Turning a bucket-list goal into a real trip is a Pro feature.</>,
-        body: 'DaTryp.com Pro builds an AI itinerary from any of your bucket-list entries — picking a country, planning days, suggesting activities — saved as a draft trip ready for you to tweak.',
+        body: 'DaTryp.com Pro builds an itinerary from any of your bucket-list entries — picking a country, planning days, suggesting activities — saved as a draft trip ready for you to tweak.',
     };
 };
 
@@ -323,12 +323,12 @@ const BucketList = () => {
                             <AutoAwesomeRoundedIcon />
                         </span>
                         <div className="bucket-howto-content">
-                            <h3>2. AI builds the trip</h3>
+                            <h3>2. We build the trip</h3>
                             <p>
                                 Tap <strong>AI-build trip</strong> on any
-                                goal. Our AI picks the destination, plans
-                                days and activities around it, and saves it
-                                as a draft Planning trip.
+                                goal. We pick the destination, plan days
+                                and activities around it, and save it as
+                                a draft Planning trip.
                             </p>
                         </div>
                     </div>
@@ -633,8 +633,8 @@ const BucketList = () => {
                                                         How long should the trip be?
                                                     </h4>
                                                     <p className="bucket-wizard-hint">
-                                                        Pick a length, or let the
-                                                        AI decide based on the
+                                                        Pick a length, or let us
+                                                        decide based on the
                                                         budget + activity mix.
                                                     </p>
                                                     <div className="bucket-wizard-chips">
@@ -689,7 +689,7 @@ const BucketList = () => {
                                                                 Auto
                                                             </span>
                                                             <span className="bucket-wizard-chip-note">
-                                                                AI picks
+                                                                Smart picks
                                                             </span>
                                                         </button>
                                                     </div>

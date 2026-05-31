@@ -43,7 +43,7 @@ const AiSearchLoader = ({ query }: AiSearchLoaderProps) => {
     const trimmedQuery = query?.trim();
     const headline = trimmedQuery
         ? `Searching for “${trimmedQuery}”`
-        : 'Searching with AI';
+        : 'Searching';
 
     return (
         <div className="ai-search-loader" role="status" aria-live="polite">
@@ -61,7 +61,7 @@ const AiSearchLoader = ({ query }: AiSearchLoaderProps) => {
 
             <h2 className="ai-search-loader-title">{headline}</h2>
             <p className="ai-search-loader-sub">
-                Hold tight — pulling AI-curated picks just for you.
+                Hold tight — pulling curated picks just for you.
             </p>
 
             <div className="ai-search-loader-step" key={stepIdx}>

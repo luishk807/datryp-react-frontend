@@ -42,7 +42,7 @@ const PILLARS = [
     },
     {
         Icon: AutoAwesomeIcon,
-        label: 'Powered by AI',
+        label: 'Smart recommendations',
     },
 ];
 
@@ -103,7 +103,7 @@ const About = () => (
             <section className="about-section about-next">
                 <h2>What's next</h2>
                 <p>
-                    More AI, deeper collaboration, better mobile, and
+                    Smarter suggestions, deeper collaboration, better mobile, and
                     proper offline support. The roadmap is shaped by the
                     people using the product — if there's something
                     you'd love to see, the{' '}

@@ -130,7 +130,7 @@ function App() {
                 <Route path='/search' element={
                     <Gated
                         title="Sign in to use AI search"
-                        subtitle="Free accounts get 5 AI searches per day, with Advanced AI Search for Pro members."
+                        subtitle="Free accounts get 5 searches per day. Pro members get Advanced Search."
                     >
                         <SearchResults />
                     </Gated>

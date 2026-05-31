@@ -37,7 +37,7 @@ const SearchResults = () => {
         if (!query) {
             return (
                 <p className="search-results-empty">
-                    Start a search from the homepage to see AI-curated places here.
+                    Start a search from the homepage to see curated places here.
                 </p>
             );
         }
@@ -80,11 +80,11 @@ const SearchResults = () => {
                             <strong>
                                 {error.used}/{error.limit}
                             </strong>{' '}
-                            free AI searches for today.
+                            free searches for today.
                         </p>
                         <p className="search-results-quota-body">
                             Free searches reset at midnight UTC. Or upgrade to
-                            Pro for unlimited Advanced AI Search and unlimited
+                            Pro for unlimited Advanced Search and unlimited
                             saved trips.{' '}
                             <Link
                                 to="/membership"

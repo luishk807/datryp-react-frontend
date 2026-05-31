@@ -36,7 +36,7 @@ const BudgetSuggestionBadge = ({
                     fontSize="small"
                 />
                 <span>
-                    Updating AI estimate
+                    Updating estimate
                     {destinationLabel ? ` for ${destinationLabel}` : ''}…
                 </span>
             </p>
@@ -59,7 +59,7 @@ const BudgetSuggestionBadge = ({
                 fontSize="small"
             />
             <span>
-                {inputMatchesAi ? 'AI suggested budget' : 'Average suggested'}
+                {inputMatchesAi ? 'Suggested budget' : 'Average suggested'}
                 {destinationLabel ? ` for ${destinationLabel}` : ''}:{' '}
                 {formatted}
                 {note ? ` — ${note}` : ''}

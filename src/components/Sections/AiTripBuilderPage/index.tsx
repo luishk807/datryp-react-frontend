@@ -331,7 +331,7 @@ const AiTripBuilderPage = () => {
                     <p className="ai-trip-builder-page-sub">
                         {inOptionsPhase
                             ? 'Each option is a real trip we can build for you. Pick one and we’ll generate the full day-by-day plan.'
-                            : 'Three quick questions. Our AI then suggests four destinations to choose from — pick one and we’ll build the full itinerary.'}
+                            : 'Three quick questions. We’ll then suggest four destinations to choose from — pick one and we’ll build the full itinerary.'}
                     </p>
                 </header>
 
@@ -512,8 +512,8 @@ const AiTripBuilderPage = () => {
                                         How long should the trip be?
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        Optional — if you skip this the AI
-                                        picks a length that fits the budget.
+                                        Optional — if you skip this we’ll
+                                        pick a length that fits the budget.
                                     </p>
                                     <div className="ai-trip-builder-page-budget-row">
                                         <div className="ai-trip-builder-page-budget-input">
@@ -573,7 +573,7 @@ const AiTripBuilderPage = () => {
                                                 Auto
                                             </span>
                                             <span className="ai-trip-builder-page-preset-note">
-                                                AI picks
+                                                Smart pick
                                             </span>
                                         </button>
                                     </div>

@@ -236,7 +236,7 @@ export const BasicTripInfo = ({
                 tone: 'low' as const,
                 label: 'Tight',
                 why:
-                    `AI estimates about ${suggestedLabel}${destination}. ` +
+                    `We estimate about ${suggestedLabel}${destination}. ` +
                     `Your budget is ${Math.round((1 - ratio) * 100)}% under — ` +
                     `you may need to economize on lodging or dining.` +
                     (aiNote ? ` ${aiNote}` : ''),
@@ -247,7 +247,7 @@ export const BasicTripInfo = ({
                 tone: 'high' as const,
                 label: 'Comfortable',
                 why:
-                    `AI estimates about ${suggestedLabel}${destination}. ` +
+                    `We estimate about ${suggestedLabel}${destination}. ` +
                     `You have ${Math.round((ratio - 1) * 100)}% cushion — ` +
                     `room for upgrades or memorable splurges.` +
                     (aiNote ? ` ${aiNote}` : ''),
@@ -257,7 +257,7 @@ export const BasicTripInfo = ({
             tone: 'on' as const,
             label: 'On target',
             why:
-                `AI estimates about ${suggestedLabel}${destination}. ` +
+                `We estimate about ${suggestedLabel}${destination}. ` +
                 `Your budget lines up with typical spend for this trip.` +
                 (aiNote ? ` ${aiNote}` : ''),
         };
