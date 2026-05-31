@@ -259,15 +259,17 @@ const TripCheckupCard = ({
                 </div>
             )}
 
-            {data && data.quota.remaining >= 0 && data.quota.remaining <= 10 && (
-                <p className="trip-checkup-quota">
-                    {data.quota.remaining === 0
-                        ? `That was your last review today — resets at UTC midnight.`
-                        : `${data.quota.remaining} review${
-                              data.quota.remaining === 1 ? '' : 's'
-                          } left today (cap ${data.quota.cap}/day).`}
-                </p>
-            )}
+            {data?.quota &&
+                data.quota.remaining >= 0 &&
+                data.quota.remaining <= 10 && (
+                    <p className="trip-checkup-quota">
+                        {data.quota.remaining === 0
+                            ? `That was your last review today — resets at UTC midnight.`
+                            : `${data.quota.remaining} review${
+                                  data.quota.remaining === 1 ? '' : 's'
+                              } left today (cap ${data.quota.cap}/day).`}
+                    </p>
+                )}
 
             {data && (
                 <>

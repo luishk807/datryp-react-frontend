@@ -275,16 +275,17 @@ const TripSuggestionsCard = ({
                     {mutation.isError && renderError()}
 
                     {hasResults &&
-                        mutation.data!.quota.remaining >= 0 &&
-                        mutation.data!.quota.remaining <= 10 && (
+                        mutation.data?.quota &&
+                        mutation.data.quota.remaining >= 0 &&
+                        mutation.data.quota.remaining <= 10 && (
                             <p className="trip-suggestions-quota">
-                                {mutation.data!.quota.remaining === 0
+                                {mutation.data.quota.remaining === 0
                                     ? `That was your last run today — resets at UTC midnight.`
-                                    : `${mutation.data!.quota.remaining} run${
-                                          mutation.data!.quota.remaining === 1
+                                    : `${mutation.data.quota.remaining} run${
+                                          mutation.data.quota.remaining === 1
                                               ? ''
                                               : 's'
-                                      } left today (cap ${mutation.data!.quota.cap}/day).`}
+                                      } left today (cap ${mutation.data.quota.cap}/day).`}
                             </p>
                         )}
 
