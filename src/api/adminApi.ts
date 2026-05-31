@@ -15,7 +15,9 @@ import type {
     AiUsageResponse,
     DashboardOverview,
     GrowthResponse,
+    PostHogStatsResponse,
     SubscriptionStats,
+    UsersByGenderResponse,
 } from 'types';
 
 const API_BASE =
@@ -242,6 +244,58 @@ export const fetchAgeDistribution =
             await handleError(resp, '/admin/dashboard/age-distribution');
         return (await resp.json()) as AgeDistributionResponse;
     };
+
+interface UsersByGenderRaw {
+    total: number;
+    buckets: { gender_name: string; count: number }[];
+}
+
+export const fetchUsersByGender =
+    async (): Promise<UsersByGenderResponse> => {
+        const resp = await fetch(
+            `${API_BASE}/admin/dashboard/users-by-gender`,
+            { headers: authHeaders() }
+        );
+        if (!resp.ok)
+            await handleError(resp, '/admin/dashboard/users-by-gender');
+        const r = (await resp.json()) as UsersByGenderRaw;
+        return {
+            total: r.total,
+            buckets: r.buckets.map((b) => ({
+                genderName: b.gender_name,
+                count: b.count,
+            })),
+        };
+    };
+
+interface PostHogStatsRaw {
+    configured: boolean;
+    window_days: number;
+    total_events: number;
+    unique_users: number;
+    top_events: { event: string; count: number }[];
+    daily_events: { day: string; count: number }[];
+}
+
+export const fetchPostHogStats = async (
+    days = 30,
+): Promise<PostHogStatsResponse> => {
+    const resp = await fetch(
+        `${API_BASE}/admin/dashboard/posthog?days=${days}`,
+        { headers: authHeaders() },
+    );
+    if (!resp.ok)
+        await handleError(resp, '/admin/dashboard/posthog');
+    const r = (await resp.json()) as PostHogStatsRaw;
+    return {
+        configured: r.configured,
+        windowDays: r.window_days,
+        totalEvents: r.total_events,
+        uniqueUsers: r.unique_users,
+        topEvents: r.top_events,
+        dailyEvents: r.daily_events,
+    };
+};
 
 export const fetchAiUsage = async (months = 12): Promise<AiUsageResponse> => {
     const resp = await fetch(

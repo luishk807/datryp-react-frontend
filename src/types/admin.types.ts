@@ -102,6 +102,39 @@ export interface AgeDistributionResponse {
     total: number;
 }
 
+export interface UsersByGenderItem {
+    genderName: string;
+    count: number;
+}
+
+export interface UsersByGenderResponse {
+    total: number;
+    buckets: UsersByGenderItem[];
+}
+
+export interface PostHogTopEvent {
+    event: string;
+    count: number;
+}
+
+export interface PostHogDailyPoint {
+    /** ISO date `YYYY-MM-DD`. */
+    day: string;
+    count: number;
+}
+
+export interface PostHogStatsResponse {
+    /** False when the server doesn't have a personal API key + project
+     *  id configured. FE renders a setup prompt instead of empty
+     *  charts in that case. */
+    configured: boolean;
+    windowDays: number;
+    totalEvents: number;
+    uniqueUsers: number;
+    topEvents: PostHogTopEvent[];
+    dailyEvents: PostHogDailyPoint[];
+}
+
 export interface AdminUser {
     id: string;
     email: string;

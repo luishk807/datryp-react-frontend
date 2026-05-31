@@ -1,0 +1,158 @@
+.posthog-stats-card {
+    .posthog-stats-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .posthog-stats-windows {
+        display: inline-flex;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 999px;
+        padding: 3px;
+        gap: 2px;
+    }
+
+    .posthog-stats-window {
+        appearance: none;
+        border: none;
+        background: transparent;
+        padding: 5px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.55);
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &:hover {
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        &.is-active {
+            background: #fff;
+            color: #f38e40;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+    }
+
+    .posthog-stats-body {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .posthog-stats-tiles {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    @media (max-width: 720px) {
+        .posthog-stats-tiles {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .posthog-stats-chart {
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .posthog-stats-events-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 0 0 8px;
+        color: rgba(0, 0, 0, 0.8);
+    }
+
+    .posthog-stats-events-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .posthog-stats-event-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+
+    .posthog-stats-event-name {
+        font-family: 'Menlo', 'Consolas', monospace;
+        color: rgba(0, 0, 0, 0.8);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .posthog-stats-event-count {
+        font-weight: 700;
+        color: #f38e40;
+        flex-shrink: 0;
+    }
+
+    .posthog-stats-empty {
+        padding: 24px 0;
+        text-align: center;
+        color: rgba(0, 0, 0, 0.55);
+        font-style: italic;
+    }
+
+    .posthog-stats-setup {
+        background: rgba(247, 159, 38, 0.06);
+        border: 1px dashed rgba(247, 159, 38, 0.4);
+        border-radius: 10px;
+        padding: 14px 16px;
+
+        h3 {
+            font-size: 0.95rem;
+            margin: 0 0 6px;
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        p {
+            margin: 0 0 8px;
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 0.88rem;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 0.82rem;
+        }
+
+        a {
+            color: #f38e40;
+            text-decoration: underline;
+        }
+
+        em {
+            font-style: italic;
+            color: rgba(0, 0, 0, 0.6);
+        }
+    }
+}

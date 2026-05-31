@@ -255,11 +255,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         if (!user?.id) return;
         identifyPosthogUser({
             id: user.id,
+            email: user.email,
             subscriptionPlan: user.subscriptionPlan ?? undefined,
             isPaidMember: user.isPaidMember,
             isAdmin,
         });
-    }, [user?.id, user?.subscriptionPlan, user?.isPaidMember, isAdmin]);
+    }, [user?.id, user?.email, user?.subscriptionPlan, user?.isPaidMember, isAdmin]);
 
     const login = useCallback(
         async (email: string, password: string) => {

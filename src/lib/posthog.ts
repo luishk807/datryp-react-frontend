@@ -87,13 +87,50 @@ export const initPosthog = (): void => {
  *  beyond what the Privacy Policy promises. */
 export interface IdentifyContext {
     id: string;
+    /** Provided so the helper can match against `VITE_POSTHOG_IGNORE_EMAILS`
+     *  and opt the dev/admin out of capturing entirely. Never sent to
+     *  PostHog as a person property (would expand the PII footprint
+     *  beyond what the Privacy Policy promises). */
+    email?: string;
     subscriptionPlan?: string;
     isPaidMember?: boolean;
     isAdmin?: boolean;
 }
 
+// Comma-separated list of email addresses whose sessions should NOT
+// be captured. The dev's own account goes here so admin browsing /
+// dogfooding traffic doesn't pollute the analytics. Match is
+// case-insensitive and trimmed. Reads at module load — restart the
+// Vite dev server after editing the .env value.
+const IGNORE_EMAILS = ((import.meta.env.VITE_POSTHOG_IGNORE_EMAILS as
+    | string
+    | undefined) ?? '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+
+const shouldIgnore = (email: string | undefined): boolean => {
+    if (!email) return false;
+    return IGNORE_EMAILS.includes(email.trim().toLowerCase());
+};
+
 export const identifyPosthogUser = (ctx: IdentifyContext): void => {
     if (!ready()) return;
+    if (shouldIgnore(ctx.email)) {
+        // Opt the browser session out of capturing for the rest of
+        // the session. Persisted in posthog-js's own localStorage key
+        // so a refresh still respects the opt-out.
+        if (!posthog.has_opted_out_capturing()) {
+            posthog.opt_out_capturing();
+        }
+        return;
+    }
+    // Inverse path — when an ignored user logs out and a normal user
+    // logs in on the same browser, flip capturing back on so we don't
+    // permanently silence the device after the first dev session.
+    if (posthog.has_opted_out_capturing()) {
+        posthog.opt_in_capturing();
+    }
     posthog.identify(ctx.id, {
         subscription_plan: ctx.subscriptionPlan ?? null,
         is_paid_member: Boolean(ctx.isPaidMember),

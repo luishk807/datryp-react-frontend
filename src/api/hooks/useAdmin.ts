@@ -12,8 +12,10 @@ import {
     fetchCountryCacheStatus,
     fetchGrowth,
     fetchOverview,
+    fetchPostHogStats,
     fetchSubscriptionGrowth,
     fetchSubscriptionStats,
+    fetchUsersByGender,
     setUserFree as setUserFreeReq,
     setUserPro as setUserProReq,
     setUserRole as setUserRoleReq,
@@ -37,7 +39,9 @@ import type {
     AiUsageResponse,
     DashboardOverview,
     GrowthResponse,
+    PostHogStatsResponse,
     SubscriptionStats,
+    UsersByGenderResponse,
 } from 'types';
 
 /** TanStack query keys for admin reads. `users(query)` keys by the
@@ -50,6 +54,8 @@ export const adminKeys = {
     subscriptionGrowth: (months: number) =>
         ['admin', 'subscription-growth', months] as const,
     ageDistribution: ['admin', 'age-distribution'] as const,
+    usersByGender: ['admin', 'users-by-gender'] as const,
+    posthogStats: (days: number) => ['admin', 'posthog', days] as const,
     aiUsage: (months: number) => ['admin', 'ai-usage', months] as const,
     users: (q: string) => ['admin', 'users', q] as const,
     freeEverything: ['admin', 'free-everything'] as const,
@@ -74,6 +80,30 @@ export const useAdminOverview = () => {
         enabled: adminEnabled(isAdmin),
         refetchInterval: POLL_INTERVAL_MS,
         staleTime: 10 * 1000,
+    });
+};
+
+export const useAdminUsersByGender = () => {
+    const { isAdmin } = useUser();
+    return useQuery<UsersByGenderResponse>({
+        queryKey: adminKeys.usersByGender,
+        queryFn: fetchUsersByGender,
+        enabled: adminEnabled(isAdmin),
+        refetchInterval: POLL_INTERVAL_MS,
+        staleTime: 30 * 1000,
+    });
+};
+
+export const useAdminPosthogStats = (days = 30) => {
+    const { isAdmin } = useUser();
+    return useQuery<PostHogStatsResponse>({
+        queryKey: adminKeys.posthogStats(days),
+        queryFn: () => fetchPostHogStats(days),
+        enabled: adminEnabled(isAdmin),
+        // PostHog is paid + rate-limited; refresh every 5 minutes is
+        // plenty for the dashboard.
+        refetchInterval: 5 * 60 * 1000,
+        staleTime: 60 * 1000,
     });
 };
 
