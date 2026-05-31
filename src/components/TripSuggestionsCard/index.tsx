@@ -187,6 +187,9 @@ const TripSuggestionsCard = ({
             if (err.kind === "trip_suggestions_not_planning") {
                 message =
                     "This trip is no longer in Planning. Move it back to Planning to get new ideas.";
+            } else if (err.kind === "trip_suggestions_quota") {
+                message =
+                    "You've used today's lightbulb runs. Resets at UTC midnight.";
             } else if (err.status === 402) {
                 message =
                     "Lightbulb suggestions are a Pro feature. Upgrade to unlock.";

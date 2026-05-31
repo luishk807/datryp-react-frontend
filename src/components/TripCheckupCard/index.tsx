@@ -134,6 +134,9 @@ const TripCheckupCard = ({
             if (err.kind === "trip_checkup_not_planning") {
                 message =
                     "Trip checkup is only available while the trip is in Planning.";
+            } else if (err.kind === "trip_checkup_quota") {
+                message =
+                    "You've used today's trip reviews. Resets at UTC midnight.";
             } else if (err.status === 402) {
                 message =
                     "Trip Checkup is a Pro feature. Upgrade to score your trip.";
