@@ -267,7 +267,7 @@ const TripSuggestionsCard = ({
                         <div className="trip-suggestions-loading">
                             <CircularProgress size={20} />
                             <span>
-                                Asking the AI for ideas that fit your trip…
+                                Finding ideas that fit your trip…
                             </span>
                         </div>
                     )}
