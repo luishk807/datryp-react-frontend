@@ -8,12 +8,16 @@ import Layout from 'components/common/Layout/SubLayout';
 import DestinationDetail from 'components/DestinationDetail';
 import StepperComp from 'components/common/StepperComp';
 import BasicInfo from 'components/DestinationDetail/BasicInfo';
-import BasicsStep from 'components/TripSteps/BasicsStep';
-import PeopleStep from 'components/TripSteps/PeopleStep';
+import TripModeStep from 'components/TripSteps/TripModeStep';
+import DestinationStep from 'components/TripSteps/DestinationStep';
+import DatesStep from 'components/TripSteps/DatesStep';
+import BudgetStep from 'components/TripSteps/BudgetStep';
+import OrganizerStep from 'components/TripSteps/OrganizerStep';
+import ParticipantStep from 'components/TripSteps/ParticipantStep';
 import ParticipantsStep from 'components/TripSteps/ParticipantsStep';
 import TripTour, {
     TRIP_TOUR_STORAGE_KEY,
-    type TripTourStep,
+    type TripTourKey,
 } from 'components/TripTour';
 import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
@@ -42,6 +46,19 @@ const hashUuid = (s: string): number => {
 /** Narrow subset of the shared TripMode — TripSteps edits an existing trip,
  *  so the 'recommend' tab value (homepage-only) is not valid here. */
 type EditableTripMode = typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE;
+
+/** Maps a create-flow step label to the TripTour section it should show.
+ *  Driven by label (not index) so the conditional Destination step doesn't
+ *  shift the mapping. Mirrors the labels in the create `steps` array below. */
+const TOUR_KEY_BY_LABEL: Record<string, TripTourKey> = {
+    'Trip type': 'mode',
+    Destination: 'destination',
+    Dates: 'dates',
+    Budget: 'budget',
+    Organizers: 'organizers',
+    Participants: 'participants',
+    Itinerary: 'itinerary',
+};
 
 interface TripStepsProps {
     title: string;
@@ -77,7 +94,7 @@ const TripSteps = ({
     // re-opens the tour for the CURRENT wizard step, so a user on the
     // People or Itinerary screen gets the right tooltips.
     const [tourRun, setTourRun] = useState(false);
-    const [tourWizardStep, setTourWizardStep] = useState<TripTourStep>(0);
+    const [tourKey, setTourKey] = useState<TripTourKey>('mode');
     useEffect(() => {
         if (!user) return;
         if (editingId) return;
@@ -96,14 +113,16 @@ const TripSteps = ({
 
     const handleTourStart = () => setTourRun(true);
 
-    // Mirror StepperComp's internal activeStep into local state so we
-    // can pass it to TripTour. The callback fires on every step
-    // change. Clamped to 0/1/2 because TripTour only knows about the
-    // three create-flow steps (the trailing "Finish" indicator and
-    // the post-save "TripComplete" screen don't get their own tour).
+    // Mirror StepperComp's internal activeStep into local state so we can
+    // point TripTour at the right per-step tooltips. The callback fires on
+    // every step change. We map the step's label → a stable tour key
+    // (rather than a numeric index) because the Destination step is
+    // conditional, so indices shift. Steps past the wizard (the post-save
+    // "TripComplete" screen) fall back to the first key — the tour isn't
+    // shown there anyway.
     const handleActiveStepChange = (step: number) => {
-        const clamped = Math.max(0, Math.min(2, step)) as TripTourStep;
-        setTourWizardStep(clamped);
+        const label = steps[step]?.label ?? '';
+        setTourKey(TOUR_KEY_BY_LABEL[label] ?? 'mode');
     };
 
     // When the URL carries ?id=<uuid> we're editing an existing trip. Hydrate
@@ -238,9 +257,11 @@ const TripSteps = ({
         return unique;
     }, [tripInfo]);
 
-    // New 3-step create flow: Basics (mode + destination + dates + budget),
-    // People (organizers + participants), Itinerary. Edit mode still uses
-    // the legacy 3-step shape because StepperComp slices [0, 1] into the
+    // New one-question-per-screen create flow: Trip type → (Destination,
+    // only when needed) → Dates → Budget → Organizers → Participants →
+    // Itinerary. The top stepper indicator is hidden in StepperComp so the
+    // user just answers one thing at a time. Edit mode still uses the
+    // legacy 3-step shape because StepperComp slices [0, 1] into the
     // edit-modal and [2..] inline — keep those indices stable.
     const steps = isEditing
         ? [
@@ -289,19 +310,38 @@ const TripSteps = ({
           ]
         : [
               {
-                  label: 'Trip basics',
+                  label: 'Trip type',
+                  comp: <TripModeStep data={tripInfo} />,
+              },
+              // Destination only when single-trip + no country preset —
+              // multi-trips pick countries per-day in the Itinerary step,
+              // and AI/city/country entry points already carry a country.
+              ...(needsDestinationStep
+                  ? [
+                        {
+                            label: 'Destination',
+                            comp: <DestinationStep data={tripInfo} />,
+                        },
+                    ]
+                  : []),
+              {
+                  label: 'Dates',
+                  comp: <DatesStep data={tripInfo} onChange={onBasicChange} />,
+              },
+              {
+                  label: 'Budget',
+                  comp: <BudgetStep data={tripInfo} onChange={onBasicChange} />,
+              },
+              {
+                  label: 'Organizers',
                   comp: (
-                      <BasicsStep
-                          data={tripInfo}
-                          onChange={onBasicChange}
-                          showDestination={needsDestinationStep}
-                      />
+                      <OrganizerStep data={tripInfo} onChange={onBasicChange} />
                   ),
               },
               {
-                  label: 'People',
+                  label: 'Participants',
                   comp: (
-                      <PeopleStep
+                      <ParticipantStep
                           data={tripInfo}
                           onChange={onBasicChange}
                       />
@@ -337,24 +377,24 @@ const TripSteps = ({
             // redundant "Single Trip Detail (EDIT MODE)" banner above
             // the trip header.
             title={isEditing ? '' : title}
+            // Tour trigger is a small "?" beside the page title rather than
+            // a full "Take the tour" pill — keeps the create flow focused on
+            // the actual content (info + action buttons). Create-only.
+            titleAction={
+                !isEditing ? (
+                    <button
+                        type="button"
+                        className="trip-tour-help-btn"
+                        onClick={handleTourStart}
+                        aria-label="Show me how to plan a trip"
+                        title="Show me how to plan a trip"
+                    >
+                        <HelpOutlineRoundedIcon fontSize="small" />
+                    </button>
+                ) : undefined
+            }
         >
             <Grid container className={containerClassName}>
-                {!isEditing && (
-                    <Grid item lg={12} md={12} xs={12}>
-                        <div className="trip-tour-launcher">
-                            <button
-                                type="button"
-                                className="trip-tour-launcher-btn"
-                                onClick={handleTourStart}
-                                aria-label="Show me how to plan a trip"
-                                title="Show me how to plan a trip"
-                            >
-                                <HelpOutlineRoundedIcon fontSize="small" />
-                                <span>Take the tour</span>
-                            </button>
-                        </div>
-                    </Grid>
-                )}
                 <Grid item lg={12} md={12} xs={12}>
                     <StepperComp
                         data={tripInfo}
@@ -365,7 +405,7 @@ const TripSteps = ({
             </Grid>
             <TripTour
                 run={tourRun}
-                wizardStep={tourWizardStep}
+                tourKey={tourKey}
                 onClose={handleTourClose}
             />
         </Layout>

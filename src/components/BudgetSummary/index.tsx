@@ -1,13 +1,18 @@
 import { useMemo, useState } from 'react';
 import './index.scss';
 import classNames from 'classnames';
-import { IconButton } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { convertMoney } from 'utils';
+import { useBudgetVerdict } from 'hooks/useBudgetVerdict';
 import { BUDGET_STATUS } from 'constants';
 import type { BudgetStatus, Destination, TripState } from 'types';
 
@@ -71,12 +76,62 @@ const BudgetSummary = ({
 
     const barWidth = Math.min(percent, 100);
 
+    // AI verdict on whether the *budget itself* is tight / right-sized /
+    // cushioned for the destination (distinct from the spend-progress
+    // bar below). Moved here from the BasicTripInfo budget tile so it
+    // sits with the money-at-a-glance meter.
+    const budgetVerdict = useBudgetVerdict(data);
+
     return (
         <section className={classNames('budget-summary', `budget-${status}`)}>
             <div className="budget-header">
                 <div className="budget-eyebrow-wrap">
                     <AccountBalanceWalletOutlinedIcon className="budget-eyebrow-icon" />
                     <span className="budget-eyebrow">Trip expenses meter</span>
+                    {budgetVerdict && (
+                        <span
+                            className={classNames(
+                                'budget-verdict',
+                                `budget-verdict-${budgetVerdict.tone}`,
+                            )}
+                        >
+                            {budgetVerdict.tone === 'low' && (
+                                <TrendingDownRoundedIcon
+                                    className="budget-verdict-arrow"
+                                    fontSize="small"
+                                />
+                            )}
+                            {budgetVerdict.tone === 'on' && (
+                                <TrendingFlatRoundedIcon
+                                    className="budget-verdict-arrow"
+                                    fontSize="small"
+                                />
+                            )}
+                            {budgetVerdict.tone === 'high' && (
+                                <TrendingUpRoundedIcon
+                                    className="budget-verdict-arrow"
+                                    fontSize="small"
+                                />
+                            )}
+                            <span className="budget-verdict-label">
+                                {budgetVerdict.label}
+                            </span>
+                            <Tooltip
+                                title={budgetVerdict.why}
+                                arrow
+                                placement="top"
+                                enterTouchDelay={0}
+                                leaveTouchDelay={6000}
+                            >
+                                <InfoOutlinedIcon
+                                    className="budget-verdict-why"
+                                    fontSize="small"
+                                    tabIndex={0}
+                                    aria-label={budgetVerdict.why}
+                                />
+                            </Tooltip>
+                        </span>
+                    )}
                 </div>
                 <div className="budget-amounts">
                     <span className="budget-spent">{convertMoney(spent)}</span>

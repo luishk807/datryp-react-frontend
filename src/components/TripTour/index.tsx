@@ -29,36 +29,44 @@ import './index.scss';
 
 export const TRIP_TOUR_STORAGE_KEY = 'trip-tour-completed-v1';
 
-/** Which wizard step the tour is anchored to. Maps 1:1 to the
- *  StepperComp activeStep index — 0=Basics, 1=People, 2=Itinerary. */
-export type TripTourStep = 0 | 1 | 2;
+/** Which create-flow screen the tour is anchored to. The create flow now
+ *  asks one question per screen, so each key maps to a single screen's
+ *  tooltips. TripSteps derives the key from the active step's label (the
+ *  Destination screen is conditional, so numeric indices would shift). */
+export type TripTourKey =
+    | 'mode'
+    | 'destination'
+    | 'dates'
+    | 'budget'
+    | 'organizers'
+    | 'participants'
+    | 'itinerary';
 
 export interface TripTourProps {
     /** Drive whether the tour is currently running. The parent owns
      *  this state so it can be flipped by both the auto-trigger and
      *  the manual "Take the tour" button. */
     run: boolean;
-    /** Which wizard step is currently visible. Drives the tooltip
-     *  set so the tour shows section-relevant guidance. */
-    wizardStep: TripTourStep;
+    /** Which create-flow screen is currently visible. Drives the tooltip
+     *  set so the tour shows screen-relevant guidance. */
+    tourKey: TripTourKey;
     /** Called when the tour finishes, the user skips, or the user
      *  closes the tooltip. Parent should set `run=false` here and
      *  (typically) mark the tour as completed in localStorage. */
     onClose: () => void;
 }
 
-const BASICS_STEPS: Step[] = [
+const MODE_STEPS: Step[] = [
     {
         target: 'body',
         placement: 'center',
         title: 'Plan your first trip',
         content: (
             <p>
-                Three quick steps: <strong>Basics</strong> →{' '}
-                <strong>People</strong> → <strong>Itinerary</strong>.
-                We'll point out the important fields on each screen —
-                run the tour again on the next step if you want a
-                refresher.
+                We'll ask one quick thing per screen and you tap{' '}
+                <strong>Next</strong> to move on. Hit{' '}
+                <strong>Take the tour</strong> again on any screen if
+                you want a refresher.
             </p>
         ),
     },
@@ -74,6 +82,19 @@ const BASICS_STEPS: Step[] = [
         ),
     },
     {
+        target: '[data-tour="trip-next-btn"]',
+        title: 'Tap Next',
+        content: (
+            <p>
+                Once you've picked, tap <strong>Next</strong> to keep
+                going.
+            </p>
+        ),
+    },
+];
+
+const DESTINATION_STEPS: Step[] = [
+    {
         target: '[data-tour="trip-destination"]',
         title: 'Where are you going?',
         content: (
@@ -83,6 +104,9 @@ const BASICS_STEPS: Step[] = [
             </p>
         ),
     },
+];
+
+const DATES_STEPS: Step[] = [
     {
         target: '[data-tour="trip-dates"]',
         title: 'When are you going?',
@@ -94,6 +118,9 @@ const BASICS_STEPS: Step[] = [
             </p>
         ),
     },
+];
+
+const BUDGET_STEPS: Step[] = [
     {
         target: '[data-tour="trip-budget"]',
         title: "What's your budget?",
@@ -105,42 +132,23 @@ const BASICS_STEPS: Step[] = [
             </p>
         ),
     },
-    {
-        target: '[data-tour="trip-next-btn"]',
-        title: 'Next: invite people',
-        content: (
-            <p>
-                Click <strong>Next</strong> to add organizers and
-                participants. Hit <strong>Take the tour</strong> again
-                on the People screen if you'd like more pointers.
-            </p>
-        ),
-    },
 ];
 
-const PEOPLE_STEPS: Step[] = [
-    {
-        target: 'body',
-        placement: 'center',
-        title: "Who's coming along?",
-        content: (
-            <p>
-                You're already added. Organizers can edit the trip;
-                participants come along for the ride and can split
-                budgets on activities.
-            </p>
-        ),
-    },
+const ORGANIZER_STEPS: Step[] = [
     {
         target: '[data-tour="trip-organizers"]',
         title: 'Organizers can edit',
         content: (
             <p>
-                Add co-organizers if someone else should be able to
-                change the trip — dates, places, budget, etc.
+                You're added automatically. Add co-organizers if
+                someone else should be able to change the trip — dates,
+                places, budget, etc.
             </p>
         ),
     },
+];
+
+const PARTICIPANT_STEPS: Step[] = [
     {
         target: '[data-tour="trip-participants"]',
         title: 'Participants come along',
@@ -148,18 +156,8 @@ const PEOPLE_STEPS: Step[] = [
             <p>
                 Add the people you're traveling with. They can be
                 tagged on activities and you can split budgets between
-                them later in the Itinerary step.
-            </p>
-        ),
-    },
-    {
-        target: '[data-tour="trip-next-btn"]',
-        title: 'Next: build the itinerary',
-        content: (
-            <p>
-                Click <strong>Next</strong> to plan day-by-day
-                activities. The Itinerary tour will walk you through
-                adding places and times.
+                them later in the Itinerary step. Going solo? Just hit
+                Next.
             </p>
         ),
     },
@@ -220,16 +218,18 @@ const ITINERARY_STEPS: Step[] = [
     },
 ];
 
-const STEPS_BY_WIZARD: Record<TripTourStep, Step[]> = {
-    0: BASICS_STEPS,
-    1: PEOPLE_STEPS,
-    2: ITINERARY_STEPS,
+const STEPS_BY_KEY: Record<TripTourKey, Step[]> = {
+    mode: MODE_STEPS,
+    destination: DESTINATION_STEPS,
+    dates: DATES_STEPS,
+    budget: BUDGET_STEPS,
+    organizers: ORGANIZER_STEPS,
+    participants: PARTICIPANT_STEPS,
+    itinerary: ITINERARY_STEPS,
 };
 
-const TripTour = ({ run, wizardStep, onClose }: TripTourProps) => {
-    const steps = useMemo(() => STEPS_BY_WIZARD[wizardStep] ?? [], [
-        wizardStep,
-    ]);
+const TripTour = ({ run, tourKey, onClose }: TripTourProps) => {
+    const steps = useMemo(() => STEPS_BY_KEY[tourKey] ?? [], [tourKey]);
 
     const handleEvent = (data: EventData) => {
         if (
@@ -243,11 +243,11 @@ const TripTour = ({ run, wizardStep, onClose }: TripTourProps) => {
 
     return (
         <Joyride
-            // Reset the run cycle when the wizard step changes so a
-            // mid-tour Next click on the wizard doesn't strand
-            // Joyride pointing at an unmounted target. The key bump
-            // forces a fresh mount with the new step list.
-            key={`tour-${wizardStep}`}
+            // Reset the run cycle when the screen changes so a mid-tour
+            // Next click on the wizard doesn't strand Joyride pointing at
+            // an unmounted target. The key bump forces a fresh mount with
+            // the new screen's step list.
+            key={`tour-${tourKey}`}
             run={run}
             steps={steps}
             continuous

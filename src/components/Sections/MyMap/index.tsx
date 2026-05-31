@@ -1392,11 +1392,10 @@ const MyMap = () => {
                     />
 
                     {/* Stats dropdowns — absolute-positioned at the
-                     *  top-center of the map canvas so they sit
-                     *  alongside the intro panel (top-left) and the
-                     *  Mapbox zoom controls (top-right) without
-                     *  taking any vertical space from the map
-                     *  itself. */}
+                     *  top-center of the map canvas. Hidden in the locked
+                     *  (non-Pro) state so the upgrade panel isn't crowded
+                     *  by chrome that doesn't do anything yet. */}
+                    {isPro && (
                     <div className="my-map-stats">
                         <MyMapStatDropdown
                             icon={<PublicRoundedIcon fontSize="small" />}
@@ -1452,6 +1451,7 @@ const MyMap = () => {
                             emptyHint="No visited places yet."
                         />
                     </div>
+                    )}
 
                     {/* Intro panel + collapsed pill — absolute-
                      *  positioned overlay on the map canvas so the
@@ -1459,7 +1459,7 @@ const MyMap = () => {
                      *  First visit opens the panel; localStorage
                      *  flag dismisses it for subsequent visits. The
                      *  "ⓘ" pill always reopens it. */}
-                    {introOpen ? (
+                    {isPro && (introOpen ? (
                         <section
                             className="my-map-intro"
                             aria-labelledby="my-map-intro-title"
@@ -1538,7 +1538,7 @@ const MyMap = () => {
                             <InfoOutlinedIcon fontSize="small" />
                             <span>About</span>
                         </button>
-                    )}
+                    ))}
 
                     {/* Trips panel — slides in from the left side
                      *  when the user clicks a country / city / place

@@ -39,6 +39,15 @@
     // + ~30px icon+label stack + max(16px, safe-area) bottom).
     padding-bottom: 96px;
   }
+
+  // Lift bottom-anchored MUI snackbars/toasts above the fixed bottom nav
+  // so post-action confirmations (e.g. "Profile saved") aren't hidden
+  // behind it on mobile. Targets any bottom anchor (center/left/right);
+  // top-anchored toasts are untouched. The bottom nav shows for both
+  // logged-in and guest users at this breakpoint, so this is always right.
+  .MuiSnackbar-root[class*='anchorOriginBottom'] {
+    bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+  }
 }
 
 .bottom-nav-item {

@@ -16,7 +16,10 @@ import type { PlaceRecommendationsResult } from 'types';
 export const useSearchPlaces = (
     query: string,
     limit = 2,
-    country?: string
+    country?: string,
+    // 'suggestion' calls are exempt from the free-tier quota (auto-fired
+    // browsing aids); explicit searches default to 'search'.
+    kind: 'search' | 'suggestion' = 'search'
 ) => {
     const trimmedCountry = country?.trim() ?? '';
     return useQuery<PlaceRecommendationsResult>({
@@ -25,9 +28,15 @@ export const useSearchPlaces = (
             query.trim().toLowerCase(),
             limit,
             trimmedCountry.toLowerCase(),
+            kind,
         ],
         queryFn: () =>
-            fetchPlaceRecommendations(query, limit, trimmedCountry || undefined),
+            fetchPlaceRecommendations(
+                query,
+                limit,
+                trimmedCountry || undefined,
+                kind
+            ),
         enabled: query.trim().length > 0,
         staleTime: 60 * 60 * 1000,
         // Don't retry our gated errors — same input will fail the same way

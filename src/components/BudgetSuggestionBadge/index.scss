@@ -2,12 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-// Class names mirror BasicsStep's original markup so the styles
-// extracted from `src/components/TripSteps/BasicsStep/index.scss` apply
-// uniformly to every consumer (wizard + Edit Trip Info modal). Don't
-// rename without also updating that legacy stylesheet — both files
-// target the same selectors so the badge looks identical in both
-// contexts.
+// Self-contained badge styles shared by every consumer (the create-flow
+// BudgetStep + the Edit Trip Info modal's BasicInfo). The class names are
+// owned here — keep them stable so the badge looks identical wherever the
+// budget field renders.
 .trip-basics-budget-ai-badge {
     display: inline-flex;
     align-items: flex-start;

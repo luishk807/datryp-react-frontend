@@ -8,9 +8,9 @@
 }
 
 // Create-mode wizard — give the page enough vertical room so the short
-// steps (Trip type, Dates, Budget…) don't collapse to a tiny strip on
-// big screens. The MUI Stepper sits at the top, the body grows to fill,
-// and the action row pins to the bottom.
+// single-question steps (Trip type, Dates, Budget…) don't collapse to a
+// tiny strip on big screens. The step body grows to fill and the
+// Back/Next action row pins toward the bottom.
 .stepperMain--create {
   min-height: calc(100vh - 240px);
   display: flex;
@@ -174,58 +174,16 @@
   }
 }
 
-
-/* ---------- Connector styling ---------- */
-.stepperMain .MuiStepConnector-root {
-  top: 16px;
-}
-
-.stepperMain .MuiStepConnector-line {
-  border-color: rgba(0, 0, 0, 0.12);
-  border-top-width: 2px;
-  transition: border-color 0.3s ease;
-}
-
-.stepperMain .MuiStepConnector-root.Mui-active .MuiStepConnector-line {
-  border-color: theme('colors.primaryOrange');
-}
-
-.stepperMain .MuiStepConnector-root.Mui-completed .MuiStepConnector-line {
-  border-color: theme('colors.primaryGreen');
-}
-
-/* ---------- Step labels ---------- */
-.stepperMain .MuiStepLabel-label {
-  color: rgba(0, 0, 0, 0.5);
-  font-weight: 500;
-  font-size: 0.9rem;
-  margin-top: 8px !important;
-  transition: color 0.2s ease, font-weight 0.2s ease;
-}
-
-.stepperMain .MuiStepLabel-label.Mui-active {
-  color: theme('colors.primary');
-  font-weight: 600;
-}
-
-.stepperMain .MuiStepLabel-label.Mui-completed {
-  color: rgba(0, 0, 0, 0.7);
-  font-weight: 500;
-}
-
-/* ---------- Step title ---------- */
-.step-title {
-  margin-top: 24px !important;
-  margin-bottom: 12px !important;
-}
-
-.step-title .step-heading {
-  font-size: clamp(1.4rem, 2.8vw, 1.8rem);
+/* ---------- Itinerary step title ---------- */
+// Just the trip name, centered, above the day-by-day planner on the last
+// create step (replaces the old BasicTripInfo card + budget summary).
+.step-trip-name {
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
-  color: theme('colors.primary');
-  margin: 0;
   letter-spacing: -0.015em;
-  line-height: 1.2;
+  color: theme('colors.primary');
+  text-align: center;
+  margin: 8px 0 20px;
 }
 
 /* ---------- Action buttons ---------- */
@@ -245,8 +203,22 @@
   justify-content: flex-start;
   align-items: center;
   gap: 12px;
-  margin: 24px 0 8px;
+  // Match the step body's 720px column (+4px side padding from
+  // .trip-step-screen) and center it so Back/Next line up with the
+  // edges of the step card instead of the full page width.
+  max-width: 720px;
+  margin: 24px auto 8px;
+  padding: 0 4px;
   flex-wrap: wrap;
+}
+
+// Itinerary step: full-width row so Back/Finish pin to the corners of the
+// wider day-by-day planner instead of the 720px single-question column.
+.step-actions--full {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
 }
 
 .step-actions > *:last-child {
@@ -260,12 +232,11 @@
 }
 
 @media (max-width: 600px) {
-  .stepperMain .MuiStepLabel-label {
-    font-size: 0.8rem;
-  }
-
+  // Keep Back + Next on a single row on phones (no stacking). They split
+  // the width evenly so both stay comfortably tappable; a lone Next (first
+  // step) just fills the row.
   .step-actions {
-    flex-direction: column;
+    flex-wrap: nowrap;
     gap: 10px;
     margin: 20px 0 8px;
   }
@@ -275,8 +246,28 @@
   }
 
   .step-actions button {
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
     padding: 10px 0;
+  }
+
+  // Keep the Back/Next (Finish) bar pinned in view during trip creation
+  // so the primary actions are always reachable without scrolling past a
+  // long itinerary. Sticks just above the fixed bottom nav (~96px reserved
+  // by .page-shell). `sticky` (not `fixed`) keeps the bar in normal flow,
+  // so it reserves its own space and nothing hides behind it.
+  .stepperMain--create .step-actions {
+    position: sticky;
+    bottom: 96px;
+    z-index: 5;
+    margin: 16px 0 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 
@@ -309,6 +300,16 @@
 }
 
 /* ---------- Edit-mode trip-info modal ---------- */
+// Widen the "Edit trip info" modal on desktop so the form has room to
+// breathe (the default .modalCustom caps at 560px). Mobile keeps the
+// shared full-width treatment from ModalButton's own ≤720px rule — we
+// only touch the desktop branch here, per the project modal convention.
+@media (min-width: 721px) {
+  .modalCustom.edit-trip-info-modal {
+    width: min(720px, calc(100vw - 32px));
+  }
+}
+
 .edit-trip-modal-section + .edit-trip-modal-section {
   margin-top: 24px;
   padding-top: 20px;

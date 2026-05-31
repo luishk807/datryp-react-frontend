@@ -136,6 +136,9 @@ const PlaceDetail = () => {
     place?.name ?? '',
     place ? `${place.city}, ${place.country}` : '',
     Boolean(place),
+    // Only the star rating + review count + Maps link are shown here, so
+    // request the 'rating' variant — no photo call, cheaper tier.
+    'rating',
   );
 
   // Visited-state lookup. Same cached list powers the toolbar button and the

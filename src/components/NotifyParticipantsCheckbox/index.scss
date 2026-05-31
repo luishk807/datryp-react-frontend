@@ -23,19 +23,23 @@
   &.is-on {
     color: theme('colors.primaryGreen') !important;
     background-color: rgba(60, 181, 75, 0.1) !important;
+    border: 1px solid rgba(60, 181, 75, 0.35) !important;
 
     &:hover:not(:disabled) {
       background-color: rgba(60, 181, 75, 0.2) !important;
+      border-color: theme('colors.primaryGreen') !important;
     }
   }
 
   &.is-off {
     color: rgba(0, 0, 0, 0.4) !important;
     background-color: rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.18) !important;
 
     &:hover:not(:disabled) {
       background-color: rgba(0, 0, 0, 0.08) !important;
       color: rgba(0, 0, 0, 0.65) !important;
+      border-color: rgba(0, 0, 0, 0.35) !important;
     }
   }
 

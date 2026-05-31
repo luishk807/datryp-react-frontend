@@ -34,18 +34,33 @@ export interface PlaceSuggestionsProps {
     topic?: string;
     /** Heading shown above the chips. Defaults to "Suggested for X". */
     headingPrefix?: string;
+    /** Whether the strip can be collapsed behind the header chevron.
+     *  Defaults to true (the opt-in browsing aid most surfaces keep
+     *  tucked away). The Add-Activity wizard passes `false` when the user
+     *  has explicitly chosen the "Suggestions" method — there the chips
+     *  ARE the point, so the strip stays always-open and the show/hide
+     *  chevron is dropped entirely. */
+    collapsible?: boolean;
+    /** How many suggestions to request. Defaults to a short strip; the
+     *  Add-Activity suggestions method asks for a longer top-N list. */
+    limit?: number;
+    /** Show the "shuffle / refresh" button. Defaults to true. Turned off
+     *  where a fixed top-N list is wanted — re-rolling re-fires the
+     *  recommender (and re-enriches each place via Google), so dropping it
+     *  keeps a one-and-done list cheap. */
+    showShuffle?: boolean;
     /** Fires when the user picks a suggestion. The parent prefills name +
      *  location + image from the payload. */
     onPick: (suggestion: PlaceSuggestion) => void;
 }
 
-const LIMIT = 3;
+const DEFAULT_LIMIT = 3;
 
 /**
- * Inline 3-card recommendation strip shown at the top of the AddPlace
- * form. Pulls the top activities for the user's destination country via
- * the existing `/place-recommendations` endpoint and lets them prefill
- * the form with one tap — name, location, and image all in one go.
+ * Inline recommendation strip shown at the top of the AddPlace form.
+ * Pulls the top activities for the user's destination country via the
+ * existing `/place-recommendations` endpoint and lets them prefill the
+ * form with one tap — name, location, and image all in one go.
  */
 const PlaceSuggestions = ({
     country,
@@ -53,6 +68,9 @@ const PlaceSuggestions = ({
     bias,
     topic = 'top things to do',
     headingPrefix = 'Suggested for',
+    collapsible = true,
+    limit = DEFAULT_LIMIT,
+    showShuffle = true,
     onPick,
 }: PlaceSuggestionsProps) => {
     const trimmedCountry = country?.trim();
@@ -75,11 +93,14 @@ const PlaceSuggestions = ({
     // recommender returns a fresh set instead of the cached top-3.
     const [shuffleNonce, setShuffleNonce] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
-    // Always start HIDDEN on every modal open. The AI panel is opt-in
-    // per session via the chevron in the header — no persistence
-    // across openings, so users who don't want it never see it after
-    // the first dismiss, and users who do can re-expand it any time.
+    // Start HIDDEN by default — the panel is opt-in per session via the
+    // chevron in the header, with no persistence across openings, so
+    // users who don't want it never see it after the first dismiss and
+    // users who do can re-expand it any time. When `collapsible` is
+    // false the strip is always shown (the chevron is dropped) — used by
+    // the Add-Activity "Suggestions" method.
     const [hidden, setHidden] = useState<boolean>(true);
+    const isHidden = collapsible ? hidden : false;
 
     // `q=<name>&i=0` matches the convention used by Saved / Visited /
     // NearbyGrid. The recommender chokes on verbose
@@ -108,8 +129,11 @@ const PlaceSuggestions = ({
 
     const { data, isFetching, isError } = useSearchPlaces(
         trimmedCountry ? query : '',
-        LIMIT,
+        limit,
         trimmedCountry,
+        // Auto-fired browsing aid — exempt from the free-tier search quota
+        // so opening the modal and shuffling never trips the paywall.
+        'suggestion',
     );
 
     if (!trimmedCountry) return null;
@@ -133,7 +157,7 @@ const PlaceSuggestions = ({
     return (
         <section
             className={classNames('place-suggestions', {
-                'is-hidden': hidden,
+                'is-hidden': isHidden,
             })}
             aria-label={`Suggested places in ${headingScope}`}
         >
@@ -142,7 +166,7 @@ const PlaceSuggestions = ({
                     {headingPrefix} {headingScope}
                 </h4>
                 <div className="place-suggestions-head-actions">
-                    {!hidden && (
+                    {showShuffle && !isHidden && (
                         <button
                             type="button"
                             className="place-suggestions-shuffle"
@@ -156,32 +180,36 @@ const PlaceSuggestions = ({
                             <RefreshRoundedIcon fontSize="small" />
                         </button>
                     )}
-                    <button
-                        type="button"
-                        className="place-suggestions-toggle"
-                        onClick={() => setHidden((h) => !h)}
-                        aria-label={hidden ? 'Show suggestions' : 'Hide suggestions'}
-                        aria-expanded={!hidden}
-                    >
-                        {hidden ? (
-                            <ExpandMoreRoundedIcon fontSize="small" />
-                        ) : (
-                            <ExpandLessRoundedIcon fontSize="small" />
-                        )}
-                    </button>
+                    {collapsible && (
+                        <button
+                            type="button"
+                            className="place-suggestions-toggle"
+                            onClick={() => setHidden((h) => !h)}
+                            aria-label={
+                                hidden ? 'Show suggestions' : 'Hide suggestions'
+                            }
+                            aria-expanded={!hidden}
+                        >
+                            {hidden ? (
+                                <ExpandMoreRoundedIcon fontSize="small" />
+                            ) : (
+                                <ExpandLessRoundedIcon fontSize="small" />
+                            )}
+                        </button>
+                    )}
                 </div>
             </header>
 
-            {!hidden && isError && (
+            {!isHidden && isError && (
                 <p className="place-suggestions-error">
                     Couldn't load suggestions — type a place above instead.
                 </p>
             )}
 
-            {!hidden && !isError && (
+            {!isHidden && !isError && (
                 <ul className="place-suggestions-list">
                     {isFetching && items.length === 0
-                        ? Array.from({ length: LIMIT }).map((_, idx) => (
+                        ? Array.from({ length: limit }).map((_, idx) => (
                               <li
                                   key={`skeleton-${idx}`}
                                   className="place-suggestions-card is-skeleton"

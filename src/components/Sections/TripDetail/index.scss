@@ -64,11 +64,12 @@
     --trip-status-border: rgba(0, 0, 0, 0.12);
   }
 
-  // Wash the BasicTripInfo card + budget summary card in the soft
-  // status tint instead of plain white. Bordered with the status
-  // accent so the cards read as part of the same lifecycle bucket.
-  .basic-trip-info,
-  .budget-summary {
+  // Wash the BasicTripInfo card in the soft status tint instead of plain
+  // white. The Trip Expenses meter is deliberately NOT tinted — it stays
+  // neutral white so the spend figure reads as objective data, not part
+  // of the lifecycle-colored chrome (the Planning orange wash looked like
+  // a warning on a $0 / on-track budget).
+  .basic-trip-info {
     background: var(--trip-status-soft);
     border-color: var(--trip-status-border);
   }
@@ -91,45 +92,176 @@
   }
 }
 
-// Row holding the Show/Hide detail toggle + the "Take the tour"
-// launcher. Sits between the trip header (name + action buttons,
-// always visible) and the collapsible detail cards (basic info
-// stats + budget summary).
-.trip-detail-toggle-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 0 12px;
+// Collapsible "Trip details" overview — a toggle pill that expands the
+// (header-less) BasicTripInfo stats card below it. Tinted with the
+// status accent so it matches the rest of the lifecycle-colored chrome.
+.trip-detail-basic-info-row {
+  padding: 4px 8px 0;
 }
 
-// "Take the tour" pill for the trip-detail viewing tutorial. Sits
-// alongside the Show/Hide detail toggle so the affordance is visible
-// without intruding on the header action row.
-.trip-detail-tour-launcher-btn {
+// Wrapper around the expanded card. Sits below the toggle with a small gap.
+.trip-detail-basic-info-card {
+  margin-top: 6px;
+
+  .basic-trip-info {
+    margin: 0;
+  }
+
+  // BasicTripInfo's built-in "Edit basic info" row renders at the TOP of
+  // the card body (above the Organizer tile). Strip its pill chrome HERE
+  // only so it reads as a quiet text link — the higher specificity
+  // (.basic-trip-info ... ) beats the base pill rule regardless of order.
+  // The stepper edit view keeps the pill (its own scope).
+  .basic-trip-info .trip-edit-basic-btn {
+    background: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    color: theme('colors.primaryOrange') !important;
+
+    &:hover:not(:disabled) {
+      background: none !important;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+}
+
+.trip-detail-basic-info-toggle {
   appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: 1px solid rgba(60, 181, 75, 0.35);
-  background: rgba(60, 181, 75, 0.06);
-  color: theme('colors.primaryGreen');
+  align-self: center;
+  gap: 5px;
+  // Match the 30px icon-button height so the label lines up dead-center
+  // with the bell / tour / kebab in the action row.
+  min-height: 30px;
+  box-sizing: border-box;
+  // Sits at the FAR LEFT of the header action row; auto right margin
+  // shoves the bell / tour / kebab cluster over to the right edge.
+  margin-right: auto;
+  padding: 0 12px;
+  // Persistent pill at rest (not just on hover/focus) so the affordance
+  // reads the same on first paint as it does after a click.
+  border: 1px solid var(--trip-status-border);
+  background: var(--trip-status-soft);
+  color: var(--trip-status-accent);
   border-radius: 999px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 
   &:hover,
   &:focus-visible {
-    background: theme('colors.primaryGreen');
-    border-color: theme('colors.primaryGreen');
-    color: #ffffff;
+    background: var(--trip-status-soft-strong);
+    border-color: var(--trip-status-accent);
   }
+
+  svg:not(.chevron) {
+    font-size: 1rem !important;
+  }
+
+  .chevron {
+    font-size: 1.05rem !important;
+    transition: transform 0.2s ease;
+  }
+
+  .chevron.open {
+    transform: rotate(180deg);
+  }
+}
+
+// Inline activity-edit controls in the header action row. Styled to match
+// the notification bell — a 30px bordered pill — so the cluster reads as
+// one set. On mobile they collapse to icon-only 30px circles.
+.trip-detail-edit-activities-btn,
+.trip-detail-edit-save-btn,
+.trip-detail-edit-cancel-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 30px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
   svg {
     font-size: 1rem !important;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// Edit — accent (status) treatment, same as the "Trip details" pill.
+.trip-detail-edit-activities-btn {
+  border-color: var(--trip-status-border);
+  background: var(--trip-status-soft);
+  color: var(--trip-status-accent);
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: var(--trip-status-soft-strong);
+    border-color: var(--trip-status-accent);
+  }
+}
+
+// Save — green, mirrors the notification bell's "on" state.
+.trip-detail-edit-save-btn {
+  border-color: rgba(60, 181, 75, 0.35);
+  background: rgba(60, 181, 75, 0.1);
+  color: theme('colors.primaryGreen');
+
+  &:hover:not(:disabled) {
+    background: rgba(60, 181, 75, 0.2);
+    border-color: theme('colors.primaryGreen');
+  }
+}
+
+// Cancel — muted grey, mirrors the bell's "off" state.
+.trip-detail-edit-cancel-btn {
+  border-color: rgba(0, 0, 0, 0.18);
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.55);
+
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.35);
+    color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.trip-detail-edit-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// Mobile: collapse the edit cluster to icon-only 30px circles, matching
+// the notification bell's size + shape.
+@media (max-width: 720px) {
+  .trip-detail-edit-activities-btn,
+  .trip-detail-edit-save-btn,
+  .trip-detail-edit-cancel-btn {
+    width: 30px;
+    padding: 0;
+    gap: 0;
+
+    span {
+      display: none;
+    }
   }
 }
 
@@ -303,22 +435,13 @@
 // ───── Mobile-only inline Mark Complete (Confirmed status) ──────────────
 // Hidden on desktop; shown on mobile so users tap-promote without
 // digging into the actions row.
-// ───── Mobile breakpoint shifts ─────────────────────────────────────────
-@media (max-width: 720px) {
-  // Tour launcher collapses to icon only on mobile so the toggle row
-  // doesn't wrap.
-  .trip-detail-tour-launcher-btn span {
-    display: none;
-  }
-  .trip-detail-tour-launcher-btn {
-    padding: 6px 10px;
-  }
-
-  // Share / download ModalButton trigger moves into the three-dots
-  // menu. Hide the inline pill button; the menu item handles it.
-  .trip-detail-header-actions .trip-detail-download-btn {
-    display: none;
-  }
+// Share is now triggered from the three-dot kebab on every breakpoint, so
+// the inline ModalButton pill is permanently hidden (it stays mounted only
+// so the export modal it owns can be opened from the menu via ref). The
+// 3-class selector beats the later `display: inline-flex !important` base
+// pill rule regardless of source order.
+.trip-detail-header .trip-detail-header-actions .trip-detail-download-btn {
+  display: none !important;
 }
 
 // Standalone trip-detail header — title row + main action buttons
@@ -446,7 +569,7 @@
 }
 
 // Kebab menu trigger — sits at the end of the action cluster. Houses
-// Cancel trip + Delete trip, both behind a confirm dialog.
+// Share + Cancel trip + Delete trip.
 .trip-detail-header .trip-detail-menu-btn {
   color: rgba(0, 0, 0, 0.55) !important;
   background-color: rgba(0, 0, 0, 0.04) !important;
@@ -493,14 +616,6 @@
       margin-bottom: 14px;
     }
 
-    // Mobile: hide the inline "Edit Trip" pill — the same action is
-    // surfaced as the first item inside the kebab menu (see the
-    // `.trip-detail-menu-item-edit` rule below). Frees up horizontal
-    // room so Mark Complete / Share / kebab fit on one line.
-    .trip-detail-edit-btn {
-      display: none !important;
-    }
-
     // Mobile: hide the read-only status pill until the trip is
     // Completed. Confirmed / Cancelled lifecycle states already read
     // from context (the Mark Complete button on Confirmed; the muted
@@ -513,11 +628,3 @@
   }
 }
 
-// Desktop: the inline Edit Trip pill is the canonical affordance, so
-// hide the duplicate menu entry. The class is added in TripDetail's
-// MenuActionItem via the `className` prop.
-@media (min-width: 641px) {
-  .trip-detail-menu-item-edit {
-    display: none !important;
-  }
-}

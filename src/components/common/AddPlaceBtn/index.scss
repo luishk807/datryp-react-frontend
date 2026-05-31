@@ -53,69 +53,15 @@
   display: flex;
 }
 
-// Activity-kind picker on ADD — chip group rendered as wrapping flex
-// row so the 7 kinds (Place, Note, Flight, Hotel check-in, Hotel
-// check-out, Train, Bus) fit on desktop in a single line and wrap on
-// narrow modals. Locked + hidden on EDIT.
-//
-// Previously a 3-segment sliding-pill toggle; switched to chips when
-// the option count grew past what fits a single-row pill. Each chip
-// owns its own pill background so layout works under flex-wrap without
-// the thumb-position math the old sliding pill needed.
-.add-place-kind-toggle {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 6px;
-  width: 100%;
-  margin-bottom: 18px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  // Hide the scrollbar — same treatment as the .account-nav-mobile
-  // chip strip. Users still get touch / wheel / drag scrolling, but
-  // the bar doesn't visually break the modal's clean look.
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.add-place-kind-btn {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 9999px;
-  color: rgba(0, 0, 0, 0.65);
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease,
-    color 0.15s ease, box-shadow 0.15s ease;
-  white-space: nowrap;
-}
-
-.add-place-kind-btn:hover {
-  background: rgba(246, 137, 31, 0.08);
-  border-color: rgba(246, 137, 31, 0.35);
-  color: theme('colors.primary');
-}
-
-.add-place-kind-btn.selected {
-  background: theme('colors.primaryOrange');
-  border-color: theme('colors.primaryOrange');
-  color: #fff;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(246, 137, 31, 0.28);
-}
-
-.add-place-kind-icon {
-  font-size: 1.05rem !important;
-}
+// NOTE: the rules below (.hotel-side-*, .flight-segment-*,
+// .flight-smart-entry*, .place-image-preview) are SHARED chrome reused
+// by several extracted form bodies (forms/PlaceForm, FlightForm,
+// HotelForm, TransitForm). They intentionally stay in this parent
+// stylesheet — the common ancestor that always loads when any form
+// renders — rather than being split per-form, since splitting shared
+// classes across 4 components would duplicate them or force cross-form
+// SCSS imports. Keep them here; per-form-only styles go in that form's
+// own folder.
 
 // In-form sub-toggle inside the Hotel section — switches the activity
 // kind between HOTEL_CHECKIN and HOTEL_CHECKOUT without leaving the

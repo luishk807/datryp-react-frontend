@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-budget-step .trip-budget-field {
+  max-width: 320px;
+}
+
+.trip-budget-step .trip-budget-hint {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.35;
+}

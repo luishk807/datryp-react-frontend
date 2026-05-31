@@ -118,6 +118,34 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  // Cap the strip to ~3.5 cards and scroll the rest, so a long top-10
+  // list stays compact inside the modal instead of pushing the form
+  // down. A partially-visible card at the fold hints there's more.
+  // Short lists (e.g. the 3-card "Places you might love") sit under the
+  // cap and never scroll. `overscroll-behavior: contain` stops a scroll
+  // that reaches the end from bleeding into the modal behind it. The
+  // extra right padding keeps the scrollbar off the cards.
+  max-height: 284px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+
+  // Slim, unobtrusive scrollbar that matches the palette.
+  scrollbar-width: thin;
+  scrollbar-color: rgba(60, 181, 75, 0.4) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(60, 181, 75, 0.35);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 .place-suggestions-card {

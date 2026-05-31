@@ -8,6 +8,7 @@ import {
     type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
+import classnames from 'classnames';
 import moment from 'moment'; // iteration loop in buildExpectedDates uses moment object mutation directly
 import { formatDate, isValidDate } from 'utils';
 import './index.scss';
@@ -17,8 +18,6 @@ import {
     DialogContent,
     DialogTitle,
     IconButton,
-    Step,
-    StepLabel,
     Grid,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -26,13 +25,12 @@ import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import Stepper from '@mui/material/Stepper';
-import StepIcon from './StepIcon';
 import Button from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
 import Menu, { MenuActionItem } from 'components/common/Menu';
 import BasicTripInfo from 'components/BasicTripInfo';
 import BudgetSummary from 'components/BudgetSummary';
+import TripDestinationChip from 'components/TripSteps/TripDestinationChip';
 import TripStatusBadge from 'components/TripStatusBadge';
 import NotifyParticipantsCheckbox from 'components/NotifyParticipantsCheckbox';
 import TripComplete from 'components/DestinationDetail/Completed';
@@ -44,7 +42,7 @@ import { useDeleteItinerary, useSaveItinerary } from 'api/hooks/useItineraries';
 import { isTripCapReachedError } from 'api/paywallError';
 import { useUser } from 'context/UserContext';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
-import { TRIP_BASIC, TRIP_STATUS } from 'constants';
+import { TRIP_STATUS } from 'constants';
 import type { TripState, TripStatus } from 'types';
 
 interface DayCoverage {
@@ -262,6 +260,16 @@ const StepperComp = ({
         cap: number;
     } | null>(null);
     const paywallModalRef = useRef<ModalButtonHandle>(null);
+    // Open the paywall once `paywallInfo` is set. We can't call
+    // `openModel()` inline in the cap-error handler because the
+    // `<PaywallModal>` is only rendered AFTER `paywallInfo` turns truthy —
+    // on the first cap hit the ref is still null, so the modal silently
+    // never opened and the user had to click Finish twice. Firing here
+    // (post-render, ref attached) opens it on the first hit. Each cap
+    // error sets a fresh object, so re-hits after a dismiss re-open it.
+    useEffect(() => {
+        if (paywallInfo) paywallModalRef.current?.openModel();
+    }, [paywallInfo]);
 
     // In edit mode the "Describe Your Trip!" form opens as a modal triggered
     // by the pencil-edit icon on BasicTripInfo, rather than appearing inline
@@ -273,28 +281,29 @@ const StepperComp = ({
     const isLastStep = activeStep === steps.length - 1;
 
     // Required-field check for the current step. Matched by step *label*
-    // because the merged create flow conditionally renders the destination
-    // picker inside the Basics step (single-trip-only, when no country was
-    // preset). Labels mirror the entries in `TripSteps`.
+    // because the one-question-per-screen create flow conditionally renders
+    // the Destination step (single-trip-only, when no country was preset),
+    // so numeric indices shift. Labels mirror the entries in `TripSteps`.
     const activeLabel = steps[activeStep]?.label;
     const stepMissing: string[] = [];
     if (data) {
-        if (!isEditing && activeLabel === 'Trip basics') {
+        if (!isEditing && activeLabel === 'Trip type') {
             if (!data.type?.id) stepMissing.push('a trip type');
-            // Destination is required only for single-trip + no preset
-            // country. Multi-trips pick countries per-day in the Itinerary
-            // step, so the picker is hidden there. Mirrors the
-            // `needsDestinationStep` rule in TripSteps.
-            const isSingleMode = data.type?.id === TRIP_BASIC.SINGLE.id;
+        }
+        if (!isEditing && activeLabel === 'Destination') {
             const countryAlreadyPicked = Boolean(
                 data.destinations?.[0]?.country?.id ||
                     data.destinations?.[0]?.country?.name
             );
-            if (isSingleMode && !countryAlreadyPicked) {
+            if (!countryAlreadyPicked) {
                 stepMissing.push('a destination country');
             }
-            if (!data.startDate) stepMissing.push('start date');
-            if (!data.endDate) stepMissing.push('end date');
+        }
+        if (!isEditing && activeLabel === 'Dates') {
+            if (!data.startDate) stepMissing.push('a start date');
+            if (!data.endDate) stepMissing.push('an end date');
+        }
+        if (!isEditing && activeLabel === 'Budget') {
             // Budget is required (≥ 0). We treat 0 as "flexible" — the
             // user signals they don't want to track spend — and accept
             // it. An empty / non-numeric budget blocks advance.
@@ -312,10 +321,12 @@ const StepperComp = ({
                 stepMissing.push('a budget (use 0 if flexible)');
             }
         }
-        if (!isEditing && activeLabel === 'People') {
+        if (!isEditing && activeLabel === 'Organizers') {
             if (!(data.organizer ?? []).some((o) => o.userId)) {
                 stepMissing.push('at least one organizer');
             }
+        }
+        if (!isEditing && activeLabel === 'Participants') {
             // Participants are required — the current user is auto-seeded
             // into `friends` on mount (see TripSteps), so an empty list
             // means the user actively deselected everyone. Block advance
@@ -427,8 +438,10 @@ const StepperComp = ({
             if (isTripCapReachedError(err)) {
                 // Free-tier paywall — route to the modal, suppress the
                 // generic ErrorAlert (the modal carries the same info).
+                // The paywall is opened by the `paywallInfo` effect above
+                // (the modal isn't mounted yet on the first cap hit, so an
+                // inline openModel() here would no-op against a null ref).
                 setPaywallInfo({ currentCount: err.currentCount, cap: err.cap });
-                paywallModalRef.current?.openModel();
                 setSaveError(null);
                 return;
             }
@@ -468,10 +481,6 @@ const StepperComp = ({
     const handleBack = () => {
         setActiveStep((prev) => prev - 1);
         setSaveError(null);
-    };
-
-    const handleChangeStep = (step: number) => {
-        setActiveStep(step);
     };
 
     const handleReset = () => {
@@ -708,7 +717,11 @@ const StepperComp = ({
                                 {step.comp}
                             </Grid>
                         ))}
-                        <ModalButton ref={basicInfoModalRef} title="Edit trip info">
+                        <ModalButton
+                            ref={basicInfoModalRef}
+                            title="Edit trip info"
+                            containerClassName="edit-trip-info-modal"
+                        >
                             {steps[0] && (
                                 <div className="edit-trip-modal-section">
                                     <h3 className="edit-trip-modal-heading">
@@ -814,26 +827,11 @@ const StepperComp = ({
 
     return (
         <div className="stepperMain stepperMain--create">
-            <Stepper activeStep={activeStep}>
-                {steps.map((step, index) => {
-                    const stepProps: { completed?: boolean } = {};
-                    if (isStepSkipped(index)) stepProps.completed = false;
-                    return (
-                        <Step classes={{}} key={index} {...stepProps}>
-                            <StepLabel StepIconComponent={StepIcon}>{step.label}</StepLabel>
-                        </Step>
-                    );
-                })}
-                {/* Trailing "Finish" indicator — purely visual. The save
-                 *  happens when the user clicks Finish on the last real
-                 *  step; activeStep then ticks one past steps.length and
-                 *  the TripComplete body renders below. Without this dot
-                 *  the stepper looks "stuck" on the last real step even
-                 *  after the trip saved. */}
-                <Step key="__finish__">
-                    <StepLabel StepIconComponent={StepIcon}>Finish</StepLabel>
-                </Step>
-            </Stepper>
+            {/* The step-indicator row that used to sit here is intentionally
+             *  gone — the create flow now asks one self-explanatory question
+             *  per screen, so the stepper added clutter (especially on
+             *  mobile) without helping the user. Progress is implicit in the
+             *  Back/Next buttons. */}
             {activeStep === steps.length ? (
                 <TripComplete onReset={handleReset} />
             ) : saveItinerary.isPending ? (
@@ -869,33 +867,27 @@ const StepperComp = ({
             ) : (
                 <Grid container>
                     {isLastStep && data && (
-                        <>
-                            <Grid item lg={12} md={12} xs={12}>
-                                <BasicTripInfo
-                                    data={data}
-                                    // Lock the status badge while creating a
-                                    // brand-new trip — until the trip is saved
-                                    // and gets an apiId, it stays on Planning.
-                                    // The trip-name pencil + status modal both
-                                    // gate on isViewMode so this disables both.
-                                    isViewMode={!data.apiId}
-                                    onChangeStep={handleChangeStep}
-                                    onStatusChange={(status) =>
-                                        dispatch(basicInfo({ status }))
-                                    }
-                                />
-                            </Grid>
-                            <Grid item lg={12} md={12} xs={12}>
-                                <BudgetSummary data={data} />
-                            </Grid>
-                        </>
+                        <Grid item lg={12} md={12} xs={12}>
+                            {/* On the itinerary step we just show the trip
+                             *  name as a title — the full basic-info card +
+                             *  budget summary lived here before but read as
+                             *  clutter above the day-by-day planner. */}
+                            <h2 className="step-trip-name">
+                                {data.name?.trim() || 'Your trip'}
+                            </h2>
+                        </Grid>
                     )}
 
-                    <Grid item lg={12} md={12} xs={12} className="step-title">
-                        <h2 className="step-heading">
-                            {steps[activeStep]?.label}
-                        </h2>
-                    </Grid>
+                    {!isLastStep && data && (
+                        <Grid item lg={12} md={12} xs={12}>
+                            {/* Persistent "Going to <place>" banner — kept
+                             *  above every step's question so the user never
+                             *  loses sight of the destination. Renders null
+                             *  until a country is set. The last (Itinerary)
+                             *  step shows the trip name title instead. */}
+                            <TripDestinationChip data={data} />
+                        </Grid>
+                    )}
                     <Grid item lg={12} md={12} xs={12}>
                         <StepperAdvanceContext.Provider value={stepperAdvanceValue}>
                             {steps[activeStep]?.comp}
@@ -935,7 +927,17 @@ const StepperComp = ({
                       project_edit_trip_share_to_participants).
                     */}
                     <Grid item lg={12} md={12} xs={12}>
-                        <div className="step-actions" data-tour="trip-next-btn">
+                        <div
+                            className={classnames('step-actions', {
+                                // Last step (Itinerary) is full-width, so let
+                                // the actions span the whole row and pin
+                                // Back/Finish to the corners. The single-
+                                // question steps stay capped to the 720px
+                                // card column.
+                                'step-actions--full': isLastStep,
+                            })}
+                            data-tour="trip-next-btn"
+                        >
                             {activeStep > 0 && (
                                 <Button
                                     type="line"

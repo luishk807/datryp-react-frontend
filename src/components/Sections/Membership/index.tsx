@@ -30,19 +30,19 @@ const FEATURE_ROWS: FeatureRow[] = [
         note: 'Past, present, and future — all in one place.',
     },
     {
-        label: 'AI search depth',
+        label: 'Search depth',
         free: '2 places per search',
         pro: '5 places per search',
     },
     {
-        label: 'AI search model',
+        label: 'Search quality',
         free: 'Standard',
-        pro: 'Advanced AI Search',
+        pro: 'Advanced',
         note: 'Richer recommendations, deeper detail for each place.',
     },
     {
-        label: 'Daily AI search limit',
-        free: '5 / day',
+        label: 'Daily search limit',
+        free: '15 / day',
         pro: 'Unlimited',
     },
     {
@@ -55,13 +55,13 @@ const FEATURE_ROWS: FeatureRow[] = [
         label: 'Turn a bucket-list goal into a trip',
         free: false,
         pro: true,
-        note: 'One click → AI builds a full itinerary (country, days, activities) you can edit and save.',
+        note: 'One click → datryp builds a full itinerary (country, days, activities) you can edit and save.',
     },
     {
-        label: 'Plan a trip with AI',
+        label: 'Plan a trip for you',
         free: false,
         pro: true,
-        note: 'Tell us a budget + a few interests and the AI picks the destination, plans the days, and saves a draft trip for you to edit.',
+        note: 'Tell us a budget + a few interests and datryp picks the destination, plans the days, and saves a draft trip for you to edit.',
     },
     {
         // Bundles the personalized homepage surfaces (Places you might
@@ -87,6 +87,12 @@ const FEATURE_ROWS: FeatureRow[] = [
         free: 'Standard',
         pro: 'Enhanced',
         note: 'Free: full country / city / place detail pages with cultural-shock heads-up. Pro adds the year-current popularity meter and experience-highlight image strip.',
+    },
+    {
+        label: 'Place ratings & reviews',
+        free: false,
+        pro: true,
+        note: 'Google ratings, review counts, and verified street addresses on every place — in suggestions, search, and your itinerary.',
     },
     {
         label: 'Best places this month',
@@ -200,18 +206,18 @@ const Membership = () => (
                         past and future.
                     </li>
                     <li>
-                        <strong>Advanced AI Search.</strong> Pro uses a
-                        deeper model and returns 5 places per query with
+                        <strong>Advanced search.</strong> Pro digs
+                        deeper and returns 5 places per query with
                         richer detail. Free is a taste; Pro is the full menu.
                     </li>
                     <li>
-                        <strong>No daily limits.</strong> Free is 5 AI
-                        searches a day. Pro doesn&rsquo;t count.
+                        <strong>No daily limits.</strong> Free is 15
+                        smart searches a day. Pro doesn&rsquo;t count.
                     </li>
                     <li>
                         <strong>Bucket list, unlocked.</strong> Free keeps the
                         first 10 entries; Pro is unlimited. Tap{' '}
-                        <em>Create trip</em> on any entry and Pro&rsquo;s AI
+                        <em>Create trip</em> on any entry and Pro
                         turns the goal into a planned itinerary, ready to
                         edit and save.
                     </li>
@@ -280,11 +286,11 @@ const Membership = () => (
                 </div>
 
                 <div className="membership-faq-item">
-                    <h3>Is my data used to train AI?</h3>
+                    <h3>Do you train on my data?</h3>
                     <p>
                         No. Your searches and trips are stored on DaTryp.com for
                         you to use, not handed to anyone else to train on.
-                        Each AI search call goes to the recommendation
+                        Each search goes to the recommendation
                         provider just to answer that single query, and
                         nothing is retained on their side beyond standard
                         request logs.

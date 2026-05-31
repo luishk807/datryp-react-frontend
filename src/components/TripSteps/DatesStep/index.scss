@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.trip-dates-step .trip-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.trip-dates-step .trip-dates-summary {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primaryOrange');
+}
+
+@media (max-width: 640px) {
+  .trip-dates-step .trip-dates-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

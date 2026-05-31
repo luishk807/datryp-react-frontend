@@ -47,6 +47,7 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import EventNoteRoundedIcon from '@mui/icons-material/EventNoteRounded';
 import SearchBar from 'components/SearchBar';
+import MenuFooterLinks from 'components/common/MenuFooterLinks';
 import { useUser } from 'context/UserContext';
 import { useUnreadNotificationCount } from 'api/hooks/useNotifications';
 import type { Country } from 'types';
@@ -417,6 +418,11 @@ const BottomNav = () => {
                             tone="danger"
                         />
                     </ul>
+                    <Divider />
+                    <MenuFooterLinks
+                        onNavigate={handleNavigate}
+                        className="bottom-nav-account-footer"
+                    />
                 </div>
             </Drawer>
 

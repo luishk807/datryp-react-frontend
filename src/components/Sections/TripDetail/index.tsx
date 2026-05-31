@@ -25,14 +25,19 @@ import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlin
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
 import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import classnames from "classnames";
 import Layout from "components/common/Layout/SubLayout";
-import BasicTripInfo from "components/BasicTripInfo";
 import BudgetSummary from "components/BudgetSummary";
+import BasicTripInfo from "components/BasicTripInfo";
 import DestinationDetail from "components/DestinationDetail";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import ModalButton, {
@@ -119,6 +124,15 @@ export const TripDetail = () => {
   // pill in the header. Storage flag is set on close so the auto-
   // trigger only fires once.
   const [detailTourRun, setDetailTourRun] = useState(false);
+  // Basic-info card (dates / destination / budget / who's going) is
+  // hidden by default on this page to keep the itinerary clean, but
+  // surfaced behind a "Trip details" toggle for a quick overview.
+  const [showBasicInfo, setShowBasicInfo] = useState(false);
+  // Inline activity-editing mode. Clicking "Edit activities" flips the
+  // day list from read-only to editable IN PLACE (no navigation) and
+  // swaps the pill for Save / Cancel. Only the activities are editable;
+  // basic info is untouched (edit that from the "Trip details" card).
+  const [isEditingActivities, setIsEditingActivities] = useState(false);
   useEffect(() => {
     if (!currentUser) return;
     if (!idParam) return;
@@ -158,6 +172,11 @@ export const TripDetail = () => {
   useEffect(() => {
     setLocalTripData(baseTripData);
   }, [baseTripData]);
+
+  // Drop out of inline activity-edit mode when switching to another trip.
+  useEffect(() => {
+    setIsEditingActivities(false);
+  }, [idParam]);
 
   const [statusOverride, setStatusOverride] = useState<TripStatus | null>(null);
 
@@ -419,8 +438,8 @@ export const TripDetail = () => {
     ],
   );
 
-  const handleSaveTrip = useCallback(async () => {
-    if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
+  const handleSaveTrip = useCallback(async (): Promise<boolean> => {
+    if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return false;
     setSaveError(null);
     try {
       const input = tripStateToSaveInput(tripData, {
@@ -437,12 +456,30 @@ export const TripDetail = () => {
       // useEffect resyncs localTripData. Clear the status override so the
       // re-rendered badge reflects the freshly-saved status.
       setStatusOverride(null);
+      return true;
     } catch (err) {
       setSaveError(
         err instanceof Error ? err.message : "Failed to save the trip.",
       );
+      return false;
     }
   }, [apiTrip, tripData, statusOverride, saveItinerary, notifyParticipants]);
+
+  // ── Inline activity-edit controls ──────────────────────────────────
+  const handleEditActivities = () => setIsEditingActivities(true);
+
+  const handleSaveActivities = useCallback(async () => {
+    const ok = await handleSaveTrip();
+    if (ok) setIsEditingActivities(false);
+  }, [handleSaveTrip]);
+
+  const handleCancelActivities = useCallback(() => {
+    // Discard any in-place activity edits and drop back to read-only.
+    setLocalTripData(baseTripData);
+    setStatusOverride(null);
+    setSaveError(null);
+    setIsEditingActivities(false);
+  }, [baseTripData]);
 
   const handleDeleteTrip = useCallback(async () => {
     if (!apiTrip) return;
@@ -496,19 +533,6 @@ export const TripDetail = () => {
   // `isLocked` (Confirmed/Completed/Cancelled), which silently hid the
   // share button while drafting.
   const canExport = true;
-
-  // Once the trip is past Planning, both the basic-info stats and the
-  // budget bar collapse behind a SINGLE Show/Hide detail button driven
-  // here — the trip-header (name + action buttons) stays visible at
-  // the top regardless. While editing (Planning), the cards stay open
-  // so the user has the overview at a glance.
-  const [detailsCollapsed, setDetailsCollapsed] = useState(isLocked);
-  // Re-sync the collapse state when the persisted status flips
-  // (e.g. user marks a Planning trip Confirmed; we want it to snap to
-  // the post-planning collapsed default).
-  useEffect(() => {
-    setDetailsCollapsed(isLocked);
-  }, [isLocked]);
 
   // Save the trip with the freshly-picked status. Used by both the status
   // modal (Planning → Confirmed / Cancelled) and the Mark Completed button.
@@ -580,6 +604,9 @@ export const TripDetail = () => {
     }
   }, [apiTrip, tripData, tripStatuses, saveItinerary, notifyParticipants]);
 
+  // Navigate into the full stepper editor for this existing trip — used
+  // by the "Trip details" edit affordance and the status-badge "edit
+  // dates". (Activities are edited inline on this page, not here.)
   const handleChangeStep = () => {
     if (!tripData || !apiTrip) return;
     dispatch(basicInfo(tripData));
@@ -739,7 +766,6 @@ export const TripDetail = () => {
           <TripDetailHeader
             tripData={tripData}
             statusName={persistedStatusName}
-            canSaveTrip={canSaveTrip}
             canExport={canExport}
             canPromoteStatus={canPromoteStatus}
             canCancelTrip={canCancelTrip}
@@ -747,6 +773,14 @@ export const TripDetail = () => {
             isSaving={saveItinerary.isPending}
             isDeleting={deleteItinerary.isPending}
             onEditTrip={handleChangeStep}
+            onStartTour={handleDetailTourStart}
+            basicInfoOpen={showBasicInfo}
+            onToggleBasicInfo={() => setShowBasicInfo((v) => !v)}
+            canEditActivities={canSaveTrip}
+            isEditingActivities={isEditingActivities}
+            onEditActivities={handleEditActivities}
+            onSaveActivities={handleSaveActivities}
+            onCancelActivities={handleCancelActivities}
             onPrint={() => {
               if (!tripData) return;
               void printTripPdf(tripData);
@@ -764,43 +798,31 @@ export const TripDetail = () => {
             onChangeNotifyParticipants={setNotifyParticipants}
           />
         </Grid>
-        <Grid item lg={12} md={12} xs={12} className="trip-detail-toggle-row">
-          <button
-            type="button"
-            className="trip-detail-toggle"
-            aria-expanded={!detailsCollapsed}
-            onClick={() => setDetailsCollapsed((c) => !c)}
-          >
-            {detailsCollapsed ? "Show detail" : "Hide detail"}
-          </button>
-          <button
-            type="button"
-            className="trip-detail-tour-launcher-btn"
-            onClick={handleDetailTourStart}
-            aria-label="Show me around the trip view"
-            title="Show me around the trip view"
-          >
-            <HelpOutlineRoundedIcon fontSize="small" />
-            <span>Take the tour</span>
-          </button>
-        </Grid>
-        {!detailsCollapsed && (
-          <>
-            <Grid item lg={12} md={12} xs={12}>
+        {/* Collapsible "Trip details" overview — the basic-info card
+            (organizer / where / when / budget / who's going). The toggle
+            that opens it lives up in the header action row; this just
+            renders the expanded card. */}
+        {showBasicInfo && (
+          <Grid item lg={12} md={12} xs={12} className="trip-detail-basic-info-row">
+            <div className="trip-detail-basic-info-card">
               <BasicTripInfo
                 data={tripData}
                 onChangeStep={handleChangeStep}
-                onStatusChange={handleStatusChange}
-                isViewMode={isViewMode}
                 hideHeader
-                isSaving={saveItinerary.isPending}
-                saveError={saveError}
+                // Edit sits ABOVE the stats (top of the card body), not
+                // overlapping the Organizer tile. Organizer + Planning gated.
+                onEditBasicInfo={canSaveTrip ? handleChangeStep : undefined}
               />
-            </Grid>
-            <Grid item lg={12} md={12} xs={12}>
-              <BudgetSummary data={tripData} />
-            </Grid>
-          </>
+            </div>
+          </Grid>
+        )}
+        {/* Trip expenses meter is part of the "Trip details" overview —
+            shown/hidden together with the basic-info card via the same
+            header toggle. */}
+        {showBasicInfo && (
+          <Grid item lg={12} md={12} xs={12}>
+            <BudgetSummary data={tripData} />
+          </Grid>
         )}
         {persistedStatusName === TRIP_STATUS.COMPLETED && (
           <Grid item lg={12} md={12} xs={12}>
@@ -860,15 +882,19 @@ export const TripDetail = () => {
         )}
         <Grid item lg={12}>
           {/* Activity cards on /trip-detail are read-only by design — the
-              Edit Trip button (and the trip-name pencil) navigate to the
-              stepper editor where the inline edit affordances live. The
+              Edit basic info button (and the trip-name pencil) navigate to
+              the stepper editor where the inline edit affordances live. The
               one exception is the per-activity status pill: organizers
               can flip Planning↔Confirmed in-place while the trip itself
               is still Planning, and handleChangePlace auto-saves that
               change so it doesn't sit in local-only state. */}
           <DestinationDetail
             type={tripData.type}
-            isViewMode={true}
+            // Read-only by default; "Edit activities" flips this so the
+            // day list gains add / edit / delete / reorder affordances.
+            // Guarded by canSaveTrip so a mid-edit lifecycle change can't
+            // leave the list editable on a locked trip.
+            isViewMode={!(isEditingActivities && canSaveTrip)}
             allowStatusToggle={
               isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING
             }
@@ -920,7 +946,6 @@ export const TripDetail = () => {
 interface TripDetailHeaderProps {
   tripData: TripState;
   statusName: string;
-  canSaveTrip: boolean;
   canExport: boolean;
   canPromoteStatus: boolean;
   canCancelTrip: boolean;
@@ -928,6 +953,15 @@ interface TripDetailHeaderProps {
   isSaving: boolean;
   isDeleting: boolean;
   onEditTrip: () => void;
+  onStartTour: () => void;
+  basicInfoOpen: boolean;
+  onToggleBasicInfo: () => void;
+  /** Inline activity-edit control (lives in the header action row). */
+  canEditActivities: boolean;
+  isEditingActivities: boolean;
+  onEditActivities: () => void;
+  onSaveActivities: () => void;
+  onCancelActivities: () => void;
   onPrint: () => void;
   onDownloadExcel: () => void;
   onDownloadPdf: () => void;
@@ -944,7 +978,6 @@ interface TripDetailHeaderProps {
 const TripDetailHeader = ({
   tripData,
   statusName,
-  canSaveTrip,
   canExport,
   canPromoteStatus,
   canCancelTrip,
@@ -952,6 +985,14 @@ const TripDetailHeader = ({
   isSaving,
   isDeleting,
   onEditTrip,
+  onStartTour,
+  basicInfoOpen,
+  onToggleBasicInfo,
+  canEditActivities,
+  isEditingActivities,
+  onEditActivities,
+  onSaveActivities,
+  onCancelActivities,
   onPrint,
   onDownloadExcel,
   onDownloadPdf,
@@ -1088,17 +1129,6 @@ const TripDetailHeader = ({
     <div className="trip-detail-header">
       <div className="trip-detail-header-title">
         <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
-        {/* Bell sits BETWEEN title and status — the broadcast
-            affordance reads as paired with the trip name first,
-            then the status pill / promote button anchors the right
-            side of the row. */}
-        {showNotifyToggle && (
-          <NotifyParticipantsCheckbox
-            checked={notifyParticipants}
-            onChange={onChangeNotifyParticipants}
-            disabled={isSaving || isDeleting}
-          />
-        )}
         {/* Planning state: replace the static "Planning" pill with the
             actionable Confirm Trip control. Reads as "your trip is in
             this state AND here's how to advance it" in one element. */}
@@ -1141,20 +1171,65 @@ const TripDetailHeader = ({
         )}
       </div>
       <div className="trip-detail-header-actions">
-        {canSaveTrip && (
-          <ButtonCustom
-            type="standard"
-            capitalizeType="uppercase"
-            className="trip-detail-edit-btn"
-            label="Edit Trip"
-            onClick={onEditTrip}
-            disabled={isSaving}
+        {/* Action row: "Trip details" toggle (far left) + the activity
+            Edit / Save-Cancel control + notification bell + the three-dot
+            kebab (which now carries "Take the tour"). */}
+        <button
+          type="button"
+          className="trip-detail-basic-info-toggle"
+          onClick={onToggleBasicInfo}
+          aria-expanded={basicInfoOpen}
+        >
+          <InfoOutlinedIcon fontSize="small" />
+          <span>Trip details</span>
+          <ExpandMoreRoundedIcon
+            className={classnames("chevron", { open: basicInfoOpen })}
+          />
+        </button>
+        {/* Inline activity-edit control — sits next to the bell. Read-only
+            → "Edit"; editing → Save + Cancel. */}
+        {canEditActivities &&
+          (isEditingActivities ? (
+            <span className="trip-detail-edit-actions">
+              <button
+                type="button"
+                className="trip-detail-edit-save-btn"
+                onClick={onSaveActivities}
+                disabled={isSaving}
+                aria-label="Save activities"
+              >
+                <SaveRoundedIcon fontSize="small" />
+                <span>{isSaving ? "Saving…" : "Save"}</span>
+              </button>
+              <button
+                type="button"
+                className="trip-detail-edit-cancel-btn"
+                onClick={onCancelActivities}
+                disabled={isSaving}
+                aria-label="Cancel editing"
+              >
+                <CloseRoundedIcon fontSize="small" />
+                <span>Cancel</span>
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="trip-detail-edit-activities-btn"
+              onClick={onEditActivities}
+              aria-label="Edit activities"
+            >
+              <EditRoundedIcon fontSize="small" />
+              <span>Edit</span>
+            </button>
+          ))}
+        {showNotifyToggle && (
+          <NotifyParticipantsCheckbox
+            checked={notifyParticipants}
+            onChange={onChangeNotifyParticipants}
+            disabled={isSaving || isDeleting}
           />
         )}
-        {/* No actions-row promote button — both Planning (Confirm
-            trip) and Confirmed (Mark complete) render inline next to
-            the trip name so the lifecycle action sits where the
-            status pill used to live. */}
         {canExport && (
           <ModalButton
             ref={exportModalRef}
@@ -1268,64 +1343,53 @@ const TripDetailHeader = ({
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
           message="Trip link copied to clipboard"
         />
-        {isOrganizer && (
-          <>
-            <IconButton
-              className="trip-detail-menu-btn"
-              aria-label="More actions"
-              onClick={(e) => setMenuAnchor(e.currentTarget)}
-              disabled={isSaving || isDeleting}
-              size="small"
-            >
-              <MoreVertIcon fontSize="small" />
-            </IconButton>
-            <Menu anchorEl={menuAnchor} onClose={closeMenu}>
-              {/* Mobile-only Share & download menu item. The desktop
-                  trigger is the ModalButton pill in the actions row;
-                  on mobile that pill is hidden by CSS and this menu
-                  entry opens the same export modal. */}
-              {canExport && (
-                <MenuActionItem
-                  icon={<IosShareIcon />}
-                  label="Share & download"
-                  onClick={() => {
-                    closeMenu();
-                    exportModalRef.current?.openModel();
-                  }}
-                  className="trip-detail-menu-item-share"
-                />
-              )}
-              {/* Edit Trip is rendered both as the inline pill (desktop)
-                  AND as this menu item (mobile). CSS hides whichever
-                  doesn't belong at the current breakpoint — see
-                  `.trip-detail-menu-item-edit` in index.scss. */}
-              {canSaveTrip && (
-                <MenuActionItem
-                  icon={<EditRoundedIcon />}
-                  label="Edit trip"
-                  onClick={() => {
-                    closeMenu();
-                    onEditTrip();
-                  }}
-                  className="trip-detail-menu-item-edit"
-                />
-              )}
-              {canCancelTrip && (
-                <MenuActionItem
-                  icon={<EventBusyRoundedIcon />}
-                  label="Cancel trip"
-                  onClick={() => openConfirm("cancel")}
-                />
-              )}
-              <MenuActionItem
-                icon={<DeleteOutlineRoundedIcon />}
-                label="Delete trip"
-                onClick={() => openConfirm("delete")}
-                tone="danger"
-              />
-            </Menu>
-          </>
-        )}
+        {/* Kebab renders for everyone — it carries "Take the tour" (which
+            all viewers can use). Share + the destructive lifecycle actions
+            are gated to organizers via the per-item flags below. */}
+        <IconButton
+          className="trip-detail-menu-btn"
+          aria-label="More actions"
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+          disabled={isSaving || isDeleting}
+          size="small"
+        >
+          <MoreVertIcon fontSize="small" />
+        </IconButton>
+        <Menu anchorEl={menuAnchor} onClose={closeMenu}>
+          <MenuActionItem
+            icon={<HelpOutlineRoundedIcon />}
+            label="Take the tour"
+            onClick={() => {
+              closeMenu();
+              onStartTour();
+            }}
+          />
+          {canExport && (
+            <MenuActionItem
+              icon={<IosShareIcon />}
+              label="Share & download"
+              onClick={() => {
+                closeMenu();
+                exportModalRef.current?.openModel();
+              }}
+            />
+          )}
+          {isOrganizer && canCancelTrip && (
+            <MenuActionItem
+              icon={<EventBusyRoundedIcon />}
+              label="Cancel trip"
+              onClick={() => openConfirm("cancel")}
+            />
+          )}
+          {isOrganizer && (
+            <MenuActionItem
+              icon={<DeleteOutlineRoundedIcon />}
+              label="Delete trip"
+              onClick={() => openConfirm("delete")}
+              tone="danger"
+            />
+          )}
+        </Menu>
       </div>
 
       <Dialog

@@ -53,7 +53,10 @@ const RatingBadge = ({
     linkToMaps = true,
     variant = 'chip',
 }: RatingBadgeProps) => {
-    const { data } = usePlaceRating(name, location, enabled);
+    // RatingBadge shows only the star + count — request the 'rating'
+    // variant so the backend skips the (separately-billed) Place Photo
+    // call and the pricier place-fields tier.
+    const { data } = usePlaceRating(name, location, enabled, 'rating');
 
     if (!data || data.rating == null) return null;
 

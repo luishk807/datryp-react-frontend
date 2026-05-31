@@ -36,11 +36,17 @@ export interface ParsedFlightInfo {
     segments: ParsedFlightSegment[];
 }
 
-// IATA / ICAO airline codes are 2–3 letters; numeric flight identifier
-// is 1–4 digits with an optional trailing letter (e.g. "BA245A"). Use
-// a word-boundary anchor so the match doesn't bleed across adjacent
-// tokens. Spaces between the alpha + digit halves are common.
-const FLIGHT_NUMBER_RE = /\b([A-Z]{2,3})\s?(\d{1,4}[A-Z]?)\b/i;
+// Airline code + numeric flight identifier (1–4 digits, optional
+// trailing letter e.g. "BA245A"). The code is either a 2-char IATA
+// designator — which is alphanumeric with at least one letter, so it
+// can be letter+letter ("UA"), letter+digit ("B6" JetBlue, "U2"
+// easyJet), or digit+letter ("9W", "3K") — or a 3-letter ICAO code
+// ("DAL"). Earlier this only allowed all-letter prefixes, so flights
+// on carriers with a digit in their code (B6, U2, W6, 6E…) were never
+// recognized and never split into their own segment. Word-boundary
+// anchors keep the match from bleeding across adjacent tokens; a space
+// between the code and number halves is common.
+const FLIGHT_NUMBER_RE = /\b([A-Z]\d|\d[A-Z]|[A-Z]{2,3})\s?(\d{1,4}[A-Z]?)\b/i;
 
 // Common natural-language date keywords. Resolves to the user's local
 // "today" (matches what the auto-seed already uses for day-block

@@ -51,7 +51,88 @@ export interface ParsedPlaceEntry {
      *  The caller should surface a friendly warning instead of
      *  searching for "https://...". */
     urlExtractionFailed?: boolean;
+    /** True when the query was extracted from a pasted share URL (Google
+     *  Maps / Yelp) rather than typed. Lets the watcher show a Pro upsell
+     *  for the street address — that comes from Google Places, which is
+     *  Pro-gated — while still filling the name + map pin for free. */
+    fromUrl?: boolean;
+    /** Place-pin coordinates read straight out of a Google Maps URL — no
+     *  Google Places call, so a pasted link geo-pins the activity even
+     *  on the free tier. Undefined for typed input or links without
+     *  embedded coordinates. */
+    latitude?: number;
+    longitude?: number;
+    /** Best-effort place name pulled from a pasted URL's path slug, set
+     *  only when direct extraction failed (an unrecognized URL — a hotel
+     *  brand / booking page). The watcher uses it as a fallback search
+     *  query when the server-side page scrape also comes up empty (e.g.
+     *  a bot-blocked brand site like hilton.com). */
+    urlSlugFallback?: string;
 }
+
+/** Derive a best-effort place name from a URL's path slug — the fallback
+ *  when a pasted page can't be scraped (bot-blocked brand sites). Takes
+ *  the last hyphenated path segment, splits on hyphens, drops obvious
+ *  property/booking codes (tokens with a digit, or 4+ chars with no
+ *  vowel — e.g. "ptyhfhh"), and joins the rest:
+ *    /en/hotels/ptyhfhh-hilton-panama/ → "hilton panama"
+ *    /hotel/the-plaza-new-york-12345   → "the plaza new york"
+ *  Returns '' when nothing word-like remains. */
+export const extractNameFromUrlSlug = (text: string): string => {
+    const trimmed = text.trim();
+    if (!/^https?:\/\//i.test(trimmed)) return '';
+    let url: URL;
+    try {
+        url = new URL(trimmed);
+    } catch {
+        return '';
+    }
+    const segments = url.pathname
+        .split('/')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    if (!segments.length) return '';
+    // Prefer the last hyphenated, letter-bearing segment (the human slug),
+    // skipping a trailing "booking" / numeric-id segment. Fall back to the
+    // final segment when none is hyphenated.
+    let slug = '';
+    for (let i = segments.length - 1; i >= 0; i--) {
+        if (/[a-z]/i.test(segments[i]) && segments[i].includes('-')) {
+            slug = segments[i];
+            break;
+        }
+    }
+    if (!slug) slug = segments[segments.length - 1];
+    const tokens = slug
+        .replace(/_/g, '-')
+        .split('-')
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .filter((t) => {
+            if (/\d/.test(t)) return false;
+            if (t.length >= 4 && !/[aeiou]/i.test(t)) return false;
+            return true;
+        });
+    return tokens.join(' ').replace(/\s+/g, ' ').trim();
+};
+
+/** Pull the place-pin coordinates out of a Google Maps URL. Prefers the
+ *  `!3d<lat>!4d<lng>` data block (the actual pinned place) over the
+ *  `@<lat>,<lng>` viewport center, which can sit a few meters off. Returns
+ *  null when the text carries no recognizable coordinate pair. */
+export const extractGoogleMapsCoords = (
+    text: string,
+): { latitude: number; longitude: number } | null => {
+    const pin = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+    if (pin) {
+        return { latitude: parseFloat(pin[1]), longitude: parseFloat(pin[2]) };
+    }
+    const at = text.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if (at) {
+        return { latitude: parseFloat(at[1]), longitude: parseFloat(at[2]) };
+    }
+    return null;
+};
 
 /** Returns the place name extracted from a recognized share URL, or
  *  `null` when the input isn't a URL we know how to unwrap. Currently
@@ -584,11 +665,38 @@ export const parsePlaceEntry = (
     const isExplicit = /^\s*#/.test(trimmed);
 
     if (/^https?:\/\//i.test(trimmed)) {
-        const fromUrl = extractPlaceFromUrl(trimmed);
-        if (fromUrl) {
-            return { query: fromUrl };
+        const nameFromUrl = extractPlaceFromUrl(trimmed);
+        if (nameFromUrl) {
+            // Grab the place-pin coordinates from the same URL — free, no
+            // Google Places call — so a pasted link geo-pins the activity
+            // even on the free tier.
+            const coords = extractGoogleMapsCoords(trimmed);
+            // A `…/maps?q=hilton+panama` search URL (the form people grab
+            // fastest from the address bar) yields a lowercase query —
+            // Title-case it so the name reads cleanly even when the
+            // recommender can't enrich it. Names that already carry
+            // capitals (the `/place/Hilton+Panama` slug form) are left
+            // untouched.
+            const cleanName =
+                nameFromUrl === nameFromUrl.toLowerCase()
+                    ? nameFromUrl.replace(/\b\w/g, (c) => c.toUpperCase())
+                    : nameFromUrl;
+            return {
+                query: cleanName,
+                fromUrl: true,
+                latitude: coords?.latitude,
+                longitude: coords?.longitude,
+            };
         }
-        return { query: '', urlExtractionFailed: true };
+        // Unrecognized URL (hotel brand / booking page). Flag the
+        // failure so the watcher tries a server-side page scrape, and
+        // carry a slug-derived name as the fallback search query for
+        // when that scrape is blocked.
+        return {
+            query: '',
+            urlExtractionFailed: true,
+            urlSlugFallback: extractNameFromUrlSlug(trimmed) || undefined,
+        };
     }
 
     // Strip the matched ranges out of the text in descending order so

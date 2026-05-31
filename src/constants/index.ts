@@ -122,6 +122,15 @@ export const ACTIVITY_KIND = {
   RENTAL_CAR: "rental_car",
 } as const;
 
+/** How the user chooses to fill an activity in the Add-Activity wizard's
+ *  second step. Not every kind offers all three — Flight / Ground skip
+ *  SUGGESTIONS (no recommender strip), Note is CUSTOM-only. */
+export const ADD_METHOD = {
+  SUGGESTIONS: "suggestions",
+  SMART: "smart",
+  CUSTOM: "custom",
+} as const;
+
 export const AUTH_LABEL = {
   LOGIN: "Login",
   SIGNUP: "Sign Up",

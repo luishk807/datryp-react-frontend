@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, type ReactNode } from 'react';
 import { Grid } from '@mui/material';
 import _ from 'lodash';
 import classnames from 'classnames';
@@ -35,6 +35,10 @@ interface DateBlockProps {
      *  Forwarded to Activities so the status pill disables itself
      *  during the round-trip. */
     isAutoSaving?: boolean;
+    /** Optional node rendered inline at the right of the date header.
+     *  Used on /trip-detail to drop a small "Edit activities" pill next
+     *  to the first day. */
+    headerAction?: ReactNode;
 }
 
 const DateBlock = ({
@@ -54,6 +58,7 @@ const DateBlock = ({
     allowPaidEdits,
     tripStatusName,
     isAutoSaving = false,
+    headerAction,
 }: DateBlockProps) => {
     const showsRange = useMemo(
         () => !isSameDay(startDate, endDate),
@@ -139,6 +144,9 @@ const DateBlock = ({
                             )}
                         </Grid>
                     </Grid>
+                    {headerAction && (
+                        <div className="header-action">{headerAction}</div>
+                    )}
                 </Grid>
                 <Grid item lg={12} md={12} xs={12} className="content item-border">
                     <Grid container>

@@ -31,40 +31,82 @@
   max-width: 540px;
 }
 
-// "Take the tour" launcher — small pill in the top-right of the
-// create-trip wizard. Auto-launches the tour for first-time users
-// and is the re-run hook for everyone else. Hidden entirely in
-// edit mode (the existing trip has its own structure; the tour is
-// scoped to first-trip planning).
-.trip-tour-launcher {
-  display: flex;
-  justify-content: flex-end;
-  margin: 0 0 8px;
+// Shared "screen" wrapper + card/field primitives used by every
+// single-question create step (TripModeStep, DestinationStep, DatesStep,
+// BudgetStep, OrganizerStep, ParticipantStep). Lives on the parent so the
+// per-step folders only carry their unique bits.
+.trip-step-screen {
+  padding: 12px 4px 28px;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
-.trip-tour-launcher-btn {
-  appearance: none;
+.trip-step-card {
+  margin: 0 0 22px;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.04);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.trip-step-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trip-step-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border: 1px solid rgba(60, 181, 75, 0.35);
-  background: rgba(60, 181, 75, 0.06);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+
+  svg {
+    font-size: 1.05rem;
+    color: theme('colors.primaryGreen');
+  }
+}
+
+@media (max-width: 640px) {
+  .trip-step-card {
+    padding: 18px 16px;
+    border-radius: 14px;
+  }
+}
+
+// Tour trigger — a small "?" icon button sitting next to the page title
+// (rendered via SubLayout's `titleAction`). Replaces the old "Take the
+// tour" pill so the create flow keeps the eye on the info + action
+// buttons. Auto-launches for first-time users; re-runnable here anytime.
+// Create-only (hidden in edit mode).
+.trip-tour-help-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: theme('colors.primaryGreen');
   border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  svg {
+    font-size: 1.2rem !important;
+  }
 
   &:hover,
   &:focus-visible {
-    background: theme('colors.primaryGreen');
-    border-color: theme('colors.primaryGreen');
-    color: #ffffff;
-  }
-
-  svg {
-    font-size: 1rem !important;
+    background: rgba(60, 181, 75, 0.12);
   }
 }

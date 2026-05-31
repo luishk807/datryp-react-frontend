@@ -181,10 +181,10 @@ export const dispatchStartFreshTrip = (
             image: place.imageUrl ?? country.image ?? undefined,
         })
     );
-    // Day-1 round-trip flights — only when BOTH airports are known.
-    // Reducer's `basicInfo` handler assigns real ids to id:0 seeded
-    // activities, so `BasicsStep.handleEndDateChange` can identify
-    // the return leg and move it to the last day on end-date pick.
+    // Day-1 outbound flight — only when BOTH airports are known. We seed
+    // only the outbound; the return leg used to be seeded too but read as
+    // confusing (a same-day round trip at 00:00), so users add their
+    // return themselves.
     if (airports) {
         dispatch(
             addPlace({
@@ -195,27 +195,6 @@ export const dispatchStartFreshTrip = (
                         {
                             departAirport: airports.departAirportCode,
                             arrivalAirport: airports.arrivalAirportCode,
-                            departDate: today,
-                            departTime: '00:00',
-                            arrivalDate: today,
-                            arrivalTime: '00:00',
-                        },
-                    ],
-                },
-                index: 0,
-                date: today,
-                destinationIndx: 0,
-            })
-        );
-        dispatch(
-            addPlace({
-                value: {
-                    kind: ACTIVITY_KIND.FLIGHT,
-                    name: `Flight back to ${airports.departAirportCode}`,
-                    flightSegments: [
-                        {
-                            departAirport: airports.arrivalAirportCode,
-                            arrivalAirport: airports.departAirportCode,
                             departDate: today,
                             departTime: '00:00',
                             arrivalDate: today,

@@ -6,6 +6,8 @@
  * Returns `null` on no-match, missing-key (503), or any error — the
  * caller renders nothing in that case (silent-fail UX).
  */
+import { getAuthToken } from 'api/authStorage';
+
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
 
@@ -55,17 +57,31 @@ const toRating = (r: PlaceRatingRaw): PlaceRating => ({
     photoUrl: r.photo_url,
 });
 
+/** Which Google fields to fetch — drives the billing tier on the
+ *  backend. Request the narrowest variant a surface uses:
+ *   - `'rating'`: star + review count only (no photo call) — RatingBadge.
+ *   - `'place'`: address + coords + photo (no rating) — smart entry.
+ *   - `'all'`: everything (default) — the place-detail page. */
+export type PlaceRatingFields = 'rating' | 'place' | 'all';
+
 export const fetchPlaceRating = async (
     name: string,
     location?: string,
+    fields: PlaceRatingFields = 'all',
 ): Promise<PlaceRating | null> => {
     const trimmed = name.trim();
     if (!trimmed) return null;
-    const params = new URLSearchParams({ name: trimmed });
+    const params = new URLSearchParams({ name: trimmed, fields });
     if (location?.trim()) {
         params.set('location', location.trim());
     }
-    const resp = await fetch(`${API_BASE}/places/rating?${params.toString()}`);
+    // /places/rating is Pro-gated on the backend — forward the bearer
+    // token so it can resolve the caller's plan. Non-Pro / anonymous get
+    // an empty result, which collapses to `null` here (chip renders nothing).
+    const token = getAuthToken();
+    const resp = await fetch(`${API_BASE}/places/rating?${params.toString()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
     if (!resp.ok) return null;
     const body = (await resp.json()) as PlaceRatingResponseRaw;
     return body.result ? toRating(body.result) : null;

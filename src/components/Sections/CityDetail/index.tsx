@@ -111,53 +111,34 @@ const CityDetail = () => {
         // no home airport is available so we never ship a half-empty
         // segment with a placeholder depart.
         const today = now();
-        // Day-1 outbound + return flight auto-seed. Unlike the
-        // country-level seed (which skips for same-country because
-        // there's no specific city anchor), city-level seeding goes
-        // ahead even for same-country trips — a specific destination
-        // city has a known arrival airport, so NYC→SEA still benefits
-        // from pre-populated flights. The only requirement is that we
-        // know both the user's nearest airport AND the destination's
-        // arrival airport.
+        // Day-1 outbound flight auto-seed. Unlike the country-level seed
+        // (which skips for same-country because there's no specific city
+        // anchor), city-level seeding goes ahead even for same-country
+        // trips — a specific destination city has a known arrival airport,
+        // so NYC→SEA still benefits from a pre-populated flight. The only
+        // requirement is that we know both the user's nearest airport AND
+        // the destination's arrival airport.
         //
-        // BOTH legs are seeded on `today`; when the user picks a
-        // multi-day end date in the stepper, `BasicsStep.handle-
-        // EndDateChange` MOVES the return leg to the new end date so
-        // it always sits on the last day block.
+        // We seed ONLY the outbound — the return leg used to be seeded too
+        // but read as confusing (a same-day round trip at 00:00). Users
+        // add their return flight themselves when they're ready.
         const seededActivities: Activity[] = [];
         if (nearestAirport?.iataCode && args.arrivalAirportCode) {
-            seededActivities.push(
-                {
-                    id: 0,
-                    kind: ACTIVITY_KIND.FLIGHT,
-                    name: `Flight to ${args.cityName}`,
-                    flightSegments: [
-                        {
-                            departAirport: nearestAirport.iataCode,
-                            arrivalAirport: args.arrivalAirportCode,
-                            departDate: today,
-                            departTime: '00:00',
-                            arrivalDate: today,
-                            arrivalTime: '00:00',
-                        },
-                    ],
-                },
-                {
-                    id: 0,
-                    kind: ACTIVITY_KIND.FLIGHT,
-                    name: `Flight back to ${nearestAirport.iataCode}`,
-                    flightSegments: [
-                        {
-                            departAirport: args.arrivalAirportCode,
-                            arrivalAirport: nearestAirport.iataCode,
-                            departDate: today,
-                            departTime: '00:00',
-                            arrivalDate: today,
-                            arrivalTime: '00:00',
-                        },
-                    ],
-                },
-            );
+            seededActivities.push({
+                id: 0,
+                kind: ACTIVITY_KIND.FLIGHT,
+                name: `Flight to ${args.cityName}`,
+                flightSegments: [
+                    {
+                        departAirport: nearestAirport.iataCode,
+                        arrivalAirport: args.arrivalAirportCode,
+                        departDate: today,
+                        departTime: '00:00',
+                        arrivalDate: today,
+                        arrivalTime: '00:00',
+                    },
+                ],
+            });
         }
         const destinations = [
             {

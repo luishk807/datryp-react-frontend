@@ -151,8 +151,11 @@
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    bottom: calc(86px + env(safe-area-inset-bottom));
-    z-index: 1099;
+    // Clear the fixed bottom nav (~96px reserved by .page-shell) with a
+    // small gap — 86px sat ~10px too low and the nav painted over the CTA.
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    // Above the bottom nav (1100) so the two never visually collide.
+    z-index: 1101;
     width: auto;
     max-width: calc(100vw - 32px);
     justify-content: center;

@@ -3,15 +3,19 @@ import { Link } from 'react-router-dom';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
+import { useUser } from 'context/UserContext';
 
-interface QuickLink {
+export interface QuickLink {
     label: string;
     href: string;
     /** When true, render via react-router `<Link>` (internal); otherwise `<a>`. */
     internal?: boolean;
 }
 
-const QUICK_LINKS: QuickLink[] = [
+/** Secondary site links. Shared with the user menu (MenuFooterLinks) —
+ *  logged-in users get these inside their account menu rather than a
+ *  standalone footer (the Footer hides itself for them). */
+export const FOOTER_QUICK_LINKS: QuickLink[] = [
     { label: 'About', href: '/about', internal: true },
     { label: 'Pricing', href: '/membership', internal: true },
     { label: 'Contact', href: '/contact', internal: true },
@@ -27,13 +31,18 @@ const QUICK_LINKS: QuickLink[] = [
  * `compact` prop anymore — every caller renders the same footer.
  */
 const Footer = () => {
+    const { user } = useUser();
     const year = new Date().getFullYear();
+    // Logged-in users get these links inside their account menu
+    // (MenuFooterLinks) instead — the standalone footer was just
+    // clutter above the mobile bottom nav for them.
+    if (user) return null;
     return (
         <footer className="footer">
             <div className="footer-inner">
                 <span className="footer-brand">DaTryp</span>
                 <nav className="footer-nav" aria-label="Footer">
-                    {QUICK_LINKS.map((link) =>
+                    {FOOTER_QUICK_LINKS.map((link) =>
                         link.internal ? (
                             <Link key={link.label} to={link.href}>
                                 {link.label}

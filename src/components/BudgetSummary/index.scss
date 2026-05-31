@@ -66,6 +66,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .budget-summary .budget-eyebrow-icon {
@@ -120,8 +121,12 @@
   transition: width 0.4s ease, background-color 0.2s ease;
 }
 
+// On-track / under budget reads neutral, not green — green at $0 spent
+// was visually loud and implied "good" before anything's planned. The
+// warning + over states below keep their alert colors since those are
+// the moments that actually warrant attention.
 .budget-summary.budget-under .budget-bar-fill {
-  background: theme('colors.primaryGreen');
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .budget-summary.budget-warning .budget-bar-fill {
@@ -195,4 +200,59 @@
   .budget-summary .budget-footer {
     font-size: 0.85rem;
   }
+}
+
+// ─── AI-budget verdict chip ────────────────────────────────────────────
+// Sits inline next to the "Trip expenses meter" title — a read on whether
+// the *budget amount itself* is tight / right-sized / cushioned for the
+// destination (distinct from the spend-progress bar below). Three tones:
+//   - `.budget-verdict-low`  → budget < 70% of AI estimate  → red "Tight"
+//   - `.budget-verdict-on`   → within 70–130%               → green "On target"
+//   - `.budget-verdict-high` → > 130%                       → blue "Comfortable"
+// The ⓘ icon opens an MUI Tooltip with the "why" sentence (enterTouchDelay=0
+// so a tap reveals it on touch UAs).
+.budget-summary .budget-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.budget-summary .budget-verdict-arrow {
+  font-size: 1rem !important;
+}
+
+.budget-summary .budget-verdict-why {
+  font-size: 0.95rem !important;
+  opacity: 0.7;
+  cursor: help;
+  margin-left: 2px;
+  outline: none;
+
+  &:focus-visible {
+    opacity: 1;
+    box-shadow: 0 0 0 2px currentColor;
+    border-radius: 999px;
+  }
+}
+
+.budget-summary .budget-verdict-low {
+  background: rgba(220, 60, 60, 0.1);
+  color: #c0392b;
+}
+
+.budget-summary .budget-verdict-on {
+  background: rgba(60, 181, 75, 0.12);
+  color: theme('colors.primaryGreen');
+}
+
+.budget-summary .budget-verdict-high {
+  background: rgba(53, 122, 189, 0.12);
+  color: #1f6fb5;
 }

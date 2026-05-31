@@ -6,62 +6,48 @@ import {
     type ComponentType,
 } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
-import {
-    Alert,
-    CircularProgress,
-    Grid,
-    InputAdornment,
-    Snackbar,
-    TextField,
-} from '@mui/material';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
-import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import { Alert, Grid, Snackbar } from '@mui/material';
 import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
-import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
-import FlightRoundedIcon from '@mui/icons-material/FlightRounded';
-import HotelRoundedIcon from '@mui/icons-material/HotelRounded';
-import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
-import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
-import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
-import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
-import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
-import CommuteRoundedIcon from '@mui/icons-material/CommuteRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
-import InputField from 'components/common/FormFields/InputField';
-import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import FlightSegmentLookupWatcher from './FlightSegmentLookupWatcher';
-import TransitSegmentLookupWatcher from './TransitSegmentLookupWatcher';
 import { parseFlightInfo } from './parseFlightInfo';
-import PlaceSmartEntryWatcher from './PlaceSmartEntryWatcher';
 import { parseTransitEntry } from './parseTransitQuery';
 import { pickSmartEntryLocation } from './pickSmartEntryLocation';
 import type { FlightLookupResult } from 'api/flightLookupApi';
-import type { PlaceRecommendation } from 'types';
-import PlaceAutocomplete, {
-    type PlaceSuggestion,
-} from 'components/common/PlaceAutocomplete';
-import PlaceSuggestions from 'components/common/PlaceSuggestions';
+import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import classNames from 'classnames';
-import { ACTION, ACTIVITY_KIND, BUTTON_VARIANT, TRIP_BASIC } from 'constants';
+import {
+    ACTION,
+    ACTIVITY_KIND,
+    ADD_METHOD,
+    BUTTON_VARIANT,
+    TRIP_BASIC,
+} from 'constants';
 import {
     useNearestAirport,
     useNearestTrainStation,
 } from 'api/hooks/useHomeDeparture';
 import { useTripState } from 'context/TripContext';
+import PlaceForm from './forms/PlaceForm';
+import NoteForm from './forms/NoteForm';
+import FlightForm from './forms/FlightForm';
+import HotelForm from './forms/HotelForm';
+import TransitForm from './forms/TransitForm';
+import TypeStep from './steps/TypeStep';
+import MethodStep from './steps/MethodStep';
+import ReviewStep from './steps/ReviewStep';
+import WizardNav from './steps/WizardNav';
+import type { FormController, FormMode, PlaceDraft } from './types';
 import './index.scss';
 import type {
     Activity,
     ActivityKind,
     AddEditButtonProps,
+    AddMethod,
     FlightInfo,
     Friend,
-    ImageRef,
     TransitInfo,
 } from 'types';
 
@@ -71,51 +57,22 @@ const PLACE_LABEL = {
     SAVE: 'Save Activity',
 } as const;
 
-interface PlaceDraft {
-    id?: number;
-    /** What kind of activity this entry is — picked once via the
-     *  toggle at the top of the modal. Persisted on save; locked on
-     *  edit (the toggle hides). */
-    kind?: ActivityKind;
-    name?: string;
-    location?: string;
-    cost?: string | number;
-    startTime?: string;
-    endTime?: string;
-    note?: string;
-    status?: DropdownOption;
-    image?: ImageRef;
-    friends?: Friend[];
-    /** One entry per flight leg. Always present (with a single empty
-     *  entry) once the kind toggle picks Flight, so the form has
-     *  somewhere to write into. */
-    flightSegments?: FlightInfo[];
-    /** One entry per ground-transport leg (train / bus). Mirrors the
-     *  flight-segment shape — a single entry covers a direct trip; a
-     *  two-entry array covers a transfer. */
-    transitSegments?: TransitInfo[];
-    /** Hotel confirmation number for `hotel_checkin` / `hotel_checkout`
-     *  kinds. Hotel name, address, time, and cost reuse the standard
-     *  `name` / `location` / `startTime` / `cost` draft fields. */
-    confirmationNumber?: string;
-    /** Structured hotel info delivered on the onChange payload (the
-     *  submit helper lifts `confirmationNumber` into this shape so the
-     *  consumer's Activity stays clean). */
-    hotelInfo?: { confirmationNumber?: string };
-    /** Structured place data lifted off a picked PlaceSuggestion (from
-     *  PlaceAutocomplete or PlaceSuggestions). Stashed on the draft so
-     *  it rides along with the activity on save and reaches the
-     *  backend's `activities` row. The Mapper trip-link cascade reads
-     *  these on trip completion to write `visited_places` rows with a
-     *  tripId back-link. Null/undefined when the user typed free-text
-     *  instead of picking. */
-    placeKey?: string | null;
-    placeCity?: string | null;
-    placeCountry?: string | null;
-    countryCode?: string | null;
-    latitude?: number | null;
-    longitude?: number | null;
-}
+/** Which add-methods apply to a given kind. PLACE / HOTEL offer all
+ *  three; FLIGHT / TRANSPORT have no recommender strip so they drop
+ *  Suggestions; NOTE is custom-only (the wizard auto-skips the chooser
+ *  for it). */
+const methodsForKind = (kind: ActivityKind): AddMethod[] => {
+    if (kind === ACTIVITY_KIND.NOTE) return [ADD_METHOD.CUSTOM];
+    if (
+        kind === ACTIVITY_KIND.FLIGHT ||
+        kind === ACTIVITY_KIND.TRAIN ||
+        kind === ACTIVITY_KIND.BUS ||
+        kind === ACTIVITY_KIND.RENTAL_CAR
+    ) {
+        return [ADD_METHOD.SMART, ADD_METHOD.CUSTOM];
+    }
+    return [ADD_METHOD.SUGGESTIONS, ADD_METHOD.SMART, ADD_METHOD.CUSTOM];
+};
 
 /** Seed a fresh flight segment. When `defaultDate` is provided (the
  *  date of the day block the user opened "+ Add Activity" from), the
@@ -305,6 +262,14 @@ const AddPlaceBtn = ({
     // Resets when the modal closes or the kind toggles away from
     // FLIGHT.
     const [arrivalCity, setArrivalCity] = useState<string | null>(null);
+
+    // ADD-only wizard navigation. Step 1 = pick type, Step 2 = pick
+    // method + fill its input, Step 3 = read-only review. `method` is
+    // null until the user picks one (or it's preselected for a kind with
+    // a single method, e.g. Note → custom). EDIT mode ignores both and
+    // renders the full single-screen form.
+    const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+    const [method, setMethod] = useState<AddMethod | null>(null);
 
     // Home-base auto-seed: when the user toggles to FLIGHT (or a transit
     // kind) on the very FIRST flight/transit activity of the trip, drop
@@ -1098,8 +1063,11 @@ const AddPlaceBtn = ({
         reader.readAsDataURL(file);
     };
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+    /** Permissive "is there anything identifying this activity?" check.
+     *  Sets the Snackbar error + returns false when the draft is blank
+     *  for its kind; clears the error + returns true otherwise. Shared by
+     *  the wizard's Next button (Step 2 → 3) and the final submit. */
+    const validateDraft = (): boolean => {
         const kind = place.kind ?? ACTIVITY_KIND.PLACE;
         const missing: string[] = [];
 
@@ -1171,9 +1139,17 @@ const AddPlaceBtn = ({
 
         if (missing.length) {
             setError(`Please provide ${missing.join(', ')}.`);
-            return;
+            return false;
         }
         setError(null);
+        return true;
+    };
+
+    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        const kind = place.kind ?? ACTIVITY_KIND.PLACE;
+
+        if (!validateDraft()) return;
         modelRef.current?.closeModal();
 
         // Synthesize a sensible default name for kinds whose form
@@ -1326,6 +1302,8 @@ const AddPlaceBtn = ({
         if (type === ACTION.ADD) {
             setPlace(buildInitialPlace());
             setFormKey((k) => k + 1);
+            setWizardStep(1);
+            setMethod(null);
         }
     };
 
@@ -1443,6 +1421,9 @@ const AddPlaceBtn = ({
         if (isAdd) {
             setPlace(buildInitialPlace());
             setFormKey((k) => k + 1);
+            // Reopening ADD always starts at Step 1 with no method chosen.
+            setWizardStep(1);
+            setMethod(null);
         }
     };
 
@@ -1467,6 +1448,184 @@ const AddPlaceBtn = ({
             return (parts[parts.length - 1] ?? s).toLowerCase();
         };
         return tail(tripCountry) === tail(itemCountry);
+    };
+
+    const currentKind = place.kind ?? ACTIVITY_KIND.PLACE;
+
+    /** Step 1 tile pick: reset the kind (existing handler) and advance
+     *  to Step 2. Preselect the method when the kind has exactly one
+     *  (Note → custom) so the chooser auto-skips. */
+    const handleTypePick = (next: ActivityKind) => {
+        handleKindChange(next);
+        const available = methodsForKind(next);
+        setMethod(available.length === 1 ? available[0] : null);
+        setWizardStep(2);
+    };
+
+    const handleMethodPick = (next: AddMethod) => {
+        setMethod(next);
+    };
+
+    /** Mirror the headline name `handleSubmit` will synthesize, so the
+     *  review step shows exactly what lands on the timeline card. */
+    const deriveActivityName = (): string => {
+        const kind = currentKind;
+        if (kind === ACTIVITY_KIND.NOTE) {
+            const firstLine =
+                (place.note ?? '').split(/\r?\n/)[0]?.trim() ?? '';
+            return place.name?.trim() || firstLine.slice(0, 80);
+        }
+        if (kind === ACTIVITY_KIND.FLIGHT) {
+            if (place.name?.trim()) return place.name.trim();
+            const segs = place.flightSegments ?? [];
+            if (!segs.length) return '';
+            const chain = [
+                segs[0]?.departAirport ?? '',
+                ...segs.map((s) => s.arrivalAirport ?? ''),
+            ].filter((s) => s && s.trim());
+            if (chain.length) return chain.join(' → ');
+            return segs
+                .map((s) => s.flightNumber?.trim() ?? '')
+                .filter(Boolean)
+                .join(' + ');
+        }
+        if (
+            kind === ACTIVITY_KIND.TRAIN ||
+            kind === ACTIVITY_KIND.BUS ||
+            kind === ACTIVITY_KIND.RENTAL_CAR
+        ) {
+            if (place.name?.trim()) return place.name.trim();
+            const seg = place.transitSegments?.[0];
+            if (!seg) return '';
+            const prefix =
+                kind === ACTIVITY_KIND.TRAIN
+                    ? 'Train'
+                    : kind === ACTIVITY_KIND.BUS
+                      ? 'Bus'
+                      : 'Rental car';
+            return [prefix, seg.operator?.trim(), seg.number?.trim()]
+                .filter(Boolean)
+                .join(' ');
+        }
+        if (kind === ACTIVITY_KIND.HOTEL_CHECKIN) {
+            return place.name?.trim()
+                ? `Check in: ${place.name.trim()}`
+                : 'Hotel check-in';
+        }
+        if (kind === ACTIVITY_KIND.HOTEL_CHECKOUT) {
+            return place.name?.trim()
+                ? `Check out: ${place.name.trim()}`
+                : 'Hotel check-out';
+        }
+        return place.name?.trim() ?? '';
+    };
+
+    // The cohesive controller bundle threaded to every per-kind form.
+    // The parent owns all state + handlers; the forms are presentational.
+    const controller: FormController = {
+        place,
+        isAdd,
+        countryScope,
+        cityScope,
+        handleOnChange,
+        handlePlacePicked,
+        handleImageChange,
+        setPlace,
+        placeSmartEntry,
+        setPlaceSmartEntry,
+        placeSmartLoading,
+        setPlaceSmartLoading,
+        placeSmartWarning,
+        setPlaceSmartWarning,
+        placeDetailsExpanded,
+        setPlaceDetailsExpanded,
+        smartEntry,
+        handleSmartEntry,
+        expandedSegments,
+        openSegments,
+        lookupLoading,
+        lookupNotFound,
+        setLookupNotFound,
+        toggleSegmentOpen,
+        toggleSegmentExpanded,
+        handleSegmentField,
+        handleAddSegment,
+        handleRemoveSegment,
+        applyFlightLookup,
+        handleLookupLoadingChange,
+        setArrivalCity,
+        hotelSmartEntry,
+        setHotelSmartEntry,
+        hotelSmartLoading,
+        setHotelSmartLoading,
+        hotelSmartWarning,
+        setHotelSmartWarning,
+        hotelDetailsExpanded,
+        setHotelDetailsExpanded,
+        setPendingHotelCheckout,
+        transitSmartEntry,
+        setTransitSmartEntry,
+        transitSmartWarning,
+        transitDetailsExpanded,
+        setTransitDetailsExpanded,
+        transitLookupLoading,
+        transitLookupNotFound,
+        setTransitLookupNotFound,
+        handleTransitField,
+        handleAddTransitSegment,
+        handleRemoveTransitSegment,
+        applyTransitLookup,
+        handleTransitLookupLoadingChange,
+        emptySegment,
+        emptyTransitSegment,
+        isoDefaultDate,
+        sameCountry,
+        smartEntryLocation,
+    };
+
+    /** Render the right per-kind form for the given mode (edit full-form
+     *  or an ADD wizard method-slice). */
+    const renderKindForm = (mode: FormMode) => {
+        switch (currentKind) {
+            case ACTIVITY_KIND.NOTE:
+                return <NoteForm controller={controller} />;
+            case ACTIVITY_KIND.FLIGHT:
+                return <FlightForm controller={controller} mode={mode} />;
+            case ACTIVITY_KIND.HOTEL_CHECKIN:
+            case ACTIVITY_KIND.HOTEL_CHECKOUT:
+                return <HotelForm controller={controller} mode={mode} />;
+            case ACTIVITY_KIND.TRAIN:
+            case ACTIVITY_KIND.BUS:
+            case ACTIVITY_KIND.RENTAL_CAR:
+                return <TransitForm controller={controller} mode={mode} />;
+            default:
+                return <PlaceForm controller={controller} mode={mode} />;
+        }
+    };
+
+    const availableMethods = methodsForKind(currentKind);
+
+    // Step 2 shows the method chooser only when no method is chosen yet
+    // AND the kind offers more than one. Single-method kinds (Note) jump
+    // straight to the input via the preselect in handleTypePick.
+    const showMethodChooser = wizardStep === 2 && method === null;
+
+    const handleWizardNext = () => {
+        // Run the same up-front validation handleSubmit does; on failure
+        // it sets the Snackbar error and we stay on Step 2.
+        if (!validateDraft()) return;
+        setWizardStep(3);
+    };
+
+    const handleWizardBackFromInput = () => {
+        // Single-method kinds skip the chooser entirely — Back from their
+        // input returns to Step 1. Multi-method kinds drop back to the
+        // chooser.
+        if (availableMethods.length <= 1) {
+            setWizardStep(1);
+        } else {
+            setMethod(null);
+        }
     };
 
     const modalElement = (
@@ -1502,1722 +1661,86 @@ const AddPlaceBtn = ({
                       }
             }
         >
-                    <Grid container key={formKey}>
-                        {isAdd && (
+                    {/* EDIT: the full single-screen form, exactly as
+                        before — kind toggle hidden, details shown, one
+                        Save button. ADD: the calm 3-step wizard. */}
+                    {!isAdd ? (
+                        <Grid container key={formKey}>
                             <Grid
                                 item
                                 lg={12}
                                 md={12}
                                 xs={12}
-                                className="add-place-kind-toggle"
-                                role="tablist"
-                                aria-label="Activity kind"
+                                id="add-place-form-container"
                             >
-                                {[
-                                    {
-                                        value: ACTIVITY_KIND.PLACE,
-                                        label: 'Place',
-                                        Icon: PlaceRoundedIcon,
-                                        // Single ACTIVITY_KIND value → active
-                                        // when `place.kind` equals it.
-                                        activeKinds: [ACTIVITY_KIND.PLACE],
-                                    },
-                                    {
-                                        value: ACTIVITY_KIND.NOTE,
-                                        label: 'Note',
-                                        Icon: StickyNote2RoundedIcon,
-                                        activeKinds: [ACTIVITY_KIND.NOTE],
-                                    },
-                                    {
-                                        value: ACTIVITY_KIND.FLIGHT,
-                                        label: 'Flight',
-                                        Icon: FlightRoundedIcon,
-                                        activeKinds: [ACTIVITY_KIND.FLIGHT],
-                                    },
-                                    {
-                                        // Hotel folds the two check-in/out
-                                        // event kinds behind one chip. Click
-                                        // defaults to check-in; an in-form
-                                        // toggle below switches to check-out
-                                        // (and back) without leaving the
-                                        // Hotel form. Both events still
-                                        // persist with their distinct
-                                        // ACTIVITY_KIND so the timeline
-                                        // shows two separate cards.
-                                        value: ACTIVITY_KIND.HOTEL_CHECKIN,
-                                        label: 'Hotel',
-                                        Icon: HotelRoundedIcon,
-                                        activeKinds: [
-                                            ACTIVITY_KIND.HOTEL_CHECKIN,
-                                            ACTIVITY_KIND.HOTEL_CHECKOUT,
-                                        ],
-                                    },
-                                    {
-                                        // Ground folds the three surface-
-                                        // transit kinds (train, bus, rental
-                                        // car) behind one chip. Click
-                                        // defaults to Train; an in-form
-                                        // toggle switches between the three
-                                        // without leaving the shared
-                                        // transit form. Same pattern as the
-                                        // Hotel chip above — keeps the
-                                        // top-level toggle compact while
-                                        // still persisting each event with
-                                        // a distinct ACTIVITY_KIND so the
-                                        // timeline shows the correct
-                                        // train / bus / rental-car icon.
-                                        value: ACTIVITY_KIND.TRAIN,
-                                        label: 'Ground',
-                                        Icon: CommuteRoundedIcon,
-                                        activeKinds: [
-                                            ACTIVITY_KIND.TRAIN,
-                                            ACTIVITY_KIND.BUS,
-                                            ACTIVITY_KIND.RENTAL_CAR,
-                                        ],
-                                    },
-                                ].map(({ value, label, Icon, activeKinds }) => {
-                                    const currentKind =
-                                        place.kind ?? ACTIVITY_KIND.PLACE;
-                                    const active = (
-                                        activeKinds as ActivityKind[]
-                                    ).includes(currentKind);
-                                    return (
-                                        <button
-                                            key={value}
-                                            type="button"
-                                            role="tab"
-                                            aria-selected={active}
-                                            className={classNames('add-place-kind-btn', {
-                                                selected: active,
-                                            })}
-                                            onClick={() => handleKindChange(value)}
-                                        >
-                                            <Icon className="add-place-kind-icon" fontSize="small" />
-                                            <span>{label}</span>
-                                        </button>
-                                    );
-                                })}
+                                {renderKindForm('edit')}
                             </Grid>
-                        )}
-                        <Grid item lg={12} md={12} xs={12} id="add-place-form-container">
-                            {(place.kind ?? ACTIVITY_KIND.PLACE) === ACTIVITY_KIND.PLACE && (
-                                <Grid container>
-                                    {isAdd && countryScope && (
-                                        <Grid item lg={12} xs={12} className="py-5">
-                                            <PlaceSuggestions
-                                                country={countryScope}
-                                                city={cityScope}
-                                                onPick={handlePlacePicked}
-                                            />
-                                        </Grid>
-                                    )}
-                                    {/* Smart entry — accepts either a plain
-                                        place name OR a Google Maps share
-                                        link. The watcher debounces, unwraps
-                                        the URL if any, searches, and applies
-                                        the top match via handlePlacePicked
-                                        so name / location / image / city /
-                                        coords all populate in one shot. */}
-                                    {isAdd && (
-                                        <Grid item lg={12} xs={12} className="py-5">
-                                            <div className="flight-smart-entry">
-                                                <div className="flight-smart-entry-field">
-                                                    <TextField
-                                                        fullWidth
-                                                        variant="outlined"
-                                                        value={placeSmartEntry}
-                                                        onChange={(e) =>
-                                                            setPlaceSmartEntry(e.target.value)
-                                                        }
-                                                        placeholder={
-                                                            countryScope
-                                                                ? `e.g. "Ankole Grill at 10am-12pm, around $50" — searched in ${countryScope}`
-                                                                : 'e.g. "Ankole Grill at 10am-12pm, around $50", or paste a Google Maps link'
-                                                        }
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    {placeSmartLoading ? (
-                                                                        <CircularProgress
-                                                                            size={16}
-                                                                            className="flight-smart-entry-input-icon"
-                                                                        />
-                                                                    ) : (
-                                                                        <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
-                                                                    )}
-                                                                </InputAdornment>
-                                                            ),
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div className="flight-smart-entry-hint">
-                                                    <span>
-                                                        {placeSmartLoading
-                                                            ? 'Looking up the place…'
-                                                            : countryScope
-                                                              ? `Type a place, sentence, or paste a Google Maps / Yelp link. We'll search ${countryScope} and fill in the details below.`
-                                                              : "Type a place, sentence, or paste a Google Maps / Yelp link. We'll search and fill in the details below."}
-                                                    </span>
-                                                </div>
-                                                {placeSmartWarning && (
-                                                    <div className="flight-smart-entry-warning">
-                                                        {placeSmartWarning}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <PlaceSmartEntryWatcher
-                                                rawInput={placeSmartEntry}
-                                                // Bias just to the trip country, not the
-                                                // per-day pickSmartEntryLocation context.
-                                                // Place activities are often tourist
-                                                // destinations hours from the user's
-                                                // current hotel — biasing to "Quepos,
-                                                // Costa Rica" while searching "san blas"
-                                                // for a Panama trip made the recommender
-                                                // return malformed unrelated matches.
-                                                // Hotel form below keeps the tighter
-                                                // bias since hotel searches really are
-                                                // local.
-                                                country={countryScope}
-                                                onResult={(item: PlaceRecommendation, parsed, extras) => {
-                                                    // Two failure modes get a
-                                                    // friendly "add manually"
-                                                    // message instead of
-                                                    // silently populating
-                                                    // wrong/empty data:
-                                                    //
-                                                    // 1) Wrong country. Famous
-                                                    //    landmarks (Mount Fuji,
-                                                    //    Eiffel Tower) leak
-                                                    //    through the country
-                                                    //    bias and would write
-                                                    //    foreign coords /
-                                                    //    place_key / image
-                                                    //    into a Panama trip.
-                                                    // 2) Bare synthetic — the
-                                                    //    PlaceSmartEntryWatcher
-                                                    //    fell back to a stub
-                                                    //    when no recommender,
-                                                    //    Google Places, OR
-                                                    //    photo match landed
-                                                    //    (lat/lng null AND no
-                                                    //    formatted address).
-                                                    //    Populating the name
-                                                    //    is fine but we should
-                                                    //    tell the user we
-                                                    //    couldn't enrich it.
-                                                    //
-                                                    // User can prefix with `#`
-                                                    // to force-keep the typed
-                                                    // name as a free-text
-                                                    // reminder.
-                                                    const isWrongCountry =
-                                                        Boolean(countryScope) &&
-                                                        !sameCountry(countryScope, item.country);
-                                                    const isBareMatch =
-                                                        item.latitude == null &&
-                                                        item.longitude == null &&
-                                                        !extras?.formattedAddress?.trim();
-                                                    if (isWrongCountry) {
-                                                        setPlaceSmartWarning(
-                                                            `Couldn't find “${item.name}” in ${countryScope}` +
-                                                                (item.country
-                                                                    ? ` — closest match is in ${item.country}.`
-                                                                    : '.') +
-                                                                ` Add it manually using the details form below, or prefix the search with # to keep this exact name.`,
-                                                        );
-                                                        return;
-                                                    }
-                                                    if (isBareMatch) {
-                                                        setPlaceSmartWarning(
-                                                            `Couldn't find an exact match for “${item.name}”. Fill in the location / cost / time using the form below.`,
-                                                        );
-                                                        // Populate name only — leave city /
-                                                        // country / coords blank so we don't
-                                                        // ship bogus place_key data on save.
-                                                        handleOnChange('name', item.name);
-                                                        if (parsed.startTime) {
-                                                            handleOnChange('startTime', parsed.startTime);
-                                                        }
-                                                        if (parsed.endTime) {
-                                                            handleOnChange('endTime', parsed.endTime);
-                                                        }
-                                                        if (parsed.cost != null) {
-                                                            handleOnChange('cost', String(parsed.cost));
-                                                        }
-                                                        setPlaceDetailsExpanded(true);
-                                                        return;
-                                                    }
-                                                    setPlaceSmartWarning(null);
-                                                    handlePlacePicked({
-                                                        name: item.name,
-                                                        // Prefer Google's
-                                                        // formatted street
-                                                        // address over the
-                                                        // recommender's
-                                                        // "City, Country"
-                                                        // string when Google
-                                                        // found a match.
-                                                        location:
-                                                            extras?.formattedAddress?.trim() ||
-                                                            [item.city, item.country]
-                                                                .filter((s) => s && s.trim())
-                                                                .join(', '),
-                                                        city: item.city,
-                                                        country: item.country,
-                                                        countryCode: item.countryCode,
-                                                        imageUrl: item.imageUrl,
-                                                        latitude: item.latitude,
-                                                        longitude: item.longitude,
-                                                    });
-                                                    // Apply any times / cost the
-                                                    // user typed in the same
-                                                    // sentence. handlePlacePicked
-                                                    // only fills name + location
-                                                    // + image; these other fields
-                                                    // are independent so we set
-                                                    // them through the standard
-                                                    // form handler.
-                                                    if (parsed.startTime) {
-                                                        handleOnChange('startTime', parsed.startTime);
-                                                    }
-                                                    if (parsed.endTime) {
-                                                        handleOnChange('endTime', parsed.endTime);
-                                                    }
-                                                    if (parsed.cost != null) {
-                                                        handleOnChange('cost', String(parsed.cost));
-                                                    }
-                                                    // Open the collapsed
-                                                    // details panel any time
-                                                    // the smart entry lands a
-                                                    // result. handlePlacePicked
-                                                    // above writes name /
-                                                    // location / image into
-                                                    // fields that live inside
-                                                    // this panel, so leaving
-                                                    // it collapsed means the
-                                                    // user types something,
-                                                    // the search succeeds,
-                                                    // and they see no visible
-                                                    // change — looks broken.
-                                                    setPlaceDetailsExpanded(true);
-                                                }}
-                                                onLoadingChange={setPlaceSmartLoading}
-                                                onWarning={setPlaceSmartWarning}
-                                            />
-                                        </Grid>
-                                    )}
-                                    {/* Name + location → image fields are hidden
-                                        by default during ADD — the smart entry
-                                        above usually fills them in. User clicks
-                                        "Show details" to verify or tweak. On
-                                        EDIT we skip the toggle entirely and
-                                        show the form fields open: the user
-                                        opened the modal specifically to change
-                                        something, so hiding the inputs adds an
-                                        extra click. */}
-                                    {isAdd && (
-                                        <Grid item lg={12} xs={12} className="py-1">
-                                            <button
-                                                type="button"
-                                                className="flight-segment-toggle"
-                                                onClick={() =>
-                                                    setPlaceDetailsExpanded((v) => !v)
-                                                }
-                                                aria-expanded={placeDetailsExpanded}
-                                            >
-                                                {placeDetailsExpanded ? (
-                                                    <>
-                                                        Hide details
-                                                        <ExpandLessRoundedIcon fontSize="small" />
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Show details (name, location, cost, time, note, image)
-                                                        <ExpandMoreRoundedIcon fontSize="small" />
-                                                    </>
-                                                )}
-                                            </button>
-                                        </Grid>
-                                    )}
-                                    {(placeDetailsExpanded || !isAdd) && (
-                                    <>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <PlaceAutocomplete
-                                            value={place.name ?? ''}
-                                            onTextChange={(text) =>
-                                                handleOnChange('name', text)
-                                            }
-                                            onSelect={handlePlacePicked}
-                                            country={countryScope}
-                                            label={
-                                                countryScope
-                                                    ? `Activity name (or place in ${countryScope})`
-                                                    : 'Activity name'
-                                            }
-                                            placeholder="Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')"
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.location ?? ''}
-                                            name="location"
-                                            label="Location (optional)"
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange('location', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.cost ? String(place.cost) : ''}
-                                            name="cost"
-                                            onChange={(e) => handleOnChange('cost', e.target.value)}
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.startTime ?? ''}
-                                            name="startTime"
-                                            type="time"
-                                            label="Start Time"
-                                            onChange={(e) => handleOnChange('startTime', e.target.value)}
-                                        />
-                                    </Grid>
-                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                        <InputField
-                                            value={place.endTime ?? ''}
-                                            name="endTime"
-                                            type="time"
-                                            label="End Time"
-                                            onChange={(e) => handleOnChange('endTime', e.target.value)}
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.note ?? ''}
-                                            name="note"
-                                            onChange={(e) => handleOnChange('note', e.target.value)}
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        {/* Show the current image when set
-                                            — covers both file uploads and
-                                            smart-entry URL hits. Without
-                                            this, the file input shows
-                                            nothing for URL-sourced images
-                                            and users think the smart entry
-                                            never set one. */}
-                                        {place.image?.url && (
-                                            <div className="place-image-preview">
-                                                <img
-                                                    src={place.image.url}
-                                                    alt={place.image.name ?? place.name ?? 'Activity image'}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="place-image-preview-clear"
-                                                    onClick={() => handleOnChange('image', undefined as unknown as ImageRef)}
-                                                    aria-label="Remove image"
-                                                >
-                                                    <CloseRoundedIcon fontSize="small" />
-                                                </button>
-                                            </div>
-                                        )}
-                                        <InputField
-                                            type="file"
-                                            label="image"
-                                            name="image"
-                                            onChange={handleImageChange}
-                                        />
-                                    </Grid>
-                                    </>
-                                    )}
-                                </Grid>
-                            )}
-
-                            {place.kind === ACTIVITY_KIND.NOTE && (
-                                <Grid container>
-                                    {/* Notes are free-form text only — no
-                                        separate title. The first line of the
-                                        note doubles as the headline on the
-                                        timeline card (handleSubmit fills
-                                        place.name from the note if name is
-                                        empty). Using a multiline TextField
-                                        instead of the standard InputField so
-                                        users can write paragraphs without the
-                                        textbox feeling cramped. */}
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <TextField
-                                            fullWidth
-                                            multiline
-                                            minRows={4}
-                                            maxRows={12}
-                                            variant="outlined"
-                                            value={place.note ?? ''}
-                                            name="note"
-                                            label="Note"
-                                            placeholder="Jot down anything — reminders, ideas, links, packing checklist…"
-                                            onChange={(e) =>
-                                                handleOnChange('note', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                </Grid>
-                            )}
-
-                            {place.kind === ACTIVITY_KIND.FLIGHT && (
-                                <Grid container>
-                                    {/* Smart entry — natural-language shortcut.
-                                        Sits above the segments list so users can
-                                        type "UA123 tomorrow" or "UA123 today
-                                        stopover BA245" and the parser builds /
-                                        populates the segment rows. Moved above
-                                        the Flight-name field because the smart
-                                        entry now auto-derives a name from the
-                                        route, so most users never need to fill
-                                        the name field at all. The segment
-                                        fields below stay plain (no per-field
-                                        parser) — this is the only place that
-                                        accepts free-form input. AI-flavored
-                                        styling (gradient border + sparkle
-                                        adornment) signals it's not a regular
-                                        form field. */}
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <div className="flight-smart-entry">
-                                            <div className="flight-smart-entry-field">
-                                                <TextField
-                                                    fullWidth
-                                                    multiline
-                                                    minRows={1}
-                                                    maxRows={3}
-                                                    variant="outlined"
-                                                    value={smartEntry}
-                                                    onChange={(e) =>
-                                                        handleSmartEntry(e.target.value)
-                                                    }
-                                                    placeholder='Try: "UA123 tomorrow" or "UA123 today stopover BA245"'
-                                                    InputProps={{
-                                                        startAdornment: (
-                                                            <InputAdornment position="start">
-                                                                <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
-                                                            </InputAdornment>
-                                                        ),
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="flight-smart-entry-hint">
-                                                <span>
-                                                    Type your flight(s) here and
-                                                    we&rsquo;ll auto-create the
-                                                    segments below. Or expand a
-                                                    segment and fill it in
-                                                    manually.
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </Grid>
-                                    {(place.flightSegments ?? [emptySegment(isoDefaultDate)]).map(
-                                        (segment, segIdx, allSegs) => (
-                                            <Grid
-                                                key={segIdx}
-                                                item
-                                                lg={12}
-                                                xs={12}
-                                                className="flight-segment-block"
-                                            >
-                                                <div className="flight-segment-header">
-                                                    <button
-                                                        type="button"
-                                                        className="flight-segment-open-toggle"
-                                                        onClick={() =>
-                                                            toggleSegmentOpen(segIdx)
-                                                        }
-                                                        aria-expanded={openSegments.has(segIdx)}
-                                                    >
-                                                        {openSegments.has(segIdx) ? (
-                                                            <ExpandLessRoundedIcon fontSize="small" />
-                                                        ) : (
-                                                            <ExpandMoreRoundedIcon fontSize="small" />
-                                                        )}
-                                                        <span className="flight-segment-label">
-                                                            {`Segment ${segIdx + 1}`}
-                                                            {segment.flightNumber?.trim() && (
-                                                                <span className="flight-segment-label-sub">
-                                                                    {' · '}
-                                                                    {segment.flightNumber.trim().toUpperCase()}
-                                                                </span>
-                                                            )}
-                                                        </span>
-                                                    </button>
-                                                    {allSegs.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            className="flight-segment-remove"
-                                                            onClick={() =>
-                                                                handleRemoveSegment(segIdx)
-                                                            }
-                                                            aria-label={`Remove segment ${segIdx + 1}`}
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                {/* Auto-populates this segment's airports +
-                                                    times when the user types a real flight
-                                                    number and a depart date. Silent on
-                                                    failure (no match / no API key) — the
-                                                    user's typed values stay untouched. The
-                                                    watcher stays mounted across collapse so
-                                                    the lookup completes even if the user
-                                                    closes the segment mid-fetch. */}
-                                                <FlightSegmentLookupWatcher
-                                                    flightNumber={segment.flightNumber}
-                                                    departDate={segment.departDate}
-                                                    onResult={(result) => {
-                                                        applyFlightLookup(segIdx, result);
-                                                        // Successful lookup clears any
-                                                        // stale "not found" hint that
-                                                        // a prior typo had set.
-                                                        setLookupNotFound((prev) => {
-                                                            if (!(segIdx in prev)) return prev;
-                                                            const next = { ...prev };
-                                                            delete next[segIdx];
-                                                            return next;
-                                                        });
-                                                    }}
-                                                    onLoadingChange={(loading) =>
-                                                        handleLookupLoadingChange(segIdx, loading)
-                                                    }
-                                                    onNotFound={(num) =>
-                                                        setLookupNotFound((prev) => ({
-                                                            ...prev,
-                                                            [segIdx]: num,
-                                                        }))
-                                                    }
-                                                />
-                                                {openSegments.has(segIdx) && (
-                                                <Grid container>
-                                                    <Grid item lg={12} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.flightNumber ?? ''}
-                                                            name={`flightNumber-${segIdx}`}
-                                                            label="Flight number"
-                                                            placeholder="e.g. UA123"
-                                                            onChange={(e) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'flightNumber',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    {/* Hint + lookup spinner — explains why the
-                                                        airport / date / time fields stay hidden
-                                                        until the user expands them. Spinner shows
-                                                        while AeroDataBox is queried. The
-                                                        not-found nudge below replaces the generic
-                                                        hint when a lookup settled empty so the
-                                                        user knows to fill in the segment by hand. */}
-                                                    <Grid item lg={12} xs={12} className="py-1">
-                                                        <div className="flight-segment-hint">
-                                                            {lookupLoading.has(segIdx) ? (
-                                                                <CircularProgress
-                                                                    size={14}
-                                                                    className="flight-segment-hint-spinner"
-                                                                />
-                                                            ) : (
-                                                                <AutoAwesomeRoundedIcon
-                                                                    fontSize="small"
-                                                                    className="flight-segment-hint-icon"
-                                                                />
-                                                            )}
-                                                            <span className="flight-segment-hint-text">
-                                                                {lookupLoading.has(segIdx)
-                                                                    ? 'Looking up flight details…'
-                                                                    : lookupNotFound[segIdx]
-                                                                      ? `Couldn't find flight ${lookupNotFound[segIdx]}. Fill in the airport, date, and time below manually.`
-                                                                      : "We'll auto-fill the airport, date, and time once you enter a flight number."}
-                                                            </span>
-                                                            <button
-                                                                type="button"
-                                                                className="flight-segment-toggle"
-                                                                onClick={() =>
-                                                                    toggleSegmentExpanded(segIdx)
-                                                                }
-                                                                aria-expanded={expandedSegments.has(segIdx)}
-                                                            >
-                                                                {expandedSegments.has(segIdx) ? (
-                                                                    <>
-                                                                        Hide details
-                                                                        <ExpandLessRoundedIcon fontSize="small" />
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        Show details
-                                                                        <ExpandMoreRoundedIcon fontSize="small" />
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    </Grid>
-                                                    {expandedSegments.has(segIdx) && (
-                                                    <>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <AirportAutocomplete
-                                                            value={segment.departAirport ?? ''}
-                                                            onChange={(code) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'departAirport',
-                                                                    code
-                                                                )
-                                                            }
-                                                            label="Depart airport"
-                                                            placeholder="IATA code, city, or airport"
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <AirportAutocomplete
-                                                            value={segment.arrivalAirport ?? ''}
-                                                            onChange={(code) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'arrivalAirport',
-                                                                    code
-                                                                )
-                                                            }
-                                                            onSelectMeta={(opt) => {
-                                                                // Only the LAST segment's
-                                                                // arrival airport drives the
-                                                                // flight image — that's the
-                                                                // final destination.
-                                                                const segs =
-                                                                    place.flightSegments ?? [];
-                                                                if (segIdx === segs.length - 1) {
-                                                                    setArrivalCity(opt.city);
-                                                                }
-                                                            }}
-                                                            label="Arrival airport"
-                                                            placeholder="IATA code, city, or airport"
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.departDate ?? ''}
-                                                            name={`departDate-${segIdx}`}
-                                                            type="date"
-                                                            label="Depart date"
-                                                            labelOnTop
-                                                            onChange={(e) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'departDate',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            value={segment.departTime ?? ''}
-                                                            name={`departTime-${segIdx}`}
-                                                            type="time"
-                                                            label="Depart time"
-                                                            labelOnTop
-                                                            onChange={(e) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'departTime',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.arrivalDate ?? ''}
-                                                            name={`arrivalDate-${segIdx}`}
-                                                            type="date"
-                                                            label="Arrival date"
-                                                            labelOnTop
-                                                            minDate={segment.departDate || undefined}
-                                                            onChange={(e) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'arrivalDate',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            value={segment.arrivalTime ?? ''}
-                                                            name={`arrivalTime-${segIdx}`}
-                                                            type="time"
-                                                            label="Arrival time"
-                                                            labelOnTop
-                                                            onChange={(e) =>
-                                                                handleSegmentField(
-                                                                    segIdx,
-                                                                    'arrivalTime',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    </>
-                                                    )}
-                                                </Grid>
-                                                )}
-                                            </Grid>
-                                        )
-                                    )}
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <button
-                                            type="button"
-                                            className="flight-segment-add"
-                                            onClick={handleAddSegment}
-                                        >
-                                            + Add segment (stopover)
-                                        </button>
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            defaultValue={place.cost ? String(place.cost) : ''}
-                                            name="cost"
-                                            label="Cost (optional)"
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange('cost', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                </Grid>
-                            )}
-
-                            {(place.kind === ACTIVITY_KIND.HOTEL_CHECKIN ||
-                                place.kind === ACTIVITY_KIND.HOTEL_CHECKOUT) && (
-                                <Grid container>
-                                    {/* In-form side toggle — picks whether
-                                        this activity represents the
-                                        check-in or the check-out event.
-                                        Persists as ACTIVITY_KIND.HOTEL_CHECKIN
-                                        or HOTEL_CHECKOUT so the timeline
-                                        keeps two distinct icons + time
-                                        labels. Hidden on EDIT to keep the
-                                        kind-locked-at-create-time contract;
-                                        editing a hotel event preserves its
-                                        existing side. */}
-                                    {isAdd && (
-                                        <Grid
-                                            item
-                                            lg={12}
-                                            xs={12}
-                                            className="pt-5 pb-0"
-                                        >
-                                            <div
-                                                className={classNames(
-                                                    'hotel-side-toggle',
-                                                    `is-${place.kind === ACTIVITY_KIND.HOTEL_CHECKOUT ? 'checkout' : 'checkin'}`,
-                                                )}
-                                                role="tablist"
-                                                aria-label="Hotel event side"
-                                            >
-                                                <span
-                                                    className="hotel-side-thumb"
-                                                    aria-hidden="true"
-                                                />
-                                                {[
-                                                    {
-                                                        value: ACTIVITY_KIND.HOTEL_CHECKIN,
-                                                        label: 'Check-in',
-                                                        Icon: LoginRoundedIcon,
-                                                    },
-                                                    {
-                                                        value: ACTIVITY_KIND.HOTEL_CHECKOUT,
-                                                        label: 'Check-out',
-                                                        Icon: LogoutRoundedIcon,
-                                                    },
-                                                ].map(({ value, label, Icon }) => {
-                                                    const active = place.kind === value;
-                                                    return (
-                                                        <button
-                                                            key={value}
-                                                            type="button"
-                                                            role="tab"
-                                                            aria-selected={active}
-                                                            className={classNames(
-                                                                'hotel-side-btn',
-                                                                { selected: active },
-                                                            )}
-                                                            onClick={() =>
-                                                                // Switch the
-                                                                // saved kind
-                                                                // without
-                                                                // re-running
-                                                                // handleKindChange's
-                                                                // full reset —
-                                                                // the form
-                                                                // fields are
-                                                                // identical for
-                                                                // both sides.
-                                                                setPlace((prev) => ({
-                                                                    ...prev,
-                                                                    kind: value,
-                                                                }))
-                                                            }
-                                                        >
-                                                            <Icon
-                                                                className="hotel-side-icon"
-                                                                fontSize="small"
-                                                            />
-                                                            <span>{label}</span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </Grid>
-                                    )}
-                                    {isAdd && countryScope && (
-                                        <Grid item lg={12} xs={12} className="pt-8 pb-5">
-                                            <PlaceSuggestions
-                                                country={countryScope}
-                                                city={cityScope}
-                                                topic="top hotels"
-                                                headingPrefix="Suggested hotels in"
-                                                onPick={handlePlacePicked}
-                                            />
-                                        </Grid>
-                                    )}
-                                    {/* Smart entry — natural language /
-                                        Google Maps link → search →
-                                        populate hotel name + address +
-                                        image in one shot. Same shape as
-                                        the PLACE smart entry. */}
-                                    {isAdd && (
-                                        <Grid item lg={12} xs={12} className="py-5">
-                                            <div className="flight-smart-entry">
-                                                <div className="flight-smart-entry-field">
-                                                    <TextField
-                                                        fullWidth
-                                                        variant="outlined"
-                                                        value={hotelSmartEntry}
-                                                        onChange={(e) =>
-                                                            setHotelSmartEntry(e.target.value)
-                                                        }
-                                                        placeholder={
-                                                            countryScope
-                                                                ? `e.g. "Hilton Tokyo, check-in 3pm, $200" — searched in ${countryScope}`
-                                                                : 'e.g. "Hilton Tokyo, check-in 3pm, $200", or paste a Google Maps link'
-                                                        }
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    {hotelSmartLoading ? (
-                                                                        <CircularProgress
-                                                                            size={16}
-                                                                            className="flight-smart-entry-input-icon"
-                                                                        />
-                                                                    ) : (
-                                                                        <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
-                                                                    )}
-                                                                </InputAdornment>
-                                                            ),
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div className="flight-smart-entry-hint">
-                                                    <span>
-                                                        {hotelSmartLoading
-                                                            ? 'Looking up the hotel…'
-                                                            : countryScope
-                                                              ? `Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search ${countryScope} and fill in the details below.`
-                                                              : "Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search and fill in the details below."}
-                                                    </span>
-                                                </div>
-                                                {hotelSmartWarning && (
-                                                    <div className="flight-smart-entry-warning">
-                                                        {hotelSmartWarning}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <PlaceSmartEntryWatcher
-                                                rawInput={hotelSmartEntry}
-                                                country={smartEntryLocation ?? countryScope}
-                                                onResult={(item: PlaceRecommendation, parsed, extras) => {
-                                                    // Same two-failure handling as the
-                                                    // PLACE smart entry above — wrong-
-                                                    // country and bare-match get a clear
-                                                    // "add manually below" message instead
-                                                    // of silently populating bogus data.
-                                                    const isWrongCountry =
-                                                        Boolean(countryScope) &&
-                                                        !sameCountry(countryScope, item.country);
-                                                    const isBareMatch =
-                                                        item.latitude == null &&
-                                                        item.longitude == null &&
-                                                        !extras?.formattedAddress?.trim();
-                                                    if (isWrongCountry) {
-                                                        setHotelSmartWarning(
-                                                            `Couldn't find “${item.name}” in ${countryScope}` +
-                                                                (item.country
-                                                                    ? ` — closest match is in ${item.country}.`
-                                                                    : '.') +
-                                                                ` Add it manually using the details form below, or prefix the search with # to keep this exact name.`,
-                                                        );
-                                                        return;
-                                                    }
-                                                    if (isBareMatch) {
-                                                        setHotelSmartWarning(
-                                                            `Couldn't find an exact match for “${item.name}”. Fill in the address / cost / time using the form below.`,
-                                                        );
-                                                        handleOnChange('name', item.name);
-                                                        if (parsed.startTime) {
-                                                            handleOnChange('startTime', parsed.startTime);
-                                                        }
-                                                        if (parsed.cost != null) {
-                                                            handleOnChange('cost', String(parsed.cost));
-                                                        }
-                                                        if (parsed.confirmationNumber) {
-                                                            handleOnChange(
-                                                                'confirmationNumber',
-                                                                parsed.confirmationNumber,
-                                                            );
-                                                        }
-                                                        setHotelDetailsExpanded(true);
-                                                        return;
-                                                    }
-                                                    setHotelSmartWarning(null);
-                                                    handlePlacePicked({
-                                                        name: item.name,
-                                                        // Prefer Google's
-                                                        // formatted street
-                                                        // address over the
-                                                        // recommender's
-                                                        // "City, Country"
-                                                        // string when Google
-                                                        // found a match.
-                                                        location:
-                                                            extras?.formattedAddress?.trim() ||
-                                                            [item.city, item.country]
-                                                                .filter((s) => s && s.trim())
-                                                                .join(', '),
-                                                        city: item.city,
-                                                        country: item.country,
-                                                        countryCode: item.countryCode,
-                                                        imageUrl: item.imageUrl,
-                                                        latitude: item.latitude,
-                                                        longitude: item.longitude,
-                                                    });
-                                                    if (parsed.startTime) {
-                                                        handleOnChange('startTime', parsed.startTime);
-                                                    }
-                                                    if (parsed.cost != null) {
-                                                        handleOnChange('cost', String(parsed.cost));
-                                                    }
-                                                    if (parsed.confirmationNumber) {
-                                                        handleOnChange(
-                                                            'confirmationNumber',
-                                                            parsed.confirmationNumber,
-                                                        );
-                                                    }
-                                                    // Capture a separate
-                                                    // HOTEL_CHECKOUT to spawn
-                                                    // alongside the primary
-                                                    // CHECKIN once the user
-                                                    // clicks Save. Cleared
-                                                    // when the smart entry no
-                                                    // longer mentions check-
-                                                    // out (so editing the
-                                                    // input clears a stale
-                                                    // pending checkout).
-                                                    if (parsed.checkOutTime) {
-                                                        setPendingHotelCheckout({
-                                                            startTime: parsed.checkOutTime,
-                                                            date: parsed.checkOutDate,
-                                                        });
-                                                    } else {
-                                                        setPendingHotelCheckout(null);
-                                                    }
-                                                    // Auto-expand the hotel
-                                                    // details block when the
-                                                    // smart entry actually
-                                                    // populated time / cost /
-                                                    // confirmation — otherwise
-                                                    // the user can't see what
-                                                    // we just filled in.
-                                                    if (
-                                                        parsed.startTime ||
-                                                        parsed.cost != null ||
-                                                        parsed.confirmationNumber
-                                                    ) {
-                                                        setHotelDetailsExpanded(true);
-                                                    }
-                                                }}
-                                                onLoadingChange={setHotelSmartLoading}
-                                                onWarning={setHotelSmartWarning}
-                                            />
-                                        </Grid>
-                                    )}
-                                    {/* Name + address → notes hidden by default.
-                                        Smart entry above usually fills the
-                                        name + address + time + cost; user
-                                        expands to verify or tweak. */}
-                                    <Grid item lg={12} xs={12} className="py-1">
-                                        <button
-                                            type="button"
-                                            className="flight-segment-toggle"
-                                            onClick={() =>
-                                                setHotelDetailsExpanded((v) => !v)
-                                            }
-                                            aria-expanded={hotelDetailsExpanded}
-                                        >
-                                            {hotelDetailsExpanded ? (
-                                                <>
-                                                    Hide details
-                                                    <ExpandLessRoundedIcon fontSize="small" />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    Show details (name, address, time, confirmation, cost, notes)
-                                                    <ExpandMoreRoundedIcon fontSize="small" />
-                                                </>
-                                            )}
-                                        </button>
-                                    </Grid>
-                                    {hotelDetailsExpanded && (
-                                    <>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <PlaceAutocomplete
-                                            value={place.name ?? ''}
-                                            onTextChange={(text) =>
-                                                handleOnChange('name', text)
-                                            }
-                                            onSelect={handlePlacePicked}
-                                            country={countryScope}
-                                            queryPrefix="hotel"
-                                            label={
-                                                countryScope
-                                                    ? `Hotel name (or search in ${countryScope})`
-                                                    : 'Hotel name'
-                                            }
-                                            placeholder="Type a hotel name — we'll suggest matches"
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.location ?? ''}
-                                            name="location"
-                                            label="Address (optional)"
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange('location', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.startTime ?? ''}
-                                            name="startTime"
-                                            type="time"
-                                            label={
-                                                place.kind ===
-                                                ACTIVITY_KIND.HOTEL_CHECKIN
-                                                    ? 'Check-in time'
-                                                    : 'Check-out time'
-                                            }
-                                            labelOnTop
-                                            onChange={(e) =>
-                                                handleOnChange('startTime', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.confirmationNumber ?? ''}
-                                            name="confirmationNumber"
-                                            label="Confirmation # (optional)"
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange(
-                                                    'confirmationNumber',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.cost ? String(place.cost) : ''}
-                                            name="cost"
-                                            label={
-                                                place.kind ===
-                                                ACTIVITY_KIND.HOTEL_CHECKIN
-                                                    ? 'Cost (optional — total stay)'
-                                                    : 'Cost (optional)'
-                                            }
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange('cost', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <InputField
-                                            value={place.note ?? ''}
-                                            name="note"
-                                            label="Notes (optional)"
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange('note', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    </>
-                                    )}
-                                </Grid>
-                            )}
-
-                            {(place.kind === ACTIVITY_KIND.TRAIN ||
-                                place.kind === ACTIVITY_KIND.BUS ||
-                                place.kind === ACTIVITY_KIND.RENTAL_CAR) && (
-                                <Grid container>
-                                    {/* In-form mode toggle — picks
-                                        Train, Bus, or Rental car. Same
-                                        sliding-thumb treatment as the
-                                        hotel side toggle above;
-                                        persists as ACTIVITY_KIND.TRAIN /
-                                        BUS / RENTAL_CAR so the timeline
-                                        icon + labels stay accurate.
-                                        Hidden on EDIT to match the rest
-                                        of the modal's "kind locks at
-                                        create time" contract. */}
-                                    {isAdd && (
-                                        <Grid
-                                            item
-                                            lg={12}
-                                            xs={12}
-                                            className="pt-5 pb-0"
-                                        >
-                                            <div
-                                                className={classNames(
-                                                    'hotel-side-toggle',
-                                                    'is-three',
-                                                    `is-${
-                                                        place.kind === ACTIVITY_KIND.BUS
-                                                            ? 'bus'
-                                                            : place.kind === ACTIVITY_KIND.RENTAL_CAR
-                                                              ? 'rental-car'
-                                                              : 'train'
-                                                    }`,
-                                                )}
-                                                role="tablist"
-                                                aria-label="Ground transport mode"
-                                            >
-                                                <span
-                                                    className="hotel-side-thumb"
-                                                    aria-hidden="true"
-                                                />
-                                                {[
-                                                    {
-                                                        value: ACTIVITY_KIND.TRAIN,
-                                                        label: 'Train',
-                                                        Icon: DirectionsTransitRoundedIcon,
-                                                    },
-                                                    {
-                                                        value: ACTIVITY_KIND.BUS,
-                                                        label: 'Bus',
-                                                        Icon: DirectionsBusRoundedIcon,
-                                                    },
-                                                    {
-                                                        value: ACTIVITY_KIND.RENTAL_CAR,
-                                                        label: 'Rental car',
-                                                        Icon: CarRentalRoundedIcon,
-                                                    },
-                                                ].map(({ value, label, Icon }) => {
-                                                    const active = place.kind === value;
-                                                    return (
-                                                        <button
-                                                            key={value}
-                                                            type="button"
-                                                            role="tab"
-                                                            aria-selected={active}
-                                                            className={classNames(
-                                                                'hotel-side-btn',
-                                                                { selected: active },
-                                                            )}
-                                                            onClick={() =>
-                                                                // Switch
-                                                                // the saved
-                                                                // kind. Both
-                                                                // sides share
-                                                                // identical
-                                                                // form fields
-                                                                // (operator,
-                                                                // number,
-                                                                // stations,
-                                                                // times,
-                                                                // class/seat,
-                                                                // cost) so no
-                                                                // reset
-                                                                // needed —
-                                                                // just flip
-                                                                // the kind
-                                                                // and the
-                                                                // labels
-                                                                // adapt.
-                                                                setPlace((prev) => ({
-                                                                    ...prev,
-                                                                    kind: value,
-                                                                }))
-                                                            }
-                                                        >
-                                                            <Icon
-                                                                className="hotel-side-icon"
-                                                                fontSize="small"
-                                                            />
-                                                            <span>{label}</span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </Grid>
-                                    )}
-                                    {/* Smart entry — natural language →
-                                        fills depart/arrival station + times
-                                        + cost on the first segment in one
-                                        shot. Synchronous parser, no backend
-                                        call (transit doesn't have an AI
-                                        recommender). Always visible; the
-                                        per-segment fields below stay hidden
-                                        behind Show details to keep the form
-                                        compact for the common case. */}
-                                    {isAdd && (
-                                        <Grid item lg={12} xs={12} className="py-5">
-                                            <div className="flight-smart-entry">
-                                                <div className="flight-smart-entry-field">
-                                                    <TextField
-                                                        fullWidth
-                                                        variant="outlined"
-                                                        value={transitSmartEntry}
-                                                        onChange={(e) =>
-                                                            setTransitSmartEntry(e.target.value)
-                                                        }
-                                                        placeholder={
-                                                            place.kind === ACTIVITY_KIND.RENTAL_CAR
-                                                                ? 'e.g. "Hertz pickup JFK 10am $50"'
-                                                                : 'e.g. "Tokyo to Kyoto 9am-12pm $100"'
-                                                        }
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <AutoAwesomeRoundedIcon className="flight-smart-entry-input-icon" />
-                                                                </InputAdornment>
-                                                            ),
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div className="flight-smart-entry-hint">
-                                                    <span>
-                                                        Type stations, times, and cost — we&rsquo;ll fill the details below.
-                                                    </span>
-                                                </div>
-                                                {transitSmartWarning && (
-                                                    <div className="flight-smart-entry-warning">
-                                                        {transitSmartWarning}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Grid>
-                                    )}
-                                    {/* Show details toggle — collapses the
-                                        whole per-segment form (trip name,
-                                        legs, times, cost) so the smart entry
-                                        alone is enough for the common single-
-                                        leg case. Auto-expands once the smart
-                                        entry resolves anything. */}
-                                    <Grid item lg={12} xs={12} className="py-1">
-                                        <button
-                                            type="button"
-                                            className="flight-segment-toggle"
-                                            onClick={() =>
-                                                setTransitDetailsExpanded((v) => !v)
-                                            }
-                                            aria-expanded={transitDetailsExpanded}
-                                        >
-                                            {transitDetailsExpanded ? (
-                                                <>
-                                                    <ExpandLessRoundedIcon fontSize="small" />
-                                                    Hide details
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ExpandMoreRoundedIcon fontSize="small" />
-                                                    Show details (trip name, segments, times, cost)
-                                                </>
-                                            )}
-                                        </button>
-                                    </Grid>
-                                    {transitDetailsExpanded && (
-                                    <>
-                                    <Grid item lg={12} xs={12} className="pt-5 pb-5">
-                                        <InputField
-                                            value={place.name ?? ''}
-                                            name="name"
-                                            label="Trip name (optional — auto-fills from operator + number)"
-                                            required={false}
-                                            onChange={(e) =>
-                                                handleOnChange('name', e.target.value)
-                                            }
-                                        />
-                                    </Grid>
-                                    {(place.transitSegments ?? [emptyTransitSegment(isoDefaultDate)]).map(
-                                        (segment, segIdx, allSegs) => (
-                                            <Grid
-                                                key={segIdx}
-                                                item
-                                                lg={12}
-                                                xs={12}
-                                                className="flight-segment-block"
-                                            >
-                                                <div className="flight-segment-header">
-                                                    <span className="flight-segment-label">
-                                                        {allSegs.length > 1
-                                                            ? `Leg ${segIdx + 1}`
-                                                            : 'Trip details'}
-                                                    </span>
-                                                    {allSegs.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            className="flight-segment-remove"
-                                                            onClick={() =>
-                                                                handleRemoveTransitSegment(segIdx)
-                                                            }
-                                                            aria-label={`Remove leg ${segIdx + 1}`}
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                {/* OpenAI-backed schedule lookup, train + bus
-                                                    only. Rental cars carry private booking
-                                                    codes that aren't schedule-lookupable, so
-                                                    they're excluded — same reason
-                                                    parseTransitEntry doesn't try to enrich
-                                                    rental confirmations. Hint row below
-                                                    surfaces loading / not-found state per
-                                                    segment, mirroring the flight form. */}
-                                                {(place.kind === ACTIVITY_KIND.TRAIN ||
-                                                    place.kind === ACTIVITY_KIND.BUS) && (
-                                                    <>
-                                                        <TransitSegmentLookupWatcher
-                                                            operator={segment.operator}
-                                                            number={segment.number}
-                                                            kind={
-                                                                place.kind === ACTIVITY_KIND.TRAIN
-                                                                    ? 'train'
-                                                                    : 'bus'
-                                                            }
-                                                            departDate={segment.departDate}
-                                                            country={countryScope}
-                                                            onResult={(result) => {
-                                                                applyTransitLookup(segIdx, result);
-                                                                setTransitLookupNotFound((prev) => {
-                                                                    if (!(segIdx in prev)) return prev;
-                                                                    const next = { ...prev };
-                                                                    delete next[segIdx];
-                                                                    return next;
-                                                                });
-                                                            }}
-                                                            onLoadingChange={(loading) =>
-                                                                handleTransitLookupLoadingChange(
-                                                                    segIdx,
-                                                                    loading,
-                                                                )
-                                                            }
-                                                            onNotFound={(label) =>
-                                                                setTransitLookupNotFound((prev) => ({
-                                                                    ...prev,
-                                                                    [segIdx]: label,
-                                                                }))
-                                                            }
-                                                        />
-                                                        <div className="flight-segment-hint">
-                                                            {transitLookupLoading.has(segIdx) ? (
-                                                                <CircularProgress
-                                                                    size={14}
-                                                                    className="flight-segment-hint-spinner"
-                                                                />
-                                                            ) : (
-                                                                <AutoAwesomeRoundedIcon
-                                                                    fontSize="small"
-                                                                    className="flight-segment-hint-icon"
-                                                                />
-                                                            )}
-                                                            <span className="flight-segment-hint-text">
-                                                                {transitLookupLoading.has(segIdx)
-                                                                    ? 'Looking up schedule…'
-                                                                    : transitLookupNotFound[segIdx]
-                                                                      ? `Couldn't find ${transitLookupNotFound[segIdx]}. Fill in the stations, date, and time below manually.`
-                                                                      : "Type the operator + number and we'll try to auto-fill the stations and times."}
-                                                            </span>
-                                                        </div>
-                                                    </>
-                                                )}
-                                                <Grid container>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.operator ?? ''}
-                                                            name={`transitOperator-${segIdx}`}
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.TRAIN
-                                                                    ? 'Operator (e.g. Renfe, JR)'
-                                                                    : place.kind ===
-                                                                        ACTIVITY_KIND.RENTAL_CAR
-                                                                      ? 'Rental company (e.g. Hertz, Avis)'
-                                                                      : 'Operator (e.g. FlixBus, Greyhound)'
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'operator',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            value={segment.number ?? ''}
-                                                            name={`transitNumber-${segIdx}`}
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.TRAIN
-                                                                    ? 'Train number'
-                                                                    : place.kind ===
-                                                                        ACTIVITY_KIND.RENTAL_CAR
-                                                                      ? 'Confirmation #'
-                                                                      : 'Bus number / route'
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'number',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.departStation ?? ''}
-                                                            name={`transitDepartStation-${segIdx}`}
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.RENTAL_CAR
-                                                                    ? 'Pickup location'
-                                                                    : 'Depart station'
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'departStation',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            value={segment.arrivalStation ?? ''}
-                                                            name={`transitArrivalStation-${segIdx}`}
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.RENTAL_CAR
-                                                                    ? 'Dropoff location (optional)'
-                                                                    : 'Arrival station (optional)'
-                                                            }
-                                                            required={false}
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'arrivalStation',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.departDate ?? ''}
-                                                            name={`transitDepartDate-${segIdx}`}
-                                                            type="date"
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.RENTAL_CAR
-                                                                    ? 'Pickup date'
-                                                                    : 'Depart date'
-                                                            }
-                                                            labelOnTop
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'departDate',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            value={segment.departTime ?? ''}
-                                                            name={`transitDepartTime-${segIdx}`}
-                                                            type="time"
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.RENTAL_CAR
-                                                                    ? 'Pickup time'
-                                                                    : 'Depart time'
-                                                            }
-                                                            labelOnTop
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'departTime',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.arrivalDate ?? ''}
-                                                            name={`transitArrivalDate-${segIdx}`}
-                                                            type="date"
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.RENTAL_CAR
-                                                                    ? 'Dropoff date (optional)'
-                                                                    : 'Arrival date (optional)'
-                                                            }
-                                                            labelOnTop
-                                                            required={false}
-                                                            minDate={segment.departDate || undefined}
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'arrivalDate',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            value={segment.arrivalTime ?? ''}
-                                                            name={`transitArrivalTime-${segIdx}`}
-                                                            type="time"
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.RENTAL_CAR
-                                                                    ? 'Dropoff time (optional)'
-                                                                    : 'Arrival time (optional)'
-                                                            }
-                                                            labelOnTop
-                                                            required={false}
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'arrivalTime',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5">
-                                                        <InputField
-                                                            value={segment.classOrSeat ?? ''}
-                                                            name={`transitClassOrSeat-${segIdx}`}
-                                                            label={
-                                                                place.kind ===
-                                                                ACTIVITY_KIND.TRAIN
-                                                                    ? 'Class / seat (optional)'
-                                                                    : place.kind ===
-                                                                        ACTIVITY_KIND.RENTAL_CAR
-                                                                      ? 'Car class (e.g. Compact, SUV) (optional)'
-                                                                      : 'Seat (optional)'
-                                                            }
-                                                            required={false}
-                                                            onChange={(e) =>
-                                                                handleTransitField(
-                                                                    segIdx,
-                                                                    'classOrSeat',
-                                                                    e.target.value,
-                                                                )
-                                                            }
-                                                        />
-                                                    </Grid>
-                                                    <Grid item lg={6} xs={12} className="py-5 lg:pl-2">
-                                                        <InputField
-                                                            defaultValue={
-                                                                segIdx === 0 && place.cost
-                                                                    ? String(place.cost)
-                                                                    : ''
-                                                            }
-                                                            name={`transitCost-${segIdx}`}
-                                                            label="Cost (optional)"
-                                                            required={false}
-                                                            onChange={(e) =>
-                                                                // Only the first segment's cost
-                                                                // edits the top-level cost; later
-                                                                // segments are display-only on the
-                                                                // headline number. Keeps the
-                                                                // existing Activity.cost contract
-                                                                // intact (one number per activity).
-                                                                segIdx === 0
-                                                                    ? handleOnChange(
-                                                                          'cost',
-                                                                          e.target.value,
-                                                                      )
-                                                                    : undefined
-                                                            }
-                                                            disabled={segIdx !== 0}
-                                                        />
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
-                                        ),
-                                    )}
-                                    <Grid item lg={12} xs={12} className="py-5">
-                                        <button
-                                            type="button"
-                                            className="flight-segment-add"
-                                            onClick={handleAddTransitSegment}
-                                        >
-                                            {place.kind === ACTIVITY_KIND.RENTAL_CAR
-                                                ? '+ Add stopover'
-                                                : '+ Add leg (transfer)'}
-                                        </button>
-                                    </Grid>
-                                    </>
-                                    )}
-                                </Grid>
-                            )}
+                            <Grid item lg={12} md={12} xs={12}>
+                                <ButtonCustom
+                                    onClick={handleSubmit}
+                                    label={PLACE_LABEL.SAVE}
+                                    type={BUTTON_VARIANT.STANDARD}
+                                    capitalizeType="uppercase"
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item lg={12} md={12} xs={12}>
-                            <ButtonCustom
-                                onClick={handleSubmit}
-                                label={isAdd ? PLACE_LABEL.ADD : PLACE_LABEL.SAVE}
-                                type={BUTTON_VARIANT.STANDARD}
-                                capitalizeType="uppercase"
-                            />
+                    ) : (
+                        <Grid container key={formKey}>
+                            <Grid
+                                item
+                                lg={12}
+                                md={12}
+                                xs={12}
+                                id="add-place-form-container"
+                            >
+                                {wizardStep === 1 && (
+                                    <TypeStep
+                                        currentKind={currentKind}
+                                        onPick={handleTypePick}
+                                    />
+                                )}
+                                {wizardStep === 2 && showMethodChooser && (
+                                    <>
+                                        <MethodStep
+                                            methods={availableMethods}
+                                            onPick={handleMethodPick}
+                                        />
+                                        <WizardNav
+                                            onBack={() => setWizardStep(1)}
+                                        />
+                                    </>
+                                )}
+                                {wizardStep === 2 && !showMethodChooser && (
+                                    <>
+                                        {renderKindForm({
+                                            method:
+                                                method ?? availableMethods[0],
+                                        })}
+                                        <WizardNav
+                                            onBack={handleWizardBackFromInput}
+                                            onNext={handleWizardNext}
+                                        />
+                                    </>
+                                )}
+                                {wizardStep === 3 && (
+                                    <>
+                                        <ReviewStep
+                                            place={place}
+                                            derivedName={deriveActivityName()}
+                                        />
+                                        <WizardNav
+                                            onBack={() => setWizardStep(2)}
+                                            onConfirm={() =>
+                                                handleSubmit({
+                                                    preventDefault: () => {},
+                                                } as React.MouseEvent<HTMLButtonElement>)
+                                            }
+                                        />
+                                    </>
+                                )}
+                            </Grid>
                         </Grid>
-                    </Grid>
+                    )}
                     {/* Validation feedback as a transient Snackbar
                         instead of an inline alert at the bottom of the
                         form. Avoids pushing the submit button down the

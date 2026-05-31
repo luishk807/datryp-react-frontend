@@ -73,11 +73,18 @@ const toPlace = (raw: PlaceItemRaw): PlaceRecommendation => ({
 export const fetchPlaceRecommendations = async (
     query: string,
     limit = 2,
-    country?: string
+    country?: string,
+    // 'suggestion' marks the auto-fired Add-Activity suggestion strip, which
+    // the backend exempts from the free-tier search quota. Explicit user
+    // searches (homepage / smart-entry) use the default 'search'.
+    kind: 'search' | 'suggestion' = 'search'
 ): Promise<PlaceRecommendationsResult> => {
     const params = new URLSearchParams({ q: query, limit: String(limit) });
     if (country && country.trim()) {
         params.set('country', country.trim());
+    }
+    if (kind === 'suggestion') {
+        params.set('kind', 'suggestion');
     }
     // /place-recommendations now requires auth — attach the bearer token.
     // Anonymous calls get 401 from the route and surface here as a thrown

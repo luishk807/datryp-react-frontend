@@ -2,10 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { usePhotoSearch } from 'api/hooks/usePhotoSearch';
 import { usePlaceRating } from 'api/hooks/usePlaceRating';
+import { isSearchQuotaExceededError } from 'api/searchQuotaError';
 import {
     isShortLinkUrl,
     useResolveShortLink,
 } from 'api/hooks/useResolveShortLink';
+import { useExtractLink } from 'api/hooks/useExtractLink';
+import { useUser } from 'context/UserContext';
 import type { PlaceRecommendation } from 'types';
 import { parsePlaceEntry, type ParsedPlaceEntry } from './parsePlaceQuery';
 
@@ -16,6 +19,18 @@ import { parsePlaceEntry, type ParsedPlaceEntry } from './parsePlaceQuery';
 export interface SmartEntryExtras {
     formattedAddress?: string;
     placeId?: string;
+    /** Pro-upsell line set when a pasted Maps/Yelp link resolved a place
+     *  but the street address was withheld because the user is on the
+     *  free tier (Google Places = Pro). The caller surfaces it so free
+     *  users learn the name + pin came through and Pro unlocks the full
+     *  address. Undefined for Pro users or typed (non-URL) input. */
+    addressUpsell?: string;
+    /** True when this result came from scraping a pasted page's own
+     *  schema.org data (a hotel / booking URL), not the recommender or
+     *  Google Places. The caller treats it as a trusted, user-pasted
+     *  place — skipping the wrong-country guard, since the user pointed
+     *  us at this exact page. */
+    fromScrape?: boolean;
 }
 
 /** Pull the country name out of a Google Places `formattedAddress`.
@@ -89,6 +104,12 @@ const PlaceSmartEntryWatcher = ({
 }: PlaceSmartEntryWatcherProps) => {
     const [parsed, setParsed] = useState<ParsedPlaceEntry | null>(null);
     const appliedRef = useRef<string | null>(null);
+    const scrapeAppliedRef = useRef<string | null>(null);
+    // Pro status drives the street-address upsell on a pasted link: free
+    // users get the name + map pin (from the URL's coords, no Google call)
+    // but the Google-Places street address is held back behind Pro.
+    const { user, isAdmin } = useUser();
+    const isPro = Boolean(user && (user.isPaidMember || isAdmin));
 
     // Short-link unwrap: `maps.app.goo.gl/...` URLs are opaque and
     // need a backend redirect-follow before we can extract a place.
@@ -123,33 +144,71 @@ const PlaceSmartEntryWatcher = ({
         return () => clearTimeout(timer);
     }, [effectiveInput]);
 
-    // Surface URL-extraction failures back to the caller. Cleared
-    // whenever a usable parse lands (empty / plain text / URL with a
-    // resolved name) so a stale warning doesn't linger.
+    // Generic URL scrape: when the input is a URL we couldn't name-extract
+    // (i.e. NOT a Google Maps / Yelp link the parser handles directly),
+    // ask the backend to read the page's own schema.org JSON-LD for the
+    // place + street address. Free — it's the pasted page's structured
+    // data, no Google Places call.
+    const isHttpUrl = /^https?:\/\//i.test((effectiveInput ?? '').trim());
+    const needsScrape = isHttpUrl && parsed?.urlExtractionFailed === true;
+    const { data: scraped, isFetching: scrapeFetching } = useExtractLink(
+        needsScrape ? (effectiveInput ?? '').trim() : '',
+        { enabled: needsScrape },
+    );
+    // Effective search query: the parsed place name, OR — when a pasted
+    // URL couldn't be scraped (bot-blocked brand site like hilton.com) —
+    // the slug-derived fallback name so the recommender can still resolve
+    // the place (name + city + pin, just not the street address).
+    const scrapeSettledEmpty =
+        needsScrape && !scrapeFetching && scraped === null;
+    const query =
+        parsed?.query ||
+        (scrapeSettledEmpty ? parsed?.urlSlugFallback ?? '' : '') ||
+        '';
+    const {
+        data: searchData,
+        isFetching: searchFetching,
+        error: searchError,
+    } = useSearchPlaces(query, 1, country);
+
+    // Surface URL-extraction failures AND the over-quota state back to the
+    // caller. Cleared whenever a usable parse lands so a stale warning
+    // doesn't linger.
     useEffect(() => {
+        // Free-tier daily search budget is spent — say so plainly instead
+        // of letting smart search go dead and silent (which reads as
+        // "broken"). The manual detail fields below still work, so the
+        // user can fill name / cost / time and save without the AI assist.
+        if (isSearchQuotaExceededError(searchError)) {
+            onWarning?.(
+                "You've used today's free smart searches. Upgrade to Pro for unlimited — or just fill in the details below and save.",
+            );
+            return;
+        }
         if (!parsed) {
             onWarning?.(null);
             return;
         }
         if (parsed.urlExtractionFailed) {
+            // A non-Google/Yelp URL → we try a server-side scrape of the
+            // page's own structured data. Hold the failure warning while
+            // that's in flight (or succeeded); only surface it once the
+            // scrape settles with nothing usable.
+            if (needsScrape && (scrapeFetching || scraped)) {
+                onWarning?.(null);
+                return;
+            }
             onWarning?.(
                 "We couldn't find a place in that link. Try a Yelp business page, a Google Maps share link, or just type the name.",
             );
             return;
         }
         onWarning?.(null);
-        // onWarning identity may change between renders — depending on
-        // it would re-fire this effect on every parent re-render. The
-        // intent is "react to parsed state", so deliberately exclude it.
+        // onWarning identity may change between renders — depending on it
+        // would re-fire this effect on every parent re-render. The intent
+        // is "react to parsed/search-error state", so deliberately exclude it.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parsed]);
-
-    const query = parsed?.query ?? '';
-    const { data: searchData, isFetching: searchFetching } = useSearchPlaces(
-        query,
-        1,
-        country,
-    );
+    }, [parsed, searchError, needsScrape, scrapeFetching, scraped]);
     // Bias the photo query toward the trip's country so "Ankole Grill"
     // pulls a relevant photo (the restaurant in Tokyo, say) rather than
     // a stock generic.
@@ -166,6 +225,10 @@ const PlaceSmartEntryWatcher = ({
         query,
         country,
         Boolean(query),
+        // The watcher only uses the address / coords / photo — never the
+        // star rating — so the 'place' variant drops the pricier rating
+        // tier from the Google call.
+        'place',
     );
 
     useEffect(() => {
@@ -173,15 +236,59 @@ const PlaceSmartEntryWatcher = ({
             shortLinkFetching ||
                 searchFetching ||
                 photoFetching ||
-                ratingFetching,
+                ratingFetching ||
+                scrapeFetching,
         );
     }, [
         shortLinkFetching,
         searchFetching,
         photoFetching,
         ratingFetching,
+        scrapeFetching,
         onLoadingChange,
     ]);
+
+    // Scrape result → ship it straight to the parent as a trusted,
+    // user-pasted place. Bypasses the recommender/Google merge below
+    // (which never fires here: `parsed.query` is empty for an
+    // unrecognized URL, so the searches stay disabled).
+    useEffect(() => {
+        if (!needsScrape || !scraped) return;
+        const name = scraped.name?.trim();
+        if (!name) return;
+        const parts = [scraped.streetAddress, scraped.city, scraped.region]
+            .map((s) => s?.trim())
+            .filter((s): s is string => Boolean(s));
+        // Append the country only when it's a real name, not a 2-letter
+        // ISO code ("PA") — the bare code reads poorly in the address line.
+        const countryTrimmed = scraped.country?.trim() ?? '';
+        if (countryTrimmed.length > 2) parts.push(countryTrimmed);
+        const formattedAddress = parts.join(', ');
+        const merged: PlaceRecommendation = {
+            name,
+            city: scraped.city ?? '',
+            country: countryTrimmed,
+            countryCode:
+                countryTrimmed.length === 2
+                    ? countryTrimmed.toUpperCase()
+                    : null,
+            rating: 0,
+            bestTimeToVisit: '',
+            description: '',
+            imageUrl: scraped.imageUrl ?? null,
+            photographerName: null,
+            photographerUrl: null,
+            latitude: scraped.latitude ?? null,
+            longitude: scraped.longitude ?? null,
+        };
+        const extras: SmartEntryExtras = { fromScrape: true };
+        if (formattedAddress) extras.formattedAddress = formattedAddress;
+        const key = `${name}|${formattedAddress}|${merged.imageUrl ?? ''}`;
+        if (scrapeAppliedRef.current === key) return;
+        scrapeAppliedRef.current = key;
+        onResult(merged, parsed ?? { query: name }, extras);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [needsScrape, scraped]);
 
     useEffect(() => {
         if (!parsed) return;
@@ -200,7 +307,7 @@ const PlaceSmartEntryWatcher = ({
         // distinctive (≥4 char, so stopwords like "the"/"and"
         // drop out) tokens in the user's query to appear in the
         // result name, or we treat the backend as having missed.
-        const queryTokens = parsed.query
+        const queryTokens = query
             .toLowerCase()
             .replace(/[^\p{L}\p{N}\s]/gu, ' ')
             .split(/\s+/)
@@ -272,7 +379,7 @@ const PlaceSmartEntryWatcher = ({
             // through the parent's `sameCountry` check because the
             // merged result claimed to be in the trip country.
             merged = {
-                name: ratingData?.name ?? parsed.query,
+                name: ratingData?.name ?? query,
                 // We don't get city/country from Google directly, but
                 // the formattedAddress carries the same info plus the
                 // full street. Leave city blank so the parent's
@@ -292,7 +399,7 @@ const PlaceSmartEntryWatcher = ({
                 latitude: ratingData?.latitude ?? null,
                 longitude: ratingData?.longitude ?? null,
             };
-        } else if (parsed.query) {
+        } else if (query) {
             // Bare synthetic: neither backend matched the user's
             // query. We still ship the typed name + (maybe) a photo
             // so the user has something to save and edit. Crucially
@@ -300,7 +407,7 @@ const PlaceSmartEntryWatcher = ({
             // they belong to a different place that happened to share
             // a city / country with the user's input.
             merged = {
-                name: parsed.query,
+                name: query,
                 city: '',
                 country: country ?? '',
                 countryCode: null,
@@ -325,6 +432,16 @@ const PlaceSmartEntryWatcher = ({
         if (ratingTrustworthy && ratingData?.longitude != null && !merged.longitude) {
             merged = { ...merged, longitude: ratingData.longitude };
         }
+        // Pasted Google Maps links carry the place pin right in the URL.
+        // Layer those coords on whenever the name-/coord-based search
+        // didn't already supply them — this is free (no Google Places)
+        // so it geo-pins the activity even on the free tier.
+        if (parsed.latitude != null && merged.latitude == null) {
+            merged = { ...merged, latitude: parsed.latitude };
+        }
+        if (parsed.longitude != null && merged.longitude == null) {
+            merged = { ...merged, longitude: parsed.longitude };
+        }
         const extras: SmartEntryExtras = {};
         if (ratingTrustworthy && ratingData?.formattedAddress) {
             extras.formattedAddress = ratingData.formattedAddress;
@@ -332,7 +449,15 @@ const PlaceSmartEntryWatcher = ({
         if (ratingTrustworthy && ratingData?.placeId) {
             extras.placeId = ratingData.placeId;
         }
-        const key = `${parsed.query}|${merged.name}|${merged.imageUrl ?? ''}|${extras.formattedAddress ?? ''}`;
+        // Free-tier upsell: a deliberately-pasted link resolved a real
+        // place, but the street address comes from Google Places (Pro).
+        // We still filled the name + map pin above; nudge the user toward
+        // Pro for the exact address instead of failing silently.
+        if (parsed.fromUrl && !isPro && !extras.formattedAddress) {
+            extras.addressUpsell =
+                'Added the name and pinned it on the map. Auto-filling the exact street address is a Pro feature.';
+        }
+        const key = `${query}|${merged.name}|${merged.imageUrl ?? ''}|${extras.formattedAddress ?? ''}`;
         if (appliedRef.current === key) return;
         appliedRef.current = key;
         onResult(merged, parsed, extras);
@@ -342,10 +467,12 @@ const PlaceSmartEntryWatcher = ({
         photoData,
         ratingData,
         parsed,
+        query,
         searchFetching,
         photoFetching,
         ratingFetching,
         country,
+        isPro,
     ]);
 
     return null;
