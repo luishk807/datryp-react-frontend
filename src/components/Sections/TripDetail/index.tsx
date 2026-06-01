@@ -290,11 +290,11 @@ export const TripDetail = () => {
     ],
   );
 
-  // Apply an add/edit/delete from the activity card chain. Mirrors
-  // `handleChangeBudget` — purely local state, picked up by `tripStateToSaveInput`
-  // on the next Save Trip. The Activities row already enforces organizer-only
-  // via `isViewMode` (the toggle button is disabled when view-mode is on), so
-  // we don't re-check permissions here.
+  // Apply an add/edit/delete from the activity card chain to localTripData,
+  // then auto-save (see the policy block at the end of the callback). The
+  // Activities row already enforces organizer-only via `isViewMode` (the
+  // affordances are hidden when view-mode is on), so we don't re-check
+  // permissions here beyond the `isOrganizer` gate on the save itself.
   //
   // Event shapes (set by `Activities/index.tsx` -> `DestinationDetail`):
   //  - `add`    : value is a fresh `Activity` draft (no id yet)

@@ -13,7 +13,6 @@ import {
     type DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import type { ReactNode } from 'react';
 import { formatDate, isAfter, isBefore, isSameDay } from 'utils';
 import {
     movePlace as movePlaceAction,
@@ -68,9 +67,6 @@ interface DestinationDetailProps {
      *  firing a second click that would hit the in-flight guard
      *  and surface the "Still saving" toast. */
     isAutoSaving?: boolean;
-    /** Optional node rendered inline at the right of the FIRST day's
-     *  date header. Used on /trip-detail for the "Edit activities" pill. */
-    firstDayAction?: ReactNode;
 }
 
 const fmt = (m: moment.Moment) => m.format('MM/DD/YYYY');
@@ -143,7 +139,6 @@ const DestinationDetail = ({
     allowPaidEdits,
     isAutoSaving = false,
     tripStatusName,
-    firstDayAction,
 }: DestinationDetailProps) => {
     const [dates, setDates] = useState<DateRange[]>([]);
     const [dndError, setDndError] = useState<string | null>(null);
@@ -314,7 +309,6 @@ const DestinationDetail = ({
                         allowPaidEdits={allowPaidEdits}
                         isAutoSaving={isAutoSaving}
                         tripStatusName={tripStatusName}
-                        headerAction={indx === 0 ? firstDayAction : undefined}
                         key={indx}
                         index={indx}
                         tripMaxDate={endDate}

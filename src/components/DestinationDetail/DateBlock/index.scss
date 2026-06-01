@@ -17,14 +17,6 @@
   margin-bottom: 12px;
 }
 
-// Inline action slot at the right of the date header (e.g. the
-// "Edit activities" pill on the first day of /trip-detail).
-.date-block .header .header-action {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-}
-
 .date-block .header .icon {
   display: flex;
   align-items: center;
