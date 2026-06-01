@@ -965,7 +965,13 @@ const Activities = ({
                                 className={
                                   "status-toggle " +
                                   (confirmed ? "is-confirmed" : "is-pending") +
-                                  (isSavingThisPill ? " is-saving" : "")
+                                  (isSavingThisPill ? " is-saving" : "") +
+                                  // Every OTHER pill reads as locked while
+                                  // a status save is in flight, so the user
+                                  // can't fire a second toggle mid-update.
+                                  (isAutoSaving && !isSavingThisPill
+                                    ? " is-locked"
+                                    : "")
                                 }
                                 disabled={
                                   !statusToggleEnabled ||
@@ -976,12 +982,11 @@ const Activities = ({
                                 aria-busy={isSavingThisPill}
                                 aria-label={`Status: ${confirmed ? "Confirmed" : "Planning"}. Click to toggle.`}
                                 onClick={() => {
-                                  // Mark THIS pill as saving so the
-                                  // label flips to "Saving…" and only
-                                  // this button disables — other
-                                  // pills stay live. Cleared by the
-                                  // effect above when the parent's
-                                  // isAutoSaving settles.
+                                  // Mark THIS pill as saving so its label
+                                  // flips to "Saving…"; every other pill
+                                  // disables + dims (is-locked) until the
+                                  // parent's isAutoSaving settles, so a
+                                  // second toggle can't race this update.
                                   setPendingStatusActivityId(activity.id);
                                   onChangePlace("edit", {
                                     index: indx,

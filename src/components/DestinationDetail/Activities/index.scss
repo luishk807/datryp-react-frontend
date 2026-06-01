@@ -457,6 +457,14 @@
   opacity: 0.8;
 }
 
+// Locked while another pill's status save is in flight — clearly dimmed
+// + not-allowed so it reads as "wait for the update to finish" rather
+// than the subtle generic :disabled dim.
+.activity-content-trip .content-detail .info .status-toggle.is-locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 // "Saving…" state — neutral palette + pulse so the click registers
 // visually and the pill reads as in-flight (not as either terminal
 // state). Overrides the colored backgrounds above via specificity.
