@@ -32,7 +32,6 @@
 // via TanStack Query cache so re-opening the trip keeps the score.
 .trip-checkup-box {
     position: relative;
-    width: 100%;
     box-sizing: border-box;
     background: linear-gradient(
         135deg,
@@ -42,7 +41,11 @@
     border: 1px solid var(--checkup-tone-border, rgba(53, 122, 189, 0.22));
     border-radius: 14px;
     padding: 16px 18px;
-    margin: 4px 0 16px;
+    // Inset 8px each side to line up with the "Trip in planning" banner
+    // and the other cards on /trip-detail. (Dropping `width: 100%` so the
+    // block auto-fills the container minus these margins instead of
+    // overflowing by 16px.)
+    margin: 4px 8px 16px;
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
@@ -57,9 +60,17 @@
             rgba(53, 122, 189, 0.05) 100%
         );
     }
+
+    // Collapsed: header + score meter only. Keep a tighter gap than the
+    // expanded card since there are just two stacked rows.
+    &.is-collapsed {
+        gap: 10px;
+    }
 }
 
-.trip-checkup-close {
+// Collapse / expand toggle — chevron pinned top-right. Rotates to
+// point up when collapsed so it reads as "click to expand".
+.trip-checkup-collapse {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -76,6 +87,14 @@
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
     z-index: 2;
+
+    svg {
+        transition: transform 0.15s ease;
+    }
+
+    .is-collapsed & svg {
+        transform: rotate(-180deg);
+    }
 
     &:hover {
         background: var(--checkup-tone, rgba(0, 0, 0, 0.7));

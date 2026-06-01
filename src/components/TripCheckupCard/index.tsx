@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Alert, CircularProgress } from "@mui/material";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
@@ -106,21 +105,24 @@ const TripCheckupCard = ({
 }: TripCheckupCardProps) => {
     const enabled = isPro && isPlanning;
     const query = useTripCheckup({ tripId, enabled });
-    const [isHidden, setIsHidden] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const [openDim, setOpenDim] = useState<"budget" | "time" | "activities" | null>(
         null,
     );
 
-    if (!enabled || isHidden) return null;
+    if (!enabled) return null;
 
     const handleRefresh = () => {
         capture("trip_checkup_refreshed", { trip_id: tripId });
         void query.refetch();
     };
 
-    const handleClose = () => {
-        capture("trip_checkup_dismissed", { trip_id: tripId });
-        setIsHidden(true);
+    const handleToggleCollapse = () => {
+        capture("trip_checkup_collapse_toggled", {
+            trip_id: tripId,
+            collapsed: !isCollapsed,
+        });
+        setIsCollapsed((prev) => !prev);
     };
 
     const toggleDim = (key: "budget" | "time" | "activities") => {
@@ -178,16 +180,19 @@ const TripCheckupCard = ({
                 "trip-checkup-box",
                 overallTone && `trip-checkup-tone-${overallTone}`,
                 !data && "is-pending",
+                isCollapsed && "is-collapsed",
             )}
             aria-label="Trip readiness checkup"
         >
             <button
                 type="button"
-                className="trip-checkup-close"
-                onClick={handleClose}
-                aria-label="Hide trip checkup"
+                className="trip-checkup-collapse"
+                onClick={handleToggleCollapse}
+                aria-expanded={!isCollapsed}
+                aria-label={isCollapsed ? "Expand trip review" : "Collapse trip review"}
+                title={isCollapsed ? "Expand" : "Collapse"}
             >
-                <CloseRoundedIcon fontSize="small" />
+                <ExpandMoreRoundedIcon fontSize="small" />
             </button>
 
             <header className="trip-checkup-head">
@@ -196,7 +201,7 @@ const TripCheckupCard = ({
                 </span>
                 <div className="trip-checkup-head-text">
                     <h3 className="trip-checkup-title">Trip review</h3>
-                    {query.isLoading && (
+                    {!isCollapsed && query.isLoading && (
                         <span className="trip-checkup-sub">
                             <CircularProgress size={12} /> Analyzing your
                             plan…
@@ -205,17 +210,21 @@ const TripCheckupCard = ({
                     {!query.isLoading && data && (
                         <span className="trip-checkup-sub">
                             <strong>{data.verdict}</strong>
-                            {' · '}
-                            {data.summary}
+                            {!isCollapsed && (
+                                <>
+                                    {' · '}
+                                    {data.summary}
+                                </>
+                            )}
                         </span>
                     )}
-                    {!query.isLoading && !data && query.isError && (
+                    {!isCollapsed && !query.isLoading && !data && query.isError && (
                         <span className="trip-checkup-sub">
                             Couldn&rsquo;t score the trip — try again.
                         </span>
                     )}
                 </div>
-                {data && (
+                {!isCollapsed && data && (
                     <button
                         type="button"
                         className="trip-checkup-refresh"
@@ -232,7 +241,7 @@ const TripCheckupCard = ({
                 )}
             </header>
 
-            {query.isError && !data && renderError()}
+            {!isCollapsed && query.isError && !data && renderError()}
 
             {(query.isLoading || data) && (
                 <div className="trip-checkup-meter-wrap">
@@ -259,7 +268,8 @@ const TripCheckupCard = ({
                 </div>
             )}
 
-            {data?.quota &&
+            {!isCollapsed &&
+                data?.quota &&
                 data.quota.remaining >= 0 &&
                 data.quota.remaining <= 10 && (
                     <p className="trip-checkup-quota">
@@ -271,7 +281,7 @@ const TripCheckupCard = ({
                     </p>
                 )}
 
-            {data && (
+            {!isCollapsed && data && (
                 <>
                     <div className="trip-checkup-dims">
                         <DimensionChip

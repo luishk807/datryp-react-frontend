@@ -4,6 +4,11 @@
 
 .date-block {
   margin-bottom: 24px !important;
+  // Small left inset so the timeline dot's box-shadow ring (which
+  // renders 2px outside the dot) doesn't get clipped against the
+  // container's left edge. Shifts the dot AND the content rail
+  // together, so they stay aligned.
+  padding-left: 4px;
 }
 
 .date-block .header {

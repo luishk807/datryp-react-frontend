@@ -249,22 +249,6 @@
   flex-shrink: 0;
 }
 
-// Mobile: collapse the edit cluster to icon-only 30px circles, matching
-// the notification bell's size + shape.
-@media (max-width: 720px) {
-  .trip-detail-edit-activities-btn,
-  .trip-detail-edit-save-btn,
-  .trip-detail-edit-cancel-btn {
-    width: 30px;
-    padding: 0;
-    gap: 0;
-
-    span {
-      display: none;
-    }
-  }
-}
-
 .trip-detail-toggle {
   appearance: none;
   background: none;
@@ -340,7 +324,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
-  margin: 4px 8px 18px;
+  margin: 4px 8px 32px;
   border-radius: 14px;
   background: linear-gradient(
     135deg,

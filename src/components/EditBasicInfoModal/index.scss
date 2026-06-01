@@ -1,0 +1,45 @@
+// On mobile / portrait-tablet the basic-info form fills the screen as a
+// full-viewport white sheet (edge-to-edge, no gutters) — same treatment
+// as the AddPlaceBtn modal. Desktop keeps the centered 560px card from
+// the default ModalButton styles. `dvh` keeps the Save/Cancel row clear
+// of the iOS Safari URL bar; `safe-area-inset-bottom` clears the home
+// indicator on notched devices.
+@media (max-width: 720px) {
+  .modalCustom.edit-basic-info-modal {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .modalCustom.edit-basic-info-modal .modalCustom-content {
+    flex: 1;
+    padding: 14px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+.edit-basic-info-form {
+  .step-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-input {
+    margin: 10px 0;
+  }
+
+  .edit-basic-info-error {
+    margin-top: 12px;
+  }
+
+  .edit-basic-info-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+  }
+}

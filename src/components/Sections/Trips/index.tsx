@@ -36,6 +36,15 @@ const FILTERS: { value: FilterValue; label: string }[] = [
     { value: 'completed', label: 'Completed' },
 ];
 
+// Status display order for the "All" view: Confirmed first (active and
+// locked in), then Planning (in progress), then Completed, then anything
+// else (Cancelled). Lower number = higher in the list.
+const STATUS_SORT_ORDER: Record<string, number> = {
+    confirmed: 1,
+    planning: 2,
+    completed: 3,
+};
+
 export const Trips = () => {
     const [filter, setFilter] = useState<FilterValue>('all');
     const navigate = useNavigate();
@@ -78,7 +87,15 @@ export const Trips = () => {
     }, [allTrips]);
 
     const filteredTrips = useMemo(() => {
-        if (filter === 'all') return allTrips;
+        if (filter === 'all') {
+            // Sort is stable, so trips sharing a status keep their original
+            // (API) order. Unknown statuses (e.g. Cancelled) fall to the end.
+            return [...allTrips].sort(
+                (a, b) =>
+                    (STATUS_SORT_ORDER[a.status.name.toLowerCase()] ?? 99) -
+                    (STATUS_SORT_ORDER[b.status.name.toLowerCase()] ?? 99)
+            );
+        }
         return allTrips.filter((t) => t.status.name.toLowerCase() === filter);
     }, [filter, allTrips]);
 

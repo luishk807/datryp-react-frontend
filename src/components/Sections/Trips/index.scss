@@ -381,8 +381,11 @@
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    bottom: calc(86px + env(safe-area-inset-bottom));
-    z-index: 1099;
+    // Clear the fixed bottom nav (~96px reserved) with a small gap — 86px
+    // sat ~10px too low and the nav (z-index 1100) painted over the CTA.
+    // Mirrors the same fix on .city-detail-plan-cta.
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    z-index: 1101;
     width: auto;
     max-width: calc(100vw - 32px);
     padding: 10px 20px;
