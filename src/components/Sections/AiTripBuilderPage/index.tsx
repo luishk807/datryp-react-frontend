@@ -84,6 +84,7 @@ const MAX_BUDGET = 50_000;
 const WIZARD_STEPS = [
     { key: 'budget', label: 'Budget', Icon: PaymentsRoundedIcon },
     { key: 'interests', label: 'Interests', Icon: ExploreRoundedIcon },
+    { key: 'destination', label: 'Destination', Icon: LocationOnRoundedIcon },
     { key: 'duration', label: 'Duration', Icon: EventRoundedIcon },
 ] as const;
 
@@ -489,20 +490,28 @@ const AiTripBuilderPage = () => {
                                             />
                                         ))}
                                     </div>
-                                    <label className="ai-trip-builder-page-side-field">
-                                        <span className="ai-trip-builder-page-side-label">
-                                            Country or region (optional)
-                                        </span>
-                                        <input
-                                            type="text"
-                                            className="ai-trip-builder-page-text"
-                                            value={countryHint}
-                                            placeholder="e.g. Japan, anywhere in SE Asia, the Mediterranean"
-                                            onChange={(e) =>
-                                                setCountryHint(e.target.value)
-                                            }
-                                        />
-                                    </label>
+                                </div>
+                            )}
+
+                            {wizardStepKey === 'destination' && (
+                                <div className="ai-trip-builder-page-step-body">
+                                    <h2 className="ai-trip-builder-page-step-title">
+                                        Anywhere in mind?
+                                    </h2>
+                                    <p className="ai-trip-builder-page-step-hint">
+                                        Optional — name a country or region to
+                                        focus on, or leave it blank and we’ll
+                                        suggest destinations from your interests.
+                                    </p>
+                                    <input
+                                        type="text"
+                                        className="ai-trip-builder-page-text"
+                                        value={countryHint}
+                                        placeholder="e.g. Japan, anywhere in SE Asia, the Mediterranean"
+                                        onChange={(e) =>
+                                            setCountryHint(e.target.value)
+                                        }
+                                    />
                                 </div>
                             )}
 
