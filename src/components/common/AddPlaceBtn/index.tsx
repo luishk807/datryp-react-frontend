@@ -1711,8 +1711,6 @@ const AddPlaceBtn = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, type]);
 
-    if (isViewMode) return null;
-
     // Reset per-modal-instance state when the modal closes. Without
     // this, reopening the modal would show stale smart-entry text,
     // stale per-segment loading flags, and leftover segment open /
@@ -2115,6 +2113,13 @@ const AddPlaceBtn = ({
         }, 500);
         return () => clearTimeout(timer);
     }, [isSmartMethodActive, smartStatus, activeSmartEntry]);
+
+    // View-only instances (e.g. the edit pencil on a locked / Confirmed
+    // activity) render nothing. This MUST stay below every hook above:
+    // an earlier return changed the hook count when `isViewMode` flips
+    // (toggling an activity to Confirmed locks its pencil), which React
+    // rejects with "rendered more hooks than during the previous render".
+    if (isViewMode) return null;
 
     const handleWizardNext = () => {
         // Run the same up-front validation handleSubmit does; on failure
