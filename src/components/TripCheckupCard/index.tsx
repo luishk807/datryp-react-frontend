@@ -105,7 +105,10 @@ const TripCheckupCard = ({
 }: TripCheckupCardProps) => {
     const enabled = isPro && isPlanning;
     const query = useTripCheckup({ tripId, enabled });
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    // Collapsed by default on page load — the review is a glanceable
+    // summary the user opens on demand, not something to greet them with
+    // expanded every time the trip page loads.
+    const [isCollapsed, setIsCollapsed] = useState(true);
     const [openDim, setOpenDim] = useState<"budget" | "time" | "activities" | null>(
         null,
     );
