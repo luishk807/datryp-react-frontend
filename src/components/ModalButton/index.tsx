@@ -40,6 +40,11 @@ export interface ModalButtonProps {
     title?: string;
     children?: ReactNode;
     buttonProps?: ModalButtonButtonProps | null;
+    /** Optional control rendered in the header's top-right, just before
+     *  the X close button. Lets a consumer place a compact secondary
+     *  affordance (e.g. AddPlaceBtn's review "Edit" pencil) up in the
+     *  title row instead of crowding the footer. */
+    headerAction?: ReactNode;
     /** Fires whenever the modal closes — backdrop click, escape, the X
      *  button, or a programmatic `closeModal()` from the ref. Use this to
      *  clean up transient form state that should not survive a dismissal. */
@@ -57,6 +62,7 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
             title = '',
             children = null,
             buttonProps = null,
+            headerAction = null,
             onClose,
             containerClassName,
         },
@@ -108,6 +114,11 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                             >
                                 {title}
                             </h2>
+                            {headerAction && (
+                                <div className="modalCustom-header-action">
+                                    {headerAction}
+                                </div>
+                            )}
                             <IconButton
                                 className="modalCustom-close"
                                 aria-label="Close"

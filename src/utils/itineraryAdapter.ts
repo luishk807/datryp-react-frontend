@@ -173,6 +173,7 @@ const normalizeKind = (k: string | null | undefined): ActivityKind | undefined =
     if (k === ACTIVITY_KIND.TRAIN) return ACTIVITY_KIND.TRAIN;
     if (k === ACTIVITY_KIND.BUS) return ACTIVITY_KIND.BUS;
     if (k === ACTIVITY_KIND.RENTAL_CAR) return ACTIVITY_KIND.RENTAL_CAR;
+    if (k === ACTIVITY_KIND.OTHER) return ACTIVITY_KIND.OTHER;
     return undefined;
 };
 

@@ -96,7 +96,8 @@ export const formatActivityTime = (a: Activity): string => {
     if (
         kind === ACTIVITY_KIND.TRAIN ||
         kind === ACTIVITY_KIND.BUS ||
-        kind === ACTIVITY_KIND.RENTAL_CAR
+        kind === ACTIVITY_KIND.RENTAL_CAR ||
+        kind === ACTIVITY_KIND.OTHER
     ) {
         const segs = a.transitSegments ?? [];
         if (segs.length) {
@@ -359,7 +360,8 @@ const activityContentSig = (a: Activity): string => {
     } else if (
         kind === ACTIVITY_KIND.TRAIN ||
         kind === ACTIVITY_KIND.BUS ||
-        kind === ACTIVITY_KIND.RENTAL_CAR
+        kind === ACTIVITY_KIND.RENTAL_CAR ||
+        kind === ACTIVITY_KIND.OTHER
     ) {
         const s = a.transitSegments?.[0];
         segHint = [

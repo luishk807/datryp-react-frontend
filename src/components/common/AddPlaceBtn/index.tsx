@@ -6,15 +6,19 @@ import {
     type ComponentType,
 } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
-import { Alert, Grid, Snackbar } from '@mui/material';
+import { Alert, CircularProgress, Grid, Snackbar } from '@mui/material';
 import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import { parseFlightInfo } from './parseFlightInfo';
 import { parseTransitEntry } from './parseTransitQuery';
 import { pickSmartEntryLocation } from './pickSmartEntryLocation';
 import type { FlightLookupResult } from 'api/flightLookupApi';
+import type { FlightDepartureOption } from 'api/flightDeparturesApi';
+import FlightDeparturesSearch from './FlightDeparturesSearch';
 import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
 import classNames from 'classnames';
@@ -57,17 +61,34 @@ const PLACE_LABEL = {
     SAVE: 'Save Activity',
 } as const;
 
+/** Lifecycle of a SMART-method entry, used to drive the auto-advance to
+ *  the review step and the not-found manual/suggestions fallback:
+ *  - `idle`     — the smart textbox is empty (or trivially short).
+ *  - `searching`— a debounced parse / lookup / search is still in flight,
+ *    or has been kicked off but hasn't produced a usable draft yet.
+ *  - `resolved` — the async settled AND the draft now carries the key
+ *    field(s) for this kind (place: name + location/coords; flight: a
+ *    segment with depart + arrival; transit: stations or operator+number).
+ *  - `notfound` — the lookup/search settled with no usable match. */
+type SmartStatus = 'idle' | 'searching' | 'resolved' | 'notfound';
+
 /** Which add-methods apply to a given kind. PLACE / HOTEL offer all
  *  three; FLIGHT / TRANSPORT have no recommender strip so they drop
  *  Suggestions; NOTE is custom-only (the wizard auto-skips the chooser
  *  for it). */
 const methodsForKind = (kind: ActivityKind): AddMethod[] => {
     if (kind === ACTIVITY_KIND.NOTE) return [ADD_METHOD.CUSTOM];
+    // FLIGHT gets the extra "Find my flight" departures-search method —
+    // only flights have an airport-departures provider to query. Transit
+    // kinds (train / bus / rental) stay on smart + custom.
+    if (kind === ACTIVITY_KIND.FLIGHT) {
+        return [ADD_METHOD.SMART, ADD_METHOD.SEARCH, ADD_METHOD.CUSTOM];
+    }
     if (
-        kind === ACTIVITY_KIND.FLIGHT ||
         kind === ACTIVITY_KIND.TRAIN ||
         kind === ACTIVITY_KIND.BUS ||
-        kind === ACTIVITY_KIND.RENTAL_CAR
+        kind === ACTIVITY_KIND.RENTAL_CAR ||
+        kind === ACTIVITY_KIND.OTHER
     ) {
         return [ADD_METHOD.SMART, ADD_METHOD.CUSTOM];
     }
@@ -90,6 +111,22 @@ const emptySegment = (defaultDate?: string): FlightInfo => ({
         ? { departDate: defaultDate, arrivalDate: defaultDate }
         : {}),
 });
+
+/** Derive a non-empty headline for a NOTE activity. Prefers the
+ *  user-typed name; else the FIRST non-empty line of the note text
+ *  (trimmed, capped ~80 chars so a long paragraph doesn't blow out the
+ *  card); else a plain "Note" so the timeline never shows a blank
+ *  title. A note that's only whitespace / blank leading lines previously
+ *  produced an empty name — this guarantees a fallback. */
+const deriveNoteName = (name?: string, note?: string): string => {
+    const typed = name?.trim();
+    if (typed) return typed;
+    const firstLine = (note ?? '')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find((line) => line.length > 0);
+    return firstLine ? firstLine.slice(0, 80) : 'Note';
+};
 
 const emptyTransitSegment = (defaultDate?: string): TransitInfo => ({
     departTime: '00:00',
@@ -270,6 +307,21 @@ const AddPlaceBtn = ({
     // renders the full single-screen form.
     const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
     const [method, setMethod] = useState<AddMethod | null>(null);
+    // Step 3 edit sub-mode: when the user clicks Edit on the review, swap
+    // the read-only summary for the full editable form (forced into its
+    // CUSTOM presentation so every field shows regardless of how the draft
+    // was created). Save validates + returns to the review; Cancel returns
+    // without re-validating. The forms mutate `place` live, so the review
+    // re-renders from the updated draft with no extra copy.
+    const [reviewEditing, setReviewEditing] = useState(false);
+    // Fired-once guard for the SMART-method auto-advance. Holds the
+    // smart-entry text that last triggered a jump to the review step, so
+    // (a) we never re-advance while sitting on Step 2 for the same input,
+    // (b) returning to Step 2 via Back doesn't bounce the user forward
+    // again, yet (c) editing the smart text into something new produces a
+    // fresh key and auto-advances again. Cleared when the smart field is
+    // emptied (see the reset effect below).
+    const autoAdvancedKeyRef = useRef<string | null>(null);
 
     // Home-base auto-seed: when the user toggles to FLIGHT (or a transit
     // kind) on the very FIRST flight/transit activity of the trip, drop
@@ -384,7 +436,8 @@ const AddPlaceBtn = ({
         const isTransit =
             place.kind === ACTIVITY_KIND.TRAIN ||
             place.kind === ACTIVITY_KIND.BUS ||
-            place.kind === ACTIVITY_KIND.RENTAL_CAR;
+            place.kind === ACTIVITY_KIND.RENTAL_CAR ||
+            place.kind === ACTIVITY_KIND.OTHER;
         if (!isTransit) return;
         if (!transitSmartEntry.trim()) return;
         const kindAtFire = place.kind;
@@ -438,6 +491,9 @@ const AddPlaceBtn = ({
                     if (kindAtFire === ACTIVITY_KIND.BUS) {
                         return `Bus with ${parsed.operator}`;
                     }
+                    if (kindAtFire === ACTIVITY_KIND.OTHER) {
+                        return `Ride with ${parsed.operator}`;
+                    }
                 }
                 return parsed.tripName;
             })();
@@ -457,8 +513,13 @@ const AddPlaceBtn = ({
                 // The form's "Confirmation #" / "Train number" /
                 // "Bus number" field is `segment.number` (handleSubmit
                 // strips draft-level `confirmationNumber` for transit
-                // kinds). Apply parsed confirmation here so it shows
-                // up in the right form field and persists on save.
+                // kinds). A parsed train/bus service number takes the
+                // field for trains/buses; rentals fall back to the
+                // parsed confirmation. Apply whichever we have so it
+                // shows up in the right form field and persists on save.
+                if (parsed.number && !first.number) {
+                    first.number = parsed.number;
+                }
                 if (parsed.confirmationNumber && !first.number) {
                     first.number = parsed.confirmationNumber;
                 }
@@ -636,6 +697,19 @@ const AddPlaceBtn = ({
             // new leg is one off). Copy the previous leg's number so
             // the lookup can re-fire immediately; user can edit if the
             // next leg is a different flight.
+            //
+            // A connecting leg also departs from where the previous one
+            // arrived, on (at the earliest) that same day — so seed the
+            // new segment's depart airport / date from the previous
+            // leg's arrival. Saves the user re-entering the connection
+            // airport after picking a flight via Find-my-flight, and
+            // keeps the chained-route name ("LAX → EWR → …") flowing.
+            const inheritedDepartAirport = last?.arrivalAirport?.trim()
+                ? last.arrivalAirport
+                : undefined;
+            const inheritedDepartDate = last?.arrivalDate?.trim()
+                ? last.arrivalDate
+                : undefined;
             return {
                 ...prev,
                 flightSegments: [
@@ -643,6 +717,15 @@ const AddPlaceBtn = ({
                     {
                         ...emptySegment(isoDefaultDate),
                         flightNumber: last?.flightNumber,
+                        ...(inheritedDepartAirport
+                            ? { departAirport: inheritedDepartAirport }
+                            : {}),
+                        ...(inheritedDepartDate
+                            ? {
+                                  departDate: inheritedDepartDate,
+                                  arrivalDate: inheritedDepartDate,
+                              }
+                            : {}),
                     },
                 ],
             };
@@ -680,6 +763,35 @@ const AddPlaceBtn = ({
         // times, the header reads "Segment 1 · UA123" and that's
         // usually enough — the user can click "Show details" to
         // verify the fields. Auto-expanding felt cluttered.
+    };
+
+    /** Apply a picked departures-search result to a segment. Same
+     *  overwrite-when-present posture as `applyFlightLookup` — the user
+     *  explicitly picked this row, so it's the new source of truth.
+     *  Also seeds `arrivalCity` (the airport name the provider returns)
+     *  so the hero-image fetch can run, exactly like the lookup path. */
+    const applyFlightDeparture = (
+        segIdx: number,
+        item: FlightDepartureOption,
+    ) => {
+        setPlace((prev) => {
+            const segments = prev.flightSegments?.length
+                ? [...prev.flightSegments]
+                : [emptySegment(isoDefaultDate)];
+            const current = segments[segIdx] ?? {};
+            segments[segIdx] = {
+                ...current,
+                flightNumber: item.flightNumber ?? current.flightNumber,
+                departAirport: item.departAirport ?? current.departAirport,
+                arrivalAirport: item.arrivalAirport ?? current.arrivalAirport,
+                departDate: item.departDate ?? current.departDate,
+                departTime: item.departTime ?? current.departTime,
+                arrivalDate: item.arrivalDate ?? current.arrivalDate,
+                arrivalTime: item.arrivalTime ?? current.arrivalTime,
+            };
+            return { ...prev, flightSegments: segments };
+        });
+        if (item.arrivalAirportName) setArrivalCity(item.arrivalAirportName);
     };
 
     const toggleSegmentExpanded = (segIdx: number) => {
@@ -964,7 +1076,8 @@ const AddPlaceBtn = ({
         const isTransit =
             next === ACTIVITY_KIND.TRAIN ||
             next === ACTIVITY_KIND.BUS ||
-            next === ACTIVITY_KIND.RENTAL_CAR;
+            next === ACTIVITY_KIND.RENTAL_CAR ||
+            next === ACTIVITY_KIND.OTHER;
         setPlace((prev) => ({
             ...prev,
             kind: next,
@@ -1111,7 +1224,8 @@ const AddPlaceBtn = ({
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
             kind === ACTIVITY_KIND.BUS ||
-            kind === ACTIVITY_KIND.RENTAL_CAR
+            kind === ACTIVITY_KIND.RENTAL_CAR ||
+            kind === ACTIVITY_KIND.OTHER
         ) {
             const segments = place.transitSegments ?? [];
             // Need at least one segment with SOMETHING identifying
@@ -1158,12 +1272,9 @@ const AddPlaceBtn = ({
         let finalName = place.name;
         if (kind === ACTIVITY_KIND.NOTE) {
             // NOTE has no title field — derive the timeline headline
-            // from the note's first line. Trim to a sensible length so
-            // a multi-paragraph note doesn't blow out the card width.
-            const firstLine = (place.note ?? '')
-                .split(/\r?\n/)[0]
-                ?.trim() ?? '';
-            finalName = place.name?.trim() || firstLine.slice(0, 80);
+            // from the note's first non-empty line, falling back to
+            // "Note" so the saved activity always has a title.
+            finalName = deriveNoteName(place.name, place.note);
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
             // No user-facing flight-name field anymore — derive
             // entirely from the segments. Two strategies in priority
@@ -1189,12 +1300,13 @@ const AddPlaceBtn = ({
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
             kind === ACTIVITY_KIND.BUS ||
-            kind === ACTIVITY_KIND.RENTAL_CAR
+            kind === ACTIVITY_KIND.RENTAL_CAR ||
+            kind === ACTIVITY_KIND.OTHER
         ) {
             // "Train Renfe AVE 4123" / "Bus FlixBus N1900" / "Rental
-            // car Hertz ABC123" — prefix + operator + number is the
-            // most recognizable label for a transit entry on the day
-            // timeline.
+            // car Hertz ABC123" / "Ride Uber" — prefix + operator +
+            // number is the most recognizable label for a transit entry
+            // on the day timeline.
             finalName =
                 place.name?.trim() ||
                 (() => {
@@ -1205,7 +1317,9 @@ const AddPlaceBtn = ({
                             ? 'Train'
                             : kind === ACTIVITY_KIND.BUS
                               ? 'Bus'
-                              : 'Rental car';
+                              : kind === ACTIVITY_KIND.OTHER
+                                ? 'Ride'
+                                : 'Rental car';
                     const bits = [
                         prefix,
                         seg.operator?.trim(),
@@ -1232,7 +1346,8 @@ const AddPlaceBtn = ({
         const isTransitKind =
             kind === ACTIVITY_KIND.TRAIN ||
             kind === ACTIVITY_KIND.BUS ||
-            kind === ACTIVITY_KIND.RENTAL_CAR;
+            kind === ACTIVITY_KIND.RENTAL_CAR ||
+            kind === ACTIVITY_KIND.OTHER;
         const transitStartTime = isTransitKind
             ? place.transitSegments?.[0]?.departTime
             : undefined;
@@ -1304,6 +1419,7 @@ const AddPlaceBtn = ({
             setFormKey((k) => k + 1);
             setWizardStep(1);
             setMethod(null);
+            setReviewEditing(false);
         }
     };
 
@@ -1318,7 +1434,8 @@ const AddPlaceBtn = ({
             const isTransitEdit =
                 dataKind === ACTIVITY_KIND.TRAIN ||
                 dataKind === ACTIVITY_KIND.BUS ||
-                dataKind === ACTIVITY_KIND.RENTAL_CAR;
+                dataKind === ACTIVITY_KIND.RENTAL_CAR ||
+                dataKind === ACTIVITY_KIND.OTHER;
             // Strip the "Check in: " / "Check out: " prefix the submit
             // helper added on create, so the editable hotel-name field
             // shows just the hotel itself rather than the synthesized
@@ -1424,6 +1541,7 @@ const AddPlaceBtn = ({
             // Reopening ADD always starts at Step 1 with no method chosen.
             setWizardStep(1);
             setMethod(null);
+            setReviewEditing(false);
         }
     };
 
@@ -1466,14 +1584,22 @@ const AddPlaceBtn = ({
         setMethod(next);
     };
 
+    /** A flight was picked from the "Find my flight" departures search.
+     *  Populate segment 0, then drop the user into the normal flight
+     *  form (via the CUSTOM method) so the cost field is reachable and
+     *  they can press "+ Add segment (stopover)" for a connecting leg —
+     *  whose depart airport/date pre-seed from this leg's arrival. */
+    const handleFlightDeparturePick = (item: FlightDepartureOption) => {
+        applyFlightDeparture(0, item);
+        setMethod(ADD_METHOD.CUSTOM);
+    };
+
     /** Mirror the headline name `handleSubmit` will synthesize, so the
      *  review step shows exactly what lands on the timeline card. */
     const deriveActivityName = (): string => {
         const kind = currentKind;
         if (kind === ACTIVITY_KIND.NOTE) {
-            const firstLine =
-                (place.note ?? '').split(/\r?\n/)[0]?.trim() ?? '';
-            return place.name?.trim() || firstLine.slice(0, 80);
+            return deriveNoteName(place.name, place.note);
         }
         if (kind === ACTIVITY_KIND.FLIGHT) {
             if (place.name?.trim()) return place.name.trim();
@@ -1492,7 +1618,8 @@ const AddPlaceBtn = ({
         if (
             kind === ACTIVITY_KIND.TRAIN ||
             kind === ACTIVITY_KIND.BUS ||
-            kind === ACTIVITY_KIND.RENTAL_CAR
+            kind === ACTIVITY_KIND.RENTAL_CAR ||
+            kind === ACTIVITY_KIND.OTHER
         ) {
             if (place.name?.trim()) return place.name.trim();
             const seg = place.transitSegments?.[0];
@@ -1502,7 +1629,9 @@ const AddPlaceBtn = ({
                     ? 'Train'
                     : kind === ACTIVITY_KIND.BUS
                       ? 'Bus'
-                      : 'Rental car';
+                      : kind === ACTIVITY_KIND.OTHER
+                        ? 'Ride'
+                        : 'Rental car';
             return [prefix, seg.operator?.trim(), seg.number?.trim()]
                 .filter(Boolean)
                 .join(' ');
@@ -1597,6 +1726,7 @@ const AddPlaceBtn = ({
             case ACTIVITY_KIND.TRAIN:
             case ACTIVITY_KIND.BUS:
             case ACTIVITY_KIND.RENTAL_CAR:
+            case ACTIVITY_KIND.OTHER:
                 return <TransitForm controller={controller} mode={mode} />;
             default:
                 return <PlaceForm controller={controller} mode={mode} />;
@@ -1610,11 +1740,147 @@ const AddPlaceBtn = ({
     // straight to the input via the preselect in handleTypePick.
     const showMethodChooser = wizardStep === 2 && method === null;
 
+    // FLIGHT + "Find my flight" replaces the per-kind form with the
+    // departures-search UI. On pick we switch the method to CUSTOM (see
+    // handleFlightDeparturePick), so this flips back to the populated
+    // FlightForm — where cost + "+ Add segment (stopover)" live.
+    const flightSearchActive =
+        currentKind === ACTIVITY_KIND.FLIGHT && method === ADD_METHOD.SEARCH;
+
+    // Whether the SMART method's input is the active Step-2 view. The
+    // flight "Find my flight" SEARCH branch is deliberately excluded (it
+    // keeps its own Next/pick flow). Drives the no-Next footer, the
+    // inline searching/not-found UI, and the auto-advance below.
+    const isSmartMethodActive =
+        wizardStep === 2 &&
+        !showMethodChooser &&
+        !flightSearchActive &&
+        method === ADD_METHOD.SMART;
+
+    // The smart-entry text for the current kind — the auto-advance keys
+    // its fired-once guard on this so a fresh entry can re-advance.
+    const isHotelKind =
+        currentKind === ACTIVITY_KIND.HOTEL_CHECKIN ||
+        currentKind === ACTIVITY_KIND.HOTEL_CHECKOUT;
+    const isTransitKindNow =
+        currentKind === ACTIVITY_KIND.TRAIN ||
+        currentKind === ACTIVITY_KIND.BUS ||
+        currentKind === ACTIVITY_KIND.RENTAL_CAR ||
+        currentKind === ACTIVITY_KIND.OTHER;
+    const activeSmartEntry =
+        currentKind === ACTIVITY_KIND.FLIGHT
+            ? smartEntry
+            : isHotelKind
+              ? hotelSmartEntry
+              : isTransitKindNow
+                ? transitSmartEntry
+                : placeSmartEntry;
+
+    // Derive the smart pipeline status from the loading + not-found +
+    // draft state each kind already exposes. "resolved" means the async
+    // settled AND the draft carries the key field(s) for the kind.
+    const smartStatus: SmartStatus = useMemo(() => {
+        const entry = activeSmartEntry.trim();
+        // Empty / trivially short input is idle — no spinner, no advance.
+        if (entry.length < 2) return 'idle';
+
+        if (currentKind === ACTIVITY_KIND.FLIGHT) {
+            const resolved = (place.flightSegments ?? []).some(
+                (s) => s.departAirport?.trim() && s.arrivalAirport?.trim(),
+            );
+            if (resolved) return 'resolved';
+            if (lookupLoading.size > 0) return 'searching';
+            if (Object.keys(lookupNotFound).length > 0) return 'notfound';
+            return 'searching';
+        }
+        if (isTransitKindNow) {
+            const resolved = (place.transitSegments ?? []).some(
+                (s) =>
+                    (s.departStation?.trim() && s.arrivalStation?.trim()) ||
+                    (s.operator?.trim() && s.number?.trim()),
+            );
+            if (resolved) return 'resolved';
+            if (transitLookupLoading.size > 0) return 'searching';
+            if (
+                transitSmartWarning ||
+                Object.keys(transitLookupNotFound).length > 0
+            ) {
+                return 'notfound';
+            }
+            return 'searching';
+        }
+        // PLACE + HOTEL share the place-watcher shape. Resolved = a name
+        // plus either a location string or real coordinates (the bare-
+        // match path fills only the name and raises a warning → notfound).
+        const resolved =
+            Boolean(place.name?.trim()) &&
+            (Boolean(place.location?.trim()) || place.latitude != null);
+        const loading = isHotelKind ? hotelSmartLoading : placeSmartLoading;
+        const warning = isHotelKind ? hotelSmartWarning : placeSmartWarning;
+        if (resolved) return 'resolved';
+        if (loading) return 'searching';
+        if (warning) return 'notfound';
+        return 'searching';
+    }, [
+        activeSmartEntry,
+        currentKind,
+        isHotelKind,
+        isTransitKindNow,
+        place.flightSegments,
+        place.transitSegments,
+        place.name,
+        place.location,
+        place.latitude,
+        lookupLoading,
+        lookupNotFound,
+        transitLookupLoading,
+        transitLookupNotFound,
+        transitSmartWarning,
+        placeSmartLoading,
+        hotelSmartLoading,
+        placeSmartWarning,
+        hotelSmartWarning,
+    ]);
+
+    // Clearing the smart field resets the fired-once guard so a brand-new
+    // entry can auto-advance again.
+    useEffect(() => {
+        if (!activeSmartEntry.trim()) {
+            autoAdvancedKeyRef.current = null;
+        }
+    }, [activeSmartEntry]);
+
+    // Auto-advance to the review step once the smart pipeline resolves.
+    // Fires at most once per distinct resolved input (keyed by the smart
+    // text), never while searching, and only while the SMART input is the
+    // active view. A short settle delay keeps it from jumping mid-typing.
+    useEffect(() => {
+        if (!isSmartMethodActive) return;
+        if (smartStatus !== 'resolved') return;
+        const key = activeSmartEntry.trim();
+        if (!key) return;
+        if (autoAdvancedKeyRef.current === key) return;
+        const timer = setTimeout(() => {
+            autoAdvancedKeyRef.current = key;
+            setWizardStep(3);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [isSmartMethodActive, smartStatus, activeSmartEntry]);
+
     const handleWizardNext = () => {
         // Run the same up-front validation handleSubmit does; on failure
         // it sets the Snackbar error and we stay on Step 2.
         if (!validateDraft()) return;
         setWizardStep(3);
+    };
+
+    /** Save from the review's in-place edit sub-view. Same permissive
+     *  validation as Step 2 → 3; on success drop back to the read-only
+     *  review (now reflecting the live-mutated draft). On failure stay on
+     *  the edit form — validateDraft already raised the Snackbar error. */
+    const handleReviewEditSave = () => {
+        if (!validateDraft()) return;
+        setReviewEditing(false);
     };
 
     const handleWizardBackFromInput = () => {
@@ -1633,6 +1899,27 @@ const AddPlaceBtn = ({
             ref={modelRef}
             title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
             onClose={handleModalClose}
+            // Review-step Edit lives in the header's top-right (next to
+            // the X) so the footer stays a clean Back + Add pair. Gated to
+            // Step 3's read-only review only — hidden on Steps 1–2 and
+            // while the in-place edit form is open.
+            headerAction={
+                isAdd && wizardStep === 3 && !reviewEditing ? (
+                    <ButtonIcon
+                        title="Edit"
+                        Icon={EditRoundedIcon}
+                        iconPosition="start"
+                        iconProps={{ fontSize: 'small' }}
+                        type={BUTTON_VARIANT.TEXT_PLAIN}
+                        className="add-review-edit"
+                        ariaLabel="Edit activity"
+                        onClick={() => {
+                            setError(null);
+                            setReviewEditing(true);
+                        }}
+                    />
+                ) : null
+            }
             // Activity form is content-heavy; flips to a full-viewport
             // sheet on mobile so the user doesn't fight a tiny centered
             // window with double scrollbars on every device under 480px.
@@ -1710,19 +1997,102 @@ const AddPlaceBtn = ({
                                         />
                                     </>
                                 )}
-                                {wizardStep === 2 && !showMethodChooser && (
-                                    <>
-                                        {renderKindForm({
-                                            method:
-                                                method ?? availableMethods[0],
-                                        })}
-                                        <WizardNav
+                                {wizardStep === 2 &&
+                                    !showMethodChooser &&
+                                    flightSearchActive && (
+                                        <FlightDeparturesSearch
+                                            initialAirport={
+                                                place.flightSegments?.[0]
+                                                    ?.departAirport ||
+                                                nearestAirport?.iataCode ||
+                                                ''
+                                            }
+                                            initialDate={isoDefaultDate ?? ''}
+                                            onPick={handleFlightDeparturePick}
                                             onBack={handleWizardBackFromInput}
-                                            onNext={handleWizardNext}
                                         />
-                                    </>
-                                )}
-                                {wizardStep === 3 && (
+                                    )}
+                                {wizardStep === 2 &&
+                                    !showMethodChooser &&
+                                    !flightSearchActive && (
+                                        <>
+                                            {renderKindForm({
+                                                method:
+                                                    method ??
+                                                    availableMethods[0],
+                                            })}
+                                            {/* SMART method: no manual Next —
+                                                the pipeline auto-advances on
+                                                resolve. Surface a subtle
+                                                "Searching…" while in flight,
+                                                and a manual/suggestions
+                                                fallback when nothing matched. */}
+                                            {isSmartMethodActive &&
+                                                smartStatus === 'searching' && (
+                                                    <div className="add-smart-pipeline add-smart-pipeline-searching">
+                                                        <CircularProgress
+                                                            size={16}
+                                                            className="add-smart-pipeline-spinner"
+                                                        />
+                                                        <span>Searching…</span>
+                                                    </div>
+                                                )}
+                                            {isSmartMethodActive &&
+                                                smartStatus === 'notfound' && (
+                                                    <div className="add-smart-pipeline add-smart-pipeline-notfound">
+                                                        <span className="add-smart-pipeline-msg">
+                                                            Couldn&rsquo;t find a
+                                                            match. Add the
+                                                            details yourself
+                                                            {availableMethods.includes(
+                                                                ADD_METHOD.SUGGESTIONS,
+                                                            )
+                                                                ? ' or browse suggestions.'
+                                                                : '.'}
+                                                        </span>
+                                                        <div className="add-smart-pipeline-actions">
+                                                            <ButtonCustom
+                                                                label="Add manually"
+                                                                type={
+                                                                    BUTTON_VARIANT.LINE
+                                                                }
+                                                                onClick={() =>
+                                                                    setMethod(
+                                                                        ADD_METHOD.CUSTOM,
+                                                                    )
+                                                                }
+                                                            />
+                                                            {availableMethods.includes(
+                                                                ADD_METHOD.SUGGESTIONS,
+                                                            ) && (
+                                                                <ButtonCustom
+                                                                    label="See suggestions"
+                                                                    type={
+                                                                        BUTTON_VARIANT.LINE
+                                                                    }
+                                                                    onClick={() =>
+                                                                        setMethod(
+                                                                            ADD_METHOD.SUGGESTIONS,
+                                                                        )
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            <WizardNav
+                                                onBack={
+                                                    handleWizardBackFromInput
+                                                }
+                                                onNext={
+                                                    isSmartMethodActive
+                                                        ? undefined
+                                                        : handleWizardNext
+                                                }
+                                            />
+                                        </>
+                                    )}
+                                {wizardStep === 3 && !reviewEditing && (
                                     <>
                                         <ReviewStep
                                             place={place}
@@ -1735,6 +2105,25 @@ const AddPlaceBtn = ({
                                                     preventDefault: () => {},
                                                 } as React.MouseEvent<HTMLButtonElement>)
                                             }
+                                        />
+                                    </>
+                                )}
+                                {wizardStep === 3 && reviewEditing && (
+                                    <>
+                                        {/* Force the full editable form
+                                            (CUSTOM presentation) so every
+                                            field shows regardless of how the
+                                            draft was originally created. */}
+                                        {renderKindForm({
+                                            method: ADD_METHOD.CUSTOM,
+                                        })}
+                                        <WizardNav
+                                            onBack={() =>
+                                                setReviewEditing(false)
+                                            }
+                                            backLabel="Cancel"
+                                            onConfirm={handleReviewEditSave}
+                                            confirmLabel="Save"
                                         />
                                     </>
                                 )}

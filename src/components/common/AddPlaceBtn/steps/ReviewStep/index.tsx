@@ -5,6 +5,7 @@ import HotelRoundedIcon from '@mui/icons-material/HotelRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
 import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
+import LocalTaxiRoundedIcon from '@mui/icons-material/LocalTaxiRounded';
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
 import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
@@ -44,6 +45,10 @@ const KIND_META: Record<
         label: 'Rental car',
         Icon: CarRentalRoundedIcon,
     },
+    [ACTIVITY_KIND.OTHER]: {
+        label: 'Ride',
+        Icon: LocalTaxiRoundedIcon,
+    },
 };
 
 const timeWindow = (start?: string, end?: string): string | null => {
@@ -61,7 +66,8 @@ const ReviewStep = ({ place, derivedName }: ReviewStepProps) => {
     const isTransit =
         kind === ACTIVITY_KIND.TRAIN ||
         kind === ACTIVITY_KIND.BUS ||
-        kind === ACTIVITY_KIND.RENTAL_CAR;
+        kind === ACTIVITY_KIND.RENTAL_CAR ||
+        kind === ACTIVITY_KIND.OTHER;
 
     const time = isFlight
         ? timeWindow(

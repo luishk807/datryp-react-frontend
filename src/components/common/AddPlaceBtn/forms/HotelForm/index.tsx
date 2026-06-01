@@ -50,19 +50,17 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
     const showSuggestions = method === ADD_METHOD.SUGGESTIONS;
     const showSmart = method === ADD_METHOD.SMART;
     const showCustom = method === ADD_METHOD.CUSTOM;
-    // Keep the suggestions / smart screen calm: show just the strip or
-    // the search box until the user does something — types in smart, or
-    // picks a suggestion that fills name/address — then reveal the detail
-    // fields (same pattern as the Flight + Place forms). Custom + edit
-    // show the fields outright.
-    const hasContent =
-        Boolean(hotelSmartEntry.trim()) ||
-        Boolean(place.name?.trim()) ||
-        Boolean(place.location?.trim());
+    // Smart mode shows only the search box + its parse hint — the watcher
+    // still populates the draft silently so Step 3 review reflects the
+    // pick; the user verifies / fixes there via Edit. Suggestions reveals
+    // the detail fields once a pick fills name/address (so the user can
+    // tweak it in place); custom + edit show the fields outright.
+    const suggestionsHasContent =
+        Boolean(place.name?.trim()) || Boolean(place.location?.trim());
     const detailsVisible =
         isEdit ||
         showCustom ||
-        ((showSmart || showSuggestions) && hasContent);
+        (showSuggestions && suggestionsHasContent);
 
     return (
         <Grid container>

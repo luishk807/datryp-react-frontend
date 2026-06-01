@@ -50,20 +50,13 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
     const isSmart = method === ADD_METHOD.SMART;
     const isCustom = method === ADD_METHOD.CUSTOM;
     const showSmart = isEdit || isSmart;
-    // Smart view starts as just the text box — keep the screen calm and
-    // focused on typing. Once the user enters anything (or the parser has
-    // populated a segment), reveal the auto-created segments + cost so
-    // they can verify / fill them in. Custom + edit show them outright.
-    const smartHasContent =
-        Boolean(smartEntry.trim()) ||
-        (place.flightSegments ?? []).some(
-            (s) =>
-                s.flightNumber?.trim() ||
-                s.departAirport?.trim() ||
-                s.arrivalAirport?.trim(),
-        );
-    const showSegments = isEdit || isCustom || (isSmart && smartHasContent);
-    const showCost = isEdit || isCustom || (isSmart && smartHasContent);
+    // Smart view is just the text box + its parse hint — the parser still
+    // populates the segments silently so Step 3 review reflects what was
+    // typed; the user verifies / fixes there via Edit. The structured
+    // segment list + cost only render for custom + edit, where the user
+    // is filling fields by hand.
+    const showSegments = isEdit || isCustom;
+    const showCost = isEdit || isCustom;
 
     return (
         <Grid container>
@@ -94,13 +87,43 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
                         <div className="flight-smart-entry-hint">
                             <span>
                                 Type your flight(s) here and we&rsquo;ll
-                                auto-create the segments below — review or
-                                tweak any of them before you add.
+                                look up the airports, dates, and times —
+                                review or tweak everything on the next step.
                             </span>
                         </div>
                     </div>
                 </Grid>
             )}
+            {/* Smart mode hides the segment UI but must keep the
+                per-segment lookup running so the draft is enriched
+                (airports / dates / times) for the Step 3 review. Mount
+                an invisible watcher per parsed segment. */}
+            {isSmart &&
+                (place.flightSegments ?? []).map((segment, segIdx) => (
+                    <FlightSegmentLookupWatcher
+                        key={`smart-watch-${segIdx}`}
+                        flightNumber={segment.flightNumber}
+                        departDate={segment.departDate}
+                        onResult={(result) => {
+                            applyFlightLookup(segIdx, result);
+                            setLookupNotFound((prev) => {
+                                if (!(segIdx in prev)) return prev;
+                                const next = { ...prev };
+                                delete next[segIdx];
+                                return next;
+                            });
+                        }}
+                        onLoadingChange={(loading) =>
+                            handleLookupLoadingChange(segIdx, loading)
+                        }
+                        onNotFound={(num) =>
+                            setLookupNotFound((prev) => ({
+                                ...prev,
+                                [segIdx]: num,
+                            }))
+                        }
+                    />
+                ))}
             {showSegments &&
                 (place.flightSegments ?? [emptySegment(isoDefaultDate)]).map(
                 (segment, segIdx, allSegs) => (

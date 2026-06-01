@@ -125,6 +125,43 @@
   transform: translateX(200%);
 }
 
+// Generic three-position offsets so any `is-three` toggle can drive the
+// thumb without a domain-specific modifier (the Ground transport rules
+// above are kind-named; these let other three-way toggles — e.g. the
+// Time-of-day picker in FlightDeparturesSearch — reuse the same control).
+.hotel-side-toggle.is-three.is-pos-2 .hotel-side-thumb {
+  transform: translateX(100%);
+}
+
+.hotel-side-toggle.is-three.is-pos-3 .hotel-side-thumb {
+  transform: translateX(200%);
+}
+
+// Four-position variant — used by the Ground transport toggle once it
+// grows to Train | Bus | Rental car | Other. Widens the track to fit
+// the extra button and shrinks the thumb to a quarter of the width.
+// The generic `is-pos-N` offsets below let any four-way toggle slide
+// the thumb without a domain-specific modifier.
+.hotel-side-toggle.is-four {
+  max-width: 460px;
+}
+
+.hotel-side-toggle.is-four .hotel-side-thumb {
+  width: calc(25% - 2px);
+}
+
+.hotel-side-toggle.is-four.is-pos-2 .hotel-side-thumb {
+  transform: translateX(100%);
+}
+
+.hotel-side-toggle.is-four.is-pos-3 .hotel-side-thumb {
+  transform: translateX(200%);
+}
+
+.hotel-side-toggle.is-four.is-pos-4 .hotel-side-thumb {
+  transform: translateX(300%);
+}
+
 .hotel-side-btn {
   position: relative;
   z-index: 1;
@@ -431,6 +468,70 @@
   color: rgba(120, 70, 0, 1);
   font-size: 0.8rem;
   line-height: 1.45;
+}
+
+// Smart-method pipeline status row, shown between the smart input and
+// the wizard footer while SMART is the active Step-2 view. "Searching…"
+// is a subtle inline hint; "not found" adds a manual / suggestions
+// fallback action row.
+.add-smart-pipeline {
+  margin: 4px 4px 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.add-smart-pipeline-searching {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.add-smart-pipeline-spinner {
+  color: theme('colors.primaryOrange');
+}
+
+.add-smart-pipeline-notfound {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(247, 159, 38, 0.08);
+  border: 1px solid rgba(247, 159, 38, 0.25);
+  color: rgba(120, 70, 0, 1);
+}
+
+.add-smart-pipeline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// Compact review "Edit" affordance docked in the modal header. Borderless
+// (TEXT_PLAIN) so it reads as a secondary control next to the X, with a
+// small pencil + label.
+.add-review-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(60, 181, 75, 0.08);
+    outline: none;
+  }
+
+  svg {
+    font-size: 1.05rem !important;
+  }
 }
 
 .place-image-preview {

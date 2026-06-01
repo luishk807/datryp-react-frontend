@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
+import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import { ADD_METHOD } from 'constants';
 import type { AddMethod } from 'types';
 import './index.scss';
@@ -27,6 +28,11 @@ const META: Record<
         label: 'Smart search',
         sub: 'Type or paste — we fill in the rest.',
         Icon: AutoAwesomeRoundedIcon,
+    },
+    [ADD_METHOD.SEARCH]: {
+        label: 'Find my flight',
+        sub: "Search your airport's departures.",
+        Icon: FlightTakeoffRoundedIcon,
     },
     [ADD_METHOD.CUSTOM]: {
         label: 'Custom',

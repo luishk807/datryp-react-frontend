@@ -65,6 +65,7 @@ const TILES: {
             ACTIVITY_KIND.TRAIN,
             ACTIVITY_KIND.BUS,
             ACTIVITY_KIND.RENTAL_CAR,
+            ACTIVITY_KIND.OTHER,
         ],
     },
 ];

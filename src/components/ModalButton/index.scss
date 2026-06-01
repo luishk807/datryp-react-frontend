@@ -55,6 +55,16 @@
   min-width: 0;
 }
 
+// Optional secondary affordance in the header (e.g. a review "Edit"
+// button). Sits between the title and the X, doesn't shrink, and
+// keeps a small gap from the close button.
+.modalCustom-header-action {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
 .modalCustom-close {
   flex-shrink: 0;
   color: rgba(0, 0, 0, 0.55) !important;

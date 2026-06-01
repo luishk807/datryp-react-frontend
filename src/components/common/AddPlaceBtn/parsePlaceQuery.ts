@@ -441,7 +441,7 @@ export interface CostMatch {
 // "cost" patterns include a negative lookahead so they don't eat time
 // tokens ("for 2pm") or durations ("for 2 hours / 3 days / 2 nights").
 const COST_PATTERNS: RegExp[] = [
-    /\$\s*(\d+(?:\.\d{1,2})?)/i,
+    /[$€£]\s*(\d+(?:\.\d{1,2})?)/i,
     /(\d+(?:\.\d{1,2})?)\s*(?:bucks|dollars?|usd|euros?|eur|€|pounds?|gbp|£)/i,
     /\bfor\s+\$?\s*(\d+(?:\.\d{1,2})?)(?!\s*(?:am|pm|a\.m\.|p\.m\.|hours?|hrs?|mins?|minutes?|days?|weeks?|months?|nights?|people|persons?|guests?|pax))\b/i,
     /\bcosts?\s+(?:me\s+)?\$?\s*(\d+(?:\.\d{1,2})?)\b/i,

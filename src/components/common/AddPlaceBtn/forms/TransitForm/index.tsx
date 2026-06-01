@@ -8,6 +8,7 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
 import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
+import LocalTaxiRoundedIcon from '@mui/icons-material/LocalTaxiRounded';
 import classNames from 'classnames';
 import InputField from 'components/common/FormFields/InputField';
 import TransitSegmentLookupWatcher from '../../TransitSegmentLookupWatcher';
@@ -48,21 +49,84 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
     const method = isEdit ? null : mode.method;
     const showSmart = method === ADD_METHOD.SMART;
     const showCustom = method === ADD_METHOD.CUSTOM;
-    // Keep the smart screen calm: just the search box until the user
-    // types something (or the parser has filled a segment), then reveal
-    // the per-segment fields. Custom + edit show them outright. (Same
-    // pattern as the Flight / Place / Hotel forms.)
-    const hasContent =
-        Boolean(transitSmartEntry.trim()) ||
-        Boolean(place.name?.trim()) ||
-        (place.transitSegments ?? []).some(
-            (s) =>
-                s.operator?.trim() ||
-                s.number?.trim() ||
-                s.departStation?.trim() ||
-                s.arrivalStation?.trim(),
-        );
-    const detailsVisible = isEdit || showCustom || (showSmart && hasContent);
+    // Smart mode shows only the search box + its parse hint — the parser
+    // still populates the draft silently so Step 3 review reflects what
+    // was typed; the user verifies / fixes there via Edit. The per-segment
+    // fields only render for custom + edit, where the user fills them by
+    // hand.
+    const detailsVisible = isEdit || showCustom;
+
+    // Ground-transport mode segments, in display order. The toggle is a
+    // 4-position slider (Train | Bus | Rental car | Other); the active
+    // kind's index drives the generic `is-pos-N` modifier that slides
+    // the thumb (1-based, so position = index + 1).
+    const TRANSIT_MODES = [
+        {
+            value: ACTIVITY_KIND.TRAIN,
+            label: 'Train',
+            Icon: DirectionsTransitRoundedIcon,
+        },
+        {
+            value: ACTIVITY_KIND.BUS,
+            label: 'Bus',
+            Icon: DirectionsBusRoundedIcon,
+        },
+        {
+            value: ACTIVITY_KIND.RENTAL_CAR,
+            label: 'Rental car',
+            Icon: CarRentalRoundedIcon,
+        },
+        {
+            value: ACTIVITY_KIND.OTHER,
+            label: 'Other',
+            Icon: LocalTaxiRoundedIcon,
+        },
+    ] as const;
+    const activeModeIdx = TRANSIT_MODES.findIndex(
+        (m) => m.value === place.kind,
+    );
+    // Default to position 1 (Train) when the kind isn't one of the four
+    // (shouldn't happen — TransitForm only renders for transit kinds).
+    const thumbPos = activeModeIdx >= 0 ? activeModeIdx + 1 : 1;
+
+    const isRental = place.kind === ACTIVITY_KIND.RENTAL_CAR;
+    const isTrain = place.kind === ACTIVITY_KIND.TRAIN;
+
+    // Visible field labels by kind. RENTAL_CAR re-maps to a pickup /
+    // dropoff vocabulary; TRAIN / BUS / OTHER share the point-to-point
+    // ride vocabulary. The underlying draft field names never change —
+    // only the label text.
+    const labels = isRental
+        ? {
+              operator: 'Rental company',
+              number: 'Confirmation number',
+              departStation: 'Pickup location',
+              arrivalStation: 'Dropoff location (optional)',
+              departDate: 'Pickup date',
+              departTime: 'Pickup time',
+              arrivalDate: 'Dropoff date (optional)',
+              arrivalTime: 'Dropoff time (optional)',
+              classOrSeat: 'Car class (optional)',
+              cost: 'Cost (optional)',
+          }
+        : {
+              operator: 'Provider',
+              number: 'Vehicle number (optional)',
+              departStation: 'Departure location',
+              arrivalStation: 'Arrival location (optional)',
+              departDate: 'Depart date',
+              departTime: 'Depart time',
+              arrivalDate: 'Arrival date (optional)',
+              arrivalTime: 'Arrival time (optional)',
+              classOrSeat: 'Seat or class (optional)',
+              cost: 'Cost (optional)',
+          };
+
+    const operatorPlaceholder = isRental
+        ? 'e.g. Hertz, Avis'
+        : isTrain
+          ? 'e.g. Renfe, JR'
+          : 'e.g. Renfe, JR, Uber';
 
     return (
         <Grid container>
@@ -71,14 +135,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                     <div
                         className={classNames(
                             'hotel-side-toggle',
-                            'is-three',
-                            `is-${
-                                place.kind === ACTIVITY_KIND.BUS
-                                    ? 'bus'
-                                    : place.kind === ACTIVITY_KIND.RENTAL_CAR
-                                      ? 'rental-car'
-                                      : 'train'
-                            }`,
+                            'is-four',
+                            `is-pos-${thumbPos}`,
                         )}
                         role="tablist"
                         aria-label="Ground transport mode"
@@ -87,23 +145,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                             className="hotel-side-thumb"
                             aria-hidden="true"
                         />
-                        {[
-                            {
-                                value: ACTIVITY_KIND.TRAIN,
-                                label: 'Train',
-                                Icon: DirectionsTransitRoundedIcon,
-                            },
-                            {
-                                value: ACTIVITY_KIND.BUS,
-                                label: 'Bus',
-                                Icon: DirectionsBusRoundedIcon,
-                            },
-                            {
-                                value: ACTIVITY_KIND.RENTAL_CAR,
-                                label: 'Rental car',
-                                Icon: CarRentalRoundedIcon,
-                            },
-                        ].map(({ value, label, Icon }) => {
+                        {TRANSIT_MODES.map(({ value, label, Icon }) => {
                             const active = place.kind === value;
                             return (
                                 <button
@@ -144,9 +186,11 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                     setTransitSmartEntry(e.target.value)
                                 }
                                 placeholder={
-                                    place.kind === ACTIVITY_KIND.RENTAL_CAR
+                                    isRental
                                         ? 'e.g. "Hertz pickup JFK 10am $50"'
-                                        : 'e.g. "Tokyo to Kyoto 9am-12pm $100"'
+                                        : place.kind === ACTIVITY_KIND.OTHER
+                                          ? 'e.g. "Uber airport to hotel 10am $30"'
+                                          : 'e.g. "Tokyo to Kyoto 9am-12pm $100"'
                                 }
                                 InputProps={{
                                     startAdornment: (
@@ -160,7 +204,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                         <div className="flight-smart-entry-hint">
                             <span>
                                 Type stations, times, and cost — we&rsquo;ll
-                                fill the details below.
+                                fill the details and you can review them on
+                                the next step.
                             </span>
                         </div>
                         {transitSmartWarning && (
@@ -171,6 +216,45 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                     </div>
                 </Grid>
             )}
+            {/* Smart mode hides the per-segment fields but must keep the
+                schedule lookup running so the draft is enriched (stations
+                / dates / times) for the Step 3 review. Rental cars have no
+                lookup, mirroring the visible-UI gate below. */}
+            {showSmart &&
+                (place.kind === ACTIVITY_KIND.TRAIN ||
+                    place.kind === ACTIVITY_KIND.BUS) &&
+                (place.transitSegments ?? []).map((segment, segIdx) => (
+                    <TransitSegmentLookupWatcher
+                        key={`smart-watch-${segIdx}`}
+                        operator={segment.operator}
+                        number={segment.number}
+                        kind={
+                            place.kind === ACTIVITY_KIND.TRAIN
+                                ? 'train'
+                                : 'bus'
+                        }
+                        departDate={segment.departDate}
+                        country={countryScope}
+                        onResult={(result) => {
+                            applyTransitLookup(segIdx, result);
+                            setTransitLookupNotFound((prev) => {
+                                if (!(segIdx in prev)) return prev;
+                                const next = { ...prev };
+                                delete next[segIdx];
+                                return next;
+                            });
+                        }}
+                        onLoadingChange={(loading) =>
+                            handleTransitLookupLoadingChange(segIdx, loading)
+                        }
+                        onNotFound={(label) =>
+                            setTransitLookupNotFound((prev) => ({
+                                ...prev,
+                                [segIdx]: label,
+                            }))
+                        }
+                    />
+                ))}
             {detailsVisible && (
                 <>
                     <Grid item lg={12} xs={12} className="pt-5 pb-5">
@@ -278,14 +362,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                     <InputField
                                         value={segment.operator ?? ''}
                                         name={`transitOperator-${segIdx}`}
-                                        label={
-                                            place.kind === ACTIVITY_KIND.TRAIN
-                                                ? 'Operator (e.g. Renfe, JR)'
-                                                : place.kind ===
-                                                    ACTIVITY_KIND.RENTAL_CAR
-                                                  ? 'Rental company (e.g. Hertz, Avis)'
-                                                  : 'Operator (e.g. FlixBus, Greyhound)'
-                                        }
+                                        label={labels.operator}
+                                        placeholder={operatorPlaceholder}
                                         onChange={(e) =>
                                             handleTransitField(
                                                 segIdx,
@@ -304,14 +382,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                     <InputField
                                         value={segment.number ?? ''}
                                         name={`transitNumber-${segIdx}`}
-                                        label={
-                                            place.kind === ACTIVITY_KIND.TRAIN
-                                                ? 'Train number'
-                                                : place.kind ===
-                                                    ACTIVITY_KIND.RENTAL_CAR
-                                                  ? 'Confirmation #'
-                                                  : 'Bus number / route'
-                                        }
+                                        label={labels.number}
+                                        required={false}
                                         onChange={(e) =>
                                             handleTransitField(
                                                 segIdx,
@@ -325,12 +397,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                     <InputField
                                         value={segment.departStation ?? ''}
                                         name={`transitDepartStation-${segIdx}`}
-                                        label={
-                                            place.kind ===
-                                            ACTIVITY_KIND.RENTAL_CAR
-                                                ? 'Pickup location'
-                                                : 'Depart station'
-                                        }
+                                        label={labels.departStation}
                                         onChange={(e) =>
                                             handleTransitField(
                                                 segIdx,
@@ -349,12 +416,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                     <InputField
                                         value={segment.arrivalStation ?? ''}
                                         name={`transitArrivalStation-${segIdx}`}
-                                        label={
-                                            place.kind ===
-                                            ACTIVITY_KIND.RENTAL_CAR
-                                                ? 'Dropoff location (optional)'
-                                                : 'Arrival station (optional)'
-                                        }
+                                        label={labels.arrivalStation}
                                         required={false}
                                         onChange={(e) =>
                                             handleTransitField(
@@ -370,12 +432,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                         value={segment.departDate ?? ''}
                                         name={`transitDepartDate-${segIdx}`}
                                         type="date"
-                                        label={
-                                            place.kind ===
-                                            ACTIVITY_KIND.RENTAL_CAR
-                                                ? 'Pickup date'
-                                                : 'Depart date'
-                                        }
+                                        label={labels.departDate}
                                         labelOnTop
                                         onChange={(e) =>
                                             handleTransitField(
@@ -396,12 +453,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                         value={segment.departTime ?? ''}
                                         name={`transitDepartTime-${segIdx}`}
                                         type="time"
-                                        label={
-                                            place.kind ===
-                                            ACTIVITY_KIND.RENTAL_CAR
-                                                ? 'Pickup time'
-                                                : 'Depart time'
-                                        }
+                                        label={labels.departTime}
                                         labelOnTop
                                         onChange={(e) =>
                                             handleTransitField(
@@ -417,12 +469,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                         value={segment.arrivalDate ?? ''}
                                         name={`transitArrivalDate-${segIdx}`}
                                         type="date"
-                                        label={
-                                            place.kind ===
-                                            ACTIVITY_KIND.RENTAL_CAR
-                                                ? 'Dropoff date (optional)'
-                                                : 'Arrival date (optional)'
-                                        }
+                                        label={labels.arrivalDate}
                                         labelOnTop
                                         required={false}
                                         minDate={
@@ -447,12 +494,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                         value={segment.arrivalTime ?? ''}
                                         name={`transitArrivalTime-${segIdx}`}
                                         type="time"
-                                        label={
-                                            place.kind ===
-                                            ACTIVITY_KIND.RENTAL_CAR
-                                                ? 'Dropoff time (optional)'
-                                                : 'Arrival time (optional)'
-                                        }
+                                        label={labels.arrivalTime}
                                         labelOnTop
                                         required={false}
                                         onChange={(e) =>
@@ -468,14 +510,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                     <InputField
                                         value={segment.classOrSeat ?? ''}
                                         name={`transitClassOrSeat-${segIdx}`}
-                                        label={
-                                            place.kind === ACTIVITY_KIND.TRAIN
-                                                ? 'Class / seat (optional)'
-                                                : place.kind ===
-                                                    ACTIVITY_KIND.RENTAL_CAR
-                                                  ? 'Car class (e.g. Compact, SUV) (optional)'
-                                                  : 'Seat (optional)'
-                                        }
+                                        label={labels.classOrSeat}
                                         required={false}
                                         onChange={(e) =>
                                             handleTransitField(
@@ -499,7 +534,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                                 : ''
                                         }
                                         name={`transitCost-${segIdx}`}
-                                        label="Cost (optional)"
+                                        label={labels.cost}
                                         required={false}
                                         onChange={(e) =>
                                             segIdx === 0
@@ -521,7 +556,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                             className="flight-segment-add"
                             onClick={handleAddTransitSegment}
                         >
-                            {place.kind === ACTIVITY_KIND.RENTAL_CAR
+                            {isRental
                                 ? '+ Add stopover'
                                 : '+ Add leg (transfer)'}
                         </button>

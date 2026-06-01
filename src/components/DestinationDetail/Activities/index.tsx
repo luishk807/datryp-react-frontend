@@ -27,6 +27,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import DirectionsTransitRoundedIcon from "@mui/icons-material/DirectionsTransitRounded";
 import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import CarRentalRoundedIcon from "@mui/icons-material/CarRentalRounded";
+import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
@@ -331,6 +332,7 @@ const titleIconFor = (a: Activity) => {
   if (kind === ACTIVITY_KIND.TRAIN) return DirectionsTransitRoundedIcon;
   if (kind === ACTIVITY_KIND.BUS) return DirectionsBusRoundedIcon;
   if (kind === ACTIVITY_KIND.RENTAL_CAR) return CarRentalRoundedIcon;
+  if (kind === ACTIVITY_KIND.OTHER) return LocalTaxiRoundedIcon;
   if (kind === ACTIVITY_KIND.NOTE) return EditNoteRoundedIcon;
   if (!a.image?.url) return PlaceRoundedIcon;
   return null;
@@ -593,7 +595,8 @@ const Activities = ({
           const isTransit =
             activityKind === ACTIVITY_KIND.TRAIN ||
             activityKind === ACTIVITY_KIND.BUS ||
-            activityKind === ACTIVITY_KIND.RENTAL_CAR;
+            activityKind === ACTIVITY_KIND.RENTAL_CAR ||
+            activityKind === ACTIVITY_KIND.OTHER;
           const isHotel =
             activityKind === ACTIVITY_KIND.HOTEL_CHECKIN ||
             activityKind === ACTIVITY_KIND.HOTEL_CHECKOUT;

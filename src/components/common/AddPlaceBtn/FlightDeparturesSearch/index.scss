@@ -1,0 +1,95 @@
+.flight-departures-search {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+
+  // Shared stacked label so the airport autocomplete, date, time-of-day
+  // toggle, and airline field all read as the same field family.
+  &-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  &-fields {
+    display: flex;
+    flex-wrap: wrap;
+    // flex-end so the From-airport and Date input boxes share one
+    // baseline even though their labels render above them.
+    align-items: flex-end;
+    gap: 12px;
+
+    .flight-departures-search-field {
+      flex: 1 1 200px;
+      min-width: 160px;
+    }
+
+    // The airport Autocomplete uses size="small"; the date InputField
+    // uses a default (medium) OutlinedInput, which renders taller. Pull
+    // the date input's vertical padding down to small so both fields end
+    // up the same height and line up cleanly.
+    .inputFieldCustom .MuiOutlinedInput-input {
+      padding-top: 8.5px;
+      padding-bottom: 8.5px;
+    }
+  }
+
+  &-field {
+    // The date field forces an internal top-label div (empty here since
+    // we render our own label span) — collapse it so it doesn't add a
+    // stray gap above the picker.
+    .inputFieldCustom > div:empty {
+      display: none;
+    }
+  }
+
+  &-window {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    // The shared `.hotel-side-toggle` centers itself (margin: 0 auto) and
+    // caps at 380px. Left-align it under its label so it lines up with the
+    // rest of the form's fields instead of floating centered.
+    .hotel-side-toggle {
+      margin: 0;
+    }
+  }
+
+  &-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  &-empty {
+    padding: 16px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.03);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.65);
+  }
+
+  &-filter {
+    margin-top: 4px;
+  }
+
+  &-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    // Long hub windows can return many rows — keep the picker from
+    // pushing the footer off-screen.
+    max-height: 360px;
+    overflow-y: auto;
+  }
+}

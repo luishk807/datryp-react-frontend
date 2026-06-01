@@ -7,26 +7,35 @@ export interface WizardNavProps {
     onBack?: () => void;
     /** Advances to the next step. Omit on the final step. */
     onNext?: () => void;
+    /** Disables the Next button (e.g. required input not yet valid).
+     *  Only applies to the Next variant, not Confirm. */
+    nextDisabled?: boolean;
     /** Final-step confirm action. When set, renders the primary
      *  "Add activity" button instead of "Next". */
     onConfirm?: () => void;
+    /** Label for the Back button — defaults to "Back"; the review's
+     *  in-place edit sub-view overrides it to "Cancel". */
+    backLabel?: string;
     nextLabel?: string;
     confirmLabel?: string;
 }
 
-/** Back / Next / Add footer for the Add-Activity wizard. Step 1 has no
- *  footer (tiles advance on tap); Steps 2 and 3 use this. */
+/** Back / Next / Add footer for the Add-Activity wizard. Step 1 has
+ *  no footer (tiles advance on tap); Steps 2 and 3 use this. The review
+ *  step's Edit affordance lives in the modal header, not here. */
 const WizardNav = ({
     onBack,
     onNext,
+    nextDisabled = false,
     onConfirm,
+    backLabel = 'Back',
     nextLabel = 'Next',
     confirmLabel = 'Add activity',
 }: WizardNavProps) => (
     <div className="add-wizard-nav">
         {onBack ? (
             <ButtonCustom
-                label="Back"
+                label={backLabel}
                 type={BUTTON_VARIANT.LINE}
                 onClick={onBack}
             />
@@ -44,6 +53,7 @@ const WizardNav = ({
             <ButtonCustom
                 label={nextLabel}
                 type={BUTTON_VARIANT.STANDARD}
+                disabled={nextDisabled}
                 onClick={onNext}
             />
         ) : (

@@ -102,14 +102,16 @@ export const TRIP_MODE = {
  *    Activity columns (name → hotel name, location → address,
  *    startTime → check-in/out time, notes → confirmation #, cost →
  *    nightly or total price).
- *  - `train` / `bus` / `rental_car`: ground-transport entries with
- *    operator, number, depart/arrive stations (or pickup / dropoff
- *    locations for rental cars), and times. Frontend models all three
+ *  - `train` / `bus` / `rental_car` / `other`: ground-transport entries
+ *    with operator, number, depart/arrive stations (or pickup / dropoff
+ *    locations for rental cars), and times. Frontend models all of them
  *    as a `transitSegments` array (mirrors `flightSegments`); the
  *    structured station/location fields are client-side until backend
  *    persistence ships. For `rental_car` the labels re-map to "Rental
  *    company / Confirmation # / Pickup / Dropoff / Car class" while the
- *    underlying TransitInfo fields stay the same.
+ *    underlying TransitInfo fields stay the same. `other` is a catch-all
+ *    point-to-point ride (Uber / taxi / rideshare) — same field shape as
+ *    train / bus.
  */
 export const ACTIVITY_KIND = {
   PLACE: "place",
@@ -120,6 +122,7 @@ export const ACTIVITY_KIND = {
   TRAIN: "train",
   BUS: "bus",
   RENTAL_CAR: "rental_car",
+  OTHER: "other",
 } as const;
 
 /** How the user chooses to fill an activity in the Add-Activity wizard's
@@ -128,6 +131,7 @@ export const ACTIVITY_KIND = {
 export const ADD_METHOD = {
   SUGGESTIONS: "suggestions",
   SMART: "smart",
+  SEARCH: "search",
   CUSTOM: "custom",
 } as const;
 

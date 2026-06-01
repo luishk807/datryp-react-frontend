@@ -119,6 +119,86 @@ const extractOperator = (text: string): OperatorMatch | null => {
     return null;
 };
 
+// ─── Train / bus service number ───────────────────────────────────────
+// The service number sits either right after the operator ("Renfe 3152",
+// "AVE 3152", "ICE 372", "TGV 6201") or after a keyword ("train 3152",
+// "no. 3152", "#3152", "service 3152"). We capture 2–5 digits with an
+// optional 1–3 letter prefix and an optional single trailing letter
+// (e.g. "ICE372", "3152A"). The caller passes the already-claimed ranges
+// (dates / times / costs / seats) so we never mistake those tokens for a
+// service number. `operatorEnd` lets us pick up the bare "<digits>" that
+// follows the operator name without a keyword.
+interface NumberMatch {
+    number: string;
+    start: number;
+    end: number;
+}
+
+// Keyword-anchored: "train 3152", "no. 3152", "#3152", "service 3152".
+const NUMBER_KEYWORD_RE =
+    /\b(?:train|bus|service|no\.?|number|#)\s*#?\s*([A-Za-z]{0,3}\d{2,5}[A-Za-z]?)\b/i;
+// Bare token right after the operator: "Renfe 3152", "ICE 372".
+const NUMBER_AFTER_OP_RE = /^\s*([A-Za-z]{0,3}\d{2,5}[A-Za-z]?)\b/;
+
+const overlapsClaimed = (
+    start: number,
+    end: number,
+    claimed: Array<{ start: number; end: number }>,
+): boolean => claimed.some((r) => start < r.end && end > r.start);
+
+const extractNumber = (
+    text: string,
+    operatorEnd: number | null,
+    claimed: Array<{ start: number; end: number }>,
+): NumberMatch | null => {
+    // 1. Bare digits immediately after the operator ("Renfe 3152").
+    if (operatorEnd != null) {
+        const after = text.slice(operatorEnd);
+        const m = after.match(NUMBER_AFTER_OP_RE);
+        if (m && m.index !== undefined) {
+            const start = operatorEnd + m.index + m[0].indexOf(m[1]);
+            const end = start + m[1].length;
+            if (!overlapsClaimed(start, end, claimed)) {
+                return { number: m[1].toUpperCase(), start, end };
+            }
+        }
+    }
+    // 2. Keyword-anchored anywhere ("train 3152", "no. 3152", "#3152").
+    const km = text.match(NUMBER_KEYWORD_RE);
+    if (km && km.index !== undefined) {
+        const tokenOffset = km[0].lastIndexOf(km[1]);
+        const start = km.index + tokenOffset;
+        const end = start + km[1].length;
+        if (!overlapsClaimed(start, end, claimed)) {
+            return { number: km[1].toUpperCase(), start, end };
+        }
+    }
+    return null;
+};
+
+// ─── Seat (train-only) ────────────────────────────────────────────────
+// "seat 4A", "seat 12C", "coach B seat 21", "car 7 seat 4A". We prefer a
+// seat match over a car-class match when both somehow appear (trains use
+// seat; rentals use class). Capture the seat token (1–5 alnum/-).
+interface SeatMatch {
+    seat: string;
+    start: number;
+    end: number;
+}
+
+const SEAT_RE =
+    /\b(?:(?:coach|car|carriage)\s+[0-9A-Za-z]{1,3}\s+)?seat\s+([0-9A-Za-z-]{1,5})\b/i;
+
+const extractSeat = (text: string): SeatMatch | null => {
+    const m = text.match(SEAT_RE);
+    if (!m || m.index === undefined) return null;
+    return {
+        seat: m[1].toUpperCase(),
+        start: m.index,
+        end: m.index + m[0].length,
+    };
+};
+
 // ─── Car class (rental-only, but cheap to scan for everything) ─────────
 const CAR_CLASS_RE =
     /\b(?:for\s+(?:a\s+|an\s+)?)?(sedan|compact|economy|midsize|mid-size|standard|fullsize|full-size|suv|minivan|van|luxury|premium|convertible|coupe|hatchback|wagon|truck|pickup\s+truck)\b(?:\s+car)?/i;
@@ -182,9 +262,65 @@ interface DateMatch {
 const NUMERIC_DATE_RE = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g;
 const ISO_DATE_RE = /\b(\d{4})-(\d{2})-(\d{2})\b/g;
 
+// Month-name dates: "July 8", "Jul 8", "July 8th", "July 8 2026",
+// "July 8, 2026", and the reversed "8 July" / "8 July 2026". Months
+// accept the short or long spelling (sept too). Day ordinals (st/nd/
+// rd/th) are tolerated. Years are optional — a bare "Month Day" with
+// no year resolves to the current year, matching the numeric-date
+// behavior above.
+const MONTH_NAMES =
+    'jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?';
+const MONTH_DAY_RE = new RegExp(
+    `\\b(${MONTH_NAMES})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:[,\\s]+(\\d{2,4}))?\\b`,
+    'gi',
+);
+const DAY_MONTH_RE = new RegExp(
+    `\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${MONTH_NAMES})\\.?(?:[,\\s]+(\\d{2,4}))?\\b`,
+    'gi',
+);
+
+const monthNameToIndex = (raw: string): number => {
+    const key = raw.slice(0, 3).toLowerCase();
+    const order = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    return order.indexOf(key);
+};
+
 const extractAllDates = (text: string): DateMatch[] => {
     const out: DateMatch[] = [];
     let m: RegExpExecArray | null;
+
+    const pushIfValid = (
+        monthIdx: number,
+        day: number,
+        rawYear: string | undefined,
+        start: number,
+        matchLen: number,
+    ): void => {
+        if (monthIdx < 0) return;
+        if (day < 1 || day > 31) return;
+        let year = rawYear ? parseInt(rawYear, 10) : moment().year();
+        if (year < 100) year += 2000;
+        const d = moment({ year, month: monthIdx, day });
+        if (!d.isValid()) return;
+        // Skip when this span overlaps a date already collected.
+        const overlap = out.some((dm) => start < dm.end && start + matchLen > dm.start);
+        if (overlap) return;
+        out.push({
+            iso: d.format('YYYY-MM-DD'),
+            start,
+            end: start + matchLen,
+        });
+    };
+
+    const reMonthDay = new RegExp(MONTH_DAY_RE.source, 'gi');
+    while ((m = reMonthDay.exec(text)) !== null) {
+        pushIfValid(monthNameToIndex(m[1]), parseInt(m[2], 10), m[3], m.index, m[0].length);
+    }
+
+    const reDayMonth = new RegExp(DAY_MONTH_RE.source, 'gi');
+    while ((m = reDayMonth.exec(text)) !== null) {
+        pushIfValid(monthNameToIndex(m[2]), parseInt(m[1], 10), m[3], m.index, m[0].length);
+    }
 
     const reNumeric = new RegExp(NUMERIC_DATE_RE.source, 'g');
     while ((m = reNumeric.exec(text)) !== null) {
@@ -196,6 +332,10 @@ const extractAllDates = (text: string): DateMatch[] => {
         if (day < 1 || day > 31) continue;
         const d = moment({ year, month: month - 1, day });
         if (!d.isValid()) continue;
+        const overlap = out.some(
+            (dm) => m!.index < dm.end && m!.index + m![0].length > dm.start,
+        );
+        if (overlap) continue;
         out.push({
             iso: d.format('YYYY-MM-DD'),
             start: m.index,
@@ -262,7 +402,7 @@ interface SidedTimes {
 }
 
 const splitDepartDropoff = (text: string): { departSide: string; dropoffSide: string; dropoffOffset: number } => {
-    const m = text.match(/\b(?:dropoff|drop\s*off|return|arrival)\b/i);
+    const m = text.match(/\b(?:dropoff|drop\s*off|return|arrival|arrives?|arriving)\b/i);
     if (!m || m.index === undefined) {
         return { departSide: text, dropoffSide: '', dropoffOffset: text.length };
     }
@@ -313,6 +453,27 @@ const LEADING_TRANSIT_CONNECTORS =
 const TRAILING_TRANSIT_CONNECTORS =
     /\s+(?:at|for|on|near|to|by|via|from|and|company)\s*$/i;
 
+// Per-station scrub: drop leading connector words (from/to/at/on/by/via)
+// and trailing connector words (on/at/from/to/and/by/via) so a paired
+// station like "from Madrid Atocha" or "Barcelona Sants on" comes out as
+// the bare place name.
+const LEADING_STATION_CONNECTORS = /^(?:from|to|at|on|by|via)\s+/i;
+const TRAILING_STATION_CONNECTORS = /\s+(?:on|at|from|to|and|by|via)$/i;
+
+const cleanStation = (value: string | undefined): string | undefined => {
+    if (!value) return value;
+    let out = value.trim();
+    let progressed = true;
+    while (progressed) {
+        const before = out;
+        out = out.replace(LEADING_STATION_CONNECTORS, '').trim();
+        out = out.replace(TRAILING_STATION_CONNECTORS, '').trim();
+        progressed = out !== before;
+    }
+    out = out.replace(/[\s,.;:!?-]+$/, '').trim();
+    return out || undefined;
+};
+
 export const parseTransitEntry = (
     text: string | undefined,
 ): ParsedTransitEntry | null => {
@@ -344,11 +505,27 @@ export const parseTransitEntry = (
     const operatorMatch = extractOperator(trimmed);
     if (operatorMatch) ranges.push({ start: operatorMatch.start, end: operatorMatch.end });
 
-    // 6. Car class.
-    const classMatch = extractCarClass(trimmed);
+    // 6. Seat (train) wins over car class (rental) when both appear.
+    //    Only fall back to the car-class scan when no seat was found.
+    const seatMatch = extractSeat(trimmed);
+    if (seatMatch) ranges.push({ start: seatMatch.start, end: seatMatch.end });
+    const classMatch = seatMatch ? null : extractCarClass(trimmed);
     if (classMatch) ranges.push({ start: classMatch.start, end: classMatch.end });
+    const classOrSeat = seatMatch?.seat ?? classMatch?.classOrSeat;
 
-    // 7. Pickup / dropoff locations (key-phrase anchored).
+    // 7. Train / bus service number. Runs AFTER every other extractor so
+    //    the already-claimed ranges (dates / times / costs / seats /
+    //    class / confirmation) are skipped and never mistaken for a
+    //    service number. Sits after the operator ("Renfe 3152") or after
+    //    a keyword ("train 3152", "#3152").
+    const numberMatch = extractNumber(
+        trimmed,
+        operatorMatch ? operatorMatch.end : null,
+        ranges,
+    );
+    if (numberMatch) ranges.push({ start: numberMatch.start, end: numberMatch.end });
+
+    // 8. Pickup / dropoff locations (key-phrase anchored).
     const pickupMatch = extractPickup(trimmed);
     if (pickupMatch) ranges.push({ start: pickupMatch.start, end: pickupMatch.end });
     const dropoffMatch = extractDropoff(trimmed);
@@ -363,6 +540,29 @@ export const parseTransitEntry = (
         }
     }
     residual = residual.replace(/\s+/g, ' ').trim();
+    // Blanked ranges leave orphaned connector / splitter words behind
+    // ("...Sants on  at ,  arrives ,  ,") once their dates / times /
+    // seats / costs are removed. Drop comma-delimited fragments that are
+    // nothing but connector / keyword noise so they don't bleed into the
+    // arrival-station capture below. Runs before the leading/trailing
+    // connector loop so the station-pair regex sees a clean residual.
+    residual = residual
+        .split(',')
+        .map((frag) => frag.trim())
+        .filter((frag) => {
+            if (!frag) return false;
+            const stripped = frag
+                .replace(
+                    /\b(?:on|at|from|to|by|via|and|arrives?|arriving|arrival|dropoff|drop\s*off|return|seat)\b/gi,
+                    '',
+                )
+                .replace(/[\s,.;:!?-]+/g, '')
+                .trim();
+            return stripped.length > 0;
+        })
+        .join(', ')
+        .replace(/\s+/g, ' ')
+        .trim();
     let connectorProgressed = true;
     while (connectorProgressed) {
         const before = residual;
@@ -386,6 +586,12 @@ export const parseTransitEntry = (
         }
     }
 
+    // Scrub leading/trailing connector words that survive station-pairing
+    // ("from Madrid Atocha" → "Madrid Atocha", "Barcelona Sants on" →
+    // "Barcelona Sants") so each station comes out clean.
+    departStation = cleanStation(departStation);
+    arrivalStation = cleanStation(arrivalStation);
+
     // ─── Trip name ────────────────────────────────────────────────────
     // Priority: operator (the most identifying token), then station
     // pair, then leftover residual. The caller wraps the operator in
@@ -400,10 +606,24 @@ export const parseTransitEntry = (
         tripName = residual;
     }
 
+    // Same-day trip shorthand: when the user gave exactly ONE date but
+    // both a depart and an arrival time, that single date applies to both
+    // legs (a same-day train ride). classifyDateContext only sets one of
+    // the two in that case, so backfill the other here. Two-date inputs
+    // keep their independent depart/arrival dates.
+    let finalDepartDate = departDate;
+    let finalArrivalDate = arrivalDate;
+    if (allDates.length === 1 && times.departTime && times.arrivalTime) {
+        const only = allDates[0].iso;
+        finalDepartDate = only;
+        finalArrivalDate = only;
+    }
+
     if (
         !operatorMatch &&
+        !numberMatch &&
         !confMatch &&
-        !classMatch &&
+        !classOrSeat &&
         !pickupMatch &&
         !dropoffMatch &&
         !departStation &&
@@ -411,8 +631,8 @@ export const parseTransitEntry = (
         !costMatch &&
         !times.departTime &&
         !times.arrivalTime &&
-        !departDate &&
-        !arrivalDate &&
+        !finalDepartDate &&
+        !finalArrivalDate &&
         !tripName
     ) {
         return null;
@@ -420,13 +640,14 @@ export const parseTransitEntry = (
 
     return {
         operator: operatorMatch?.operator,
+        number: numberMatch?.number,
         departStation,
         arrivalStation,
         departTime: times.departTime,
         arrivalTime: times.arrivalTime,
-        departDate,
-        arrivalDate,
-        classOrSeat: classMatch?.classOrSeat,
+        departDate: finalDepartDate,
+        arrivalDate: finalArrivalDate,
+        classOrSeat,
         confirmationNumber: confMatch?.confirmationNumber,
         cost: costMatch?.cost,
         tripName,
