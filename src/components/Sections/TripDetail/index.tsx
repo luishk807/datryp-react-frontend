@@ -24,9 +24,6 @@ import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import EditRoundedIcon from "@mui/icons-material/EditRounded";
-import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
@@ -129,11 +126,6 @@ export const TripDetail = () => {
   // hidden by default on this page to keep the itinerary clean, but
   // surfaced behind a "Trip details" toggle for a quick overview.
   const [showBasicInfo, setShowBasicInfo] = useState(false);
-  // Inline activity-editing mode. Clicking "Edit activities" flips the
-  // day list from read-only to editable IN PLACE (no navigation) and
-  // swaps the pill for Save / Cancel. Only the activities are editable;
-  // basic info is untouched (edit that from the "Trip details" card).
-  const [isEditingActivities, setIsEditingActivities] = useState(false);
   useEffect(() => {
     if (!currentUser) return;
     if (!idParam) return;
@@ -174,11 +166,6 @@ export const TripDetail = () => {
     setLocalTripData(baseTripData);
   }, [baseTripData]);
 
-  // Drop out of inline activity-edit mode when switching to another trip.
-  useEffect(() => {
-    setIsEditingActivities(false);
-  }, [idParam]);
-
   const [statusOverride, setStatusOverride] = useState<TripStatus | null>(null);
 
   const tripData = useMemo<TripState | null>(() => {
@@ -207,18 +194,52 @@ export const TripDetail = () => {
   const [notifyParticipants, setNotifyParticipants] = useState(true);
 
   // Drives the focused "Edit basic info" modal opened from the basic-info
-  // card. Activities are still edited inline; this only covers name /
-  // destination / organizer / budget / dates.
+  // card. Activities are edited inline on the day list; this only covers
+  // name / destination / organizer / budget / dates.
   const editBasicInfoRef = useRef<ModalButtonHandle>(null);
-
-  // Dirty when the user has changed budgets/places (localTripData diverges
-  // from the server-derived baseTripData) or picked a new status badge.
-  const isDirty =
-    (!!baseTripData && localTripData !== baseTripData) || statusOverride !== null;
 
   // Hoisted early so callbacks below can reference it in their deps
   // arrays without tripping a TDZ error.
   const persistedStatusName = apiTrip?.status?.name ?? TRIP_STATUS.PLANNING;
+
+  const isOrganizer = useMemo(
+    () => isCurrentUserOrganizer(apiTrip, currentUser?.id),
+    [apiTrip, currentUser?.id],
+  );
+
+  // Persist the given trip snapshot to the backend. Shared by every
+  // auto-save path on this page — Planning is always in edit mode (no
+  // separate Save Trip button), so each add / edit / delete / budget /
+  // status / paid change pushes immediately. Guards against firing a
+  // second save while one is already in flight: the backend's
+  // soft-delete-then-reinsert save_itinerary duplicates every activity
+  // when two saves race, so we serialize on the client. The change is
+  // already in localTripData, so the UI stays correct; the next edit
+  // picks up the latest state and persists it in one save.
+  const autoPersist = useCallback(
+    (next: TripState) => {
+      if (!apiTrip?.interaryType?.id) return;
+      if (saveItinerary.isPending) {
+        setSaveError(
+          "Still saving the previous change. Try again in a moment.",
+        );
+        return;
+      }
+      const input = tripStateToSaveInput(next, {
+        id: apiTrip.id,
+        interaryTypeId: apiTrip.interaryType.id,
+        tripStatusId: apiTrip.status?.id ?? null,
+        notifyParticipants,
+        activityStatusLookup,
+      });
+      void saveItinerary.mutateAsync(input).catch((err: unknown) => {
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save the change.",
+        );
+      });
+    },
+    [apiTrip, saveItinerary, notifyParticipants, activityStatusLookup],
+  );
 
   const handleChangeBudget = useCallback(
     (event: TripPlaceEvent) => {
@@ -231,26 +252,42 @@ export const TripDetail = () => {
       };
       const destIndx = destinationIndx ?? 0;
 
-      setLocalTripData((prev) => {
-        if (!prev) return prev;
-        return produce(prev, (draft) => {
-          const dest = draft.destinations?.[destIndx];
-          if (!dest?.itinerary) return;
-          for (const day of dest.itinerary) {
-            const a = day.activities?.find((x) => x.id === activityId);
-            if (a) {
-              a.budget = entries.map((b, i) => ({
-                id: i + 1,
-                user: b.user,
-                budget: b.budget,
-              }));
-              return;
-            }
+      if (!localTripData) return;
+      const next = produce(localTripData, (draft) => {
+        const dest = draft.destinations?.[destIndx];
+        if (!dest?.itinerary) return;
+        for (const day of dest.itinerary) {
+          const a = day.activities?.find((x) => x.id === activityId);
+          if (a) {
+            a.budget = entries.map((b, i) => ({
+              id: i + 1,
+              user: b.user,
+              budget: b.budget,
+            }));
+            return;
           }
-        });
+        }
       });
+      setLocalTripData(next);
+
+      // Planning is always-editable and self-saving — persist the budget
+      // change immediately. Gated on the status lookup being warm so
+      // activities don't serialize with unresolved status UUIDs.
+      if (
+        isOrganizer &&
+        persistedStatusName === TRIP_STATUS.PLANNING &&
+        activityStatusLookup.size > 0
+      ) {
+        autoPersist(next);
+      }
     },
-    [],
+    [
+      localTripData,
+      isOrganizer,
+      persistedStatusName,
+      activityStatusLookup,
+      autoPersist,
+    ],
   );
 
   // Apply an add/edit/delete from the activity card chain. Mirrors
@@ -279,25 +316,6 @@ export const TripDetail = () => {
       !!status &&
       typeof status === "object" &&
       status.name === TRIP_STATUS.COMPLETED
-    );
-  };
-  // Sibling to the Completed-tap auto-save: detects the Planning↔Confirmed
-  // quick-toggle fired from the status pill on /trip-detail. Same shape as
-  // the Completed event (patch carries a status object), just a different
-  // name. We auto-save these too so the user doesn't have to first enter
-  // the stepper editor just to lock in a place.
-  const isPlanningStatusToggleEvent = (event: TripPlaceEvent): boolean => {
-    const { activity } = event;
-    if (activity.type !== "edit") return false;
-    const wrapper = activity.value as
-      | { value?: Partial<Activity> }
-      | undefined;
-    const status = wrapper?.value?.status as ActivityStatus | undefined;
-    return (
-      !!status &&
-      typeof status === "object" &&
-      (status.name === TRIP_STATUS.PLANNING ||
-        status.name === TRIP_STATUS.CONFIRMED)
     );
   };
   // Detect paid-attestation edits (Mark as paid, edit who paid, clear
@@ -359,117 +377,40 @@ export const TripDetail = () => {
       });
       setLocalTripData(next);
 
-      // One-shot persist when the user taps the Complete tick on an
-      // activity while the trip is already Confirmed. No separate Save
-      // Trip click needed — the activity transitions to Completed and
-      // is saved to the backend in a single tap.
+      // Auto-save policy. There is no manual Save Trip button — the
+      // day list is always editable while the trip is in Planning, so
+      // every change persists immediately. Three paths:
       //
-      // GUARD: only fire when the tripStatuses lookup has at least one
-      // entry. Otherwise `tripStateToSaveInput` resolves every activity's
-      // status UUID to null (the cold-cache `{ id: 0, name: … }`
-      // fallback can't be resolved by name when the lookup itself is
-      // empty). The post-save refetch then returns activities with
-      // status=Planning and the UI flicks back — the "checkmark flicks
-      // but doesn't update" bug. The activity card disables the tick
-      // when its own copy of `completedStatus.id` is 0, but the lookup
-      // races with the trip fetch, so belt-and-suspenders this here.
-      const shouldAutoSaveStatusEdit =
-        apiTrip &&
-        apiTrip.interaryType?.id &&
-        activityStatusLookup.size > 0 &&
-        ((persistedStatusName === TRIP_STATUS.CONFIRMED &&
-          isMarkActivityCompletedEvent(event)) ||
-          (persistedStatusName === TRIP_STATUS.PLANNING &&
-            isPlanningStatusToggleEvent(event)));
-      // Paid-edit auto-save runs at every lifecycle stage except
-      // Cancelled — payment settlement is operational and should
-      // persist even on Confirmed / Completed trips. The
-      // `activityStatusLookup` guard from the status-edit branch
-      // doesn't belong here: paid edits don't change any activity's
-      // status, so an empty lookup wouldn't corrupt the saved
-      // payload. Without this fix, a paid edit on a Confirmed trip
-      // silently dropped the save whenever the lookup hadn't loaded
-      // yet (or had been invalidated by an earlier refetch), and
-      // the next baseTripData refetch wiped the user's change.
-      const shouldAutoSavePaidEdit =
-        apiTrip &&
-        apiTrip.interaryType?.id &&
-        persistedStatusName !== TRIP_STATUS.CANCELLED &&
-        isPaidEditEvent(event);
-      if (shouldAutoSaveStatusEdit || shouldAutoSavePaidEdit) {
-        // Skip when a save is already in flight. The backend's
-        // save_itinerary uses soft-delete-then-reinsert semantics —
-        // two concurrent saves on the same trip will each soft-delete
-        // the existing rows (the second is a no-op since they're
-        // already gone) and then each insert a fresh copy, leaving
-        // two sets of "active" activity rows with different ids but
-        // identical content. That's exactly the duplicate we saw on
-        // /trip-detail and in the exported PDF. Until the backend
-        // serializes per-itinerary writes (SELECT ... FOR UPDATE on
-        // the itinerary row), guard the client side. The change is
-        // already applied to localTripData above so the UI reflects
-        // it; the next status/paid edit picks up the latest state
-        // and persists it in one save.
-        if (saveItinerary.isPending) {
-          setSaveError(
-            "Still saving the previous change. Try again in a moment.",
-          );
-          return;
-        }
-        const input = tripStateToSaveInput(next, {
-          id: apiTrip.id,
-          interaryTypeId: apiTrip.interaryType.id,
-          tripStatusId: apiTrip.status?.id ?? null,
-          notifyParticipants,
-          activityStatusLookup,
-        });
-        void saveItinerary.mutateAsync(input).catch((err: unknown) => {
-          setSaveError(
-            err instanceof Error
-              ? err.message
-              : shouldAutoSavePaidEdit
-                ? "Failed to update the payment."
-                : "Failed to update the activity status.",
-          );
-        });
-      }
+      //  1. Planning — any add / edit / delete / status toggle persists.
+      //     Gated on the status lookup being warm so activities don't
+      //     serialize with unresolved status UUIDs (the cold-cache
+      //     `{ id: 0, name: … }` fallback resolves to null, and the
+      //     post-save refetch would revert the change — the "checkmark
+      //     flicks but doesn't update" bug).
+      //  2. Confirmed — only the one-tap Complete tick persists; the
+      //     rest of the card is locked. Same lookup guard as above.
+      //  3. Any stage except Cancelled — paid-attestation edits persist.
+      //     No lookup guard: paid edits don't touch activity status, so
+      //     an empty lookup can't corrupt the payload.
+      const lookupReady = activityStatusLookup.size > 0;
+      const shouldAutoSave =
+        isOrganizer &&
+        ((persistedStatusName === TRIP_STATUS.PLANNING && lookupReady) ||
+          (persistedStatusName === TRIP_STATUS.CONFIRMED &&
+            lookupReady &&
+            isMarkActivityCompletedEvent(event)) ||
+          (persistedStatusName !== TRIP_STATUS.CANCELLED &&
+            isPaidEditEvent(event)));
+      if (shouldAutoSave) autoPersist(next);
     },
     [
       localTripData,
-      apiTrip,
+      isOrganizer,
       persistedStatusName,
-      saveItinerary,
-      notifyParticipants,
       activityStatusLookup,
+      autoPersist,
     ],
   );
-
-  const handleSaveTrip = useCallback(async (): Promise<boolean> => {
-    if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return false;
-    setSaveError(null);
-    try {
-      const input = tripStateToSaveInput(tripData, {
-        id: apiTrip.id,
-        interaryTypeId: apiTrip.interaryType.id,
-        tripStatusId: statusOverride?.id
-          ? String(statusOverride.id)
-          : apiTrip.status?.id ?? null,
-        notifyParticipants,
-        activityStatusLookup,
-      });
-      await saveItinerary.mutateAsync(input);
-      // Cache invalidation triggers a refetch; baseTripData updates and the
-      // useEffect resyncs localTripData. Clear the status override so the
-      // re-rendered badge reflects the freshly-saved status.
-      setStatusOverride(null);
-      return true;
-    } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : "Failed to save the trip.",
-      );
-      return false;
-    }
-  }, [apiTrip, tripData, statusOverride, saveItinerary, notifyParticipants]);
 
   const handleSaveBasicInfo = useCallback(
     async (next: TripState): Promise<boolean> => {
@@ -501,37 +442,12 @@ export const TripDetail = () => {
     [apiTrip, notifyParticipants, activityStatusLookup, saveItinerary],
   );
 
-  // ── Inline activity-edit controls ──────────────────────────────────
-  // Editing activities and viewing the "Trip details" overview are
-  // mutually exclusive — entering edit mode collapses the details card.
-  const handleEditActivities = () => {
-    setShowBasicInfo(false);
-    setIsEditingActivities(true);
-  };
-
-  const handleSaveActivities = useCallback(async () => {
-    const ok = await handleSaveTrip();
-    if (ok) setIsEditingActivities(false);
-  }, [handleSaveTrip]);
-
-  const handleCancelActivities = useCallback(() => {
-    // Discard any in-place activity edits and drop back to read-only.
-    setLocalTripData(baseTripData);
-    setStatusOverride(null);
-    setSaveError(null);
-    setIsEditingActivities(false);
-  }, [baseTripData]);
-
-  // Opening "Trip details" cancels any in-progress activity edit (the two
-  // views are mutually exclusive). Toggling it closed leaves edit state
-  // alone.
+  // The "Trip details" overview is an independent toggle — the day list
+  // is always editable in Planning, so opening / closing the overview
+  // never touches activity state.
   const handleToggleBasicInfo = useCallback(() => {
-    const opening = !showBasicInfo;
-    setShowBasicInfo(opening);
-    if (opening && isEditingActivities) {
-      handleCancelActivities();
-    }
-  }, [showBasicInfo, isEditingActivities, handleCancelActivities]);
+    setShowBasicInfo((prev) => !prev);
+  }, []);
 
   const handleDeleteTrip = useCallback(async () => {
     if (!apiTrip) return;
@@ -550,23 +466,14 @@ export const TripDetail = () => {
     }
   }, [apiTrip, deleteItinerary, navigate, notifyParticipants]);
 
-  const isOrganizer = useMemo(
-    () => isCurrentUserOrganizer(apiTrip, currentUser?.id),
-    [apiTrip, currentUser?.id],
-  );
-
   const isLocked = LOCKED_STATUS_NAMES.has(persistedStatusName);
 
-  // BasicTripInfo gates its trip-name pencil + status edit affordances on
-  // this flag (organizer-only, planning-only). Activity-card editing is
-  // intentionally NOT done on this page — clicking Edit Trip / the pencil
-  // routes the user to the dedicated stepper editor.
-  const isViewMode = !isOrganizer || isLocked;
-  // Save Trip only matters while the trip is still in Planning — that's the
-  // one state where activity-level edits can be made. Once Confirmed,
-  // activities lock and the only legitimate trip-level change is the
-  // "Mark complete" promotion (handled by TripStatusBadge).
-  const canSaveTrip =
+  // Activity editing on the day list is enabled only for the organizer
+  // while the trip is in Planning — once Confirmed the activities lock
+  // and the only legitimate trip-level change is the "Mark complete"
+  // promotion (handled by TripStatusBadge). There is no separate "Edit"
+  // step: in Planning the list is always editable and self-saving.
+  const canEditActivities =
     isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING;
   // TripStatusBadge shows "Confirm trip" in Planning and "Mark complete" in
   // Confirmed — those are the only states with a forward move.
@@ -883,7 +790,7 @@ export const TripDetail = () => {
                 // Opens a focused modal on this page rather than navigating
                 // to the full stepper editor.
                 onEditBasicInfo={
-                  canSaveTrip
+                  canEditActivities
                     ? () => editBasicInfoRef.current?.openModel()
                     : undefined
                 }
@@ -958,7 +865,7 @@ export const TripDetail = () => {
                 </span>
                 <span className="trip-detail-planning-sub">
                   {isOrganizer
-                    ? "Tap any Planning chip on an activity to lock it in, or hit Edit Trip for full edits."
+                    ? "Your itinerary is fully editable — add, edit, or remove activities and changes save as you go."
                     : "The organizer is still arranging activities. Check back soon."}
                 </span>
               </div>
@@ -966,64 +873,16 @@ export const TripDetail = () => {
           </Grid>
         )}
         <Grid item lg={12}>
-          {/* Activity cards on /trip-detail are read-only by design — the
-              Edit basic info button (and the trip-name pencil) navigate to
-              the stepper editor where the inline edit affordances live. The
-              one exception is the per-activity status pill: organizers
-              can flip Planning↔Confirmed in-place while the trip itself
-              is still Planning, and handleChangePlace auto-saves that
-              change so it doesn't sit in local-only state. */}
+          {/* In Planning the day list is always editable for the
+              organizer — add / edit / delete / status / budget all
+              persist immediately via handleChangePlace's auto-save
+              (there is no separate "Edit" step or Save Trip button).
+              Once the trip is Confirmed or later, the list locks to
+              read-only and only the one-tap Complete tick + paid
+              settlement stay live. */}
           <DestinationDetail
             type={tripData.type}
-            // Inline activity-edit control — sits at the right of the
-            // first day's date header (more room + more visible on mobile
-            // than the cramped header row). Read-only → "Edit"; editing →
-            // Save + Cancel.
-            firstDayAction={
-              canSaveTrip ? (
-                isEditingActivities ? (
-                  <span className="trip-detail-edit-actions">
-                    <button
-                      type="button"
-                      className="trip-detail-edit-save-btn"
-                      onClick={handleSaveActivities}
-                      disabled={saveItinerary.isPending}
-                      aria-label="Save activities"
-                    >
-                      <SaveRoundedIcon fontSize="small" />
-                      <span>
-                        {saveItinerary.isPending ? "Saving…" : "Save"}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className="trip-detail-edit-cancel-btn"
-                      onClick={handleCancelActivities}
-                      disabled={saveItinerary.isPending}
-                      aria-label="Cancel editing"
-                    >
-                      <CloseRoundedIcon fontSize="small" />
-                      <span>Cancel</span>
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    className="trip-detail-edit-activities-btn"
-                    onClick={handleEditActivities}
-                    aria-label="Edit activities"
-                  >
-                    <EditRoundedIcon fontSize="small" />
-                    <span>Edit</span>
-                  </button>
-                )
-              ) : undefined
-            }
-            // Read-only by default; "Edit activities" flips this so the
-            // day list gains add / edit / delete / reorder affordances.
-            // Guarded by canSaveTrip so a mid-edit lifecycle change can't
-            // leave the list editable on a locked trip.
-            isViewMode={!(isEditingActivities && canSaveTrip)}
+            isViewMode={!canEditActivities}
             allowStatusToggle={
               isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING
             }
@@ -1304,9 +1163,6 @@ const TripDetailHeader = ({
             className={classnames("chevron", { open: basicInfoOpen })}
           />
         </button>
-        {/* Inline activity-edit control now lives in the first date
-            block's header (see `firstDayAction` on DestinationDetail) —
-            more room + more visible on mobile than this header row. */}
         {showNotifyToggle && (
           <NotifyParticipantsCheckbox
             checked={notifyParticipants}
