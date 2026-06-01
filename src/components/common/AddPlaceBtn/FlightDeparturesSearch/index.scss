@@ -52,10 +52,11 @@
     gap: 6px;
 
     // The shared `.hotel-side-toggle` centers itself (margin: 0 auto) and
-    // caps at 380px. Left-align it under its label so it lines up with the
-    // rest of the form's fields instead of floating centered.
+    // caps at 380px. Here we want it full-width under its label, flush
+    // with the rest of the form's fields.
     .hotel-side-toggle {
       margin: 0;
+      max-width: none;
     }
   }
 
@@ -91,5 +92,32 @@
     // pushing the footer off-screen.
     max-height: 360px;
     overflow-y: auto;
+  }
+
+  // Client-side "Show more" — reveals the next page of the already-
+  // fetched list (no extra provider call).
+  &-more {
+    appearance: none;
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px dashed rgba(60, 181, 75, 0.5);
+    border-radius: 10px;
+    background: rgba(60, 181, 75, 0.04);
+    color: theme('colors.primaryGreen');
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: rgba(60, 181, 75, 0.1);
+    }
+  }
+
+  &-count {
+    margin: 2px 0 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.45);
   }
 }

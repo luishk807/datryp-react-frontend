@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CircularProgress } from '@mui/material';
 import WbTwilightRoundedIcon from '@mui/icons-material/WbTwilightRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
@@ -23,6 +23,12 @@ const TIME_WINDOWS = [
 ] as const;
 
 type TimeWindowKey = (typeof TIME_WINDOWS)[number]['key'];
+
+/** Render the result list in pages so a busy hub (the backend caps a
+ *  search at 250) never mounts hundreds of DOM rows at once. Purely
+ *  client-side over the already-fetched list — paging costs no extra
+ *  provider calls. */
+const PAGE_SIZE = 20;
 
 export interface FlightDeparturesSearchProps {
     /** Seed the From-airport — segment 0's depart airport or the home-base
@@ -82,6 +88,16 @@ const FlightDeparturesSearch = ({
                 .some((field) => field!.toLowerCase().includes(q)),
         );
     }, [items, filter]);
+
+    // How many of the filtered rows are currently rendered. Resets to the
+    // first page whenever the result set changes (new search or a changed
+    // filter) so the user always starts at the top.
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    useEffect(() => {
+        setVisibleCount(PAGE_SIZE);
+    }, [filtered]);
+    const visible = filtered.slice(0, visibleCount);
+    const hasMore = filtered.length > visibleCount;
 
     const canSearch = /^[A-Za-z]{3}$/.test(airport.trim()) && Boolean(date);
     const showResults = searched && !isFetching;
@@ -206,7 +222,7 @@ const FlightDeparturesSearch = ({
                         />
                     </div>
                     <ul className="flight-departures-search-results" role="list">
-                        {filtered.map((item, idx) => (
+                        {visible.map((item, idx) => (
                             <FlightDepartureRow
                                 key={`${item.flightNumber ?? 'flight'}-${idx}`}
                                 item={item}
@@ -214,6 +230,23 @@ const FlightDeparturesSearch = ({
                             />
                         ))}
                     </ul>
+                    {hasMore ? (
+                        <button
+                            type="button"
+                            className="flight-departures-search-more"
+                            onClick={() =>
+                                setVisibleCount((c) => c + PAGE_SIZE)
+                            }
+                        >
+                            Show more ({filtered.length - visibleCount} left)
+                        </button>
+                    ) : (
+                        filtered.length > PAGE_SIZE && (
+                            <p className="flight-departures-search-count">
+                                Showing all {filtered.length}
+                            </p>
+                        )
+                    )}
                 </>
             )}
 

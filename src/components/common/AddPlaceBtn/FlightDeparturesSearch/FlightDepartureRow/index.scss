@@ -1,10 +1,6 @@
 .flight-departure-row {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
-  padding: 10px 12px;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
@@ -12,17 +8,26 @@
     background: rgba(60, 181, 75, 0.04);
   }
 
-  &-main {
+  // The whole card is one clickable button.
+  &-btn {
     appearance: none;
     background: none;
     border: none;
-    text-align: left;
+    width: 100%;
     cursor: pointer;
-    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    padding: 10px 12px;
+  }
+
+  &-info {
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 0;
   }
 
   &-head {
@@ -61,11 +66,24 @@
     font-weight: 600;
   }
 
-  &-pick {
+  // Compact pill on the right — the click affordance, fills green on
+  // hover. Not a separate control; the parent button handles the click.
+  &-cta {
     flex: 0 0 auto;
     align-self: center;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid theme('colors.primaryGreen');
+    color: theme('colors.primaryGreen');
+    font-size: 0.8rem;
+    font-weight: 600;
     white-space: nowrap;
-    padding: 6px 12px !important;
-    font-size: 0.82rem !important;
+  }
+
+  &:hover &-cta {
+    background: theme('colors.primaryGreen');
+    color: #fff;
   }
 }
