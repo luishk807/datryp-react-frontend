@@ -20,6 +20,126 @@
   margin-bottom: 16px;
 }
 
+.add-smart-box {
+  margin-bottom: 18px;
+}
+
+.add-smart-box-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: #fff;
+  border: 2px solid rgba(60, 181, 75, 0.35);
+  border-radius: 14px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:focus-within {
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.16);
+  }
+
+  .input-field-bare {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .input-field-bare-input {
+    border: none;
+    padding: 6px 0;
+    background: transparent;
+    font-size: 0.92rem;
+  }
+}
+
+.add-smart-box-spark {
+  font-size: 1.25rem !important;
+  color: theme('colors.primaryGreen');
+  flex: 0 0 auto;
+}
+
+.add-smart-box-go {
+  flex: 0 0 auto;
+  color: #fff !important;
+  background: theme('colors.primaryGreen') !important;
+
+  &:hover {
+    filter: brightness(0.92);
+  }
+
+  &.Mui-disabled {
+    background: rgba(0, 0, 0, 0.12) !important;
+    color: rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+.add-smart-box-detected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.82rem;
+}
+
+.add-smart-box-detected-label {
+  color: rgba(0, 0, 0, 0.7);
+
+  strong {
+    color: theme('colors.primary');
+  }
+}
+
+.add-smart-box-change {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  text-decoration: underline;
+}
+
+.add-smart-box-override {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.add-smart-box-override-label {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.add-smart-box-override-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.add-type-or {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin: 0 0 18px;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+}
+
 .add-type-tiles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

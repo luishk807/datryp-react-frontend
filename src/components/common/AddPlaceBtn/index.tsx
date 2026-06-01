@@ -1791,6 +1791,45 @@ const AddPlaceBtn = ({
         setMethod(next);
     };
 
+    /** Smart-box submit from Step 1: the user typed free text and we
+     *  detected a kind. Route it straight into the existing SMART
+     *  pipeline — same as if they'd picked the tile, chosen "Smart
+     *  entry", and typed the text into that kind's smart field:
+     *    1. Reset to the detected kind via the existing kind-change path
+     *       (so per-kind seeding / field clearing runs).
+     *    2. Force the SMART method.
+     *    3. Seed that kind's smart-entry state, which fires the same
+     *       watcher/effect that powers typing (place/hotel watchers key
+     *       on `rawInput`; the transit effect keys on `transitSmartEntry`;
+     *       flight runs `handleSmartEntry` which rebuilds segments).
+     *    4. Land on Step 2 — the SMART pipeline + auto-advance then carry
+     *       the user to the review with no further taps.
+     *  handleKindChange wipes every smart field, so seed AFTER it. */
+    const handleSmartBoxSubmit = (text: string, kind: ActivityKind) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+        handleKindChange(kind);
+        setMethod(ADD_METHOD.SMART);
+        if (kind === ACTIVITY_KIND.FLIGHT) {
+            handleSmartEntry(trimmed);
+        } else if (
+            kind === ACTIVITY_KIND.HOTEL_CHECKIN ||
+            kind === ACTIVITY_KIND.HOTEL_CHECKOUT
+        ) {
+            setHotelSmartEntry(trimmed);
+        } else if (
+            kind === ACTIVITY_KIND.TRAIN ||
+            kind === ACTIVITY_KIND.BUS ||
+            kind === ACTIVITY_KIND.RENTAL_CAR ||
+            kind === ACTIVITY_KIND.OTHER
+        ) {
+            setTransitSmartEntry(trimmed);
+        } else {
+            setPlaceSmartEntry(trimmed);
+        }
+        setWizardStep(2);
+    };
+
     /** A flight was picked from the "Find my flight" departures search.
      *  Populate segment 0, then drop the user into the normal flight
      *  form (via the CUSTOM method) so the cost field is reachable and
@@ -2194,6 +2233,7 @@ const AddPlaceBtn = ({
                                     <TypeStep
                                         currentKind={currentKind}
                                         onPick={handleTypePick}
+                                        onSmartSubmit={handleSmartBoxSubmit}
                                     />
                                 )}
                                 {wizardStep === 2 && showMethodChooser && (

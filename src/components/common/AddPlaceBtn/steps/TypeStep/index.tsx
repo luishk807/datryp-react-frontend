@@ -1,10 +1,17 @@
+import { useEffect, useMemo, useState } from 'react';
 import classNames from 'classnames';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import StickyNote2RoundedIcon from '@mui/icons-material/StickyNote2Rounded';
 import FlightRoundedIcon from '@mui/icons-material/FlightRounded';
 import HotelRoundedIcon from '@mui/icons-material/HotelRounded';
 import CommuteRoundedIcon from '@mui/icons-material/CommuteRounded';
-import { ACTIVITY_KIND } from 'constants';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import { IconButton } from '@mui/material';
+import InputField from 'components/common/FormFields/InputField';
+import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import { ACTIVITY_KIND, BUTTON_VARIANT } from 'constants';
+import { classifyActivityKind } from '../../classifyActivityKind';
 import type { ActivityKind } from 'types';
 import './index.scss';
 
@@ -16,6 +23,10 @@ export interface TypeStepProps {
      *  the existing kind-toggle entries (Hotel → HOTEL_CHECKIN, Ground →
      *  TRAIN); the per-form sub-toggles handle the rest. */
     onPick: (kind: ActivityKind) => void;
+    /** Smart-box submit: the free text the user typed plus the kind we
+     *  detected for it. The wizard seeds that kind's smart-entry pipeline
+     *  and jumps to the review. */
+    onSmartSubmit: (text: string, kind: ActivityKind) => void;
 }
 
 const TILES: {
@@ -70,33 +81,141 @@ const TILES: {
     },
 ];
 
-/** Step 1 of the Add-Activity wizard — pick what type of activity this
- *  is. One tap advances to the method step. */
-const TypeStep = ({ currentKind, onPick }: TypeStepProps) => (
-    <div className="add-wizard-step add-type-step">
-        <h2 className="add-wizard-headline">What would you like to add?</h2>
-        <p className="add-wizard-sub">Pick a type to get started.</p>
-        <div className="add-type-tiles" role="list">
-            {TILES.map(({ value, label, sub, Icon, activeKinds }) => {
-                const active = activeKinds.includes(currentKind);
-                return (
-                    <button
-                        key={value}
-                        type="button"
-                        role="listitem"
-                        className={classNames('add-type-tile', {
-                            'is-selected': active,
-                        })}
-                        onClick={() => onPick(value)}
+/** Step 1 of the Add-Activity wizard — type what you're adding in the
+ *  smart box (we detect the kind), OR pick a type tile to fill it the
+ *  classic way. */
+const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
+    const [smartText, setSmartText] = useState('');
+    const [debounced, setDebounced] = useState('');
+    // When set, the user clicked "change" — they pick a kind for the
+    // typed text from a tiny inline override picker instead of the
+    // detected one.
+    const [overriding, setOverriding] = useState(false);
+
+    // Debounce the classification so it doesn't run on every keystroke.
+    useEffect(() => {
+        const timer = setTimeout(() => setDebounced(smartText), 250);
+        return () => clearTimeout(timer);
+    }, [smartText]);
+
+    const detected = useMemo(
+        () => classifyActivityKind(debounced),
+        [debounced],
+    );
+
+    const submit = (kind: ActivityKind) => {
+        const text = smartText.trim();
+        if (!text) return;
+        onSmartSubmit(text, kind);
+    };
+
+    const handleSmartSubmit = () => {
+        if (!detected) return;
+        submit(detected.kind);
+    };
+
+    return (
+        <div className="add-wizard-step add-type-step">
+            <h2 className="add-wizard-headline">What would you like to add?</h2>
+            <p className="add-wizard-sub">
+                Type what you&rsquo;re adding and we&rsquo;ll figure out the
+                rest — or pick a type below.
+            </p>
+
+            <div className="add-smart-box">
+                {/* A real form so Enter submits natively — predictable,
+                    no per-keystroke routing. */}
+                <form
+                    className="add-smart-box-field"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSmartSubmit();
+                    }}
+                >
+                    <AutoAwesomeRoundedIcon className="add-smart-box-spark" />
+                    <InputField
+                        variant="bare"
+                        name="add-smart-box"
+                        value={smartText}
+                        required={false}
+                        placeholder="Type anything — a place, flight, hotel, or how you're getting around"
+                        onChange={(e) => {
+                            setSmartText(e.target.value);
+                            setOverriding(false);
+                        }}
+                    />
+                    <IconButton
+                        type="submit"
+                        className="add-smart-box-go"
+                        aria-label="Detect and continue"
+                        disabled={!detected}
                     >
-                        <Icon className="add-type-tile-icon" />
-                        <span className="add-type-tile-title">{label}</span>
-                        <span className="add-type-tile-sub">{sub}</span>
-                    </button>
-                );
-            })}
+                        <ArrowForwardRoundedIcon fontSize="small" />
+                    </IconButton>
+                </form>
+
+                {detected && !overriding && (
+                    <div className="add-smart-box-detected">
+                        <span className="add-smart-box-detected-label">
+                            Detected: <strong>{detected.label}</strong>
+                        </span>
+                        <button
+                            type="button"
+                            className="add-smart-box-change"
+                            onClick={() => setOverriding(true)}
+                        >
+                            change
+                        </button>
+                    </div>
+                )}
+
+                {detected && overriding && (
+                    <div className="add-smart-box-override">
+                        <span className="add-smart-box-override-label">
+                            Add as:
+                        </span>
+                        <div className="add-smart-box-override-options">
+                            {TILES.filter(
+                                (t) => t.value !== ACTIVITY_KIND.NOTE,
+                            ).map(({ value, label }) => (
+                                <ButtonCustom
+                                    key={value}
+                                    label={label}
+                                    type={BUTTON_VARIANT.LINE}
+                                    onClick={() => submit(value)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="add-type-or" role="separator">
+                <span>OR</span>
+            </div>
+
+            <div className="add-type-tiles" role="list">
+                {TILES.map(({ value, label, sub, Icon, activeKinds }) => {
+                    const active = activeKinds.includes(currentKind);
+                    return (
+                        <button
+                            key={value}
+                            type="button"
+                            role="listitem"
+                            className={classNames('add-type-tile', {
+                                'is-selected': active,
+                            })}
+                            onClick={() => onPick(value)}
+                        >
+                            <Icon className="add-type-tile-icon" />
+                            <span className="add-type-tile-title">{label}</span>
+                            <span className="add-type-tile-sub">{sub}</span>
+                        </button>
+                    );
+                })}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default TypeStep;
