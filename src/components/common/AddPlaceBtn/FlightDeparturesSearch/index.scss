@@ -51,12 +51,15 @@
     flex-direction: column;
     gap: 6px;
 
-    // The shared `.hotel-side-toggle` centers itself (margin: 0 auto) and
-    // caps at 380px. Here we want it full-width under its label, flush
-    // with the rest of the form's fields.
-    .hotel-side-toggle {
+    // The shared toggle centers itself (margin: 0 auto) and the
+    // `.is-three` rule caps it at 380px. We want it FULL WIDTH here, so
+    // the override must include `.is-three` to out-specify that cap
+    // (otherwise the 380px rule ties on specificity and the toggle never
+    // spans the form).
+    .hotel-side-toggle.is-three {
       margin: 0;
       max-width: none;
+      width: 100%;
     }
   }
 
