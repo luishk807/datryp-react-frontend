@@ -32,6 +32,7 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
         cityScope,
         handleOnChange,
         handlePlacePicked,
+        fireHotelSuggest,
         setPlace,
         hotelSmartEntry,
         setHotelSmartEntry,
@@ -225,6 +226,13 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                                     );
                                 }
                                 setHotelDetailsExpanded(true);
+                                // Name-only hotel resolved — AI backfills
+                                // any empty check-in/out time + cost.
+                                fireHotelSuggest({
+                                    name: item.name,
+                                    city: item.city,
+                                    country: item.country,
+                                });
                                 return;
                             }
                             // On a pasted link the watcher may hand back a
@@ -273,6 +281,18 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                             ) {
                                 setHotelDetailsExpanded(true);
                             }
+                            // Hotel resolved its location — AI backfills
+                            // any empty check-in/out time + cost.
+                            fireHotelSuggest({
+                                name: item.name,
+                                location:
+                                    extras?.formattedAddress?.trim() ||
+                                    [item.city, item.country]
+                                        .filter((s) => s && s.trim())
+                                        .join(', '),
+                                city: item.city,
+                                country: item.country,
+                            });
                         }}
                         onLoadingChange={setHotelSmartLoading}
                         onWarning={setHotelSmartWarning}

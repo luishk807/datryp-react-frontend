@@ -18,6 +18,10 @@ import { parseTransitEntry } from './parseTransitQuery';
 import { pickSmartEntryLocation } from './pickSmartEntryLocation';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { FlightDepartureOption } from 'api/flightDeparturesApi';
+import {
+    suggestActivityFields,
+    type ActivitySuggestion,
+} from 'api/activitySuggestApi';
 import FlightDeparturesSearch from './FlightDeparturesSearch';
 import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
 import { type DropdownOption } from 'components/common/FormFields/DropDown';
@@ -322,6 +326,14 @@ const AddPlaceBtn = ({
     // fresh key and auto-advances again. Cleared when the smart field is
     // emptied (see the reset effect below).
     const autoAdvancedKeyRef = useRef<string | null>(null);
+    // Fired-once guard for the AI field-suggestion fire (cost / time /
+    // location auto-fill after a smart entry resolves). Holds the
+    // resolved identity (place name+location, hotel name+location, or
+    // transit from→to) that last triggered a suggest call so we don't
+    // re-fire while sitting on the same resolution. Reset when the
+    // active smart field is cleared (see the reset effect below) so a
+    // brand-new entry can suggest again — mirrors autoAdvancedKeyRef.
+    const suggestAppliedKeyRef = useRef<string | null>(null);
 
     // Home-base auto-seed: when the user toggles to FLIGHT (or a transit
     // kind) on the very FIRST flight/transit activity of the trip, drop
@@ -544,6 +556,19 @@ const AddPlaceBtn = ({
             // otherwise the smart entry silently changes hidden state
             // and the form looks unresponsive.
             setTransitDetailsExpanded(true);
+            // Fire the AI field suggestion off the parsed route. Train /
+            // bus / other only — RENTAL_CAR is skipped (no meaningful AI
+            // time/cost for a private booking). The shared from→to guard
+            // dedupes against the lookup path so train/bus suggest once.
+            if (kindAtFire !== ACTIVITY_KIND.RENTAL_CAR) {
+                fireTransitSuggest({
+                    kind: kindAtFire,
+                    departLocation: parsed.departStation,
+                    arrivalLocation: parsed.arrivalStation,
+                    provider: parsed.operator,
+                    date: parsed.departDate,
+                });
+            }
         }, 600);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -911,6 +936,20 @@ const AddPlaceBtn = ({
             };
             return { ...prev, transitSegments: segments };
         });
+        // The lookup just resolved this segment's stations — fire the AI
+        // field suggestion for empty time/cost. Skip RENTAL_CAR (no
+        // lookup fires for it anyway) — train/bus only. fromRaw values
+        // win over the result's nullable fields for the suggest args.
+        const k = place.kind ?? ACTIVITY_KIND.PLACE;
+        if (k === ACTIVITY_KIND.TRAIN || k === ACTIVITY_KIND.BUS) {
+            fireTransitSuggest({
+                kind: k,
+                departLocation: result.departStation ?? undefined,
+                arrivalLocation: result.arrivalStation ?? undefined,
+                provider: result.operator ?? undefined,
+                date: result.departDate ?? undefined,
+            });
+        }
     };
 
     const handleTransitLookupLoadingChange = (
@@ -1163,6 +1202,174 @@ const AddPlaceBtn = ({
         // covers both surfaces.
         setPlaceDetailsExpanded(true);
         setHotelDetailsExpanded(true);
+    };
+
+    /** Fire-and-forget AI field suggestion after a PLACE smart entry
+     *  resolves. Fills ONLY empty draft fields (cost / start / end time,
+     *  and location / city / country for name-only entries) so nothing
+     *  the user typed or a prior pick filled is clobbered. Guarded to
+     *  fire once per resolved identity; non-blocking so the review can
+     *  show first and re-render reactively when the suggestion lands. */
+    const firePlaceSuggest = (args: {
+        name?: string;
+        location?: string;
+        city?: string | null;
+        country?: string | null;
+    }) => {
+        const name = args.name?.trim();
+        if (!name) return;
+        const key = `place:${name}|${(args.location ?? '').trim()}`;
+        if (suggestAppliedKeyRef.current === key) return;
+        suggestAppliedKeyRef.current = key;
+        void suggestActivityFields({
+            kind: ACTIVITY_KIND.PLACE,
+            name,
+            location: args.location?.trim() || undefined,
+            city: args.city?.trim() || undefined,
+            country: args.country?.trim() || undefined,
+            date: isoDefaultDate,
+        })
+            .then((s: ActivitySuggestion | null) => {
+                if (!s) return;
+                setPlace((prev) => ({
+                    ...prev,
+                    location:
+                        prev.location?.trim() || !s.location
+                            ? prev.location
+                            : s.location,
+                    placeCity:
+                        prev.placeCity || !s.city ? prev.placeCity : s.city,
+                    placeCountry:
+                        prev.placeCountry || !s.country
+                            ? prev.placeCountry
+                            : s.country,
+                    startTime:
+                        prev.startTime?.trim() || !s.startTime
+                            ? prev.startTime
+                            : s.startTime,
+                    endTime:
+                        prev.endTime?.trim() || !s.endTime
+                            ? prev.endTime
+                            : s.endTime,
+                    cost:
+                        (prev.cost != null && String(prev.cost).trim()) ||
+                        !s.cost
+                            ? prev.cost
+                            : s.cost,
+                }));
+            })
+            .catch(() => {});
+    };
+
+    /** Fire-and-forget AI field suggestion after a HOTEL smart entry
+     *  resolves its location. Hotel stores the check-in time on the
+     *  draft's top-level `startTime`; a separate check-out time rides on
+     *  `pendingHotelCheckout` (spawned into the paired HOTEL_CHECKOUT on
+     *  save). Fill only what's still empty. */
+    const fireHotelSuggest = (args: {
+        name?: string;
+        location?: string;
+        city?: string | null;
+        country?: string | null;
+    }) => {
+        const name = args.name?.trim();
+        if (!name) return;
+        const key = `hotel:${name}|${(args.location ?? '').trim()}`;
+        if (suggestAppliedKeyRef.current === key) return;
+        suggestAppliedKeyRef.current = key;
+        void suggestActivityFields({
+            kind: 'hotel',
+            name,
+            location: args.location?.trim() || undefined,
+            city: args.city?.trim() || undefined,
+            country: args.country?.trim() || undefined,
+        })
+            .then((s: ActivitySuggestion | null) => {
+                if (!s) return;
+                setPlace((prev) => ({
+                    ...prev,
+                    // Check-in time = draft startTime; only fill if empty.
+                    startTime:
+                        prev.startTime?.trim() || !s.checkInTime
+                            ? prev.startTime
+                            : s.checkInTime,
+                    cost:
+                        (prev.cost != null && String(prev.cost).trim()) ||
+                        !s.cost
+                            ? prev.cost
+                            : s.cost,
+                }));
+                // Check-out time spawns the paired checkout activity on
+                // save — only seed it when the smart entry hadn't already
+                // captured one.
+                if (s.checkOutTime) {
+                    setPendingHotelCheckout((prev) =>
+                        prev?.startTime
+                            ? prev
+                            : { startTime: s.checkOutTime ?? undefined },
+                    );
+                }
+            })
+            .catch(() => {});
+    };
+
+    /** Fire-and-forget AI field suggestion after a GROUND transit entry
+     *  resolves its stations. Applies to the FIRST segment's empty
+     *  depart/arrival times and the draft-level cost. RENTAL_CAR is
+     *  skipped by the callers — no meaningful AI time/cost for a private
+     *  booking. */
+    const fireTransitSuggest = (args: {
+        kind: ActivityKind;
+        departLocation?: string;
+        arrivalLocation?: string;
+        provider?: string;
+        date?: string;
+    }) => {
+        const from = args.departLocation?.trim();
+        const to = args.arrivalLocation?.trim();
+        if (!from && !to) return;
+        const key = `transit:${args.kind}|${from ?? ''}→${to ?? ''}`;
+        if (suggestAppliedKeyRef.current === key) return;
+        suggestAppliedKeyRef.current = key;
+        void suggestActivityFields({
+            kind: args.kind,
+            departLocation: from,
+            arrivalLocation: to,
+            provider: args.provider?.trim() || undefined,
+            date: args.date,
+        })
+            .then((s: ActivitySuggestion | null) => {
+                if (!s) return;
+                setPlace((prev) => {
+                    const segments = prev.transitSegments?.length
+                        ? [...prev.transitSegments]
+                        : [emptyTransitSegment(isoDefaultDate)];
+                    const first = { ...segments[0] };
+                    // Segments seed depart/arrival time to the '00:00'
+                    // placeholder (see emptyTransitSegment), so treat that
+                    // as still-empty — only a user-set time blocks the fill.
+                    const isUnsetTime = (t?: string) =>
+                        !t?.trim() || t === '00:00';
+                    if (isUnsetTime(first.departTime) && s.departTime) {
+                        first.departTime = s.departTime;
+                    }
+                    if (isUnsetTime(first.arrivalTime) && s.arrivalTime) {
+                        first.arrivalTime = s.arrivalTime;
+                    }
+                    segments[0] = first;
+                    return {
+                        ...prev,
+                        transitSegments: segments,
+                        cost:
+                            (prev.cost != null &&
+                                String(prev.cost).trim()) ||
+                            !s.cost
+                                ? prev.cost
+                                : s.cost,
+                    };
+                });
+            })
+            .catch(() => {});
     };
 
     const handleImageChange = (e: { target: { value: string } } | React.ChangeEvent<HTMLInputElement>) => {
@@ -1658,6 +1865,8 @@ const AddPlaceBtn = ({
         cityScope,
         handleOnChange,
         handlePlacePicked,
+        firePlaceSuggest,
+        fireHotelSuggest,
         handleImageChange,
         setPlace,
         placeSmartEntry,
@@ -1847,6 +2056,7 @@ const AddPlaceBtn = ({
     useEffect(() => {
         if (!activeSmartEntry.trim()) {
             autoAdvancedKeyRef.current = null;
+            suggestAppliedKeyRef.current = null;
         }
     }, [activeSmartEntry]);
 

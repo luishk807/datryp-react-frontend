@@ -30,6 +30,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
         cityScope,
         handleOnChange,
         handlePlacePicked,
+        firePlaceSuggest,
         handleImageChange,
         placeSmartEntry,
         setPlaceSmartEntry,
@@ -162,6 +163,14 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                     handleOnChange('cost', String(parsed.cost));
                                 }
                                 setPlaceDetailsExpanded(true);
+                                // Name-only entry resolved — let the AI
+                                // backfill location / city / country / time
+                                // / cost for any field still empty.
+                                firePlaceSuggest({
+                                    name: item.name,
+                                    city: item.city,
+                                    country: item.country,
+                                });
                                 return;
                             }
                             // On a pasted link the watcher may hand back a
@@ -193,6 +202,20 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 handleOnChange('cost', String(parsed.cost));
                             }
                             setPlaceDetailsExpanded(true);
+                            // Place resolved (name + location/coords) —
+                            // AI backfills any empty time / cost. Location
+                            // is already filled by the pick above, so the
+                            // empty-only guards in firePlaceSuggest skip it.
+                            firePlaceSuggest({
+                                name: item.name,
+                                location:
+                                    extras?.formattedAddress?.trim() ||
+                                    [item.city, item.country]
+                                        .filter((s) => s && s.trim())
+                                        .join(', '),
+                                city: item.city,
+                                country: item.country,
+                            });
                         }}
                         onLoadingChange={setPlaceSmartLoading}
                         onWarning={setPlaceSmartWarning}

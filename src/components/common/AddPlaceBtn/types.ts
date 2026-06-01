@@ -61,6 +61,22 @@ export interface FormController {
         value: PlaceDraft[K] | Friend,
     ) => void;
     handlePlacePicked: (suggestion: PlaceSuggestion) => void;
+    /** Fire-and-forget AI field suggestion after a PLACE smart entry
+     *  resolves. Fills only-empty cost / time / location on the draft. */
+    firePlaceSuggest: (args: {
+        name?: string;
+        location?: string;
+        city?: string | null;
+        country?: string | null;
+    }) => void;
+    /** Fire-and-forget AI field suggestion after a HOTEL smart entry
+     *  resolves. Fills only-empty check-in/out time + cost on the draft. */
+    fireHotelSuggest: (args: {
+        name?: string;
+        location?: string;
+        city?: string | null;
+        country?: string | null;
+    }) => void;
     handleImageChange: (
         e: { target: { value: string } } | React.ChangeEvent<HTMLInputElement>,
     ) => void;
