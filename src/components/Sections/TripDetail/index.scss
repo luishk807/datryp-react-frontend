@@ -4,6 +4,42 @@
   text-align: center;
 }
 
+// Centered not-found state — shown when the ?id= points at a trip the
+// user can't load (deleted, or no longer in their list). Fills the
+// available height and centers the message + recovery action so it
+// reads as a deliberate empty state, not a broken page.
+.trip-detail-notfound {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 40px 20px;
+  max-width: 440px;
+  margin: 0 auto;
+
+  .trip-detail-notfound-icon {
+    font-size: 56px;
+    color: theme('colors.primaryOrange');
+  }
+
+  .trip-detail-notfound-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.82);
+  }
+
+  .trip-detail-notfound-sub {
+    margin: 0 0 8px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Status theme. The TripDetail wrapper carries a
 // `trip-detail-status-<name>` class derived from the persisted trip

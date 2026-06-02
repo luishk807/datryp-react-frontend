@@ -183,10 +183,18 @@ const MyMap = () => {
     // (myTrips === undefined) so we don't briefly strip every
     // trip from every place pin on first paint.
     const visitedPlaces = useMemo(() => {
-        if (!myTrips) return rawVisitedPlaces;
+        // Until the live trips list resolves we can't verify which join
+        // rows still point at a real trip. Previously we returned the
+        // places UNFILTERED while loading — which briefly surfaced
+        // deleted trips as clickable links that 404 on /trip-detail. The
+        // pins themselves are legitimate (the place WAS visited), so keep
+        // them; only withhold the trip links until we can confirm each
+        // tripId against the live list. Empty `trips` => no link rendered.
         return rawVisitedPlaces.map((p) => ({
             ...p,
-            trips: (p.trips ?? []).filter((t) => liveTripIds.has(t.tripId)),
+            trips: myTrips
+                ? (p.trips ?? []).filter((t) => liveTripIds.has(t.tripId))
+                : [],
         }));
     }, [rawVisitedPlaces, myTrips, liveTripIds]);
 

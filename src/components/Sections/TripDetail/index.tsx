@@ -29,6 +29,7 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
 import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
+import WrongLocationRoundedIcon from "@mui/icons-material/WrongLocationRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import classnames from "classnames";
@@ -656,8 +657,19 @@ export const TripDetail = () => {
   if (!apiTrip || !tripData) {
     return (
       <Layout>
-        <div className="trip-detail-empty">
-          <p>Trip not found.</p>
+        <div className="trip-detail-notfound" role="alert">
+          <WrongLocationRoundedIcon className="trip-detail-notfound-icon" />
+          <h2 className="trip-detail-notfound-title">Trip not found</h2>
+          <p className="trip-detail-notfound-sub">
+            We couldn&rsquo;t find this trip. It may have been deleted, or the
+            link points to a trip that&rsquo;s no longer in your list.
+          </p>
+          <ButtonCustom
+            type="standard"
+            capitalizeType="none"
+            label="Back to my trips"
+            onClick={() => navigate("/trips")}
+          />
         </div>
       </Layout>
     );

@@ -103,6 +103,9 @@ export const extractNameFromUrlSlug = (text: string): string => {
         }
     }
     if (!slug) slug = segments[segments.length - 1];
+    // Drop a trailing file extension (.html / .htm / .php / .aspx) so it
+    // doesn't ride along as a fake name token (".Html").
+    slug = slug.replace(/\.(html?|php|aspx?)$/i, '');
     const tokens = slug
         .replace(/_/g, '-')
         .split('-')
@@ -111,6 +114,9 @@ export const extractNameFromUrlSlug = (text: string): string => {
         .filter((t) => {
             if (/\d/.test(t)) return false;
             if (t.length >= 4 && !/[aeiou]/i.test(t)) return false;
+            // Review-site boilerplate that's never part of the venue
+            // name ("Restaurant_Review-…-Reviews-…").
+            if (/^reviews?$/i.test(t)) return false;
             return true;
         });
     return tokens.join(' ').replace(/\s+/g, ' ').trim();
@@ -150,6 +156,7 @@ export const extractPlaceFromUrl = (text: string): string | null => {
     return (
         extractFromGoogleMaps(url) ??
         extractFromYelp(url) ??
+        extractFromTripAdvisor(url) ??
         null
     );
 };
@@ -216,6 +223,29 @@ const extractFromYelp = (url: URL): string | null => {
     const desc = url.searchParams.get('find_desc');
     if (desc) return decodePlaceSlug(desc);
     return null;
+};
+
+/** Pull the business name out of a TripAdvisor review URL. Their review
+ *  pages follow a fixed shape:
+ *
+ *    /<Type>_Review-g<geoId>-d<listingId>-Reviews(-or<n>)-<Name>-<Location>.html
+ *    /Restaurant_Review-g294480-d27385833-Reviews-Kanibal_Panama-Panama_City_Panama_Province.html
+ *      → "Kanibal Panama"
+ *
+ *  The venue name is the FIRST hyphen-delimited token after the
+ *  `-Reviews-` marker (its internal spaces are underscore-encoded); the
+ *  location hierarchy follows as further tokens. Localized TLDs
+ *  (.es / .fr / .com.br …) all share this path grammar. Destination /
+ *  `Tourism-*` pages carry no business name → null (caller warns / falls
+ *  back to the slug heuristic). */
+const extractFromTripAdvisor = (url: URL): string | null => {
+    const host = url.hostname.toLowerCase();
+    if (!/(?:^|\.)tripadvisor\./.test(host)) return null;
+    const m = url.pathname.match(
+        /_Review-g\d+-d\d+-Reviews(?:-or\d+)?-([^-/]+)-/i,
+    );
+    if (!m) return null;
+    return decodePlaceSlug(m[1]).replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
 };
 
 /** Backward-compat alias — Google-only callers still work. */
