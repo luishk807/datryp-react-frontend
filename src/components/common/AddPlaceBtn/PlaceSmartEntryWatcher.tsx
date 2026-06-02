@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
-import { usePhotoSearch } from 'api/hooks/usePhotoSearch';
+import { usePlaceImage } from 'api/hooks/usePlaceImage';
 import { usePlaceRating } from 'api/hooks/usePlaceRating';
 import { isSearchQuotaExceededError } from 'api/searchQuotaError';
 import {
@@ -209,12 +209,16 @@ const PlaceSmartEntryWatcher = ({
         // is "react to parsed/search-error state", so deliberately exclude it.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [parsed, searchError, needsScrape, scrapeFetching, scraped]);
-    // Bias the photo query toward the trip's country so "Ankole Grill"
-    // pulls a relevant photo (the restaurant in Tokyo, say) rather than
-    // a stock generic.
-    const photoQuery = country ? `${query} ${country}` : query;
-    const { data: photoData, isFetching: photoFetching } = usePhotoSearch(
-        photoQuery,
+    // Image fallback for when Google Places has no photo for this venue.
+    // Routes through the cache-aware /places/image endpoint (cache →
+    // Unsplash → Pexels → Pixabay), which persists the winner so repeat
+    // smart entries and other surfaces reuse it without a fresh call. The
+    // trip country biases the search (appended server-side) so "Ankole
+    // Grill" pulls a relevant photo rather than a stock generic.
+    const { data: photoData, isFetching: photoFetching } = usePlaceImage(
+        query,
+        null,
+        country,
         { enabled: Boolean(query) },
     );
     // Google Places resolves the actual street address + coordinates
