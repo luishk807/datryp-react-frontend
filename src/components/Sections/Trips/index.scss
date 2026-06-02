@@ -319,6 +319,30 @@
   margin: 0;
 }
 
+/* ---------- Error state ---------- */
+.trips-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.trips-error-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.trips-error-sub {
+  max-width: 360px;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.trips-error .buttonCustom {
+  margin-top: 8px;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .trips-header {

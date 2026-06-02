@@ -48,7 +48,13 @@ const STATUS_SORT_ORDER: Record<string, number> = {
 export const Trips = () => {
     const [filter, setFilter] = useState<FilterValue>('all');
     const navigate = useNavigate();
-    const { data: apiItineraries = [], isLoading, isError } = useMyItineraries();
+    const {
+        data: apiItineraries = [],
+        isLoading,
+        isError,
+        isFetching,
+        refetch,
+    } = useMyItineraries();
     const deleteMutation = useDeleteItinerary();
 
     // Multi-select state. `selectMode` flips card behavior from
@@ -321,8 +327,23 @@ export const Trips = () => {
                         <p>Loading trips…</p>
                     </div>
                 ) : isError ? (
-                    <div className="trips-empty">
-                        <p>Couldn't load your trips. Is the backend running?</p>
+                    <div className="trips-empty trips-error">
+                        <p className="trips-error-title">
+                            We couldn't load your trips
+                        </p>
+                        <p className="trips-error-sub">
+                            Something went wrong on our end. Check your
+                            connection and try again in a moment.
+                        </p>
+                        <ButtonCustom
+                            type="standard"
+                            capitalizeType="uppercase"
+                            label={isFetching ? 'Retrying…' : 'Try again'}
+                            disabled={isFetching}
+                            onClick={() => {
+                                void refetch();
+                            }}
+                        />
                     </div>
                 ) : filteredTrips.length === 0 ? (
                     <>
