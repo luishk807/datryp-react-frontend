@@ -48,7 +48,7 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
 import { usePlaceDetails } from "api/hooks/usePlaceDetails";
-import { usePhotoSearch } from "api/hooks/usePhotoSearch";
+import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useIsStuck } from "hooks/useIsStuck";
 import { useVisitedPlaces } from "api/hooks/useVisitedPlaces";
 import { useMyItineraries } from "api/hooks/useItineraries";
@@ -108,17 +108,18 @@ const PlaceDetail = () => {
 
   const place = data?.items[index];
 
-  // Hero-image fallback. When the place row arrives with no
-  // `imageUrl` (older cached recommendation, transient Unsplash miss),
-  // hit /photo-search with the place's name to grab a fresh Unsplash
-  // photo. Gated on `!place.imageUrl` so the lookup only fires when
-  // it's actually needed.
-  const fallbackPhotoQuery = place
-    ? `${place.name} ${place.city ?? ""} ${place.country ?? ""}`.trim()
-    : "";
-  const { data: fallbackPhoto } = usePhotoSearch(fallbackPhotoQuery, {
-    enabled: Boolean(place) && !place?.imageUrl,
-  });
+  // Hero-image fallback. When the place row arrives with no `imageUrl`
+  // (older cached recommendation, transient miss), resolve one via the
+  // cache-aware /places/image endpoint (cache → Unsplash → Pexels →
+  // Pixabay), which persists the winner so repeat views and other users
+  // are served the same image without another third-party call. Gated on
+  // `!place.imageUrl` so the lookup only fires when it's actually needed.
+  const { data: fallbackPhoto } = usePlaceImage(
+    place?.name ?? "",
+    place?.city,
+    place?.country,
+    { enabled: Boolean(place) && !place?.imageUrl },
+  );
   const heroImageUrl = place?.imageUrl ?? fallbackPhoto?.imageUrl ?? null;
   const heroPhotographerName =
     place?.imageUrl
