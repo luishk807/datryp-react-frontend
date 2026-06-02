@@ -225,6 +225,7 @@ const activityToInput = (
         countryCode: activity.countryCode ?? null,
         latitude: activity.latitude ?? null,
         longitude: activity.longitude ?? null,
+        sourceUrl: activity.sourceUrl ?? null,
     };
 };
 

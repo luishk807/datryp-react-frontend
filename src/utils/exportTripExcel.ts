@@ -164,6 +164,11 @@ const activityCellLines = (a: Activity): string => {
             lines.push(`Flight No: ${numbers.join(' / ')}`);
         }
     }
+    // Source link (the page the user pasted into smart-entry). Only PLACE
+    // activities ever carry one. Excel auto-linkifies a bare URL on its
+    // own line, so we keep it raw rather than wrapping it in label text.
+    const source = a.sourceUrl?.trim();
+    if (source) lines.push(`Source: ${source}`);
     return lines.join('\n');
 };
 

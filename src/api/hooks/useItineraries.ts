@@ -109,6 +109,9 @@ export interface ApiActivity {
     countryCode: string | null;
     latitude: number | null;
     longitude: number | null;
+    /** Original pasted URL (TripAdvisor / Yelp / Maps) for a PLACE added
+     *  via smart-entry. Null on typed entries and non-place kinds. */
+    sourceUrl: string | null;
 }
 
 export interface ApiItineraryDate {
@@ -211,6 +214,9 @@ export interface ActivityInput {
     countryCode?: string | null;
     latitude?: number | null;
     longitude?: number | null;
+    /** Original pasted URL for a PLACE added via smart-entry. Omitted /
+     *  null for typed entries and non-place kinds. */
+    sourceUrl?: string | null;
 }
 
 export interface ItineraryDayInput {
@@ -403,6 +409,7 @@ const ITINERARY_FIELDS = gql`
                 countryCode
                 latitude
                 longitude
+                sourceUrl
             }
         }
     }

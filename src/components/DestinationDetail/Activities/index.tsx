@@ -1107,6 +1107,25 @@ const Activities = ({
                             </div>
                           );
                         })()}
+                        {/* Source link — the original page the user pasted
+                            into smart-entry (TripAdvisor / Yelp / Maps). PLACE
+                            kind only; other kinds never carry one. */}
+                        {activityKind === ACTIVITY_KIND.PLACE &&
+                          activity.sourceUrl?.trim() && (
+                            <div className="meta-row meta-row-source">
+                              <OpenInNewRoundedIcon className="meta-icon" />
+                              <a
+                                className="meta-text source-link"
+                                href={activity.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`Open source: ${activity.sourceUrl}`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                View source
+                              </a>
+                            </div>
+                          )}
                         {isFlight &&
                           flightSegments.map((seg, segIdx) => {
                             if (!seg.flightNumber) return null;

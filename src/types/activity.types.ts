@@ -78,6 +78,12 @@ export interface Activity {
   countryCode?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** Original URL the user pasted into the Add-Activity smart-entry when
+   *  adding a PLACE (e.g. a TripAdvisor / Yelp / Maps page). We extract
+   *  the name + pin from it but keep the link so the card can offer a
+   *  "View source" affordance. Null on typed (non-URL) entries and on
+   *  every non-place kind. */
+  sourceUrl?: string | null;
   /** Set by the organizer when they confirm a participant has paid for
    *  this activity. `paidAt` is the date the payment was made (ISO
    *  `YYYY-MM-DD`); `paidBy` is the participant who paid. Both are

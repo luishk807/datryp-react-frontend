@@ -717,6 +717,18 @@
   font-style: italic;
 }
 
+// "View source" — the original pasted page (TripAdvisor / Yelp / Maps).
+// Reads as a subtle link rather than competing with the place title.
+.activity-content-trip .content-detail .info .meta-row-source .source-link {
+  color: theme("colors.primaryGreen");
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .activity-content-trip .content-detail .info .meta-row .button-plain {
   padding: 2px !important;
   min-width: 0 !important;

@@ -124,6 +124,14 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                         rawInput={placeSmartEntry}
                         country={countryScope}
                         onResult={(item: PlaceRecommendation, parsed, extras) => {
+                            // Keep the raw pasted link as the activity's
+                            // source URL — but only when the user actually
+                            // pasted a URL (not a typed place name). Rendered
+                            // as a "View source" link on the place card.
+                            const trimmedEntry = placeSmartEntry.trim();
+                            const pastedUrl = /^https?:\/\//i.test(trimmedEntry)
+                                ? trimmedEntry
+                                : undefined;
                             const isWrongCountry =
                                 Boolean(countryScope) &&
                                 !extras?.fromScrape &&
@@ -153,6 +161,9 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                         `Couldn't find an exact match for “${item.name}”. Fill in the location / cost / time using the form below.`,
                                 );
                                 handleOnChange('name', item.name);
+                                if (pastedUrl) {
+                                    handleOnChange('sourceUrl', pastedUrl);
+                                }
                                 if (parsed.startTime) {
                                     handleOnChange('startTime', parsed.startTime);
                                 }
@@ -191,6 +202,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 imageUrl: item.imageUrl,
                                 latitude: item.latitude,
                                 longitude: item.longitude,
+                                sourceUrl: pastedUrl ?? null,
                             });
                             if (parsed.startTime) {
                                 handleOnChange('startTime', parsed.startTime);

@@ -43,6 +43,10 @@ export interface PlaceSuggestion {
      *  enriched" rather than treating the suggestion as invalid. */
     latitude: number | null;
     longitude: number | null;
+    /** Original pasted URL, set only by the smart-entry path when the
+     *  user pasted a link (not a typed name). Suggestion-chip / autocomplete
+     *  picks omit it — `handlePlacePicked` then clears any prior value. */
+    sourceUrl?: string | null;
 }
 
 export interface PlaceAutocompleteProps {

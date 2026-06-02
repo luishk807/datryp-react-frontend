@@ -44,6 +44,10 @@ export interface PlaceDraft {
     countryCode?: string | null;
     latitude?: number | null;
     longitude?: number | null;
+    /** Original pasted URL captured by the PLACE smart-entry. Carried on
+     *  the draft so it survives save (via the placePayload spread) and
+     *  edit hydration. Null/undefined for typed entries and other kinds. */
+    sourceUrl?: string | null;
 }
 
 /** The cohesive controller bundle the parent assembles once and threads

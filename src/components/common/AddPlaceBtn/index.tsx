@@ -1193,6 +1193,10 @@ const AddPlaceBtn = ({
             countryCode: suggestion.countryCode ?? null,
             latitude: suggestion.latitude ?? null,
             longitude: suggestion.longitude ?? null,
+            // Only the smart-entry URL path supplies sourceUrl. A chip /
+            // autocomplete pick has none, which clears any prior link so
+            // re-picking a different place doesn't keep a stale source.
+            sourceUrl: suggestion.sourceUrl ?? null,
         }));
         // Reveal the details panel so the just-populated name /
         // location / image are visible. Same intent as the smart-
@@ -1704,6 +1708,10 @@ const AddPlaceBtn = ({
                 countryCode: data.countryCode ?? null,
                 latitude: data.latitude ?? null,
                 longitude: data.longitude ?? null,
+                // Preserve the pasted source link across an edit — like the
+                // structured place block, it isn't user-editable in the form
+                // but must survive a save so it isn't nulled server-side.
+                sourceUrl: data.sourceUrl ?? null,
             });
         } else {
             setPlace(buildInitialPlace());

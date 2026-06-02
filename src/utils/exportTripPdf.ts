@@ -95,6 +95,7 @@ const COLORS = {
     cellBorder: '#cccccc',
     muted: '#666666',
     primary: '#1a1a1a',
+    link: '#2d8f37',
 };
 
 /** Date the report was generated. Top-right of page 2. */
@@ -183,6 +184,19 @@ const buildActivityCell = (row: ItineraryRow): TableCell => {
     });
     const loc = activityLocation(row.activity);
     if (loc) stack.push({ text: loc });
+    // Source link (PLACE smart-entry paste). pdfmake renders `link` as a
+    // real clickable annotation, so the printed/saved PDF keeps a live
+    // link back to the original page.
+    const source = row.activity.sourceUrl?.trim();
+    if (source) {
+        stack.push({
+            text: 'View source',
+            link: source,
+            fontSize: 8,
+            color: COLORS.link,
+            decoration: 'underline',
+        });
+    }
     const paidLine = formatPaidLine(row.activity);
     if (paidLine) {
         stack.push({
