@@ -50,6 +50,15 @@
     background: transparent;
     font-size: 0.92rem;
   }
+
+  // Kill the bare input's OWN focus ring (border + box-shadow it
+  // inherits from the shared bare mixin). The outer field already shows
+  // the focus state, so the input's ring just read as a redundant
+  // "border inside a border".
+  .input-field-bare-input:focus {
+    border: none;
+    box-shadow: none;
+  }
 }
 
 .add-smart-box-spark {
