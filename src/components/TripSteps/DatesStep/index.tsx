@@ -16,15 +16,22 @@ const DatesStep = ({ data, onChange }: DatesStepProps) => {
     const start = data?.startDate ?? '';
     const end = data?.endDate ?? '';
 
-    const nights = (() => {
+    const dayDiff = (() => {
         if (!start || !end) return null;
         const a = new Date(start);
         const b = new Date(end);
         const diff = Math.round(
             (b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24)
         );
-        return Number.isFinite(diff) && diff >= 0 ? diff : null;
+        return Number.isFinite(diff) ? diff : null;
     })();
+
+    // End before start is invalid in either direction — the user either
+    // pushed the start past the end or pulled the end before the start.
+    // Surfaced here AND gated in StepperComp (Next is disabled), so the
+    // wizard can't advance with a backwards range.
+    const isInvalidRange = dayDiff !== null && dayDiff < 0;
+    const nights = dayDiff !== null && dayDiff >= 0 ? dayDiff : null;
 
     return (
         <div
@@ -62,12 +69,18 @@ const DatesStep = ({ data, onChange }: DatesStepProps) => {
                         />
                     </div>
                 </div>
-                {nights !== null && (
-                    <p className="trip-dates-summary">
-                        {nights === 0
-                            ? 'Day trip.'
-                            : `${nights} night${nights === 1 ? '' : 's'} on the road.`}
+                {isInvalidRange ? (
+                    <p className="trip-dates-error" role="alert">
+                        End date can&rsquo;t be before the start date.
                     </p>
+                ) : (
+                    nights !== null && (
+                        <p className="trip-dates-summary">
+                            {nights === 0
+                                ? 'Day trip.'
+                                : `${nights} night${nights === 1 ? '' : 's'} on the road.`}
+                        </p>
+                    )
                 )}
             </div>
         </div>

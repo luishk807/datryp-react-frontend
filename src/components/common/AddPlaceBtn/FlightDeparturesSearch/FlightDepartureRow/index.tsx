@@ -1,4 +1,5 @@
 import type { FlightDepartureOption } from 'api/flightDeparturesApi';
+import AirlineLogo from 'components/common/AirlineLogo';
 import './index.scss';
 
 export interface FlightDepartureRowProps {
@@ -25,6 +26,11 @@ const FlightDepartureRow = ({ item, onPick }: FlightDepartureRowProps) => {
                 onClick={() => onPick(item)}
                 aria-label={`Use flight ${item.flightNumber ?? ''} ${route}`.trim()}
             >
+                <AirlineLogo
+                    iata={item.airlineIata}
+                    flightNumber={item.flightNumber}
+                    label={item.airline}
+                />
                 <span className="flight-departure-row-info">
                     <span className="flight-departure-row-head">
                         <span className="flight-departure-row-number">

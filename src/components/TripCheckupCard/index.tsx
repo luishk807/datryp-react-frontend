@@ -248,8 +248,18 @@ const TripCheckupCard = ({
 
             {(query.isLoading || data) && (
                 <div className="trip-checkup-meter-wrap">
-                    <div className="trip-checkup-meter">
+                    <div
+                        className={classnames("trip-checkup-meter", {
+                            "is-loading": !data,
+                        })}
+                    >
                         <div className="trip-checkup-meter-grad" />
+                        {!data && (
+                            <span
+                                className="trip-checkup-meter-shimmer"
+                                aria-hidden="true"
+                            />
+                        )}
                         {markerLeft !== null && (
                             <div
                                 className="trip-checkup-meter-marker"

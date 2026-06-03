@@ -37,6 +37,7 @@ import {
     useNearestAirport,
     useNearestTrainStation,
 } from 'api/hooks/useHomeDeparture';
+import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
 import { useTripState } from 'context/TripContext';
 import PlaceForm from './forms/PlaceForm';
 import NoteForm from './forms/NoteForm';
@@ -365,6 +366,38 @@ const AddPlaceBtn = ({
             day.activities.some((a) => a.kind === ACTIVITY_KIND.FLIGHT)
         )
     );
+    // Trip destination airport for the flight-search "To" default — the
+    // first flight arrival in the trip that ISN'T the user's home airport
+    // (i.e. the outbound's landing point = where the trip actually is).
+    // Falls back to undefined when the trip has no flights yet, in which
+    // case the user types the destination in.
+    const tripDestinationAirport = useMemo<string | undefined>(() => {
+        const home = nearestAirport?.iataCode?.trim().toUpperCase();
+        for (const dest of tripState.destinations ?? []) {
+            for (const day of dest.itinerary ?? []) {
+                for (const a of day.activities ?? []) {
+                    if (a.kind !== ACTIVITY_KIND.FLIGHT) continue;
+                    for (const seg of a.flightSegments ?? []) {
+                        const arr = seg.arrivalAirport?.trim().toUpperCase();
+                        if (arr && arr !== home) return arr;
+                    }
+                }
+            }
+        }
+        return undefined;
+    }, [tripState.destinations, nearestAirport?.iataCode]);
+
+    // Fallback when the trip has no flight to read a destination airport
+    // from: resolve the trip's country/city to its primary airport via
+    // the static airport catalog. Only fires when the flight-derived
+    // lookup above came up empty, so coherent itineraries don't pay for
+    // an extra request.
+    const { data: resolvedDestinationAirport } = useDestinationAirport(
+        countryScope,
+        !tripDestinationAirport,
+    );
+    const defaultArrivalAirport =
+        tripDestinationAirport ?? resolvedDestinationAirport ?? '';
     const isFirstTransitActivity = isAdd && !tripState.destinations.some((d) =>
         d.itinerary?.some((day) =>
             day.activities.some(
@@ -2264,12 +2297,24 @@ const AddPlaceBtn = ({
                                     !showMethodChooser &&
                                     flightSearchActive && (
                                         <FlightDeparturesSearch
+                                            // Default From = the user's home
+                                            // airport (departure is from home);
+                                            // respect a segment value if one
+                                            // was already seeded/edited.
                                             initialAirport={
                                                 place.flightSegments?.[0]
                                                     ?.departAirport ||
                                                 nearestAirport?.iataCode ||
                                                 ''
                                             }
+                                            // Default To = the trip's
+                                            // destination airport (where the
+                                            // trip is): the flight-derived
+                                            // arrival, or the country/city
+                                            // resolved from the airport
+                                            // catalog. Swap flips them for a
+                                            // return flight.
+                                            initialArrival={defaultArrivalAirport}
                                             initialDate={isoDefaultDate ?? ''}
                                             onPick={handleFlightDeparturePick}
                                             onBack={handleWizardBackFromInput}

@@ -55,6 +55,13 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
             setDraft((prev) => ({ ...prev, organizer: e.target.value }));
         };
 
+        const handleParticipantsChange = (
+            _name: string | undefined,
+            e: { target: { value: Friend[] } }
+        ) => {
+            setDraft((prev) => ({ ...prev, friends: e.target.value }));
+        };
+
         const isDirty = useMemo(
             () => JSON.stringify(draft) !== JSON.stringify(data),
             [draft, data]
@@ -109,6 +116,15 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
                                 name="organizer"
                                 selectedOptions={draft.organizer ?? []}
                                 onChange={handleOrganizerChange}
+                            />
+                        </Grid>
+
+                        <Grid item lg={12} md={12} xs={12} className="form-input">
+                            <FriendPicker
+                                title="Participants"
+                                name="friends"
+                                selectedOptions={draft.friends ?? []}
+                                onChange={handleParticipantsChange}
                             />
                         </Grid>
 

@@ -32,6 +32,8 @@ import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import WrongLocationRoundedIcon from "@mui/icons-material/WrongLocationRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
+import FullscreenExitRoundedIcon from "@mui/icons-material/FullscreenExitRounded";
 import classnames from "classnames";
 import Layout from "components/common/Layout/SubLayout";
 import BudgetSummary from "components/BudgetSummary";
@@ -127,6 +129,20 @@ export const TripDetail = () => {
   // hidden by default on this page to keep the itinerary clean, but
   // surfaced behind a "Trip details" toggle for a quick overview.
   const [showBasicInfo, setShowBasicInfo] = useState(false);
+  // Focus mode: hide every overview card (expenses meter, trip review,
+  // planning / status cards, basic-info) so the page is just the dates +
+  // activities. For users who want to read/work the itinerary without the
+  // surrounding chrome. Session-only; resets on reload.
+  const [focusMode, setFocusMode] = useState(false);
+  // Toggle a body class so the GLOBAL app chrome (header logo + bottom
+  // nav / footer, which live outside this component in Layout / App) can
+  // hide too — true full-screen focus on the itinerary. Cleaned up on
+  // unmount so leaving the page never leaves the app stuck chromeless.
+  useEffect(() => {
+    const cls = "trip-focus-mode";
+    document.body.classList.toggle(cls, focusMode);
+    return () => document.body.classList.remove(cls);
+  }, [focusMode]);
   useEffect(() => {
     if (!currentUser) return;
     if (!idParam) return;
@@ -754,7 +770,9 @@ export const TripDetail = () => {
         {/* Standalone trip header — title + action buttons. Lives
             OUTSIDE BasicTripInfo so Hide detail can unmount the basic-
             info + budget cards without taking the title/buttons with
-            them. */}
+            them. Hidden entirely in focus mode — the only control then is
+            the floating "Show overview" pill (rendered below). */}
+        {!focusMode && (
         <Grid item lg={12} md={12} xs={12}>
           <TripDetailHeader
             tripData={tripData}
@@ -769,6 +787,8 @@ export const TripDetail = () => {
             onStartTour={handleDetailTourStart}
             basicInfoOpen={showBasicInfo}
             onToggleBasicInfo={handleToggleBasicInfo}
+            focusMode={focusMode}
+            onToggleFocus={() => setFocusMode((prev) => !prev)}
             onPrint={() => {
               if (!tripData) return;
               void printTripPdf(tripData);
@@ -786,11 +806,12 @@ export const TripDetail = () => {
             onChangeNotifyParticipants={setNotifyParticipants}
           />
         </Grid>
+        )}
         {/* Collapsible "Trip details" overview — the basic-info card
             (organizer / where / when / budget / who's going). The toggle
             that opens it lives up in the header action row; this just
             renders the expanded card. */}
-        {showBasicInfo && (
+        {!focusMode && showBasicInfo && (
           <Grid item lg={12} md={12} xs={12} className="trip-detail-basic-info-row">
             <div className="trip-detail-basic-info-card">
               <BasicTripInfo
@@ -817,15 +838,26 @@ export const TripDetail = () => {
             />
           </Grid>
         )}
-        {/* Trip expenses meter is part of the "Trip details" overview —
-            shown/hidden together with the basic-info card via the same
-            header toggle. */}
-        {showBasicInfo && (
+        {/* Trip expenses meter placement is status-driven:
+            - Planning: always visible OUTSIDE the "Trip details" collapse
+              — active spend-tracking the user wants front-and-center while
+              building the trip.
+            - Confirmed / Completed / Cancelled: folded back INTO the
+              collapse (only shown when "Trip details" is expanded) — the
+              trip is locked, so the running meter is reference info, not a
+              primary surface. */}
+        {focusMode ? null : persistedStatusName === TRIP_STATUS.PLANNING ? (
           <Grid item lg={12} md={12} xs={12}>
             <BudgetSummary data={tripData} />
           </Grid>
+        ) : (
+          showBasicInfo && (
+            <Grid item lg={12} md={12} xs={12}>
+              <BudgetSummary data={tripData} />
+            </Grid>
+          )
         )}
-        {persistedStatusName === TRIP_STATUS.COMPLETED && (
+        {!focusMode && persistedStatusName === TRIP_STATUS.COMPLETED && (
           <Grid item lg={12} md={12} xs={12}>
             <div className="trip-detail-completed-banner">
               <EmojiEventsRoundedIcon
@@ -844,7 +876,26 @@ export const TripDetail = () => {
             </div>
           </Grid>
         )}
-        {apiTrip && (
+        {!focusMode && persistedStatusName === TRIP_STATUS.CANCELLED && (
+          <Grid item lg={12} md={12} xs={12}>
+            <div className="trip-detail-cancelled-banner">
+              <EventBusyRoundedIcon
+                className="trip-detail-cancelled-icon"
+                fontSize="medium"
+              />
+              <div className="trip-detail-cancelled-text">
+                <span className="trip-detail-cancelled-title">
+                  Trip cancelled
+                </span>
+                <span className="trip-detail-cancelled-sub">
+                  This trip is cancelled. The itinerary stays viewable as a
+                  record, but it&rsquo;s no longer active.
+                </span>
+              </div>
+            </div>
+          </Grid>
+        )}
+        {!focusMode && apiTrip && (
           <Grid item lg={12} md={12} xs={12}>
             <TripCheckupCard
               tripId={apiTrip.id}
@@ -864,7 +915,7 @@ export const TripDetail = () => {
             /> */}
           </Grid>
         )}
-        {persistedStatusName === TRIP_STATUS.PLANNING && (
+        {!focusMode && persistedStatusName === TRIP_STATUS.PLANNING && (
           <Grid item lg={12} md={12} xs={12}>
             <div className="trip-detail-planning-banner">
               <EditCalendarRoundedIcon
@@ -881,6 +932,51 @@ export const TripDetail = () => {
                     : "The organizer is still arranging activities. Check back soon."}
                 </span>
               </div>
+              {/* Confirm trip lives inside the planning box — the box
+                  already frames the "you're still planning" state, so the
+                  promote action belongs with it rather than as a separate
+                  card below. */}
+              {canPromoteStatus && (
+                <TripStatusBadge
+                  data={tripData}
+                  onStatusChange={handleStatusChange}
+                  isSaving={saveItinerary.isPending}
+                  onEditTripDates={handleChangeStep}
+                  className="trip-detail-status-cta-btn trip-detail-planning-confirm"
+                />
+              )}
+            </div>
+          </Grid>
+        )}
+        {/* Mark-complete CTA above the itinerary — Confirmed only. The
+            Planning equivalent (Confirm trip) lives inside the "Trip in
+            planning" box instead. Completed / Cancelled have no forward
+            action so the card doesn't render. */}
+        {!focusMode &&
+          persistedStatusName === TRIP_STATUS.CONFIRMED &&
+          canPromoteStatus && (
+          <Grid item lg={12} md={12} xs={12}>
+            <div className="trip-detail-status-cta">
+              <EmojiEventsRoundedIcon
+                className="trip-detail-status-cta-icon"
+                fontSize="medium"
+              />
+              <div className="trip-detail-status-cta-text">
+                <span className="trip-detail-status-cta-title">
+                  Trip all wrapped up?
+                </span>
+                <span className="trip-detail-status-cta-sub">
+                  Mark it complete to archive it as a record of where
+                  you&rsquo;ve been.
+                </span>
+              </div>
+              <TripStatusBadge
+                data={tripData}
+                onStatusChange={handleStatusChange}
+                isSaving={saveItinerary.isPending}
+                onEditTripDates={handleChangeStep}
+                className="trip-detail-status-cta-btn"
+              />
             </div>
           </Grid>
         )}
@@ -934,6 +1030,20 @@ export const TripDetail = () => {
           </div>
         </Grid>
       </Grid>
+      {/* Focus-mode exit — a floating pill (the header is hidden, so an
+          inline button would dangle in empty space). Fixed bottom-right,
+          out of the way of the itinerary but always reachable. */}
+      {focusMode && (
+        <button
+          type="button"
+          className="trip-detail-focus-fab"
+          onClick={() => setFocusMode(false)}
+          aria-label="Show trip overview"
+        >
+          <FullscreenExitRoundedIcon fontSize="small" />
+          <span>Show</span>
+        </button>
+      )}
       <TripDetailTour
         run={detailTourRun}
         onClose={handleDetailTourClose}
@@ -956,6 +1066,8 @@ interface TripDetailHeaderProps {
   onStartTour: () => void;
   basicInfoOpen: boolean;
   onToggleBasicInfo: () => void;
+  focusMode: boolean;
+  onToggleFocus: () => void;
   onPrint: () => void;
   onDownloadExcel: () => void;
   onDownloadPdf: () => void;
@@ -982,6 +1094,8 @@ const TripDetailHeader = ({
   onStartTour,
   basicInfoOpen,
   onToggleBasicInfo,
+  focusMode,
+  onToggleFocus,
   onPrint,
   onDownloadExcel,
   onDownloadPdf,
@@ -1097,91 +1211,74 @@ const TripDetailHeader = ({
 
   const tripName = tripData.name;
 
-  // When the trip is still in Planning, surface "Confirm trip" as the
-  // promote button right next to the notification bell in the title
-  // row — that's where the static "Planning" pill used to sit. The
-  // pill itself is redundant in this state because the promote button
-  // already communicates the lifecycle stage AND offers the action.
-  // For Confirmed / Completed / Cancelled we keep the read-only pill
-  // so users can see at a glance where the trip is.
-  const showInlinePromote = canPromoteStatus && statusName === TRIP_STATUS.PLANNING;
-  // Read-only status pill ONLY when there's no actionable promote
-  // sitting in the same slot. Planning + canPromote → inline Confirm
-  // button. Confirmed + canPromote → inline Mark Complete button.
-  // Otherwise (Completed / Cancelled / no-promote viewers) → pill.
-  const showInlineConfirmedPromote =
-    statusName === TRIP_STATUS.CONFIRMED && canPromoteStatus;
-  const showInlineStatusPill =
-    statusName !== TRIP_STATUS.PLANNING && !showInlineConfirmedPromote;
+  // The title row no longer carries a status pill at all — every
+  // lifecycle state communicates status through a dedicated banner /
+  // card in the body (Planning, Confirmed, Completed, Cancelled), so a
+  // chip next to the name was redundant chrome. Promotion actions
+  // ("Confirm trip" / "Mark complete") live in those body cards too.
 
   return (
     <div className="trip-detail-header">
+      {/* Focus mode strips the title row entirely — name + bell — so the
+          page is just the itinerary with a single "Show overview" exit
+          button on the right. */}
       <div className="trip-detail-header-title">
-        <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
-        {/* Planning state: replace the static "Planning" pill with the
-            actionable Confirm Trip control. Reads as "your trip is in
-            this state AND here's how to advance it" in one element. */}
-        {showInlinePromote && (
-          <TripStatusBadge
-            data={tripData}
-            onStatusChange={onStatusChange}
-            isSaving={isSaving}
-            onEditTripDates={onEditTrip}
-          />
+        {!focusMode && (
+          <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
         )}
-        {/* Confirmed + canPromote: inline Mark Complete button
-            replaces the static "Confirmed" pill on BOTH mobile and
-            desktop. The button reads as "trip status + how to
-            advance" in one element so users aren't hunting in the
-            actions row for the promote action. */}
-        {showInlineConfirmedPromote && (
-          <TripStatusBadge
-            data={tripData}
-            onStatusChange={onStatusChange}
-            isSaving={isSaving}
-            onEditTripDates={onEditTrip}
-          />
-        )}
-        {/* Post-Planning lifecycle: read-only status indicator so the
-            user always knows where the trip stands. */}
-        {showInlineStatusPill && (
-          <span
-            className={`trip-detail-status trip-detail-status-${statusName.toLowerCase()}`}
-            aria-label={`Trip status: ${statusName}`}
-          >
-            {statusName === TRIP_STATUS.CONFIRMED && (
-              <CheckCircleOutlineRoundedIcon className="trip-detail-status-icon" />
-            )}
-            {statusName === TRIP_STATUS.COMPLETED && (
-              <CheckCircleRoundedIcon className="trip-detail-status-icon" />
-            )}
-            {statusName}
-          </span>
-        )}
+        {/* Participant-notification bell sits right next to the trip name
+            — it's tied to the trip identity (broadcast changes to the
+            people on THIS trip), not to the export/overview action
+            cluster on the right. Hidden on Cancelled trips: the itinerary
+            is inactive, so there are no changes to broadcast. */}
+        {!focusMode &&
+          showNotifyToggle &&
+          statusName !== TRIP_STATUS.CANCELLED && (
+            <NotifyParticipantsCheckbox
+              checked={notifyParticipants}
+              onChange={onChangeNotifyParticipants}
+              disabled={isSaving || isDeleting}
+            />
+          )}
       </div>
       <div className="trip-detail-header-actions">
-        {/* Action row: "Trip details" toggle (far left) + the activity
+        {/* Action row: "Trip details" toggle + Focus toggle + the activity
             Edit / Save-Cancel control + notification bell + the three-dot
             kebab (which now carries "Take the tour"). */}
+        {!focusMode && (
+          <button
+            type="button"
+            className="trip-detail-basic-info-toggle"
+            onClick={onToggleBasicInfo}
+            aria-expanded={basicInfoOpen}
+          >
+            <InfoOutlinedIcon fontSize="small" />
+            <span>Trip details</span>
+            <ExpandMoreRoundedIcon
+              className={classnames("chevron", { open: basicInfoOpen })}
+            />
+          </button>
+        )}
+        {/* Focus mode: hides every overview card so the page is just the
+            dates + activities. Toggling it back reveals the overview. */}
         <button
           type="button"
-          className="trip-detail-basic-info-toggle"
-          onClick={onToggleBasicInfo}
-          aria-expanded={basicInfoOpen}
+          className={classnames("trip-detail-basic-info-toggle", "trip-detail-focus-toggle", {
+            "is-active": focusMode,
+          })}
+          onClick={onToggleFocus}
+          aria-pressed={focusMode}
+          title={focusMode ? "Show trip overview" : "Focus on the itinerary"}
         >
-          <InfoOutlinedIcon fontSize="small" />
-          <span>Trip details</span>
-          <ExpandMoreRoundedIcon
-            className={classnames("chevron", { open: basicInfoOpen })}
-          />
+          {focusMode ? (
+            <FullscreenExitRoundedIcon fontSize="small" />
+          ) : (
+            <FullscreenRoundedIcon fontSize="small" />
+          )}
+          <span className="trip-detail-focus-label">
+            {focusMode ? "Show overview" : "Focus"}
+          </span>
         </button>
-        {showNotifyToggle && (
-          <NotifyParticipantsCheckbox
-            checked={notifyParticipants}
-            onChange={onChangeNotifyParticipants}
-            disabled={isSaving || isDeleting}
-          />
-        )}
         {canExport && (
           <ModalButton
             ref={exportModalRef}
@@ -1297,25 +1394,32 @@ const TripDetailHeader = ({
         />
         {/* Kebab renders for everyone — it carries "Take the tour" (which
             all viewers can use). Share + the destructive lifecycle actions
-            are gated to organizers via the per-item flags below. */}
-        <IconButton
-          className="trip-detail-menu-btn"
-          aria-label="More actions"
-          onClick={(e) => setMenuAnchor(e.currentTarget)}
-          disabled={isSaving || isDeleting}
-          size="small"
-        >
-          <MoreVertIcon fontSize="small" />
-        </IconButton>
+            are gated to organizers via the per-item flags below. Hidden in
+            focus mode so the header is just the "Show overview" exit. */}
+        {!focusMode && (
+          <IconButton
+            className="trip-detail-menu-btn"
+            aria-label="More actions"
+            onClick={(e) => setMenuAnchor(e.currentTarget)}
+            disabled={isSaving || isDeleting}
+            size="small"
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        )}
         <Menu anchorEl={menuAnchor} onClose={closeMenu}>
-          <MenuActionItem
-            icon={<HelpOutlineRoundedIcon />}
-            label="Take the tour"
-            onClick={() => {
-              closeMenu();
-              onStartTour();
-            }}
-          />
+          {/* Tour walks through planning an active trip — pointless once
+              the trip is Cancelled (read-only, inactive), so hide it. */}
+          {statusName !== TRIP_STATUS.CANCELLED && (
+            <MenuActionItem
+              icon={<HelpOutlineRoundedIcon />}
+              label="Take the tour"
+              onClick={() => {
+                closeMenu();
+                onStartTour();
+              }}
+            />
+          )}
           {canExport && (
             <MenuActionItem
               icon={<IosShareIcon />}

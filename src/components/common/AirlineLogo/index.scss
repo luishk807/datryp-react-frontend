@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.airline-logo {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #fff;
+  object-fit: contain;
+  // White carrier logos (e.g. dark-on-transparent) still read against a
+  // hairline border + soft card rather than vanishing into the page.
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.airline-logo--fallback {
+  background: rgba(246, 137, 31, 0.1);
+  border-color: rgba(246, 137, 31, 0.25);
+  color: theme('colors.primaryOrange');
+}
+
+.airline-logo-icon.airline-logo-icon {
+  font-size: 1.05rem;
+}

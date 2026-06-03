@@ -124,12 +124,17 @@ interface StepperCompProps {
      *  Lets the parent (TripSteps) keep its own copy of the active step
      *  so it can show the right tour-tooltips for the current section. */
     onActiveStepChange?: (step: number) => void;
+    /** Optional callback mirroring the save-in-flight flag up to the
+     *  parent (TripSteps) so it can hide title-row chrome (the tour "?")
+     *  while the full-bleed "Saving…" spinner is showing. */
+    onSavingChange?: (saving: boolean) => void;
 }
 
 const StepperComp = ({
     steps = [],
     data,
     onActiveStepChange,
+    onSavingChange,
 }: StepperCompProps) => {
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
@@ -235,6 +240,11 @@ const StepperComp = ({
     useEffect(() => {
         onActiveStepChange?.(activeStep);
     }, [activeStep, onActiveStepChange]);
+    // Surface the save-in-flight flag to the parent so it can hide the
+    // tour "?" while the "Saving…" spinner is up.
+    useEffect(() => {
+        onSavingChange?.(saveItinerary.isPending);
+    }, [saveItinerary.isPending, onSavingChange]);
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
     // Per-save opt-out for participant notifications. Defaults ON;
@@ -286,6 +296,14 @@ const StepperComp = ({
     // so numeric indices shift. Labels mirror the entries in `TripSteps`.
     const activeLabel = steps[activeStep]?.label;
     const stepMissing: string[] = [];
+    // Full-sentence validation errors (vs. `stepMissing`'s noun phrases).
+    // Used for constraints that don't read as "Add X" — e.g. a backwards
+    // date range. Rendered verbatim and, like stepMissing, blocks Next.
+    const stepInvalid: string[] = [];
+    const endBeforeStart =
+        !!data?.startDate &&
+        !!data?.endDate &&
+        moment(data.endDate).isBefore(moment(data.startDate), 'day');
     if (data) {
         if (!isEditing && activeLabel === 'Trip type') {
             if (!data.type?.id) stepMissing.push('a trip type');
@@ -302,6 +320,11 @@ const StepperComp = ({
         if (!isEditing && activeLabel === 'Dates') {
             if (!data.startDate) stepMissing.push('a start date');
             if (!data.endDate) stepMissing.push('an end date');
+            if (endBeforeStart) {
+                stepInvalid.push(
+                    "End date can't be before the start date."
+                );
+            }
         }
         if (!isEditing && activeLabel === 'Budget') {
             // Budget is required (≥ 0). We treat 0 as "flexible" — the
@@ -339,6 +362,11 @@ const StepperComp = ({
             if (!data.name?.trim()) stepMissing.push('trip name');
             if (!data.startDate) stepMissing.push('start date');
             if (!data.endDate) stepMissing.push('end date');
+            if (endBeforeStart) {
+                stepInvalid.push(
+                    "End date can't be before the start date."
+                );
+            }
             if (!(data.organizer ?? []).some((o) => o.userId)) {
                 stepMissing.push('at least one organizer');
             }
@@ -353,6 +381,10 @@ const StepperComp = ({
         }
     }
     const hasMissingFields = stepMissing.length > 0;
+    const hasInvalidFields = stepInvalid.length > 0;
+    // Next / Save is blocked by either an unfilled required field OR a
+    // failed constraint (e.g. backwards date range).
+    const blockAdvance = hasMissingFields || hasInvalidFields;
 
     const handleSaveAndAdvance = async () => {
         if (!data) {
@@ -391,6 +423,14 @@ const StepperComp = ({
             setSaveError(
                 `Please provide ${missing.join(', ')} before saving.`
             );
+            return;
+        }
+        if (
+            data.startDate &&
+            data.endDate &&
+            moment(data.endDate).isBefore(moment(data.startDate), 'day')
+        ) {
+            setSaveError("End date can't be before the start date.");
             return;
         }
 
@@ -615,7 +655,7 @@ const StepperComp = ({
                                                 }
                                                 disabled={
                                                     saveItinerary.isPending ||
-                                                    hasMissingFields
+                                                    blockAdvance
                                                 }
                                             />
                                             <IconButton
@@ -660,20 +700,17 @@ const StepperComp = ({
                                             </Menu>
                                         </div>
                                     </div>
-                                    {(saveError ||
-                                        (hasMissingFields && (
-                                            <ErrorAlert>
-                                                Add {stepMissing.join(', ')} to
-                                                continue.
-                                            </ErrorAlert>
-                                        ))) && saveError ? (
+                                    {saveError ? (
                                         <ErrorAlert>{saveError}</ErrorAlert>
-                                    ) : null}
-                                    {!saveError && hasMissingFields && (
+                                    ) : hasInvalidFields ? (
+                                        <ErrorAlert>
+                                            {stepInvalid.join(' ')}
+                                        </ErrorAlert>
+                                    ) : hasMissingFields ? (
                                         <ErrorAlert>
                                             Add {stepMissing.join(', ')} to continue.
                                         </ErrorAlert>
-                                    )}
+                                    ) : null}
                                 </Grid>
                                 <Grid item lg={12} md={12} xs={12}>
                                     <BasicTripInfo
@@ -907,7 +944,12 @@ const StepperComp = ({
                             </p>
                         </Grid>
                     )}
-                    {!saveError && hasMissingFields && (
+                    {!saveError && hasInvalidFields && (
+                        <Grid item lg={12} md={12} xs={12}>
+                            <ErrorAlert>{stepInvalid.join(' ')}</ErrorAlert>
+                        </Grid>
+                    )}
+                    {!saveError && !hasInvalidFields && hasMissingFields && (
                         <Grid item lg={12} md={12} xs={12}>
                             <ErrorAlert>
                                 Add {stepMissing.join(', ')} to continue.
@@ -956,7 +998,7 @@ const StepperComp = ({
                                         : 'Next'
                                 }
                                 disabled={
-                                    hasMissingFields ||
+                                    blockAdvance ||
                                     (isLastStep && saveItinerary.isPending)
                                 }
                             />

@@ -14,26 +14,72 @@
     color: rgba(0, 0, 0, 0.6);
   }
 
-  &-fields {
+  // From / swap / To. MOBILE: stacked column (From, swap centered, To).
+  // DESKTOP (≥768px): a single row — From | ⇄ | To. The Date field lives
+  // on its own row BELOW this block.
+  &-od {
     display: flex;
-    flex-wrap: wrap;
-    // flex-end so the From-airport and Date input boxes share one
-    // baseline even though their labels render above them.
-    align-items: flex-end;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
 
-    .flight-departures-search-field {
-      flex: 1 1 200px;
-      min-width: 160px;
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: flex-end;
+      gap: 10px;
+
+      .flight-departures-search-airport {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+    }
+  }
+
+  // Round swap button between the two airport fields. Rotates on hover as
+  // an affordance cue for "flip the route". Centered in the column on
+  // mobile; drops to the input baseline (flex-end) in the desktop row.
+  &-swap {
+    appearance: none;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    margin: -2px 0;
+    border-radius: 999px;
+    border: 1px solid rgba(60, 181, 75, 0.45);
+    background: #fff;
+    color: theme('colors.primaryGreen');
+    cursor: pointer;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.15s ease, transform 0.2s ease,
+      box-shadow 0.15s ease;
+
+    &:hover {
+      background: rgba(60, 181, 75, 0.1);
+      transform: rotate(180deg);
+      box-shadow: 0 2px 8px rgba(60, 181, 75, 0.25);
     }
 
-    // The airport Autocomplete uses size="small"; the date InputField
-    // uses a default (medium) OutlinedInput, which renders taller. Pull
-    // the date input's vertical padding down to small so both fields end
-    // up the same height and line up cleanly.
-    .inputFieldCustom .MuiOutlinedInput-input {
-      padding-top: 8.5px;
-      padding-bottom: 8.5px;
+    // Icon orientation follows the layout: vertical arrows when the
+    // fields stack (mobile), horizontal when side-by-side (desktop).
+    .flight-departures-search-swap-horiz {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      // Sit at the input baseline (labels are above), nudged up a hair
+      // to visually center against the ~40px-tall inputs.
+      align-self: flex-end;
+      margin: 0 0 3px;
+
+      .flight-departures-search-swap-vert {
+        display: none;
+      }
+      .flight-departures-search-swap-horiz {
+        display: inline-flex;
+      }
     }
   }
 
@@ -43,6 +89,15 @@
     // stray gap above the picker.
     .inputFieldCustom > div:empty {
       display: none;
+    }
+
+    // The airport Autocomplete uses size="small"; the date InputField
+    // uses a default (medium) OutlinedInput, which renders taller. Pull
+    // the date input's vertical padding down to small so the date field
+    // matches the airport fields' height.
+    .inputFieldCustom .MuiOutlinedInput-input {
+      padding-top: 8.5px;
+      padding-bottom: 8.5px;
     }
   }
 

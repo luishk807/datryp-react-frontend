@@ -24,9 +24,11 @@ export const useFlightDepartures = (
     fromTime?: string,
     airline?: string,
     enabled: boolean = true,
+    arrival?: string,
 ) => {
     const trimmedAirport = airport.trim().toUpperCase();
     const trimmedAirline = airline?.trim().toUpperCase() || undefined;
+    const trimmedArrival = arrival?.trim().toUpperCase() || undefined;
     return useQuery<FlightDepartureOption[]>({
         queryKey: [
             'flightDepartures',
@@ -34,6 +36,7 @@ export const useFlightDepartures = (
             date,
             fromTime,
             trimmedAirline,
+            trimmedArrival,
         ],
         queryFn: () =>
             searchFlightDepartures({
@@ -41,6 +44,7 @@ export const useFlightDepartures = (
                 date,
                 fromTime,
                 airline: trimmedAirline,
+                arrival: trimmedArrival,
             }),
         enabled:
             enabled &&

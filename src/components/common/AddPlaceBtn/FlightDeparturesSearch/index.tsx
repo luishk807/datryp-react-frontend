@@ -3,6 +3,8 @@ import { CircularProgress } from '@mui/material';
 import WbTwilightRoundedIcon from '@mui/icons-material/WbTwilightRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import NightsStayRoundedIcon from '@mui/icons-material/NightsStayRounded';
+import SwapVertRoundedIcon from '@mui/icons-material/SwapVertRounded';
+import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
 import classNames from 'classnames';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
@@ -31,9 +33,10 @@ type TimeWindowKey = (typeof TIME_WINDOWS)[number]['key'];
 const PAGE_SIZE = 20;
 
 export interface FlightDeparturesSearchProps {
-    /** Seed the From-airport — segment 0's depart airport or the home-base
-     *  IATA. */
+    /** Seed the From-airport — defaults to the user's home-base IATA. */
     initialAirport?: string;
+    /** Seed the To-airport — defaults to the trip destination's airport. */
+    initialArrival?: string;
     /** Seed the date (YYYY-MM-DD) — the activity day. */
     initialDate?: string;
     onPick: (item: FlightDepartureOption) => void;
@@ -45,11 +48,13 @@ export interface FlightDeparturesSearchProps {
 
 const FlightDeparturesSearch = ({
     initialAirport = '',
+    initialArrival = '',
     initialDate = '',
     onPick,
     onBack,
 }: FlightDeparturesSearchProps) => {
     const [airport, setAirport] = useState(initialAirport);
+    const [arrival, setArrival] = useState(initialArrival);
     const [date, setDate] = useState(initialDate);
     const [windowKey, setWindowKey] = useState<TimeWindowKey>('morning');
     const [airline, setAirline] = useState('');
@@ -71,7 +76,17 @@ const FlightDeparturesSearch = ({
         fromTime,
         airline,
         searched,
+        arrival,
     );
+
+    // Swap the From / To airports in place. Re-gates the search so the
+    // user taps Search again with the reversed route (e.g. flip an
+    // outbound EWR→PTY to the return PTY→EWR).
+    const handleSwap = () => {
+        setAirport(arrival);
+        setArrival(airport);
+        setSearched(false);
+    };
 
     const items = data ?? [];
     const filtered = useMemo(() => {
@@ -104,8 +119,12 @@ const FlightDeparturesSearch = ({
 
     return (
         <div className="flight-departures-search">
-            <div className="flight-departures-search-fields">
-                <div className="flight-departures-search-field">
+            {/* From / swap / To — stacked on mobile, a single row on
+                desktop (≥768px). The swap flips the route (outbound ⇄
+                return) without retyping both codes. Date renders on its
+                own row BELOW the airports. */}
+            <div className="flight-departures-search-od">
+                <div className="flight-departures-search-field flight-departures-search-airport">
                     <span className="flight-departures-search-label">
                         From airport
                     </span>
@@ -118,19 +137,50 @@ const FlightDeparturesSearch = ({
                         placeholder="IATA code, city, or airport"
                     />
                 </div>
-                <div className="flight-departures-search-field">
-                    <span className="flight-departures-search-label">Date</span>
-                    <InputField
-                        value={date}
-                        name="flight-departures-date"
-                        type="date"
-                        label={null}
-                        onChange={(e) => {
-                            setDate(e.target.value);
+                <button
+                    type="button"
+                    className="flight-departures-search-swap"
+                    onClick={handleSwap}
+                    aria-label="Swap From and To airports"
+                    title="Swap airports"
+                >
+                    {/* Vertical arrows when the fields stack (mobile),
+                        horizontal when they sit side-by-side (desktop). */}
+                    <SwapVertRoundedIcon
+                        className="flight-departures-search-swap-vert"
+                        fontSize="small"
+                    />
+                    <SwapHorizRoundedIcon
+                        className="flight-departures-search-swap-horiz"
+                        fontSize="small"
+                    />
+                </button>
+                <div className="flight-departures-search-field flight-departures-search-airport">
+                    <span className="flight-departures-search-label">
+                        To airport
+                    </span>
+                    <AirportAutocomplete
+                        value={arrival}
+                        onChange={(code) => {
+                            setArrival(code);
                             setSearched(false);
                         }}
+                        placeholder="IATA code, city, or airport"
                     />
                 </div>
+            </div>
+            <div className="flight-departures-search-field flight-departures-search-date">
+                <span className="flight-departures-search-label">Date</span>
+                <InputField
+                    value={date}
+                    name="flight-departures-date"
+                    type="date"
+                    label={null}
+                    onChange={(e) => {
+                        setDate(e.target.value);
+                        setSearched(false);
+                    }}
+                />
             </div>
 
             <div className="flight-departures-search-window">
@@ -204,8 +254,9 @@ const FlightDeparturesSearch = ({
 
             {showResults && (isError || filtered.length === 0) && (
                 <div className="flight-departures-search-empty">
-                    No flights found — try a different time of day or airline,
-                    or switch to Custom to enter it by hand.
+                    No flights found — try a different time of day, clear the
+                    To-airport or airline filter, or switch to Custom to enter
+                    it by hand.
                 </div>
             )}
 

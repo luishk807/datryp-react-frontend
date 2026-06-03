@@ -29,6 +29,32 @@
   align-content: flex-start;
 }
 
+// Trip-detail "Focus mode" — the page toggles `trip-focus-mode` on
+// <body> so the GLOBAL app chrome collapses for a true full-screen read
+// of the itinerary: the header logo bar, the desktop footer, and the
+// mobile bottom nav all hide. Zero out the bottom-nav spacer too so no
+// empty gap is left where the fixed bar used to reserve room.
+body.trip-focus-mode {
+  .app-header,
+  .footer,
+  .bottom-nav {
+    display: none !important;
+  }
+
+  .page-shell {
+    padding-bottom: 0 !important;
+  }
+
+  // The hidden header normally provides the top breathing room — without
+  // it the first day block butts right against the top edge (and slides
+  // under the status-bar notch on phones). Add it back, safe-area aware.
+  // `!important` + the high-specificity body selector beat the
+  // `.is-subpage .page-content { padding-top: 0 }` mobile override.
+  .page-content {
+    padding-top: max(40px, calc(env(safe-area-inset-top) + 20px)) !important;
+  }
+}
+
 .homeContainer{
   display: flex;
   margin: 10px 5px !important;

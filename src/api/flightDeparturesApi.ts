@@ -69,6 +69,9 @@ export interface SearchFlightDeparturesArgs {
     /** IATA airline code (2-3 letters) — server-side filter. Omit for all
      *  carriers. */
     airline?: string;
+    /** Destination airport IATA — server-side filter that keeps only
+     *  flights landing there (e.g. EWR → PTY). Omit for all destinations. */
+    arrival?: string;
 }
 
 export const searchFlightDepartures = async ({
@@ -76,6 +79,7 @@ export const searchFlightDepartures = async ({
     date,
     fromTime,
     airline,
+    arrival,
 }: SearchFlightDeparturesArgs): Promise<FlightDepartureOption[]> => {
     const params = new URLSearchParams({
         airport: airport.trim().toUpperCase(),
@@ -83,6 +87,7 @@ export const searchFlightDepartures = async ({
     });
     if (fromTime) params.set('from_time', fromTime);
     if (airline?.trim()) params.set('airline', airline.trim().toUpperCase());
+    if (arrival?.trim()) params.set('arrival', arrival.trim().toUpperCase());
     // Treat any non-OK response as no-result so the picker fails soft and
     // the user can switch to Custom. Network errors throw — React Query's
     // retry: 0 keeps those from looping against the rate-limited provider.

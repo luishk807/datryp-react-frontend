@@ -95,6 +95,11 @@ const TripSteps = ({
     // People or Itinerary screen gets the right tooltips.
     const [tourRun, setTourRun] = useState(false);
     const [tourKey, setTourKey] = useState<TripTourKey>('mode');
+    // Mirror StepperComp's save-in-flight flag so the title-row tour "?"
+    // can hide while the trip is saving — the page shows a full-bleed
+    // "Saving your trip…" spinner, and a dangling help icon over it reads
+    // as a stray control.
+    const [isSaving, setIsSaving] = useState(false);
     useEffect(() => {
         if (!user) return;
         if (editingId) return;
@@ -381,7 +386,7 @@ const TripSteps = ({
             // a full "Take the tour" pill — keeps the create flow focused on
             // the actual content (info + action buttons). Create-only.
             titleAction={
-                !isEditing ? (
+                !isEditing && !isSaving ? (
                     <button
                         type="button"
                         className="trip-tour-help-btn"
@@ -400,6 +405,7 @@ const TripSteps = ({
                         data={tripInfo}
                         steps={steps}
                         onActiveStepChange={handleActiveStepChange}
+                        onSavingChange={setIsSaving}
                     />
                 </Grid>
             </Grid>

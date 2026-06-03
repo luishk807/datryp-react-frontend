@@ -211,6 +211,46 @@
     height: 14px;
 }
 
+// While the AI is scoring there's no marker yet, so the bare gradient
+// reads as static/broken. Dim it and sweep an indeterminate shimmer
+// across so the meter visibly says "working" until the score lands.
+.trip-checkup-meter.is-loading .trip-checkup-meter-grad {
+    filter: saturate(0.5) opacity(0.5);
+}
+
+.trip-checkup-meter-shimmer {
+    position: absolute;
+    inset: 4px 0;
+    border-radius: 999px;
+    overflow: hidden;
+    pointer-events: none;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 35%;
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.85) 50%,
+            transparent 100%
+        );
+        animation: trip-checkup-shimmer 1.2s ease-in-out infinite;
+    }
+}
+
+@keyframes trip-checkup-shimmer {
+    from {
+        transform: translateX(-120%);
+    }
+    to {
+        transform: translateX(330%);
+    }
+}
+
 .trip-checkup-meter-grad {
     position: absolute;
     inset: 4px 0;

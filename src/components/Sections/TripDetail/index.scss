@@ -172,9 +172,6 @@
   // with the bell / tour / kebab in the action row.
   min-height: 30px;
   box-sizing: border-box;
-  // Sits at the FAR LEFT of the header action row; auto right margin
-  // shoves the bell / tour / kebab cluster over to the right edge.
-  margin-right: auto;
   padding: 0 12px;
   // Persistent pill at rest (not just on hover/focus) so the affordance
   // reads the same on first paint as it does after a click.
@@ -204,6 +201,104 @@
 
   .chevron.open {
     transform: rotate(180deg);
+  }
+}
+
+// The Focus toggle is the rightmost item of the left-hand cluster (the
+// "Trip details" toggle is hidden while focused), so it carries the auto
+// margin that shoves the bell / kebab group to the right edge.
+.trip-detail-focus-toggle {
+  margin-right: auto;
+
+  // Filled treatment while active so it's clear the overview is hidden
+  // ON PURPOSE and one tap brings it back.
+  &.is-active {
+    background: var(--trip-status-accent);
+    border-color: var(--trip-status-accent);
+    color: #fff;
+  }
+}
+
+// Mobile: collapse the Focus toggle to an icon-only round button — the
+// header action row is tight on narrow screens, and the icon + title
+// tooltip carry the meaning without the label eating width.
+@media (max-width: 720px) {
+  .trip-detail-focus-toggle {
+    padding: 0;
+    width: 30px;
+    justify-content: center;
+  }
+
+  .trip-detail-focus-label {
+    display: none;
+  }
+}
+
+// Floating "Show overview" exit pill, shown only in focus mode (the
+// header is hidden then, so this is the lone way back). Fixed bottom-
+// right above the home-indicator safe area, filled green with a lift so
+// it reads as an actionable FAB hovering over the itinerary.
+.trip-detail-focus-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 1150;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 11px 13px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    theme('colors.primaryGreen') 0%,
+    #2e9a3d 100%
+  );
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  // Subtle icon-only puck at rest so it doesn't compete with the
+  // itinerary, then comes forward on hover/focus: full opacity, a lift,
+  // and the "Show" label slides open.
+  opacity: 0.4;
+  box-shadow: 0 4px 12px rgba(60, 181, 75, 0.25);
+  transition: opacity 0.18s ease, transform 0.15s ease,
+    box-shadow 0.15s ease, filter 0.15s ease;
+
+  // The label is collapsed (zero-width, clipped) until hover, then
+  // animates open — a small slide+fade so the puck "expands" into a pill.
+  span {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 0.22s ease, margin-left 0.22s ease,
+      opacity 0.18s ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(60, 181, 75, 0.5);
+
+    span {
+      max-width: 80px;
+      margin-left: 6px;
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  svg {
+    font-size: 1.15rem !important;
   }
 }
 
@@ -272,6 +367,48 @@
   line-height: 1.45;
 }
 
+// ───── Cancelled banner ────────────────────────────────────────────────
+// Muted neutral-grey treatment (no celebratory green/orange) — the trip
+// is off, so the banner reads calm + inactive rather than alarming.
+.trip-detail-cancelled-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin: 4px 8px 18px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.trip-detail-cancelled-icon {
+  color: rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.trip-detail-cancelled-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trip-detail-cancelled-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.7);
+  letter-spacing: -0.005em;
+}
+
+.trip-detail-cancelled-sub {
+  font-size: 0.86rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.45;
+}
+
 // ───── Planning banner ─────────────────────────────────────────────────
 // Soft orange treatment to match the per-activity Planning chip — same
 // shape as the completed banner above but tuned to the in-progress
@@ -305,6 +442,11 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  // Take the remaining width so the confirm CTA is pushed to the
+  // right edge on desktop. min-width:0 lets the sub-copy wrap instead
+  // of forcing the row wider than the card.
+  flex: 1;
+  min-width: 0;
 }
 
 .trip-detail-planning-title {
@@ -318,6 +460,105 @@
   font-size: 0.86rem;
   color: rgba(0, 0, 0, 0.62);
   line-height: 1.45;
+}
+
+// Trip-status promotion CTA card ("Confirm trip" / "Mark complete")
+// anchored directly above the itinerary date blocks: a short prompt on
+// the left, a prominent filled button on the right. Green-tinted card
+// chrome (both transitions are positive, forward actions) consistent
+// with the planning / completed banners.
+// Mirrors the "Trip in planning" banner layout (leading icon-in-circle +
+// title + sub + action), green-themed for the positive "Mark complete"
+// transition (Confirmed → Completed).
+.trip-detail-status-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 8px 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.14) 0%,
+    rgba(60, 181, 75, 0.06) 100%
+  );
+  border: 1px solid rgba(60, 181, 75, 0.28);
+}
+
+.trip-detail-status-cta-icon {
+  color: theme('colors.primaryGreen');
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 50%;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(60, 181, 75, 0.32);
+}
+
+.trip-detail-status-cta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.trip-detail-status-cta-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.005em;
+}
+
+.trip-detail-status-cta-sub {
+  font-size: 0.86rem;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.45;
+}
+
+// Solid filled CTA, but kept compact so the card stays a slim strip
+// rather than a tall block.
+.trip-detail-status-cta-btn {
+  flex-shrink: 0;
+
+  .trip-status-badge {
+    padding: 7px 16px !important;
+    font-size: 0.84rem !important;
+    color: #fff !important;
+    background: linear-gradient(
+      135deg,
+      theme('colors.primaryGreen') 0%,
+      #2e9a3d 100%
+    ) !important;
+    box-shadow: 0 2px 7px rgba(60, 181, 75, 0.28) !important;
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.04);
+      box-shadow: 0 4px 12px rgba(60, 181, 75, 0.4) !important;
+      background: linear-gradient(
+        135deg,
+        theme('colors.primaryGreen') 0%,
+        #2e9a3d 100%
+      ) !important;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  // Both status cards stack on mobile: icon + copy, then the button on
+  // its own line at the bottom. The button stays content-width (the
+  // .trip-status-badge is width:auto) so it sits bottom-left, not a
+  // chunky full-width block. Identical treatment so the planning and
+  // mark-complete cards read as a matched pair.
+  .trip-detail-planning-banner,
+  .trip-detail-status-cta {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .trip-detail-status-cta-btn .trip-status-badge {
+    white-space: nowrap;
+  }
 }
 
 // ───── End-of-trip cap ──────────────────────────────────────────────────
@@ -556,16 +797,6 @@
       justify-content: flex-end;
       margin-top: 14px;
       margin-bottom: 14px;
-    }
-
-    // Mobile: hide the read-only status pill until the trip is
-    // Completed. Confirmed / Cancelled lifecycle states already read
-    // from context (the Mark Complete button on Confirmed; the muted
-    // header treatment on Cancelled), so the pill is just noise that
-    // crowds the narrow header. Completed gets to keep the pill since
-    // there's no other affordance carrying that signal.
-    .trip-detail-status:not(.trip-detail-status-completed) {
-      display: none;
     }
   }
 }

@@ -43,6 +43,7 @@ import { pickSmartEntryLocation } from "components/common/AddPlaceBtn/pickSmartE
 import { useTripState } from "context/TripContext";
 import AddBudget from "components/DestinationDetail/AddBudget";
 import RatingBadge from "components/common/RatingBadge";
+import AirlineLogo from "components/common/AirlineLogo";
 import DraggableActivity from "components/DestinationDetail/Activities/DraggableActivity";
 import IconConfirmButton from "components/common/IconConfirmButton";
 import MarkPaidModal, {
@@ -58,6 +59,7 @@ import type {
   ActionType,
   Activity,
   ActivityStatus,
+  BudgetEntry,
   Destination,
   Friend,
 } from "types";
@@ -186,21 +188,47 @@ const PaidByRow = ({
   // / cancelled trip). Paid activities always render the chip.
   if (!isPaid && !canEditPaid) return null;
 
+  // "Who is paying?" auto-seed. When the organizer confirms a single
+  // payer for an activity that has no budget assignment yet, attribute
+  // the full cost to that payer so the "Who is paying?" chip reflects
+  // who covered it. Without this, the payment is recorded but the
+  // budget row stays empty — forcing a second pass through the budget
+  // modal to say the same thing. Skipped when a budget already exists
+  // (don't clobber an explicit split) or the payer can't be matched to
+  // a real participant UUID.
+  const deriveSinglePayerBudget = (
+    paidBy: MarkPaidValue["paidBy"],
+  ): BudgetEntry[] | undefined => {
+    const alreadyAssigned = (activity.budget ?? []).length > 0;
+    if (alreadyAssigned || !paidBy.id) return undefined;
+    const payer = participants.find((p) => p.userId === paidBy.id);
+    if (!payer) return undefined;
+    const costNumber =
+      typeof activity.cost === "number"
+        ? activity.cost
+        : parseFloat(String(activity.cost ?? "")) || 0;
+    return [{ user: payer, budget: String(costNumber) }];
+  };
+
   const handleSubmit = (value: MarkPaidValue) => {
+    // Multi-payer flows emit a budget breakdown so the per-person
+    // amounts persist (backend stores `budget` as a first-class field).
+    // Re-opening the modal then re-derives the split rows from this same
+    // array — the user sees the same breakdown they last saved. For a
+    // plain single-payer confirmation, fall back to seeding the budget
+    // from the payer so "Who is paying?" mirrors "Paid by".
+    const budgetEntries =
+      value.budgetUpdate ?? deriveSinglePayerBudget(value.paidBy);
+
     onChangePlace("edit", {
       index: indx,
       value: {
         id: activity.id,
         paidAt: value.paidAt,
         paidBy: value.paidBy,
-        // Multi-payer flows emit a budget breakdown so the
-        // per-person amounts persist (backend stores `budget`
-        // as a first-class field). Re-opening the modal then
-        // re-derives the split rows from this same array —
-        // the user sees the same breakdown they last saved.
-        ...(value.budgetUpdate
+        ...(budgetEntries
           ? {
-              budget: value.budgetUpdate.map((b, i) => ({
+              budget: budgetEntries.map((b, i) => ({
                 id: Date.now() + i,
                 user: b.user,
                 budget: b.budget,
@@ -856,8 +884,15 @@ const Activities = ({
                   <Grid container>
                     <Grid item lg={12} md={12} xs={12} className="info">
                       <div className="activity-title-row">
-                        {TitleIcon && (
-                          <TitleIcon className="activity-title-icon" />
+                        {isFlight ? (
+                          <AirlineLogo
+                            flightNumber={firstSeg?.flightNumber}
+                            label={firstSeg?.flightNumber ?? activity.name}
+                          />
+                        ) : (
+                          TitleIcon && (
+                            <TitleIcon className="activity-title-icon" />
+                          )
                         )}
                         {tripId && activityKind === ACTIVITY_KIND.PLACE ? (
                           <a

@@ -16,6 +16,14 @@
   color: theme('colors.primaryOrange');
 }
 
+.trip-dates-step .trip-dates-error {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #b3261e;
+}
+
 @media (max-width: 640px) {
   .trip-dates-step .trip-dates-grid {
     grid-template-columns: 1fr;
