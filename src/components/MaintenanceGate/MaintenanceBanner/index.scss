@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Sticky top warning bar (mode: "banner", and the persistent admin reminder
+// during a "full" block). Pinned above the app header (z-index 100) but below
+// MUI dialogs (1300) so modals still cover it.
+.maintenance-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: theme('colors.primaryOrange', #f59e0b);
+    color: #3a2a00;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+    // The persistent variant (admin viewing a live full-block) reads as a
+    // stronger alert — darker band so it's clearly "this is on right now".
+    &.is-persistent {
+        background: #b45309;
+        color: #fff;
+    }
+}
+
+.maintenance-banner-icon {
+    flex-shrink: 0;
+}
+
+.maintenance-banner-text {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.maintenance-banner-tag {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.maintenance-banner-eta {
+    font-weight: 600;
+}
+
+.maintenance-banner-note {
+    opacity: 0.85;
+    font-style: italic;
+}
+
+.maintenance-banner-close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    border-radius: 50%;
+    opacity: 0.75;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.1);
+        outline: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .maintenance-banner {
+        font-size: 0.82rem;
+        padding: 9px 12px;
+        gap: 8px;
+    }
+}

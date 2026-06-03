@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Maintenance-specific controls. Shared `.settings-card-*` layout classes
+// come from the parent SettingsCard stylesheet.
+.maintenance-card-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.maintenance-card-modes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.maintenance-card-mode {
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    appearance: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    border: 1.5px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    background: #fff;
+    font-family: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease,
+        box-shadow 0.15s ease;
+
+    &:hover:not(:disabled) {
+        border-color: theme('colors.primaryGreen');
+    }
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    &.is-selected {
+        border-color: theme('colors.primaryGreen');
+        background: rgba(60, 181, 75, 0.06);
+        box-shadow: 0 0 0 1px theme('colors.primaryGreen');
+    }
+}
+
+.maintenance-card-mode-label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+}
+
+.maintenance-card-mode-hint {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.maintenance-card-message {
+    width: 100%;
+    resize: vertical;
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: theme('colors.primary');
+
+    &:focus {
+        outline: none;
+        border-color: theme('colors.primaryGreen');
+        box-shadow: 0 0 0 1px theme('colors.primaryGreen');
+    }
+
+    &:disabled {
+        opacity: 0.6;
+    }
+}

@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Full-viewport downtime overlay. Same fixed/centered treatment as
+// OfflineGate (z-index above MUI modals/snackbars) so any route mid-render
+// gets fully replaced by the "Site Currently Unavailable" panel.
+.server-gate-root {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(248, 248, 246, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.server-gate-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 400px;
+    padding: 36px 28px 30px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.server-gate-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(59, 130, 174, 0.12);
+    color: #3b82ae;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+}
+
+.server-gate-title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+    letter-spacing: -0.01em;
+}
+
+.server-gate-body {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(0, 0, 0, 0.65);
+    line-height: 1.5;
+}
+
+.server-gate-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 999px;
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease,
+        box-shadow 0.15s ease;
+    box-shadow: 0 4px 14px rgba(60, 181, 75, 0.32);
+}
+
+.server-gate-retry:hover:not(:disabled),
+.server-gate-retry:focus-visible:not(:disabled) {
+    background: #2d8f37;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(60, 181, 75, 0.4);
+    outline: none;
+}
+
+.server-gate-retry:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.server-gate-retry:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.server-gate-retry-icon {
+    color: #fff;
+}
+
+@media (max-width: 480px) {
+    .server-gate-root {
+        padding: 16px;
+    }
+
+    .server-gate-card {
+        padding: 30px 20px 26px;
+        gap: 12px;
+        max-width: 100%;
+    }
+
+    .server-gate-icon {
+        width: 66px;
+        height: 66px;
+        font-size: 36px;
+    }
+
+    .server-gate-title {
+        font-size: 1.25rem;
+    }
+
+    .server-gate-body {
+        font-size: 0.9rem;
+    }
+
+    .server-gate-retry {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+    }
+}

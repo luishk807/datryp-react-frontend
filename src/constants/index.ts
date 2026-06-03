@@ -206,6 +206,15 @@ export const SAVED_SOURCE = {
   MANUAL: "manual",
 } as const;
 
+/** How the site notifies users while maintenance mode is ON.
+ *  `BANNER` keeps the app usable behind a warning bar; `FULL` replaces
+ *  the whole app with a blocking page (admins exempt). Mirrors the
+ *  backend's `_MAINTENANCE_MODES` literals — keep the two in sync. */
+export const MAINTENANCE_MODE = {
+  BANNER: "banner",
+  FULL: "full",
+} as const;
+
 export const TRIP_BASIC = {
   SINGLE: {
     id: 1,

@@ -44,7 +44,23 @@
 }
 
 .top-places-error {
-  color: #c0392b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+
+  .top-places-error-icon {
+    font-size: 2.5rem;
+    color: rgba(0, 0, 0, 0.3);
+  }
+
+  .top-places-error-text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(0, 0, 0, 0.6);
+  }
 }
 
 @media (max-width: 1024px) {

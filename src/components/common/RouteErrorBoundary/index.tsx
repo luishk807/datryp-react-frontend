@@ -21,6 +21,12 @@ interface RouteErrorBoundaryProps {
     title?: string;
     /** Optional description override. */
     description?: ReactNode;
+    /** When this value changes, a tripped boundary resets itself WITHOUT
+     *  remounting its children. The pathname-keyed `RouteErrorBoundary`
+     *  wrapper doesn't need it (it remounts on navigation), but the
+     *  app-level `AppErrorBoundary` does — it can't remount the whole
+     *  route tree on every navigation, so it clears the error this way. */
+    resetKey?: string;
 }
 
 interface RouteErrorBoundaryState {
@@ -48,6 +54,17 @@ class RouteErrorBoundaryClass extends Component<
         // current Vite config it stays. Replace with a remote logger
         // (Sentry, Rollbar, etc.) if/when one is wired up.
         console.error('[RouteErrorBoundary]', error, info.componentStack);
+    }
+
+    componentDidUpdate(prevProps: RouteErrorBoundaryProps) {
+        // Navigation away from a broken page should clear the fallback so
+        // the user lands on a working page instead of the error screen.
+        if (
+            this.state.hasError &&
+            prevProps.resetKey !== this.props.resetKey
+        ) {
+            this.handleReset();
+        }
     }
 
     handleReset = () => {
@@ -95,3 +112,25 @@ const RouteErrorBoundary = (props: RouteErrorBoundaryProps) => {
 };
 
 export default RouteErrorBoundary;
+
+/**
+ * App-wide safety net. Wraps the ENTIRE route tree so a render error in any
+ * page — including the ungated public ones (Home, Login, Signup, City,
+ * Country …) that don't have their own `RouteErrorBoundary` — falls back to a
+ * friendly error page instead of unmounting the whole app and leaving a blank
+ * screen.
+ *
+ * Unlike `RouteErrorBoundary` it must NOT remount on every navigation (that
+ * would tear down and refetch the whole route tree, and re-mount the Dashboard
+ * shell on each tab switch). Instead it passes the pathname as `resetKey` so a
+ * tripped boundary clears itself when the user navigates away — without
+ * remounting its children.
+ */
+export const AppErrorBoundary = ({ children }: { children: ReactNode }) => {
+    const location = useLocation();
+    return (
+        <RouteErrorBoundaryClass resetKey={location.pathname}>
+            {children}
+        </RouteErrorBoundaryClass>
+    );
+};

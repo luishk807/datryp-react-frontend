@@ -5,10 +5,35 @@
  */
 
 import { getAuthToken } from './authStorage';
+import {
+    isNetworkError,
+    markServerReachable,
+    markServerUnreachable,
+} from './serverStatus';
 import type { SubscriptionPlan, SubscriptionStatus, UserRole } from 'types';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
+
+/**
+ * `fetch` wrapper that feeds the global backend-reachability signal. Auth
+ * runs over REST (not GraphQL), so it bypasses `pythonGqlClient`'s detection
+ * — this keeps the `/auth/me` bootstrap and login/signup in the same loop, so
+ * a backend that's down at first paint still trips the `ServerGate`.
+ */
+const trackedFetch = async (
+    input: RequestInfo | URL,
+    init?: RequestInit
+): Promise<Response> => {
+    try {
+        const resp = await fetch(input, init);
+        markServerReachable();
+        return resp;
+    } catch (err) {
+        if (isNetworkError(err)) markServerUnreachable();
+        throw err;
+    }
+};
 
 export interface SignupPayload {
     email: string;
@@ -131,28 +156,28 @@ const handleJson = async <T>(resp: Response): Promise<T> => {
 };
 
 export const signup = (payload: SignupPayload): Promise<TokenResponse> =>
-    fetch(`${API_BASE}/auth/signup`, {
+    trackedFetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     }).then(handleJson<TokenResponse>);
 
 export const login = (payload: LoginPayload): Promise<TokenResponse> =>
-    fetch(`${API_BASE}/auth/login`, {
+    trackedFetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     }).then(handleJson<TokenResponse>);
 
 export const googleSignin = (credential: string): Promise<TokenResponse> =>
-    fetch(`${API_BASE}/auth/google`, {
+    trackedFetch(`${API_BASE}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential }),
     }).then(handleJson<TokenResponse>);
 
 export const requestPasswordReset = (email: string): Promise<void> =>
-    fetch(`${API_BASE}/auth/forgot-password`, {
+    trackedFetch(`${API_BASE}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -176,7 +201,7 @@ export const resetPassword = (
     token: string,
     newPassword: string
 ): Promise<TokenResponse> =>
-    fetch(`${API_BASE}/auth/reset-password`, {
+    trackedFetch(`${API_BASE}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, new_password: newPassword }),
@@ -185,7 +210,7 @@ export const resetPassword = (
 export const fetchMe = (): Promise<MeResponse> => {
     const token = getAuthToken();
     if (!token) throw new AuthError('Not authenticated', 401);
-    return fetch(`${API_BASE}/auth/me`, {
+    return trackedFetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
     }).then(handleJson<MeResponse>);
 };

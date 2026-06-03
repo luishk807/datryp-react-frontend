@@ -7,7 +7,9 @@ import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
 import BottomNav from 'components/BottomNav';
 import OfflineGate from 'components/OfflineGate';
-import RouteErrorBoundary from 'components/common/RouteErrorBoundary';
+import ServerGate from 'components/ServerGate';
+import MaintenanceGate from 'components/MaintenanceGate';
+import RouteErrorBoundary, { AppErrorBoundary } from 'components/common/RouteErrorBoundary';
 import PageLoader from 'components/common/PageLoader';
 const Home = lazy(() => import('components/Sections/Home'));
 const Dashboard = lazy(() => import('components/Sections/Dashboard'));
@@ -71,6 +73,9 @@ function App() {
     return (
         <Router>
             <OfflineGate>
+                <ServerGate>
+                <MaintenanceGate>
+                <AppErrorBoundary>
                 <Routes>
                 <Route path="/" element={
                     <Suspense fallback={<PageLoader />}>
@@ -305,9 +310,12 @@ function App() {
                     </Suspense>
                 }/>
                 </Routes>
+                </AppErrorBoundary>
                 {/* Mobile-only fixed bottom nav. Hidden ≥720px by CSS;
                     hidden for signed-out users by the component itself. */}
                 <BottomNav />
+                </MaintenanceGate>
+                </ServerGate>
             </OfflineGate>
         </Router>
     );

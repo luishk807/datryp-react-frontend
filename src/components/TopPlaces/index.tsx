@@ -1,8 +1,11 @@
 import './index.scss';
+import CloudOffRoundedIcon from '@mui/icons-material/CloudOffRounded';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import PlaceCard from 'components/common/PlaceCard';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import { useMonthlyTopCities } from 'api/hooks/useMonthlyTopCities';
-import { NO_IMAGE } from 'constants';
+import { BUTTON_VARIANT, NO_IMAGE } from 'constants';
 import type { TopPlace } from 'types';
 
 export interface TopPlacesProps {
@@ -30,7 +33,8 @@ const TopPlaces = ({
     title = 'Top 6 cities to travel',
     subtitle,
 }: TopPlacesProps) => {
-    const { data, isLoading, isError } = useMonthlyTopCities();
+    const { data, isLoading, isError, isFetching, refetch } =
+        useMonthlyTopCities();
 
     // Subtitle defaults to the month label so the user understands the list
     // rotates monthly. Falls back to the caller's override if provided.
@@ -56,12 +60,23 @@ const TopPlaces = ({
             )}
 
             {isError && (
-                <p
-                    className="top-places-msg top-places-error"
-                    role="alert"
-                >
-                    Couldn't load this month's picks. Try again later.
-                </p>
+                <div className="top-places-error" role="alert">
+                    <CloudOffRoundedIcon
+                        className="top-places-error-icon"
+                        aria-hidden="true"
+                    />
+                    <p className="top-places-error-text">
+                        Couldn't load this month's picks.
+                    </p>
+                    <ButtonIcon
+                        title={isFetching ? 'Retrying…' : 'Try again'}
+                        Icon={RefreshRoundedIcon}
+                        iconPosition="start"
+                        type={BUTTON_VARIANT.STANDARD}
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                    />
+                </div>
             )}
 
             {!isLoading && !isError && data && (
