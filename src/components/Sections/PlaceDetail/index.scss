@@ -337,7 +337,7 @@ a.place-detail-google-rating {
 //      page-specific → global plan → primary nav.
 @media (max-width: 640px) {
   // Article: offset parent for the absolute overlay actions; pad
-  // bottom to clear the two stacked fixed CTAs + bottom nav.
+  // bottom to clear the fixed "Start a new trip" CTA + bottom nav.
   .place-detail {
     position: relative;
     padding-top: 0 !important;
@@ -422,7 +422,12 @@ a.place-detail-google-rating {
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    bottom: calc(86px + env(safe-area-inset-bottom));
+    // Clear the fixed bottom nav. The nav reserves 96px of vertical
+    // space (`.page-shell` padding-bottom) — anchoring the CTA at the
+    // old 86px landed its lower edge inside that zone, so the button
+    // collided with the top of the nav bar. 108px sits the pill ~12px
+    // above the nav (mirrors the 104px snackbar lift) plus safe-area.
+    bottom: calc(108px + env(safe-area-inset-bottom));
     z-index: 1099;
     width: auto;
     max-width: calc(100vw - 32px);
