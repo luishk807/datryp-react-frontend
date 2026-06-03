@@ -20,6 +20,7 @@
  *   "Eiffel Tower"                  → Place
  *   "UA123 tomorrow"                → Flight
  *   "UA 123"                        → Flight
+ *   "flight from New York to Malé"  → Flight   (explicit "flight" word)
  *   "Renfe 3152 Madrid to Barcelona"→ Train
  *   "FlixBus to Berlin"             → Bus
  *   "uber to JFK"                   → Other  ("Ride")
@@ -42,6 +43,13 @@ export interface ActivityKindGuess {
 // code" signal used as the secondary flight cue when the strict parser
 // doesn't bind a segment.
 const FLIGHT_CODE_RE = /\b[A-Z]{2}\s?\d{1,4}\b/i;
+
+// Explicit air-travel words. The user literally saying "flight" / "fly"
+// is an unambiguous intent signal — it must win over the "X to Y"
+// station-pair heuristic below, which would otherwise read
+// "flight from new york to <airport>" as a TRAIN. Deliberately excludes
+// "airport" (a "taxi to the airport" is a ride, not a flight).
+const FLIGHT_WORD_RE = /\b(flight|fly|airline|airlines|airways)\b/i;
 
 // "<place> to <place>" station-pair signal. When present alongside a
 // bare flight-looking code we treat it as transport, not a flight (e.g.
@@ -70,12 +78,18 @@ export const classifyActivityKind = (
 
     const hasStationPair = STATION_PAIR_RE.test(trimmed);
 
-    // 1. Flight — a clear flight code. Either the strict parser bound a
-    //    segment with a flight number, OR the loose code regex matches
-    //    AND there's no station-pair signal (which would mean transport).
+    // 1. Flight — an explicit air-travel word ("flight" / "fly" / an
+    //    airline term), a clear flight code from the strict parser, OR
+    //    the loose code regex AND no station-pair signal (which would
+    //    otherwise mean transport). The explicit-word check comes FIRST
+    //    so "flight from A to B" beats the station-pair train default.
     const flight = parseFlightInfo(trimmed);
     const parsedFlightNumber = flight.segments.some((s) => s.flightNumber);
-    if (parsedFlightNumber || (FLIGHT_CODE_RE.test(trimmed) && !hasStationPair)) {
+    if (
+        FLIGHT_WORD_RE.test(trimmed) ||
+        parsedFlightNumber ||
+        (FLIGHT_CODE_RE.test(trimmed) && !hasStationPair)
+    ) {
         return { kind: ACTIVITY_KIND.FLIGHT, label: 'Flight' };
     }
 
