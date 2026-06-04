@@ -524,32 +524,6 @@
   }
 }
 
-/* ── Loading state — centered, with pulse spinner ── */
-.city-detail-loading {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  min-height: 60vh;
-  padding: 40px 16px;
-  text-align: center;
-}
-
-// Progressive load: the hero + title already fill the top of the page, so the
-// loading block sits right beneath them instead of centering in a 60vh box
-// (which left a large empty gap under the title).
-.city-detail--loading .city-detail-loading {
-  min-height: 0;
-  flex: 0 0 auto;
-  justify-content: flex-start;
-  padding: 24px 16px 48px;
-}
-
-// The "about" prose shown during the loading phase (from the fast quick call)
-// so the user reads real content while the heavy sections fill in.
 // Loading-phase content column: the quick-prose ParagraphSections stack here,
 // left-aligned with the title and capped at a comfortable reading width to
 // match where the loaded "About" copy sits.
@@ -559,35 +533,4 @@
   gap: 16px;
   max-width: 760px;
   margin: 12px 0 48px;
-}
-
-.city-detail-loading-spinner {
-  color: theme('colors.primaryGreen') !important;
-  animation: city-detail-pulse 2.2s ease-in-out infinite;
-}
-
-@keyframes city-detail-pulse {
-  0%, 100% {
-    opacity: 0.7;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-}
-
-.city-detail-loading-text {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: theme('colors.primary');
-}
-
-.city-detail-loading-hint {
-  margin: 0;
-  font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.55);
-  max-width: 360px;
-  line-height: 1.45;
 }

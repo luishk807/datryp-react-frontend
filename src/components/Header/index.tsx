@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Divider, Drawer, IconButton } from '@mui/material';
 import SearchBarIcon from '@mui/icons-material/SearchRounded';
 import Menu, { MenuActionItem } from 'components/common/Menu';
-import MenuFooterLinks from 'components/common/MenuFooterLinks';
 import classnames from 'classnames';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -292,8 +291,6 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     onClick={handleLogout}
                                     tone="danger"
                                 />
-                                <Divider className="user-menu-divider" />
-                                <MenuFooterLinks onNavigate={handleNavigate} />
                             </Menu>
                         </>
                     ) : (
