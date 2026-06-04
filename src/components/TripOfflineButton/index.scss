@@ -4,26 +4,12 @@
   gap: 8px;
 }
 
-// "Download offline" trigger — text+icon button styled to sit inline with
-// the other header action toggles (Trip details / Focus).
-.trip-offline-download.button-simple {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px !important;
-  border-radius: 8px !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  color: theme("colors.primaryGreen") !important;
-
-  &:hover:not(:disabled) {
-    background: rgba(60, 181, 75, 0.1) !important;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+// "Offline" download trigger reuses the header toggle-pill classes
+// (.trip-detail-basic-info-toggle / .trip-detail-focus-toggle) for its
+// shape + palette, so it only needs the disabled affordance here.
+.trip-offline-download:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .trip-offline-error {

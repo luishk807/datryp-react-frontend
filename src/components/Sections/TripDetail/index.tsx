@@ -34,6 +34,8 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
 import FullscreenExitRoundedIcon from "@mui/icons-material/FullscreenExitRounded";
+import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import classnames from "classnames";
 import Layout from "components/common/Layout/SubLayout";
 import BudgetSummary from "components/BudgetSummary";
@@ -148,6 +150,10 @@ export const TripDetail = () => {
   // activities. For users who want to read/work the itinerary without the
   // surrounding chrome. Session-only; resets on reload.
   const [focusMode, setFocusMode] = useState(false);
+  // Text-only mode: hide every activity's hero image so the itinerary reads
+  // as a dense text list. Session-only (resets on reload), independent of
+  // focus mode. Applied as a class on the trip wrapper below.
+  const [hideImages, setHideImages] = useState(false);
   // Toggle a body class so the GLOBAL app chrome (header logo + bottom
   // nav / footer, which live outside this component in Layout / App) can
   // hide too — true full-screen focus on the itinerary. Cleaned up on
@@ -736,7 +742,11 @@ export const TripDetail = () => {
   return (
     <Layout>
       <div
-        className={`trip-detail-themed trip-detail-status-${persistedStatusName.toLowerCase()}`}
+        className={classnames(
+          "trip-detail-themed",
+          `trip-detail-status-${persistedStatusName.toLowerCase()}`,
+          { "trip-detail-text-only": hideImages },
+        )}
       >
       <Snackbar
         open={!!saveError}
@@ -814,6 +824,8 @@ export const TripDetail = () => {
             onToggleBasicInfo={handleToggleBasicInfo}
             focusMode={focusMode}
             onToggleFocus={() => setFocusMode((prev) => !prev)}
+            hideImages={hideImages}
+            onToggleHideImages={() => setHideImages((prev) => !prev)}
             onPrint={() => {
               if (!tripData) return;
               void printTripPdf(tripData);
@@ -1102,6 +1114,8 @@ interface TripDetailHeaderProps {
   onToggleBasicInfo: () => void;
   focusMode: boolean;
   onToggleFocus: () => void;
+  hideImages: boolean;
+  onToggleHideImages: () => void;
   onPrint: () => void;
   onDownloadExcel: () => void;
   onDownloadPdf: () => void;
@@ -1136,6 +1150,8 @@ const TripDetailHeader = ({
   onToggleBasicInfo,
   focusMode,
   onToggleFocus,
+  hideImages,
+  onToggleHideImages,
   onPrint,
   onDownloadExcel,
   onDownloadPdf,
@@ -1287,30 +1303,36 @@ const TripDetailHeader = ({
           )}
       </div>
       <div className="trip-detail-header-actions">
-        {/* Action row: "Trip details" toggle + Focus toggle + the activity
-            Edit / Save-Cancel control + notification bell + the three-dot
-            kebab (which now carries "Take the tour"). */}
-        {!focusMode && (
-          <button
-            type="button"
-            className="trip-detail-basic-info-toggle"
-            onClick={onToggleBasicInfo}
-            aria-expanded={basicInfoOpen}
-          >
-            <InfoOutlinedIcon fontSize="small" />
-            <span>Trip details</span>
-            <ExpandMoreRoundedIcon
-              className={classnames("chevron", { open: basicInfoOpen })}
-            />
-          </button>
-        )}
+        {/* Two groups: "Trip details" alone on the left, and everything else
+            (Focus / Text only / Offline / kebab) together on the right —
+            split to opposite edges on every viewport. */}
+        <div className="trip-detail-actions-left">
+          {!focusMode && (
+            <button
+              type="button"
+              className="trip-detail-basic-info-toggle"
+              onClick={onToggleBasicInfo}
+              aria-expanded={basicInfoOpen}
+            >
+              <InfoOutlinedIcon fontSize="small" />
+              <span>Trip details</span>
+              <ExpandMoreRoundedIcon
+                className={classnames("chevron", { open: basicInfoOpen })}
+              />
+            </button>
+          )}
+        </div>
+        <div className="trip-detail-actions-right">
         {/* Focus mode: hides every overview card so the page is just the
             dates + activities. Toggling it back reveals the overview. */}
         <button
           type="button"
-          className={classnames("trip-detail-basic-info-toggle", "trip-detail-focus-toggle", {
-            "is-active": focusMode,
-          })}
+          className={classnames(
+            "trip-detail-basic-info-toggle",
+            "trip-detail-focus-toggle",
+            "trip-detail-focusmode-toggle",
+            { "is-active": focusMode },
+          )}
           onClick={onToggleFocus}
           aria-pressed={focusMode}
           title={focusMode ? "Show trip overview" : "Focus on the itinerary"}
@@ -1322,6 +1344,29 @@ const TripDetailHeader = ({
           )}
           <span className="trip-detail-focus-label">
             {focusMode ? "Show overview" : "Focus"}
+          </span>
+        </button>
+        {/* Text-only mode: hide activity hero images for a dense, scannable
+            itinerary. Useful both in and out of focus mode. */}
+        <button
+          type="button"
+          className={classnames(
+            "trip-detail-basic-info-toggle",
+            "trip-detail-focus-toggle",
+            "trip-detail-textonly-toggle",
+            { "is-active": hideImages },
+          )}
+          onClick={onToggleHideImages}
+          aria-pressed={hideImages}
+          title={hideImages ? "Show activity images" : "Hide activity images"}
+        >
+          {hideImages ? (
+            <ImageOutlinedIcon fontSize="small" />
+          ) : (
+            <HideImageOutlinedIcon fontSize="small" />
+          )}
+          <span className="trip-detail-focus-label">
+            {hideImages ? "Show images" : "Text only"}
           </span>
         </button>
         {/* Save the itinerary for offline use. Available to any viewer (not
@@ -1506,6 +1551,7 @@ const TripDetailHeader = ({
             />
           )}
         </Menu>
+        </div>
       </div>
 
       <Dialog

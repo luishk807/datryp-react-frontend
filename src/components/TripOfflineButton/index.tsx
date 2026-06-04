@@ -10,13 +10,13 @@
  * after a few seconds so it can't get stuck in the warning state.
  */
 import { useEffect, useState } from 'react';
+import { useMediaQuery } from '@mui/material';
 import classNames from 'classnames';
 import DownloadForOfflineOutlinedIcon from '@mui/icons-material/DownloadForOfflineOutlined';
 import CloudDoneRoundedIcon from '@mui/icons-material/CloudDoneRounded';
 import SyncRoundedIcon from '@mui/icons-material/SyncRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import ButtonIcon from 'components/common/FormFields/ButtonIcon';
-import { BUTTON_VARIANT, OFFLINE_STATUS } from 'constants';
+import { OFFLINE_STATUS } from 'constants';
 import type { OfflineStatus } from 'types';
 import './index.scss';
 
@@ -58,6 +58,9 @@ const TripOfflineButton = ({
 }: TripOfflineButtonProps) => {
     // Two-tap remove: first tap arms the warning, second tap removes.
     const [confirmingRemove, setConfirmingRemove] = useState(false);
+    // On mobile the download button is icon-only (drop the "Offline" label
+    // to save the cramped header row), matching the saved chip.
+    const isMobile = useMediaQuery('(max-width:720px)');
 
     // Disarm the warning when it auto-times-out or when the status changes
     // (e.g. removed then re-downloaded) so the chip never reopens stuck in
@@ -125,7 +128,7 @@ const TripOfflineButton = ({
                             fontSize="small"
                         />
                         <span className="trip-offline-chip-text">
-                            Saved offline
+                            Saved
                             {savedAt != null && (
                                 <span className="trip-offline-when">
                                     {formatSavedAt(savedAt)}
@@ -138,20 +141,24 @@ const TripOfflineButton = ({
         );
     }
 
-    // NOT_DOWNLOADED / ERROR — offer the download.
+    // NOT_DOWNLOADED / ERROR — offer the download. Reuses the header
+    // toggle-pill classes (Trip details / Focus / Text only) so it matches
+    // their style; icon-only on mobile.
     return (
         <span className="trip-offline-download-wrap">
-            <ButtonIcon
-                type={BUTTON_VARIANT.TEXT}
-                Icon={DownloadForOfflineOutlinedIcon}
-                iconPosition="start"
-                iconProps={{ fontSize: 'small' }}
-                title="Download offline"
-                ariaLabel="Download itinerary for offline use"
-                className="trip-offline-download"
+            <button
+                type="button"
+                className="trip-detail-basic-info-toggle trip-detail-focus-toggle trip-offline-download"
                 onClick={onDownload}
                 disabled={isOffline}
-            />
+                aria-label="Download itinerary for offline use"
+                title="Offline"
+            >
+                <DownloadForOfflineOutlinedIcon fontSize="small" />
+                {!isMobile && (
+                    <span className="trip-detail-focus-label">Offline</span>
+                )}
+            </button>
             {status === OFFLINE_STATUS.ERROR && (
                 <span className="trip-offline-error" role="alert">
                     Couldn&rsquo;t save — try again

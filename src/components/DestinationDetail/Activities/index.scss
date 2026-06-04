@@ -124,6 +124,21 @@
   }
 }
 
+// Text-only mode (header "Text only" toggle on /trip-detail): hide every
+// activity hero image so the itinerary reads as a dense list. The detail
+// column is forced full-width since MUI's fixed lg=10 basis won't reclaim
+// the hidden image column's 2/12 on its own.
+.trip-detail-text-only {
+  .activity-content-trip .content-image {
+    display: none !important;
+  }
+
+  .activity-content-trip .content-detail {
+    flex-basis: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 // ----- Live timing states ---------------------------------------------
 // Visual state for past / current / upcoming activities. The bin is
 // computed once per render of Activities (re-runs every 30s via the

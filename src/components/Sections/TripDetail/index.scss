@@ -232,6 +232,12 @@
   .trip-detail-focus-label {
     display: none;
   }
+
+  // Text-only toggle is redundant on mobile: activity images are already
+  // hidden here (view mode), so there's nothing to hide. Drop the button.
+  .trip-detail-textonly-toggle {
+    display: none;
+  }
 }
 
 // Floating "Show overview" exit pill, shown only in focus mode (the
@@ -701,7 +707,19 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    flex: 0 0 auto;
+    // Full-width toolbar row split into two groups: "Trip details" pinned
+    // left, everything else (Focus / Text only / Offline / kebab) pinned
+    // right — on every viewport.
+    flex: 1 1 100%;
+    justify-content: space-between;
+
+    .trip-detail-actions-left,
+    .trip-detail-actions-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
   }
 }
 
@@ -773,6 +791,7 @@
   color: inherit;
 }
 
+
 .trip-detail-menu-item-danger {
   color: #c0392b !important;
 
@@ -790,11 +809,10 @@
   .trip-detail-header {
     .trip-detail-header-actions {
       width: 100%;
-      // `nowrap` keeps the kebab on the same row as the other
-      // action buttons (Mark complete / Share). With wrap on, the
-      // kebab dropped to its own line under narrow widths.
+      // Keep the two-group split (Trip details left / rest right); just add
+      // the vertical breathing room so the toolbar reads as its own band.
+      justify-content: space-between;
       flex-wrap: nowrap;
-      justify-content: flex-end;
       margin-top: 14px;
       margin-bottom: 14px;
     }
