@@ -586,10 +586,11 @@
 }
 
 // The "about" prose shown during the loading phase (from the fast quick call).
+// Left-aligned with the title (matches where the loaded "About" copy sits)
+// instead of floating centered/indented.
 .country-detail-quick-prose {
-  max-width: 720px;
-  margin: 4px auto 0;
-  padding: 0 16px;
+  max-width: 760px;
+  margin: 8px 0 0;
   font-size: 1rem;
   line-height: 1.6;
   color: rgba(0, 0, 0, 0.72);
@@ -599,8 +600,8 @@
 // old "things while you wait" card with a plain paragraph shimmer).
 .country-detail-loading-body {
   max-width: 760px;
-  margin: 4px auto 0;
-  padding: 8px 16px 56px;
+  margin: 8px 0 0;
+  padding: 8px 0 56px;
 }
 
 .country-detail-loading-spinner {

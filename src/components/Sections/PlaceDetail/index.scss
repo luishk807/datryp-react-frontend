@@ -509,10 +509,12 @@ a.place-detail-google-rating {
 }
 
 // Skeleton body shown during loading in place of the old "things while you
-// wait" card — a plain paragraph shimmer where the description will land.
+// wait" card — a plain paragraph shimmer where the description will land,
+// left-aligned with the title (the article has no horizontal padding).
 .place-detail-loading-body {
   max-width: 760px;
-  padding: 8px 16px 56px;
+  margin: 8px 0 0;
+  padding: 8px 0 56px;
 }
 
 .place-detail-loading-wrap .place-detail-loading {
