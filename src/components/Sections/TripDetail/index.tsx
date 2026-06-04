@@ -69,6 +69,9 @@ import TripDetailTour, {
 } from "components/TripDetailTour";
 import { useActivityStartReminders } from "hooks/useActivityStartReminders";
 import { useTripDayReminders } from "hooks/useTripDayReminders";
+import { useOfflineTrip } from "hooks/useOfflineTrip";
+import { useIsOffline } from "hooks/useIsOffline";
+import TripOfflineButton from "components/TripOfflineButton";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel } from "utils/exportTripExcel";
 import { exportTripToPdf, printTripPdf } from "utils/exportTripPdf";
@@ -76,6 +79,7 @@ import type {
   Activity,
   ActivityStatus,
   BudgetEntry,
+  OfflineStatus,
   TripPlaceEvent,
   TripState,
   TripStatus,
@@ -118,7 +122,17 @@ export const TripDetail = () => {
   const { user: currentUser, isAdmin } = useUser();
   const idParam = searchParams.get("id");
 
-  const { data: apiItineraries = [], isLoading } = useMyItineraries();
+  const {
+    data: apiItineraries = [],
+    isLoading,
+    isSuccess: itinerariesLoaded,
+  } = useMyItineraries();
+
+  // Offline-first: when the device has no network the live query above is
+  // empty, so fall back to a downloaded snapshot of this trip (if any).
+  // Also powers the "Download itinerary offline" button + status chip.
+  const offline = useOfflineTrip(idParam);
+  const isOffline = useIsOffline();
 
   // Trip-detail onboarding tour. Auto-runs the first time a logged-in
   // user lands here; re-runnable any time from the "Take the tour"
@@ -167,8 +181,15 @@ export const TripDetail = () => {
 
   const apiTrip = useMemo(() => {
     if (!idParam) return undefined;
-    return apiItineraries.find((t) => t.id === idParam);
-  }, [apiItineraries, idParam]);
+    const live = apiItineraries.find((t) => t.id === idParam);
+    if (live) return live;
+    // Only fall back to the offline snapshot when the live query hasn't
+    // successfully loaded (offline / cold start). If it loaded and the trip
+    // simply isn't in the user's list, it was deleted/removed — show "not
+    // found" rather than a stale snapshot.
+    if (!itinerariesLoaded) return offline.offlineData ?? undefined;
+    return undefined;
+  }, [apiItineraries, idParam, itinerariesLoaded, offline.offlineData]);
 
   const baseTripData = useMemo(
     () => (apiTrip ? apiToTripState(apiTrip) : null),
@@ -660,7 +681,11 @@ export const TripDetail = () => {
     },
   });
 
-  if (isLoading) {
+  // Wait on BOTH the live query and the IndexedDB snapshot read before
+  // rendering anything — otherwise a cold offline load briefly flashes
+  // "Trip not found" before the snapshot hydrates. Once we have a trip
+  // from either source, render immediately.
+  if (!apiTrip && (isLoading || !offline.isHydrated)) {
     return (
       <Layout>
         <div className="trip-detail-empty">
@@ -804,6 +829,13 @@ export const TripDetail = () => {
             }
             notifyParticipants={notifyParticipants}
             onChangeNotifyParticipants={setNotifyParticipants}
+            offlineStatus={offline.status}
+            offlineSavedAt={offline.savedAt}
+            isOffline={isOffline}
+            onDownloadOffline={() => {
+              if (apiTrip) void offline.download(apiTrip);
+            }}
+            onRemoveOffline={() => void offline.remove()}
           />
         </Grid>
         )}
@@ -895,7 +927,9 @@ export const TripDetail = () => {
             </div>
           </Grid>
         )}
-        {!focusMode && apiTrip && (
+        {/* AI trip-checkup needs the network — hide it offline so the user
+            isn't left with a dead "run checkup" button. */}
+        {!focusMode && apiTrip && !isOffline && (
           <Grid item lg={12} md={12} xs={12}>
             <TripCheckupCard
               tripId={apiTrip.id}
@@ -1079,6 +1113,12 @@ interface TripDetailHeaderProps {
   showNotifyToggle: boolean;
   notifyParticipants: boolean;
   onChangeNotifyParticipants: (next: boolean) => void;
+  /** Offline-download state + actions for the "Download offline" control. */
+  offlineStatus: OfflineStatus;
+  offlineSavedAt: number | null;
+  isOffline: boolean;
+  onDownloadOffline: () => void;
+  onRemoveOffline: () => void;
 }
 
 const TripDetailHeader = ({
@@ -1105,6 +1145,11 @@ const TripDetailHeader = ({
   showNotifyToggle,
   notifyParticipants,
   onChangeNotifyParticipants,
+  offlineStatus,
+  offlineSavedAt,
+  isOffline,
+  onDownloadOffline,
+  onRemoveOffline,
 }: TripDetailHeaderProps) => {
   const exportModalRef = useRef<ModalButtonHandle>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
@@ -1279,6 +1324,21 @@ const TripDetailHeader = ({
             {focusMode ? "Show overview" : "Focus"}
           </span>
         </button>
+        {/* Save the itinerary for offline use. Available to any viewer (not
+            organizer-gated like export) — anyone can keep their own copy to
+            read abroad with no data. Gated to Confirmed trips only: a
+            Planning itinerary is still changing, so an offline snapshot
+            would go stale; once Confirmed the plan is locked and worth
+            carrying abroad. */}
+        {!focusMode && statusName === TRIP_STATUS.CONFIRMED && (
+          <TripOfflineButton
+            status={offlineStatus}
+            savedAt={offlineSavedAt}
+            isOffline={isOffline}
+            onDownload={onDownloadOffline}
+            onRemove={onRemoveOffline}
+          />
+        )}
         {canExport && (
           <ModalButton
             ref={exportModalRef}

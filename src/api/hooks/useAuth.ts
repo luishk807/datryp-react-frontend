@@ -19,26 +19,43 @@ import {
     type SignupPayload,
     type TokenResponse,
 } from 'api/authApi';
-import { getAuthToken, setAuthToken } from 'api/authStorage';
+import {
+    getAuthToken,
+    getCachedMe,
+    setAuthToken,
+    setCachedMe,
+} from 'api/authStorage';
 import { queryKeys } from 'api/queryKeys';
 
 export const useCurrentUser = () =>
     useQuery<MeResponse | null>({
         queryKey: queryKeys.currentUser,
         queryFn: async () => {
-            if (!getAuthToken()) return null;
+            if (!getAuthToken()) {
+                setCachedMe(null);
+                return null;
+            }
             try {
-                return await fetchMe();
+                const me = await fetchMe();
+                // Cache for offline: keeps the user signed in past AuthGate
+                // on a cold reload with no network (see placeholderData).
+                setCachedMe(me);
+                return me;
             } catch (err) {
                 // 401 → token is stale/invalid. Clear it so the rest of the
                 // app doesn't render an "almost logged in" state.
                 if ((err as { status?: number }).status === 401) {
                     setAuthToken(null);
+                    setCachedMe(null);
                     return null;
                 }
                 throw err;
             }
         },
+        // Offline cold-start: the query is paused (no network) so `data`
+        // falls back to the last cached /auth/me, keeping the session alive.
+        // Online, the real fetch resolves and replaces this as before.
+        placeholderData: () => getCachedMe() ?? undefined,
         staleTime: 5 * 60 * 1000,
     });
 
@@ -79,6 +96,7 @@ export const useLogout = () => {
     const queryClient = useQueryClient();
     return () => {
         setAuthToken(null);
+        setCachedMe(null);
         queryClient.setQueryData(queryKeys.currentUser, null);
         // Drop any auth-gated cached data (friends, myItineraries, etc).
         queryClient.removeQueries({ queryKey: ['friends'] });

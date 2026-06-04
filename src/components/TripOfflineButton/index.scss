@@ -1,0 +1,131 @@
+.trip-offline-download-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// "Download offline" trigger — text+icon button styled to sit inline with
+// the other header action toggles (Trip details / Focus).
+.trip-offline-download.button-simple {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: theme("colors.primaryGreen") !important;
+
+  &:hover:not(:disabled) {
+    background: rgba(60, 181, 75, 0.1) !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.trip-offline-error {
+  font-size: 0.72rem;
+  color: #c0392b;
+}
+
+// Status chip — shared shell for "Saved offline" / "Saving…" / the
+// "tap again to remove" warning. The saved variant is a <button> (the
+// whole chip is the remove control), so reset native button styling.
+.trip-offline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+button.trip-offline-chip {
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.trip-offline-chip.is-saved {
+  background: rgba(60, 181, 75, 0.12);
+  border-color: rgba(60, 181, 75, 0.3);
+  color: theme("colors.primaryGreen");
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(60, 181, 75, 0.18);
+    outline: none;
+  }
+}
+
+// Armed-to-remove warning state — flips to a red/danger palette so it's
+// clear the next tap is destructive.
+.trip-offline-chip.is-saved.is-confirming {
+  background: rgba(192, 57, 43, 0.1);
+  border-color: rgba(192, 57, 43, 0.4);
+  color: #c0392b;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(192, 57, 43, 0.16);
+  }
+}
+
+.trip-offline-chip.is-syncing {
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.trip-offline-chip-icon {
+  flex-shrink: 0;
+}
+
+.trip-offline-chip-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.trip-offline-when {
+  font-weight: 400;
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+// Spinning sync icon for the "Saving…" state.
+.trip-offline-spin {
+  animation: trip-offline-spin 0.9s linear infinite;
+}
+
+@keyframes trip-offline-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// On mobile, collapse the chip to the icon only — the text + "Xm ago"
+// timestamp are dropped to save the cramped header row. The icon still
+// carries the state (offline-pin = saved, red trash = armed-to-remove,
+// spinner = saving) and the title/aria-label keep it accessible.
+@media (max-width: 720px) {
+  .trip-offline-chip-text {
+    display: none;
+  }
+
+  .trip-offline-chip {
+    padding: 6px;
+    gap: 0;
+  }
+}

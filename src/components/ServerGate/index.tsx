@@ -30,6 +30,7 @@ import {
     getServerStatus,
     subscribeServerStatus,
 } from 'api/serverStatus';
+import { useIsOffline } from 'hooks/useIsOffline';
 import './index.scss';
 
 interface ServerGateProps {
@@ -42,6 +43,7 @@ const ServerGate = ({ children }: ServerGateProps) => {
         subscribeServerStatus,
         getServerStatus
     );
+    const isOffline = useIsOffline();
     const [isRetrying, setIsRetrying] = useState(false);
 
     // One boot-time probe so a backend that's already down at first paint
@@ -49,6 +51,13 @@ const ServerGate = ({ children }: ServerGateProps) => {
     useEffect(() => {
         void checkServerHealth();
     }, []);
+
+    // When the browser comes back online, re-probe so a stale "unreachable"
+    // status (set by a failed probe while offline) clears promptly instead
+    // of briefly flashing the server-down wall before queries refetch.
+    useEffect(() => {
+        if (!isOffline) void checkServerHealth();
+    }, [isOffline]);
 
     const handleRetry = useCallback(async () => {
         setIsRetrying(true);
@@ -61,7 +70,11 @@ const ServerGate = ({ children }: ServerGateProps) => {
         setIsRetrying(false);
     }, [queryClient]);
 
-    if (status === 'reachable') return <>{children}</>;
+    // When the browser itself is offline, defer to OfflineGate's banner and
+    // render the route through — a "Site Unavailable" wall here would just
+    // re-block the saved itinerary. This wall is only for the online-but-
+    // backend-down case.
+    if (status === 'reachable' || isOffline) return <>{children}</>;
 
     return (
         <div

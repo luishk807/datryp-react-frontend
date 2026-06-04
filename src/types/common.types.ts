@@ -7,6 +7,7 @@ import type {
   BUTTON_VARIANT,
   ITINERARY_TYPE,
   MAINTENANCE_MODE,
+  OFFLINE_STATUS,
   SUBSCRIPTION_PLAN,
   SUBSCRIPTION_STATUS,
   TRIP_MODE,
@@ -22,6 +23,7 @@ export type BudgetStatus = (typeof BUDGET_STATUS)[keyof typeof BUDGET_STATUS];
 export type ButtonVariant = (typeof BUTTON_VARIANT)[keyof typeof BUTTON_VARIANT];
 export type ItineraryTypeName = (typeof ITINERARY_TYPE)[keyof typeof ITINERARY_TYPE];
 export type MaintenanceMode = (typeof MAINTENANCE_MODE)[keyof typeof MAINTENANCE_MODE];
+export type OfflineStatus = (typeof OFFLINE_STATUS)[keyof typeof OFFLINE_STATUS];
 export type SubscriptionPlan = (typeof SUBSCRIPTION_PLAN)[keyof typeof SUBSCRIPTION_PLAN];
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSCRIPTION_STATUS];
 export type TripMode = (typeof TRIP_MODE)[keyof typeof TRIP_MODE];

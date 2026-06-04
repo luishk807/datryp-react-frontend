@@ -215,6 +215,15 @@ export const MAINTENANCE_MODE = {
   FULL: "full",
 } as const;
 
+// Offline-download state for a trip (drives the status chip on
+// /trip-detail and the useOfflineTrip hook).
+export const OFFLINE_STATUS = {
+  NOT_DOWNLOADED: "not-downloaded",
+  SAVED: "saved",
+  SYNCING: "syncing",
+  ERROR: "error",
+} as const;
+
 export const TRIP_BASIC = {
   SINGLE: {
     id: 1,
