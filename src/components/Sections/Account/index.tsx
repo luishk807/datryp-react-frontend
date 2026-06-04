@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import classnames from 'classnames';
 import { Alert, Snackbar } from '@mui/material';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
@@ -7,8 +7,12 @@ import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRou
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import ModalButton, {
+    type ModalButtonHandle,
+} from 'components/ModalButton';
 import Toggle from 'components/common/FormFields/Toggle';
 import InputField from 'components/common/FormFields/InputField';
 import PhoneInput from 'components/common/FormFields/PhoneInput';
@@ -23,6 +27,7 @@ import type { CitySelection } from 'components/common/FormFields/CityAutocomplet
 import HomeBaseField from 'components/common/FormFields/HomeBaseField';
 import SubscriptionSection from './SubscriptionSection';
 import { useUser } from 'context/UserContext';
+import { useDeleteAccount } from 'api/hooks/useDeleteAccount';
 import { useCountries } from 'api/hooks/useCountries';
 import {
     useGendersCatalog,
@@ -41,7 +46,8 @@ import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
 
 export const Account = () => {
-    const { user, isAdmin, updateUser } = useUser();
+    const { user, isAdmin, updateUser, logout } = useUser();
+    const navigate = useNavigate();
     // SMS notifications are a Pro perk (they cost per message). Admins get
     // the same bypass they get on every other paywall.
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
@@ -157,6 +163,15 @@ export const Account = () => {
         type: 'success' | 'error';
         text: string;
     } | null>(null);
+
+    // Danger zone — self-service account deletion. The confirm modal is
+    // ref-controlled; the user must type DELETE (exact, case-sensitive)
+    // before the destructive button enables.
+    const deleteModalRef = useRef<ModalButtonHandle>(null);
+    const deleteAccount = useDeleteAccount();
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const canConfirmDelete = deleteConfirmText === 'DELETE';
 
     // Home base — city-level (privacy: never street). Seeds the depart
     // airport / station on the first transport leg of new trips. Lives
@@ -310,14 +325,13 @@ export const Account = () => {
             });
             return;
         }
-        // `name` / `email` aren't editable server-side yet — they stay in
-        // the localStorage overlay until we wire a /me/profile route for
-        // them. The other profile fields all live on the User row and go
-        // through the preferences mutation so they survive a re-login on a
-        // fresh browser.
+        // `name` isn't editable server-side yet — it stays in the
+        // localStorage overlay until we wire a /me/profile route. Email is
+        // intentionally NOT updatable (read-only field above): it's the
+        // login identity + reset/notification destination, so changing it
+        // needs a real re-verify flow, not a silent overlay write.
         updateUser({
             name: name.trim(),
-            email: email.trim() || undefined,
         });
         // Diff against the hydrated user so we only PATCH fields the user
         // actually changed. `undefined` skips the field server-side; `null`
@@ -473,6 +487,24 @@ export const Account = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        if (!canConfirmDelete || deleteAccount.isPending) return;
+        setDeleteError(null);
+        try {
+            await deleteAccount.mutateAsync();
+            // Tear down the session locally, then leave the page. No success
+            // toast — we're navigating away from a now-deleted account.
+            logout();
+            navigate('/');
+        } catch (err) {
+            setDeleteError(
+                err instanceof Error
+                    ? err.message
+                    : 'Could not delete your account. Please try again.'
+            );
+        }
+    };
+
     // Section nav — left-rail on desktop, sticky chip strip on mobile.
     // `id` matches the `<section id>` so clicking a link scrolls to the
     // section; the IntersectionObserver below tracks which section is
@@ -484,6 +516,7 @@ export const Account = () => {
             { id: 'password', label: 'Password', icon: LockOutlinedIcon },
             { id: 'travel-preferences', label: 'Travel preferences', icon: FlightTakeoffRoundedIcon },
             { id: 'notifications', label: 'Notifications', icon: NotificationsNoneRoundedIcon },
+            { id: 'danger-zone', label: 'Delete account', icon: WarningAmberRoundedIcon },
         ],
         []
     );
@@ -715,6 +748,10 @@ export const Account = () => {
                             placeholder="Your name"
                             required={false}
                         />
+                        {/* Email is the login identity + notification and
+                            password-reset destination, so it's read-only here.
+                            Changing it needs a proper re-verify flow (and a
+                            Stripe customer update); not self-service. */}
                         <InputField
                             variant="bare"
                             label="Email"
@@ -723,6 +760,7 @@ export const Account = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
                             required={false}
+                            disabled
                         />
                         <PhoneInput
                             label="Phone"
@@ -1012,6 +1050,104 @@ export const Account = () => {
                             />
                         </div>
                     </div>
+                </section>
+
+                {/* Danger zone — irreversible account deletion. Gated behind a
+                    typed-confirmation modal so it can't be triggered by a stray
+                    click. On success we log out + redirect home. */}
+                <section
+                    className="account-card account-danger"
+                    id="danger-zone"
+                >
+                    <div className="account-card-headings simple">
+                        <h2 className="account-card-title">Delete account</h2>
+                        <p className="account-card-subtitle">
+                            Permanently close your account. This cancels any
+                            active subscription and signs you out. Trips you
+                            organize remain for the other participants, but
+                            you'll lose access to them — and you can't undo this
+                            yourself.
+                        </p>
+                    </div>
+                    <div className="account-actions">
+                        <ButtonCustom
+                            type={BUTTON_VARIANT.STANDARD_MINI}
+                            capitalizeType="none"
+                            className="account-danger-btn"
+                            label="Delete my account"
+                            onClick={() => {
+                                setDeleteConfirmText('');
+                                setDeleteError(null);
+                                deleteModalRef.current?.openModel();
+                            }}
+                        />
+                    </div>
+                    <ModalButton
+                        ref={deleteModalRef}
+                        title="Delete account"
+                        onClose={() => {
+                            setDeleteConfirmText('');
+                            setDeleteError(null);
+                        }}
+                    >
+                        <div className="account-delete-modal">
+                            <p className="account-delete-warning">
+                                This is permanent and can't be undone. When you
+                                delete your account:
+                            </p>
+                            <ul className="account-delete-list">
+                                <li>Your account is closed.</li>
+                                <li>Any active subscription is cancelled.</li>
+                                <li>
+                                    Trips you organize remain for the other
+                                    participants, but you'll lose access to them.
+                                </li>
+                                <li>You'll be signed out right away.</li>
+                            </ul>
+                            <InputField
+                                variant="bare"
+                                label="Type DELETE to confirm"
+                                type="text"
+                                value={deleteConfirmText}
+                                onChange={(e) =>
+                                    setDeleteConfirmText(e.target.value)
+                                }
+                                placeholder="DELETE"
+                                required={false}
+                            />
+                            {deleteError && (
+                                <div className="account-message account-message-error">
+                                    {deleteError}
+                                </div>
+                            )}
+                            <div className="account-delete-actions">
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.TEXT}
+                                    capitalizeType="none"
+                                    label="Cancel"
+                                    disabled={deleteAccount.isPending}
+                                    onClick={() =>
+                                        deleteModalRef.current?.closeModal()
+                                    }
+                                />
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.STANDARD_MINI}
+                                    capitalizeType="none"
+                                    className="account-danger-btn"
+                                    label={
+                                        deleteAccount.isPending
+                                            ? 'Deleting…'
+                                            : 'Delete my account'
+                                    }
+                                    disabled={
+                                        !canConfirmDelete ||
+                                        deleteAccount.isPending
+                                    }
+                                    onClick={handleDeleteAccount}
+                                />
+                            </div>
+                        </div>
+                    </ModalButton>
                 </section>
 
                 </div>{/* /.account-content */}

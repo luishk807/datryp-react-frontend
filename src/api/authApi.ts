@@ -112,6 +112,8 @@ export interface MeResponse {
     /** Per-channel notification preferences. Email defaults on; SMS opt-in. */
     notify_email: boolean;
     notify_sms: boolean;
+    /** Soft email-verification status. */
+    email_verified: boolean;
     /** Per-request geolocation hint derived from the connecting client's
      *  IP at the edge (Cloudflare / Vercel / Fly geo headers). NOT
      *  persisted to the user row — surfaces here so the FE can reorder
@@ -216,6 +218,32 @@ export const fetchMe = (): Promise<MeResponse> => {
     return trackedFetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
     }).then(handleJson<MeResponse>);
+};
+
+/**
+ * Self-service account deletion. Closes the account, cancels any active
+ * subscription, and revokes the user's access server-side. Returns 204 on
+ * success; the caller is responsible for logging out + redirecting. Any
+ * non-2xx surfaces the backend `detail` message.
+ */
+export const deleteMyAccount = (): Promise<void> => {
+    const token = getAuthToken();
+    if (!token) throw new AuthError('Not authenticated', 401);
+    return trackedFetch(`${API_BASE}/me`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+    }).then(async (resp) => {
+        if (resp.status === 204 || resp.ok) return;
+        let message = `${resp.status} ${resp.statusText}`;
+        try {
+            const body = await resp.json();
+            const formatted = formatDetail(body?.detail);
+            if (formatted) message = formatted;
+        } catch {
+            // ignore parse error
+        }
+        throw new AuthError(message, resp.status);
+    });
 };
 
 export { AuthError };

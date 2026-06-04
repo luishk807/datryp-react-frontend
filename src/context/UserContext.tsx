@@ -113,6 +113,10 @@ export interface User {
      *  email defaults on; SMS is opt-in (and needs a valid `phone`). */
     notifyEmail: boolean;
     notifySms: boolean;
+    /** Soft email-verification status — true once confirmed (or Google
+     *  sign-up). Nothing is gated on it yet; use it for a "verify your
+     *  email" nudge. */
+    emailVerified: boolean;
     /** ISO-3166 alpha-2 country code the backend inferred from the
      *  request's edge-geo header. NOT persisted to the user row —
      *  derived per request — so used only as a hint to pre-select /
@@ -243,6 +247,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             kidsAgeBuckets: me.kids_age_buckets ?? [],
             notifyEmail: me.notify_email ?? true,
             notifySms: me.notify_sms ?? false,
+            emailVerified: me.email_verified ?? false,
             detectedCountryCode: me.detected_country_code ?? null,
             ...overlay,
         };
