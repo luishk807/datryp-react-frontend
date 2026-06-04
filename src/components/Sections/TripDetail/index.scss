@@ -819,3 +819,191 @@
   }
 }
 
+// ============================================================
+// Night view — dark theme SCOPED to the itinerary page only (toggled by
+// the header "Night" pill, which adds `.trip-detail-dark` to the wrapper).
+// The global app chrome (logo bar, bottom nav) stays light by design —
+// dark mode is intentionally limited to the itinerary. Overrides target
+// the itinerary surfaces; brand greens/oranges are kept (they read on dark).
+// ============================================================
+$night-bg: #15171c;
+$night-surface: #21242b;
+$night-surface-2: #2a2e36;
+$night-text: #e8eaed;
+$night-text-2: rgba(255, 255, 255, 0.66);
+$night-text-3: rgba(255, 255, 255, 0.42);
+$night-border: rgba(255, 255, 255, 0.1);
+
+.trip-detail-themed.trip-detail-dark {
+  background: $night-bg;
+  color: $night-text;
+  border-radius: 14px;
+  padding: 8px 12px 28px;
+
+  // Bump the status "soft"/"border" fills (rgba over the accent) so the
+  // accent-tinted pills + rails stay visible against the dark surface.
+  --trip-status-soft: rgba(var(--trip-status-accent-rgb), 0.18);
+  --trip-status-soft-strong: rgba(var(--trip-status-accent-rgb), 0.28);
+  --trip-status-border: rgba(var(--trip-status-accent-rgb), 0.42);
+
+  .trip-detail-name {
+    color: $night-text;
+  }
+
+  // ---- Header toggle pills + kebab ----
+  .trip-detail-basic-info-toggle {
+    color: $night-text;
+  }
+  .trip-detail-menu-btn {
+    color: $night-text-2 !important;
+    background-color: $night-surface-2 !important;
+
+    &:hover:not(:disabled) {
+      background-color: rgba(255, 255, 255, 0.14) !important;
+      color: $night-text !important;
+    }
+  }
+
+  // ---- Activity cards ----
+  .activity-content-trip {
+    background: $night-surface;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+
+    &.border-trip {
+      border-color: $night-border;
+    }
+
+    .content-detail .info .title {
+      color: $night-text;
+    }
+    .content-detail .info .meta-row {
+      color: $night-text-2;
+    }
+    .content-detail .info .meta-icon {
+      color: $night-text-3;
+    }
+    .content-detail .info .meta-text.location,
+    .content-detail .info .meta-text.flight-number {
+      color: $night-text;
+    }
+    .content-detail .info .meta-row-note .meta-text {
+      color: $night-text-2;
+    }
+  }
+  .activity-card-close-btn,
+  .activity-edit-btn {
+    color: $night-text-3 !important;
+    background: $night-surface-2 !important;
+  }
+  // Image placeholder backdrop (no-image / loading) — match the surface.
+  .activity-image {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  // ---- Date blocks (day headers + timeline rail) ----
+  .date-block {
+    .header .title {
+      color: $night-text;
+    }
+    .header .dot {
+      border-color: $night-surface;
+    }
+    .content {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .item-border {
+      border-left-color: $night-border;
+    }
+    .add-place-item .button-icon {
+      border-color: rgba(255, 255, 255, 0.18);
+      color: $night-text-2;
+
+      &:hover {
+        background: rgba(60, 181, 75, 0.12);
+      }
+    }
+  }
+
+  // ---- Banners + cards (planning / completed / cancelled / wrapped-up CTA
+  //      / Trip details overview / budget summary) ----
+  .trip-detail-planning-banner,
+  .trip-detail-completed-banner,
+  .trip-detail-cancelled-banner,
+  .trip-detail-status-cta,
+  .trip-detail-basic-info-card,
+  .budget-summary {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+    color: $night-text;
+  }
+  .trip-detail-planning-title,
+  .trip-detail-completed-title,
+  .trip-detail-cancelled-title,
+  .trip-detail-status-cta-title {
+    color: $night-text;
+  }
+  .trip-detail-planning-sub,
+  .trip-detail-completed-sub,
+  .trip-detail-cancelled-sub,
+  .trip-detail-status-cta-sub {
+    color: $night-text-2;
+  }
+
+  // ---- Empty / hint / end states ----
+  .trip-detail-empty,
+  .trip-detail-end-label,
+  .activities-empty-hint {
+    color: $night-text-3;
+  }
+  .activities-empty-hint,
+  .activities-droppable.is-empty {
+    border-color: $night-border;
+  }
+
+  // ---- Trip details overview tiles (BasicTripInfo) ----
+  .basic-trip-info {
+    background: transparent;
+
+    .trip-stat {
+      background: $night-surface-2;
+    }
+    .stat-label {
+      color: $night-text-3;
+    }
+    .stat-value {
+      color: $night-text;
+    }
+    .trip-name {
+      color: $night-text;
+    }
+    .trip-collapse-toggle {
+      color: $night-text-2 !important;
+    }
+  }
+
+  // ---- Trip expenses meter (BudgetSummary) ----
+  .budget-summary {
+    .budget-eyebrow,
+    .budget-eyebrow-icon {
+      color: $night-text-2;
+    }
+    .budget-spent {
+      color: $night-text;
+    }
+    .budget-divider {
+      color: $night-text-3;
+    }
+    .budget-total,
+    .budget-percent,
+    .budget-verdict {
+      color: $night-text-2;
+    }
+    .budget-collapse-toggle {
+      color: $night-text-2 !important;
+    }
+    .budget-bar {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+}
+

@@ -36,6 +36,8 @@ import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
 import FullscreenExitRoundedIcon from "@mui/icons-material/FullscreenExitRounded";
 import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import classnames from "classnames";
 import Layout from "components/common/Layout/SubLayout";
 import BudgetSummary from "components/BudgetSummary";
@@ -154,6 +156,10 @@ export const TripDetail = () => {
   // as a dense text list. Session-only (resets on reload), independent of
   // focus mode. Applied as a class on the trip wrapper below.
   const [hideImages, setHideImages] = useState(false);
+  // Night view: dark theme for the itinerary (+ its chrome). Session-only
+  // and tied to this visit — resets to day mode when the user leaves the
+  // itinerary (the component unmounts), like the focus/text toggles above.
+  const [nightMode, setNightMode] = useState(false);
   // Toggle a body class so the GLOBAL app chrome (header logo + bottom
   // nav / footer, which live outside this component in Layout / App) can
   // hide too — true full-screen focus on the itinerary. Cleaned up on
@@ -163,6 +169,14 @@ export const TripDetail = () => {
     document.body.classList.toggle(cls, focusMode);
     return () => document.body.classList.remove(cls);
   }, [focusMode]);
+  // Night view also dims the GLOBAL chrome (header / bottom nav / page
+  // background), but ONLY while the user is on the itinerary — the body
+  // class is removed on unmount so other pages stay light.
+  useEffect(() => {
+    const cls = "trip-night-mode";
+    document.body.classList.toggle(cls, nightMode);
+    return () => document.body.classList.remove(cls);
+  }, [nightMode]);
   useEffect(() => {
     if (!currentUser) return;
     if (!idParam) return;
@@ -745,7 +759,10 @@ export const TripDetail = () => {
         className={classnames(
           "trip-detail-themed",
           `trip-detail-status-${persistedStatusName.toLowerCase()}`,
-          { "trip-detail-text-only": hideImages },
+          {
+            "trip-detail-text-only": hideImages,
+            "trip-detail-dark": nightMode,
+          },
         )}
       >
       <Snackbar
@@ -826,6 +843,8 @@ export const TripDetail = () => {
             onToggleFocus={() => setFocusMode((prev) => !prev)}
             hideImages={hideImages}
             onToggleHideImages={() => setHideImages((prev) => !prev)}
+            nightMode={nightMode}
+            onToggleNight={() => setNightMode((prev) => !prev)}
             onPrint={() => {
               if (!tripData) return;
               void printTripPdf(tripData);
@@ -1116,6 +1135,8 @@ interface TripDetailHeaderProps {
   onToggleFocus: () => void;
   hideImages: boolean;
   onToggleHideImages: () => void;
+  nightMode: boolean;
+  onToggleNight: () => void;
   onPrint: () => void;
   onDownloadExcel: () => void;
   onDownloadPdf: () => void;
@@ -1152,6 +1173,8 @@ const TripDetailHeader = ({
   onToggleFocus,
   hideImages,
   onToggleHideImages,
+  nightMode,
+  onToggleNight,
   onPrint,
   onDownloadExcel,
   onDownloadPdf,
@@ -1367,6 +1390,28 @@ const TripDetailHeader = ({
           )}
           <span className="trip-detail-focus-label">
             {hideImages ? "Show images" : "Text only"}
+          </span>
+        </button>
+        {/* Night view: dark theme scoped to the itinerary page only. */}
+        <button
+          type="button"
+          className={classnames(
+            "trip-detail-basic-info-toggle",
+            "trip-detail-focus-toggle",
+            "trip-detail-night-toggle",
+            { "is-active": nightMode },
+          )}
+          onClick={onToggleNight}
+          aria-pressed={nightMode}
+          title={nightMode ? "Switch to day view" : "Switch to night view"}
+        >
+          {nightMode ? (
+            <LightModeOutlinedIcon fontSize="small" />
+          ) : (
+            <DarkModeOutlinedIcon fontSize="small" />
+          )}
+          <span className="trip-detail-focus-label">
+            {nightMode ? "Day" : "Night"}
           </span>
         </button>
         {/* Save the itinerary for offline use. Available to any viewer (not

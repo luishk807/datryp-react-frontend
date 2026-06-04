@@ -214,3 +214,73 @@ iframe[id*='__acroToolbar' i],
     }
   }
 }
+
+// ============================================================
+// Night view — global chrome. Applied ONLY while the user is on the
+// itinerary: TripDetail adds `trip-night-mode` to <body> and its effect
+// cleanup removes it on unmount (route change), so this never leaks to
+// other pages. Dims the page background, app header, and bottom nav so the
+// itinerary's dark theme isn't framed by white chrome.
+// ============================================================
+$night-bg: #15171c;
+$night-chrome: #1a1d23;
+$night-text: #e8eaed;
+$night-text-2: rgba(255, 255, 255, 0.62);
+$night-border: rgba(255, 255, 255, 0.08);
+
+body.trip-night-mode {
+  background: $night-bg;
+
+  .page-shell,
+  .page-content,
+  .root,
+  #layout.root {
+    background: $night-bg;
+  }
+
+  // ---- App header ----
+  .app-header {
+    background: $night-chrome !important;
+    border-bottom-color: $night-border !important;
+  }
+  .app-header-page-title-text {
+    color: $night-text;
+  }
+  .app-header-search {
+    .holder-simple {
+      background: $night-bg !important;
+    }
+    input,
+    .MuiOutlinedInput-root {
+      color: $night-text !important;
+    }
+    .MuiOutlinedInput-notchedOutline {
+      border-color: $night-border !important;
+    }
+    .app-header-search-icon,
+    .MuiInputLabel-root {
+      color: $night-text-2 !important;
+    }
+  }
+  // Notification bell + other header icon buttons.
+  .app-header .MuiIconButton-root {
+    color: $night-text-2;
+  }
+
+  // ---- Bottom nav ----
+  .bottom-nav {
+    background: $night-chrome !important;
+    border-top-color: $night-border !important;
+  }
+  .bottom-nav-item {
+    color: $night-text-2;
+  }
+  .bottom-nav-item:hover,
+  .bottom-nav-item.is-active {
+    color: $night-text;
+  }
+  // Keep the primary "My Trip" tab on-brand green.
+  .bottom-nav-item--primary {
+    color: theme("colors.primaryGreen");
+  }
+}
