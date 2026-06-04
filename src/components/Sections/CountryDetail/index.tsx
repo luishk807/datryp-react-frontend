@@ -12,7 +12,6 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import LocationCityRoundedIcon from "@mui/icons-material/LocationCityRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
-import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import CostBadge from "components/common/CostBadge";
 import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
@@ -266,20 +265,26 @@ const CountryDetail = () => {
           <header className="country-detail-header">
             <h1 className="country-detail-name">{loadingName}</h1>
           </header>
-          {quick?.longDescription ? (
-            <p className="country-detail-quick-prose">
-              {quick.longDescription}
-            </p>
-          ) : (
-            <div
-              className="country-detail-loading-body"
-              role="status"
-              aria-live="polite"
-              aria-label={`Loading ${loadingName} details`}
-            >
-              <ParagraphSkeleton lines={7} />
-            </div>
-          )}
+          {/* Reuse the loaded page's section components, fed by the fast
+              quick-prose call: real text the moment it resolves (or a skeleton
+              meanwhile), carrying seamlessly into the loaded layout. */}
+          <div
+            className="country-detail-quick-main"
+            role="status"
+            aria-live="polite"
+            aria-label={`Loading ${loadingName} details`}
+          >
+            <ParagraphSection
+              title={`About ${loadingName}`}
+              description={quick?.longDescription}
+              isError={false}
+            />
+            <ParagraphSection
+              title="Budget"
+              description={quick?.budgetDescription}
+              isError={false}
+            />
+          </div>
         </article>
       </Layout>
     );

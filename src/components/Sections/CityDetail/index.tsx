@@ -12,7 +12,6 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
-import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import CostBadge from "components/common/CostBadge";
 import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
@@ -244,20 +243,28 @@ const CityDetail = () => {
                         <h1 className="city-detail-name">{name}</h1>
                         <p className="city-detail-location">{country}</p>
                     </header>
-                    {quick?.longDescription ? (
-                        <p className="city-detail-quick-prose">
-                            {quick.longDescription}
-                        </p>
-                    ) : (
-                        <div
-                            className="city-detail-loading-body"
-                            role="status"
-                            aria-live="polite"
-                            aria-label={`Loading ${name} details`}
-                        >
-                            <ParagraphSkeleton lines={7} />
-                        </div>
-                    )}
+                    {/* Reuse the loaded page's section components, fed by the
+                        fast quick-prose call: each shows real text the moment
+                        it resolves (or its own skeleton meanwhile) and carries
+                        seamlessly into the loaded layout — more readable content
+                        up front than a single paragraph. */}
+                    <div
+                        className="city-detail-quick-main"
+                        role="status"
+                        aria-live="polite"
+                        aria-label={`Loading ${name} details`}
+                    >
+                        <ParagraphSection
+                            title={`About ${name}`}
+                            description={quick?.longDescription}
+                            isError={false}
+                        />
+                        <ParagraphSection
+                            title={`About ${country}`}
+                            description={quick?.countryDescription}
+                            isError={false}
+                        />
+                    </div>
                 </article>
             </Layout>
         );

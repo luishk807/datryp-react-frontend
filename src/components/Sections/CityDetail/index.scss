@@ -550,23 +550,15 @@
 
 // The "about" prose shown during the loading phase (from the fast quick call)
 // so the user reads real content while the heavy sections fill in.
-// Left-aligned with the title (the article has no horizontal padding), capped
-// at a comfortable reading width — matches where the loaded "About" copy sits
-// instead of floating centered/indented.
-.city-detail-quick-prose {
+// Loading-phase content column: the quick-prose ParagraphSections stack here,
+// left-aligned with the title and capped at a comfortable reading width to
+// match where the loaded "About" copy sits.
+.city-detail-quick-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   max-width: 760px;
-  margin: 8px 0 0;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: rgba(0, 0, 0, 0.72);
-}
-
-// Skeleton body shown while the quick prose is still resolving (replaces the
-// old "things while you wait" card with a plain paragraph shimmer).
-.city-detail-loading-body {
-  max-width: 760px;
-  margin: 8px 0 0;
-  padding: 8px 0 56px;
+  margin: 12px 0 48px;
 }
 
 .city-detail-loading-spinner {
