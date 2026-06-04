@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import classnames from "classnames";
 import "./index.scss";
-import { CircularProgress, Tooltip } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
@@ -12,7 +12,7 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import LocationCityRoundedIcon from "@mui/icons-material/LocationCityRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
-import LoadingFacts from "components/common/LoadingFacts";
+import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import CostBadge from "components/common/CostBadge";
 import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
@@ -266,29 +266,20 @@ const CountryDetail = () => {
           <header className="country-detail-header">
             <h1 className="country-detail-name">{loadingName}</h1>
           </header>
-          {quick?.longDescription && (
+          {quick?.longDescription ? (
             <p className="country-detail-quick-prose">
               {quick.longDescription}
             </p>
+          ) : (
+            <div
+              className="country-detail-loading-body"
+              role="status"
+              aria-live="polite"
+              aria-label={`Loading ${loadingName} details`}
+            >
+              <ParagraphSkeleton lines={7} />
+            </div>
           )}
-          <div
-            className="country-detail-loading"
-            role="status"
-            aria-live="polite"
-          >
-            <CircularProgress
-              className="country-detail-loading-spinner"
-              size={40}
-              thickness={4}
-            />
-            <p className="country-detail-loading-text">
-              Loading {loadingName} details…
-            </p>
-            <LoadingFacts
-              placeName={loadingCountry?.name ?? ""}
-              headline="A few things while you wait"
-            />
-          </div>
         </article>
       </Layout>
     );

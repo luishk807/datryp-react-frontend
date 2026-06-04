@@ -508,6 +508,13 @@ a.place-detail-google-rating {
   padding: 24px 16px 48px;
 }
 
+// Skeleton body shown during loading in place of the old "things while you
+// wait" card — a plain paragraph shimmer where the description will land.
+.place-detail-loading-body {
+  max-width: 760px;
+  padding: 8px 16px 56px;
+}
+
 .place-detail-loading-wrap .place-detail-loading {
   font-weight: 600;
   color: theme('colors.primaryGreen');

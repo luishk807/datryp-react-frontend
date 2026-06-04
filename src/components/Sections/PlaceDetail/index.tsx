@@ -11,7 +11,7 @@ import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
-import LoadingFacts from "components/common/LoadingFacts";
+import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
 import VisitedButton from "components/VisitedButton";
@@ -206,17 +206,12 @@ const PlaceDetail = () => {
             </header>
           )}
           <div
-            className="place-detail-loading-wrap"
+            className="place-detail-loading-body"
             role="status"
             aria-live="polite"
+            aria-label={query ? `Loading ${query} details` : "Loading details"}
           >
-            <p className="place-detail-loading">
-              {query ? `Loading ${query} details…` : "Loading details…"}
-            </p>
-            <LoadingFacts
-              placeName={query}
-              headline="A few things while you wait"
-            />
+            <ParagraphSkeleton lines={7} />
           </div>
         </article>
       </Layout>

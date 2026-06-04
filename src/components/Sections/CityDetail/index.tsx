@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import classnames from "classnames";
 import "./index.scss";
-import { CircularProgress, Tooltip } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
@@ -12,7 +12,7 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
-import LoadingFacts from "components/common/LoadingFacts";
+import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import CostBadge from "components/common/CostBadge";
 import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
@@ -244,30 +244,20 @@ const CityDetail = () => {
                         <h1 className="city-detail-name">{name}</h1>
                         <p className="city-detail-location">{country}</p>
                     </header>
-                    {quick?.longDescription && (
+                    {quick?.longDescription ? (
                         <p className="city-detail-quick-prose">
                             {quick.longDescription}
                         </p>
+                    ) : (
+                        <div
+                            className="city-detail-loading-body"
+                            role="status"
+                            aria-live="polite"
+                            aria-label={`Loading ${name} details`}
+                        >
+                            <ParagraphSkeleton lines={7} />
+                        </div>
                     )}
-                    <div
-                        className="city-detail-loading"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        <CircularProgress
-                            className="city-detail-loading-spinner"
-                            size={40}
-                            thickness={4}
-                        />
-                        <p className="city-detail-loading-text">
-                            Loading {name} details…
-                        </p>
-                        <LoadingFacts
-                            placeName={name}
-                            countryName={country}
-                            headline="A few things while you wait"
-                        />
-                    </div>
                 </article>
             </Layout>
         );
