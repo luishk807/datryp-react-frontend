@@ -120,6 +120,12 @@ const PlaceDetail = () => {
     place?.country,
     { enabled: Boolean(place) && !place?.imageUrl },
   );
+  // Fast hero image for the LOADING screen, keyed on the search query (the
+  // place name) so we can show the photo + title immediately while the
+  // recommender call is still resolving. Only fires while loading.
+  const { data: loadingPhoto } = usePlaceImage(query, undefined, undefined, {
+    enabled: isLoading && query.length > 0,
+  });
   const heroImageUrl = place?.imageUrl ?? fallbackPhoto?.imageUrl ?? null;
   const heroPhotographerName =
     place?.imageUrl
@@ -163,17 +169,37 @@ const PlaceDetail = () => {
   }
 
   if (isLoading) {
+    // Progressive load: show the hero photo + place name right away (from the
+    // query + fast image endpoint) so the page feels instant, with the
+    // recommender-backed body filling in once the search resolves.
     return (
-      <Layout title="Loading…">
-        <div className="place-detail-loading-wrap" role="status" aria-live="polite">
-          <p className="place-detail-loading">
-            {query ? `Loading ${query} details…` : 'Loading details…'}
-          </p>
-          <LoadingFacts
-            placeName={query}
-            headline="A few things while you wait"
+      <Layout title={query ? `${query}…` : "Loading…"}>
+        <article className="place-detail place-detail--loading">
+          <PlaceHero
+            name={query}
+            imageUrl={loadingPhoto?.imageUrl}
+            photographerName={loadingPhoto?.photographerName}
+            photographerUrl={loadingPhoto?.photographerUrl}
           />
-        </div>
+          {query && (
+            <header className="place-detail-header">
+              <h1 className="place-detail-name">{query}</h1>
+            </header>
+          )}
+          <div
+            className="place-detail-loading-wrap"
+            role="status"
+            aria-live="polite"
+          >
+            <p className="place-detail-loading">
+              {query ? `Loading ${query} details…` : "Loading details…"}
+            </p>
+            <LoadingFacts
+              placeName={query}
+              headline="A few things while you wait"
+            />
+          </div>
+        </article>
       </Layout>
     );
   }

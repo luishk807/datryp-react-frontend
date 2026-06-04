@@ -44,6 +44,7 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetails } from "api/hooks/useCountryDetails";
+import { useCountries } from "api/hooks/useCountries";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
 import { useUser } from "context/UserContext";
@@ -82,6 +83,16 @@ const CountryDetail = () => {
   const isMonthlyBestPlaceSeed = seed === "monthly-best-place";
 
   const { data, isLoading, isError, error } = useCountryDetails(code);
+
+  // Resolve the country's name + hero image from the (cached) catalog so the
+  // loading screen can show the photo + name immediately, instead of just the
+  // ISO code, while the heavy country-details (OpenAI) call resolves. The
+  // catalog is a cheap DB query and usually already cached from search.
+  const { data: countryCatalog } = useCountries("", {
+    enabled: isLoading,
+    limit: 300,
+  });
+  const loadingCountry = countryCatalog?.find((c) => c.code === code);
 
   // Only fetch the monthly pick when we're actually arriving via the
   // seed flow — keeps the country page from hitting an extra endpoint
@@ -224,25 +235,36 @@ const CountryDetail = () => {
   }
 
   if (isLoading) {
+    // Progressive load: show the hero photo + country name (from the cached
+    // catalog) right away so the page feels instant, with the AI-enriched
+    // body filling in once country-details resolves.
+    const loadingName = loadingCountry?.name ?? code;
     return (
-      <Layout title="Loading…">
-        <div className="country-detail-loading" role="status" aria-live="polite">
-          <CircularProgress
-            className="country-detail-loading-spinner"
-            size={48}
-            thickness={4}
-          />
-          <p className="country-detail-loading-text">
-            Loading {code} details…
-          </p>
-          {/* No country name yet (it ships back with the loaded
-              details), so the place-specific fact is skipped — the
-              rest of the rotating copy still works. */}
-          <LoadingFacts
-            placeName=""
-            headline="A few things while you wait"
-          />
-        </div>
+      <Layout title={`${loadingName}…`}>
+        <article className="country-detail country-detail--loading">
+          <PlaceHero name={loadingName} imageUrl={loadingCountry?.image} />
+          <header className="country-detail-header">
+            <h1 className="country-detail-name">{loadingName}</h1>
+          </header>
+          <div
+            className="country-detail-loading"
+            role="status"
+            aria-live="polite"
+          >
+            <CircularProgress
+              className="country-detail-loading-spinner"
+              size={40}
+              thickness={4}
+            />
+            <p className="country-detail-loading-text">
+              Loading {loadingName} details…
+            </p>
+            <LoadingFacts
+              placeName={loadingCountry?.name ?? ""}
+              headline="A few things while you wait"
+            />
+          </div>
+        </article>
       </Layout>
     );
   }

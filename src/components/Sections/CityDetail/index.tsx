@@ -43,6 +43,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
+import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
 import { useUser } from "context/UserContext";
 import { useIsStuck } from "hooks/useIsStuck";
@@ -84,6 +85,14 @@ const CityDetail = () => {
         country,
         code
     );
+
+    // Fast, independent hero image so the loading screen shows the city's
+    // photo + name immediately instead of a blank spinner while the heavy
+    // city-details (OpenAI) call resolves. Hits the cache-aware /places/image
+    // endpoint; only fired while details are still loading.
+    const { data: heroPhoto } = usePlaceImage(name, name, country, {
+        enabled: isLoading && name.length > 0,
+    });
 
     const startTrip = (args: {
         countryName: string;
@@ -202,27 +211,42 @@ const CityDetail = () => {
     }
 
     if (isLoading) {
+        // Progressive load: show the hero photo + city name right away (from
+        // the URL params + the fast image endpoint) so the page feels instant,
+        // with the AI-enriched body filling in once city-details resolves.
         return (
-            <Layout title="Loading…">
-                <div
-                    className="city-detail-loading"
-                    role="status"
-                    aria-live="polite"
-                >
-                    <CircularProgress
-                        className="city-detail-loading-spinner"
-                        size={48}
-                        thickness={4}
+            <Layout title={`${name}…`}>
+                <article className="city-detail city-detail--loading">
+                    <PlaceHero
+                        name={name}
+                        imageUrl={heroPhoto?.imageUrl}
+                        photographerName={heroPhoto?.photographerName}
+                        photographerUrl={heroPhoto?.photographerUrl}
                     />
-                    <p className="city-detail-loading-text">
-                        Loading {name} details…
-                    </p>
-                    <LoadingFacts
-                        placeName={name}
-                        countryName={country}
-                        headline="A few things while you wait"
-                    />
-                </div>
+                    <header className="city-detail-header">
+                        <h1 className="city-detail-name">{name}</h1>
+                        <p className="city-detail-location">{country}</p>
+                    </header>
+                    <div
+                        className="city-detail-loading"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <CircularProgress
+                            className="city-detail-loading-spinner"
+                            size={40}
+                            thickness={4}
+                        />
+                        <p className="city-detail-loading-text">
+                            Loading {name} details…
+                        </p>
+                        <LoadingFacts
+                            placeName={name}
+                            countryName={country}
+                            headline="A few things while you wait"
+                        />
+                    </div>
+                </article>
             </Layout>
         );
     }
