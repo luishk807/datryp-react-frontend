@@ -77,8 +77,9 @@ import { useOfflineTrip } from "hooks/useOfflineTrip";
 import { useIsOffline } from "hooks/useIsOffline";
 import TripOfflineButton from "components/TripOfflineButton";
 import { TRIP_BASIC, TRIP_STATUS } from "constants";
-import { exportTripToExcel } from "utils/exportTripExcel";
-import { exportTripToPdf, printTripPdf } from "utils/exportTripPdf";
+import { exportTripToExcel, getTripExcelBlob } from "utils/exportTripExcel";
+import { exportTripToPdf, getTripPdfBlob, printTripPdf } from "utils/exportTripPdf";
+import { useEmailTripExport } from "api/hooks/useEmailTripExport";
 import type {
   Activity,
   ActivityStatus,
@@ -235,6 +236,7 @@ export const TripDetail = () => {
 
   const saveItinerary = useSaveItinerary();
   const deleteItinerary = useDeleteItinerary();
+  const emailTripExport = useEmailTripExport();
   const { data: tripStatuses = [] } = useTripStatuses();
   // Name → UUID lookup passed to `tripStateToSaveInput` so per-activity
   // status toggles that captured `{ id: 0, name: 'Confirmed' }` (cold
@@ -582,6 +584,38 @@ export const TripDetail = () => {
           setReminderToast(
             "Yay! Your trip is confirmed and ready to go!"
           );
+          // Auto-export: email the itinerary (PDF + Excel) to all members,
+          // organizer included — that's how the organizer gets their own
+          // confirmed copy (they're excluded from save notifications). Fire-
+          // and-forget: a slow/failed export must never block the confirm,
+          // which already succeeded above. Reuses the in-app export output.
+          const confirmedTrip = tripData;
+          const tripId = apiTrip.id;
+          void (async () => {
+            try {
+              const [pdf, excel] = await Promise.all([
+                getTripPdfBlob(confirmedTrip),
+                getTripExcelBlob(confirmedTrip),
+              ]);
+              const result = await emailTripExport.mutateAsync({
+                tripId,
+                pdf,
+                excel,
+                tripName: confirmedTrip.name ?? undefined,
+              });
+              if (result.recipients > 0) {
+                setSuccessToast(
+                  `Itinerary emailed to ${result.recipients} ${
+                    result.recipients === 1 ? "person" : "people"
+                  }.`
+                );
+              }
+            } catch {
+              setReminderToast(
+                "Couldn't email the itinerary — you can still share it from the ⋮ menu."
+              );
+            }
+          })();
         }
       } catch (err) {
         setSaveError(
@@ -591,7 +625,15 @@ export const TripDetail = () => {
         throw err;
       }
     },
-    [apiTrip, tripData, saveItinerary, notifyParticipants, persistedStatusName],
+    [
+      apiTrip,
+      tripData,
+      saveItinerary,
+      notifyParticipants,
+      persistedStatusName,
+      activityStatusLookup,
+      emailTripExport,
+    ],
   );
 
   const handleCancelTrip = useCallback(async () => {

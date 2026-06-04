@@ -638,6 +638,7 @@ interface PdfDocHandle {
     download: (filename?: string) => void;
     print: () => void;
     open: () => void;
+    getBlob: (cb: (blob: Blob) => void) => void;
 }
 interface PdfMakeRuntime {
     createPdf: (def: TDocumentDefinitions) => PdfDocHandle;
@@ -660,6 +661,16 @@ export const exportTripToPdf = async (trip: TripState): Promise<void> => {
     pdfMake
         .createPdf(buildTripDocDefinition(trip))
         .download(`${safeFilename(trip.name)}.pdf`);
+};
+
+/** Same document as `exportTripToPdf`, but resolves to the PDF Blob instead
+ *  of triggering a download — used by the auto-export-on-confirm flow, which
+ *  uploads the file to the backend to email participants. */
+export const getTripPdfBlob = async (trip: TripState): Promise<Blob> => {
+    const pdfMake = await loadPdfMake();
+    return new Promise<Blob>((resolve) => {
+        pdfMake.createPdf(buildTripDocDefinition(trip)).getBlob(resolve);
+    });
 };
 
 /** Same document as `exportTripToPdf`, but routed to the browser's

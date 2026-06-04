@@ -659,41 +659,46 @@ const buildExpenseSheet = async (
 
 // ── Public entry ────────────────────────────────────────────────────────────
 
+/** Build the 3-sheet workbook and resolve it as an .xlsx Blob. Shared by the
+ *  download path below and the auto-export-on-confirm flow (which uploads the
+ *  Blob to the backend to email participants). */
+export const getTripExcelBlob = async (trip: TripState): Promise<Blob> => {
+    // Lazy-import — ExcelJS adds ~600KB to the bundle and we only want that
+    // cost paid when someone exports. Handle both ESM and CJS-interop shapes
+    // (Vite resolves `exceljs` to its UMD browser bundle, which depending on
+    // bundler config can surface the `Workbook` ctor on the module namespace
+    // or under `.default`).
+    const mod = await import('exceljs');
+    const candidate = (mod as { default?: unknown }).default ?? mod;
+    const ExcelJS = candidate as { Workbook: new () => EWorkbook };
+    if (typeof ExcelJS.Workbook !== 'function') {
+        // eslint-disable-next-line no-console
+        console.error(
+            '[exportTripToExcel] exceljs module did not expose a Workbook constructor. Module shape:',
+            Object.keys(mod ?? {}),
+        );
+        throw new Error(
+            'exceljs failed to load — check the browser console for details.',
+        );
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'daTryp';
+    workbook.created = new Date();
+
+    await buildOverviewSheet(workbook, trip);
+    await buildItinerarySheet(workbook, trip);
+    await buildExpenseSheet(workbook, trip);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+};
+
 export const exportTripToExcel = async (trip: TripState): Promise<void> => {
     try {
-        // Lazy-import — ExcelJS adds ~600KB to the bundle and we
-        // only want that cost paid when someone actually clicks
-        // Download Excel. Handle both ESM and CJS-interop shapes
-        // (Vite resolves `exceljs` to its UMD browser bundle, which
-        // depending on bundler config can surface the `Workbook`
-        // ctor on the module namespace or under `.default`).
-        const mod = await import('exceljs');
-        const candidate =
-            (mod as { default?: unknown }).default ?? mod;
-        const ExcelJS = candidate as { Workbook: new () => EWorkbook };
-        if (typeof ExcelJS.Workbook !== 'function') {
-            // eslint-disable-next-line no-console
-            console.error(
-                '[exportTripToExcel] exceljs module did not expose a Workbook constructor. Module shape:',
-                Object.keys(mod ?? {}),
-            );
-            throw new Error(
-                'exceljs failed to load — check the browser console for details.',
-            );
-        }
-
-        const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'daTryp';
-        workbook.created = new Date();
-
-        await buildOverviewSheet(workbook, trip);
-        await buildItinerarySheet(workbook, trip);
-        await buildExpenseSheet(workbook, trip);
-
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
+        const blob = await getTripExcelBlob(trip);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
