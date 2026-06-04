@@ -1,4 +1,5 @@
 import './index.scss';
+import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
@@ -33,12 +34,17 @@ export const FOOTER_QUICK_LINKS: QuickLink[] = [
 const Footer = () => {
     const { user } = useUser();
     const year = new Date().getFullYear();
-    // Logged-in users get these links inside their account menu
-    // (MenuFooterLinks) instead — the standalone footer was just
-    // clutter above the mobile bottom nav for them.
-    if (user) return null;
+    // The footer always renders on DESKTOP — there's no bottom nav there, so a
+    // real page footer is expected and shouldn't be buried in the account
+    // menu. On mobile, logged-in users get these links in their account sheet
+    // instead (the bottom nav already crowds the bottom), so the standalone
+    // footer is hidden for them at small widths via `.footer--authed` CSS.
     return (
-        <footer className="footer">
+        <footer
+            className={classNames('footer', {
+                'footer--authed': Boolean(user),
+            })}
+        >
             <div className="footer-inner">
                 <span className="footer-brand">DaTryp</span>
                 <nav className="footer-nav" aria-label="Footer">

@@ -105,3 +105,13 @@
     display: none;
   }
 }
+
+/* Logged-in users have the same links in their account sheet on mobile,
+ * where the bottom nav already crowds the bottom — so hide the standalone
+ * footer for them below the desktop breakpoint. On desktop (no bottom nav)
+ * the footer always shows, regardless of auth. */
+@media (max-width: 1024px) {
+  .footer.footer--authed {
+    display: none;
+  }
+}
