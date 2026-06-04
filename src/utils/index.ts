@@ -1,6 +1,7 @@
 import { TRIP_BASIC } from "constants";
 
 export * from "./date";
+export * from "./remapTripDates";
 
 export const isSingleTrip = (type) => {
     return type === TRIP_BASIC.SINGLE.id ? true : false;

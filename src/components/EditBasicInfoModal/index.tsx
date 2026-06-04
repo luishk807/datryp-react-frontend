@@ -12,6 +12,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 import ErrorAlert from 'components/common/ErrorAlert';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
+import { remapTripDatesToRange } from 'utils';
 import type { Friend, TripState } from 'types';
 
 export interface EditBasicInfoModalProps {
@@ -70,7 +71,16 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
         const handleClose = () => setDraft(data);
 
         const handleSave = async () => {
-            const ok = await onSave(draft);
+            // If the dates moved, re-align the itinerary days to the new
+            // range so activities shift with the trip instead of being
+            // orphaned (and silently dropped) on the old dates.
+            const datesChanged =
+                draft.startDate !== data.startDate ||
+                draft.endDate !== data.endDate;
+            const payload = datesChanged
+                ? remapTripDatesToRange(draft)
+                : draft;
+            const ok = await onSave(payload);
             if (ok) modalRef.current?.closeModal();
         };
 
@@ -147,12 +157,22 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
                                 label="Start Date"
                                 name="startDate"
                                 type="date"
-                                defaultValue={draft.startDate ?? ''}
+                                value={draft.startDate ?? ''}
                                 onChange={(e) =>
-                                    setDraft((prev) => ({
-                                        ...prev,
-                                        startDate: e.target.value,
-                                    }))
+                                    setDraft((prev) => {
+                                        const startDate = e.target.value;
+                                        // Keep the range valid: if the new
+                                        // start is after the current end,
+                                        // pull the end up to match (ISO
+                                        // YYYY-MM-DD compares lexically).
+                                        const endDate =
+                                            startDate &&
+                                            prev.endDate &&
+                                            startDate > prev.endDate
+                                                ? startDate
+                                                : prev.endDate;
+                                        return { ...prev, startDate, endDate };
+                                    })
                                 }
                             />
                         </Grid>
@@ -162,7 +182,8 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
                                 label="End Date"
                                 name="endDate"
                                 type="date"
-                                defaultValue={draft.endDate ?? ''}
+                                value={draft.endDate ?? ''}
+                                minDate={draft.startDate ?? undefined}
                                 onChange={(e) =>
                                     setDraft((prev) => ({
                                         ...prev,
