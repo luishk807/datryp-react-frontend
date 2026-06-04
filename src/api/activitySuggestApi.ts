@@ -14,6 +14,11 @@ const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
 
 export interface ActivitySuggestion {
+    /** Corrected / official place name when the typed name looked like a
+     *  misspelling or informal reference (e.g. "bukinhan palance" ->
+     *  "Buckingham Palace"). Null when the typed name already looks right —
+     *  callers keep the user's text in that case. PLACE kind only. */
+    name: string | null;
     location: string | null;
     city: string | null;
     country: string | null;
@@ -47,6 +52,7 @@ export interface SuggestFieldsArgs {
 }
 
 interface ActivitySuggestionRaw {
+    name?: string | null;
     location?: string | null;
     city?: string | null;
     country?: string | null;
@@ -65,6 +71,7 @@ interface SuggestFieldsResponseRaw {
 }
 
 const toSuggestion = (r: ActivitySuggestionRaw): ActivitySuggestion => ({
+    name: r.name ?? null,
     location: r.location ?? null,
     city: r.city ?? null,
     country: r.country ?? null,

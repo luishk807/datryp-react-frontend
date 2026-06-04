@@ -1,3 +1,4 @@
+import { CircularProgress } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
@@ -13,6 +14,10 @@ export interface WizardNavProps {
     /** Final-step confirm action. When set, renders the primary
      *  "Add activity" button instead of "Next". */
     onConfirm?: () => void;
+    /** Disables the Confirm button and shows an inline spinner — used while
+     *  a PLACE smart entry is still resolving (location / cost / time +
+     *  corrected name) so the user can't add a half-resolved activity. */
+    confirmDisabled?: boolean;
     /** Label for the Back button — defaults to "Back"; the review's
      *  in-place edit sub-view overrides it to "Cancel". */
     backLabel?: string;
@@ -28,6 +33,7 @@ const WizardNav = ({
     onNext,
     nextDisabled = false,
     onConfirm,
+    confirmDisabled = false,
     backLabel = 'Back',
     nextLabel = 'Next',
     confirmLabel = 'Add activity',
@@ -44,11 +50,23 @@ const WizardNav = ({
         )}
         {onConfirm ? (
             <ButtonCustom
-                label={confirmLabel}
                 type={BUTTON_VARIANT.STANDARD}
                 capitalizeType="uppercase"
+                disabled={confirmDisabled}
                 onClick={onConfirm}
-            />
+            >
+                {confirmDisabled ? (
+                    <span className="add-wizard-confirm-loading">
+                        <CircularProgress
+                            size={18}
+                            className="add-wizard-confirm-spinner"
+                        />
+                        {confirmLabel}
+                    </span>
+                ) : (
+                    confirmLabel
+                )}
+            </ButtonCustom>
         ) : onNext ? (
             <ButtonCustom
                 label={nextLabel}

@@ -5,4 +5,14 @@
   gap: 12px;
   width: 100%;
   margin-top: 20px;
+
+  .add-wizard-confirm-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-wizard-confirm-spinner {
+    color: inherit;
+  }
 }

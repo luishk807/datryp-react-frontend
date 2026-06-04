@@ -269,6 +269,12 @@ const AddPlaceBtn = ({
     // case so a mistakenly pasted out-of-country link doesn't clobber
     // the form.
     const [placeSmartWarning, setPlaceSmartWarning] = useState<string | null>(null);
+    // True while the PLACE `suggest-fields` AI call (location / cost /
+    // time + corrected name) is in flight. Folded into the smart status
+    // so the flow stays "searching" until BOTH the Google place search
+    // AND this call settle — without it the not-found fallback / review
+    // could flash before the suggestion lands. PLACE kind only.
+    const [placeSuggestLoading, setPlaceSuggestLoading] = useState(false);
     // Whole-block collapse for the PLACE form's location → cost →
     // time → note → image rows. Closed by default so the form stays
     // compact for the common case (smart entry filled everything);
@@ -1132,6 +1138,7 @@ const AddPlaceBtn = ({
         setSmartEntry('');
         setPlaceSmartEntry('');
         setPlaceSmartLoading(false);
+        setPlaceSuggestLoading(false);
         setPlaceSmartWarning(null);
         setPlaceDetailsExpanded(false);
         setHotelSmartEntry('');
@@ -1258,6 +1265,7 @@ const AddPlaceBtn = ({
         const key = `place:${name}|${(args.location ?? '').trim()}`;
         if (suggestAppliedKeyRef.current === key) return;
         suggestAppliedKeyRef.current = key;
+        setPlaceSuggestLoading(true);
         void suggestActivityFields({
             kind: ACTIVITY_KIND.PLACE,
             name,
@@ -1270,6 +1278,12 @@ const AddPlaceBtn = ({
                 if (!s) return;
                 setPlace((prev) => ({
                     ...prev,
+                    // The backend only returns `name` as a confident
+                    // correction of a misspelled / informal entry
+                    // ("bukinhan palance" → "Buckingham Palace"), so applying
+                    // it IS the desired "better guess". Unlike the other
+                    // fields below this overrides whatever the user typed.
+                    name: s.name?.trim() ? s.name : prev.name,
                     location:
                         prev.location?.trim() || !s.location
                             ? prev.location
@@ -1295,7 +1309,8 @@ const AddPlaceBtn = ({
                             : s.cost,
                 }));
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => setPlaceSuggestLoading(false));
     };
 
     /** Fire-and-forget AI field suggestion after a HOTEL smart entry
@@ -1760,6 +1775,7 @@ const AddPlaceBtn = ({
         setSmartEntry('');
         setPlaceSmartEntry('');
         setPlaceSmartLoading(false);
+        setPlaceSuggestLoading(false);
         setPlaceSmartWarning(null);
         setPlaceDetailsExpanded(false);
         setHotelSmartEntry('');
@@ -2104,8 +2120,16 @@ const AddPlaceBtn = ({
             (Boolean(place.location?.trim()) || place.latitude != null);
         const loading = isHotelKind ? hotelSmartLoading : placeSmartLoading;
         const warning = isHotelKind ? hotelSmartWarning : placeSmartWarning;
+        // PLACE-only: the place SEARCH and the suggest-fields AI call run in
+        // sequence — the search resolves the name/coords, then fires the
+        // suggest for the corrected name + location/cost/time. Keep the flow
+        // "searching" until BOTH settle so the user never sees a premature
+        // "couldn't find" (bare-match warning) or a half-filled review that
+        // a beat later fills in. HOTEL has no parallel suggest-gate here.
+        const suggestPending =
+            currentKind === ACTIVITY_KIND.PLACE && placeSuggestLoading;
+        if (loading || suggestPending) return 'searching';
         if (resolved) return 'resolved';
-        if (loading) return 'searching';
         if (warning) return 'notfound';
         return 'searching';
     }, [
@@ -2124,10 +2148,19 @@ const AddPlaceBtn = ({
         transitLookupNotFound,
         transitSmartWarning,
         placeSmartLoading,
+        placeSuggestLoading,
         hotelSmartLoading,
         placeSmartWarning,
         hotelSmartWarning,
     ]);
+
+    // PLACE-only "still resolving" flag — true while the place search or
+    // the suggest-fields AI call is in flight. Gates the review's ADD
+    // button so the user can't add a half-resolved activity (and shows a
+    // spinner on it). Other kinds never set these, so they're unaffected.
+    const placeResolving =
+        currentKind === ACTIVITY_KIND.PLACE &&
+        (placeSmartLoading || placeSuggestLoading);
 
     // Clearing the smart field resets the fired-once guard so a brand-new
     // entry can auto-advance again.
@@ -2405,6 +2438,7 @@ const AddPlaceBtn = ({
                                         <ReviewStep
                                             place={place}
                                             derivedName={deriveActivityName()}
+                                            resolving={placeResolving}
                                         />
                                         <WizardNav
                                             onBack={() => setWizardStep(2)}
@@ -2413,6 +2447,7 @@ const AddPlaceBtn = ({
                                                     preventDefault: () => {},
                                                 } as React.MouseEvent<HTMLButtonElement>)
                                             }
+                                            confirmDisabled={placeResolving}
                                         />
                                     </>
                                 )}

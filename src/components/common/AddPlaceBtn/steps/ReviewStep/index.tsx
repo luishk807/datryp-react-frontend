@@ -9,6 +9,7 @@ import LocalTaxiRoundedIcon from '@mui/icons-material/LocalTaxiRounded';
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
 import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import { CircularProgress } from '@mui/material';
 import { ACTIVITY_KIND } from 'constants';
 import type { ActivityKind } from 'types';
 import type { PlaceDraft } from '../../types';
@@ -19,6 +20,10 @@ export interface ReviewStepProps {
     /** Headline name derived the same way the submit helper derives it —
      *  so the review matches exactly what the timeline card will show. */
     derivedName: string;
+    /** True while a PLACE smart entry is still resolving (location / cost /
+     *  time + corrected name). Surfaces an inline "finishing up" cue; the
+     *  ADD button (in WizardNav) is disabled in the same window. */
+    resolving?: boolean;
 }
 
 const KIND_META: Record<
@@ -58,7 +63,7 @@ const timeWindow = (start?: string, end?: string): string | null => {
 
 /** Step 3 of the Add-Activity wizard — a read-only summary of the
  *  assembled activity. Tweaks happen via Back, not here. */
-const ReviewStep = ({ place, derivedName }: ReviewStepProps) => {
+const ReviewStep = ({ place, derivedName, resolving = false }: ReviewStepProps) => {
     const kind = place.kind ?? ACTIVITY_KIND.PLACE;
     const { label, Icon } = KIND_META[kind] ?? KIND_META[ACTIVITY_KIND.PLACE];
 
@@ -114,6 +119,15 @@ const ReviewStep = ({ place, derivedName }: ReviewStepProps) => {
             <p className="add-wizard-sub">
                 Quick check — use Back to tweak anything.
             </p>
+            {resolving && (
+                <div className="add-review-resolving">
+                    <CircularProgress
+                        size={16}
+                        className="add-review-resolving-spinner"
+                    />
+                    <span>Still finishing up the details…</span>
+                </div>
+            )}
             <div className="add-review-card">
                 <div className="add-review-card-head">
                     {place.image?.url ? (
