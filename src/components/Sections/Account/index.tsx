@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import classnames from 'classnames';
 import { Alert, Snackbar } from '@mui/material';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
@@ -41,7 +41,10 @@ import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
 
 export const Account = () => {
-    const { user, updateUser } = useUser();
+    const { user, isAdmin, updateUser } = useUser();
+    // SMS notifications are a Pro perk (they cost per message). Admins get
+    // the same bypass they get on every other paywall.
+    const isPro = Boolean(user && (user.isPaidMember || isAdmin));
     const { hash } = useLocation();
     const { data: rawCountries = [], isLoading: countriesLoading } = useCountries('', {
         limit: 300,
@@ -447,7 +450,13 @@ export const Account = () => {
     const handleNotificationsSave = async () => {
         setNotifyMessage(null);
         try {
-            await updatePrefs.mutateAsync({ notifyEmail, notifySms });
+            // Non-Pro users can't have SMS on — force false so a stale
+            // opt-in (e.g. after a downgrade) doesn't trip the backend's
+            // Pro guard and block the whole save.
+            await updatePrefs.mutateAsync({
+                notifyEmail,
+                notifySms: isPro ? notifySms : false,
+            });
             setNotifyMessage({
                 type: 'success',
                 text: 'Notification settings saved.',
@@ -962,13 +971,20 @@ export const Account = () => {
                         </div>
                         <div className="account-notify-row">
                             <Toggle
-                                label="SMS notifications"
+                                label="SMS notifications (Pro)"
                                 description="Text alerts for time-sensitive trip updates. Standard message rates may apply."
-                                checked={notifySms}
+                                checked={isPro && notifySms}
                                 onChange={setNotifySms}
-                                disabled={updatePrefs.isPending}
+                                disabled={updatePrefs.isPending || !isPro}
                             />
-                            {!phone.trim() && (
+                            {!isPro && (
+                                <p className="account-notify-helper">
+                                    SMS alerts are a Pro feature.{' '}
+                                    <Link to="/membership">Upgrade to Pro</Link>{' '}
+                                    to enable texts.
+                                </p>
+                            )}
+                            {isPro && !phone.trim() && (
                                 <p className="account-notify-helper">
                                     Add a phone number in your Profile above to
                                     receive texts.
