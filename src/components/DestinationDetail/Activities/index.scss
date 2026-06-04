@@ -114,6 +114,16 @@
   }
 }
 
+// Below MUI's md breakpoint (900px) the image column drops to full width
+// (xs=12), so the hero spans the entire card and grows too tall on tablet
+// (721–899px, where the ≤720px view-mode hide above no longer applies).
+// Cap it to a banner height — object-fit:cover keeps the crop clean.
+@media (max-width: 899px) {
+  .activity-content-trip .content-image .activity-image {
+    max-height: 200px;
+  }
+}
+
 // ----- Live timing states ---------------------------------------------
 // Visual state for past / current / upcoming activities. The bin is
 // computed once per render of Activities (re-runs every 30s via the
