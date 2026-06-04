@@ -499,6 +499,15 @@ a.place-detail-google-rating {
   padding: 32px 16px;
 }
 
+// Progressive load: hero + title already fill the top, so the loader sits
+// right beneath them instead of filling the viewport (which left a big gap
+// under the title).
+.place-detail--loading .place-detail-loading-wrap {
+  min-height: 0;
+  justify-content: flex-start;
+  padding: 24px 16px 48px;
+}
+
 .place-detail-loading-wrap .place-detail-loading {
   font-weight: 600;
   color: theme('colors.primaryGreen');

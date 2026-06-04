@@ -44,6 +44,7 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetails } from "api/hooks/useCountryDetails";
+import { useCountryQuick } from "api/hooks/useDetailQuick";
 import { useCountries } from "api/hooks/useCountries";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
@@ -93,6 +94,11 @@ const CountryDetail = () => {
     limit: 300,
   });
   const loadingCountry = countryCatalog?.find((c) => c.code === code);
+
+  // Fast prose-only call so the country's "about" text shows during the
+  // loading phase, before the heavy details call resolves. Served from cache
+  // once the country is warm.
+  const { data: quick } = useCountryQuick(code, isLoading);
 
   // Only fetch the monthly pick when we're actually arriving via the
   // seed flow — keeps the country page from hitting an extra endpoint
@@ -242,10 +248,29 @@ const CountryDetail = () => {
     return (
       <Layout title={`${loadingName}…`}>
         <article className="country-detail country-detail--loading">
-          <PlaceHero name={loadingName} imageUrl={loadingCountry?.image} />
+          {/* Same hero+side grid as the loaded page so the hero keeps its
+              size across the transition instead of shrinking from full-width
+              into the grid column. Side cards show their own skeletons. */}
+          <div className="country-detail-top">
+            <PlaceHero
+              name={loadingName}
+              imageUrl={loadingCountry?.image}
+              className="country-detail-hero"
+            />
+            <aside className="country-detail-side">
+              <PopularitySection popularity={undefined} isError={false} />
+              <WeatherSection weather={undefined} isError={false} />
+              <SafetySection safety={undefined} isError={false} />
+            </aside>
+          </div>
           <header className="country-detail-header">
             <h1 className="country-detail-name">{loadingName}</h1>
           </header>
+          {quick?.longDescription && (
+            <p className="country-detail-quick-prose">
+              {quick.longDescription}
+            </p>
+          )}
           <div
             className="country-detail-loading"
             role="status"

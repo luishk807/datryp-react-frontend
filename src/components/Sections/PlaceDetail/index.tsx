@@ -126,13 +126,21 @@ const PlaceDetail = () => {
   const { data: loadingPhoto } = usePlaceImage(query, undefined, undefined, {
     enabled: isLoading && query.length > 0,
   });
-  const heroImageUrl = place?.imageUrl ?? fallbackPhoto?.imageUrl ?? null;
-  const heroPhotographerName =
-    place?.imageUrl
+  // Keep the hero stable across the loading → loaded transition. The loading
+  // phase already resolved + displayed `loadingPhoto` (keyed on the query); the
+  // resolved place row carries its OWN, separately-resolved image, so switching
+  // to it made the hero visibly swap. Prefer the already-shown photo when we
+  // have one; on warm loads `loadingPhoto` is undefined and we use the row's.
+  const heroImageUrl =
+    loadingPhoto?.imageUrl ?? place?.imageUrl ?? fallbackPhoto?.imageUrl ?? null;
+  const heroPhotographerName = loadingPhoto?.imageUrl
+    ? loadingPhoto.photographerName ?? null
+    : place?.imageUrl
       ? place.photographerName
       : fallbackPhoto?.photographerName ?? null;
-  const heroPhotographerUrl =
-    place?.imageUrl
+  const heroPhotographerUrl = loadingPhoto?.imageUrl
+    ? loadingPhoto.photographerUrl ?? null
+    : place?.imageUrl
       ? place.photographerUrl
       : fallbackPhoto?.photographerUrl ?? null;
 
@@ -175,12 +183,23 @@ const PlaceDetail = () => {
     return (
       <Layout title={query ? `${query}…` : "Loading…"}>
         <article className="place-detail place-detail--loading">
-          <PlaceHero
-            name={query}
-            imageUrl={loadingPhoto?.imageUrl}
-            photographerName={loadingPhoto?.photographerName}
-            photographerUrl={loadingPhoto?.photographerUrl}
-          />
+          {/* Same hero+side grid as the loaded page so the hero keeps its
+              size across the transition (it used to be full-width here, then
+              shrink into the 7fr column once loaded). The side cards show
+              their own "fetching…" skeletons while details resolve. */}
+          <div className="place-detail-top">
+            <PlaceHero
+              name={query}
+              imageUrl={loadingPhoto?.imageUrl}
+              photographerName={loadingPhoto?.photographerName}
+              photographerUrl={loadingPhoto?.photographerUrl}
+            />
+            <aside className="place-detail-side">
+              <WeatherSection weather={undefined} isError={false} />
+              <CurrencySection currency={undefined} isError={false} />
+              <SafetySection safety={undefined} isError={false} />
+            </aside>
+          </div>
           {query && (
             <header className="place-detail-header">
               <h1 className="place-detail-name">{query}</h1>

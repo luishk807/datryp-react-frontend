@@ -43,6 +43,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetails } from "api/hooks/useCityDetails";
+import { useCityQuick } from "api/hooks/useDetailQuick";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
 import { useUser } from "context/UserContext";
@@ -93,6 +94,11 @@ const CityDetail = () => {
     const { data: heroPhoto } = usePlaceImage(name, name, country, {
         enabled: isLoading && name.length > 0,
     });
+
+    // Fast prose-only call (the cheap OpenAI group) so the "about" text shows
+    // during the loading phase, before the heavy lists/facts call resolves.
+    // Fired only while loading; served from cache once the city is warm.
+    const { data: quick } = useCityQuick(name, country, code, isLoading);
 
     const startTrip = (args: {
         countryName: string;
@@ -217,16 +223,32 @@ const CityDetail = () => {
         return (
             <Layout title={`${name}…`}>
                 <article className="city-detail city-detail--loading">
-                    <PlaceHero
-                        name={name}
-                        imageUrl={heroPhoto?.imageUrl}
-                        photographerName={heroPhoto?.photographerName}
-                        photographerUrl={heroPhoto?.photographerUrl}
-                    />
+                    {/* Same hero+side grid as the loaded page so the hero
+                        keeps its size across the transition instead of
+                        shrinking from full-width into the grid column. */}
+                    <div className="city-detail-top">
+                        <PlaceHero
+                            name={name}
+                            imageUrl={heroPhoto?.imageUrl}
+                            photographerName={heroPhoto?.photographerName}
+                            photographerUrl={heroPhoto?.photographerUrl}
+                            className="city-detail-hero"
+                        />
+                        <aside className="city-detail-side">
+                            <WeatherSection weather={undefined} isError={false} />
+                            <CurrencySection currency={undefined} isError={false} />
+                            <SafetySection safety={undefined} isError={false} />
+                        </aside>
+                    </div>
                     <header className="city-detail-header">
                         <h1 className="city-detail-name">{name}</h1>
                         <p className="city-detail-location">{country}</p>
                     </header>
+                    {quick?.longDescription && (
+                        <p className="city-detail-quick-prose">
+                            {quick.longDescription}
+                        </p>
+                    )}
                     <div
                         className="city-detail-loading"
                         role="status"
@@ -267,6 +289,21 @@ const CityDetail = () => {
     }
 
     const { city, details } = data;
+
+    // Keep the hero image stable across the loading → loaded transition. On a
+    // cold load the loading phase already resolved + displayed a photo via
+    // `usePlaceImage`; the full city-details row carries its OWN (separately
+    // resolved) Unsplash pick, so switching to it mid-view made the hero
+    // visibly swap. Prefer the already-shown image when we have one; on warm
+    // loads (no loading phase) `heroPhoto` is undefined and we use the row's.
+    const heroImageUrl = heroPhoto?.imageUrl ?? city.imageUrl;
+    const usingLoadingHero = Boolean(heroPhoto?.imageUrl);
+    const heroPhotographerName = usingLoadingHero
+        ? heroPhoto?.photographerName
+        : city.photographerName;
+    const heroPhotographerUrl = usingLoadingHero
+        ? heroPhoto?.photographerUrl
+        : city.photographerUrl;
     const placeForGetting = `${city.name}, ${city.country}`;
 
     // Smart back: use the browser history when the user actually
@@ -378,9 +415,9 @@ const CityDetail = () => {
                 <div className="city-detail-top">
                     <PlaceHero
                         name={city.name}
-                        imageUrl={city.imageUrl}
-                        photographerName={city.photographerName}
-                        photographerUrl={city.photographerUrl}
+                        imageUrl={heroImageUrl}
+                        photographerName={heroPhotographerName}
+                        photographerUrl={heroPhotographerUrl}
                         className="city-detail-hero"
                     />
 

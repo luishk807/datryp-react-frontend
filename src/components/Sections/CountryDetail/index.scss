@@ -575,6 +575,26 @@
   text-align: center;
 }
 
+// Progressive load: hero + title already fill the top, so the loading block
+// sits right beneath them rather than centering in a 60vh box (which left a
+// large empty gap under the title).
+.country-detail--loading .country-detail-loading {
+  min-height: 0;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  padding: 24px 16px 48px;
+}
+
+// The "about" prose shown during the loading phase (from the fast quick call).
+.country-detail-quick-prose {
+  max-width: 720px;
+  margin: 4px auto 0;
+  padding: 0 16px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.72);
+}
+
 .country-detail-loading-spinner {
   color: theme('colors.primaryGreen') !important;
   animation: country-detail-pulse 2.2s ease-in-out infinite;

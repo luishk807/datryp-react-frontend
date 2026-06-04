@@ -538,6 +538,27 @@
   text-align: center;
 }
 
+// Progressive load: the hero + title already fill the top of the page, so the
+// loading block sits right beneath them instead of centering in a 60vh box
+// (which left a large empty gap under the title).
+.city-detail--loading .city-detail-loading {
+  min-height: 0;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  padding: 24px 16px 48px;
+}
+
+// The "about" prose shown during the loading phase (from the fast quick call)
+// so the user reads real content while the heavy sections fill in.
+.city-detail-quick-prose {
+  max-width: 720px;
+  margin: 4px auto 0;
+  padding: 0 16px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.72);
+}
+
 .city-detail-loading-spinner {
   color: theme('colors.primaryGreen') !important;
   animation: city-detail-pulse 2.2s ease-in-out infinite;

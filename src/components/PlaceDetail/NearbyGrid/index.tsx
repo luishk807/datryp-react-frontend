@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ExploreRoundedIcon from "@mui/icons-material/ExploreRounded";
 import Skeleton from "components/common/Skeleton";
+import { usePlaceImage } from "api/hooks/usePlaceImage";
 import type { NearbyDestination } from "types";
 import "./index.scss";
 
@@ -33,41 +34,52 @@ const VISIBLE_LIMIT = 4;
  * recommender row hasn't been Unsplash-enriched yet (legacy cached
  * rows).
  */
+/** One nearby-destination card. Lazy-fetches a hero photo from the cache-aware
+ *  `/places/image` endpoint when the recommender row didn't ship one, so the
+ *  card shows a real image instead of the compass placeholder. The lookup is
+ *  client-side + cached, so it never slows the parent detail page's main call;
+ *  the compass shows until the photo resolves. */
+const NearbyCard = ({ d, index }: { d: NearbyDestination; index: number }) => {
+  const { data: photo } = usePlaceImage(d.name, undefined, d.country, {
+    enabled: !d.imageUrl && d.name.trim().length > 0,
+  });
+  const imageUrl = d.imageUrl ?? photo?.imageUrl ?? null;
+  return (
+    <li key={`${d.name}-${index}`} className="nearby-grid-item">
+      <Link
+        to={`/place?q=${encodeURIComponent(d.name)}&i=0`}
+        className="nearby-grid-link"
+      >
+        <div
+          className="nearby-grid-image"
+          style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined}
+        >
+          {!imageUrl && (
+            <ExploreRoundedIcon className="nearby-grid-image-fallback" />
+          )}
+        </div>
+        <div className="nearby-grid-body">
+          <div className="nearby-grid-head">
+            <span className="nearby-grid-name">{d.name}</span>
+            <ArrowForwardRoundedIcon
+              className="nearby-grid-arrow"
+              fontSize="small"
+            />
+          </div>
+          <p className="nearby-grid-meta">
+            {d.country} · {formatKindLabel(d.kind)}
+          </p>
+          <p className="nearby-grid-why">{d.why}</p>
+        </div>
+      </Link>
+    </li>
+  );
+};
+
 const NearbyGrid = ({ items }: NearbyGridProps) => (
   <ul className="nearby-grid">
     {items.slice(0, VISIBLE_LIMIT).map((d, i) => (
-      <li key={`${d.name}-${i}`} className="nearby-grid-item">
-        <Link
-          to={`/place?q=${encodeURIComponent(d.name)}&i=0`}
-          className="nearby-grid-link"
-        >
-          <div
-            className="nearby-grid-image"
-            style={
-              d.imageUrl
-                ? { backgroundImage: `url(${d.imageUrl})` }
-                : undefined
-            }
-          >
-            {!d.imageUrl && (
-              <ExploreRoundedIcon className="nearby-grid-image-fallback" />
-            )}
-          </div>
-          <div className="nearby-grid-body">
-            <div className="nearby-grid-head">
-              <span className="nearby-grid-name">{d.name}</span>
-              <ArrowForwardRoundedIcon
-                className="nearby-grid-arrow"
-                fontSize="small"
-              />
-            </div>
-            <p className="nearby-grid-meta">
-              {d.country} · {formatKindLabel(d.kind)}
-            </p>
-            <p className="nearby-grid-why">{d.why}</p>
-          </div>
-        </Link>
-      </li>
+      <NearbyCard key={`${d.name}-${i}`} d={d} index={i} />
     ))}
   </ul>
 );

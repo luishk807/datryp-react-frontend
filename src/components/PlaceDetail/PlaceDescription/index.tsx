@@ -15,11 +15,12 @@ export interface PlaceDescriptionProps {
 }
 
 /**
- * The big top-of-page paragraph describing the destination. Renders the
- * enriched long description when available, falls back to the cached
- * search-result description on error, and shows a 6-line shimmer while
- * the enriched query is loading. Unlike the page's other sections this
- * lives outside any `MainSection` shell — it sits directly above the
+ * The big top-of-page paragraph describing the destination. Prefers the
+ * enriched long description, but shows the cached search-result description
+ * IMMEDIATELY while the enriched query is still loading (rather than a
+ * shimmer) so the primary text is readable up front and just upgrades to the
+ * richer copy when it arrives. Only falls back to a skeleton when there's no
+ * text at all yet. Lives outside any `MainSection` shell — directly above the
  * "About <country>" block.
  */
 const PlaceDescription = ({
@@ -30,8 +31,13 @@ const PlaceDescription = ({
   if (longDescription) {
     return <p className="place-description">{longDescription}</p>;
   }
-  if (isError) {
+  // Show the cached short description right away (loading OR error) — the user
+  // reads real content instead of a shimmer while the long copy resolves.
+  if (fallbackDescription) {
     return <p className="place-description">{fallbackDescription}</p>;
+  }
+  if (isError) {
+    return null;
   }
   return <ParagraphSkeleton lines={6} />;
 };
