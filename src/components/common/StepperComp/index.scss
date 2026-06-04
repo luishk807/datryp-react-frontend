@@ -125,23 +125,27 @@
   box-shadow: none !important;
 }
 
+// Cancel + Save use the standard ButtonCustom palette (line = green
+// outline, standard = solid green) so the edit-mode header matches the
+// rest of the app — the old pale-orange Save + grey Cancel read as a
+// leftover style. Only the compact header sizing is overridden above.
 .edit-trip-header .edit-trip-cancel-btn {
-  background: transparent !important;
-  color: rgba(0, 0, 0, 0.6) !important;
-  border: 1px solid rgba(0, 0, 0, 0.18) !important;
+  background: #fff !important;
+  color: theme('colors.primaryGreen') !important;
+  border: 1px solid theme('colors.primaryGreen') !important;
 }
 
 .edit-trip-header .edit-trip-cancel-btn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.05) !important;
+  background: rgba(60, 181, 75, 0.08) !important;
 }
 
 .edit-trip-header .edit-trip-save-btn {
-  background: rgba(246, 137, 31, 0.12) !important;
-  color: theme('colors.primaryOrange') !important;
+  background: theme('colors.primaryGreen') !important;
+  color: #fff !important;
 }
 
 .edit-trip-header .edit-trip-save-btn:hover:not(:disabled) {
-  background: rgba(246, 137, 31, 0.22) !important;
+  background: #2e9a3d !important;
 }
 
 .edit-trip-header .edit-trip-save-btn:disabled {
