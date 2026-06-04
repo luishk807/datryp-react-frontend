@@ -1,22 +1,25 @@
 /**
- * Re-align a single-destination trip's itinerary days to its (possibly
- * changed) startDate / endDate so activities are never orphaned when the
- * user shifts the trip's dates in the basic-info editor.
+ * Re-align a single-destination trip's itinerary days when the user edits
+ * the trip's dates, so activities are never orphaned.
  *
- * The day list is treated as an ordered sequence: the Nth existing day maps
- * to the Nth date in [startDate .. endDate], carrying its id + activities.
- * Extra dates become empty days; if the new range is shorter than the old
- * one, surplus trailing days (and their activities) are dropped — but that's
- * an explicit range shrink, not the silent loss this guards against when the
- * whole trip is simply moved to later dates.
+ * Two motions, composed:
+ *  1. SHIFT — every existing day moves by the same delta as the start date
+ *     (newStart − oldStart). Moving the trip to later dates carries all its
+ *     activities along, preserving the day structure (and any gaps).
+ *  2. FIT — the shifted days are then matched, by date, onto the new
+ *     [startDate .. endDate] range. Dates with no shifted day become empty
+ *     days (the range was extended via the end date); shifted days that fall
+ *     outside the new range are dropped (the range was shortened via the end
+ *     date — an explicit shrink, not silent loss).
  *
- * Multi-destination trips are returned unchanged: their days carry per-day
- * country / flight data and sub-ranges that a flat positional remap would
- * corrupt. The basic-info modal can't edit a multi trip's destinations, so
- * date-only edits there are the single-destination case in practice.
+ * When only the start moved and the end was shifted with it (duration
+ * unchanged), every shifted day lands exactly on a new date — nothing is
+ * added or lost. Multi-destination trips are returned unchanged: their days
+ * carry per-day country / flight data a flat remap would corrupt, and the
+ * basic-info modal can't edit a multi trip's destinations anyway.
  */
 import type { ItineraryDay, TripState } from 'types';
-import { addDays, formatDate } from './date';
+import { addDays, diffDays, formatDate } from './date';
 import { TRIP_BASIC } from 'constants';
 
 /** Inclusive list of `YYYY-MM-DD` dates from start to end. Guarded at one
@@ -34,7 +37,10 @@ const enumerateDates = (start: string, end: string): string[] => {
     return out;
 };
 
-export const remapTripDatesToRange = (trip: TripState): TripState => {
+export const remapTripDatesToRange = (
+    trip: TripState,
+    oldStartDate: string | undefined
+): TripState => {
     const { startDate, endDate } = trip;
     if (!startDate || !endDate) return trip;
 
@@ -47,18 +53,20 @@ export const remapTripDatesToRange = (trip: TripState): TripState => {
     const dateList = enumerateDates(startDate, endDate);
     if (!dateList.length) return trip;
 
-    // Existing days in chronological order so position N is the Nth day.
-    const oldDays = [...(dest.itinerary ?? [])].sort((a, b) =>
-        a.date < b.date ? -1 : a.date > b.date ? 1 : 0
-    );
+    // 1) SHIFT every existing day by the start delta so the trip moves as a
+    //    whole (no-op when the start didn't change / there's no prior start).
+    const delta = oldStartDate ? diffDays(oldStartDate, startDate) : 0;
+    const shifted = (dest.itinerary ?? []).map((day) => ({
+        ...day,
+        date: delta ? addDays(day.date, delta) : formatDate(day.date),
+    }));
+    const byDate = new Map(shifted.map((day) => [day.date, day]));
 
+    // 2) FIT the shifted days onto the new range, matching by date. Missing
+    //    dates pad as empty days; days outside the range fall away.
     const newItinerary: ItineraryDay[] = dateList.map((date, i) => {
-        const src = oldDays[i];
-        // Reuse the existing day (keeping its id + activities) on the new
-        // date; pad with an empty day when the range grew.
-        return src
-            ? { ...src, date }
-            : { id: Date.now() + i, date, activities: [] };
+        const src = byDate.get(date);
+        return src ?? { id: Date.now() + i, date, activities: [] };
     });
 
     return {

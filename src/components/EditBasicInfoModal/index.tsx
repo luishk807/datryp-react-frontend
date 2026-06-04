@@ -12,7 +12,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 import ErrorAlert from 'components/common/ErrorAlert';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
-import { remapTripDatesToRange } from 'utils';
+import { addDays, diffDays, remapTripDatesToRange } from 'utils';
 import type { Friend, TripState } from 'types';
 
 export interface EditBasicInfoModalProps {
@@ -78,7 +78,7 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
                 draft.startDate !== data.startDate ||
                 draft.endDate !== data.endDate;
             const payload = datesChanged
-                ? remapTripDatesToRange(draft)
+                ? remapTripDatesToRange(draft, data.startDate)
                 : draft;
             const ok = await onSave(payload);
             if (ok) modalRef.current?.closeModal();
@@ -161,16 +161,32 @@ const EditBasicInfoModal = forwardRef<ModalButtonHandle, EditBasicInfoModalProps
                                 onChange={(e) =>
                                     setDraft((prev) => {
                                         const startDate = e.target.value;
-                                        // Keep the range valid: if the new
-                                        // start is after the current end,
-                                        // pull the end up to match (ISO
-                                        // YYYY-MM-DD compares lexically).
-                                        const endDate =
+                                        let endDate = prev.endDate;
+                                        if (
+                                            startDate &&
+                                            prev.startDate &&
+                                            prev.endDate
+                                        ) {
+                                            // Move the whole trip: shift the
+                                            // end by the same delta as the
+                                            // start so the duration (and every
+                                            // day's activities) is preserved.
+                                            endDate = addDays(
+                                                prev.endDate,
+                                                diffDays(
+                                                    prev.startDate,
+                                                    startDate
+                                                )
+                                            );
+                                        } else if (
                                             startDate &&
                                             prev.endDate &&
                                             startDate > prev.endDate
-                                                ? startDate
-                                                : prev.endDate;
+                                        ) {
+                                            // No prior start to delta from —
+                                            // clamp so the range stays valid.
+                                            endDate = startDate;
+                                        }
                                         return { ...prev, startDate, endDate };
                                     })
                                 }

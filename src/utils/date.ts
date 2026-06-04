@@ -38,6 +38,10 @@ export const isValidDate = (value: DateInput, inputFormat?: string): boolean =>
 export const addDays = (value: DateInput, n: number, format: string = DEFAULT_FORMAT): string =>
     moment(value ?? undefined).add(n, 'day').format(format);
 
+/** Whole-day difference `to - from` (positive when `to` is later). */
+export const diffDays = (from: DateInput, to: DateInput): number =>
+    moment(to ?? undefined).startOf('day').diff(moment(from ?? undefined).startOf('day'), 'day');
+
 /** Parse a value using `inputFormat`, then format it for output. Use when the
  *  source is non-ISO (e.g. 'HH:mm') and you need a different display format. */
 export const reformatDate = (
