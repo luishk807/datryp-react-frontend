@@ -34,6 +34,11 @@ export interface Preferences {
      *  privacy rationale. Empty array means the user hasn't opted in. */
     travelCompanions: string[];
     kidsAgeBuckets: string[];
+    /** Per-channel notification preferences. In-app alerts are always on
+     *  (no toggle). Email defaults on; SMS is opt-in and only effective
+     *  when `phone` is also set to a valid number. */
+    notifyEmail: boolean;
+    notifySms: boolean;
 }
 
 /** Partial update for `PATCH /me/preferences`. Any field set to
@@ -55,6 +60,8 @@ export interface PreferencesUpdate {
     homeLongitude?: number | null;
     travelCompanions?: string[];
     kidsAgeBuckets?: string[];
+    notifyEmail?: boolean;
+    notifySms?: boolean;
 }
 
 /** One row in a slug-based catalog (interests, traveler styles).

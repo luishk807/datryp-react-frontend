@@ -50,6 +50,7 @@ import MarkPaidModal, {
   type MarkPaidModalHandle,
   type MarkPaidValue,
 } from "components/MarkPaidModal";
+import NotifyParticipantsButton from "components/NotifyParticipantsButton";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import { convertMoney } from "utils";
@@ -1248,6 +1249,23 @@ const Activities = ({
                             onChangePlace={onChangePlace}
                           />
                         )}
+                        {/* Organizer-only per-activity alert. Reuses the
+                            same gate as Mark-as-paid (`allowPaidEdits` =
+                            organizer && trip not cancelled), and only
+                            mounts on a saved trip with other participants
+                            and a notifiable (non-note) activity. */}
+                        {allowPaidEdits &&
+                          tripId &&
+                          !isNote &&
+                          participants.length > 0 && (
+                            <div className="meta-row">
+                              <NotifyParticipantsButton
+                                tripId={tripId}
+                                activityId={activity.id}
+                                activityName={activity.name}
+                              />
+                            </div>
+                          )}
                         {activity.note && (
                           <div className="meta-row meta-row-note">
                             <NotesOutlinedIcon className="meta-icon" />

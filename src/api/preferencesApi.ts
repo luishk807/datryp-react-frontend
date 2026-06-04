@@ -33,6 +33,8 @@ interface PreferencesRaw {
     home_longitude: number | null;
     travel_companions: string[];
     kids_age_buckets: string[];
+    notify_email: boolean;
+    notify_sms: boolean;
 }
 
 interface InterestsCatalogRaw {
@@ -81,6 +83,8 @@ const toPreferences = (r: PreferencesRaw): Preferences => ({
     homeLongitude: r.home_longitude,
     travelCompanions: r.travel_companions ?? [],
     kidsAgeBuckets: r.kids_age_buckets ?? [],
+    notifyEmail: r.notify_email ?? true,
+    notifySms: r.notify_sms ?? false,
 });
 
 export const fetchMyPreferences = async (): Promise<Preferences> => {
@@ -144,6 +148,12 @@ export const updateMyPreferences = async (
     }
     if (payload.kidsAgeBuckets !== undefined) {
         body.kids_age_buckets = payload.kidsAgeBuckets;
+    }
+    if (payload.notifyEmail !== undefined) {
+        body.notify_email = payload.notifyEmail;
+    }
+    if (payload.notifySms !== undefined) {
+        body.notify_sms = payload.notifySms;
     }
 
     const resp = await fetch(`${API_BASE}/me/preferences`, {

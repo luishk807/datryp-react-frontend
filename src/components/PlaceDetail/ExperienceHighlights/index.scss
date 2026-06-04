@@ -85,17 +85,16 @@
   transform: scale(1.04);
 }
 
-// Soft bottom scrim so the white card title meets a darker edge of
-// the photo cleanly when the card body crowds the image (single-line
-// card-name layouts at small widths).
+// Bottom scrim that backs the overlaid photo credit so the white
+// attribution text stays legible over bright images.
 .experience-highlights-card-scrim {
   position: absolute;
   inset: auto 0 0 0;
-  height: 38%;
+  height: 42%;
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.22) 100%
+    rgba(0, 0, 0, 0.5) 100%
   );
   pointer-events: none;
 }
@@ -122,14 +121,26 @@
   color: rgba(0, 0, 0, 0.62);
 }
 
+// Photo credit overlaid on the image itself (bottom-left), the same
+// convention as the page hero. Sits above the bottom scrim so the
+// white text reads over the photo; a text-shadow handles bright
+// images where the scrim isn't enough on its own.
 .experience-highlights-card-attribution {
-  padding: 0 14px 10px;
-  font-size: 0.65rem;
-  color: rgba(0, 0, 0, 0.4);
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  z-index: 1;
+  font-size: 0.62rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 
   a {
-    color: rgba(0, 0, 0, 0.55);
+    color: #fff;
     text-decoration: underline;
+    pointer-events: auto;
 
     &:hover {
       color: theme('colors.primaryOrange');

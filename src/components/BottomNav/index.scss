@@ -96,6 +96,25 @@
   font-size: 26px !important;
 }
 
+// "My Trip" is the app's primary destination, but as a plain tab it
+// read at the same faint grey as the others and disappeared. Give it
+// a standing brand-green treatment (icon + label) and a slightly
+// larger glyph so it's unmistakably the hero tab. The active orange
+// pip still marks it as the current route — green persists in every
+// state so it never drops back to grey.
+.bottom-nav-item--primary {
+  color: theme('colors.primaryGreen');
+
+  .bottom-nav-icon {
+    font-size: 30px !important;
+  }
+
+  &:hover,
+  &.is-active {
+    color: theme('colors.primaryGreen');
+  }
+}
+
 @media (max-width: 720px) {
   .bottom-nav-icon {
     font-size: 28px !important;

@@ -46,3 +46,31 @@
   font-size: 0.95rem;
   color: theme('colors.primary');
 }
+
+// Text column (label + optional description). Stays a plain inline run
+// when there's no description so the single-line variant is unchanged.
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+// With a description the row aligns to the top so a multi-line
+// description doesn't push the switch off-center.
+.toggle.has-description {
+  align-items: flex-start;
+
+  .toggle-track {
+    margin-top: 1px;
+  }
+
+  .toggle-label {
+    font-weight: 600;
+  }
+}
+
+.toggle-description {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.55);
+}

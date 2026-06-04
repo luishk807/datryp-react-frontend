@@ -292,6 +292,26 @@
   gap: 22px;
 }
 
+/* Notifications card — one Toggle per channel, with an optional muted
+   helper line tucked under the SMS toggle. */
+.account-notifications {
+  gap: 18px;
+}
+
+.account-notify-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-notify-helper {
+  margin: 0;
+  padding-left: 52px; /* aligns under the toggle label, past the track */
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.55);
+}
+
 .account-message {
   padding: 10px 14px;
   border-radius: 10px;

@@ -117,12 +117,14 @@ iframe[id*='__acroToolbar' i],
       display: contents !important;
     }
 
-    // The shared circle — bare icon buttons (no border, no
-    // background, no shadow) all using the same dark monochrome
-    // color. The hero photo is the visual feature; the icons sit
-    // quietly on top of it. Active states keep the same dark color —
-    // the filled vs outlined glyph carries the state, so we don't
-    // need a brand-color flip that fights the photo for attention.
+    // The shared circle — white glyphs on a subtle dark scrim circle,
+    // all using the same monochrome treatment. The hero photo is still
+    // the visual feature; the scrim is just enough to guarantee the
+    // white icon reads over *any* photo (bright skies, snow, sand) —
+    // a bare drop-shadow alone washes out on light hero images. Active
+    // states keep the same color — the filled vs outlined glyph carries
+    // the state, so we don't need a brand-color flip that fights the
+    // photo for attention.
     .bookmark-button-pill,
     .bookmark-city-pill,
     .bookmark-country-pill,
@@ -135,19 +137,18 @@ iframe[id*='__acroToolbar' i],
       padding: 0 !important;
       gap: 0 !important;
       border-radius: 999px !important;
-      background: transparent !important;
+      background: rgba(0, 0, 0, 0.38) !important;
       border: none !important;
       box-shadow: none !important;
-      color: rgba(255, 255, 255, 0.92) !important;
+      color: #fff !important;
       cursor: pointer;
       transition: background-color 0.18s ease, color 0.18s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      // Soft drop shadow on the glyph so it stays legible over
-      // light hero photos (mountain snow, beach sand, etc) without
-      // needing a pill chrome to back it.
-      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
+      // Soft drop shadow on the glyph for an extra edge of legibility
+      // against the scrim on very bright hero photos.
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 
       > span:not(.MuiSvgIcon-root) {
         display: none !important;

@@ -455,6 +455,21 @@ a.place-detail-google-rating {
   .place-detail-toolbar-actions .add-itinerary-pill .add-itinerary-icon {
     color: #fff;
   }
+
+  // Disabled floating CTA — the global `.is-disabled { opacity: .55 }`
+  // made the solid-green pill (and its white label) ghostly and hard
+  // to read on mobile. Swap the translucency for a solid muted-green
+  // fill with full-opacity text: clearly "not actionable yet" but
+  // still legible. (A persistently-disabled CTA usually means the
+  // place's country didn't resolve in the catalog — a separate data
+  // issue, not a styling one.)
+  .place-detail-toolbar-actions
+    .add-itinerary-pill.add-itinerary-pill.is-disabled {
+    opacity: 1;
+    background: #9ab8a1;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+  }
 }
 
 .place-detail-loading,

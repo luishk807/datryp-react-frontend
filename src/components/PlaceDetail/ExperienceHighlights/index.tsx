@@ -59,35 +59,35 @@ const ExperienceHighlights = ({ things }: ExperienceHighlightsProps) => {
                 className="experience-highlights-card-scrim"
                 aria-hidden="true"
               />
+              {tip.photographerName && (
+                <span className="experience-highlights-card-attribution">
+                  Photo by{" "}
+                  {tip.photographerUrl ? (
+                    <a
+                      href={tip.photographerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {tip.photographerName}
+                    </a>
+                  ) : (
+                    tip.photographerName
+                  )}{" "}
+                  on{" "}
+                  <a
+                    href="https://unsplash.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Unsplash
+                  </a>
+                </span>
+              )}
             </div>
             <div className="experience-highlights-card-body">
               <h3 className="experience-highlights-card-name">{tip.name}</h3>
               <p className="experience-highlights-card-why">{tip.why}</p>
             </div>
-            {tip.photographerName && (
-              <span className="experience-highlights-card-attribution">
-                Photo by{" "}
-                {tip.photographerUrl ? (
-                  <a
-                    href={tip.photographerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {tip.photographerName}
-                  </a>
-                ) : (
-                  tip.photographerName
-                )}{" "}
-                on{" "}
-                <a
-                  href="https://unsplash.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Unsplash
-                </a>
-              </span>
-            )}
           </li>
         ))}
       </ul>

@@ -109,6 +109,10 @@ export interface User {
      *  opted in. */
     travelCompanions: string[];
     kidsAgeBuckets: string[];
+    /** Per-channel notification preferences. In-app alerts are always on;
+     *  email defaults on; SMS is opt-in (and needs a valid `phone`). */
+    notifyEmail: boolean;
+    notifySms: boolean;
     /** ISO-3166 alpha-2 country code the backend inferred from the
      *  request's edge-geo header. NOT persisted to the user row —
      *  derived per request — so used only as a hint to pre-select /
@@ -237,6 +241,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             homeLongitude: me.home_longitude,
             travelCompanions: me.travel_companions ?? [],
             kidsAgeBuckets: me.kids_age_buckets ?? [],
+            notifyEmail: me.notify_email ?? true,
+            notifySms: me.notify_sms ?? false,
             detectedCountryCode: me.detected_country_code ?? null,
             ...overlay,
         };

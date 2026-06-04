@@ -109,6 +109,9 @@ export interface MeResponse {
      *  user hasn't opted in. */
     travel_companions: string[];
     kids_age_buckets: string[];
+    /** Per-channel notification preferences. Email defaults on; SMS opt-in. */
+    notify_email: boolean;
+    notify_sms: boolean;
     /** Per-request geolocation hint derived from the connecting client's
      *  IP at the edge (Cloudflare / Vercel / Fly geo headers). NOT
      *  persisted to the user row — surfaces here so the FE can reorder

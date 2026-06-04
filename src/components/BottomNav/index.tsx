@@ -240,9 +240,13 @@ const BottomNav = () => {
 
                 <button
                     type="button"
-                    className={classNames('bottom-nav-item', {
-                        'is-active': isActive('/trips'),
-                    })}
+                    className={classNames(
+                        'bottom-nav-item',
+                        'bottom-nav-item--primary',
+                        {
+                            'is-active': isActive('/trips'),
+                        },
+                    )}
                     onClick={() => navigate('/trips')}
                     aria-label="My trips"
                 >

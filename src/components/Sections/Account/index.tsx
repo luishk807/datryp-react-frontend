@@ -6,8 +6,10 @@ import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
+import Toggle from 'components/common/FormFields/Toggle';
 import InputField from 'components/common/FormFields/InputField';
 import PhoneInput from 'components/common/FormFields/PhoneInput';
 import DropDown from 'components/common/FormFields/DropDown';
@@ -25,6 +27,7 @@ import { useCountries } from 'api/hooks/useCountries';
 import {
     useGendersCatalog,
     useInterestsCatalog,
+    useMyPreferences,
     useTravelerStylesCatalog,
     useUpdateMyPreferences,
 } from 'api/hooks/useMyPreferences';
@@ -115,6 +118,10 @@ export const Account = () => {
     // hydrated user and PATCH /me/preferences on save.
     const { data: interestCatalog = [] } = useInterestsCatalog();
     const { data: travelerStyleCatalog = [] } = useTravelerStylesCatalog();
+    // `/auth/me` doesn't embed the per-channel notification prefs on the
+    // UserContext user object, so we seed those two toggles from the
+    // standalone `/me/preferences` query instead of `user`.
+    const { data: preferences } = useMyPreferences();
     const updatePrefs = useUpdateMyPreferences();
     const [interests, setInterests] = useState<string[]>(user?.interests ?? []);
     const [travelerStyles, setTravelerStyles] = useState<string[]>(
@@ -133,6 +140,17 @@ export const Account = () => {
         user?.kidsAgeBuckets ?? []
     );
     const [travelPrefsMessage, setTravelPrefsMessage] = useState<{
+        type: 'success' | 'error';
+        text: string;
+    } | null>(null);
+
+    // Per-channel notification preferences. In-app alerts are always on
+    // (no toggle); email defaults on, SMS is opt-in and only effective
+    // when a phone number is also set. Seeded from `/me/preferences`
+    // since these aren't embedded on the UserContext user.
+    const [notifyEmail, setNotifyEmail] = useState(true);
+    const [notifySms, setNotifySms] = useState(false);
+    const [notifyMessage, setNotifyMessage] = useState<{
         type: 'success' | 'error';
         text: string;
     } | null>(null);
@@ -187,6 +205,12 @@ export const Account = () => {
                 : null
         );
     }, [user]);
+
+    useEffect(() => {
+        if (!preferences) return;
+        setNotifyEmail(preferences.notifyEmail ?? true);
+        setNotifySms(preferences.notifySms ?? false);
+    }, [preferences]);
 
     const interestOptions = useMemo(
         () => interestCatalog.map((o) => ({ value: o.slug, label: o.label })),
@@ -420,6 +444,26 @@ export const Account = () => {
         }
     };
 
+    const handleNotificationsSave = async () => {
+        setNotifyMessage(null);
+        try {
+            await updatePrefs.mutateAsync({ notifyEmail, notifySms });
+            setNotifyMessage({
+                type: 'success',
+                text: 'Notification settings saved.',
+            });
+            setTimeout(() => setNotifyMessage(null), 2500);
+        } catch (err) {
+            setNotifyMessage({
+                type: 'error',
+                text:
+                    err instanceof Error
+                        ? err.message
+                        : 'Could not save notification settings.',
+            });
+        }
+    };
+
     // Section nav — left-rail on desktop, sticky chip strip on mobile.
     // `id` matches the `<section id>` so clicking a link scrolls to the
     // section; the IntersectionObserver below tracks which section is
@@ -430,6 +474,7 @@ export const Account = () => {
             { id: 'subscription', label: 'Subscription', icon: WorkspacePremiumRoundedIcon },
             { id: 'password', label: 'Password', icon: LockOutlinedIcon },
             { id: 'travel-preferences', label: 'Travel preferences', icon: FlightTakeoffRoundedIcon },
+            { id: 'notifications', label: 'Notifications', icon: NotificationsNoneRoundedIcon },
         ],
         []
     );
@@ -887,6 +932,66 @@ export const Account = () => {
                                         : 'Save travel preferences'
                                 }
                                 onClick={handleTravelPrefsSave}
+                                disabled={updatePrefs.isPending}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Notifications — per-channel delivery preferences. In-app
+                    alerts are always on; these two toggles control the email
+                    and SMS fan-out the backend applies to trip + activity
+                    notifications. */}
+                <section className="account-card" id="notifications">
+                    <div className="account-card-headings simple">
+                        <h2 className="account-card-title">Notifications</h2>
+                        <p className="account-card-subtitle">
+                            Choose how we reach you about trips and activities.
+                            In-app alerts are always on.
+                        </p>
+                    </div>
+                    <div className="account-form account-notifications">
+                        <div className="account-notify-row">
+                            <Toggle
+                                label="Email notifications"
+                                description="Trip invites, status changes, and activity alerts by email."
+                                checked={notifyEmail}
+                                onChange={setNotifyEmail}
+                                disabled={updatePrefs.isPending}
+                            />
+                        </div>
+                        <div className="account-notify-row">
+                            <Toggle
+                                label="SMS notifications"
+                                description="Text alerts for time-sensitive trip updates. Standard message rates may apply."
+                                checked={notifySms}
+                                onChange={setNotifySms}
+                                disabled={updatePrefs.isPending}
+                            />
+                            {!phone.trim() && (
+                                <p className="account-notify-helper">
+                                    Add a phone number in your Profile above to
+                                    receive texts.
+                                </p>
+                            )}
+                        </div>
+                        {notifyMessage && (
+                            <div
+                                className={`account-message account-message-${notifyMessage.type}`}
+                            >
+                                {notifyMessage.text}
+                            </div>
+                        )}
+                        <div className="account-actions">
+                            <ButtonCustom
+                                type={BUTTON_VARIANT.STANDARD_MINI}
+                                capitalizeType="uppercase"
+                                label={
+                                    updatePrefs.isPending
+                                        ? 'Saving…'
+                                        : 'Save notifications'
+                                }
+                                onClick={handleNotificationsSave}
                                 disabled={updatePrefs.isPending}
                             />
                         </div>
