@@ -200,6 +200,19 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                 }
             }
 
+            // Drag the end date along when the start moves past it, so the
+            // range never goes backwards. Picking a start after the current
+            // end snaps the end to the same day rather than leaving an
+            // invalid "end before start" range the user has to fix by hand.
+            if (
+                'startDate' in action.payload &&
+                draft.startDate &&
+                draft.endDate &&
+                moment(draft.endDate).isBefore(moment(draft.startDate), 'day')
+            ) {
+                draft.endDate = draft.startDate;
+            }
+
             // Re-anchor orphan activities after a single-trip date change.
             // The "/place → Add to itinerary → start fresh trip" flow stamps
             // a place activity at today before the user picks real dates;

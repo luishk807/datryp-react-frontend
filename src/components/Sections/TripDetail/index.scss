@@ -1005,5 +1005,70 @@ $night-border: rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.08);
     }
   }
+
+  // ---- Trip review (TripCheckupCard) ----
+  // The card ships a light white→tint gradient; on dark that reads as a
+  // washed grey slab. Swap it for a SOLID dark surface and darken the
+  // nested white chips / lists so the whole card sits in the theme.
+  .trip-checkup-box {
+    background: $night-surface !important;
+    border-color: $night-border;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+
+    &.is-pending {
+      background: $night-surface !important;
+    }
+  }
+  .trip-checkup-collapse {
+    background: $night-surface-2;
+    border-color: $night-border;
+    color: $night-text-2;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+  .trip-checkup-title {
+    color: $night-text;
+  }
+  .trip-checkup-sub {
+    color: $night-text-2;
+  }
+  .trip-checkup-refresh {
+    color: $night-text-3;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+  .trip-checkup-meter-scale {
+    color: $night-text-3;
+  }
+  .trip-checkup-meter-marker-num {
+    background: $night-surface-2;
+    border-color: $night-border;
+  }
+  // Inset chips (per-dimension) + the strengths/gaps lists.
+  .trip-checkup-dim,
+  .trip-checkup-list {
+    background: $night-surface-2;
+    border-color: $night-border;
+  }
+  .trip-checkup-dim-label {
+    color: $night-text-2;
+  }
+  .trip-checkup-dim-chevron {
+    color: $night-text-3;
+  }
+  .trip-checkup-dim-bar {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .trip-checkup-dim-why {
+    color: $night-text-2;
+    border-top-color: $night-border;
+  }
+  .trip-checkup-list li {
+    color: $night-text-2;
+  }
 }
 
