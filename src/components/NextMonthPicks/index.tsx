@@ -9,8 +9,8 @@
  *
  * Card-click semantics are kind-dependent because the source data spans
  * three different surfaces:
- *   - place   → `/place?q=<name>&i=0`        (matches the rest of the
- *                                              app's place-link convention)
+ *   - place   → go-direct `/place?q=<name>&city=&country=` (skips the
+ *                                              recommender discovery hop)
  *   - city    → `/city?name=...&country=...&code=...&mode=single`
  *   - country → `/country?code=<code>`
  *
@@ -23,6 +23,7 @@ import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import type { NextMonthPickItem } from 'api/nextMonthPicksApi';
 import { useNextMonthPicks } from 'api/hooks/useNextMonthPicks';
 import { useUser } from 'context/UserContext';
+import { placeDetailUrl } from 'utils/placeUrl';
 import { NO_IMAGE } from 'constants';
 import './index.scss';
 
@@ -30,7 +31,10 @@ const cardKey = (item: NextMonthPickItem) => `${item.kind}--${item.key}`;
 
 const linkFor = (item: NextMonthPickItem): string => {
     if (item.kind === 'place') {
-        return `/place?q=${encodeURIComponent(item.name)}&i=0`;
+        // Go-direct when the saved place carries city + country (skips the
+        // recommender discovery hop); placeDetailUrl falls back to the
+        // name-search link for legacy cached rows missing those fields.
+        return placeDetailUrl(item.name, item.city, item.country);
     }
     if (item.kind === 'country') {
         // The country dispatch happens by ISO alpha-2 code; the

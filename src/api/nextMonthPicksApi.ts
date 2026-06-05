@@ -11,7 +11,7 @@ const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
 
 /** Discriminator for the destination link.
- *  - "place"   → `/place?q=<name>&i=0`
+ *  - "place"   → go-direct `/place?q=<name>&city=<city>&country=<country>`
  *  - "city"    → `/city?name=<name>&country=<country>&code=<code>&mode=single`
  *  - "country" → `/country?code=<code>`
  */
@@ -24,6 +24,10 @@ export interface NextMonthPickItem {
     name: string;
     /** Human "where" string already formatted on the backend. */
     location: string;
+    /** Place-only raw city + country for a go-direct `/place` link. Null for
+     *  city/country kinds and legacy cached rows. */
+    city: string | null;
+    country: string | null;
     countryCode: string | null;
     imageUrl: string | null;
     /** Original best-time-to-visit string ("May to October"). Rendered
@@ -45,6 +49,8 @@ interface NextMonthPickItemRaw {
     key: string;
     name: string;
     location: string;
+    city: string | null;
+    country: string | null;
     country_code: string | null;
     image_url: string | null;
     best_time_to_visit: string;
@@ -66,6 +72,8 @@ const toItem = (r: NextMonthPickItemRaw): NextMonthPickItem => ({
     key: r.key,
     name: r.name,
     location: r.location,
+    city: r.city,
+    country: r.country,
     countryCode: r.country_code,
     imageUrl: r.image_url,
     bestTimeToVisit: r.best_time_to_visit,
