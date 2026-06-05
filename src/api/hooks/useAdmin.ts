@@ -8,6 +8,7 @@ import {
     fetchAdminUserTrips,
     fetchAgeDistribution,
     fetchAiUsage,
+    fetchCostAnalytics,
     fetchCityCacheStatus,
     fetchCountryCacheStatus,
     fetchGrowth,
@@ -39,6 +40,7 @@ import type {
     AdminUserTripsResponse,
     AgeDistributionResponse,
     AiUsageResponse,
+    CostAnalyticsResponse,
     DashboardOverview,
     GrowthResponse,
     PostHogStatsResponse,
@@ -66,6 +68,7 @@ export const adminKeys = {
         ['admin', 'top-searches', page, perPage, days] as const,
     posthogStats: (days: number) => ['admin', 'posthog', days] as const,
     aiUsage: (months: number) => ['admin', 'ai-usage', months] as const,
+    costAnalytics: () => ['admin', 'cost-analytics'] as const,
     users: (q: string) => ['admin', 'users', q] as const,
     freeEverything: ['admin', 'free-everything'] as const,
     userTrips: (id: string) => ['admin', 'user-trips', id] as const,
@@ -216,6 +219,17 @@ export const useAdminAiUsage = (months: number = 12) => {
     return useQuery<AiUsageResponse>({
         queryKey: adminKeys.aiUsage(months),
         queryFn: () => fetchAiUsage(months),
+        enabled: adminEnabled(isAdmin),
+        refetchInterval: POLL_INTERVAL_MS,
+        staleTime: 30 * 1000,
+    });
+};
+
+export const useAdminCostAnalytics = () => {
+    const { isAdmin } = useUser();
+    return useQuery<CostAnalyticsResponse>({
+        queryKey: adminKeys.costAnalytics(),
+        queryFn: fetchCostAnalytics,
         enabled: adminEnabled(isAdmin),
         refetchInterval: POLL_INTERVAL_MS,
         staleTime: 30 * 1000,

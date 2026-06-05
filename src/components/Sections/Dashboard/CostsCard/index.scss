@@ -1,0 +1,110 @@
+.costs-table {
+    margin-top: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.costs-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 96px 80px 96px;
+    gap: 8px;
+    align-items: baseline;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    @media (max-width: 720px) {
+        grid-template-columns: minmax(0, 1fr) 64px 80px;
+
+        // The "cached" column is the least essential on a narrow screen.
+        span:nth-child(3) {
+            display: none;
+        }
+    }
+}
+
+.costs-row-head {
+    background: #fafafa;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.5);
+
+    span:not(:first-child) {
+        text-align: right;
+    }
+}
+
+.costs-row-untracked {
+    background: rgba(0, 0, 0, 0.015);
+
+    .costs-feature-label {
+        color: rgba(0, 0, 0, 0.55);
+    }
+}
+
+.costs-feature {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.costs-feature-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.costs-untracked-tag {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 999px;
+    padding: 1px 7px;
+}
+
+.costs-feature-note {
+    font-size: 0.76rem;
+    color: rgba(0, 0, 0, 0.45);
+    line-height: 1.35;
+}
+
+.costs-num {
+    text-align: right;
+    font-size: 0.88rem;
+    color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.costs-num-sub {
+    font-size: 0.68rem;
+    color: rgba(0, 0, 0, 0.4);
+}
+
+.costs-cost {
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: theme('colors.primaryOrange');
+}
+
+.costs-footnote {
+    margin: 14px 2px 0;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.45);
+}

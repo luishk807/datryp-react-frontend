@@ -18,6 +18,7 @@ const DashboardSubscription = lazy(() => import('components/Sections/Dashboard/S
 const DashboardActivity = lazy(() => import('components/Sections/Dashboard/ActivityCard'));
 const DashboardUsers = lazy(() => import('components/Sections/Dashboard/UsersCard'));
 const DashboardCache = lazy(() => import('components/Sections/Dashboard/CacheCard'));
+const DashboardCosts = lazy(() => import('components/Sections/Dashboard/CostsCard'));
 const DashboardSettings = lazy(() => import('components/Sections/Dashboard/SettingsCard'));
 const SingleTrip = lazy(() => import('components/Sections/SingleTrip'));
 const MultipleTrip = lazy(() => import('components/Sections/MultipleTrip'));
@@ -242,6 +243,11 @@ function App() {
                     <Route path='cache' element={
                         <Suspense fallback={<PageLoader />}>
                             <DashboardCache />
+                        </Suspense>
+                    } />
+                    <Route path='costs' element={
+                        <Suspense fallback={<PageLoader />}>
+                            <DashboardCosts />
                         </Suspense>
                     } />
                     <Route path='settings' element={

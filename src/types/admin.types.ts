@@ -91,6 +91,29 @@ export interface AiUsageResponse {
     estimatedCostPerCallUsd: number;
 }
 
+export interface CostFeatureItem {
+    feature: string;
+    label: string;
+    /** Estimated OpenAI calls = cold generations × callsPerUnit. */
+    openaiCalls: number;
+    callsPerUnit: number;
+    estimatedCostUsd: number;
+    /** Times served from cache instead — spend avoided, not a cost. */
+    cachedServed: number;
+    /** False for features whose true cost isn't derivable from the DB
+     *  (Unsplash is free; Google Places isn't persistently tracked). */
+    tracked: boolean;
+    note: string | null;
+}
+
+export interface CostAnalyticsResponse {
+    features: CostFeatureItem[];
+    totalOpenaiCalls: number;
+    totalEstimatedCostUsd: number;
+    totalCachedServed: number;
+    estimatedCostPerCallUsd: number;
+}
+
 export interface AgeBucketCount {
     key: string;
     label: string;

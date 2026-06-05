@@ -13,6 +13,7 @@ import type {
     AdminUserTripsResponse,
     AgeDistributionResponse,
     AiUsageResponse,
+    CostAnalyticsResponse,
     DashboardOverview,
     GrowthResponse,
     PostHogStatsResponse,
@@ -415,6 +416,49 @@ export const fetchAiUsage = async (months = 12): Promise<AiUsageResponse> => {
         totalAiCalls: r.total_ai_calls,
         totalCacheHits: r.total_cache_hits,
         totalEstimatedCostUsd: r.total_estimated_cost_usd,
+        estimatedCostPerCallUsd: r.estimated_cost_per_call_usd,
+    };
+};
+
+interface CostFeatureItemRaw {
+    feature: string;
+    label: string;
+    openai_calls: number;
+    calls_per_unit: number;
+    estimated_cost_usd: number;
+    cached_served: number;
+    tracked: boolean;
+    note: string | null;
+}
+
+interface CostAnalyticsResponseRaw {
+    features: CostFeatureItemRaw[];
+    total_openai_calls: number;
+    total_estimated_cost_usd: number;
+    total_cached_served: number;
+    estimated_cost_per_call_usd: number;
+}
+
+export const fetchCostAnalytics = async (): Promise<CostAnalyticsResponse> => {
+    const resp = await fetch(`${API_BASE}/admin/dashboard/cost-analytics`, {
+        headers: authHeaders(),
+    });
+    if (!resp.ok) await handleError(resp, '/admin/dashboard/cost-analytics');
+    const r = (await resp.json()) as CostAnalyticsResponseRaw;
+    return {
+        features: r.features.map((f) => ({
+            feature: f.feature,
+            label: f.label,
+            openaiCalls: f.openai_calls,
+            callsPerUnit: f.calls_per_unit,
+            estimatedCostUsd: f.estimated_cost_usd,
+            cachedServed: f.cached_served,
+            tracked: f.tracked,
+            note: f.note,
+        })),
+        totalOpenaiCalls: r.total_openai_calls,
+        totalEstimatedCostUsd: r.total_estimated_cost_usd,
+        totalCachedServed: r.total_cached_served,
         estimatedCostPerCallUsd: r.estimated_cost_per_call_usd,
     };
 };
