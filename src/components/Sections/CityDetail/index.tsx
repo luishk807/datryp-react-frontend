@@ -427,6 +427,7 @@ const CityDetail = () => {
                     <aside className="city-detail-side">
                         <WeatherSection
                             weather={details.weather}
+                            coordinates={details.coordinates}
                             isError={false}
                         />
                         <CurrencySection

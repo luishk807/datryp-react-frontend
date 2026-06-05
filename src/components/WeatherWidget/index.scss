@@ -39,9 +39,35 @@
   color: theme('colors.primaryGreen');
 }
 
+.weather-widget-now {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.weather-widget-temp {
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.weather-widget-range {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+}
+
 .weather-widget-text {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.7);
+}
+
+// When the live readout is present the climate prose is secondary context.
+.weather-widget-now + .weather-widget-text {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.55);
 }

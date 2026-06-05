@@ -23,3 +23,4 @@ export * from "./admin.types";
 export * from "./preferences.types";
 export * from "./bucketList.types";
 export * from "./notification.types";
+export * from "./weather.types";

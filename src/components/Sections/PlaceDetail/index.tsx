@@ -330,6 +330,7 @@ const PlaceDetail = () => {
           <aside className="place-detail-side">
             <WeatherSection
               weather={detailsQuery.data?.details.weather}
+              coordinates={detailsQuery.data?.details.coordinates}
               isError={proseError}
             />
 

@@ -417,6 +417,7 @@ const CountryDetail = () => {
             />
             <WeatherSection
               weather={details.weather}
+              coordinates={details.capitalCoordinates}
               isError={false}
             />
             <SafetySection safety={details.safety} isError={false} />
