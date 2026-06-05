@@ -443,9 +443,14 @@ const CountryDetail = () => {
             <span>
               <strong>Capital:</strong> {details.capitalCity}
             </span>
-            <span>
-              <strong>Language:</strong> {details.travelBasics.language}
-            </span>
+            {/* `travelBasics` arrives with the facts slice — render the
+                Language line only once it lands so a cold first paint (prose
+                only) doesn't dereference an undefined object. */}
+            {details.travelBasics?.language && (
+              <span>
+                <strong>Language:</strong> {details.travelBasics.language}
+              </span>
+            )}
           </p>
           {(details.touristRating ?? 0) > 0 && (
             <div className="country-detail-rating">
@@ -542,7 +547,10 @@ const CountryDetail = () => {
             icon={<LocationCityRoundedIcon />}
           >
             <ul className="country-top-cities">
-              {details.topCities.map((city) => (
+              {/* `topCities` arrives with the lists slice — guard the map so a
+                  cold first paint (prose only) doesn't crash on undefined. The
+                  list fills in when the slice lands. */}
+              {(details.topCities ?? []).map((city) => (
                 <li key={city.name} className="country-top-city">
                   <Link
                     to={`/city?name=${encodeURIComponent(city.name)}&country=${encodeURIComponent(country.name)}&code=${encodeURIComponent(country.code)}`}
