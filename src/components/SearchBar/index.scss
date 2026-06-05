@@ -358,6 +358,50 @@
   flex-shrink: 0;
 }
 
+/* Explicit Search button inside the description-mode input. Orange to read
+   as the primary submit, distinct from the neutral white field, so users
+   don't mistake the "Plan my trip for me" CTA below for the search action. */
+.searchbarMain .searchbar-recommend-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: theme('colors.primaryOrange');
+  transition: filter 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.93);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.searchbarMain .searchbar-recommend-submit-icon {
+  font-size: 1.15rem;
+}
+
+/* Collapse to an icon-only button on narrow phones so the field keeps
+   room for the typed query. */
+@media (max-width: 560px) {
+  .searchbarMain .searchbar-recommend-submit {
+    padding: 9px 11px;
+  }
+
+  .searchbarMain .searchbar-recommend-submit-label {
+    display: none;
+  }
+}
+
 /* Country-mode spinner — orange to match the trip-type tab thumb.
    Positioned at the right edge of the input via the relative inputHolder.
    Using margin-top for centering so the rotation transform doesn't conflict. */

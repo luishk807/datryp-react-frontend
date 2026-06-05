@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { Link } from 'react-router-dom';
 import './index.scss';
 import InputField from 'components/common/FormFields/InputField';
@@ -413,17 +414,21 @@ const SearchBar = ({
             rawQuery.trim().length > 0 &&
             (items.length > 0 || showEmpty || hasRecommendError || showLoading);
 
-        const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key !== 'Enter') return;
-            const value = rawQuery.trim();
-            if (!value) return;
-            e.preventDefault();
-            onAiSearchSubmit?.(value);
-        };
-
         // When onAiSearchSubmit is wired, the parent handles navigation to
         // /search?q=... and we suppress the inline dropdown entirely.
         const useNavigationFlow = Boolean(onAiSearchSubmit);
+
+        const submitAiSearch = () => {
+            const value = rawQuery.trim();
+            if (!value) return;
+            onAiSearchSubmit?.(value);
+        };
+
+        const handleAiKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            submitAiSearch();
+        };
 
         return (
             <div className="searchbar-recommend">
@@ -441,6 +446,25 @@ const SearchBar = ({
                     />
                     {isRecommending && !useNavigationFlow && (
                         <span className="searchbar-recommend-spinner" aria-hidden="true" />
+                    )}
+                    {/* Explicit submit affordance: the description mode only
+                        searches on Enter, which isn't discoverable — without
+                        this button users typed a query then clicked the
+                        unrelated "Plan my trip for me" CTA expecting it to
+                        search. Mirrors the Enter handler exactly. */}
+                    {useNavigationFlow && (
+                        <button
+                            type="button"
+                            className="searchbar-recommend-submit"
+                            onClick={submitAiSearch}
+                            disabled={!rawQuery.trim()}
+                            aria-label="Search"
+                        >
+                            <SearchRoundedIcon className="searchbar-recommend-submit-icon" />
+                            <span className="searchbar-recommend-submit-label">
+                                Search
+                            </span>
+                        </button>
                     )}
                 </div>
 
