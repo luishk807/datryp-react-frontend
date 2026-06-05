@@ -1,6 +1,18 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCountryDetails } from 'api/countryDetailsApi';
-import type { CountryDetailsResult } from 'types';
+import {
+    fetchCountryDetails,
+    fetchCountryFacts,
+    fetchCountryLists,
+    fetchCountryProse,
+    type CountryDetailsSlice,
+} from 'api/countryDetailsApi';
+import { STATIC_DETAIL_CACHE } from 'api/queryClient';
+import type {
+    CountryDetails,
+    CountryDetailsResult,
+    CountrySummary,
+} from 'types';
 
 /**
  * Enriched, country-level travel info for one ISO 3166-1 alpha-2 code.
@@ -19,7 +31,88 @@ export const useCountryDetails = (code: string) => {
         queryKey: ['country-details', trimmed],
         queryFn: () => fetchCountryDetails(trimmed),
         enabled: trimmed.length >= 2,
-        staleTime: 60 * 60 * 1000,
+        ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
+
+// --- Progressive "slice" hooks ---------------------------------------------
+// The country page fetches prose / lists / facts independently so a cold
+// country paints in phases. `useCountryDetailsProgressive` fans all three out
+// in parallel and merges them as they land. Mirrors the city page.
+
+export const useCountryProse = (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    return useQuery({
+        queryKey: ['country-prose', trimmed],
+        queryFn: () => fetchCountryProse(trimmed),
+        enabled: trimmed.length >= 2,
+        ...STATIC_DETAIL_CACHE,
+        retry: 1,
+    });
+};
+
+export const useCountryLists = (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    return useQuery({
+        queryKey: ['country-lists', trimmed],
+        queryFn: () => fetchCountryLists(trimmed),
+        enabled: trimmed.length >= 2,
+        ...STATIC_DETAIL_CACHE,
+        retry: 1,
+    });
+};
+
+export const useCountryFacts = (code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    return useQuery({
+        queryKey: ['country-facts', trimmed],
+        queryFn: () => fetchCountryFacts(trimmed),
+        enabled: trimmed.length >= 2,
+        ...STATIC_DETAIL_CACHE,
+        retry: 1,
+    });
+};
+
+export interface ProgressiveCountryDetails {
+    country: CountrySummary | undefined;
+    details: Partial<CountryDetails>;
+    isLoading: boolean;
+    isError: boolean;
+    error: unknown;
+    listsLoading: boolean;
+    factsLoading: boolean;
+}
+
+/**
+ * Fan out the three country-detail slices in parallel and expose them merged.
+ * Prose gates first paint (it carries the country summary + hero image);
+ * lists and facts stream into their sections as they arrive, each rendering
+ * its own skeleton until then.
+ */
+export const useCountryDetailsProgressive = (
+    code: string
+): ProgressiveCountryDetails => {
+    const prose = useCountryProse(code);
+    const lists = useCountryLists(code);
+    const facts = useCountryFacts(code);
+
+    const details = useMemo<Partial<CountryDetails>>(
+        () => ({
+            ...(prose.data?.details ?? {}),
+            ...((lists.data as CountryDetailsSlice | undefined) ?? {}),
+            ...((facts.data as CountryDetailsSlice | undefined) ?? {}),
+        }),
+        [prose.data, lists.data, facts.data]
+    );
+
+    return {
+        country: prose.data?.country,
+        details,
+        isLoading: prose.isLoading,
+        isError: prose.isError,
+        error: prose.error,
+        listsLoading: lists.isLoading,
+        factsLoading: facts.isLoading,
+    };
 };

@@ -47,7 +47,7 @@ import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
-import { usePlaceDetails } from "api/hooks/usePlaceDetails";
+import { usePlaceDetailsProgressive } from "api/hooks/usePlaceDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useIsStuck } from "hooks/useIsStuck";
 import { useVisitedPlaces } from "api/hooks/useVisitedPlaces";
@@ -93,12 +93,25 @@ const PlaceDetail = () => {
     recommenderCountry
   );
 
-  // Enriched details (foods, places, weather, worst-time). Lazy-fetched,
-  // cached server-side on the same row so a repeat view is instant. Gated
-  // on the search query having resolved — `/place-details` reads from the
-  // row that `/place-recommendations` creates, so firing it before the
-  // search lands 404s on direct deep-links.
-  const detailsQuery = usePlaceDetails(query, index, Boolean(data));
+  // Enriched details, fetched as three parallel slices (prose / lists /
+  // facts) so a cold place's body streams in phases instead of blocking on
+  // the slowest group. Cached server-side on the same row so a repeat view is
+  // instant. Gated on the search query having resolved — `/place-details*`
+  // reads from the row `/place-recommendations` creates, so firing before the
+  // search lands 404s on direct deep-links. Each section renders its own
+  // skeleton (data `undefined`) until its slice arrives.
+  const detailsProgressive = usePlaceDetailsProgressive(
+    query,
+    index,
+    Boolean(data)
+  );
+  // Compat shape so the existing `detailsQuery.data?.details.X` reads keep
+  // working, now sourced from the merged slices.
+  const detailsQuery = {
+    data: { details: detailsProgressive.details },
+    isError: detailsProgressive.isError,
+    error: detailsProgressive.error,
+  };
 
   const detailUrl =
     typeof window !== "undefined"

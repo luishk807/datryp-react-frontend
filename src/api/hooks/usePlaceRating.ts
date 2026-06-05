@@ -4,6 +4,7 @@ import {
     type PlaceRating,
     type PlaceRatingFields,
 } from 'api/placeRatingApi';
+import { STATIC_DETAIL_CACHE } from 'api/queryClient';
 import { useUser } from 'context/UserContext';
 
 /**
@@ -48,7 +49,7 @@ export const usePlaceRating = (
         ],
         queryFn: () => fetchPlaceRating(trimmedName, trimmedLocation, fields),
         enabled: enabled && isEntitled && trimmedName.length >= 2,
-        staleTime: 60 * 60 * 1000,
+        ...STATIC_DETAIL_CACHE,
         retry: 0,
     });
 };

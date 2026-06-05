@@ -158,71 +158,131 @@ const toCity = (raw: CitySummaryRaw): CitySummary => ({
     photographerUrl: raw.photographer_url,
 });
 
-const toDetails = (raw: CityDetailsRaw): CityDetails => ({
+// Per-group mappers. Each maps one OpenAI prompt group (prose / lists /
+// facts) to its slice of the camelCased `CityDetails`. The progressive
+// "slice" endpoints return one group each; the monolithic `/city-details`
+// composes all three (see `toDetails`). Sub-objects are guarded for the
+// slice schemas' permissive nulls — harmless on the full (never-null) row.
+
+type CityProseRaw = Pick<
+    CityDetailsRaw,
+    | "long_description"
+    | "country_description"
+    | "budget_description"
+    | "city_highlight"
+    | "country_highlight"
+    | "weather"
+    | "best_time_to_visit"
+    | "worst_time_to_visit"
+    | "cultural_shock"
+>;
+
+type CityListsRaw = Pick<
+    CityDetailsRaw,
+    | "top_places"
+    | "foods"
+    | "things_to_do"
+    | "photo_spots"
+    | "notes_to_know"
+    | "nearby_destinations"
+> & { local_flavor: LocalFlavorRaw | null };
+
+type CityFactsRaw = {
+    currency: CurrencyInfoRaw | null;
+    safety: SafetyInfoRaw | null;
+    coordinates: CoordinatesRaw | null;
+    travel_basics: TravelBasicsRaw | null;
+    lodging: LodgingInfoRaw | null;
+    cost_level: number;
+    visa: VisaInfoRaw | null;
+    airports?: AirportRaw[];
+    tourist_rating?: number;
+    popularity?: CityDetailsRaw["popularity"];
+};
+
+const proseFromRaw = (raw: CityProseRaw): Partial<CityDetails> => ({
     longDescription: raw.long_description,
     countryDescription: raw.country_description,
     budgetDescription: raw.budget_description,
     cityHighlight: raw.city_highlight,
     countryHighlight: raw.country_highlight,
+    weather: raw.weather,
+    bestTimeToVisit: raw.best_time_to_visit,
+    worstTimeToVisit: raw.worst_time_to_visit,
+    culturalShock: raw.cultural_shock ?? undefined,
+});
+
+const listsFromRaw = (raw: CityListsRaw): Partial<CityDetails> => ({
     topPlaces: raw.top_places.map(toNamedTip),
     foods: raw.foods.map(toNamedTip),
     thingsToDo: raw.things_to_do.map(toNamedTip),
     photoSpots: raw.photo_spots.map(toNamedTip),
     notesToKnow: raw.notes_to_know.map(toNamedTip),
-    bestTimeToVisit: raw.best_time_to_visit,
-    worstTimeToVisit: raw.worst_time_to_visit,
-    weather: raw.weather,
-    currency: {
-        code: raw.currency.code,
-        name: raw.currency.name,
-        ratePerUsd: raw.currency.rate_per_usd,
-    },
-    safety: {
-        score: raw.safety.score,
-        level: raw.safety.level,
-        summary: raw.safety.summary,
-    },
-    coordinates: {
-        lat: raw.coordinates.lat,
-        lng: raw.coordinates.lng,
-    },
-    travelBasics: {
-        preferredTransport: raw.travel_basics.preferred_transport,
-        transportSystem: raw.travel_basics.transport_system,
-        paymentMethod: raw.travel_basics.payment_method,
-        paymentNote: raw.travel_basics.payment_note,
-        language: raw.travel_basics.language,
-        vibe: raw.travel_basics.vibe,
-        audience: raw.travel_basics.audience,
-        ageRecommendation: raw.travel_basics.age_recommendation,
-    },
-    lodging: {
-        recommendedType: raw.lodging.recommended_type,
-        airbnbAvailability: raw.lodging.airbnb_availability,
-        airbnbNote: raw.lodging.airbnb_note,
-        hotelAvailability: raw.lodging.hotel_availability,
-        hotelNote: raw.lodging.hotel_note,
-        priceRange: raw.lodging.price_range,
-        bookingTip: raw.lodging.booking_tip,
-    },
     nearbyDestinations: raw.nearby_destinations.map((n) => ({
         ...n,
         imageUrl: n.image_url ?? null,
     })),
-    localFlavor: {
-        funLevel: raw.local_flavor.fun_level,
-        nightlife: raw.local_flavor.nightlife,
-        famousLiquor: raw.local_flavor.famous_liquor,
-        uniqueSouvenir: raw.local_flavor.unique_souvenir,
-        mustDoBeforeLeaving: raw.local_flavor.must_do_before_leaving,
-    },
+    localFlavor: raw.local_flavor
+        ? {
+              funLevel: raw.local_flavor.fun_level,
+              nightlife: raw.local_flavor.nightlife,
+              famousLiquor: raw.local_flavor.famous_liquor,
+              uniqueSouvenir: raw.local_flavor.unique_souvenir,
+              mustDoBeforeLeaving: raw.local_flavor.must_do_before_leaving,
+          }
+        : undefined,
+});
+
+const factsFromRaw = (raw: CityFactsRaw): Partial<CityDetails> => ({
+    currency: raw.currency
+        ? {
+              code: raw.currency.code,
+              name: raw.currency.name,
+              ratePerUsd: raw.currency.rate_per_usd,
+          }
+        : undefined,
+    safety: raw.safety
+        ? {
+              score: raw.safety.score,
+              level: raw.safety.level,
+              summary: raw.safety.summary,
+          }
+        : undefined,
+    coordinates: raw.coordinates
+        ? { lat: raw.coordinates.lat, lng: raw.coordinates.lng }
+        : undefined,
+    travelBasics: raw.travel_basics
+        ? {
+              preferredTransport: raw.travel_basics.preferred_transport,
+              transportSystem: raw.travel_basics.transport_system,
+              paymentMethod: raw.travel_basics.payment_method,
+              paymentNote: raw.travel_basics.payment_note,
+              language: raw.travel_basics.language,
+              vibe: raw.travel_basics.vibe,
+              audience: raw.travel_basics.audience,
+              ageRecommendation: raw.travel_basics.age_recommendation,
+          }
+        : undefined,
+    lodging: raw.lodging
+        ? {
+              recommendedType: raw.lodging.recommended_type,
+              airbnbAvailability: raw.lodging.airbnb_availability,
+              airbnbNote: raw.lodging.airbnb_note,
+              hotelAvailability: raw.lodging.hotel_availability,
+              hotelNote: raw.lodging.hotel_note,
+              priceRange: raw.lodging.price_range,
+              bookingTip: raw.lodging.booking_tip,
+          }
+        : undefined,
     costLevel: raw.cost_level,
-    visa: {
-        destinationCountryCode: raw.visa.destination_country_code,
-        visaFreeCountries: raw.visa.visa_free_countries,
-        visaOnArrivalCountries: raw.visa.visa_on_arrival_countries,
-        summary: raw.visa.summary,
-    },
+    visa: raw.visa
+        ? {
+              destinationCountryCode: raw.visa.destination_country_code,
+              visaFreeCountries: raw.visa.visa_free_countries,
+              visaOnArrivalCountries: raw.visa.visa_on_arrival_countries,
+              summary: raw.visa.summary,
+          }
+        : undefined,
     // Optional on the wire so cache rows from before this field shipped
     // still deserialize. UI degrades to an "Airport info unavailable"
     // message until the row gets refreshed.
@@ -240,8 +300,14 @@ const toDetails = (raw: CityDetailsRaw): CityDetails => ({
               summary: raw.popularity.summary,
           }
         : undefined,
-    culturalShock: raw.cultural_shock ?? undefined,
 });
+
+const toDetails = (raw: CityDetailsRaw): CityDetails =>
+    ({
+        ...proseFromRaw(raw),
+        ...listsFromRaw(raw),
+        ...factsFromRaw(raw),
+    }) as CityDetails;
 
 export const fetchCityDetails = async (
     name: string,
@@ -261,4 +327,81 @@ export const fetchCityDetails = async (
         cached: body.cached,
         details: toDetails(body.details),
     };
+};
+
+// --- Progressive "slice" fetchers ------------------------------------------
+// One per OpenAI prompt group, fetched in parallel by the city page so it
+// paints in phases (prose → lists → facts) on a cold city. Each returns its
+// slice of the camelCased details; the page merges them. Backend caches all
+// three into the same row, so cost matches the monolithic call.
+
+/** Slice of `CityDetails` returned by one progressive endpoint. */
+export type CityDetailsSlice = Partial<CityDetails>;
+
+export interface CityProseResult {
+    city: CitySummary;
+    cached: boolean;
+    details: CityDetailsSlice;
+}
+
+const sliceParams = (name: string, country: string, code: string) =>
+    new URLSearchParams({ name, country, code });
+
+export const fetchCityProse = async (
+    name: string,
+    country: string,
+    code: string
+): Promise<CityProseResult> => {
+    const resp = await fetch(
+        `${API_BASE}/city-details/prose?${sliceParams(name, country, code)}`
+    );
+    if (!resp.ok) {
+        throw new Error(
+            `/city-details/prose failed: ${resp.status} ${resp.statusText}`
+        );
+    }
+    const body = (await resp.json()) as {
+        city: CitySummaryRaw;
+        cached: boolean;
+        prose: CityProseRaw;
+    };
+    return {
+        city: toCity(body.city),
+        cached: body.cached,
+        details: proseFromRaw(body.prose),
+    };
+};
+
+export const fetchCityLists = async (
+    name: string,
+    country: string,
+    code: string
+): Promise<CityDetailsSlice> => {
+    const resp = await fetch(
+        `${API_BASE}/city-details/lists?${sliceParams(name, country, code)}`
+    );
+    if (!resp.ok) {
+        throw new Error(
+            `/city-details/lists failed: ${resp.status} ${resp.statusText}`
+        );
+    }
+    const body = (await resp.json()) as { cached: boolean; lists: CityListsRaw };
+    return listsFromRaw(body.lists);
+};
+
+export const fetchCityFacts = async (
+    name: string,
+    country: string,
+    code: string
+): Promise<CityDetailsSlice> => {
+    const resp = await fetch(
+        `${API_BASE}/city-details/facts?${sliceParams(name, country, code)}`
+    );
+    if (!resp.ok) {
+        throw new Error(
+            `/city-details/facts failed: ${resp.status} ${resp.statusText}`
+        );
+    }
+    const body = (await resp.json()) as { cached: boolean; facts: CityFactsRaw };
+    return factsFromRaw(body.facts);
 };

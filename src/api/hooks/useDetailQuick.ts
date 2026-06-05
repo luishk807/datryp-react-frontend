@@ -4,6 +4,7 @@ import {
     fetchCountryQuick,
     type DestinationProse,
 } from "api/quickDetailsApi";
+import { STATIC_DETAIL_CACHE } from "api/queryClient";
 
 /**
  * Fast narrative-only prose for the progressive loading phase. Fired in
@@ -30,7 +31,7 @@ export const useCityQuick = (
             trimmedName.length > 0 &&
             trimmedCountry.length > 0 &&
             trimmedCode.length >= 2,
-        staleTime: 60 * 60 * 1000,
+        ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
 };
@@ -41,7 +42,7 @@ export const useCountryQuick = (code: string, enabled: boolean) => {
         queryKey: ["country-quick", trimmedCode],
         queryFn: () => fetchCountryQuick(trimmedCode),
         enabled: enabled && trimmedCode.length >= 2,
-        staleTime: 60 * 60 * 1000,
+        ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
 };

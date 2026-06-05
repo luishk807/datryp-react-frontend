@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlaceRecommendations } from 'api/placeRecommendationsApi';
+import { STATIC_DETAIL_CACHE } from 'api/queryClient';
 import { isQueryBlockedError } from 'api/moderationError';
 import { isSearchQuotaExceededError } from 'api/searchQuotaError';
 import type { PlaceRecommendationsResult } from 'types';
@@ -38,7 +39,7 @@ export const useSearchPlaces = (
                 kind
             ),
         enabled: query.trim().length > 0,
-        staleTime: 60 * 60 * 1000,
+        ...STATIC_DETAIL_CACHE,
         // Don't retry our gated errors — same input will fail the same way
         // and just wastes another network round-trip.
         retry: (failureCount, error) => {

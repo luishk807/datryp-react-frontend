@@ -41,8 +41,7 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
-import { useCityDetails } from "api/hooks/useCityDetails";
-import { useCityQuick } from "api/hooks/useDetailQuick";
+import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
 import { useUser } from "context/UserContext";
@@ -80,24 +79,20 @@ const CityDetail = () => {
     const tripType =
         modeParam === "multiple" ? TRIP_BASIC.MULTIPLE : TRIP_BASIC.SINGLE;
 
-    const { data, isLoading, isError, error } = useCityDetails(
-        name,
-        country,
-        code
-    );
+    // Progressive load: prose / lists / facts are fetched as three parallel
+    // slices (each its own cached OpenAI group). Prose gates first paint — it
+    // carries the city summary + "about" text; lists and facts stream into
+    // their sections as they land, each rendering its own skeleton meanwhile.
+    const { city, details, isLoading, isError, error } =
+        useCityDetailsProgressive(name, country, code);
 
     // Fast, independent hero image so the loading screen shows the city's
-    // photo + name immediately instead of a blank spinner while the heavy
-    // city-details (OpenAI) call resolves. Hits the cache-aware /places/image
-    // endpoint; only fired while details are still loading.
+    // photo + name immediately instead of a blank spinner while the prose
+    // slice resolves. Hits the cache-aware /places/image endpoint; only fired
+    // while the prose slice is still loading.
     const { data: heroPhoto } = usePlaceImage(name, name, country, {
         enabled: isLoading && name.length > 0,
     });
-
-    // Fast prose-only call (the cheap OpenAI group) so the "about" text shows
-    // during the loading phase, before the heavy lists/facts call resolves.
-    // Fired only while loading; served from cache once the city is warm.
-    const { data: quick } = useCityQuick(name, country, code, isLoading);
 
     const startTrip = (args: {
         countryName: string;
@@ -256,12 +251,12 @@ const CityDetail = () => {
                     >
                         <ParagraphSection
                             title={`About ${name}`}
-                            description={quick?.longDescription}
+                            description={undefined}
                             isError={false}
                         />
                         <ParagraphSection
                             title={`About ${country}`}
-                            description={quick?.countryDescription}
+                            description={undefined}
                             isError={false}
                         />
                     </div>
@@ -270,7 +265,7 @@ const CityDetail = () => {
         );
     }
 
-    if (isError || !data) {
+    if (isError || !city) {
         return (
             <ErrorPage
                 pageTitle="Error"
@@ -284,8 +279,6 @@ const CityDetail = () => {
             />
         );
     }
-
-    const { city, details } = data;
 
     // Keep the hero image stable across the loading → loaded transition. On a
     // cold load the loading phase already resolved + displayed a photo via
@@ -468,7 +461,7 @@ const CityDetail = () => {
                     <p className="city-detail-highlight">
                         {details.cityHighlight}
                     </p>
-                    {details.touristRating > 0 && (
+                    {(details.touristRating ?? 0) > 0 && (
                         <div className="city-detail-meta">
                             <Tooltip title="Overall rating" arrow>
                                 <span
@@ -479,7 +472,7 @@ const CityDetail = () => {
                                     <PublicRoundedIcon />
                                 </span>
                             </Tooltip>
-                            <Stars rating={details.touristRating} />
+                            <Stars rating={details.touristRating ?? 0} />
                         </div>
                     )}
                     <ReviewSummary

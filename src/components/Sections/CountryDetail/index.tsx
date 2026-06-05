@@ -42,8 +42,7 @@ import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
 import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
-import { useCountryDetails } from "api/hooks/useCountryDetails";
-import { useCountryQuick } from "api/hooks/useDetailQuick";
+import { useCountryDetailsProgressive } from "api/hooks/useCountryDetails";
 import { useCountries } from "api/hooks/useCountries";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
@@ -82,22 +81,22 @@ const CountryDetail = () => {
   const seed = (searchParams.get("seed") ?? "").trim();
   const isMonthlyBestPlaceSeed = seed === "monthly-best-place";
 
-  const { data, isLoading, isError, error } = useCountryDetails(code);
+  // Progressive load: prose / lists / facts are fetched as three parallel
+  // slices (each its own cached OpenAI group). Prose gates first paint — it
+  // carries the country summary + "about" text; lists and facts stream into
+  // their sections as they land, each rendering its own skeleton meanwhile.
+  const { country, details, isLoading, isError, error } =
+    useCountryDetailsProgressive(code);
 
   // Resolve the country's name + hero image from the (cached) catalog so the
   // loading screen can show the photo + name immediately, instead of just the
-  // ISO code, while the heavy country-details (OpenAI) call resolves. The
-  // catalog is a cheap DB query and usually already cached from search.
+  // ISO code, while the prose slice resolves. The catalog is a cheap DB query
+  // and usually already cached from search.
   const { data: countryCatalog } = useCountries("", {
     enabled: isLoading,
     limit: 300,
   });
   const loadingCountry = countryCatalog?.find((c) => c.code === code);
-
-  // Fast prose-only call so the country's "about" text shows during the
-  // loading phase, before the heavy details call resolves. Served from cache
-  // once the country is warm.
-  const { data: quick } = useCountryQuick(code, isLoading);
 
   // Only fetch the monthly pick when we're actually arriving via the
   // seed flow — keeps the country page from hitting an extra endpoint
@@ -276,12 +275,12 @@ const CountryDetail = () => {
           >
             <ParagraphSection
               title={`About ${loadingName}`}
-              description={quick?.longDescription}
+              description={undefined}
               isError={false}
             />
             <ParagraphSection
               title="Budget"
-              description={quick?.budgetDescription}
+              description={undefined}
               isError={false}
             />
           </div>
@@ -290,7 +289,7 @@ const CountryDetail = () => {
     );
   }
 
-  if (isError || !data) {
+  if (isError || !country) {
     return (
       <ErrorPage
         pageTitle="Error"
@@ -304,8 +303,6 @@ const CountryDetail = () => {
       />
     );
   }
-
-  const { country, details } = data;
 
   // Smart back: prefer the browser history (search results, top cities
   // grid, etc.) and fall back to home for direct visits.
@@ -450,7 +447,7 @@ const CountryDetail = () => {
               <strong>Language:</strong> {details.travelBasics.language}
             </span>
           </p>
-          {details.touristRating > 0 && (
+          {(details.touristRating ?? 0) > 0 && (
             <div className="country-detail-rating">
               <Tooltip title="Overall rating" arrow>
                 <span
@@ -461,7 +458,7 @@ const CountryDetail = () => {
                   <PublicRoundedIcon />
                 </span>
               </Tooltip>
-              <Stars rating={details.touristRating} />
+              <Stars rating={details.touristRating ?? 0} />
             </div>
           )}
           <ReviewSummary

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlaceImage, type PlaceImageResult } from 'api/placeImageApi';
+import { STATIC_DETAIL_CACHE } from 'api/queryClient';
 
 /**
  * Cache-aware hero-image fallback for a specific place. Resolves through
@@ -22,7 +23,7 @@ export const usePlaceImage = (
         queryKey: ['place-image', name, city ?? '', country ?? ''],
         queryFn: () => fetchPlaceImage(name, city, country),
         enabled: enabled && name.trim().length > 0,
-        staleTime: 60 * 60 * 1000,
+        ...STATIC_DETAIL_CACHE,
         // 404 = neither provider matched; a stable state, don't hammer it.
         retry: 1,
     });
