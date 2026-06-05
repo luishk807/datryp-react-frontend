@@ -215,6 +215,15 @@ export const MAINTENANCE_MODE = {
   FULL: "full",
 } as const;
 
+// Per-trip notification channel override (⋮ menu on /trip-detail). Overrides
+// the account-level notify_email / notify_sms; null/absent = account default.
+export const NOTIFY_CHANNEL = {
+  EMAIL: "email",
+  SMS: "sms",
+  BOTH: "both",
+  NONE: "none",
+} as const;
+
 // Offline-download state for a trip (drives the status chip on
 // /trip-detail and the useOfflineTrip hook).
 export const OFFLINE_STATUS = {

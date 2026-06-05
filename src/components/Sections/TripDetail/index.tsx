@@ -80,6 +80,8 @@ import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel, getTripExcelBlob } from "utils/exportTripExcel";
 import { exportTripToPdf, getTripPdfBlob, printTripPdf } from "utils/exportTripPdf";
 import { useEmailTripExport } from "api/hooks/useEmailTripExport";
+import TripNotificationPrefModal from "components/TripNotificationPrefModal";
+import NotificationsActiveRoundedIcon from "@mui/icons-material/NotificationsActiveRounded";
 import type {
   Activity,
   ActivityStatus,
@@ -875,6 +877,7 @@ export const TripDetail = () => {
             canPromoteStatus={canPromoteStatus}
             canCancelTrip={canCancelTrip}
             isOrganizer={isOrganizer}
+            isPro={Boolean(currentUser?.isPaidMember || isAdmin)}
             isSaving={saveItinerary.isPending}
             isDeleting={deleteItinerary.isPending}
             onEditTrip={handleChangeStep}
@@ -1167,6 +1170,7 @@ interface TripDetailHeaderProps {
   canPromoteStatus: boolean;
   canCancelTrip: boolean;
   isOrganizer: boolean;
+  isPro: boolean;
   isSaving: boolean;
   isDeleting: boolean;
   onEditTrip: () => void;
@@ -1205,6 +1209,7 @@ const TripDetailHeader = ({
   canPromoteStatus,
   canCancelTrip,
   isOrganizer,
+  isPro,
   isSaving,
   isDeleting,
   onEditTrip,
@@ -1233,6 +1238,7 @@ const TripDetailHeader = ({
   onRemoveOffline,
 }: TripDetailHeaderProps) => {
   const exportModalRef = useRef<ModalButtonHandle>(null);
+  const notifyPrefModalRef = useRef<ModalButtonHandle>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<
     null | "cancel" | "delete"
@@ -1622,6 +1628,17 @@ const TripDetailHeader = ({
               }}
             />
           )}
+          {/* Any member can set how THEY are notified about this trip. */}
+          {tripData.apiId && (
+            <MenuActionItem
+              icon={<NotificationsActiveRoundedIcon />}
+              label="Trip notifications"
+              onClick={() => {
+                closeMenu();
+                notifyPrefModalRef.current?.openModel();
+              }}
+            />
+          )}
           {isOrganizer && canCancelTrip && (
             <MenuActionItem
               icon={<EventBusyRoundedIcon />}
@@ -1638,6 +1655,13 @@ const TripDetailHeader = ({
             />
           )}
         </Menu>
+        {tripData.apiId && (
+          <TripNotificationPrefModal
+            ref={notifyPrefModalRef}
+            tripId={tripData.apiId}
+            isPro={isPro}
+          />
+        )}
         </div>
       </div>
 
