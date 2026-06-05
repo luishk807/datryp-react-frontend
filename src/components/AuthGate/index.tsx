@@ -8,6 +8,7 @@ import PhoneInput from 'components/common/FormFields/PhoneInput';
 import DropDown from 'components/common/FormFields/DropDown';
 import IconLink from 'components/common/IconLink';
 import PageLoader from 'components/common/PageLoader';
+import Footer from 'components/Footer';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import { useUser } from 'context/UserContext';
 import { useGoogleSignin } from 'api/hooks/useAuth';
@@ -405,6 +406,11 @@ const AuthGate = ({
                         )}
                     </p>
                 </div>
+                {/* Mobile-only footer pinned to the bottom of the form panel
+                    (above the fixed bottom nav), filling the otherwise-empty
+                    space below the sign-in form. Desktop hides it — the hero
+                    column already carries the brand + links. */}
+                <Footer showOnMobile />
             </main>
         </div>
     );

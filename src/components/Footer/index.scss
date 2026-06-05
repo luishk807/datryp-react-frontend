@@ -106,12 +106,35 @@
   }
 }
 
-/* Logged-in users have the same links in their account sheet on mobile,
- * where the bottom nav already crowds the bottom — so hide the standalone
- * footer for them below the desktop breakpoint. On desktop (no bottom nav)
- * the footer always shows, regardless of auth. */
+/* The auth/login footer is desktop-hidden — the split-screen hero already
+ * carries the brand + back link there, so a second footer would be noise.
+ * It only earns its place on mobile (media rule below), pinned above the
+ * bottom nav in the otherwise-empty space below the sign-in form. Declared
+ * BEFORE the media query so the mobile `display: block` (later in source,
+ * equal specificity) wins — media queries don't bump specificity. */
+.footer.footer--login {
+  display: none;
+}
+
+/* Below the desktop breakpoint the bottom nav replaces the page footer, so
+ * the standalone footer is hidden on mobile/tablet for EVERY page —
+ * regardless of auth. Logged-in users reach these links via their account
+ * sheet; logged-out users get them on the auth/login splash, which opts back
+ * in via `.footer--login`. On desktop (no bottom nav) the page footer always
+ * shows. */
 @media (max-width: 1024px) {
-  .footer.footer--authed {
+  .footer {
     display: none;
+  }
+}
+
+/* The auth footer opts back in only at the AuthGate's own mobile breakpoint
+ * (≤900px, where its split-screen hero collapses to a single column) — NOT
+ * the 1024px page breakpoint. Between 901–1024px the auth page is still the
+ * desktop split layout, so the footer stays hidden there to avoid rendering
+ * beside the form. */
+@media (max-width: 900px) {
+  .footer.footer--login {
+    display: block;
   }
 }

@@ -24,6 +24,13 @@ export const FOOTER_QUICK_LINKS: QuickLink[] = [
     { label: 'Privacy', href: '/privacy', internal: true },
 ];
 
+interface FooterProps {
+    /** When true the footer stays visible on mobile, pinned to the bottom
+     *  of its container. Used only by the auth/login splash — every other
+     *  page hides its footer on mobile (the bottom nav replaces it). */
+    showOnMobile?: boolean;
+}
+
 /**
  * Single minimal-inline footer used on every route — full-bleed pages
  * included. Previously this component shipped two variants (full +
@@ -31,18 +38,20 @@ export const FOOTER_QUICK_LINKS: QuickLink[] = [
  * same one-line shape the compact variant always had. There's no
  * `compact` prop anymore — every caller renders the same footer.
  */
-const Footer = () => {
+const Footer = ({ showOnMobile = false }: FooterProps) => {
     const { user } = useUser();
     const year = new Date().getFullYear();
     // The footer always renders on DESKTOP — there's no bottom nav there, so a
-    // real page footer is expected and shouldn't be buried in the account
-    // menu. On mobile, logged-in users get these links in their account sheet
-    // instead (the bottom nav already crowds the bottom), so the standalone
-    // footer is hidden for them at small widths via `.footer--authed` CSS.
+    // real page footer is expected. On mobile the bottom nav replaces it, so
+    // the standalone page footer is hidden below the desktop breakpoint (see
+    // `.footer` CSS). The auth/login splash opts back in via `showOnMobile`
+    // (`.footer--login`) since it has no bottom-nav-crowding page chrome of
+    // its own and shows the footer pinned above the bottom nav.
     return (
         <footer
             className={classNames('footer', {
                 'footer--authed': Boolean(user),
+                'footer--login': showOnMobile,
             })}
         >
             <div className="footer-inner">

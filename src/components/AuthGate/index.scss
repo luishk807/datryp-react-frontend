@@ -339,6 +339,10 @@
   // padding clears the fixed mobile BottomNav (76px tall, z-index 1100)
   // so the "Sign in" submit + mode-toggle aren't hidden beneath it.
   .authgate-panel {
+    /* Column on mobile so the form sits at the top and the footer is
+     * pushed to the bottom (`margin-top: auto` below), filling the empty
+     * space above the fixed bottom nav. */
+    flex-direction: column;
     padding: 32px 16px calc(96px + env(safe-area-inset-bottom));
     align-items: flex-start;
     /* Without explicit width:100% the panel was inheriting the
@@ -347,6 +351,12 @@
     width: 100%;
     min-width: 0;
     max-width: 100vw;
+  }
+
+  .authgate-panel .footer--login {
+    margin-top: auto;
+    width: 100%;
+    padding-top: 24px;
   }
 
   .authgate-form-wrap {
