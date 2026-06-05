@@ -8,6 +8,9 @@ interface NotifyActivityVars {
     tripId: string;
     activityId: string;
     message?: string;
+    /** When set, only these backend user UUIDs are alerted; omit to notify
+     *  every other member (the default fan-out). */
+    recipientIds?: string[];
 }
 
 /**
@@ -17,6 +20,11 @@ interface NotifyActivityVars {
  */
 export const useNotifyActivity = () =>
     useMutation<NotifyActivityResult, Error, NotifyActivityVars>({
-        mutationFn: ({ tripId, activityId, message }) =>
-            notifyActivityParticipants(tripId, activityId, message),
+        mutationFn: ({ tripId, activityId, message, recipientIds }) =>
+            notifyActivityParticipants(
+                tripId,
+                activityId,
+                message,
+                recipientIds
+            ),
     });

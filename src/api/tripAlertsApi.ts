@@ -52,8 +52,14 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
 export const notifyActivityParticipants = async (
     tripId: string,
     activityId: string,
-    message?: string
+    message?: string,
+    recipientIds?: string[]
 ): Promise<NotifyActivityResult> => {
+    const body: { message?: string; recipient_ids?: string[] } = {};
+    if (message) body.message = message;
+    // Only send `recipient_ids` when the organizer narrowed the list — omit it
+    // for the default "everyone" case so the server keeps its fan-out path.
+    if (recipientIds) body.recipient_ids = recipientIds;
     const resp = await fetch(
         `${API_BASE}/trips/${tripId}/activities/${activityId}/notify`,
         {
@@ -62,7 +68,7 @@ export const notifyActivityParticipants = async (
                 'Content-Type': 'application/json',
                 ...authHeaders(),
             },
-            body: JSON.stringify(message ? { message } : {}),
+            body: JSON.stringify(body),
         }
     );
     if (!resp.ok) await handleError(resp, 'notify activity participants');

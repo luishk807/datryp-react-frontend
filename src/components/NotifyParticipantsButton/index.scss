@@ -26,6 +26,57 @@
   color: rgba(0, 0, 0, 0.7);
 }
 
+.notify-participants-recipients {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notify-participants-recipients-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notify-participants-selectall {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.notify-participants-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 4px 10px;
+}
+
+.notify-participants-row {
+  margin: 0;
+
+  .MuiFormControlLabel-label {
+    font-size: 0.92rem;
+  }
+}
+
+.notify-participants-empty {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .notify-participants-field {
   display: flex;
   flex-direction: column;

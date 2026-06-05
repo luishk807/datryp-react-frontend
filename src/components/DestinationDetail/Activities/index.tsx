@@ -1263,6 +1263,7 @@ const Activities = ({
                                 tripId={tripId}
                                 activityId={activity.id}
                                 activityName={activity.name}
+                                participants={participants}
                               />
                             </div>
                           )}
