@@ -145,6 +145,41 @@ export const fetchPlaceRecommendations = async (
     };
 };
 
+/**
+ * Go-direct entry for a KNOWN place. Seeds (or reuses) a single-place cache row
+ * server-side and returns its canonical `query` + a one-item list, so the place
+ * page can render the header and fire the detail slices WITHOUT first running
+ * the 5-result AI recommender. Used by saved / visited / map navigations that
+ * already carry name + city + country. Not billed (no SearchEvent, no quota).
+ *
+ * Returns the same `PlaceRecommendationsResult` shape as `fetchPlaceRecommendations`
+ * (with `items.length === 1` at index 0) so the place page consumes it identically.
+ */
+export const fetchPlaceDirect = async (
+    name: string,
+    city: string,
+    country: string
+): Promise<PlaceRecommendationsResult> => {
+    const params = new URLSearchParams({ name });
+    if (city.trim()) params.set('city', city.trim());
+    if (country.trim()) params.set('country', country.trim());
+    const token = getAuthToken();
+    const resp = await fetch(`${API_BASE}/place-direct?${params}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (!resp.ok) {
+        throw new Error(
+            `/place-direct failed: ${resp.status} ${resp.statusText}`
+        );
+    }
+    const body = (await resp.json()) as PlaceRecommendationsResponseRaw;
+    return {
+        query: body.query,
+        cached: body.cached,
+        items: body.items.map(toPlace),
+    };
+};
+
 // ─── /place-details ────────────────────────────────────────────────────────
 
 interface CurrencyInfoRaw {

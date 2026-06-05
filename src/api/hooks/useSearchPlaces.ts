@@ -20,8 +20,13 @@ export const useSearchPlaces = (
     country?: string,
     // 'suggestion' calls are exempt from the free-tier quota (auto-fired
     // browsing aids); explicit searches default to 'search'.
-    kind: 'search' | 'suggestion' = 'search'
+    kind: 'search' | 'suggestion' = 'search',
+    // Lets a caller turn the search off entirely (e.g. the place page in
+    // go-direct mode, where the known place is resolved via usePlaceDirect
+    // instead of running the recommender). AND-ed with the non-empty-query gate.
+    options: { enabled?: boolean } = {}
 ) => {
+    const { enabled = true } = options;
     const trimmedCountry = country?.trim() ?? '';
     return useQuery<PlaceRecommendationsResult>({
         queryKey: [
@@ -38,7 +43,7 @@ export const useSearchPlaces = (
                 trimmedCountry || undefined,
                 kind
             ),
-        enabled: query.trim().length > 0,
+        enabled: enabled && query.trim().length > 0,
         ...STATIC_DETAIL_CACHE,
         // Don't retry our gated errors — same input will fail the same way
         // and just wastes another network round-trip.

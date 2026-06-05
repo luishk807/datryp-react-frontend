@@ -17,13 +17,15 @@ import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import type { SimilarPlaceItem } from 'api/similarToSavesApi';
 import { useSimilarToSaves } from 'api/hooks/useSimilarToSaves';
 import { useUser } from 'context/UserContext';
+import { placeDetailUrl } from 'utils/placeUrl';
 import { NO_IMAGE } from 'constants';
 import './index.scss';
 
 const cardKey = (item: SimilarPlaceItem) => item.placeKey;
 
+// Go-direct: these come with city + country, so skip the recommender hop.
 const linkFor = (item: SimilarPlaceItem): string =>
-    `/place?q=${encodeURIComponent(item.name)}&i=0`;
+    placeDetailUrl(item.name, item.city, item.country);
 
 const SimilarToSaves = () => {
     const { user } = useUser();

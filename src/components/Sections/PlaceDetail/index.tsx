@@ -47,6 +47,7 @@ import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
+import { usePlaceDirect } from "api/hooks/usePlaceDirect";
 import { usePlaceDetailsProgressive } from "api/hooks/usePlaceDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useIsStuck } from "hooks/useIsStuck";
@@ -61,6 +62,15 @@ const PlaceDetail = () => {
   const [searchParams] = useSearchParams();
   const query = (searchParams.get("q") ?? "").trim();
   const index = Number(searchParams.get("i") ?? "0");
+  // Go-direct entry: when a link already knows the place (name + city +
+  // country), it deep-links with `&city=&country=` so the page can resolve the
+  // place via a single-place seed (`usePlaceDirect`) instead of running the
+  // 5-result AI recommender "discovery hop". Falls back to the search path when
+  // those params are absent (legacy /place?q=&i= links + deep links/shares).
+  const cityParam = (searchParams.get("city") ?? "").trim();
+  const countryParam = (searchParams.get("country") ?? "").trim();
+  const isDirect =
+    query.length > 0 && cityParam.length > 0 && countryParam.length > 0;
   // Trip context — when /place is opened from inside a trip
   // (`/place?q=...&id=<tripId>`), the recommender scopes its
   // suggestions to that trip's destination country for single-trips
@@ -86,23 +96,35 @@ const PlaceDetail = () => {
 
   // Reuses the same cached recommender response — instant if the user just
   // came from the search results page; one OpenAI/Unsplash hit if landing
-  // here directly via a shared link.
-  const { data, isLoading, isError, error } = useSearchPlaces(
-    query,
-    5,
-    recommenderCountry
-  );
+  // here directly via a shared link. Disabled in go-direct mode (resolved via
+  // usePlaceDirect below) so a known place never burns the 5-result search.
+  const search = useSearchPlaces(query, 5, recommenderCountry, "search", {
+    enabled: !isDirect,
+  });
+  // Go-direct resolution — seeds/reuses a single-place row and returns the same
+  // shape as the search. Only fires when the link carried city + country.
+  const direct = usePlaceDirect(query, cityParam, countryParam, {
+    enabled: isDirect,
+  });
+
+  const active = isDirect ? direct : search;
+  const { data, isLoading, isError, error } = active;
+  // In direct mode the place is always index 0 of its single-place row, and the
+  // slices must key on the canonical query the seed returned (name, city,
+  // country) — not the bare `q` name.
+  const effectiveQuery = isDirect ? data?.query ?? query : query;
+  const effectiveIndex = isDirect ? 0 : index;
 
   // Enriched details, fetched as three parallel slices (prose / lists /
   // facts) so a cold place's body streams in phases instead of blocking on
   // the slowest group. Cached server-side on the same row so a repeat view is
-  // instant. Gated on the search query having resolved — `/place-details*`
-  // reads from the row `/place-recommendations` creates, so firing before the
-  // search lands 404s on direct deep-links. Each section renders its own
-  // skeleton (data `undefined`) until its slice arrives.
+  // instant. Gated on the recommendation having resolved — `/place-details*`
+  // reads from the row the recommendation creates/seeds, so firing before it
+  // lands 404s. Each section renders its own skeleton (data `undefined`) until
+  // its slice arrives.
   const detailsProgressive = usePlaceDetailsProgressive(
-    query,
-    index,
+    effectiveQuery,
+    effectiveIndex,
     Boolean(data)
   );
   // Compat shape so the existing `detailsQuery.data?.details.X` reads keep
@@ -121,7 +143,7 @@ const PlaceDetail = () => {
       : `/place?q=${encodeURIComponent(query)}&i=${index}`;
   const backUrl = `/search?q=${encodeURIComponent(query)}`;
 
-  const place = data?.items[index];
+  const place = data?.items[effectiveIndex];
 
   // Hero-image fallback. When the place row arrives with no `imageUrl`
   // (older cached recommendation, transient miss), resolve one via the
@@ -276,7 +298,11 @@ const PlaceDetail = () => {
                 AddToItineraryButton stays inline — too wide to fit
                 as a hero-overlay icon chip. */}
             <div className="place-detail-overlay-actions">
-              <BookmarkButton place={place} query={query} index={index} />
+              <BookmarkButton
+                place={place}
+                query={effectiveQuery}
+                index={effectiveIndex}
+              />
               <VisitedButton
                 place={place}
                 coordinates={detailsQuery.data?.details.coordinates}

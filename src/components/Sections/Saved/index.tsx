@@ -11,6 +11,7 @@ import {
     useUnsaveCountry,
 } from 'api/hooks/useSavedCountries';
 import { formatDate } from 'utils/date';
+import { placeDetailUrl } from 'utils/placeUrl';
 import { BUTTON_VARIANT, NO_IMAGE } from 'constants';
 
 const Saved = () => {
@@ -208,14 +209,15 @@ const Saved = () => {
                         </h2>
                         <ul className="saved-list">
                             {places.map((b) => {
-                                // Prefer the cached (query, index) re-open so the
-                                // recommender returns instantly. Fall back to a
-                                // name search when the bookmark predates the
-                                // search_query/index columns.
-                                const placeHref =
-                                    b.searchQuery && b.searchIndex !== null
-                                        ? `/place?q=${encodeURIComponent(b.searchQuery)}&i=${b.searchIndex}`
-                                        : `/place?q=${encodeURIComponent(b.placeName)}&i=0`;
+                                // Go-direct: the bookmark already carries city +
+                                // country, so skip the recommender discovery hop
+                                // and seed the place directly. Falls back to a
+                                // name search only if those are somehow missing.
+                                const placeHref = placeDetailUrl(
+                                    b.placeName,
+                                    b.placeCity,
+                                    b.placeCountry,
+                                );
                                 return (
                                     <li
                                         key={b.id}

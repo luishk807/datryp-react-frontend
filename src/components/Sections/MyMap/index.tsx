@@ -40,6 +40,7 @@ import { useMyItineraries } from 'api/hooks/useItineraries';
 import MyMapStatDropdown, {
     type MyMapStatDropdownOption,
 } from './MyMapStatDropdown';
+import { placeDetailUrl } from 'utils/placeUrl';
 import './index.scss';
 
 type StatDropdownKey = 'countries' | 'cities' | 'places';
@@ -1794,7 +1795,9 @@ interface PinPopupInput {
  *
  *  All `target="_blank"` so the user keeps the map context. */
 const renderPinPopupHtml = (pin: PinPopupInput): string => {
-    const detailHref = `/place?q=${encodeURIComponent(pin.name)}&i=0`;
+    // Go-direct when we know the city + country (we do for visited pins) so the
+    // place page skips the recommender discovery hop.
+    const detailHref = placeDetailUrl(pin.name, pin.city, pin.country);
     const trips = pin.trips ?? [];
     const locationLine = [pin.city, pin.country]
         .filter(Boolean)

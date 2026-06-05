@@ -20,6 +20,7 @@ import {
     useVisitedCities,
 } from 'api/hooks/useVisitedCities';
 import { formatDate } from 'utils/date';
+import { placeDetailUrl } from 'utils/placeUrl';
 import {
     BUTTON_VARIANT,
     LIST_PAGE_SIZE,
@@ -303,7 +304,11 @@ const Visited = () => {
                                                     className="visited-card"
                                                 >
                                                     <Link
-                                                        to={`/place?q=${encodeURIComponent(v.placeName)}&i=0`}
+                                                        to={placeDetailUrl(
+                                                            v.placeName,
+                                                            v.placeCity,
+                                                            v.placeCountry,
+                                                        )}
                                                         className="visited-card-main"
                                                     >
                                                         <PublicRoundedIcon className="visited-card-icon" />
