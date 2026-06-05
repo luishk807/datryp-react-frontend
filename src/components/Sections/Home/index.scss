@@ -585,11 +585,9 @@
     display: none;
   }
 
-  /* Stack input over CREATE button on phones. Slimmer outer padding +
-     slimmer input padding so the searchbar doesn't look chunky next
-     to the now-bigger title. */
-  .home-hero-search .searchbarMain .holder,
-  .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-form {
+  /* Country/place mode: stack the input over its results dropdown on phones.
+     Slimmer outer padding so the searchbar isn't chunky next to the title. */
+  .home-hero-search .searchbarMain .holder {
     flex-direction: column;
     align-items: stretch;
     padding: 6px;
@@ -599,10 +597,24 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   }
 
+  /* Description mode keeps the input + Search button on ONE row (two
+     columns) on phones — the button stays pinned to the right of the field
+     instead of stacking beneath it. */
+  .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-form {
+    flex-direction: row;
+    align-items: center;
+    padding: 5px 5px 5px 16px;
+    border-radius: 14px;
+    gap: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  }
+
   .home-hero-search .searchbarMain .holder-recommend .searchbar-recommend-input {
     font-size: 1rem;
-    padding: 9px 12px;
-    width: 100%;
+    padding: 9px 4px 9px 0;
+    min-width: 0;
+    width: auto;
   }
 
   .home-hero-search .searchbarMain > .holder > .container,

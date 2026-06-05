@@ -315,6 +315,7 @@
 
 .searchbarMain .searchbar-recommend-form {
   display: flex;
+  flex-wrap: nowrap;
   gap: 10px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 10px;
@@ -329,7 +330,10 @@
 }
 
 .searchbarMain .searchbar-recommend-input {
-  flex: 1;
+  flex: 1 1 auto;
+  /* Without min-width:0 the input keeps its intrinsic min size and the
+     button can't sit beside it on narrow phones — it wrapped below. */
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
@@ -364,37 +368,44 @@
 .searchbarMain .searchbar-recommend-submit {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   border: none;
   cursor: pointer;
-  border-radius: 8px;
-  padding: 9px 18px;
+  /* Pill shape echoes the Place / Description toggle above it. */
+  border-radius: 999px;
+  padding: 10px 20px;
   font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
   background: theme('colors.primaryOrange');
-  transition: filter 0.15s ease, opacity 0.15s ease;
+  transition: filter 0.15s ease;
 
-  &:hover:not(:disabled) {
+  &:hover {
     filter: brightness(0.93);
   }
 
+  &:active {
+    filter: brightness(0.88);
+  }
+
+  /* Stays solid when the field is empty — only the cursor changes — so it
+     never reads as a washed-out / broken control. */
   &:disabled {
-    opacity: 0.5;
     cursor: default;
   }
 }
 
 .searchbarMain .searchbar-recommend-submit-icon {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
 }
 
-/* Collapse to an icon-only button on narrow phones so the field keeps
-   room for the typed query. */
+/* Icon-only on narrow phones so the input keeps room for the query while the
+   button stays beside it (two columns, never stacked). */
 @media (max-width: 560px) {
   .searchbarMain .searchbar-recommend-submit {
-    padding: 9px 11px;
+    padding: 10px 13px;
   }
 
   .searchbarMain .searchbar-recommend-submit-label {
