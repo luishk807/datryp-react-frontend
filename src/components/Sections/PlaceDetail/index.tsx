@@ -109,9 +109,11 @@ const PlaceDetail = () => {
   // working, now sourced from the merged slices.
   const detailsQuery = {
     data: { details: detailsProgressive.details },
-    isError: detailsProgressive.isError,
-    error: detailsProgressive.error,
   };
+  // Per-slice error flags. Each section below reads the flag of the slice that
+  // feeds it, so a single failed slice (e.g. `facts`) only surfaces an error in
+  // its own sections — the prose description and lists extras still render.
+  const { proseError, listsError, factsError } = detailsProgressive;
 
   const detailUrl =
     typeof window !== "undefined"
@@ -328,17 +330,17 @@ const PlaceDetail = () => {
           <aside className="place-detail-side">
             <WeatherSection
               weather={detailsQuery.data?.details.weather}
-              isError={detailsQuery.isError}
+              isError={proseError}
             />
 
             <CurrencySection
               currency={detailsQuery.data?.details.currency}
-              isError={detailsQuery.isError}
+              isError={factsError}
             />
 
             <SafetySection
               safety={detailsQuery.data?.details.safety}
-              isError={detailsQuery.isError}
+              isError={factsError}
             />
           </aside>
         </div>
@@ -427,7 +429,7 @@ const PlaceDetail = () => {
           <div className="place-detail-content-main">
             <PlaceDescription
               longDescription={detailsQuery.data?.details.longDescription}
-              isError={detailsQuery.isError}
+              isError={proseError}
               fallbackDescription={place.description}
             />
 
@@ -440,13 +442,13 @@ const PlaceDetail = () => {
             <GettingThereSection
               placeName={`${place.name}, ${place.city}`}
               coordinates={detailsQuery.data?.details.coordinates}
-              isError={detailsQuery.isError}
+              isError={factsError}
             />
 
             <ParagraphSection
               title={`About ${place.country}`}
               description={detailsQuery.data?.details.countryDescription}
-              isError={detailsQuery.isError}
+              isError={proseError}
             />
 
             <CulturalShockCallout
@@ -456,35 +458,35 @@ const PlaceDetail = () => {
 
             <NotesSection
               items={detailsQuery.data?.details.notesToKnow}
-              isError={detailsQuery.isError}
+              isError={listsError}
             />
 
             <BudgetSection
               description={detailsQuery.data?.details.budgetDescription}
               costLevel={detailsQuery.data?.details.costLevel}
-              isError={detailsQuery.isError}
+              isError={proseError}
             />
 
             <LocalFlavorSection
               flavor={detailsQuery.data?.details.localFlavor}
-              isError={detailsQuery.isError}
+              isError={listsError}
             />
           </div>
 
           <aside className="place-detail-content-side">
             <PopularitySection
               popularity={detailsQuery.data?.details.popularity}
-              isError={detailsQuery.isError}
+              isError={factsError}
             />
 
             <AirportsSection
               airports={detailsQuery.data?.details.airports}
-              isError={detailsQuery.isError}
+              isError={factsError}
             />
 
             <VisaSection
               visa={detailsQuery.data?.details.visa}
-              isError={detailsQuery.isError}
+              isError={factsError}
             />
 
             <HighlightsSection
@@ -492,13 +494,13 @@ const PlaceDetail = () => {
               country={place.country}
               cityHighlight={detailsQuery.data?.details.cityHighlight}
               countryHighlight={detailsQuery.data?.details.countryHighlight}
-              isError={detailsQuery.isError}
+              isError={proseError}
             />
 
             <WhenToVisitSection
               bestTime={place.bestTimeToVisit}
               worstTime={detailsQuery.data?.details.worstTimeToVisit}
-              isError={detailsQuery.isError}
+              isError={proseError}
             />
 
             <LatestNewsSection
@@ -514,20 +516,22 @@ const PlaceDetail = () => {
 
         <TravelBasicsSection
           basics={detailsQuery.data?.details.travelBasics}
-          isError={detailsQuery.isError}
+          isError={factsError}
         />
 
         <LodgingSection
           lodging={detailsQuery.data?.details.lodging}
-          isError={detailsQuery.isError}
+          isError={factsError}
         />
 
-        {/* Enriched sections — loaded lazily from /place-details. */}
-        {detailsQuery.isError ? (
+        {/* Enriched "Top 5" sections — all four come from the `lists` slice, so
+            they share its error state. A failed `lists` call only blanks this
+            block now; prose + facts sections above stay intact. */}
+        {listsError ? (
           <p className="place-detail-error" role="alert">
             Could not load extras:{" "}
-            {detailsQuery.error instanceof Error
-              ? detailsQuery.error.message
+            {detailsProgressive.error instanceof Error
+              ? detailsProgressive.error.message
               : "Unknown error"}
           </p>
         ) : (
@@ -557,7 +561,7 @@ const PlaceDetail = () => {
 
         <NearbySection
           items={detailsQuery.data?.details.nearbyDestinations}
-          isError={detailsQuery.isError}
+          isError={listsError}
         />
 
         <div id="reviews">

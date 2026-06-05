@@ -84,11 +84,20 @@ export interface ProgressivePlaceDetails {
     /** True until ANY slice has data. The page already shows the recommended
      *  place's header from step 1, so this only gates the enrichment body. */
     isLoading: boolean;
+    /** Combined error — true if any slice failed. Kept for callers that still
+     *  want an all-or-nothing signal; the place page now uses the per-slice
+     *  flags below so one failed slice only blanks the sections it feeds. */
     isError: boolean;
     error: unknown;
     proseLoading: boolean;
     listsLoading: boolean;
     factsLoading: boolean;
+    /** Per-slice error flags. A section reads the flag of the slice that
+     *  actually provides its data, so a failed `facts` call (currency, safety,
+     *  visa…) doesn't hide the `prose` description or the `lists` extras. */
+    proseError: boolean;
+    listsError: boolean;
+    factsError: boolean;
 }
 
 /**
@@ -117,12 +126,13 @@ export const usePlaceDetailsProgressive = (
     return {
         details,
         isLoading: prose.isLoading && lists.isLoading && facts.isLoading,
-        // Any slice failing flips the body to the error surface — matches the
-        // old monolithic `/place-details` all-or-nothing semantics.
         isError: prose.isError || lists.isError || facts.isError,
         error: prose.error ?? lists.error ?? facts.error,
         proseLoading: prose.isLoading,
         listsLoading: lists.isLoading,
         factsLoading: facts.isLoading,
+        proseError: prose.isError,
+        listsError: lists.isError,
+        factsError: facts.isError,
     };
 };
