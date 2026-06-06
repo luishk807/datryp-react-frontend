@@ -47,6 +47,10 @@ export interface TransportStepProps {
     defaultCountry?: Country | null;
     isoDefaultDate: string;
     tripMaxDate?: string;
+    /** True when step 1's smart text already produced this transport. The
+     *  step's own "describe your transportation" box is then redundant, so
+     *  it's hidden and the parsed result shows outright. */
+    seededFromSmart?: boolean;
     emptyFlightSegment: (date: string) => FlightInfo;
     emptyTransitSegment: (date: string) => TransitInfo;
     onCountryChange: (country: Country | null) => void;
@@ -89,6 +93,7 @@ const TransportStep = ({
     defaultCountry,
     isoDefaultDate,
     tripMaxDate,
+    seededFromSmart = false,
     emptyFlightSegment,
     emptyTransitSegment,
     onCountryChange,
@@ -104,6 +109,11 @@ const TransportStep = ({
     // there?" is redundant — open straight into the parsed result with a
     // quiet "Change" affordance instead.
     const [chooserOpen, setChooserOpen] = useState(!kind);
+    // The step's own smart box is redundant when step 1's smart text already
+    // produced the transport — hide it (the parsed result + Edit Details
+    // cover everything). The manual "pick a mode" path shows it so the user
+    // has somewhere to describe the leg.
+    const [showSmartBox, setShowSmartBox] = useState(!seededFromSmart && !isEdit);
     const [lookupNotFound, setLookupNotFound] = useState<Record<number, string>>(
         {},
     );
@@ -138,8 +148,10 @@ const TransportStep = ({
                     : prev.transitSegments,
         }));
         parsedSmartRef.current = null;
-        // Picking a concrete mode collapses the chooser back to the result.
+        // Picking a concrete mode collapses the chooser back to the result,
+        // and reveals the describe box so the user can fill the new leg.
         setChooserOpen(false);
+        setShowSmartBox(true);
     };
 
     const activeChip = TYPE_CHIPS.find((c) => c.value === kind);
@@ -398,6 +410,7 @@ const TransportStep = ({
 
             {kind && (
                 <>
+                    {showSmartBox && (
                     <div className="add-destination-field">
                         <label className="add-destination-label">
                             Describe your transportation
@@ -420,6 +433,7 @@ const TransportStep = ({
                             />
                         </div>
                     </div>
+                    )}
 
                     {/* Lookup watchers — flight by number+date, transit by
                         operator+number. Rental cars have no lookup. */}

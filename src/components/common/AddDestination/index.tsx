@@ -95,6 +95,10 @@ const AddDestinationBtn = ({
     const [country, setCountry] = useState<Country | null>(null);
     const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
     const [error, setError] = useState<string | null>(null);
+    // True when step 2 was reached via step 1's smart text (kind already
+    // detected + parsed). Step 2 then skips its own "describe your
+    // transportation" box and shows the parsed result outright.
+    const [seededFromSmart, setSeededFromSmart] = useState(false);
 
     // Normalize whatever date format comes in (MM/DD/YYYY from
     // DestinationDetail or YYYY-MM-DD from raw state) into ISO YYYY-MM-DD.
@@ -114,10 +118,12 @@ const AddDestinationBtn = ({
             setCountry(data.country ?? null);
             setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
             setStep(WIZARD_STEP.DESTINATION);
+            setSeededFromSmart(false);
         } else {
             setCountry(null);
             setTransport(emptyTransport());
             setStep(WIZARD_STEP.DESTINATION);
+            setSeededFromSmart(false);
         }
         // isoDefaultDate is derived from defaultDate; isoDate is stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,6 +133,23 @@ const AddDestinationBtn = ({
         setCountry(null);
         setTransport(emptyTransport());
         setStep(WIZARD_STEP.DESTINATION);
+        setSeededFromSmart(false);
+        setError(null);
+    };
+
+    // Reset on every close so re-opening always starts clean (ADD), or
+    // restores the saved destination (EDIT) — stale flight/transit input
+    // from a previous open must never leak into the next one.
+    const handleModalClose = () => {
+        if (isAdd) {
+            resetTransient();
+        } else if (data) {
+            setCountry(data.country ?? null);
+            setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
+            setStep(WIZARD_STEP.DESTINATION);
+            setSeededFromSmart(false);
+            setError(null);
+        }
     };
 
     /** Build the seeded transport activity from the current transport
@@ -233,6 +256,7 @@ const AddDestinationBtn = ({
                         : `${DESTINATION_LABEL.EDIT} ${data?.country?.name ?? ''}`
                 }
                 ref={modelRef}
+                onClose={handleModalClose}
                 buttonProps={{
                     title,
                     Icon:
@@ -294,6 +318,7 @@ const AddDestinationBtn = ({
                                             ? [emptyTransitSegment(isoDefaultDate)]
                                             : prev.transitSegments,
                                 }));
+                                setSeededFromSmart(true);
                                 setStep(WIZARD_STEP.TRANSPORT);
                             }}
                         />
@@ -309,6 +334,7 @@ const AddDestinationBtn = ({
                             defaultCountry={data?.country}
                             isoDefaultDate={isoDefaultDate}
                             tripMaxDate={normalizedTripMaxDate}
+                            seededFromSmart={seededFromSmart}
                             emptyFlightSegment={emptyFlightSegment}
                             emptyTransitSegment={emptyTransitSegment}
                             onCountryChange={(c) => {
@@ -335,7 +361,12 @@ const AddDestinationBtn = ({
                         )}
                         {isAdd && step === WIZARD_STEP.DESTINATION ? (
                             <ButtonCustom
-                                onClick={() => setStep(WIZARD_STEP.TRANSPORT)}
+                                onClick={() => {
+                                    // Manual (Search) path — no smart text, so
+                                    // step 2 shows its own describe box.
+                                    setSeededFromSmart(false);
+                                    setStep(WIZARD_STEP.TRANSPORT);
+                                }}
                                 label="Continue"
                                 type={BUTTON_VARIANT.STANDARD}
                                 capitalizeType="capitalize"
