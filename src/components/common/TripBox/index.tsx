@@ -120,30 +120,27 @@ export const TripBox = ({
                         {selected && <CheckRoundedIcon fontSize="small" />}
                     </span>
                 )}
-                {/* Trip-kind badge (top-right) — tells single vs
-                    multi-destination at a glance. Hidden in select mode to
-                    keep the photo uncluttered while picking trips to delete. */}
-                {!selectable && (
-                    <span
-                        className={classnames('trip-box-kind', {
-                            'is-single': single,
-                            'is-multi': !single,
-                        })}
-                    >
-                        {single ? (
-                            <PlaceRoundedIcon className="trip-box-kind-icon" />
-                        ) : (
-                            <RouteRoundedIcon className="trip-box-kind-icon" />
-                        )}
-                        {single
-                            ? TRIP_BOX_LABEL.KIND_SINGLE
-                            : TRIP_BOX_LABEL.KIND_MULTI}
-                    </span>
-                )}
             </div>
             <div className="trip-box-content">
                 <h3 className="trip-box-name">{data.name}</h3>
                 <p className="trip-box-destination">{destinationLabel}</p>
+                {/* Trip-kind chip — single vs multi-destination, sitting just
+                    below the country in the card body. */}
+                <span
+                    className={classnames('trip-box-kind', {
+                        'is-single': single,
+                        'is-multi': !single,
+                    })}
+                >
+                    {single ? (
+                        <PlaceRoundedIcon className="trip-box-kind-icon" />
+                    ) : (
+                        <RouteRoundedIcon className="trip-box-kind-icon" />
+                    )}
+                    {single
+                        ? TRIP_BOX_LABEL.KIND_SINGLE
+                        : TRIP_BOX_LABEL.KIND_MULTI}
+                </span>
                 <div className="trip-box-meta">
                     <span>{formatDateRange(data.startDate, data.endDate)}</span>
                     <span className="trip-box-friends">{friendsLabel}</span>

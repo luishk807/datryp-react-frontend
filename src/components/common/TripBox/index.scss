@@ -140,23 +140,20 @@ button.trip-box-link.is-select-trigger {
   color: rgba(0, 0, 0, 0.55);
 }
 
-// Trip-kind badge — top-right of the photo, opposite the status badge.
+// Trip-kind chip — sits in the card body just below the country.
 // Single = green pin; multi-destination = orange route icon.
 .trip-box-kind {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin: 0 0 12px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 4px 10px 4px 8px;
+  padding: 3px 10px 3px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .trip-box-kind-icon {
