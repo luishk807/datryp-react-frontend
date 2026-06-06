@@ -268,26 +268,6 @@ const AddDestinationBtn = ({
                 }}
             >
                 <div className="add-destination-comp">
-                    {isAdd && (
-                        <ol className="add-destination-steps" aria-label="Progress">
-                            <li
-                                className={classNames('add-destination-step-dot', {
-                                    'is-active': step === WIZARD_STEP.DESTINATION,
-                                    'is-done': step > WIZARD_STEP.DESTINATION,
-                                })}
-                            >
-                                <span>1</span> Destination
-                            </li>
-                            <li
-                                className={classNames('add-destination-step-dot', {
-                                    'is-active': step === WIZARD_STEP.TRANSPORT,
-                                })}
-                            >
-                                <span>2</span> Getting there
-                            </li>
-                        </ol>
-                    )}
-
                     {/* ADD step 1 / EDIT always: destination picker. */}
                     {(!isAdd || step === WIZARD_STEP.DESTINATION) && (
                         <CountryPicker
@@ -357,6 +337,11 @@ const AddDestinationBtn = ({
                         </p>
                     )}
 
+                    {/* No footer on step 1: "Type it" advances via the smart
+                        box arrow, "Search" advances on pick. The footer only
+                        appears on the transport step (add) / the single edit
+                        screen. */}
+                    {(!isAdd || step === WIZARD_STEP.TRANSPORT) && (
                     <div className="add-destination-actions">
                         {isAdd && step === WIZARD_STEP.TRANSPORT && (
                             <ButtonCustom
@@ -366,33 +351,19 @@ const AddDestinationBtn = ({
                                 capitalizeType="capitalize"
                             />
                         )}
-                        {isAdd && step === WIZARD_STEP.DESTINATION ? (
-                            <ButtonCustom
-                                onClick={() => {
-                                    // Manual (Search) path — no smart text, so
-                                    // step 2 shows its own describe box.
-                                    setSeededFromSmart(false);
-                                    setStep(WIZARD_STEP.TRANSPORT);
-                                }}
-                                label="Continue"
-                                type={BUTTON_VARIANT.STANDARD}
-                                capitalizeType="capitalize"
-                                disabled={!country}
-                            />
-                        ) : (
-                            <ButtonCustom
-                                onClick={handleSubmit}
-                                label={
-                                    isAdd
-                                        ? DESTINATION_LABEL.ADD
-                                        : DESTINATION_LABEL.SAVE
-                                }
-                                type={BUTTON_VARIANT.STANDARD}
-                                capitalizeType="uppercase"
-                                disabled={!canSubmit}
-                            />
-                        )}
+                        <ButtonCustom
+                            onClick={handleSubmit}
+                            label={
+                                isAdd
+                                    ? DESTINATION_LABEL.ADD
+                                    : DESTINATION_LABEL.SAVE
+                            }
+                            type={BUTTON_VARIANT.STANDARD}
+                            capitalizeType="uppercase"
+                            disabled={!canSubmit}
+                        />
                     </div>
+                    )}
                 </div>
             </ModalButton>
         </div>
