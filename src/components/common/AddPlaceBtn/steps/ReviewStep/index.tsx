@@ -9,6 +9,7 @@ import LocalTaxiRoundedIcon from '@mui/icons-material/LocalTaxiRounded';
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
 import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import { CircularProgress } from '@mui/material';
 import { ACTIVITY_KIND } from 'constants';
 import type { ActivityKind } from 'types';
@@ -24,6 +25,10 @@ export interface ReviewStepProps {
      *  time + corrected name). Surfaces an inline "finishing up" cue; the
      *  ADD button (in WizardNav) is disabled in the same window. */
     resolving?: boolean;
+    /** Opens the in-place edit form. Rendered as an "Edit" affordance ON the
+     *  review card (next to the resolved item) so it's discoverable — it used
+     *  to live in the modal header's top-right corner where users missed it. */
+    onEdit?: () => void;
 }
 
 const KIND_META: Record<
@@ -63,7 +68,12 @@ const timeWindow = (start?: string, end?: string): string | null => {
 
 /** Step 3 of the Add-Activity wizard — a read-only summary of the
  *  assembled activity. Tweaks happen via Back, not here. */
-const ReviewStep = ({ place, derivedName, resolving = false }: ReviewStepProps) => {
+const ReviewStep = ({
+    place,
+    derivedName,
+    resolving = false,
+    onEdit,
+}: ReviewStepProps) => {
     const kind = place.kind ?? ACTIVITY_KIND.PLACE;
     const { label, Icon } = KIND_META[kind] ?? KIND_META[ACTIVITY_KIND.PLACE];
 
@@ -147,6 +157,16 @@ const ReviewStep = ({ place, derivedName, resolving = false }: ReviewStepProps) 
                         </span>
                         <span className="add-review-card-kind">{label}</span>
                     </div>
+                    {onEdit && (
+                        <button
+                            type="button"
+                            className="add-review-card-edit"
+                            onClick={onEdit}
+                        >
+                            <EditRoundedIcon fontSize="small" />
+                            <span>Edit</span>
+                        </button>
+                    )}
                 </div>
                 <div className="add-review-card-rows">
                     {locationLine && (

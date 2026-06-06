@@ -91,6 +91,10 @@ export interface FormController {
     setPlaceSmartEntry: (v: string) => void;
     placeSmartLoading: boolean;
     setPlaceSmartLoading: (v: boolean) => void;
+    /** True while the post-search AI field-suggest is in flight. Used to hide
+     *  the bare-match "couldn't find" warning until the suggest settles, so it
+     *  doesn't flash before the suggest backfills the location. */
+    placeSuggestLoading: boolean;
     placeSmartWarning: string | null;
     setPlaceSmartWarning: (v: string | null) => void;
     placeDetailsExpanded: boolean;

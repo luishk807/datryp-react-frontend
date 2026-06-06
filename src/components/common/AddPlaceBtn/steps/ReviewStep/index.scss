@@ -57,6 +57,35 @@
   min-width: 0;
 }
 
+// Edit affordance ON the card (pushed to the head's right edge) so it sits
+// next to the resolved item — it used to live in the modal header where users
+// couldn't find it.
+.add-review-card-edit {
+  margin-left: auto;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: 1px solid theme('colors.primaryGreen');
+  border-radius: 999px;
+  background: #fff;
+  color: theme('colors.primaryGreen');
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.08);
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1rem;
+  }
+}
+
 .add-review-card-name {
   font-size: 1.05rem;
   font-weight: 700;

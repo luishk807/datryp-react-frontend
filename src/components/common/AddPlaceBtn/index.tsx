@@ -9,10 +9,8 @@ import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
 import { Alert, CircularProgress, Grid, Snackbar } from '@mui/material';
 import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import { parseFlightInfo } from './parseFlightInfo';
 import { parseTransitEntry } from './parseTransitQuery';
 import { pickSmartEntryLocation } from './pickSmartEntryLocation';
@@ -1967,6 +1965,7 @@ const AddPlaceBtn = ({
         setPlaceSmartEntry,
         placeSmartLoading,
         setPlaceSmartLoading,
+        placeSuggestLoading,
         placeSmartWarning,
         setPlaceSmartWarning,
         placeDetailsExpanded,
@@ -2237,27 +2236,6 @@ const AddPlaceBtn = ({
             ref={modelRef}
             title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
             onClose={handleModalClose}
-            // Review-step Edit lives in the header's top-right (next to
-            // the X) so the footer stays a clean Back + Add pair. Gated to
-            // Step 3's read-only review only — hidden on Steps 1–2 and
-            // while the in-place edit form is open.
-            headerAction={
-                isAdd && wizardStep === 3 && !reviewEditing ? (
-                    <ButtonIcon
-                        title="Edit"
-                        Icon={EditRoundedIcon}
-                        iconPosition="start"
-                        iconProps={{ fontSize: 'small' }}
-                        type={BUTTON_VARIANT.TEXT_PLAIN}
-                        className="add-review-edit"
-                        ariaLabel="Edit activity"
-                        onClick={() => {
-                            setError(null);
-                            setReviewEditing(true);
-                        }}
-                    />
-                ) : null
-            }
             // Activity form is content-heavy; flips to a full-viewport
             // sheet on mobile so the user doesn't fight a tiny centered
             // window with double scrollbars on every device under 480px.
@@ -2449,6 +2427,10 @@ const AddPlaceBtn = ({
                                             place={place}
                                             derivedName={deriveActivityName()}
                                             resolving={placeResolving}
+                                            onEdit={() => {
+                                                setError(null);
+                                                setReviewEditing(true);
+                                            }}
                                         />
                                         <WizardNav
                                             onBack={() => setWizardStep(2)}

@@ -36,6 +36,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
         setPlaceSmartEntry,
         placeSmartLoading,
         setPlaceSmartLoading,
+        placeSuggestLoading,
         placeSmartWarning,
         setPlaceSmartWarning,
         setPlaceDetailsExpanded,
@@ -114,11 +115,18 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                       : "Type a place or paste a Maps / Yelp link — we'll fill in the rest."}
                             </span>
                         </div>
-                        {placeSmartWarning && (
-                            <div className="flight-smart-entry-warning">
-                                {placeSmartWarning}
-                            </div>
-                        )}
+                        {/* Hold the bare-match "couldn't find" warning until
+                            the search AND the AI field-suggest both settle —
+                            otherwise it flashes "couldn't find" before the
+                            suggest backfills the location and the place
+                            actually resolves. */}
+                        {placeSmartWarning &&
+                            !placeSmartLoading &&
+                            !placeSuggestLoading && (
+                                <div className="flight-smart-entry-warning">
+                                    {placeSmartWarning}
+                                </div>
+                            )}
                     </div>
                     <PlaceSmartEntryWatcher
                         rawInput={placeSmartEntry}
