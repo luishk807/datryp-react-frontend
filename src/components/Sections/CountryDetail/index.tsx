@@ -182,6 +182,12 @@ const CountryDetail = () => {
           local: country.local ?? undefined,
           image: country.image ?? undefined,
         },
+        // Anchor the seeded destination to the trip start so it matches a
+        // date block in the multi-destination itinerary (DateBlock keys
+        // multi destinations by `startDate`). The reducer re-anchors this to
+        // the new start if the user later picks real dates in the wizard.
+        startDate: today,
+        endDate: today,
         ...(arrivalAirportCode
           ? { flightInfo: { arrivalAirport: arrivalAirportCode } }
           : {}),

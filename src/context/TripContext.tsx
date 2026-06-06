@@ -178,6 +178,9 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                     }
                 }
             }
+            // Snapshot the start before the merge so the multi-destination
+            // re-anchor below can tell which destinations were tracking it.
+            const prevStartDate = draft.startDate;
             Object.assign(draft, action.payload);
 
             // Assign real ids to any seeded destinations / itinerary
@@ -261,6 +264,38 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                         }
                         targetDay.activities.push(...orphans);
                         dest.itinerary = kept;
+                    }
+                }
+            }
+
+            // Multi-destination create flow: the country / city page seeds the
+            // first destination anchored to the trip start (today). When the
+            // user then picks real dates in the wizard's Dates step, a
+            // destination still pinned to the old start — or one seeded with no
+            // date at all — would fall outside the new range and vanish from
+            // the itinerary (DateBlock keys multi destinations by `startDate`),
+            // taking its auto-seeded flight with it. Re-anchor those to the new
+            // start so the preset destination + flight follow the dates.
+            // Scoped to creation (no apiId) and to destinations that were
+            // tracking the old start, so user-placed mid-trip legs keep their
+            // own dates.
+            if (
+                dateChanged &&
+                draft.type?.id === TRIP_BASIC.MULTIPLE.id &&
+                !draft.apiId &&
+                draft.startDate
+            ) {
+                const newStart = draft.startDate;
+                for (const dest of draft.destinations ?? []) {
+                    const tracksOldStart =
+                        !dest.startDate ||
+                        (!!prevStartDate &&
+                            isSameDay(dest.startDate, prevStartDate));
+                    if (!tracksOldStart) continue;
+                    dest.startDate = newStart;
+                    dest.endDate = newStart;
+                    for (const day of dest.itinerary ?? []) {
+                        day.date = newStart;
                     }
                 }
             }

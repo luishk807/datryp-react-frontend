@@ -178,6 +178,12 @@ const CityDetail = () => {
                     code: args.countryCode,
                     image: args.cityImage ?? undefined,
                 },
+                // Anchor to the trip start so the destination matches a date
+                // block in the multi-destination itinerary (DateBlock keys
+                // multi destinations by `startDate`). The reducer re-anchors
+                // this if the user later picks real dates in the wizard.
+                startDate: today,
+                endDate: today,
                 ...(args.arrivalAirportCode
                     ? {
                           flightInfo: {
