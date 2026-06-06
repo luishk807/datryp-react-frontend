@@ -46,6 +46,7 @@ import { useCountryDetailsProgressive } from "api/hooks/useCountryDetails";
 import { useCountries } from "api/hooks/useCountries";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
+import { useDestinationAirport } from "api/hooks/useDestinationAirport";
 import { useUser } from "context/UserContext";
 import { useIsStuck } from "hooks/useIsStuck";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
@@ -87,6 +88,19 @@ const CountryDetail = () => {
   // their sections as they land, each rendering its own skeleton meanwhile.
   const { country, details, isLoading, isError, error } =
     useCountryDetailsProgressive(code);
+
+  // Arrival airport for the auto-seeded outbound flight (depart side is the
+  // user's nearest home airport, below). Prefer the AI-provided airports
+  // list, but fall back to the static airports catalog — ranked primary-hub
+  // first, so "Panama" → PTY — for older cached countries whose `airports`
+  // field is empty. Without the fallback `arrivalAirportCode` was null and the
+  // flight never seeded, so a multi-dest "trip to Panama" showed no flight.
+  const detailArrivalAirport = details?.airports?.[0]?.iataCode ?? null;
+  const { data: fallbackArrivalAirport } = useDestinationAirport(
+    country?.name,
+    !detailArrivalAirport,
+  );
+  const arrivalAirportCode = detailArrivalAirport ?? fallbackArrivalAirport ?? null;
 
   // Resolve the country's name + hero image from the (cached) catalog so the
   // loading screen can show the photo + name immediately, instead of just the
@@ -366,12 +380,7 @@ const CountryDetail = () => {
             <button
               type="button"
               className="country-detail-plan-cta"
-              onClick={() =>
-                startTrip(
-                  country,
-                  details.airports?.[0]?.iataCode ?? null,
-                )
-              }
+              onClick={() => startTrip(country, arrivalAirportCode)}
             >
               <FlightTakeoffRoundedIcon className="country-detail-plan-cta-icon" />
               <span className="country-detail-plan-cta-text">

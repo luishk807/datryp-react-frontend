@@ -44,6 +44,7 @@ import AirportsSection from "components/PlaceDetail/AirportsSection";
 import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
+import { useDestinationAirport } from "api/hooks/useDestinationAirport";
 import { useUser } from "context/UserContext";
 import { useIsStuck } from "hooks/useIsStuck";
 import {
@@ -85,6 +86,19 @@ const CityDetail = () => {
     // their sections as they land, each rendering its own skeleton meanwhile.
     const { city, details, isLoading, isError, error } =
         useCityDetailsProgressive(name, country, code);
+
+    // Arrival airport for the auto-seeded outbound flight (depart side is the
+    // user's nearest home airport). Prefer the AI-provided airports list, but
+    // fall back to the static airports catalog keyed on the city name for
+    // older cached cities whose `airports` field is empty — without it
+    // `arrivalAirportCode` was null and no flight seeded by default.
+    const detailArrivalAirport = details?.airports?.[0]?.iataCode ?? null;
+    const { data: fallbackArrivalAirport } = useDestinationAirport(
+        name,
+        !detailArrivalAirport,
+    );
+    const arrivalAirportCode =
+        detailArrivalAirport ?? fallbackArrivalAirport ?? null;
 
     // Fast, independent hero image so the loading screen shows the city's
     // photo + name immediately instead of a blank spinner while the prose
@@ -381,8 +395,7 @@ const CityDetail = () => {
                                     countryId: city.countryId,
                                     cityName: city.name,
                                     cityImage: city.imageUrl,
-                                    arrivalAirportCode:
-                                        details.airports?.[0]?.iataCode ?? null,
+                                    arrivalAirportCode,
                                 })
                             }
                         >
