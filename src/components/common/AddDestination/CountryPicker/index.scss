@@ -116,6 +116,15 @@
   color: rgba(0, 0, 0, 0.5);
 }
 
+// Inline "where are you headed?" picker shown when a smart entry caught
+// the transport but no destination — keeps the user on step 1.
+.country-picker-need {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
 // Resolved-country / first-place confirm chip.
 .country-picker-chip {
   display: inline-flex;
