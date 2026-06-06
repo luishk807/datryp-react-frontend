@@ -1,8 +1,9 @@
 
 import React from 'react';
 import './App.scss';
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { Navigate, Route, Routes, BrowserRouter as Router } from 'react-router-dom';
+import { lazyWithRetry as lazy } from 'utils';
 import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
 import BottomNav from 'components/BottomNav';

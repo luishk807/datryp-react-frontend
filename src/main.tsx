@@ -9,6 +9,12 @@ import { TripProvider } from 'context/TripContext';
 import { UserProvider } from 'context/UserContext';
 import { queryClient } from 'api/queryClient';
 import { initPosthog } from 'lib/posthog';
+import { installChunkReloadHandler } from 'utils';
+
+// Recover from stale-deploy chunk 404s (new build replaced the hashed chunk
+// names this tab still references) by reloading once. Covers direct dynamic
+// imports; lazy routes are additionally wrapped via lazyWithRetry.
+installChunkReloadHandler();
 
 // TanStack Query devtools dropped — the floating button cluttered the
 // corner during everyday dev. Re-add behind a feature flag if/when
