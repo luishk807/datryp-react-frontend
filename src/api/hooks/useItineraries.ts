@@ -500,8 +500,14 @@ export const useSaveItinerary = () => {
                 day_count: saved?.intenaryDates?.length ?? 0,
             });
         },
-        // Don't retry a paywall hit — same input will block again.
-        retry: (_failureCount, error) => !(error instanceof TripCapReachedError),
+        // Retry at most once, and never on a paywall hit (same input blocks
+        // again). The previous predicate returned true for every non-paywall
+        // error with no failure cap, so a validation error (e.g. a missing
+        // field) retried forever — leaving the "Saving your trip…" spinner
+        // hung instead of surfacing the error. One retry covers a transient
+        // network blip; a real validation error then rejects promptly.
+        retry: (failureCount, error) =>
+            failureCount < 1 && !(error instanceof TripCapReachedError),
     });
 };
 

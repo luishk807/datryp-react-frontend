@@ -72,3 +72,31 @@ export const installChunkReloadHandler = (): void => {
         reloadOnce();
     });
 };
+
+/**
+ * Auto-reload onto a new deploy. The PWA is `registerType: 'autoUpdate'`, so a
+ * new build's service worker installs + claims the open tab (skipWaiting +
+ * clientsClaim) — but the page keeps running the OLD in-memory bundle until it
+ * reloads, which is why a deploy required a manual "Clear site data". Reload
+ * once when a freshly-activated SW takes control so users land on the new
+ * version automatically.
+ *
+ * Guards:
+ *  - only when there was ALREADY a controller (skip the first-ever install,
+ *    which has nothing to reload to), and
+ *  - once per page (the `refreshing` latch + the shared reload-timestamp).
+ * Call this once at app boot.
+ */
+export const installSWUpdateReload = (): void => {
+    const swc = navigator.serviceWorker;
+    if (!swc) return;
+    // No controller yet = first visit / SW installing for the first time.
+    // Nothing stale to escape, so don't reload when it first claims us.
+    if (!swc.controller) return;
+    let refreshing = false;
+    swc.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+    });
+};
