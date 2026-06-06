@@ -11,8 +11,8 @@ import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
 import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
-import { ACTIVITY_KIND } from 'constants';
-import type { FlightInfo, TransitInfo } from 'types';
+import { ACTIVITY_KIND, ADD_METHOD } from 'constants';
+import type { AddMethod, FlightInfo, TransitInfo } from 'types';
 import type { TransportDraft, TransportKind } from '../types';
 import { TRANSPORT_MODE } from '../transportSummary';
 import './index.scss';
@@ -25,9 +25,14 @@ export interface DescribeStepProps {
     tripMaxDate?: string;
     emptyFlightSegment: (date: string) => FlightInfo;
     emptyTransitSegment: (date: string) => TransitInfo;
-    /** Jump back to step 1 to change the transport type. Omitted in edit mode
+    /** Jump back to change the transport type / method. Omitted in edit mode
      *  (the tiles render inline above this step, no wizard navigation). */
     onChangeType?: () => void;
+    /** ADD-only: the method picked on the Method step. `CUSTOM` opens the
+     *  editable fields straight away (no smart box); `SMART` shows the
+     *  collapsed smart box + "Edit details" toggle (the default). Undefined
+     *  in edit mode, where the fields are always open. */
+    method?: AddMethod | null;
     /** Per-segment "couldn't find this flight/route" hints, owned by the
      *  orchestrator's always-mounted TransportResolver. Read-only here —
      *  surfaced as a manual-entry nudge under the smart box. */
@@ -47,7 +52,7 @@ const smartPlaceholder = (kind: TransportKind): string =>
           ? 'Hertz pickup PTY June 6 10am $50'
           : 'Renfe 3152 Madrid to Barcelona 9am $30';
 
-/** Step 2 — describe the chosen transport. A smart box (parsed via
+/** Describe the chosen transport. A smart box (parsed via
  *  parseFlightInfo / parseTransitEntry into the first segment) → "Edit
  *  details" reveals the full per-segment fields + cost. For "I'll add
  *  later" (kind=null) it's a destination-only entry — the orchestrator's
@@ -62,22 +67,27 @@ const DescribeStep = ({
     emptyFlightSegment,
     emptyTransitSegment,
     onChangeType,
+    method,
     lookupNotFound,
 }: DescribeStepProps) => {
     const isEdit = mode === 'edit';
     const { kind } = transport;
-    // Edit mode opens straight into the editable fields; add mode shows the
-    // collapsed smart box + "Edit details" first.
-    const [showDetails, setShowDetails] = useState(isEdit);
+    // Edit mode (and the CUSTOM method in add mode) opens straight into the
+    // editable fields; SMART shows the collapsed smart box + "Edit details".
+    const fieldsOpen = isEdit || method === ADD_METHOD.CUSTOM;
+    const [showDetails, setShowDetails] = useState(fieldsOpen);
     // Track whether we've already auto-parsed the current smart text so a
     // re-render doesn't clobber subsequent manual edits.
     const parsedSmartRef = useRef<string | null>(null);
 
     useEffect(() => {
-        setShowDetails(isEdit);
-    }, [isEdit, kind]);
+        setShowDetails(fieldsOpen);
+    }, [fieldsOpen, kind]);
 
     const activeMode = kind ? TRANSPORT_MODE[kind] : null;
+    // CUSTOM drops the user straight into the fields, so the smart box is
+    // suppressed. SMART (and edit mode) keep it as the primary entry.
+    const showSmartBox = method !== ADD_METHOD.CUSTOM;
 
     /** Apply the smart-box text to the active kind's first segment. */
     const handleSmartText = (text: string) => {
@@ -234,24 +244,26 @@ const DescribeStep = ({
                 />
             )}
 
-            <div className="add-destination-field">
-                <label className="add-destination-label">
-                    Describe your {activeMode?.label}
-                </label>
-                <div className="transport-smart">
-                    <AutoAwesomeRoundedIcon className="transport-smart-spark" />
-                    <InputField
-                        variant="bare"
-                        name="transport-smart"
-                        value={transport.smartText}
-                        required={false}
-                        placeholder={smartPlaceholder(kind)}
-                        onChange={(e) => handleSmartText(e.target.value)}
-                    />
+            {showSmartBox && (
+                <div className="add-destination-field">
+                    <label className="add-destination-label">
+                        Describe your {activeMode?.label}
+                    </label>
+                    <div className="transport-smart">
+                        <AutoAwesomeRoundedIcon className="transport-smart-spark" />
+                        <InputField
+                            variant="bare"
+                            name="transport-smart"
+                            value={transport.smartText}
+                            required={false}
+                            placeholder={smartPlaceholder(kind)}
+                            onChange={(e) => handleSmartText(e.target.value)}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {!showDetails && (
+            {showSmartBox && !showDetails && (
                 <div className="transport-edit-toggle">
                     {lookupNotFound[0] && (
                         <span className="transport-edit-toggle-warn">

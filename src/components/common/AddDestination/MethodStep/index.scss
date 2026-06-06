@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.add-destination-method-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.add-destination-method-tile {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 22px 14px;
+  min-height: 132px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    transform 0.18s ease, background-color 0.18s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryOrange');
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(246, 137, 31, 0.16);
+  }
+}
+
+.add-destination-method-tile-icon {
+  font-size: 1.9rem !important;
+  color: theme('colors.primaryOrange');
+}
+
+.add-destination-method-tile-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.add-destination-method-tile-sub {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+  .add-destination-method-tiles {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .add-destination-method-tile {
+    min-height: 0;
+    padding: 16px 14px;
+  }
+}

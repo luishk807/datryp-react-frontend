@@ -5,10 +5,11 @@ import AddLocationAltRoundedIcon from '@mui/icons-material/AddLocationAltRounded
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import classNames from 'classnames';
-import { ACTION, ACTIVITY_KIND, BUTTON_VARIANT } from 'constants';
+import { ACTION, ACTIVITY_KIND, ADD_METHOD, BUTTON_VARIANT } from 'constants';
 import type {
     Activity,
     AddEditButtonProps,
+    AddMethod,
     Country,
     Destination,
     FlightInfo,
@@ -16,7 +17,11 @@ import type {
 } from 'types';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
 import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
+import FlightDeparturesSearch from 'components/common/AddPlaceBtn/FlightDeparturesSearch';
+import type { FlightDepartureOption } from 'api/flightDeparturesApi';
+import { useNearestAirport } from 'api/hooks/useHomeDeparture';
 import TypeStep, { LATER, type TypePick } from './TypeStep';
+import MethodStep from './MethodStep';
 import DescribeStep from './DescribeStep';
 import TransportResolver from './TransportResolver';
 import ConfirmStep from './ConfirmStep';
@@ -63,8 +68,16 @@ export interface AddDestinationBtnProps
     tripMaxDate?: string | null;
 }
 
-const WIZARD_STEP = { TYPE: 1, DESCRIBE: 2, CONFIRM: 3 } as const;
+const WIZARD_STEP = { TYPE: 1, METHOD: 2, DESCRIBE: 3, CONFIRM: 4 } as const;
 type WizardStep = (typeof WIZARD_STEP)[keyof typeof WIZARD_STEP];
+
+/** Methods offered per transport kind on the Method step. Flight gets the
+ *  departures search ("Find my flight"); ground kinds get smart + custom
+ *  only. SUGGESTIONS is place-only and never appears here. */
+const methodsForKind = (kind: TransportKind): AddMethod[] =>
+    kind === ACTIVITY_KIND.FLIGHT
+        ? [ADD_METHOD.SMART, ADD_METHOD.SEARCH, ADD_METHOD.CUSTOM]
+        : [ADD_METHOD.SMART, ADD_METHOD.CUSTOM];
 
 /** Title prefix for the seeded transport activity, by kind. */
 const TRANSPORT_NAME_PREFIX: Record<TransportKind, string> = {
@@ -114,7 +127,16 @@ const AddDestinationBtn = ({
     const [step, setStep] = useState<WizardStep>(WIZARD_STEP.TYPE);
     const [country, setCountry] = useState<Country | null>(null);
     const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
+    // Which add-method the user picked on the Method step. Drives the Describe
+    // input (SMART = smart box, CUSTOM = fields open, SEARCH = flight search)
+    // and the Back target. Null until a tile + method are chosen (or the smart-
+    // box shortcut / "I'll add later" path, which skip the Method step).
+    const [method, setMethod] = useState<AddMethod | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    // Seed the flight-departures search's From-airport with the user's home
+    // airport (a flight to the destination departs from home).
+    const { data: nearestAirport } = useNearestAirport();
     // Per-segment "couldn't find this flight/route" hints. Lifted here (from
     // DescribeStep) because the always-mounted TransportResolver writes them
     // and DescribeStep — unmounted on the Confirm step — reads them.
@@ -146,12 +168,14 @@ const AddDestinationBtn = ({
             setTransport(seeded);
             setStep(WIZARD_STEP.TYPE);
             setChooseLater(seeded.kind === null);
+            setMethod(null);
             setLookupNotFound({});
         } else {
             setCountry(null);
             setTransport(emptyTransport());
             setStep(WIZARD_STEP.TYPE);
             setChooseLater(false);
+            setMethod(null);
             setLookupNotFound({});
         }
         // isoDefaultDate is derived from defaultDate; isoDate is stable.
@@ -163,6 +187,7 @@ const AddDestinationBtn = ({
         setTransport(emptyTransport());
         setStep(WIZARD_STEP.TYPE);
         setChooseLater(false);
+        setMethod(null);
         setError(null);
         setLookupNotFound({});
     };
@@ -179,6 +204,7 @@ const AddDestinationBtn = ({
             setTransport(seeded);
             setStep(WIZARD_STEP.TYPE);
             setChooseLater(seeded.kind === null);
+            setMethod(null);
             setError(null);
             setLookupNotFound({});
         }
@@ -272,15 +298,36 @@ const AddDestinationBtn = ({
     if (isViewMode) return null;
 
     const canSubmit = Boolean(country);
+    // On the Describe step, the flight "Find my flight" method swaps the
+    // smart/custom form for the departures search instead.
+    const flightSearchActive =
+        isAdd &&
+        step === WIZARD_STEP.DESCRIBE &&
+        method === ADD_METHOD.SEARCH &&
+        transport.kind === ACTIVITY_KIND.FLIGHT;
+
+    // Where the footer's Back button goes from the current step. Confirm →
+    // Describe; Describe → Method (or Type for the "later"/no-kind path);
+    // Method → Type.
+    const describeBackTo: WizardStep =
+        step === WIZARD_STEP.CONFIRM
+            ? WIZARD_STEP.DESCRIBE
+            : step === WIZARD_STEP.DESCRIBE
+              ? transport.kind
+                  ? WIZARD_STEP.METHOD
+                  : WIZARD_STEP.TYPE
+              : WIZARD_STEP.TYPE;
 
     /** Step 1 tile click: pick a transport type (or "I'll add later"), seed
-     *  its first segment, and advance to the Describe step. Switching kinds
-     *  resets the smart text + segments so a stale flight entry can't leak
-     *  into a train (and vice versa). */
+     *  its first segment, and advance. A transport kind goes to the Method
+     *  step (how to add it); "I'll add later" skips straight to the
+     *  destination-only Describe step. Switching kinds resets the smart text +
+     *  segments so a stale flight entry can't leak into a train (and v.v.). */
     const pickType = (value: TypePick) => {
         setError(null);
         if (value === LATER) {
             setChooseLater(true);
+            setMethod(null);
             setTransport((prev) => ({
                 ...prev,
                 kind: null,
@@ -297,6 +344,7 @@ const AddDestinationBtn = ({
             return;
         }
         setChooseLater(false);
+        setMethod(null);
         const kindChanged = transport.kind !== value;
         setTransport((prev) => ({
             ...prev,
@@ -319,7 +367,43 @@ const AddDestinationBtn = ({
         // ADD: a kind change invalidates a previously-derived country so the
         // new entry re-derives it. EDIT: keep the saved destination fixed.
         if (isAdd && kindChanged) setCountry(null);
+        setStep(WIZARD_STEP.METHOD);
+    };
+
+    /** Method step pick: SMART / CUSTOM advance to the Describe step (the
+     *  method drives whether the smart box or the editable fields show).
+     *  SEARCH (flight only) swaps the Describe input for the departures
+     *  search, also on the Describe step. */
+    const pickMethod = (picked: AddMethod) => {
+        setError(null);
+        setMethod(picked);
         setStep(WIZARD_STEP.DESCRIBE);
+    };
+
+    /** A flight was picked from the "Find my flight" departures search. Apply
+     *  it to the first segment and land the user on Confirm with a filled
+     *  flight (the always-mounted resolver derives the destination country
+     *  from the arrival airport). */
+    const handleFlightDeparturePick = (item: FlightDepartureOption) => {
+        setTransport((prev) => {
+            const segs = prev.flightSegments.length
+                ? [...prev.flightSegments]
+                : [emptyFlightSegment(isoDefaultDate)];
+            const cur = segs[0] ?? {};
+            segs[0] = {
+                ...cur,
+                flightNumber: item.flightNumber ?? cur.flightNumber,
+                departAirport: item.departAirport ?? cur.departAirport,
+                arrivalAirport: item.arrivalAirport ?? cur.arrivalAirport,
+                departDate: item.departDate ?? cur.departDate,
+                departTime: item.departTime ?? cur.departTime,
+                arrivalDate: item.arrivalDate ?? cur.arrivalDate,
+                arrivalTime: item.arrivalTime ?? cur.arrivalTime,
+            };
+            return { ...prev, kind: ACTIVITY_KIND.FLIGHT, flightSegments: segs };
+        });
+        if (isAdd) setCountry(null);
+        setStep(WIZARD_STEP.CONFIRM);
     };
 
     /** Step 1 smart box: detect the kind from the typed text, parse it into
@@ -332,6 +416,7 @@ const AddDestinationBtn = ({
         if (!trimmed) return;
         setError(null);
         setChooseLater(false);
+        setMethod(null);
         const kind = detectTransportKind(trimmed);
         setTransport((prev) => {
             if (kind === ACTIVITY_KIND.FLIGHT) {
@@ -412,9 +497,10 @@ const AddDestinationBtn = ({
                 }}
             >
                 <div className="add-destination-comp">
-                    {/* ADD step 1 / EDIT always: transport-type tiles. Tiles
-                        advance to Describe on click in add mode; in edit mode
-                        they sit inline above the (always-shown) Describe form. */}
+                    {/* ADD step 1 / EDIT always: transport-type tiles. A tile
+                        advances to the Method step in add mode ("later" jumps
+                        to Describe); in edit mode they sit inline above the
+                        (always-shown) Describe form. */}
                     {(!isAdd || step === WIZARD_STEP.TYPE) && (
                         <TypeStep
                             currentKind={transport.kind}
@@ -424,28 +510,67 @@ const AddDestinationBtn = ({
                         />
                     )}
 
-                    {/* ADD step 2 / EDIT always: describe the chosen transport
-                        (or the destination-only "later" entry). Entry-only in
-                        add mode — the review lives on the Confirm step. */}
-                    {(!isAdd || step === WIZARD_STEP.DESCRIBE) && (
-                        <DescribeStep
-                            mode={isAdd ? 'add' : 'edit'}
-                            transport={transport}
-                            setTransport={setTransport}
-                            isoDefaultDate={isoDefaultDate}
-                            tripMaxDate={normalizedTripMaxDate}
-                            emptyFlightSegment={emptyFlightSegment}
-                            emptyTransitSegment={emptyTransitSegment}
-                            lookupNotFound={lookupNotFound}
-                            onChangeType={
-                                isAdd
-                                    ? () => setStep(WIZARD_STEP.TYPE)
-                                    : undefined
+                    {/* ADD step 2 (tile path only): how to add the chosen
+                        transport. The smart-box shortcut + "I'll add later"
+                        skip this; edit mode never shows it. */}
+                    {isAdd &&
+                        step === WIZARD_STEP.METHOD &&
+                        transport.kind && (
+                            <MethodStep
+                                methods={methodsForKind(transport.kind)}
+                                onPick={pickMethod}
+                            />
+                        )}
+
+                    {/* ADD step 3 / EDIT always: describe the chosen transport
+                        (or the destination-only "later" entry). When the flight
+                        "Find my flight" method is active the departures search
+                        takes this slot instead. Entry-only in add mode — the
+                        review lives on the Confirm step. */}
+                    {flightSearchActive ? (
+                        <FlightDeparturesSearch
+                            initialAirport={
+                                transport.flightSegments[0]?.departAirport ||
+                                nearestAirport?.iataCode ||
+                                ''
                             }
+                            initialArrival={
+                                transport.flightSegments[0]?.arrivalAirport || ''
+                            }
+                            initialDate={
+                                transport.flightSegments[0]?.departDate ||
+                                isoDefaultDate
+                            }
+                            onPick={handleFlightDeparturePick}
+                            onBack={() => setStep(WIZARD_STEP.METHOD)}
                         />
+                    ) : (
+                        (!isAdd || step === WIZARD_STEP.DESCRIBE) && (
+                            <DescribeStep
+                                mode={isAdd ? 'add' : 'edit'}
+                                transport={transport}
+                                setTransport={setTransport}
+                                isoDefaultDate={isoDefaultDate}
+                                tripMaxDate={normalizedTripMaxDate}
+                                emptyFlightSegment={emptyFlightSegment}
+                                emptyTransitSegment={emptyTransitSegment}
+                                lookupNotFound={lookupNotFound}
+                                method={isAdd ? method : undefined}
+                                onChangeType={
+                                    isAdd
+                                        ? () =>
+                                              setStep(
+                                                  transport.kind
+                                                      ? WIZARD_STEP.METHOD
+                                                      : WIZARD_STEP.TYPE,
+                                              )
+                                        : undefined
+                                }
+                            />
+                        )
                     )}
 
-                    {/* ADD step 3: read-only review before saving. */}
+                    {/* ADD final step: read-only review before saving. */}
                     {isAdd && step === WIZARD_STEP.CONFIRM && (
                         <ConfirmStep
                             country={country}
@@ -481,49 +606,50 @@ const AddDestinationBtn = ({
                         </p>
                     )}
 
-                    {/* No footer on step 1 (tiles advance on click). Step 2
-                        (add) = Back + Continue; step 3 (add) = Back + Add
-                        Destination; edit = the single Save screen. */}
-                    {(!isAdd ||
-                        step === WIZARD_STEP.DESCRIBE ||
-                        step === WIZARD_STEP.CONFIRM) && (
-                        <div className="add-destination-actions">
-                            {isAdd && (
-                                <ButtonCustom
-                                    onClick={() =>
-                                        setStep(
-                                            step === WIZARD_STEP.CONFIRM
-                                                ? WIZARD_STEP.DESCRIBE
-                                                : WIZARD_STEP.TYPE,
-                                        )
-                                    }
-                                    label={DESTINATION_LABEL.BACK}
-                                    type={BUTTON_VARIANT.LINE}
-                                    capitalizeType="capitalize"
-                                />
-                            )}
-                            {isAdd && step === WIZARD_STEP.DESCRIBE ? (
-                                <ButtonCustom
-                                    onClick={() => setStep(WIZARD_STEP.CONFIRM)}
-                                    label={DESTINATION_LABEL.CONTINUE}
-                                    type={BUTTON_VARIANT.STANDARD}
-                                    capitalizeType="uppercase"
-                                />
-                            ) : (
-                                <ButtonCustom
-                                    onClick={handleSubmit}
-                                    label={
-                                        isAdd
-                                            ? DESTINATION_LABEL.ADD
-                                            : DESTINATION_LABEL.SAVE
-                                    }
-                                    type={BUTTON_VARIANT.STANDARD}
-                                    capitalizeType="uppercase"
-                                    disabled={!canSubmit}
-                                />
-                            )}
-                        </div>
-                    )}
+                    {/* No footer on the Type step (tiles advance on click) or
+                        while the flight departures search is up (it ships its
+                        own Back + Search row). Method = Back only; Describe =
+                        Back + Continue; Confirm = Back + Add Destination; edit
+                        = the single Save screen. */}
+                    {!flightSearchActive &&
+                        (!isAdd ||
+                            step === WIZARD_STEP.METHOD ||
+                            step === WIZARD_STEP.DESCRIBE ||
+                            step === WIZARD_STEP.CONFIRM) && (
+                            <div className="add-destination-actions">
+                                {isAdd && (
+                                    <ButtonCustom
+                                        onClick={() => setStep(describeBackTo)}
+                                        label={DESTINATION_LABEL.BACK}
+                                        type={BUTTON_VARIANT.LINE}
+                                        capitalizeType="capitalize"
+                                    />
+                                )}
+                                {isAdd && step === WIZARD_STEP.METHOD ? null : isAdd &&
+                                  step === WIZARD_STEP.DESCRIBE ? (
+                                    <ButtonCustom
+                                        onClick={() =>
+                                            setStep(WIZARD_STEP.CONFIRM)
+                                        }
+                                        label={DESTINATION_LABEL.CONTINUE}
+                                        type={BUTTON_VARIANT.STANDARD}
+                                        capitalizeType="uppercase"
+                                    />
+                                ) : (
+                                    <ButtonCustom
+                                        onClick={handleSubmit}
+                                        label={
+                                            isAdd
+                                                ? DESTINATION_LABEL.ADD
+                                                : DESTINATION_LABEL.SAVE
+                                        }
+                                        type={BUTTON_VARIANT.STANDARD}
+                                        capitalizeType="uppercase"
+                                        disabled={!canSubmit}
+                                    />
+                                )}
+                            </div>
+                        )}
                 </div>
             </ModalButton>
         </div>
