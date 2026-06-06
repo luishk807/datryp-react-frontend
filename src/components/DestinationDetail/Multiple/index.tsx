@@ -6,13 +6,14 @@ import FlightLandIcon from '@mui/icons-material/FlightLand';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import './index.scss';
-import { TRIP_BASIC } from 'constants';
+import { ACTIVITY_KIND, TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import type {
     ActionType,
+    Activity,
     BudgetEntry,
     BudgetItem,
     Destination,
@@ -78,6 +79,29 @@ const Multiple = ({
                     const flightInfo = _.get(trip, 'flightInfo');
                     const country = _.get(trip, 'country.name');
                     const activities = _.get(trip, 'itinerary.0.activities');
+                    // The destination's flight header (country flight-no +
+                    // depart/arrive legs + flight money) duplicates the flight
+                    // activity card rendered below it — entry points seed both
+                    // a `flightInfo` and a "Flight to <city>" activity. Show
+                    // the header only for legacy destinations whose flight
+                    // lives solely in flightInfo: never alongside a flight
+                    // activity, and never as an empty "Not set / Not set" stub.
+                    const hasFlightActivity = (
+                        (activities as Activity[] | undefined) ?? []
+                    ).some((a) => a.kind === ACTIVITY_KIND.FLIGHT);
+                    const hasRealFlightInfo = Boolean(
+                        flightInfo &&
+                            (flightInfo.flightNumber ||
+                                flightInfo.departAirport ||
+                                flightInfo.arrivalAirport ||
+                                flightInfo.segments?.some(
+                                    (s: { flightNumber?: string; departAirport?: string; arrivalAirport?: string }) =>
+                                        s.flightNumber ||
+                                        s.departAirport ||
+                                        s.arrivalAirport,
+                                )),
+                    );
+                    const showFlightHeader = hasRealFlightInfo && !hasFlightActivity;
                     // Resolve the destination's real index in the parent
                     // state — onChangePlace/onChangeBudget already do this
                     // by date, but drag-and-drop needs it eagerly so the
@@ -104,7 +128,7 @@ const Multiple = ({
                                     <span className="country-name">
                                         {country || 'Destination not set'}
                                     </span>
-                                    {flightInfo?.flightNumber && (
+                                    {showFlightHeader && flightInfo?.flightNumber && (
                                         <span className="flight-no">
                                             Flight {flightInfo.flightNumber}
                                         </span>
@@ -144,6 +168,7 @@ const Multiple = ({
                                         </div>
                                     )}
                                 </Grid>
+                                {showFlightHeader && (
                                 <Grid item lg={12} md={12} xs={12} className="content-info">
                                     {(() => {
                                         // Render one Depart/Arrive pair per segment so stopovers
@@ -246,7 +271,9 @@ const Multiple = ({
                                         return <>{blocks}</>;
                                     })()}
                                 </Grid>
-                                {((flightInfo?.cost != null &&
+                                )}
+                                {showFlightHeader &&
+                                    ((flightInfo?.cost != null &&
                                     flightInfo.cost !== '') ||
                                     flightInfo?.paidBy ||
                                     (flightInfo?.budgets &&
