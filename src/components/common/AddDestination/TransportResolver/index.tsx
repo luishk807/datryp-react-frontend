@@ -8,6 +8,7 @@ import FlightSegmentLookupWatcher from 'components/common/AddPlaceBtn/FlightSegm
 import TransitSegmentLookupWatcher from 'components/common/AddPlaceBtn/TransitSegmentLookupWatcher';
 import { useAirports } from 'api/hooks/useAirports';
 import { useCountries } from 'api/hooks/useCountries';
+import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
@@ -28,6 +29,37 @@ const guessCountryQuery = (text: string): string => {
         /\s+(?:on|for|\$|at|june|jul|aug|sep|oct|nov|dec|jan|feb|mar|apr|may|\d)/i,
     )[0];
     return (cut || tail).trim();
+};
+
+/** Strip transport verbs / "from" and trailing date-cost noise off a place
+ *  phrase so it resolves cleanly against the airports catalog. */
+const cleanPlacePhrase = (s: string): string =>
+    s
+        .replace(/\b(?:flights?|fly|flying|train|bus|coach)\b/gi, '')
+        .replace(/\bfrom\b/gi, '')
+        .split(
+            /\s+(?:on|for|\$|at|june|jul|aug|sep|oct|nov|dec|jan|feb|mar|apr|may|\d)/i,
+        )[0]
+        .trim();
+
+/** Pull an origin → destination route out of free smart text, e.g.
+ *  "flight from panama to iceland" → { origin: "panama", destination:
+ *  "iceland" }. Returns empty sides when the text has no "to" / arrow split
+ *  (a bare destination like "Panama" is handled by guessCountryQuery, not
+ *  here). Each side is resolved to an airport code by the catalog lookup. */
+const parseRoute = (
+    text: string,
+): { origin?: string; destination?: string } => {
+    const raw = (text ?? '').trim();
+    if (!raw) return {};
+    const parts = raw.split(/\s+(?:to|->|→)\s+/i);
+    if (parts.length < 2) return {};
+    const destination = cleanPlacePhrase(parts[parts.length - 1]);
+    const origin = cleanPlacePhrase(parts.slice(0, -1).join(' to '));
+    return {
+        origin: origin || undefined,
+        destination: destination || undefined,
+    };
 };
 
 export interface TransportResolverProps {
@@ -87,6 +119,62 @@ const TransportResolver = ({
         transport.flightSegments[0]?.arrivalAirport?.trim() ?? '';
     const flightNumber =
         transport.flightSegments[0]?.flightNumber?.trim() ?? '';
+
+    // Resolve airport codes from a free-text route — "flight from panama to
+    // iceland" → depart PTY / arrive KEF. Only for a flight with no flight
+    // number to look up (the lookup fills airports itself) and only fills a
+    // side that's still empty, so it never fights the lookup or a manual edit.
+    // The catalog ranks a country/city query's primary hub first.
+    const departAirport =
+        transport.flightSegments[0]?.departAirport?.trim() ?? '';
+    const route = useMemo(
+        () => parseRoute(transport.smartText),
+        [transport.smartText],
+    );
+    const canRouteResolve = isFlightKind(kind) && !flightNumber;
+    const { data: routeDepartCode } = useDestinationAirport(
+        route.origin,
+        canRouteResolve && !!route.origin && !departAirport,
+    );
+    const { data: routeArriveCode } = useDestinationAirport(
+        route.destination,
+        canRouteResolve && !!route.destination && !arrivalAirport,
+    );
+    useEffect(() => {
+        if (!routeDepartCode && !routeArriveCode) return;
+        setTransport((prev) => {
+            if (!isFlightKind(prev.kind)) return prev;
+            // A flight number means the lookup owns the airports — don't fight.
+            if (prev.flightSegments[0]?.flightNumber?.trim()) return prev;
+            const segs = prev.flightSegments.length
+                ? [...prev.flightSegments]
+                : [emptyFlightSegment(isoDefaultDate)];
+            const cur = segs[0];
+            const nextDepart =
+                !cur.departAirport && routeDepartCode
+                    ? routeDepartCode
+                    : cur.departAirport;
+            const nextArrival =
+                !cur.arrivalAirport && routeArriveCode
+                    ? routeArriveCode
+                    : cur.arrivalAirport;
+            if (
+                nextDepart === cur.departAirport &&
+                nextArrival === cur.arrivalAirport
+            ) {
+                return prev;
+            }
+            segs[0] = {
+                ...cur,
+                departAirport: nextDepart,
+                arrivalAirport: nextArrival,
+            };
+            return { ...prev, flightSegments: segs };
+        });
+        // setTransport / emptyFlightSegment are stable; fire on resolved codes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [routeDepartCode, routeArriveCode]);
+
     const needAirportCountry =
         isFlightKind(kind) &&
         countrySource !== 'user' &&
