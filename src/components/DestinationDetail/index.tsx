@@ -14,6 +14,7 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { formatDate, isAfter, isBefore, isSameDay } from 'utils';
+import { ACTIVITY_KIND } from 'constants';
 import {
     movePlace as movePlaceAction,
     useTripDispatch,
@@ -34,6 +35,38 @@ interface DateRange {
     startDate: string;
     endDate: string;
 }
+
+/** Derive a destination's end date from its transport. Transport is now
+ *  seeded as the first-day's FLIGHT / transit activity (last segment's
+ *  arrival), so scan that first; fall back to the legacy header
+ *  `flightInfo.arrivalDate`, then to the destination's start date. */
+const deriveDestinationEndDate = (
+    value: Destination | undefined,
+    startDate: string,
+): string => {
+    const activities = value?.itinerary?.[0]?.activities ?? [];
+
+    const flight = activities.find(
+        (a) => a.kind === ACTIVITY_KIND.FLIGHT && a.flightSegments?.length,
+    );
+    const flightArrival = flight?.flightSegments?.slice(-1)[0]?.arrivalDate;
+    if (flightArrival) return formatDate(flightArrival);
+
+    const transit = activities.find(
+        (a) =>
+            (a.kind === ACTIVITY_KIND.TRAIN ||
+                a.kind === ACTIVITY_KIND.BUS ||
+                a.kind === ACTIVITY_KIND.RENTAL_CAR) &&
+            a.transitSegments?.length,
+    );
+    const transitArrival = transit?.transitSegments?.slice(-1)[0]?.arrivalDate;
+    if (transitArrival) return formatDate(transitArrival);
+
+    const legacy = value?.flightInfo?.arrivalDate;
+    if (legacy) return formatDate(legacy);
+
+    return startDate;
+};
 
 interface DestinationDetailProps {
     destinations?: Destination[];
@@ -333,7 +366,10 @@ const DestinationDetail = ({
                             handleChangeDestination({
                                 activity: { type, value, index: indx },
                                 startDate: dateStr,
-                                endDate: formatDate(value?.flightInfo?.arrivalDate),
+                                endDate: deriveDestinationEndDate(
+                                    value,
+                                    dateStr,
+                                ),
                             })
                         }
                     />

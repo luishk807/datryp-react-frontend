@@ -21,6 +21,65 @@
   gap: 18px;
 }
 
+// Two-dot wizard progress header (ADD only). Reads as
+// "(1) Destination → (2) Getting there", the active dot tinted green.
+.add-destination-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.add-destination-step-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.4);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.5);
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  &:not(:last-child)::after {
+    content: '';
+    width: 22px;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.14);
+    margin-left: 4px;
+  }
+
+  &.is-active {
+    color: theme('colors.primary');
+
+    span {
+      background: rgba(60, 181, 75, 0.16);
+      color: theme('colors.primaryGreen');
+    }
+  }
+
+  &.is-done {
+    color: theme('colors.primaryGreen');
+
+    span {
+      background: theme('colors.primaryGreen');
+      color: #fff;
+    }
+  }
+}
+
 .add-destination-group {
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -36,55 +95,12 @@
   margin: 0 0 14px;
 }
 
-.add-destination-group-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: rgba(60, 181, 75, 0.12);
-  color: theme('colors.primaryGreen');
-  font-weight: 700;
-  font-size: 0.78rem;
-  flex-shrink: 0;
-}
-
 .add-destination-group-title {
   margin: 0;
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   font-weight: 700;
   color: theme('colors.primary');
   letter-spacing: -0.005em;
-}
-
-// "optional" tag sits right after the group title.
-.add-destination-group-optional {
-  font-size: 0.72rem;
-}
-
-// Expand / collapse pill for the optional flight section. Pushed to the
-// far right of the group header so the collapsed state reads as a single
-// tidy "Flight optional [Add flight]" row — the easy-flow default is just
-// the country picker, with flight details on demand.
-.add-destination-flight-toggle {
-  margin-left: auto;
-  appearance: none;
-  background: rgba(60, 181, 75, 0.1);
-  border: 1px solid rgba(60, 181, 75, 0.3);
-  border-radius: 999px;
-  padding: 4px 14px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: theme('colors.primaryGreen');
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-
-  &:hover {
-    background: rgba(60, 181, 75, 0.16);
-    border-color: theme('colors.primaryGreen');
-  }
 }
 
 .add-destination-field {
@@ -128,12 +144,22 @@
   }
 }
 
+.add-destination-error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
 // Action bar sits inline at the end of the form. The modal scrolls so
-// the user can always reach it; we just style the button itself to
-// stretch full-width and pop visually so it's unmissable.
+// the user can always reach it; the primary button stretches to fill
+// the remaining width so it stays unmissable. When a Back button is
+// present the two share the row.
 .add-destination-actions {
   position: sticky;
   bottom: 0;
+  display: flex;
+  gap: 10px;
   margin: 6px -2px 0;
   padding: 14px 2px 4px;
   background: linear-gradient(
@@ -145,19 +171,21 @@
   z-index: 2;
 
   > button {
-    width: 100%;
+    flex: 1 1 auto;
     padding-top: 12px;
     padding-bottom: 12px;
     font-size: 0.95rem;
   }
+
+  // Back button stays compact rather than splitting the row 50/50.
+  > button:first-child:not(:only-child) {
+    flex: 0 0 auto;
+    min-width: 88px;
+  }
 }
 
-// One leg of a multi-segment destination flight. Visually identical
-// language to the activity-level flight form's `.flight-segment-block`
-// so a user who knows one knows both. Multi-leg flights render one
-// card per segment with an inline Remove control; single-leg flights
-// render the same card without the remove button (header still says
-// "Outbound flight" to keep the simple case feeling familiar).
+// One leg of a transport entry. Shared by flight + transit editable
+// fields. Visually matches the activity-level flight form's segment card.
 .add-destination-segment {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 10px;
@@ -170,62 +198,6 @@
   }
 }
 
-.add-destination-segment-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
-}
-
-.add-destination-segment-label {
-  font-weight: 600;
-  font-size: 0.82rem;
-  color: theme('colors.primary');
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.add-destination-segment-remove {
-  appearance: none;
-  background: none;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #c0392b;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background: rgba(192, 57, 43, 0.08);
-  }
-}
-
-.add-destination-segment-add {
-  appearance: none;
-  width: 100%;
-  background: none;
-  border: 1px dashed rgba(60, 181, 75, 0.45);
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: theme('colors.primaryGreen');
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-
-  &:hover {
-    background: rgba(60, 181, 75, 0.06);
-    border-color: theme('colors.primaryGreen');
-  }
-}
-
-// Cost input sits below the segments + "Add stopover" button. Without
-// a top margin it crowds the dashed-border add button; give it room
-// so it reads as the flight-total field rather than another segment.
 .add-destination-flight-cost {
   margin-top: 16px;
 }

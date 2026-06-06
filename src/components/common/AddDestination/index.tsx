@@ -3,25 +3,23 @@ import './index.scss';
 import { formatDate, isValidDate, now } from 'utils';
 import AddLocationAltRoundedIcon from '@mui/icons-material/AddLocationAltRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
-import InputField from 'components/common/FormFields/InputField';
-import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
-import FlightSegmentLookupWatcher from 'components/common/AddPlaceBtn/FlightSegmentLookupWatcher';
-import type { FlightLookupResult } from 'api/flightLookupApi';
-import SearchBar from 'components/SearchBar';
-import PlaceAutocomplete, {
-    type PlaceSuggestion,
-} from 'components/common/PlaceAutocomplete';
-import { useNearestAirport } from 'api/hooks/useHomeDeparture';
 import classNames from 'classnames';
-import { ACTION, BUTTON_VARIANT } from 'constants';
+import { ACTION, ACTIVITY_KIND, BUTTON_VARIANT } from 'constants';
 import type {
     Activity,
     AddEditButtonProps,
     Country,
     Destination,
     FlightInfo,
+    TransitInfo,
 } from 'types';
+import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
+import CountryPicker from './CountryPicker';
+import TransportStep, {
+    type TransportKind,
+    type TransportDraft,
+} from './TransportStep';
 
 const DESTINATION_LABEL = {
     ADD: 'Add Destination',
@@ -29,17 +27,53 @@ const DESTINATION_LABEL = {
     SAVE: 'Save Destination',
 } as const;
 
-interface DestinationDraft {
+export interface DestinationDraft {
     id?: number;
     country?: Country | null;
+    /** Legacy header flight — never written by this component anymore.
+     *  Transport is seeded as a first-day activity instead. Kept on the
+     *  draft type only so edit-mode round-trips of older data don't lose
+     *  it on the way out. */
     flightInfo?: FlightInfo;
     itinerary?: Destination['itinerary'];
 }
 
-export interface AddDestinationBtnProps extends AddEditButtonProps<DestinationDraft, Destination> {
+export interface AddDestinationBtnProps
+    extends AddEditButtonProps<DestinationDraft, Destination> {
     defaultDate?: string;
     tripMaxDate?: string | null;
 }
+
+const WIZARD_STEP = { DESTINATION: 1, TRANSPORT: 2 } as const;
+type WizardStep = (typeof WIZARD_STEP)[keyof typeof WIZARD_STEP];
+
+/** Title prefix for the seeded transport activity, by kind. */
+const TRANSPORT_NAME_PREFIX: Record<TransportKind, string> = {
+    [ACTIVITY_KIND.FLIGHT]: 'Flight to',
+    [ACTIVITY_KIND.TRAIN]: 'Train to',
+    [ACTIVITY_KIND.BUS]: 'Bus to',
+    [ACTIVITY_KIND.RENTAL_CAR]: 'Car to',
+};
+
+const emptyFlightSegment = (date: string): FlightInfo => ({
+    departDate: date,
+    departTime: now('HH:mm'),
+    arrivalDate: date,
+    arrivalTime: now('HH:mm'),
+});
+
+const emptyTransitSegment = (date: string): TransitInfo => ({
+    departDate: date,
+    arrivalDate: date,
+});
+
+const emptyTransport = (): TransportDraft => ({
+    kind: null,
+    smartText: '',
+    flightSegments: [],
+    transitSegments: [],
+    cost: '',
+});
 
 const AddDestinationBtn = ({
     defaultDate,
@@ -51,588 +85,355 @@ const AddDestinationBtn = ({
     isViewMode = false,
 }: AddDestinationBtnProps) => {
     const isAdd = type === ACTION.ADD;
-    const title = useMemo(() => (isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.EDIT), [isAdd]);
+    const title = useMemo(
+        () => (isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.EDIT),
+        [isAdd],
+    );
 
-    const [destination, setDestination] = useState<DestinationDraft>({});
-    /** Optional "first place" seeded from PlaceAutocomplete. Held separately
-     *  from the destination draft because the activity needs a date + id
-     *  that we materialize at submit time. */
-    const [firstPlaceText, setFirstPlaceText] = useState('');
-    const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
-    // Flight is optional and collapsed by default so the common flow is
-    // just "pick a country → Add Destination". Opens automatically in edit
-    // mode when the saved destination already carries a flight.
-    const [flightOpen, setFlightOpen] = useState(false);
     const modelRef = useRef<ModalButtonHandle>(null);
-    // Home-base lookup: when the user opens AddDestination to plan a
-    // flight to a new country, the depart airport is almost always
-    // their home airport. Hook returns null when no home city is set —
-    // in that case the seeding effect is a no-op, no UI prompt.
-    const { data: nearestAirport } = useNearestAirport();
 
-    /** Per-segment field setter. The segments array is the source of
-     *  truth; the parent `flightInfo`'s flat fields are kept in sync with
-     *  segment 0 on submit so legacy callers reading only the headline
-     *  still see the right values. */
-    const handleSegmentField = (
-        index: number,
-        name: keyof FlightInfo,
-        value: string,
-    ) => {
-        setDestination((prev) => {
-            const segs = prev.flightInfo?.segments?.length
-                ? [...prev.flightInfo.segments]
-                : [{}];
-            const current = segs[index] ?? {};
-            const updated: FlightInfo = { ...current, [name]: value };
-            // Auto-fill arrival date from depart when arrival is empty
-            // or was still tracking the old depart — same heuristic as
-            // the Activity flight form so the picker doesn't open on
-            // today when the trip is months out.
-            if (
-                name === 'departDate' &&
-                value &&
-                (!current.arrivalDate || current.arrivalDate === current.departDate)
-            ) {
-                updated.arrivalDate = value;
-            }
-            segs[index] = updated;
-            return { ...prev, flightInfo: { ...(prev.flightInfo ?? {}), segments: segs } };
-        });
-    };
-
-    const handleAddSegment = () => {
-        setDestination((prev) => {
-            const segs = prev.flightInfo?.segments?.length
-                ? [...prev.flightInfo.segments]
-                : [{}];
-            // Default the new leg's depart date to the previous leg's
-            // arrival date if known — multi-segment flights almost
-            // always continue same-day, this saves a manual fill.
-            // Also pre-fill the flight number with the previous leg's
-            // so users entering a return / through-flight can re-use
-            // it; they can edit if the connecting leg is different.
-            const last = segs[segs.length - 1];
-            const seedDate = last?.arrivalDate ?? last?.departDate;
-            segs.push({
-                ...(seedDate
-                    ? { departDate: seedDate, arrivalDate: seedDate }
-                    : {}),
-                flightNumber: last?.flightNumber,
-            });
-            return { ...prev, flightInfo: { ...(prev.flightInfo ?? {}), segments: segs } };
-        });
-    };
-
-    const handleRemoveSegment = (index: number) => {
-        setDestination((prev) => {
-            const segs = prev.flightInfo?.segments ?? [];
-            if (segs.length <= 1) return prev;
-            return {
-                ...prev,
-                flightInfo: {
-                    ...(prev.flightInfo ?? {}),
-                    segments: segs.filter((_, i) => i !== index),
-                },
-            };
-        });
-    };
-
-    /** Apply a /flights/lookup result to a destination segment. The
-     *  watcher only re-fires when (flight number, depart date)
-     *  changes — i.e. the user typed a new flight number — so
-     *  overwrite every field the result covers. A second lookup
-     *  feels like a real update instead of a stale half-update. */
-    const applyFlightLookup = (
-        segIdx: number,
-        result: FlightLookupResult,
-    ) => {
-        setDestination((prev) => {
-            const segs = prev.flightInfo?.segments?.length
-                ? [...prev.flightInfo.segments]
-                : [{}];
-            const current = segs[segIdx] ?? {};
-            segs[segIdx] = {
-                ...current,
-                departAirport: result.departAirport ?? current.departAirport,
-                arrivalAirport: result.arrivalAirport ?? current.arrivalAirport,
-                departDate: result.departDate ?? current.departDate,
-                departTime: result.departTime ?? current.departTime,
-                arrivalDate: result.arrivalDate ?? current.arrivalDate,
-                arrivalTime: result.arrivalTime ?? current.arrivalTime,
-            };
-            return {
-                ...prev,
-                flightInfo: { ...(prev.flightInfo ?? {}), segments: segs },
-            };
-        });
-    };
+    const [step, setStep] = useState<WizardStep>(WIZARD_STEP.DESTINATION);
+    const [country, setCountry] = useState<Country | null>(null);
+    const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
+    const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
+    const [error, setError] = useState<string | null>(null);
 
     // Normalize whatever date format comes in (MM/DD/YYYY from
-    // DestinationDetail or YYYY-MM-DD from raw state) into ISO YYYY-MM-DD so
-    // the MUI DatePicker doesn't reject it and flag the field in red.
+    // DestinationDetail or YYYY-MM-DD from raw state) into ISO YYYY-MM-DD.
     const isoDate = (raw?: string | null): string | undefined => {
         if (!raw) return undefined;
         return isValidDate(raw) ? formatDate(raw) : undefined;
     };
 
-    useEffect(() => {
-        const fallback = isoDate(defaultDate) ?? now();
-        if (data && type === ACTION.EDIT) {
-            // Seed segments from the saved data: prefer the explicit
-            // `segments` array (new multi-leg format), fall back to a
-            // one-element list synthesized from the flat fields (legacy
-            // single-leg destinations).
-            const savedSegments = data.flightInfo?.segments;
-            const segments: FlightInfo[] = savedSegments?.length
-                ? savedSegments.map((seg) => ({
-                      flightNumber: seg.flightNumber,
-                      departAirport: seg.departAirport,
-                      departDate: isoDate(seg.departDate) ?? fallback,
-                      departTime: seg.departTime,
-                      arrivalAirport: seg.arrivalAirport,
-                      arrivalDate: isoDate(seg.arrivalDate) ?? fallback,
-                      arrivalTime: seg.arrivalTime,
-                  }))
-                : [
-                      {
-                          flightNumber: data.flightInfo?.flightNumber,
-                          departAirport: data.flightInfo?.departAirport,
-                          departDate: isoDate(data.flightInfo?.departDate) ?? fallback,
-                          departTime: data.flightInfo?.departTime,
-                          arrivalAirport: data.flightInfo?.arrivalAirport,
-                          arrivalDate: isoDate(data.flightInfo?.arrivalDate) ?? fallback,
-                          arrivalTime: data.flightInfo?.arrivalTime,
-                      },
-                  ];
-            setDestination({
-                country: data.country,
-                id: data.id,
-                flightInfo: {
-                    ...segments[0],
-                    cost: data.flightInfo?.cost,
-                    paidBy: data.flightInfo?.paidBy,
-                    segments,
-                },
-                itinerary: data.itinerary,
-            });
-            // Reveal the flight section on edit only when the saved trip
-            // actually has a flight worth showing.
-            setFlightOpen(
-                Boolean(
-                    data.flightInfo?.flightNumber ||
-                        data.flightInfo?.arrivalAirport
-                )
-            );
-        } else {
-            const seedSegment: FlightInfo = {
-                departDate: fallback,
-                departTime: now('HH:mm'),
-                arrivalDate: fallback,
-                arrivalTime: now('HH:mm'),
-            };
-            setDestination({
-                country: null,
-                flightInfo: { ...seedSegment, segments: [seedSegment] },
-            });
-            setFlightOpen(false);
-        }
-    }, [data, defaultDate, type]);
-
-    // Home → destination auto-seed. Once the nearest-airport hook
-    // resolves (after the user's set their home city in Account), drop
-    // the IATA code into segment 0's depart slot if it's still empty.
-    // EDIT mode opts out — the saved destination already has whatever
-    // depart airport the user chose. Subsequent legs (segIdx > 0) are
-    // internal to the trip so we don't touch them either.
-    useEffect(() => {
-        if (type !== ACTION.ADD || !nearestAirport) return;
-        setDestination((prev) => {
-            const segs = prev.flightInfo?.segments ?? [];
-            if (!segs.length) return prev;
-            if (segs[0].departAirport) return prev;
-            const next = [...segs];
-            next[0] = { ...next[0], departAirport: nearestAirport.iataCode };
-            return {
-                ...prev,
-                flightInfo: { ...(prev.flightInfo ?? {}), segments: next },
-            };
-        });
-    }, [nearestAirport, type]);
-
+    const isoDefaultDate = isoDate(defaultDate) ?? now();
     const normalizedTripMaxDate = isoDate(tripMaxDate ?? undefined);
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+    // Seed edit mode from the saved destination: country + a single
+    // combined transport editor pre-filled from the first transport
+    // activity already on the itinerary (or the legacy header flight).
+    useEffect(() => {
+        if (data && type === ACTION.EDIT) {
+            setCountry(data.country ?? null);
+            setFirstPlace(null);
+            setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
+            setStep(WIZARD_STEP.DESTINATION);
+        } else {
+            setCountry(null);
+            setFirstPlace(null);
+            setTransport(emptyTransport());
+            setStep(WIZARD_STEP.DESTINATION);
+        }
+        // isoDefaultDate is derived from defaultDate; isoDate is stable.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data, defaultDate, type]);
+
+    const resetTransient = () => {
+        setCountry(null);
+        setFirstPlace(null);
+        setTransport(emptyTransport());
+        setStep(WIZARD_STEP.DESTINATION);
+    };
+
+    /** Build the seeded transport activity from the current transport
+     *  draft. Returns null for "add later" (no kind) or an empty draft. */
+    const buildTransportActivity = (
+        baseId: number,
+    ): { activity: Activity; arrivalDate?: string } | null => {
+        const { kind } = transport;
+        if (!kind) return null;
+        const name = `${TRANSPORT_NAME_PREFIX[kind]} ${country?.name ?? ''}`.trim();
+
+        if (kind === ACTIVITY_KIND.FLIGHT) {
+            const segments = transport.flightSegments.length
+                ? transport.flightSegments
+                : [emptyFlightSegment(isoDefaultDate)];
+            const first = segments[0];
+            const last = segments[segments.length - 1];
+            return {
+                activity: {
+                    id: baseId,
+                    kind: ACTIVITY_KIND.FLIGHT,
+                    name,
+                    startTime: first.departTime,
+                    endTime: last.arrivalTime,
+                    cost: transport.cost || undefined,
+                    flightSegments: segments,
+                },
+                arrivalDate: last.arrivalDate ?? first.departDate,
+            };
+        }
+
+        const segments = transport.transitSegments.length
+            ? transport.transitSegments
+            : [emptyTransitSegment(isoDefaultDate)];
+        const first = segments[0];
+        const last = segments[segments.length - 1];
+        return {
+            activity: {
+                id: baseId,
+                kind,
+                name,
+                startTime: first.departTime,
+                endTime: last.arrivalTime,
+                cost: transport.cost || undefined,
+                transitSegments: segments,
+            },
+            arrivalDate: last.arrivalDate ?? first.departDate,
+        };
+    };
+
+    const handleSubmit = () => {
+        if (!country) {
+            setError('Pick a destination country first.');
+            // In ADD mode jump back to step 1 so the picker is visible.
+            if (isAdd) setStep(WIZARD_STEP.DESTINATION);
+            return;
+        }
+        setError(null);
+
+        const base = Date.now();
+        const transportSeed = buildTransportActivity(base + 2);
+        const activities: Activity[] = [];
+
+        if (firstPlace) {
+            activities.push({
+                id: base + 1,
+                name: firstPlace.name,
+                location: firstPlace.location,
+                image: firstPlace.imageUrl
+                    ? { url: firstPlace.imageUrl, name: firstPlace.name }
+                    : undefined,
+            });
+        }
+        if (transportSeed) activities.push(transportSeed.activity);
+
+        const departDate =
+            transport.flightSegments[0]?.departDate ??
+            transport.transitSegments[0]?.departDate;
+        const dayDate =
+            transportSeed?.arrivalDate ?? departDate ?? isoDefaultDate;
+
+        const itinerary: Destination['itinerary'] = activities.length
+            ? [{ id: base, date: dayDate, activities }]
+            : type === ACTION.EDIT
+              ? data?.itinerary
+              : undefined;
+
         modelRef.current?.closeModal();
+        onChange?.({
+            id: data?.id,
+            country,
+            itinerary,
+        });
 
-        // Sync the flat headline fields with segment 0 so consumers that
-        // read `flightInfo.departDate` etc. (display cards, save mapper)
-        // see consistent values whether or not they understand segments.
-        const segments = destination.flightInfo?.segments ?? [];
-        const firstSeg = segments[0];
-        const flightInfo: FlightInfo | undefined = firstSeg
-            ? {
-                  flightNumber: firstSeg.flightNumber,
-                  departAirport: firstSeg.departAirport,
-                  departDate: firstSeg.departDate,
-                  departTime: firstSeg.departTime,
-                  arrivalAirport: firstSeg.arrivalAirport,
-                  arrivalDate: firstSeg.arrivalDate,
-                  arrivalTime: firstSeg.arrivalTime,
-                  cost: destination.flightInfo?.cost,
-                  paidBy: destination.flightInfo?.paidBy,
-                  segments,
-              }
-            : destination.flightInfo;
-
-        // If the user picked a "first place" suggestion, seed the
-        // destination's itinerary with one activity for the depart day.
-        // The reducer will give it a real id when it lands in state; we use
-        // a placeholder Date.now() so React keys stay stable in the meantime.
-        const seedDate =
-            firstSeg?.departDate ?? isoDate(defaultDate) ?? now();
-        const itineraryWithSeed =
-            firstPlace && seedDate
-                ? [
-                      {
-                          id: Date.now(),
-                          date: seedDate,
-                          activities: [
-                              {
-                                  id: Date.now() + 1,
-                                  name: firstPlace.name,
-                                  location: firstPlace.location,
-                                  image: firstPlace.imageUrl
-                                      ? {
-                                            url: firstPlace.imageUrl,
-                                            name: firstPlace.name,
-                                        }
-                                      : undefined,
-                              } as Activity,
-                          ],
-                      },
-                  ]
-                : destination.itinerary;
-
-        onChange?.({ ...destination, flightInfo, itinerary: itineraryWithSeed });
-
-        // Reset the seed fields so reopening the modal starts fresh.
-        if (type === ACTION.ADD) {
-            setFirstPlace(null);
-            setFirstPlaceText('');
-        }
-    };
-
-    const handleSelectedDestinationSearch = (country: Country) => {
-        setDestination((prev) => ({ ...prev, country }));
-    };
-
-    const handleFirstPlacePicked = (suggestion: PlaceSuggestion) => {
-        setFirstPlace(suggestion);
-        setFirstPlaceText(suggestion.name);
-    };
-
-    const handleFirstPlaceText = (text: string) => {
-        setFirstPlaceText(text);
-        // If the user keeps typing past a picked suggestion, drop the
-        // resolved selection — they're going manual. The text alone isn't
-        // enough to seed an activity since we'd be missing location/image,
-        // so we just don't seed in that case.
-        if (firstPlace && text !== firstPlace.name) {
-            setFirstPlace(null);
-        }
+        if (isAdd) resetTransient();
     };
 
     if (isViewMode) return null;
 
+    const canSubmit = Boolean(country);
+
     return (
         <div
             className={classNames({
-                'add-place-container-standard': buttonType === BUTTON_VARIANT.STANDARD,
+                'add-place-container-standard':
+                    buttonType === BUTTON_VARIANT.STANDARD,
                 'add-place-container-simple': buttonType === BUTTON_VARIANT.TEXT,
             })}
         >
             <ModalButton
-                    title={isAdd ? DESTINATION_LABEL.ADD : `${DESTINATION_LABEL.EDIT} ${data?.country?.name ?? ''}`}
-                    ref={modelRef}
-                    buttonProps={{
-                        title,
-                        Icon:
-                            buttonType === BUTTON_VARIANT.STANDARD
-                                ? AddLocationAltRoundedIcon
-                                : null,
-                        type: buttonType,
-                    }}
-                >
-                    <div className="add-destination-comp">
-                            <section className="add-destination-group">
-                                <header className="add-destination-group-head">
-                                    <span className="add-destination-group-num">1</span>
-                                    <h4 className="add-destination-group-title">
-                                        Destination
-                                    </h4>
-                                </header>
-                                <div className="add-destination-field">
-                                    <label className="add-destination-label">Country</label>
-                                    <SearchBar
-                                        defaultValue={data?.country}
-                                        type="simple"
-                                        onSelected={handleSelectedDestinationSearch}
-                                    />
-                                </div>
-                                {type === ACTION.ADD && (
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">
-                                            First place to visit{' '}
-                                            <span className="add-destination-optional">
-                                                (optional)
-                                            </span>
-                                        </label>
-                                        <PlaceAutocomplete
-                                            value={firstPlaceText}
-                                            onTextChange={handleFirstPlaceText}
-                                            onSelect={handleFirstPlacePicked}
-                                            country={destination.country?.name}
-                                            label={
-                                                destination.country?.name
-                                                    ? `First place in ${destination.country.name}`
-                                                    : 'First place to visit'
-                                            }
-                                            placeholder={
-                                                destination.country?.name
-                                                    ? 'Type a landmark or activity in this country'
-                                                    : 'Pick the country above first'
-                                            }
-                                            disabled={!destination.country?.name}
-                                        />
-                                    </div>
-                                )}
-                            </section>
+                title={
+                    isAdd
+                        ? DESTINATION_LABEL.ADD
+                        : `${DESTINATION_LABEL.EDIT} ${data?.country?.name ?? ''}`
+                }
+                ref={modelRef}
+                buttonProps={{
+                    title,
+                    Icon:
+                        buttonType === BUTTON_VARIANT.STANDARD
+                            ? AddLocationAltRoundedIcon
+                            : null,
+                    type: buttonType,
+                }}
+            >
+                <div className="add-destination-comp">
+                    {isAdd && (
+                        <ol className="add-destination-steps" aria-label="Progress">
+                            <li
+                                className={classNames('add-destination-step-dot', {
+                                    'is-active': step === WIZARD_STEP.DESTINATION,
+                                    'is-done': step > WIZARD_STEP.DESTINATION,
+                                })}
+                            >
+                                <span>1</span> Destination
+                            </li>
+                            <li
+                                className={classNames('add-destination-step-dot', {
+                                    'is-active': step === WIZARD_STEP.TRANSPORT,
+                                })}
+                            >
+                                <span>2</span> Getting there
+                            </li>
+                        </ol>
+                    )}
 
-                            <section className="add-destination-group">
-                                <header className="add-destination-group-head">
-                                    <span className="add-destination-group-num">2</span>
-                                    <h4 className="add-destination-group-title">
-                                        Flight
-                                    </h4>
-                                    <span className="add-destination-optional add-destination-group-optional">
-                                        optional
-                                    </span>
-                                    <button
-                                        type="button"
-                                        className="add-destination-flight-toggle"
-                                        onClick={() =>
-                                            setFlightOpen((open) => !open)
-                                        }
-                                        aria-expanded={flightOpen}
-                                    >
-                                        {flightOpen ? 'Hide flight' : 'Add flight'}
-                                    </button>
-                                </header>
-                                {flightOpen && (
-                                  <>
-                                {(destination.flightInfo?.segments ?? [{}]).map(
-                                    (seg, segIdx, allSegs) => (
-                                        <div
-                                            key={segIdx}
-                                            className="add-destination-segment"
-                                        >
-                                            <div className="add-destination-segment-head">
-                                                <span className="add-destination-segment-label">
-                                                    {allSegs.length === 1
-                                                        ? 'Outbound flight'
-                                                        : `Leg ${segIdx + 1}`}
-                                                </span>
-                                                {allSegs.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        className="add-destination-segment-remove"
-                                                        onClick={() => handleRemoveSegment(segIdx)}
-                                                        aria-label={`Remove leg ${segIdx + 1}`}
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {/* Auto-populates this leg's airports + times
-                                                from AeroDataBox when the user types a real
-                                                flight number + depart date. */}
-                                            <FlightSegmentLookupWatcher
-                                                flightNumber={seg.flightNumber}
-                                                departDate={seg.departDate}
-                                                onResult={(result) =>
-                                                    applyFlightLookup(segIdx, result)
-                                                }
-                                            />
-                                            <div className="add-destination-field">
-                                                <label className="add-destination-label">Flight number</label>
-                                                <InputField
-                                                    value={seg.flightNumber ?? ''}
-                                                    label=""
-                                                    name={`flightNumber-${segIdx}`}
-                                                    onChange={(e) =>
-                                                        handleSegmentField(
-                                                            segIdx,
-                                                            'flightNumber',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="add-destination-row">
-                                                <div className="add-destination-field">
-                                                    <label className="add-destination-label">Depart airport</label>
-                                                    <AirportAutocomplete
-                                                        value={seg.departAirport ?? ''}
-                                                        onChange={(code) =>
-                                                            handleSegmentField(
-                                                                segIdx,
-                                                                'departAirport',
-                                                                code,
-                                                            )
-                                                        }
-                                                        placeholder="IATA code, city, or airport"
-                                                    />
-                                                </div>
-                                                <div className="add-destination-field">
-                                                    <label className="add-destination-label">Arrive airport</label>
-                                                    <AirportAutocomplete
-                                                        value={seg.arrivalAirport ?? ''}
-                                                        onChange={(code) =>
-                                                            handleSegmentField(
-                                                                segIdx,
-                                                                'arrivalAirport',
-                                                                code,
-                                                            )
-                                                        }
-                                                        placeholder="IATA code, city, or airport"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="add-destination-row">
-                                                <div className="add-destination-field">
-                                                    <label className="add-destination-label">Depart date</label>
-                                                    <InputField
-                                                        value={seg.departDate ?? ''}
-                                                        type="date"
-                                                        maxDate={normalizedTripMaxDate}
-                                                        name={`departDate-${segIdx}`}
-                                                        onChange={(e) =>
-                                                            handleSegmentField(
-                                                                segIdx,
-                                                                'departDate',
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="add-destination-field">
-                                                    <label className="add-destination-label">Depart time</label>
-                                                    <InputField
-                                                        value={seg.departTime ?? ''}
-                                                        name={`departTime-${segIdx}`}
-                                                        type="time"
-                                                        label=""
-                                                        onChange={(e) =>
-                                                            handleSegmentField(
-                                                                segIdx,
-                                                                'departTime',
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="add-destination-row">
-                                                <div className="add-destination-field">
-                                                    <label className="add-destination-label">Arrive date</label>
-                                                    <InputField
-                                                        value={seg.arrivalDate ?? ''}
-                                                        type="date"
-                                                        minDate={isoDate(seg.departDate)}
-                                                        maxDate={normalizedTripMaxDate}
-                                                        name={`arrivalDate-${segIdx}`}
-                                                        onChange={(e) =>
-                                                            handleSegmentField(
-                                                                segIdx,
-                                                                'arrivalDate',
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="add-destination-field">
-                                                    <label className="add-destination-label">Arrive time</label>
-                                                    <InputField
-                                                        value={seg.arrivalTime ?? ''}
-                                                        name={`arrivalTime-${segIdx}`}
-                                                        type="time"
-                                                        label=""
-                                                        onChange={(e) =>
-                                                            handleSegmentField(
-                                                                segIdx,
-                                                                'arrivalTime',
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ),
-                                )}
-                                <button
-                                    type="button"
-                                    className="add-destination-segment-add"
-                                    onClick={handleAddSegment}
-                                >
-                                    + Add stopover
-                                </button>
-                                <div className="add-destination-field add-destination-flight-cost">
-                                    <label className="add-destination-label">
-                                        Cost{' '}
-                                        <span className="add-destination-optional">
-                                            (optional)
-                                        </span>
-                                    </label>
-                                    <InputField
-                                        value={
-                                            destination.flightInfo?.cost != null
-                                                ? String(destination.flightInfo.cost)
-                                                : ''
-                                        }
-                                        type="number"
-                                        name="flightCost"
-                                        label=""
-                                        required={false}
-                                        onChange={(e) =>
-                                            setDestination((prev) => ({
-                                                ...prev,
-                                                flightInfo: {
-                                                    ...(prev.flightInfo ?? {}),
-                                                    cost: e.target.value,
-                                                },
-                                            }))
-                                        }
-                                    />
-                                </div>
-                                  </>
-                                )}
-                            </section>
+                    {/* ADD step 1 / EDIT always: destination picker. */}
+                    {(!isAdd || step === WIZARD_STEP.DESTINATION) && (
+                        <CountryPicker
+                            mode={isAdd ? 'add' : 'edit'}
+                            country={country}
+                            defaultCountry={data?.country}
+                            firstPlace={firstPlace}
+                            onCountryChange={(c) => {
+                                setCountry(c);
+                                setError(null);
+                            }}
+                            onFirstPlaceChange={setFirstPlace}
+                            onSmartAdvance={(text, resolvedCountry) => {
+                                // Seed the transport smart box with the raw
+                                // text so step 2 can parse it once the user
+                                // confirms the transport kind.
+                                if (resolvedCountry) setCountry(resolvedCountry);
+                                setTransport((prev) => ({
+                                    ...prev,
+                                    smartText: text,
+                                }));
+                                setStep(WIZARD_STEP.TRANSPORT);
+                            }}
+                        />
+                    )}
 
-                        <div className="add-destination-actions">
+                    {/* ADD step 2 / EDIT always: transport editor. */}
+                    {(!isAdd || step === WIZARD_STEP.TRANSPORT) && (
+                        <TransportStep
+                            mode={isAdd ? 'add' : 'edit'}
+                            transport={transport}
+                            setTransport={setTransport}
+                            country={country}
+                            defaultCountry={data?.country}
+                            isoDefaultDate={isoDefaultDate}
+                            tripMaxDate={normalizedTripMaxDate}
+                            emptyFlightSegment={emptyFlightSegment}
+                            emptyTransitSegment={emptyTransitSegment}
+                            onCountryChange={(c) => {
+                                setCountry(c);
+                                setError(null);
+                            }}
+                        />
+                    )}
+
+                    {error && (
+                        <p className="add-destination-error" role="alert">
+                            {error}
+                        </p>
+                    )}
+
+                    <div className="add-destination-actions">
+                        {isAdd && step === WIZARD_STEP.TRANSPORT && (
+                            <ButtonCustom
+                                onClick={() => setStep(WIZARD_STEP.DESTINATION)}
+                                label="Back"
+                                type={BUTTON_VARIANT.LINE}
+                                capitalizeType="capitalize"
+                            />
+                        )}
+                        {isAdd && step === WIZARD_STEP.DESTINATION ? (
+                            <ButtonCustom
+                                onClick={() => setStep(WIZARD_STEP.TRANSPORT)}
+                                label="Continue"
+                                type={BUTTON_VARIANT.STANDARD}
+                                capitalizeType="capitalize"
+                                disabled={!country}
+                            />
+                        ) : (
                             <ButtonCustom
                                 onClick={handleSubmit}
-                                label={isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.SAVE}
+                                label={
+                                    isAdd
+                                        ? DESTINATION_LABEL.ADD
+                                        : DESTINATION_LABEL.SAVE
+                                }
                                 type={BUTTON_VARIANT.STANDARD}
                                 capitalizeType="uppercase"
+                                disabled={!canSubmit}
                             />
-                        </div>
+                        )}
                     </div>
+                </div>
             </ModalButton>
         </div>
     );
+};
+
+/** Pre-fill the transport draft on edit from the saved destination. Reads
+ *  the first FLIGHT / transit activity off day 1; falls back to the legacy
+ *  header `flightInfo`. Returns an empty draft (kind=null) when the saved
+ *  destination has no transport. */
+const seedTransportFromData = (
+    data: Destination,
+    isoDate: (raw?: string | null) => string | undefined,
+    fallbackDate: string,
+): TransportDraft => {
+    const activities = data.itinerary?.[0]?.activities ?? [];
+    const flight = activities.find(
+        (a) => a.kind === ACTIVITY_KIND.FLIGHT && a.flightSegments?.length,
+    );
+    if (flight?.flightSegments?.length) {
+        return {
+            kind: ACTIVITY_KIND.FLIGHT,
+            smartText: '',
+            flightSegments: flight.flightSegments.map((seg) => ({
+                ...seg,
+                departDate: isoDate(seg.departDate) ?? fallbackDate,
+                arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
+            })),
+            transitSegments: [],
+            cost: flight.cost != null ? String(flight.cost) : '',
+        };
+    }
+
+    const transit = activities.find(
+        (a) =>
+            (a.kind === ACTIVITY_KIND.TRAIN ||
+                a.kind === ACTIVITY_KIND.BUS ||
+                a.kind === ACTIVITY_KIND.RENTAL_CAR) &&
+            a.transitSegments?.length,
+    );
+    if (transit?.transitSegments?.length) {
+        return {
+            kind: transit.kind as TransportKind,
+            smartText: '',
+            flightSegments: [],
+            transitSegments: transit.transitSegments.map((seg) => ({
+                ...seg,
+                departDate: isoDate(seg.departDate) ?? fallbackDate,
+                arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
+            })),
+            cost: transit.cost != null ? String(transit.cost) : '',
+        };
+    }
+
+    // Legacy header flight (older saved destinations).
+    const legacy = data.flightInfo;
+    if (legacy?.flightNumber || legacy?.arrivalAirport) {
+        const segments = legacy.segments?.length
+            ? legacy.segments
+            : [legacy];
+        return {
+            kind: ACTIVITY_KIND.FLIGHT,
+            smartText: '',
+            flightSegments: segments.map((seg) => ({
+                ...seg,
+                departDate: isoDate(seg.departDate) ?? fallbackDate,
+                arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
+            })),
+            transitSegments: [],
+            cost: legacy.cost != null ? String(legacy.cost) : '',
+        };
+    }
+
+    return emptyTransport();
 };
 
 export default AddDestinationBtn;

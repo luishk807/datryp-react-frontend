@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Segmented "Type it / Search" control. A sliding green thumb sits behind
+// the active half; `.is-type` slides it to the left segment.
+.country-picker-seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.country-picker-seg-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.18s ease;
+  transform: translateX(100%);
+
+  .country-picker-seg.is-type & {
+    transform: translateX(0);
+  }
+}
+
+.country-picker-seg-btn {
+  position: relative;
+  z-index: 1;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &.selected {
+    color: theme('colors.primary');
+  }
+}
+
+// Smart-entry box for "Type it" mode. Spark icon, bare input, go arrow.
+.country-picker-smart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  border: 1px solid rgba(60, 181, 75, 0.35);
+  border-radius: 12px;
+  padding: 12px 12px 12px 40px;
+  background: rgba(60, 181, 75, 0.04);
+
+  > div {
+    flex: 1 1 auto;
+    margin-bottom: 0;
+  }
+}
+
+.country-picker-smart-spark {
+  position: absolute;
+  left: 12px;
+  bottom: 16px;
+  color: theme('colors.primaryGreen');
+  font-size: 1.2rem;
+}
+
+.country-picker-smart-go {
+  flex: 0 0 auto;
+  background: theme('colors.primaryGreen') !important;
+  color: #fff !important;
+  width: 38px;
+  height: 38px;
+
+  &.Mui-disabled {
+    background: rgba(0, 0, 0, 0.12) !important;
+    color: rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+.country-picker-smart-note {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+// Resolved-country / first-place confirm chip.
+.country-picker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(60, 181, 75, 0.1);
+  border: 1px solid rgba(60, 181, 75, 0.3);
+  border-radius: 999px;
+  padding: 8px 14px;
+  margin-bottom: 4px;
+
+  &.is-place {
+    margin-top: 10px;
+    margin-bottom: 0;
+  }
+}
+
+.country-picker-chip-label {
+  font-size: 0.88rem;
+  color: theme('colors.primary');
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.country-picker-chip-change {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+}

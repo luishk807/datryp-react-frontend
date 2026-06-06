@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Transport-type chip row. Wraps on narrow screens; the active chip is
+// tinted green with a ring.
+.transport-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.transport-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: rgba(60, 181, 75, 0.4);
+  }
+
+  &.is-active {
+    background: rgba(60, 181, 75, 0.12);
+    border-color: theme('colors.primaryGreen');
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.transport-chip-icon {
+  font-size: 1.15rem;
+}
+
+// Smart-entry box for the chosen transport kind.
+.transport-smart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  border: 1px solid rgba(60, 181, 75, 0.35);
+  border-radius: 12px;
+  padding: 12px 12px 12px 40px;
+  background: rgba(60, 181, 75, 0.04);
+  margin-bottom: 14px;
+
+  > div {
+    flex: 1 1 auto;
+    margin-bottom: 0;
+  }
+}
+
+.transport-smart-spark {
+  position: absolute;
+  left: 12px;
+  bottom: 16px;
+  color: theme('colors.primaryGreen');
+  font-size: 1.2rem;
+}
+
+// Compact "Parsed <Type>" summary card (collapsed add-mode view).
+.transport-parsed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.transport-parsed-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: theme('colors.primaryGreen');
+}
+
+.transport-parsed-check {
+  color: theme('colors.primaryGreen');
+}
+
+.transport-parsed-line {
+  font-size: 0.92rem;
+  color: theme('colors.primary');
+}
+
+.transport-parsed-warn {
+  font-size: 0.8rem;
+  color: theme('colors.primaryOrange');
+}
+
+.transport-parsed-edit {
+  align-self: flex-start;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px 0 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+}
