@@ -42,6 +42,10 @@ const toNumber = (v?: string | number): number => {
 const sumActivityCosts = (destinations: Destination[] = []): number => {
     let total = 0;
     destinations.forEach((dest) => {
+        // The destination's arrival flight lives on `flightInfo` (the header
+        // band), NOT as an itinerary activity, so its cost must be summed
+        // here too — otherwise multi-destination flight spend goes uncounted.
+        total += toNumber(dest.flightInfo?.cost);
         dest.itinerary?.forEach((day) => {
             day.activities?.forEach((activity) => {
                 total += toNumber(activity.cost);
