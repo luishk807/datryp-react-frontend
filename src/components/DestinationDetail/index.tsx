@@ -13,7 +13,7 @@ import {
     type DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { formatDate, isAfter, isBefore, isSameDay } from 'utils';
+import { addDays, formatDate, isAfter, isBefore, isSameDay } from 'utils';
 import { ACTIVITY_KIND } from 'constants';
 import {
     movePlace as movePlaceAction,
@@ -289,7 +289,25 @@ const DestinationDetail = ({
 
     const handleChangeDestination = (obj: TripDestinationEvent) => {
         const ignoreId = _.get(obj, 'activity.value.id');
-        const { startDate: flagStart, endDate: flagEnd } = obj;
+        let flagStart = obj.startDate;
+        let flagEnd = obj.endDate;
+
+        // Auto-sequence a NEW leg onto its own day, right after the latest
+        // existing destination — so legs don't all stack on the day block
+        // they were added from (which made activities mis-route and dates
+        // collide). The first leg anchors to the trip start (falling back to
+        // the add-block date when the trip has no start yet). Edits keep the
+        // dates the caller computed.
+        if (obj.activity.type === 'add') {
+            const latestEnd = destinations.reduce<string>((max, d) => {
+                const e = (d.endDate || d.startDate || '') as string;
+                if (!e) return max;
+                return !max || isAfter(e, max) ? e : max;
+            }, '');
+            const anchorStart = startDate ? formatDate(startDate) : flagStart;
+            flagStart = latestEnd ? addDays(latestEnd, 1) : anchorStart;
+            flagEnd = flagStart;
+        }
 
         const indxList: number[] = [];
         for (let i = 0; i < destinations.length; i++) {
@@ -305,7 +323,12 @@ const DestinationDetail = ({
             }
         }
 
-        onChangeDestination?.({ ...obj, removeIndexes: indxList });
+        onChangeDestination?.({
+            ...obj,
+            startDate: flagStart,
+            endDate: flagEnd,
+            removeIndexes: indxList,
+        });
     };
 
     const handleChangePlace = (obj: TripPlaceEvent) => {

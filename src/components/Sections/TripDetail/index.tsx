@@ -67,7 +67,7 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
-import { isSameDay } from "utils";
+import { isAfter, isSameDay } from "utils";
 import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
 import TripDetailTour, {
   TRIP_DETAIL_TOUR_STORAGE_KEY,
@@ -518,9 +518,19 @@ export const TripDetail = () => {
             startDate,
             endDate,
             id: maxId + 1,
-            itinerary: draftDest.itinerary ?? [],
+            // Re-anchor any seeded day to the leg's (sequenced) start so a
+            // ground-transport activity lands on the right day.
+            itinerary: (draftDest.itinerary ?? []).map((day) => ({
+              ...day,
+              date: startDate,
+            })),
           });
           draft.destinations = dests;
+          // Grow the trip to cover the newly-sequenced leg so its day block
+          // renders (the timeline only spans the trip's start..end range).
+          if (endDate && (!draft.endDate || isAfter(endDate, draft.endDate))) {
+            draft.endDate = endDate;
+          }
         } else if (type === "edit" && typeof index === "number") {
           const draftDest = value as Partial<Destination>;
           const existing = dests[index];
