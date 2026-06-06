@@ -18,7 +18,7 @@ interface DateBlockProps {
     index?: number;
     typeId?: number;
     onChangeBudget: (type: ActionType, value: any, destinationIndx?: number) => void;
-    onChangePlace: (type: ActionType, value: any) => void;
+    onChangePlace: (type: ActionType, value: any, destinationIndx?: number) => void;
     onChangeDestination?: (type: ActionType, value: any) => void;
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */

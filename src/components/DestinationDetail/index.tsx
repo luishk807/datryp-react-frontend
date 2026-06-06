@@ -310,19 +310,30 @@ const DestinationDetail = ({
 
     const handleChangePlace = (obj: TripPlaceEvent) => {
         const { activity, date } = obj;
-        let destIndx: number | null = null;
-        for (let i = 0; i < destinations.length; i++) {
-            if (isSameDay(destinations[i].startDate, date)) {
-                destIndx = i;
-                break;
+        // Prefer the destination index the card passed down (multi-destination:
+        // each destination knows its own real index). Fall back to matching by
+        // start date only when no index was supplied (single-trip / legacy
+        // callers). Date-matching alone is wrong when several destinations
+        // share a start date — every activity then lands on the first one
+        // (the reported "added to London but it went to Panama" bug).
+        let destIndx: number | null =
+            typeof activity.destinationIndx === 'number'
+                ? activity.destinationIndx
+                : null;
+        if (destIndx === null) {
+            for (let i = 0; i < destinations.length; i++) {
+                if (isSameDay(destinations[i].startDate, date)) {
+                    destIndx = i;
+                    break;
+                }
             }
         }
 
         onChangePlace?.({
             activity: {
-                destinationIndx: destIndx,
                 index: 0,
                 ...activity,
+                destinationIndx: destIndx,
             },
             date,
         });
@@ -359,9 +370,13 @@ const DestinationDetail = ({
                                 date: dateStr,
                             })
                         }
-                        onChangePlace={(type: ActionType, value: any) =>
+                        onChangePlace={(
+                            type: ActionType,
+                            value: any,
+                            destinationIndx?: number,
+                        ) =>
                             handleChangePlace({
-                                activity: { type, value },
+                                activity: { type, value, destinationIndx },
                                 date: dateStr,
                             })
                         }

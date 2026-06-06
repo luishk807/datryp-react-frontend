@@ -259,7 +259,27 @@ export const tripStateToSaveInput = (
     const days: ItineraryDayInput[] = [];
     if (isMulti) {
         for (const dest of destinations) {
-            for (const day of dest.itinerary ?? []) {
+            const destDays = dest.itinerary ?? [];
+            // A destination with no itinerary day (just a header flight, or a
+            // bare country with no activities yet) still has to persist. The
+            // save model is day-based — one day row per destination — so a
+            // day-less destination would contribute no rows and silently
+            // vanish on save. Emit a single placeholder day carrying the
+            // destination's country + flight so it round-trips back as a
+            // destination on reload.
+            if (destDays.length === 0) {
+                const fallbackDate = dest.startDate || tripState.startDate;
+                if (fallbackDate) {
+                    days.push({
+                        date: fallbackDate,
+                        countryId: countryIdOf(dest.country),
+                        flightInfo: flightToInput(dest.flightInfo, fallbackDate),
+                        activities: [],
+                    });
+                }
+                continue;
+            }
+            for (const day of destDays) {
                 days.push({
                     date: day.date,
                     countryId: countryIdOf(dest.country),

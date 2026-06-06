@@ -408,11 +408,20 @@ export const TripDetail = () => {
       if (!localTripData) return;
       const next = produce(localTripData, (draft) => {
         const dest = draft.destinations?.[destIndx];
-        if (!dest?.itinerary) return;
-        const day = dest.itinerary.find((d) => isSameDay(d.date, date));
-        if (!day) return;
+        if (!dest) return;
 
         if (type === "add") {
+          // A destination whose transport is a header flight (or one added
+          // with no activity yet) has no itinerary day to drop the place on.
+          // Create the day on demand — anchored to this day block's date —
+          // instead of silently no-opping, which is what made adding an
+          // activity to such a destination fail (or land on the wrong one).
+          if (!dest.itinerary) dest.itinerary = [];
+          let day = dest.itinerary.find((d) => isSameDay(d.date, date));
+          if (!day) {
+            day = { id: Date.now(), date, activities: [] };
+            dest.itinerary.push(day);
+          }
           // Local numeric id — `tripStateToSaveInput` ignores it when shaping
           // the GraphQL payload, and the backend issues real UUIDs on save.
           const maxId = dest.itinerary.reduce(
@@ -422,7 +431,15 @@ export const TripDetail = () => {
           );
           const newActivity = { ...(value as Partial<Activity>), id: maxId + 1 } as Activity;
           day.activities = [...(day.activities ?? []), newActivity];
-        } else if (type === "edit") {
+          return;
+        }
+
+        // edit / delete operate on an existing day only.
+        if (!dest.itinerary) return;
+        const day = dest.itinerary.find((d) => isSameDay(d.date, date));
+        if (!day) return;
+
+        if (type === "edit") {
           const wrapper = value as {
             index?: number;
             value?: Partial<Activity>;
