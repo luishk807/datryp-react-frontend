@@ -16,6 +16,7 @@
  * Expected classifications (sanity check):
  *   ""                              → null
  *   "a"                             → null            (too short)
+ *   "https://…/hotel-riu-plaza-…"   → Place  (any URL → Place scraper)
  *   "mount fuji"                    → Place
  *   "Eiffel Tower"                  → Place
  *   "UA123 tomorrow"                → Flight
@@ -83,6 +84,16 @@ export const classifyActivityKind = (
 ): ActivityKindGuess | null => {
     const trimmed = text.trim();
     if (trimmed.length < 2) return null;
+
+    // A pasted URL always routes to PLACE. The Place smart-entry is the only
+    // pipeline wired to the link scraper (/places/extract-link), and a URL's
+    // path/slug is full of misleading keywords ("hotel", "flight") that would
+    // otherwise mis-route it — e.g. a riu.com hotel URL has "hotel" in the path
+    // and would land on the Hotel form, which can't read links. Detecting the
+    // URL up front lets the scraper pull the real name/address off the page.
+    if (/^https?:\/\//i.test(trimmed)) {
+        return { kind: ACTIVITY_KIND.PLACE, label: 'Link' };
+    }
 
     const hasStationPair = STATION_PAIR_RE.test(trimmed);
 
