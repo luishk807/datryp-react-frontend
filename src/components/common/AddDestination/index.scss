@@ -171,7 +171,13 @@
   z-index: 2;
 
   > button {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    // ButtonCustom's .main-button / .main-line ship `width: 100%`, which
+    // resolves the flex-basis to the full row and shoves the sibling off
+    // the modal edge (horizontal scroll + cut-off primary). Force auto so
+    // flex owns the sizing.
+    width: auto;
+    min-width: 0;
     padding-top: 12px;
     padding-bottom: 12px;
     font-size: 0.95rem;
@@ -180,6 +186,7 @@
   // Back button stays compact rather than splitting the row 50/50.
   > button:first-child:not(:only-child) {
     flex: 0 0 auto;
+    width: auto;
     min-width: 88px;
   }
 }

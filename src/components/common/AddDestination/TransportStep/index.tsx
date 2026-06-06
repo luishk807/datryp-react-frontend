@@ -98,6 +98,12 @@ const TransportStep = ({
     // Edit mode opens straight into the editable fields; add mode shows the
     // collapsed parsed summary first.
     const [showDetails, setShowDetails] = useState(isEdit);
+    // The transport-type chips only need to show when the kind is still
+    // unknown (the Search → Continue path). When step 1's smart text already
+    // determined the kind ("UA123" → Flight), re-asking "how are you getting
+    // there?" is redundant — open straight into the parsed result with a
+    // quiet "Change" affordance instead.
+    const [chooserOpen, setChooserOpen] = useState(!kind);
     const [lookupNotFound, setLookupNotFound] = useState<Record<number, string>>(
         {},
     );
@@ -132,7 +138,11 @@ const TransportStep = ({
                     : prev.transitSegments,
         }));
         parsedSmartRef.current = null;
+        // Picking a concrete mode collapses the chooser back to the result.
+        setChooserOpen(false);
     };
+
+    const activeChip = TYPE_CHIPS.find((c) => c.value === kind);
 
     /** Apply the smart-box text to the active kind's first segment. */
     const handleSmartText = (text: string) => {
@@ -310,7 +320,7 @@ const TransportStep = ({
         <section className="add-destination-group">
             <header className="add-destination-group-head">
                 <h4 className="add-destination-group-title">
-                    How are you getting there?
+                    {chooserOpen ? 'How are you getting there?' : 'Getting there'}
                 </h4>
             </header>
 
@@ -341,47 +351,74 @@ const TransportStep = ({
                 </div>
             )}
 
-            <div className="transport-chips" role="tablist" aria-label="Transport type">
-                {TYPE_CHIPS.map(({ value, label, Icon }) => {
-                    const active =
-                        value === 'later' ? kind === null : kind === value;
-                    return (
+            {chooserOpen ? (
+                <div
+                    className="transport-chips"
+                    role="tablist"
+                    aria-label="Transport type"
+                >
+                    {TYPE_CHIPS.map(({ value, label, Icon }) => {
+                        const active =
+                            value === 'later' ? kind === null : kind === value;
+                        return (
+                            <button
+                                key={value}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                className={classNames('transport-chip', {
+                                    'is-active': active,
+                                })}
+                                onClick={() => pickKind(value)}
+                            >
+                                <Icon className="transport-chip-icon" />
+                                <span>{label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            ) : (
+                kind &&
+                activeChip && (
+                    <div className="transport-active-mode">
+                        <span className="transport-active-mode-label">
+                            <activeChip.Icon className="transport-active-mode-icon" />
+                            {activeChip.label}
+                        </span>
                         <button
-                            key={value}
                             type="button"
-                            role="tab"
-                            aria-selected={active}
-                            className={classNames('transport-chip', {
-                                'is-active': active,
-                            })}
-                            onClick={() => pickKind(value)}
+                            className="transport-active-mode-change"
+                            onClick={() => setChooserOpen(true)}
                         >
-                            <Icon className="transport-chip-icon" />
-                            <span>{label}</span>
+                            Change
                         </button>
-                    );
-                })}
-            </div>
+                    </div>
+                )
+            )}
 
             {kind && (
                 <>
-                    <div className="transport-smart">
-                        <AutoAwesomeRoundedIcon className="transport-smart-spark" />
-                        <InputField
-                            variant="bare"
-                            name="transport-smart"
-                            value={transport.smartText}
-                            required={false}
-                            label="Describe your transportation"
-                            placeholder={
-                                isFlightKind(kind)
-                                    ? 'e.g. "Copa CM123 June 6"'
-                                    : isRentalKind(kind)
-                                      ? 'e.g. "Hertz pickup PTY June 6 10am $50"'
-                                      : 'e.g. "Panama City to Boquete 9am $30"'
-                            }
-                            onChange={(e) => handleSmartText(e.target.value)}
-                        />
+                    <div className="add-destination-field">
+                        <label className="add-destination-label">
+                            Describe your transportation
+                        </label>
+                        <div className="transport-smart">
+                            <AutoAwesomeRoundedIcon className="transport-smart-spark" />
+                            <InputField
+                                variant="bare"
+                                name="transport-smart"
+                                value={transport.smartText}
+                                required={false}
+                                placeholder={
+                                    isFlightKind(kind)
+                                        ? 'e.g. "Copa CM123 June 6"'
+                                        : isRentalKind(kind)
+                                          ? 'e.g. "Hertz pickup PTY June 6 10am $50"'
+                                          : 'e.g. "Panama City to Boquete 9am $30"'
+                                }
+                                onChange={(e) => handleSmartText(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {/* Lookup watchers — flight by number+date, transit by

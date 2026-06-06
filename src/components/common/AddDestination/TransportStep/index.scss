@@ -41,29 +41,87 @@
   font-size: 1.15rem;
 }
 
-// Smart-entry box for the chosen transport kind.
-.transport-smart {
-  position: relative;
+// Resolved transport mode (chooser collapsed): "✈ Flight  ·  Change".
+.transport-active-mode {
   display: flex;
-  align-items: flex-end;
-  border: 1px solid rgba(60, 181, 75, 0.35);
-  border-radius: 12px;
-  padding: 12px 12px 12px 40px;
-  background: rgba(60, 181, 75, 0.04);
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.transport-active-mode-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.transport-active-mode-icon {
+  font-size: 1.2rem;
+  color: theme('colors.primaryGreen');
+}
+
+.transport-active-mode-change {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+}
+
+// Smart-entry box for the chosen transport kind — one clean pill (spark +
+// bare input). Label sits ABOVE it, so the bare input drops its own
+// border/background to avoid a box-in-a-box.
+.transport-smart {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid rgba(60, 181, 75, 0.35);
+  border-radius: 14px;
+  padding: 6px 12px;
+  background: #fff;
   margin-bottom: 14px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:focus-within {
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.16);
+  }
 
   > div {
     flex: 1 1 auto;
+    min-width: 0;
     margin-bottom: 0;
+  }
+
+  .input-field-bare-input {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 6px 0;
+  }
+
+  .input-field-bare-input:focus {
+    border: none;
+    box-shadow: none;
   }
 }
 
 .transport-smart-spark {
-  position: absolute;
-  left: 12px;
-  bottom: 16px;
+  flex: 0 0 auto;
   color: theme('colors.primaryGreen');
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 // Compact "Parsed <Type>" summary card (collapsed add-mode view).

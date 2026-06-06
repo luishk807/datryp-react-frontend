@@ -14,7 +14,6 @@ import type {
     FlightInfo,
     TransitInfo,
 } from 'types';
-import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
 import CountryPicker from './CountryPicker';
 import TransportStep, {
     type TransportKind,
@@ -94,7 +93,6 @@ const AddDestinationBtn = ({
 
     const [step, setStep] = useState<WizardStep>(WIZARD_STEP.DESTINATION);
     const [country, setCountry] = useState<Country | null>(null);
-    const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
     const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
     const [error, setError] = useState<string | null>(null);
 
@@ -114,12 +112,10 @@ const AddDestinationBtn = ({
     useEffect(() => {
         if (data && type === ACTION.EDIT) {
             setCountry(data.country ?? null);
-            setFirstPlace(null);
             setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
             setStep(WIZARD_STEP.DESTINATION);
         } else {
             setCountry(null);
-            setFirstPlace(null);
             setTransport(emptyTransport());
             setStep(WIZARD_STEP.DESTINATION);
         }
@@ -129,7 +125,6 @@ const AddDestinationBtn = ({
 
     const resetTransient = () => {
         setCountry(null);
-        setFirstPlace(null);
         setTransport(emptyTransport());
         setStep(WIZARD_STEP.DESTINATION);
     };
@@ -195,16 +190,6 @@ const AddDestinationBtn = ({
         const transportSeed = buildTransportActivity(base + 2);
         const activities: Activity[] = [];
 
-        if (firstPlace) {
-            activities.push({
-                id: base + 1,
-                name: firstPlace.name,
-                location: firstPlace.location,
-                image: firstPlace.imageUrl
-                    ? { url: firstPlace.imageUrl, name: firstPlace.name }
-                    : undefined,
-            });
-        }
         if (transportSeed) activities.push(transportSeed.activity);
 
         const departDate =
@@ -284,20 +269,30 @@ const AddDestinationBtn = ({
                             mode={isAdd ? 'add' : 'edit'}
                             country={country}
                             defaultCountry={data?.country}
-                            firstPlace={firstPlace}
                             onCountryChange={(c) => {
                                 setCountry(c);
                                 setError(null);
                             }}
-                            onFirstPlaceChange={setFirstPlace}
-                            onSmartAdvance={(text, resolvedCountry) => {
-                                // Seed the transport smart box with the raw
-                                // text so step 2 can parse it once the user
-                                // confirms the transport kind.
+                            onSmartAdvance={(text, resolvedCountry, kind) => {
                                 if (resolvedCountry) setCountry(resolvedCountry);
+                                // Pre-select the detected transport kind and
+                                // seed its first segment so step 2 lands on the
+                                // parsed result (TransportStep auto-parses the
+                                // smartText) instead of the empty chooser.
                                 setTransport((prev) => ({
                                     ...prev,
+                                    kind,
                                     smartText: text,
+                                    flightSegments:
+                                        kind === ACTIVITY_KIND.FLIGHT &&
+                                        !prev.flightSegments.length
+                                            ? [emptyFlightSegment(isoDefaultDate)]
+                                            : prev.flightSegments,
+                                    transitSegments:
+                                        kind !== ACTIVITY_KIND.FLIGHT &&
+                                        !prev.transitSegments.length
+                                            ? [emptyTransitSegment(isoDefaultDate)]
+                                            : prev.transitSegments,
                                 }));
                                 setStep(WIZARD_STEP.TRANSPORT);
                             }}
