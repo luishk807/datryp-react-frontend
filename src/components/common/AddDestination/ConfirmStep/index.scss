@@ -50,6 +50,23 @@
   color: rgba(0, 0, 0, 0.5);
 }
 
+// Fallback destination picker — shown when auto-derivation couldn't resolve
+// a country (e.g. the smart text named a city). Stacks full-width inside the
+// row body so the place autocomplete dropdown isn't squeezed.
+.confirm-destination-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.confirm-destination-hint {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+
 .confirm-transport {
   display: flex;
   flex-direction: column;

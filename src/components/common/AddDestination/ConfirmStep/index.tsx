@@ -1,4 +1,8 @@
+import { useEffect, useState } from 'react';
 import type { Country } from 'types';
+import { useCountries } from 'api/hooks/useCountries';
+import SearchBar from 'components/SearchBar';
+import type { PlaceResult } from 'api/hooks/usePlaces';
 import type { TransportDraft } from '../types';
 import { TRANSPORT_MODE, buildTransportSummary } from '../transportSummary';
 import './index.scss';
@@ -8,20 +12,60 @@ export interface ConfirmStepProps {
     transport: TransportDraft;
     /** Jump back to step 2 (describe). */
     onEditTransport: () => void;
+    /** Set the destination country when the user picks one from the
+     *  fallback picker (auto-derivation didn't resolve a country). */
+    onSetCountry: (country: Country) => void;
 }
 
 /** Step 3 — read-only review of the destination + transport the wizard
- *  collected. The destination is derived from the smart text (no editable
- *  destination field), so its row has no Edit link — change it via the
- *  transport text. The async route / country derivation is owned by
- *  TransportResolver (always mounted), so this card only renders state. */
+ *  collected. The destination is normally derived from the smart text /
+ *  arrival airport by TransportResolver (always mounted). When that can't
+ *  resolve a country (e.g. the smart text named a CITY, not a country),
+ *  this step falls back to an explicit destination picker so the user can
+ *  always satisfy the country gate and add the destination. */
 const ConfirmStep = ({
     country,
     transport,
     onEditTransport,
+    onSetCountry,
 }: ConfirmStepProps) => {
     const mode = transport.kind ? TRANSPORT_MODE[transport.kind] : null;
     const summary = buildTransportSummary(transport);
+
+    // A picked place (city or country) resolves to a savable Country via the
+    // countries catalog: a country pick looks itself up by name; a city pick
+    // looks up its countryName. The async lookup runs only while a pick is
+    // pending and no country is set yet.
+    const [pendingName, setPendingName] = useState('');
+    const { data: countryMatches } = useCountries(pendingName, {
+        enabled: !country && pendingName.length > 0,
+        limit: 1,
+    });
+
+    useEffect(() => {
+        if (country || !pendingName) return;
+        const best = countryMatches?.[0];
+        if (!best) return;
+        onSetCountry({
+            id: best.id,
+            name: best.name,
+            code: best.code,
+            local: best.local ?? undefined,
+            image: best.image ?? undefined,
+        });
+        setPendingName('');
+        // onSetCountry is stable; fire once per resolved match.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [countryMatches, country, pendingName]);
+
+    const handlePlacePick = (place: PlaceResult) => {
+        // Country pick → resolve by its own name; city pick → resolve via the
+        // city's countryName. Either way the catalog lookup returns the
+        // Country with the id we need to save.
+        setPendingName(
+            place.kind === 'country' ? place.name : place.countryName,
+        );
+    };
 
     return (
         <section className="add-destination-group confirm-step">
@@ -37,9 +81,16 @@ const ConfirmStep = ({
                     {country ? (
                         <span className="confirm-row-value">{country.name}</span>
                     ) : (
-                        <span className="confirm-row-value confirm-row-muted">
-                            Finding it from your details…
-                        </span>
+                        <div className="confirm-destination-picker">
+                            <p className="confirm-destination-hint">
+                                Pick your destination city or country.
+                            </p>
+                            <SearchBar
+                                mode="place"
+                                type="simple"
+                                onPlaceSelected={handlePlacePick}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

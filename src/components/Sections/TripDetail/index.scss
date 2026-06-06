@@ -1046,6 +1046,12 @@ $night-border: rgba(255, 255, 255, 0.1);
     .budget-bar {
       background: rgba(255, 255, 255, 0.08);
     }
+    // The "under" fill is a dark rgba(0,0,0,.35) in light mode — invisible
+    // on the dark track. Light it up so the meter reads in night view.
+    // (warning/over keep their orange/red, which read fine on dark.)
+    &.budget-under .budget-bar-fill {
+      background: rgba(255, 255, 255, 0.6);
+    }
   }
 
   // ---- Trip review (TripCheckupCard) ----

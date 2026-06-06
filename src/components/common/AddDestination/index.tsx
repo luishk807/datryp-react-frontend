@@ -54,10 +54,12 @@ const DESTINATION_LABEL = {
 export interface DestinationDraft {
     id?: number;
     country?: Country | null;
-    /** Legacy header flight — never written by this component anymore.
-     *  Transport is seeded as a first-day activity instead. Kept on the
-     *  draft type only so edit-mode round-trips of older data don't lose
-     *  it on the way out. */
+    /** The destination's arrival FLIGHT, rendered as the destination header
+     *  band (depart/arrive legs) — NOT as an itinerary activity. Carries the
+     *  per-leg `segments` plus the flat headline fields synced from segment 0
+     *  (flightNumber / depart+arrival airports / dates / times / cost) for
+     *  callers that only read the headline. Ground transport (train / bus /
+     *  rental) still seeds an itinerary activity instead. */
     flightInfo?: FlightInfo;
     itinerary?: Destination['itinerary'];
 }
@@ -210,34 +212,42 @@ const AddDestinationBtn = ({
         }
     };
 
-    /** Build the seeded transport activity from the current transport
-     *  draft. Returns null for "add later" (no kind) or an empty draft. */
+    /** Build the destination's header FLIGHT from the current draft. The
+     *  flight renders as the destination header band (depart/arrive legs),
+     *  not as an itinerary activity, so its data lives on `flightInfo`. The
+     *  flat headline fields are synced from segment 0 for callers that only
+     *  read the headline; `segments` carries the full per-leg breakdown. */
+    const buildFlightInfo = (): { flightInfo: FlightInfo; arrivalDate?: string } => {
+        const segments = transport.flightSegments.length
+            ? transport.flightSegments
+            : [emptyFlightSegment(isoDefaultDate)];
+        const first = segments[0];
+        const last = segments[segments.length - 1];
+        return {
+            flightInfo: {
+                flightNumber: first.flightNumber,
+                departAirport: first.departAirport,
+                arrivalAirport: first.arrivalAirport,
+                departDate: first.departDate,
+                departTime: first.departTime,
+                arrivalDate: first.arrivalDate,
+                arrivalTime: first.arrivalTime,
+                cost: transport.cost || undefined,
+                segments,
+            },
+            arrivalDate: last.arrivalDate ?? first.departDate,
+        };
+    };
+
+    /** Build the seeded transport activity for GROUND kinds (train / bus /
+     *  rental). Flight no longer rides here — it's the destination header.
+     *  Returns null for "add later" (no kind) or a flight draft. */
     const buildTransportActivity = (
         baseId: number,
     ): { activity: Activity; arrivalDate?: string } | null => {
         const { kind } = transport;
-        if (!kind) return null;
+        if (!kind || kind === ACTIVITY_KIND.FLIGHT) return null;
         const name = `${TRANSPORT_NAME_PREFIX[kind]} ${country?.name ?? ''}`.trim();
-
-        if (kind === ACTIVITY_KIND.FLIGHT) {
-            const segments = transport.flightSegments.length
-                ? transport.flightSegments
-                : [emptyFlightSegment(isoDefaultDate)];
-            const first = segments[0];
-            const last = segments[segments.length - 1];
-            return {
-                activity: {
-                    id: baseId,
-                    kind: ACTIVITY_KIND.FLIGHT,
-                    name,
-                    startTime: first.departTime,
-                    endTime: last.arrivalTime,
-                    cost: transport.cost || undefined,
-                    flightSegments: segments,
-                },
-                arrivalDate: last.arrivalDate ?? first.departDate,
-            };
-        }
 
         const segments = transport.transitSegments.length
             ? transport.transitSegments
@@ -268,7 +278,10 @@ const AddDestinationBtn = ({
         setError(null);
 
         const base = Date.now();
-        const transportSeed = buildTransportActivity(base + 2);
+        const isFlight = transport.kind === ACTIVITY_KIND.FLIGHT;
+        // FLIGHT → header (flightInfo). Ground kinds → first-day activity.
+        const flightSeed = isFlight ? buildFlightInfo() : null;
+        const transportSeed = isFlight ? null : buildTransportActivity(base + 2);
         const activities: Activity[] = [];
 
         if (transportSeed) activities.push(transportSeed.activity);
@@ -277,18 +290,39 @@ const AddDestinationBtn = ({
             transport.flightSegments[0]?.departDate ??
             transport.transitSegments[0]?.departDate;
         const dayDate =
-            transportSeed?.arrivalDate ?? departDate ?? isoDefaultDate;
+            flightSeed?.arrivalDate ??
+            transportSeed?.arrivalDate ??
+            departDate ??
+            isoDefaultDate;
+
+        // EDIT fallback: keep the saved itinerary, but when this destination's
+        // transport is now a FLIGHT header, strip any legacy "Flight to …"
+        // activity off day 1 so the flight isn't shown twice (header + card).
+        const editItinerary: Destination['itinerary'] =
+            isFlight && data?.itinerary
+                ? data.itinerary.map((day, idx) =>
+                      idx === 0
+                          ? {
+                                ...day,
+                                activities: day.activities.filter(
+                                    (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
+                                ),
+                            }
+                          : day,
+                  )
+                : data?.itinerary;
 
         const itinerary: Destination['itinerary'] = activities.length
             ? [{ id: base, date: dayDate, activities }]
             : type === ACTION.EDIT
-              ? data?.itinerary
+              ? editItinerary
               : undefined;
 
         modelRef.current?.closeModal();
         onChange?.({
             id: data?.id,
             country,
+            flightInfo: flightSeed?.flightInfo,
             itinerary,
         });
 
@@ -578,6 +612,10 @@ const AddDestinationBtn = ({
                             onEditTransport={() =>
                                 setStep(WIZARD_STEP.DESCRIBE)
                             }
+                            onSetCountry={(c) => {
+                                setCountry(c);
+                                setError(null);
+                            }}
                         />
                     )}
 

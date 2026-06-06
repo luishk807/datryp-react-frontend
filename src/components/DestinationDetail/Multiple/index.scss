@@ -10,6 +10,20 @@
   padding-top: 20px !important;
 }
 
+// "Add destination" sits right under the day's "Add activity" row, so they
+// were easy to mis-tap. Give it clear separation + its own affordance so it
+// reads as a distinct, deliberate action.
+.add-destination-button {
+  margin-top: 28px !important;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+
+  button {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+}
+
 .multrip-content-item .content-header {
   display: flex !important;
   flex-direction: column;

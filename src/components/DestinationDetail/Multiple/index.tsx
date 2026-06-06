@@ -6,14 +6,13 @@ import FlightLandIcon from '@mui/icons-material/FlightLand';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import './index.scss';
-import { ACTIVITY_KIND, TRIP_BASIC } from 'constants';
+import { TRIP_BASIC } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import AddDestinationBtn from 'components/common/AddDestination';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import type {
     ActionType,
-    Activity,
     BudgetEntry,
     BudgetItem,
     Destination,
@@ -79,16 +78,14 @@ const Multiple = ({
                     const flightInfo = _.get(trip, 'flightInfo');
                     const country = _.get(trip, 'country.name');
                     const activities = _.get(trip, 'itinerary.0.activities');
-                    // The destination's flight header (country flight-no +
-                    // depart/arrive legs + flight money) duplicates the flight
-                    // activity card rendered below it — entry points seed both
-                    // a `flightInfo` and a "Flight to <city>" activity. Show
-                    // the header only for legacy destinations whose flight
-                    // lives solely in flightInfo: never alongside a flight
-                    // activity, and never as an empty "Not set / Not set" stub.
-                    const hasFlightActivity = (
-                        (activities as Activity[] | undefined) ?? []
-                    ).some((a) => a.kind === ACTIVITY_KIND.FLIGHT);
+                    // The destination's arrival flight renders as this header
+                    // band (country flight-no + depart/arrive legs + flight
+                    // money) — it lives on `flightInfo` and is NOT duplicated
+                    // as an itinerary activity. Show the header whenever
+                    // flightInfo carries real flight data (a number, a depart/
+                    // arrival airport, or a populated segment). Keep
+                    // suppressing a genuinely-empty flightInfo so a bare
+                    // destination never shows a "Not set / Not set" stub.
                     const hasRealFlightInfo = Boolean(
                         flightInfo &&
                             (flightInfo.flightNumber ||
@@ -101,7 +98,7 @@ const Multiple = ({
                                         s.arrivalAirport,
                                 )),
                     );
-                    const showFlightHeader = hasRealFlightInfo && !hasFlightActivity;
+                    const showFlightHeader = hasRealFlightInfo;
                     // Resolve the destination's real index in the parent
                     // state — onChangePlace/onChangeBudget already do this
                     // by date, but drag-and-drop needs it eagerly so the

@@ -86,7 +86,9 @@ import type {
   Activity,
   ActivityStatus,
   BudgetEntry,
+  Destination,
   OfflineStatus,
+  TripDestinationEvent,
   TripPlaceEvent,
   TripState,
   TripStatus,
@@ -464,6 +466,72 @@ export const TripDetail = () => {
           (persistedStatusName !== TRIP_STATUS.CANCELLED &&
             isPaidEditEvent(event)));
       if (shouldAutoSave) autoPersist(next);
+    },
+    [
+      localTripData,
+      isOrganizer,
+      persistedStatusName,
+      activityStatusLookup,
+      autoPersist,
+    ],
+  );
+
+  // Add / edit / delete a destination on the saved trip. Previously this
+  // page never wired `onChangeDestination`, so on a multi-destination trip
+  // clicking "Add Destination" hit an undefined callback — no state change,
+  // no save, no network request ("nothing happens"). Mirror handleChangePlace:
+  // apply to localTripData, then auto-save while Planning.
+  const handleChangeDestination = useCallback(
+    (event: TripDestinationEvent) => {
+      if (!localTripData) return;
+      const { activity, startDate, endDate, removeIndexes = [] } = event;
+      const { type, value, index } = activity;
+      const next = produce(localTripData, (draft) => {
+        const dests = draft.destinations ?? [];
+        if (type === "add") {
+          const maxId = dests.reduce(
+            (m, d) => Math.max(m, Number(d.id) || 0),
+            0,
+          );
+          const draftDest = value as Partial<Destination>;
+          dests.push({
+            ...(draftDest as Destination),
+            startDate,
+            endDate,
+            id: maxId + 1,
+            itinerary: draftDest.itinerary ?? [],
+          });
+          draft.destinations = dests;
+        } else if (type === "edit" && typeof index === "number") {
+          const draftDest = value as Partial<Destination>;
+          const existing = dests[index];
+          if (existing) {
+            dests[index] = {
+              ...existing,
+              ...draftDest,
+              startDate,
+              endDate,
+            } as Destination;
+          }
+          if (removeIndexes.length) {
+            draft.destinations = dests.filter(
+              (d) => !removeIndexes.includes(d.id),
+            );
+          }
+        } else if (type === "delete") {
+          draft.destinations = dests.filter((d) => d.id !== value);
+        }
+      });
+      setLocalTripData(next);
+
+      const lookupReady = activityStatusLookup.size > 0;
+      if (
+        isOrganizer &&
+        persistedStatusName === TRIP_STATUS.PLANNING &&
+        lookupReady
+      ) {
+        autoPersist(next);
+      }
     },
     [
       localTripData,
@@ -1118,6 +1186,7 @@ export const TripDetail = () => {
             destinations={destinations}
             onChangePlace={handleChangePlace}
             onChangeBudget={handleChangeBudget}
+            onChangeDestination={handleChangeDestination}
             tripStatusName={persistedStatusName}
             // The status pill auto-saves on click. While that save
             // is in flight, propagate the pending flag downward so

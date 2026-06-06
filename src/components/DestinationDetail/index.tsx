@@ -36,14 +36,20 @@ interface DateRange {
     endDate: string;
 }
 
-/** Derive a destination's end date from its transport. Transport is now
- *  seeded as the first-day's FLIGHT / transit activity (last segment's
- *  arrival), so scan that first; fall back to the legacy header
- *  `flightInfo.arrivalDate`, then to the destination's start date. */
+/** Derive a destination's end date from its transport. A FLIGHT lives in the
+ *  destination header (`flightInfo`), so prefer its last segment's arrival
+ *  (then its flat `arrivalDate`) first. Fall back to a legacy/ground transport
+ *  activity's last-segment arrival, then to the destination's start date. */
 const deriveDestinationEndDate = (
     value: Destination | undefined,
     startDate: string,
 ): string => {
+    const flightInfo = value?.flightInfo;
+    const headerArrival =
+        flightInfo?.segments?.slice(-1)[0]?.arrivalDate ??
+        flightInfo?.arrivalDate;
+    if (headerArrival) return formatDate(headerArrival);
+
     const activities = value?.itinerary?.[0]?.activities ?? [];
 
     const flight = activities.find(
@@ -61,9 +67,6 @@ const deriveDestinationEndDate = (
     );
     const transitArrival = transit?.transitSegments?.slice(-1)[0]?.arrivalDate;
     if (transitArrival) return formatDate(transitArrival);
-
-    const legacy = value?.flightInfo?.arrivalDate;
-    if (legacy) return formatDate(legacy);
 
     return startDate;
 };
