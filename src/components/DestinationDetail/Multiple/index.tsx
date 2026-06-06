@@ -6,18 +6,24 @@ import FlightLandIcon from '@mui/icons-material/FlightLand';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import './index.scss';
-import { TRIP_BASIC } from 'constants';
+import { TRIP_BASIC, ACTIVITY_KIND } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
 import AddBudget from 'components/DestinationDetail/AddBudget';
 import AddDestinationBtn from 'components/common/AddDestination';
+import AirlineLogo from 'components/common/AirlineLogo';
 import DialogBox from 'components/common/FormFields/DialogBox';
 import type {
     ActionType,
+    Activity,
     BudgetEntry,
     BudgetItem,
     Destination,
+    FlightInfo,
     Friend,
 } from 'types';
+
+const segHasData = (seg?: FlightInfo) =>
+    Boolean(seg && (seg.flightNumber || seg.departAirport || seg.arrivalAirport));
 
 const formatLegDate = (value?: string) =>
     value && isValidDate(value) ? formatDate(value, 'MMM D, YYYY') : '';
@@ -75,30 +81,76 @@ const Multiple = ({
     return (
         <>
             {(trips ?? []).map((trip, indx) => {
-                    const flightInfo = _.get(trip, 'flightInfo');
-                    const country = _.get(trip, 'country.name');
-                    const activities = _.get(trip, 'itinerary.0.activities');
-                    // The destination's arrival flight renders as this header
-                    // band (country flight-no + depart/arrive legs + flight
-                    // money) — it lives on `flightInfo` and is NOT duplicated
-                    // as an itinerary activity. Show the header whenever
-                    // flightInfo carries real flight data (a number, a depart/
-                    // arrival airport, or a populated segment). Keep
-                    // suppressing a genuinely-empty flightInfo so a bare
+                    const flightInfo = _.get(trip, 'flightInfo') as
+                        | FlightInfo
+                        | undefined;
+                    const country = _.get(trip, 'country.name') as
+                        | string
+                        | undefined;
+                    const activities = _.get(
+                        trip,
+                        'itinerary.0.activities',
+                    ) as Activity[] | undefined;
+
+                    // Legacy trips persist the destination's arrival flight
+                    // BOTH as `flightInfo` (drives this header band) AND as a
+                    // first-day itinerary activity (kind === FLIGHT). That made
+                    // the flight render twice — once in the header, once as an
+                    // activity card. Consolidate into the header only: find the
+                    // flight activity, prefer whichever source carries real
+                    // flight data, and filter the activity out of the card list
+                    // below so it never duplicates.
+                    const flightActivity = (trip.itinerary ?? [])
+                        .flatMap((d) => d.activities ?? [])
+                        .find((a) => a.kind === ACTIVITY_KIND.FLIGHT);
+
+                    // Unified header segment list: prefer flightInfo's segments
+                    // when at least one is populated, then the flight
+                    // activity's segments, then flightInfo's flat fields as a
+                    // single legacy leg.
+                    const flightInfoSegments = flightInfo?.segments?.some(
+                        segHasData,
+                    )
+                        ? flightInfo.segments
+                        : undefined;
+                    const headerSegments: FlightInfo[] =
+                        flightInfoSegments ??
+                        flightActivity?.flightSegments ??
+                        (flightInfo ? [flightInfo] : []);
+
+                    const headerFlightNumber = headerSegments.find(
+                        (s) => s.flightNumber,
+                    )?.flightNumber;
+
+                    // Money: flightInfo owns the destination-level flight cost
+                    // / split. When the flight only ever lived on the activity
+                    // (no flightInfo money set), fall back to the activity's
+                    // cost / budget so the header still shows the fare.
+                    const hasFlightInfoMoney =
+                        (flightInfo?.cost != null && flightInfo.cost !== '') ||
+                        Boolean(flightInfo?.paidBy) ||
+                        Boolean(flightInfo?.budgets?.length);
+                    const headerCost = hasFlightInfoMoney
+                        ? flightInfo?.cost
+                        : flightActivity?.cost;
+                    const headerBudgets = hasFlightInfoMoney
+                        ? flightInfo?.budgets
+                        : flightActivity?.budget;
+
+                    // Show the header whenever the unified model carries real
+                    // flight data — from flightInfo OR the flight activity.
+                    // Keep suppressing a genuinely-empty destination (no
+                    // flightInfo data AND no flight activity) so a bare
                     // destination never shows a "Not set / Not set" stub.
-                    const hasRealFlightInfo = Boolean(
-                        flightInfo &&
-                            (flightInfo.flightNumber ||
-                                flightInfo.departAirport ||
-                                flightInfo.arrivalAirport ||
-                                flightInfo.segments?.some(
-                                    (s: { flightNumber?: string; departAirport?: string; arrivalAirport?: string }) =>
-                                        s.flightNumber ||
-                                        s.departAirport ||
-                                        s.arrivalAirport,
-                                )),
+                    const showFlightHeader =
+                        headerSegments.some(segHasData) ||
+                        Boolean(flightActivity);
+
+                    // Drop the flight activity from the card list — it now lives
+                    // exclusively in the header band above.
+                    const cardActivities = (activities ?? []).filter(
+                        (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
                     );
-                    const showFlightHeader = hasRealFlightInfo;
                     // Resolve the destination's real index in the parent
                     // state — onChangePlace/onChangeBudget already do this
                     // by date, but drag-and-drop needs it eagerly so the
@@ -125,9 +177,9 @@ const Multiple = ({
                                     <span className="country-name">
                                         {country || 'Destination not set'}
                                     </span>
-                                    {showFlightHeader && flightInfo?.flightNumber && (
+                                    {showFlightHeader && headerFlightNumber && (
                                         <span className="flight-no">
-                                            Flight {flightInfo.flightNumber}
+                                            Flight {headerFlightNumber}
                                         </span>
                                     )}
                                 </Grid>
@@ -173,15 +225,11 @@ const Multiple = ({
                                         // wrapped in its own `.flight-leg-row` so the parent
                                         // container can stack legs as columns without the
                                         // depart/arrive halves wrapping into a tangled grid.
-                                        // Fall back to the headline flat fields when no
-                                        // `segments` list is present (legacy single-leg
-                                        // destinations saved before the table existed).
-                                        const segs =
-                                            flightInfo?.segments?.length
-                                                ? flightInfo.segments
-                                                : flightInfo
-                                                  ? [flightInfo]
-                                                  : [];
+                                        // Unified leg list (flightInfo segments,
+                                        // else the flight activity's segments,
+                                        // else flightInfo's flat fields) computed
+                                        // above as `headerSegments`.
+                                        const segs = headerSegments;
                                         if (segs.length === 0) {
                                             return (
                                                 <div className="flight-leg-row">
@@ -238,6 +286,18 @@ const Multiple = ({
                                                         <FlightTakeoffIcon className="leg-icon" />
                                                         <div className="leg-detail">
                                                             <span className="leg-label">{legLabel}</span>
+                                                            {seg.flightNumber && (
+                                                                <span className="leg-carrier">
+                                                                    <AirlineLogo
+                                                                        className="leg-carrier-logo"
+                                                                        flightNumber={seg.flightNumber}
+                                                                        label={`Flight ${seg.flightNumber}`}
+                                                                    />
+                                                                    <span className="leg-carrier-no">
+                                                                        {seg.flightNumber}
+                                                                    </span>
+                                                                </span>
+                                                            )}
                                                             <span className="leg-airport">
                                                                 {seg.departAirport || 'Not set'}
                                                             </span>
@@ -270,11 +330,11 @@ const Multiple = ({
                                 </Grid>
                                 )}
                                 {showFlightHeader &&
-                                    ((flightInfo?.cost != null &&
-                                    flightInfo.cost !== '') ||
+                                    ((headerCost != null &&
+                                    headerCost !== '') ||
                                     flightInfo?.paidBy ||
-                                    (flightInfo?.budgets &&
-                                        flightInfo.budgets.length > 0)) && (
+                                    (headerBudgets &&
+                                        headerBudgets.length > 0)) && (
                                     <Grid
                                         item
                                         lg={12}
@@ -282,15 +342,15 @@ const Multiple = ({
                                         xs={12}
                                         className="content-flight-money"
                                     >
-                                        {flightInfo?.cost != null &&
-                                            flightInfo.cost !== '' && (
+                                        {headerCost != null &&
+                                            headerCost !== '' && (
                                                 <div className="content-flight-cost">
                                                     <PaymentsOutlinedIcon className="flight-cost-icon" />
                                                     <span className="flight-cost-label">
                                                         Flight cost
                                                     </span>
                                                     <span className="flight-cost-value">
-                                                        {convertMoney(flightInfo.cost)}
+                                                        {convertMoney(headerCost)}
                                                     </span>
                                                 </div>
                                             )}
@@ -299,16 +359,20 @@ const Multiple = ({
                                             AddBudget itself renders as the prominent
                                             "Who is paying?" pill. Either way the pencil
                                             stays anchored to the chip group instead of
-                                            floating on its own line. */}
+                                            floating on its own line. The chips READ the
+                                            unified model (flightInfo split, else the
+                                            flight activity's), but the AddBudget edit
+                                            still WRITES to flightInfo — the editable
+                                            destination-level source of truth. */}
                                         <div className="content-flight-paidby-wrap">
-                                            {flightInfo?.budgets &&
-                                                flightInfo.budgets.length > 0 && (
+                                            {headerBudgets &&
+                                                headerBudgets.length > 0 && (
                                                     <>
                                                         <span className="flight-paidby-label">
                                                             Paid by
                                                         </span>
                                                         <div className="flight-paidby-chips">
-                                                            {flightInfo.budgets.map(
+                                                            {headerBudgets.map(
                                                                 (entry) => (
                                                                     <span
                                                                         key={entry.id}
@@ -333,8 +397,8 @@ const Multiple = ({
                                             <AddBudget
                                                 isViewMode={isViewMode}
                                                 participants={participants}
-                                                budget={flightInfo?.budgets as BudgetItem[] | undefined}
-                                                cost={flightInfo?.cost}
+                                                budget={headerBudgets as BudgetItem[] | undefined}
+                                                cost={headerCost}
                                                 onSubmit={(entries: BudgetEntry[]) => {
                                                 const budgets = entries.map((e, idx) => ({
                                                     // Local-only id keeps React keys
@@ -382,7 +446,7 @@ const Multiple = ({
                                     <Activities
                                         isViewMode={isViewMode}
                                         tripTypeId={TRIP_BASIC.MULTIPLE.id}
-                                        activities={activities}
+                                        activities={cardActivities}
                                         destinations={allDestinations}
                                         onChangePlace={(type, e) => onChangePlace(type, e, realDestIdx)}
                                         participants={participants}

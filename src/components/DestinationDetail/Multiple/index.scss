@@ -160,6 +160,31 @@
   font-weight: 600;
 }
 
+// Inline carrier row inside a depart leg: small airline logo + flight
+// number, sitting between the DEPART label and the airport. Mirrors the
+// activity card's airline-logo treatment so the header reads the flight
+// at a glance. Only renders when the segment carries a flight number.
+.multrip-content-item .leg-carrier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.multrip-content-item .leg-carrier-logo {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 5px;
+}
+
+.multrip-content-item .leg-carrier-no {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: theme('colors.primaryOrange');
+}
+
 .multrip-content-item .leg-airport {
   font-size: 1.05rem;
   font-weight: 600;
