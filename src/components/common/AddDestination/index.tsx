@@ -297,6 +297,12 @@ const AddDestinationBtn = ({
                             onCountryChange={(c) => {
                                 setCountry(c);
                                 setError(null);
+                                // Picking a destination from Search jumps
+                                // straight to step 2 — no Continue click.
+                                if (isAdd && c) {
+                                    setSeededFromSmart(false);
+                                    setStep(WIZARD_STEP.TRANSPORT);
+                                }
                             }}
                             onSmartAdvance={(text, resolvedCountry, kind) => {
                                 if (resolvedCountry) setCountry(resolvedCountry);

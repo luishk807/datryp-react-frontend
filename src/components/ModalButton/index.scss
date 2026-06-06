@@ -80,15 +80,16 @@
   overflow-y: auto;
 }
 
-/* Mobile breakpoint bumped from 480px → 720px so every phone +
- * portrait tablet gets the near-full-width treatment. The previous
- * 480px gate left larger phones (Pixel Pro, iPhone Plus, etc) and
- * iPad portrait on the desktop sizing — a 560px modal centered on
- * a 720px viewport leaves ~80px gutters that read as cramped
- * card-in-a-card chrome. Project convention going forward: ALL
- * `ModalButton`-based modals are near-full-width on mobile (12px
- * margin each side). Documented in CLAUDE.md. */
-@media (max-width: 720px) {
+/* Mobile breakpoint = 1024px, matched to the app's mobile chrome: the
+ * BottomNav appears at ≤1024px, so the whole UI reads "mobile" there.
+ * The modal must agree — a 560px modal centered on an 800–1024px viewport
+ * (iPad portrait 768, landscape 1024) left big gutters that read as
+ * cramped card-in-a-card chrome while the rest of the app was in mobile
+ * layout. Previously this gate was 720px, which left that 721–1024 band
+ * (incl. iPad portrait) on the desktop sizing. Project convention: ALL
+ * `ModalButton`-based modals are near-full-width on mobile (12px margin
+ * each side). Documented in CLAUDE.md. */
+@media (max-width: 1024px) {
   .modalCustom {
     width: calc(100vw - 24px);
     border-radius: 16px;

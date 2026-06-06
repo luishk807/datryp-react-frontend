@@ -68,21 +68,39 @@ export interface TransportStepProps {
 const TYPE_CHIPS: {
     value: TransportKind | 'later';
     label: string;
+    sub: string;
     Icon: typeof FlightRoundedIcon;
 }[] = [
-    { value: ACTIVITY_KIND.FLIGHT, label: 'Flight', Icon: FlightRoundedIcon },
+    {
+        value: ACTIVITY_KIND.FLIGHT,
+        label: 'Flight',
+        sub: 'Fly to your destination.',
+        Icon: FlightRoundedIcon,
+    },
     {
         value: ACTIVITY_KIND.TRAIN,
         label: 'Train',
+        sub: 'Rail journey.',
         Icon: DirectionsTransitRoundedIcon,
     },
-    { value: ACTIVITY_KIND.BUS, label: 'Bus', Icon: DirectionsBusRoundedIcon },
+    {
+        value: ACTIVITY_KIND.BUS,
+        label: 'Bus',
+        sub: 'Coach or intercity.',
+        Icon: DirectionsBusRoundedIcon,
+    },
     {
         value: ACTIVITY_KIND.RENTAL_CAR,
         label: 'Rental Car',
+        sub: 'Pick up a car.',
         Icon: CarRentalRoundedIcon,
     },
-    { value: 'later', label: "I'll add later", Icon: BlockRoundedIcon },
+    {
+        value: 'later',
+        label: "I'll add later",
+        sub: 'Decide this later.',
+        Icon: BlockRoundedIcon,
+    },
 ];
 
 const isRentalKind = (kind: TransportKind | null) =>
@@ -428,11 +446,11 @@ const TransportStep = ({
 
             {chooserOpen ? (
                 <div
-                    className="transport-chips"
+                    className="transport-tiles"
                     role="tablist"
                     aria-label="Transport type"
                 >
-                    {TYPE_CHIPS.map(({ value, label, Icon }) => {
+                    {TYPE_CHIPS.map(({ value, label, sub, Icon }) => {
                         const active =
                             value === 'later' ? kind === null : kind === value;
                         return (
@@ -441,13 +459,16 @@ const TransportStep = ({
                                 type="button"
                                 role="tab"
                                 aria-selected={active}
-                                className={classNames('transport-chip', {
+                                className={classNames('transport-tile', {
                                     'is-active': active,
                                 })}
                                 onClick={() => pickKind(value)}
                             >
-                                <Icon className="transport-chip-icon" />
-                                <span>{label}</span>
+                                <Icon className="transport-tile-icon" />
+                                <span className="transport-tile-title">
+                                    {label}
+                                </span>
+                                <span className="transport-tile-sub">{sub}</span>
                             </button>
                         );
                     })}
