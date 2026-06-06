@@ -69,7 +69,10 @@
     box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.16);
   }
 
-  > div {
+  // The bare InputField renders a <label class="input-field-bare"> (not a
+  // div), so target it by class — `> div` matched nothing, collapsing the
+  // field to content width and floating the go arrow into the middle.
+  .input-field-bare {
     flex: 1 1 auto;
     min-width: 0;
     margin-bottom: 0;

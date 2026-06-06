@@ -99,7 +99,8 @@
     box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.16);
   }
 
-  > div {
+  // Bare InputField root is a <label class="input-field-bare">, not a div.
+  .input-field-bare {
     flex: 1 1 auto;
     min-width: 0;
     margin-bottom: 0;
