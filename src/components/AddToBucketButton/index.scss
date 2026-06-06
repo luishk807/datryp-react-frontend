@@ -54,27 +54,16 @@
  * those rows to a white-on-photo treatment. Match the inherited
  * style for our trigger so the row reads as one strip. */
 @media (max-width: 720px) {
+  // The hero-chip scrim circle, 44px sizing, white glyph, hover, and icon size
+  // all come from the shared `.*-overlay-actions` group in App.scss (kept in
+  // sync with bookmark / visited / share). Only the bucket-specific
+  // "already added" green is unique — `!important` so it beats the shared
+  // white default on the pill + the icon's `color: inherit`.
   .place-detail-overlay-actions,
   .country-detail-overlay-actions,
   .city-detail-overlay-actions {
-    .add-to-bucket-trigger.is-icon {
-      color: rgba(255, 255, 255, 0.92);
-      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.28);
-        color: #fff;
-      }
-
-      &.is-already-added {
-        color: #5ad368;
-      }
-
-      .add-to-bucket-trigger-icon {
-        font-size: 1.45rem !important;
-        width: 1.45rem;
-        height: 1.45rem;
-      }
+    .add-to-bucket-trigger.is-icon.is-already-added {
+      color: #5ad368 !important;
     }
   }
 }

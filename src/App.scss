@@ -131,6 +131,7 @@ iframe[id*='__acroToolbar' i],
     .visited-button-pill,
     .visited-city-pill,
     .visited-country-pill,
+    .add-to-bucket-trigger.is-icon,
     .share-button-pill {
       width: 44px !important;
       height: 44px !important;
@@ -161,6 +162,7 @@ iframe[id*='__acroToolbar' i],
     .visited-button-pill:hover,
     .visited-city-pill:hover,
     .visited-country-pill:hover,
+    .add-to-bucket-trigger.is-icon:hover,
     .share-button-pill:hover {
       background: rgba(0, 0, 0, 0.28) !important;
       color: #fff !important;
@@ -175,6 +177,7 @@ iframe[id*='__acroToolbar' i],
     .visited-button-icon,
     .visited-city-icon,
     .visited-country-icon,
+    .add-to-bucket-trigger-icon,
     .share-button-pill-icon,
     .share-button-pill .MuiSvgIcon-root,
     .share-button-pill svg {
@@ -184,6 +187,24 @@ iframe[id*='__acroToolbar' i],
       height: 1.45rem !important;
       transition: color 0.18s ease;
     }
+  }
+}
+
+// iOS Safari auto-zooms the page whenever a focused input / textarea / select
+// renders below 16px, and it never zooms back out — leaving the page oversized
+// and horizontally scrollable after typing. Floor every text-entry control at
+// 16px on phones to prevent the zoom entirely. This is the accessibility-safe
+// fix (no `maximum-scale=1` lock on the viewport, which would also block
+// pinch-zoom). 16px is the minimum that suppresses the zoom; inputs already at
+// or above it are unaffected.
+@media (max-width: 720px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  textarea,
+  select,
+  .MuiInputBase-input,
+  .MuiOutlinedInput-input,
+  .MuiSelect-select {
+    font-size: 16px !important;
   }
 }
 
