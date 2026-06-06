@@ -1,6 +1,5 @@
 import {
     useEffect,
-    useMemo,
     useRef,
     useState,
     type Dispatch,
@@ -14,18 +13,11 @@ import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
 import BlockRoundedIcon from '@mui/icons-material/BlockRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import SearchBar from 'components/SearchBar';
-import FlightSegmentLookupWatcher from 'components/common/AddPlaceBtn/FlightSegmentLookupWatcher';
-import TransitSegmentLookupWatcher from 'components/common/AddPlaceBtn/TransitSegmentLookupWatcher';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
 import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
-import { useAirports } from 'api/hooks/useAirports';
-import { useCountries } from 'api/hooks/useCountries';
-import type { FlightLookupResult } from 'api/flightLookupApi';
-import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
 import type { Country, FlightInfo, TransitInfo } from 'types';
 import './index.scss';
@@ -63,6 +55,10 @@ export interface TransportStepProps {
     emptyFlightSegment: (date: string) => FlightInfo;
     emptyTransitSegment: (date: string) => TransitInfo;
     onCountryChange: (country: Country | null) => void;
+    /** Per-segment "couldn't find this flight/route" hints, owned by the
+     *  orchestrator's always-mounted TransportResolver. Read-only here —
+     *  surfaced as a manual-entry nudge under the smart box. */
+    lookupNotFound: Record<number, string>;
 }
 
 const TYPE_CHIPS: {
@@ -109,9 +105,10 @@ const isFlightKind = (kind: TransportKind | null) =>
     kind === ACTIVITY_KIND.FLIGHT;
 
 /** Step 2 — how are you getting there. Type chips → smart box (parsed via
- *  parseFlightInfo / parseTransitEntry) → "Parsed" summary with Edit Details
- *  expanding the full per-segment fields. Surfaces a country confirm/picker
- *  when step 1 couldn't resolve one. */
+ *  parseFlightInfo / parseTransitEntry) → "Edit details" expanding the full
+ *  per-segment fields. Surfaces a country confirm/picker when step 1 couldn't
+ *  resolve one. Entry-only: the read-only review + the async route/country
+ *  enrichment live on the Confirm step / the always-mounted TransportResolver. */
 const TransportStep = ({
     mode,
     transport,
@@ -124,6 +121,7 @@ const TransportStep = ({
     emptyFlightSegment,
     emptyTransitSegment,
     onCountryChange,
+    lookupNotFound,
 }: TransportStepProps) => {
     const isEdit = mode === 'edit';
     const { kind } = transport;
@@ -141,9 +139,6 @@ const TransportStep = ({
     // cover everything). The manual "pick a mode" path shows it so the user
     // has somewhere to describe the leg.
     const [showSmartBox, setShowSmartBox] = useState(!seededFromSmart && !isEdit);
-    const [lookupNotFound, setLookupNotFound] = useState<Record<number, string>>(
-        {},
-    );
     // Track whether we've already auto-parsed the seeded smart text so a
     // re-render doesn't clobber subsequent manual edits.
     const parsedSmartRef = useRef<string | null>(null);
@@ -151,47 +146,6 @@ const TransportStep = ({
     useEffect(() => {
         setShowDetails(isEdit);
     }, [isEdit, kind]);
-
-    // Derive the destination from a flight's arrival airport when step 1's
-    // smart text named no country (e.g. "UA123" → LHR→EWR → United States).
-    // Two hops: arrival IATA → airports catalog (its country) → countries
-    // catalog (the Country with a savable id). Disabled once a country is
-    // set so it can't loop or fight a user pick.
-    const arrivalAirport =
-        transport.flightSegments[0]?.arrivalAirport?.trim() ?? '';
-    const needAirportCountry =
-        isFlightKind(kind) && !country && arrivalAirport.length >= 3;
-    const { data: airportData } = useAirports(
-        needAirportCountry ? arrivalAirport : '',
-    );
-    const derivedCountryName = useMemo(() => {
-        if (!needAirportCountry) return '';
-        const items = airportData?.items ?? [];
-        const match =
-            items.find(
-                (a) =>
-                    a.iataCode.toUpperCase() === arrivalAirport.toUpperCase(),
-            ) ?? items[0];
-        return match?.country ?? '';
-    }, [airportData, needAirportCountry, arrivalAirport]);
-    const { data: derivedCountryMatches } = useCountries(derivedCountryName, {
-        enabled: derivedCountryName.length > 0,
-        limit: 1,
-    });
-    useEffect(() => {
-        if (!needAirportCountry) return;
-        const best = derivedCountryMatches?.[0];
-        if (!best) return;
-        onCountryChange({
-            id: best.id,
-            name: best.name,
-            code: best.code,
-            local: best.local ?? undefined,
-            image: best.image ?? undefined,
-        });
-        // onCountryChange is stable; fire once per resolved match.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [derivedCountryMatches, needAirportCountry]);
 
     const pickKind = (value: TransportKind | 'later') => {
         if (value === 'later') {
@@ -281,46 +235,6 @@ const TransportStep = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [kind, transport.smartText]);
 
-    const applyFlightLookup = (idx: number, result: FlightLookupResult) => {
-        setTransport((prev) => {
-            const segs = prev.flightSegments.length
-                ? [...prev.flightSegments]
-                : [emptyFlightSegment(isoDefaultDate)];
-            const cur = segs[idx] ?? {};
-            segs[idx] = {
-                ...cur,
-                departAirport: result.departAirport ?? cur.departAirport,
-                arrivalAirport: result.arrivalAirport ?? cur.arrivalAirport,
-                departDate: result.departDate ?? cur.departDate,
-                departTime: result.departTime ?? cur.departTime,
-                arrivalDate: result.arrivalDate ?? cur.arrivalDate,
-                arrivalTime: result.arrivalTime ?? cur.arrivalTime,
-            };
-            return { ...prev, flightSegments: segs };
-        });
-    };
-
-    const applyTransitLookup = (idx: number, result: TransitLookupResult) => {
-        setTransport((prev) => {
-            const segs = prev.transitSegments.length
-                ? [...prev.transitSegments]
-                : [emptyTransitSegment(isoDefaultDate)];
-            const cur = segs[idx] ?? {};
-            segs[idx] = {
-                ...cur,
-                operator: result.operator ?? cur.operator,
-                number: result.number ?? cur.number,
-                departStation: result.departStation ?? cur.departStation,
-                arrivalStation: result.arrivalStation ?? cur.arrivalStation,
-                departDate: result.departDate ?? cur.departDate,
-                departTime: result.departTime ?? cur.departTime,
-                arrivalDate: result.arrivalDate ?? cur.arrivalDate,
-                arrivalTime: result.arrivalTime ?? cur.arrivalTime,
-            };
-            return { ...prev, transitSegments: segs };
-        });
-    };
-
     const setFlightField = (
         idx: number,
         name: keyof FlightInfo,
@@ -358,43 +272,7 @@ const TransportStep = ({
         });
     };
 
-    const flightSeg = transport.flightSegments[0];
     const transitSeg = transport.transitSegments[0];
-
-    // Compact parsed summary line for the active kind.
-    const summary = (() => {
-        if (isFlightKind(kind) && flightSeg) {
-            const route =
-                flightSeg.departAirport && flightSeg.arrivalAirport
-                    ? `${flightSeg.departAirport} → ${flightSeg.arrivalAirport}`
-                    : null;
-            const parts = [
-                flightSeg.flightNumber,
-                route,
-                flightSeg.departDate,
-                flightSeg.departTime,
-            ].filter(Boolean);
-            return parts.length ? parts.join(' · ') : null;
-        }
-        if (kind && !isFlightKind(kind) && transitSeg) {
-            const route =
-                transitSeg.departStation && transitSeg.arrivalStation
-                    ? `${transitSeg.departStation} → ${transitSeg.arrivalStation}`
-                    : null;
-            const parts = [
-                transitSeg.operator,
-                transitSeg.number,
-                route,
-                transitSeg.departDate,
-                transitSeg.departTime,
-            ].filter(Boolean);
-            return parts.length ? parts.join(' · ') : null;
-        }
-        return null;
-    })();
-
-    const activeChipLabel =
-        TYPE_CHIPS.find((c) => c.value === kind)?.label ?? '';
 
     return (
         <section className="add-destination-group">
@@ -519,90 +397,30 @@ const TransportStep = ({
                     </div>
                     )}
 
-                    {/* Lookup watchers — flight by number+date, transit by
-                        operator+number. Rental cars have no lookup. */}
-                    {isFlightKind(kind) &&
-                        transport.flightSegments.map((seg, idx) => (
-                            <FlightSegmentLookupWatcher
-                                key={`flw-${idx}`}
-                                flightNumber={seg.flightNumber}
-                                departDate={seg.departDate}
-                                onResult={(r) => {
-                                    applyFlightLookup(idx, r);
-                                    setLookupNotFound((prev) => {
-                                        if (!(idx in prev)) return prev;
-                                        const next = { ...prev };
-                                        delete next[idx];
-                                        return next;
-                                    });
-                                }}
-                                onNotFound={(num) =>
-                                    setLookupNotFound((prev) => ({
-                                        ...prev,
-                                        [idx]: num,
-                                    }))
-                                }
-                            />
-                        ))}
-                    {(kind === ACTIVITY_KIND.TRAIN ||
-                        kind === ACTIVITY_KIND.BUS) &&
-                        transport.transitSegments.map((seg, idx) => (
-                            <TransitSegmentLookupWatcher
-                                key={`tlw-${idx}`}
-                                operator={seg.operator}
-                                number={seg.number}
-                                kind={
-                                    kind === ACTIVITY_KIND.TRAIN
-                                        ? 'train'
-                                        : 'bus'
-                                }
-                                departDate={seg.departDate}
-                                country={country?.name}
-                                onResult={(r) => {
-                                    applyTransitLookup(idx, r);
-                                    setLookupNotFound((prev) => {
-                                        if (!(idx in prev)) return prev;
-                                        const next = { ...prev };
-                                        delete next[idx];
-                                        return next;
-                                    });
-                                }}
-                                onNotFound={(label) =>
-                                    setLookupNotFound((prev) => ({
-                                        ...prev,
-                                        [idx]: label,
-                                    }))
-                                }
-                            />
-                        ))}
+                    {/* The flight/transit lookup watchers + the arrival-airport
+                        → country derivation that used to live here are now in
+                        the orchestrator's always-mounted TransportResolver, so
+                        they keep resolving after the user clicks Continue and
+                        this step unmounts. This step is entry-only. */}
 
-                    {/* Parsed summary (add-mode collapsed view). */}
+                    {/* Collapsed entry view: a quiet "Edit details" link to
+                        reveal the full editable fields. The read-only review of
+                        the parsed result moved to the Confirm step. */}
                     {!showDetails && (
-                        <div className="transport-parsed">
-                            <span className="transport-parsed-head">
-                                <CheckCircleRoundedIcon
-                                    fontSize="small"
-                                    className="transport-parsed-check"
-                                />
-                                Parsed {activeChipLabel}
-                            </span>
-                            <span className="transport-parsed-line">
-                                {summary ??
-                                    'Type your details above, or open Edit Details to fill them in.'}
-                            </span>
+                        <div className="transport-edit-toggle">
                             {lookupNotFound[0] && (
-                                <span className="transport-parsed-warn">
+                                <span className="transport-edit-toggle-warn">
                                     Couldn&rsquo;t find {lookupNotFound[0]}. Open
-                                    Edit Details to fill in manually.
+                                    Edit details to fill it in manually.
                                 </span>
                             )}
                             <button
                                 type="button"
-                                className="transport-parsed-edit"
+                                className="transport-edit-toggle-btn"
                                 onClick={() => setShowDetails(true)}
                             >
                                 <EditRoundedIcon fontSize="small" />
-                                Edit Details
+                                Edit details
                             </button>
                         </div>
                     )}

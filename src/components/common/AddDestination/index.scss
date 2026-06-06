@@ -38,65 +38,6 @@
   gap: 18px;
 }
 
-// Two-dot wizard progress header (ADD only). Reads as
-// "(1) Destination → (2) Getting there", the active dot tinted green.
-.add-destination-steps {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.add-destination-step-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
-
-  span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.06);
-    color: rgba(0, 0, 0, 0.5);
-    font-size: 0.74rem;
-    font-weight: 700;
-  }
-
-  &:not(:last-child)::after {
-    content: '';
-    width: 22px;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.14);
-    margin-left: 4px;
-  }
-
-  &.is-active {
-    color: theme('colors.primary');
-
-    span {
-      background: rgba(60, 181, 75, 0.16);
-      color: theme('colors.primaryGreen');
-    }
-  }
-
-  &.is-done {
-    color: theme('colors.primaryGreen');
-
-    span {
-      background: theme('colors.primaryGreen');
-      color: #fff;
-    }
-  }
-}
-
 .add-destination-group {
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(0, 0, 0, 0.06);

@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Read-only review rows on the Confirm step. Each row is a labelled block
+// with an inline "Edit" affordance that jumps back to the owning step.
+.confirm-step {
+  .confirm-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    &:first-of-type {
+      padding-top: 0;
+    }
+  }
+}
+
+.confirm-row-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.confirm-row-body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.confirm-row-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  min-width: 0;
+}
+
+.confirm-row-muted {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.confirm-transport {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.confirm-transport-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confirm-transport-icon {
+  font-size: 1.2rem !important;
+  color: theme('colors.primaryGreen');
+}
+
+.confirm-transport-summary {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  word-break: break-word;
+}
+
+.confirm-row-edit {
+  appearance: none;
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+}

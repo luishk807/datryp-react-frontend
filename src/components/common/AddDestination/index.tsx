@@ -19,11 +19,15 @@ import TransportStep, {
     type TransportKind,
     type TransportDraft,
 } from './TransportStep';
+import TransportResolver from './TransportResolver';
+import ConfirmStep from './ConfirmStep';
 
 const DESTINATION_LABEL = {
     ADD: 'Add Destination',
     EDIT: 'Edit',
     SAVE: 'Save Destination',
+    CONTINUE: 'Continue',
+    BACK: 'Back',
 } as const;
 
 export interface DestinationDraft {
@@ -43,7 +47,7 @@ export interface AddDestinationBtnProps
     tripMaxDate?: string | null;
 }
 
-const WIZARD_STEP = { DESTINATION: 1, TRANSPORT: 2 } as const;
+const WIZARD_STEP = { DESTINATION: 1, TRANSPORT: 2, CONFIRM: 3 } as const;
 type WizardStep = (typeof WIZARD_STEP)[keyof typeof WIZARD_STEP];
 
 /** Title prefix for the seeded transport activity, by kind. */
@@ -95,6 +99,12 @@ const AddDestinationBtn = ({
     const [country, setCountry] = useState<Country | null>(null);
     const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
     const [error, setError] = useState<string | null>(null);
+    // Per-segment "couldn't find this flight/route" hints. Lifted here (from
+    // TransportStep) because the always-mounted TransportResolver writes them
+    // and TransportStep — unmounted on the Confirm step — reads them.
+    const [lookupNotFound, setLookupNotFound] = useState<
+        Record<number, string>
+    >({});
     // True when step 2 was reached via step 1's smart text (kind already
     // detected + parsed). Step 2 then skips its own "describe your
     // transportation" box and shows the parsed result outright.
@@ -119,11 +129,13 @@ const AddDestinationBtn = ({
             setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
             setStep(WIZARD_STEP.DESTINATION);
             setSeededFromSmart(false);
+            setLookupNotFound({});
         } else {
             setCountry(null);
             setTransport(emptyTransport());
             setStep(WIZARD_STEP.DESTINATION);
             setSeededFromSmart(false);
+            setLookupNotFound({});
         }
         // isoDefaultDate is derived from defaultDate; isoDate is stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,6 +147,7 @@ const AddDestinationBtn = ({
         setStep(WIZARD_STEP.DESTINATION);
         setSeededFromSmart(false);
         setError(null);
+        setLookupNotFound({});
     };
 
     // Reset on every close so re-opening always starts clean (ADD), or
@@ -149,6 +162,7 @@ const AddDestinationBtn = ({
             setStep(WIZARD_STEP.DESTINATION);
             setSeededFromSmart(false);
             setError(null);
+            setLookupNotFound({});
         }
     };
 
@@ -311,7 +325,8 @@ const AddDestinationBtn = ({
                         />
                     )}
 
-                    {/* ADD step 2 / EDIT always: transport editor. */}
+                    {/* ADD step 2 / EDIT always: transport editor (entry-only
+                        in add mode — the review lives on the Confirm step). */}
                     {(!isAdd || step === WIZARD_STEP.TRANSPORT) && (
                         <TransportStep
                             mode={isAdd ? 'add' : 'edit'}
@@ -324,12 +339,45 @@ const AddDestinationBtn = ({
                             seededFromSmart={seededFromSmart}
                             emptyFlightSegment={emptyFlightSegment}
                             emptyTransitSegment={emptyTransitSegment}
+                            lookupNotFound={lookupNotFound}
                             onCountryChange={(c) => {
                                 setCountry(c);
                                 setError(null);
                             }}
                         />
                     )}
+
+                    {/* ADD step 3: read-only review before saving. */}
+                    {isAdd && step === WIZARD_STEP.CONFIRM && (
+                        <ConfirmStep
+                            country={country}
+                            transport={transport}
+                            onEditDestination={() =>
+                                setStep(WIZARD_STEP.DESTINATION)
+                            }
+                            onEditTransport={() =>
+                                setStep(WIZARD_STEP.TRANSPORT)
+                            }
+                        />
+                    )}
+
+                    {/* Always mounted (every step + edit): keeps the flight /
+                        transit lookups and the arrival-airport → country
+                        derivation resolving even after the user clicks Continue
+                        and TransportStep unmounts on the Confirm step. */}
+                    <TransportResolver
+                        transport={transport}
+                        setTransport={setTransport}
+                        country={country}
+                        isoDefaultDate={isoDefaultDate}
+                        emptyFlightSegment={emptyFlightSegment}
+                        emptyTransitSegment={emptyTransitSegment}
+                        setLookupNotFound={setLookupNotFound}
+                        onCountryChange={(c) => {
+                            setCountry(c);
+                            setError(null);
+                        }}
+                    />
 
                     {error && (
                         <p className="add-destination-error" role="alert">
@@ -338,31 +386,48 @@ const AddDestinationBtn = ({
                     )}
 
                     {/* No footer on step 1: "Type it" advances via the smart
-                        box arrow, "Search" advances on pick. The footer only
-                        appears on the transport step (add) / the single edit
-                        screen. */}
-                    {(!isAdd || step === WIZARD_STEP.TRANSPORT) && (
-                    <div className="add-destination-actions">
-                        {isAdd && step === WIZARD_STEP.TRANSPORT && (
-                            <ButtonCustom
-                                onClick={() => setStep(WIZARD_STEP.DESTINATION)}
-                                label="Back"
-                                type={BUTTON_VARIANT.LINE}
-                                capitalizeType="capitalize"
-                            />
-                        )}
-                        <ButtonCustom
-                            onClick={handleSubmit}
-                            label={
-                                isAdd
-                                    ? DESTINATION_LABEL.ADD
-                                    : DESTINATION_LABEL.SAVE
-                            }
-                            type={BUTTON_VARIANT.STANDARD}
-                            capitalizeType="uppercase"
-                            disabled={!canSubmit}
-                        />
-                    </div>
+                        box arrow, "Search" advances on pick. Step 2 (add) =
+                        Back + Continue; step 3 (add) = Back + Add Destination;
+                        edit = the single Save screen. */}
+                    {(!isAdd ||
+                        step === WIZARD_STEP.TRANSPORT ||
+                        step === WIZARD_STEP.CONFIRM) && (
+                        <div className="add-destination-actions">
+                            {isAdd && (
+                                <ButtonCustom
+                                    onClick={() =>
+                                        setStep(
+                                            step === WIZARD_STEP.CONFIRM
+                                                ? WIZARD_STEP.TRANSPORT
+                                                : WIZARD_STEP.DESTINATION,
+                                        )
+                                    }
+                                    label={DESTINATION_LABEL.BACK}
+                                    type={BUTTON_VARIANT.LINE}
+                                    capitalizeType="capitalize"
+                                />
+                            )}
+                            {isAdd && step === WIZARD_STEP.TRANSPORT ? (
+                                <ButtonCustom
+                                    onClick={() => setStep(WIZARD_STEP.CONFIRM)}
+                                    label={DESTINATION_LABEL.CONTINUE}
+                                    type={BUTTON_VARIANT.STANDARD}
+                                    capitalizeType="uppercase"
+                                />
+                            ) : (
+                                <ButtonCustom
+                                    onClick={handleSubmit}
+                                    label={
+                                        isAdd
+                                            ? DESTINATION_LABEL.ADD
+                                            : DESTINATION_LABEL.SAVE
+                                    }
+                                    type={BUTTON_VARIANT.STANDARD}
+                                    capitalizeType="uppercase"
+                                    disabled={!canSubmit}
+                                />
+                            )}
+                        </div>
                     )}
                 </div>
             </ModalButton>

@@ -162,43 +162,20 @@
   font-size: 1.25rem;
 }
 
-// Compact "Parsed <Type>" summary card (collapsed add-mode view).
-.transport-parsed {
+// Collapsed entry view: the "Edit details" link that reveals the full
+// editable segment fields, plus an optional lookup-miss nudge above it.
+.transport-edit-toggle {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.7);
 }
 
-.transport-parsed-head {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: theme('colors.primaryGreen');
-}
-
-.transport-parsed-check {
-  color: theme('colors.primaryGreen');
-}
-
-.transport-parsed-line {
-  font-size: 0.92rem;
-  color: theme('colors.primary');
-}
-
-.transport-parsed-warn {
+.transport-edit-toggle-warn {
   font-size: 0.8rem;
   color: theme('colors.primaryOrange');
 }
 
-.transport-parsed-edit {
+.transport-edit-toggle-btn {
   align-self: flex-start;
   appearance: none;
   display: inline-flex;
