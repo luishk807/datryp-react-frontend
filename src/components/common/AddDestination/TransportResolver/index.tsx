@@ -12,7 +12,23 @@ import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
 import type { Country, FlightInfo, TransitInfo } from 'types';
-import type { TransportDraft } from '../TransportStep';
+import type { TransportDraft } from '../types';
+
+/** Pull the most country-like token out of the smart text. Bias the
+ *  destination over the origin: take the chunk after the last "to" / arrow,
+ *  then strip trailing date / cost / preposition noise. The async catalog
+ *  lookup does the real resolution; this just narrows the query. */
+const guessCountryQuery = (text: string): string => {
+    const lower = text.trim();
+    if (!lower) return '';
+    const arrowSplit = lower.split(/\s+(?:to|->|→)\s+/i);
+    const tail =
+        arrowSplit.length > 1 ? arrowSplit[arrowSplit.length - 1] : lower;
+    const cut = tail.split(
+        /\s+(?:on|for|\$|at|june|jul|aug|sep|oct|nov|dec|jan|feb|mar|apr|may|\d)/i,
+    )[0];
+    return (cut || tail).trim();
+};
 
 export interface TransportResolverProps {
     transport: TransportDraft;
@@ -23,7 +39,7 @@ export interface TransportResolverProps {
     emptyTransitSegment: (date: string) => TransitInfo;
     onCountryChange: (country: Country | null) => void;
     /** Per-segment "couldn't find this flight/route" tracking, lifted to the
-     *  orchestrator so the (now unmounted-on-confirm) TransportStep can still
+     *  orchestrator so the (now unmounted-on-confirm) DescribeStep can still
      *  surface the warning. */
     setLookupNotFound: Dispatch<SetStateAction<Record<number, string>>>;
 }
@@ -35,11 +51,12 @@ const isFlightKind = (kind: TransportDraft['kind']) =>
  * Headless resolver that owns the asynchronous transport enrichment so it
  * keeps running no matter which wizard step is mounted:
  *  - flight / transit lookup watchers (route, times) per segment, and
- *  - the arrival-airport → destination-country derivation.
+ *  - the destination-country derivation, from a flight's arrival airport
+ *    or, for any other kind, from the smart text.
  *
  * The orchestrator renders exactly one of these for ALL steps. Without it,
  * clicking "Continue" before a lookup settled would land on the Confirm
- * step with a blank route / unresolved country, because TransportStep
+ * step with a blank route / unresolved country, because DescribeStep
  * (which used to host these) is unmounted there.
  */
 const TransportResolver = ({
@@ -94,6 +111,33 @@ const TransportResolver = ({
         // onCountryChange is stable; fire once per resolved match.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [derivedCountryMatches, needAirportCountry]);
+
+    // General fallback — derive the destination from the smart text for any
+    // kind the flight-arrival path didn't cover (transit, "I'll add later",
+    // or a flight whose arrival airport hasn't resolved a country). Disabled
+    // once a country is set and while the airport path is still in flight, so
+    // the two can't fight. `guessCountryQuery` narrows the text to the chunk
+    // after the last "to" / arrow; the catalog resolves it.
+    const textQuery = !country ? guessCountryQuery(transport.smartText) : '';
+    const needTextCountry = !country && !needAirportCountry && textQuery.length > 0;
+    const { data: textCountryMatches } = useCountries(
+        needTextCountry ? textQuery : '',
+        { enabled: needTextCountry, limit: 1 },
+    );
+    useEffect(() => {
+        if (!needTextCountry) return;
+        const best = textCountryMatches?.[0];
+        if (!best) return;
+        onCountryChange({
+            id: best.id,
+            name: best.name,
+            code: best.code,
+            local: best.local ?? undefined,
+            image: best.image ?? undefined,
+        });
+        // onCountryChange is stable; fire once per resolved match.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [textCountryMatches, needTextCountry]);
 
     const applyFlightLookup = (idx: number, result: FlightLookupResult) => {
         setTransport((prev) => {

@@ -14,13 +14,29 @@ import type {
     FlightInfo,
     TransitInfo,
 } from 'types';
-import CountryPicker from './CountryPicker';
-import TransportStep, {
-    type TransportKind,
-    type TransportDraft,
-} from './TransportStep';
+import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
+import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
+import TypeStep, { LATER, type TypePick } from './TypeStep';
+import DescribeStep from './DescribeStep';
 import TransportResolver from './TransportResolver';
 import ConfirmStep from './ConfirmStep';
+import type { TransportKind, TransportDraft } from './types';
+
+// Detect the transport kind from a free-text smart entry. A destination
+// defaults to FLIGHT (you fly to a country far more often than not) and
+// only flips to train / bus / rental when the text says so explicitly.
+const TRAIN_RE =
+    /\b(train|rail|railway|renfe|amtrak|eurostar|sncf|trenitalia|shinkansen|ave|tgv|ice)\b/i;
+const BUS_RE = /\b(bus|flixbus|greyhound|megabus|coach|ouibus)\b/i;
+const RENTAL_RE =
+    /\b(rental|car rental|rent a car|hertz|avis|enterprise|sixt|budget|alamo|thrifty)\b/i;
+
+const detectTransportKind = (text: string): TransportKind => {
+    if (TRAIN_RE.test(text)) return ACTIVITY_KIND.TRAIN;
+    if (BUS_RE.test(text)) return ACTIVITY_KIND.BUS;
+    if (RENTAL_RE.test(text)) return ACTIVITY_KIND.RENTAL_CAR;
+    return ACTIVITY_KIND.FLIGHT;
+};
 
 const DESTINATION_LABEL = {
     ADD: 'Add Destination',
@@ -47,7 +63,7 @@ export interface AddDestinationBtnProps
     tripMaxDate?: string | null;
 }
 
-const WIZARD_STEP = { DESTINATION: 1, TRANSPORT: 2, CONFIRM: 3 } as const;
+const WIZARD_STEP = { TYPE: 1, DESCRIBE: 2, CONFIRM: 3 } as const;
 type WizardStep = (typeof WIZARD_STEP)[keyof typeof WIZARD_STEP];
 
 /** Title prefix for the seeded transport activity, by kind. */
@@ -95,20 +111,20 @@ const AddDestinationBtn = ({
 
     const modelRef = useRef<ModalButtonHandle>(null);
 
-    const [step, setStep] = useState<WizardStep>(WIZARD_STEP.DESTINATION);
+    const [step, setStep] = useState<WizardStep>(WIZARD_STEP.TYPE);
     const [country, setCountry] = useState<Country | null>(null);
     const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
     const [error, setError] = useState<string | null>(null);
     // Per-segment "couldn't find this flight/route" hints. Lifted here (from
-    // TransportStep) because the always-mounted TransportResolver writes them
-    // and TransportStep — unmounted on the Confirm step — reads them.
+    // DescribeStep) because the always-mounted TransportResolver writes them
+    // and DescribeStep — unmounted on the Confirm step — reads them.
     const [lookupNotFound, setLookupNotFound] = useState<
         Record<number, string>
     >({});
-    // True when step 2 was reached via step 1's smart text (kind already
-    // detected + parsed). Step 2 then skips its own "describe your
-    // transportation" box and shows the parsed result outright.
-    const [seededFromSmart, setSeededFromSmart] = useState(false);
+    // True once the user explicitly picked "I'll add later" (kind stays null,
+    // but distinct from the initial unset state — used to highlight that tile
+    // and to allow the Describe step's destination-only entry).
+    const [chooseLater, setChooseLater] = useState(false);
 
     // Normalize whatever date format comes in (MM/DD/YYYY from
     // DestinationDetail or YYYY-MM-DD from raw state) into ISO YYYY-MM-DD.
@@ -125,16 +141,17 @@ const AddDestinationBtn = ({
     // activity already on the itinerary (or the legacy header flight).
     useEffect(() => {
         if (data && type === ACTION.EDIT) {
+            const seeded = seedTransportFromData(data, isoDate, isoDefaultDate);
             setCountry(data.country ?? null);
-            setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
-            setStep(WIZARD_STEP.DESTINATION);
-            setSeededFromSmart(false);
+            setTransport(seeded);
+            setStep(WIZARD_STEP.TYPE);
+            setChooseLater(seeded.kind === null);
             setLookupNotFound({});
         } else {
             setCountry(null);
             setTransport(emptyTransport());
-            setStep(WIZARD_STEP.DESTINATION);
-            setSeededFromSmart(false);
+            setStep(WIZARD_STEP.TYPE);
+            setChooseLater(false);
             setLookupNotFound({});
         }
         // isoDefaultDate is derived from defaultDate; isoDate is stable.
@@ -144,8 +161,8 @@ const AddDestinationBtn = ({
     const resetTransient = () => {
         setCountry(null);
         setTransport(emptyTransport());
-        setStep(WIZARD_STEP.DESTINATION);
-        setSeededFromSmart(false);
+        setStep(WIZARD_STEP.TYPE);
+        setChooseLater(false);
         setError(null);
         setLookupNotFound({});
     };
@@ -157,10 +174,11 @@ const AddDestinationBtn = ({
         if (isAdd) {
             resetTransient();
         } else if (data) {
+            const seeded = seedTransportFromData(data, isoDate, isoDefaultDate);
             setCountry(data.country ?? null);
-            setTransport(seedTransportFromData(data, isoDate, isoDefaultDate));
-            setStep(WIZARD_STEP.DESTINATION);
-            setSeededFromSmart(false);
+            setTransport(seeded);
+            setStep(WIZARD_STEP.TYPE);
+            setChooseLater(seeded.kind === null);
             setError(null);
             setLookupNotFound({});
         }
@@ -216,9 +234,9 @@ const AddDestinationBtn = ({
 
     const handleSubmit = () => {
         if (!country) {
-            setError('Pick a destination country first.');
-            // In ADD mode jump back to step 1 so the picker is visible.
-            if (isAdd) setStep(WIZARD_STEP.DESTINATION);
+            setError(
+                "We couldn't read a destination from your details yet — add an arrival airport or destination text.",
+            );
             return;
         }
         setError(null);
@@ -255,6 +273,118 @@ const AddDestinationBtn = ({
 
     const canSubmit = Boolean(country);
 
+    /** Step 1 tile click: pick a transport type (or "I'll add later"), seed
+     *  its first segment, and advance to the Describe step. Switching kinds
+     *  resets the smart text + segments so a stale flight entry can't leak
+     *  into a train (and vice versa). */
+    const pickType = (value: TypePick) => {
+        setError(null);
+        if (value === LATER) {
+            setChooseLater(true);
+            setTransport((prev) => ({
+                ...prev,
+                kind: null,
+                smartText: '',
+                flightSegments: [],
+                transitSegments: [],
+                cost: '',
+            }));
+            // ADD: switching to "later" drops any country derived from a
+            // prior flight/transit entry so the destination-only text owns
+            // it. EDIT: the saved destination is fixed — never clear it.
+            if (isAdd) setCountry(null);
+            setStep(WIZARD_STEP.DESCRIBE);
+            return;
+        }
+        setChooseLater(false);
+        const kindChanged = transport.kind !== value;
+        setTransport((prev) => ({
+            ...prev,
+            kind: value,
+            smartText: kindChanged ? '' : prev.smartText,
+            cost: kindChanged ? '' : prev.cost,
+            flightSegments:
+                value === ACTIVITY_KIND.FLIGHT
+                    ? prev.flightSegments.length
+                        ? prev.flightSegments
+                        : [emptyFlightSegment(isoDefaultDate)]
+                    : [],
+            transitSegments:
+                value !== ACTIVITY_KIND.FLIGHT
+                    ? prev.transitSegments.length
+                        ? prev.transitSegments
+                        : [emptyTransitSegment(isoDefaultDate)]
+                    : [],
+        }));
+        // ADD: a kind change invalidates a previously-derived country so the
+        // new entry re-derives it. EDIT: keep the saved destination fixed.
+        if (isAdd && kindChanged) setCountry(null);
+        setStep(WIZARD_STEP.DESCRIBE);
+    };
+
+    /** Step 1 smart box: detect the kind from the typed text, parse it into
+     *  that kind's first segment, and jump straight to Confirm — the always-
+     *  mounted TransportResolver finishes the flight lookup + the
+     *  destination-from-text/arrival derivation. Mirrors the Add-Activity
+     *  smart box, which skips the method step and lands on the review. */
+    const handleSmartSubmit = (text: string) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+        setError(null);
+        setChooseLater(false);
+        const kind = detectTransportKind(trimmed);
+        setTransport((prev) => {
+            if (kind === ACTIVITY_KIND.FLIGHT) {
+                const seg = parseFlightInfo(trimmed).segments[0];
+                return {
+                    ...prev,
+                    kind,
+                    smartText: trimmed,
+                    flightSegments: [
+                        {
+                            ...emptyFlightSegment(isoDefaultDate),
+                            ...(seg?.flightNumber
+                                ? { flightNumber: seg.flightNumber }
+                                : {}),
+                            ...(seg?.departDate
+                                ? {
+                                      departDate: seg.departDate,
+                                      arrivalDate: seg.departDate,
+                                  }
+                                : {}),
+                        },
+                    ],
+                    transitSegments: [],
+                };
+            }
+            const parsed = parseTransitEntry(trimmed);
+            return {
+                ...prev,
+                kind,
+                smartText: trimmed,
+                flightSegments: [],
+                transitSegments: [
+                    {
+                        ...emptyTransitSegment(isoDefaultDate),
+                        operator: parsed?.operator,
+                        number: parsed?.number,
+                        departStation: parsed?.departStation,
+                        arrivalStation: parsed?.arrivalStation,
+                        departTime: parsed?.departTime,
+                        arrivalTime: parsed?.arrivalTime,
+                        departDate: parsed?.departDate ?? isoDefaultDate,
+                        arrivalDate: parsed?.arrivalDate ?? isoDefaultDate,
+                    },
+                ],
+                cost:
+                    parsed?.cost != null ? String(parsed.cost) : prev.cost,
+            };
+        });
+        // Re-derive the destination from this fresh entry.
+        if (isAdd) setCountry(null);
+        setStep(WIZARD_STEP.CONFIRM);
+    };
+
     return (
         <div
             className={classNames({
@@ -282,68 +412,36 @@ const AddDestinationBtn = ({
                 }}
             >
                 <div className="add-destination-comp">
-                    {/* ADD step 1 / EDIT always: destination picker. */}
-                    {(!isAdd || step === WIZARD_STEP.DESTINATION) && (
-                        <CountryPicker
-                            mode={isAdd ? 'add' : 'edit'}
-                            country={country}
-                            defaultCountry={data?.country}
-                            onCountryChange={(c) => {
-                                setCountry(c);
-                                setError(null);
-                                // Picking a destination from Search jumps
-                                // straight to step 2 — no Continue click.
-                                if (isAdd && c) {
-                                    setSeededFromSmart(false);
-                                    setStep(WIZARD_STEP.TRANSPORT);
-                                }
-                            }}
-                            onSmartAdvance={(text, resolvedCountry, kind) => {
-                                if (resolvedCountry) setCountry(resolvedCountry);
-                                // Pre-select the detected transport kind and
-                                // seed its first segment so step 2 lands on the
-                                // parsed result (TransportStep auto-parses the
-                                // smartText) instead of the empty chooser.
-                                setTransport((prev) => ({
-                                    ...prev,
-                                    kind,
-                                    smartText: text,
-                                    flightSegments:
-                                        kind === ACTIVITY_KIND.FLIGHT &&
-                                        !prev.flightSegments.length
-                                            ? [emptyFlightSegment(isoDefaultDate)]
-                                            : prev.flightSegments,
-                                    transitSegments:
-                                        kind !== ACTIVITY_KIND.FLIGHT &&
-                                        !prev.transitSegments.length
-                                            ? [emptyTransitSegment(isoDefaultDate)]
-                                            : prev.transitSegments,
-                                }));
-                                setSeededFromSmart(true);
-                                setStep(WIZARD_STEP.TRANSPORT);
-                            }}
+                    {/* ADD step 1 / EDIT always: transport-type tiles. Tiles
+                        advance to Describe on click in add mode; in edit mode
+                        they sit inline above the (always-shown) Describe form. */}
+                    {(!isAdd || step === WIZARD_STEP.TYPE) && (
+                        <TypeStep
+                            currentKind={transport.kind}
+                            laterActive={chooseLater}
+                            onPick={pickType}
+                            onSmartSubmit={isAdd ? handleSmartSubmit : undefined}
                         />
                     )}
 
-                    {/* ADD step 2 / EDIT always: transport editor (entry-only
-                        in add mode — the review lives on the Confirm step). */}
-                    {(!isAdd || step === WIZARD_STEP.TRANSPORT) && (
-                        <TransportStep
+                    {/* ADD step 2 / EDIT always: describe the chosen transport
+                        (or the destination-only "later" entry). Entry-only in
+                        add mode — the review lives on the Confirm step. */}
+                    {(!isAdd || step === WIZARD_STEP.DESCRIBE) && (
+                        <DescribeStep
                             mode={isAdd ? 'add' : 'edit'}
                             transport={transport}
                             setTransport={setTransport}
-                            country={country}
-                            defaultCountry={data?.country}
                             isoDefaultDate={isoDefaultDate}
                             tripMaxDate={normalizedTripMaxDate}
-                            seededFromSmart={seededFromSmart}
                             emptyFlightSegment={emptyFlightSegment}
                             emptyTransitSegment={emptyTransitSegment}
                             lookupNotFound={lookupNotFound}
-                            onCountryChange={(c) => {
-                                setCountry(c);
-                                setError(null);
-                            }}
+                            onChangeType={
+                                isAdd
+                                    ? () => setStep(WIZARD_STEP.TYPE)
+                                    : undefined
+                            }
                         />
                     )}
 
@@ -352,19 +450,17 @@ const AddDestinationBtn = ({
                         <ConfirmStep
                             country={country}
                             transport={transport}
-                            onEditDestination={() =>
-                                setStep(WIZARD_STEP.DESTINATION)
-                            }
                             onEditTransport={() =>
-                                setStep(WIZARD_STEP.TRANSPORT)
+                                setStep(WIZARD_STEP.DESCRIBE)
                             }
                         />
                     )}
 
                     {/* Always mounted (every step + edit): keeps the flight /
-                        transit lookups and the arrival-airport → country
-                        derivation resolving even after the user clicks Continue
-                        and TransportStep unmounts on the Confirm step. */}
+                        transit lookups + the destination-country derivation
+                        (arrival airport OR smart text) resolving even after the
+                        user clicks Continue and DescribeStep unmounts on the
+                        Confirm step. */}
                     <TransportResolver
                         transport={transport}
                         setTransport={setTransport}
@@ -385,12 +481,11 @@ const AddDestinationBtn = ({
                         </p>
                     )}
 
-                    {/* No footer on step 1: "Type it" advances via the smart
-                        box arrow, "Search" advances on pick. Step 2 (add) =
-                        Back + Continue; step 3 (add) = Back + Add Destination;
-                        edit = the single Save screen. */}
+                    {/* No footer on step 1 (tiles advance on click). Step 2
+                        (add) = Back + Continue; step 3 (add) = Back + Add
+                        Destination; edit = the single Save screen. */}
                     {(!isAdd ||
-                        step === WIZARD_STEP.TRANSPORT ||
+                        step === WIZARD_STEP.DESCRIBE ||
                         step === WIZARD_STEP.CONFIRM) && (
                         <div className="add-destination-actions">
                             {isAdd && (
@@ -398,8 +493,8 @@ const AddDestinationBtn = ({
                                     onClick={() =>
                                         setStep(
                                             step === WIZARD_STEP.CONFIRM
-                                                ? WIZARD_STEP.TRANSPORT
-                                                : WIZARD_STEP.DESTINATION,
+                                                ? WIZARD_STEP.DESCRIBE
+                                                : WIZARD_STEP.TYPE,
                                         )
                                     }
                                     label={DESTINATION_LABEL.BACK}
@@ -407,7 +502,7 @@ const AddDestinationBtn = ({
                                     capitalizeType="capitalize"
                                 />
                             )}
-                            {isAdd && step === WIZARD_STEP.TRANSPORT ? (
+                            {isAdd && step === WIZARD_STEP.DESCRIBE ? (
                                 <ButtonCustom
                                     onClick={() => setStep(WIZARD_STEP.CONFIRM)}
                                     label={DESTINATION_LABEL.CONTINUE}

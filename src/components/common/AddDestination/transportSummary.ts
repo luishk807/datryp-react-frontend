@@ -3,7 +3,7 @@ import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitR
 import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
 import { ACTIVITY_KIND } from 'constants';
-import type { TransportDraft, TransportKind } from './TransportStep';
+import type { TransportDraft, TransportKind } from './types';
 
 /** User-facing label + icon for each transport kind. Single source for the
  *  chooser tiles, the collapsed "active mode" row, and the Confirm review. */

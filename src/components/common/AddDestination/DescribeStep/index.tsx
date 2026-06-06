@@ -5,141 +5,71 @@ import {
     type Dispatch,
     type SetStateAction,
 } from 'react';
-import classNames from 'classnames';
-import FlightRoundedIcon from '@mui/icons-material/FlightRounded';
-import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
-import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
-import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
-import BlockRoundedIcon from '@mui/icons-material/BlockRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
-import SearchBar from 'components/SearchBar';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
 import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
 import { ACTIVITY_KIND } from 'constants';
-import type { Country, FlightInfo, TransitInfo } from 'types';
+import type { FlightInfo, TransitInfo } from 'types';
+import type { TransportDraft, TransportKind } from '../types';
+import { TRANSPORT_MODE } from '../transportSummary';
 import './index.scss';
 
-/** The four real transport kinds AddDestination seeds. (`other` rides are
- *  out of scope for a destination-arrival transport.) */
-export type TransportKind =
-    | typeof ACTIVITY_KIND.FLIGHT
-    | typeof ACTIVITY_KIND.TRAIN
-    | typeof ACTIVITY_KIND.BUS
-    | typeof ACTIVITY_KIND.RENTAL_CAR;
-
-export interface TransportDraft {
-    /** null = no transport chosen yet (or "I'll add later"). */
-    kind: TransportKind | null;
-    /** Raw smart-box text seeded from step 1 / typed here. */
-    smartText: string;
-    flightSegments: FlightInfo[];
-    transitSegments: TransitInfo[];
-    cost: string;
-}
-
-export interface TransportStepProps {
+export interface DescribeStepProps {
     mode: 'add' | 'edit';
     transport: TransportDraft;
     setTransport: Dispatch<SetStateAction<TransportDraft>>;
-    country: Country | null;
-    defaultCountry?: Country | null;
     isoDefaultDate: string;
     tripMaxDate?: string;
-    /** True when step 1's smart text already produced this transport. The
-     *  step's own "describe your transportation" box is then redundant, so
-     *  it's hidden and the parsed result shows outright. */
-    seededFromSmart?: boolean;
     emptyFlightSegment: (date: string) => FlightInfo;
     emptyTransitSegment: (date: string) => TransitInfo;
-    onCountryChange: (country: Country | null) => void;
+    /** Jump back to step 1 to change the transport type. Omitted in edit mode
+     *  (the tiles render inline above this step, no wizard navigation). */
+    onChangeType?: () => void;
     /** Per-segment "couldn't find this flight/route" hints, owned by the
      *  orchestrator's always-mounted TransportResolver. Read-only here —
      *  surfaced as a manual-entry nudge under the smart box. */
     lookupNotFound: Record<number, string>;
 }
 
-const TYPE_CHIPS: {
-    value: TransportKind | 'later';
-    label: string;
-    sub: string;
-    Icon: typeof FlightRoundedIcon;
-}[] = [
-    {
-        value: ACTIVITY_KIND.FLIGHT,
-        label: 'Flight',
-        sub: 'Fly to your destination.',
-        Icon: FlightRoundedIcon,
-    },
-    {
-        value: ACTIVITY_KIND.TRAIN,
-        label: 'Train',
-        sub: 'Rail journey.',
-        Icon: DirectionsTransitRoundedIcon,
-    },
-    {
-        value: ACTIVITY_KIND.BUS,
-        label: 'Bus',
-        sub: 'Coach or intercity.',
-        Icon: DirectionsBusRoundedIcon,
-    },
-    {
-        value: ACTIVITY_KIND.RENTAL_CAR,
-        label: 'Rental Car',
-        sub: 'Pick up a car.',
-        Icon: CarRentalRoundedIcon,
-    },
-    {
-        value: 'later',
-        label: "I'll add later",
-        sub: 'Decide this later.',
-        Icon: BlockRoundedIcon,
-    },
-];
-
 const isRentalKind = (kind: TransportKind | null) =>
     kind === ACTIVITY_KIND.RENTAL_CAR;
 const isFlightKind = (kind: TransportKind | null) =>
     kind === ACTIVITY_KIND.FLIGHT;
 
-/** Step 2 — how are you getting there. Type chips → smart box (parsed via
- *  parseFlightInfo / parseTransitEntry) → "Edit details" expanding the full
- *  per-segment fields. Surfaces a country confirm/picker when step 1 couldn't
- *  resolve one. Entry-only: the read-only review + the async route/country
- *  enrichment live on the Confirm step / the always-mounted TransportResolver. */
-const TransportStep = ({
+/** Smart-box placeholder per transport kind. */
+const smartPlaceholder = (kind: TransportKind): string =>
+    isFlightKind(kind)
+        ? 'EWR to Panama City June 6 on Copa $450 — or "Copa CM123 June 6"'
+        : isRentalKind(kind)
+          ? 'Hertz pickup PTY June 6 10am $50'
+          : 'Renfe 3152 Madrid to Barcelona 9am $30';
+
+/** Step 2 — describe the chosen transport. A smart box (parsed via
+ *  parseFlightInfo / parseTransitEntry into the first segment) → "Edit
+ *  details" reveals the full per-segment fields + cost. For "I'll add
+ *  later" (kind=null) it's a destination-only entry — the orchestrator's
+ *  TransportResolver resolves the country from that text. Entry-only: the
+ *  async route/country enrichment lives in TransportResolver. */
+const DescribeStep = ({
     mode,
     transport,
     setTransport,
-    country,
-    defaultCountry,
     isoDefaultDate,
     tripMaxDate,
-    seededFromSmart = false,
     emptyFlightSegment,
     emptyTransitSegment,
-    onCountryChange,
+    onChangeType,
     lookupNotFound,
-}: TransportStepProps) => {
+}: DescribeStepProps) => {
     const isEdit = mode === 'edit';
     const { kind } = transport;
     // Edit mode opens straight into the editable fields; add mode shows the
-    // collapsed parsed summary first.
+    // collapsed smart box + "Edit details" first.
     const [showDetails, setShowDetails] = useState(isEdit);
-    // The transport-type chips only need to show when the kind is still
-    // unknown (the Search → Continue path). When step 1's smart text already
-    // determined the kind ("UA123" → Flight), re-asking "how are you getting
-    // there?" is redundant — open straight into the parsed result with a
-    // quiet "Change" affordance instead.
-    const [chooserOpen, setChooserOpen] = useState(!kind);
-    // The step's own smart box is redundant when step 1's smart text already
-    // produced the transport — hide it (the parsed result + Edit Details
-    // cover everything). The manual "pick a mode" path shows it so the user
-    // has somewhere to describe the leg.
-    const [showSmartBox, setShowSmartBox] = useState(!seededFromSmart && !isEdit);
-    // Track whether we've already auto-parsed the seeded smart text so a
+    // Track whether we've already auto-parsed the current smart text so a
     // re-render doesn't clobber subsequent manual edits.
     const parsedSmartRef = useRef<string | null>(null);
 
@@ -147,36 +77,7 @@ const TransportStep = ({
         setShowDetails(isEdit);
     }, [isEdit, kind]);
 
-    const pickKind = (value: TransportKind | 'later') => {
-        if (value === 'later') {
-            setTransport((prev) => ({
-                ...prev,
-                kind: null,
-                flightSegments: [],
-                transitSegments: [],
-            }));
-            return;
-        }
-        setTransport((prev) => ({
-            ...prev,
-            kind: value,
-            flightSegments:
-                value === ACTIVITY_KIND.FLIGHT && !prev.flightSegments.length
-                    ? [emptyFlightSegment(isoDefaultDate)]
-                    : prev.flightSegments,
-            transitSegments:
-                value !== ACTIVITY_KIND.FLIGHT && !prev.transitSegments.length
-                    ? [emptyTransitSegment(isoDefaultDate)]
-                    : prev.transitSegments,
-        }));
-        parsedSmartRef.current = null;
-        // Picking a concrete mode collapses the chooser back to the result,
-        // and reveals the describe box so the user can fill the new leg.
-        setChooserOpen(false);
-        setShowSmartBox(true);
-    };
-
-    const activeChip = TYPE_CHIPS.find((c) => c.value === kind);
+    const activeMode = kind ? TRANSPORT_MODE[kind] : null;
 
     /** Apply the smart-box text to the active kind's first segment. */
     const handleSmartText = (text: string) => {
@@ -225,7 +126,7 @@ const TransportStep = ({
         });
     };
 
-    // When a kind is picked AND step 1 seeded smart text, parse it once.
+    // Parse the seeded smart text once when a kind is set + text is present.
     useEffect(() => {
         if (!kind || !transport.smartText.trim()) return;
         if (parsedSmartRef.current === `${kind}|${transport.smartText}`) return;
@@ -274,207 +175,172 @@ const TransportStep = ({
 
     const transitSeg = transport.transitSegments[0];
 
+    // "I'll add later" — destination-only entry. The orchestrator's resolver
+    // derives the country from this text; no transport fields here.
+    if (!kind) {
+        return (
+            <section className="add-destination-group">
+                <header className="add-destination-group-head">
+                    <h4 className="add-destination-group-title">
+                        Where are you going?
+                    </h4>
+                </header>
+
+                {!isEdit && onChangeType && (
+                    <ChangeTypeRow label="No transport" onChange={onChangeType} />
+                )}
+
+                <div className="add-destination-field">
+                    <label className="add-destination-label">
+                        Where are you going?
+                    </label>
+                    <div className="transport-smart">
+                        <AutoAwesomeRoundedIcon className="transport-smart-spark" />
+                        <InputField
+                            variant="bare"
+                            name="destination-smart"
+                            value={transport.smartText}
+                            required={false}
+                            placeholder="Panama"
+                            onChange={(e) =>
+                                setTransport((prev) => ({
+                                    ...prev,
+                                    smartText: e.target.value,
+                                }))
+                            }
+                        />
+                    </div>
+                    <p className="describe-step-note">
+                        We&rsquo;ll find the country from this.
+                    </p>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className="add-destination-group">
             <header className="add-destination-group-head">
                 <h4 className="add-destination-group-title">
-                    {chooserOpen ? 'How are you getting there?' : 'Getting there'}
+                    Describe your {activeMode?.label}
                 </h4>
             </header>
 
-            {/* Country confirm / picker when step 1 couldn't resolve one. */}
-            {country ? (
-                <div className="country-picker-chip">
-                    <span className="country-picker-chip-label">
-                        Destination: <strong>{country.name}</strong>
-                    </span>
+            {!isEdit && activeMode && onChangeType && (
+                <ChangeTypeRow
+                    label={activeMode.label}
+                    Icon={activeMode.Icon}
+                    onChange={onChangeType}
+                />
+            )}
+
+            <div className="add-destination-field">
+                <label className="add-destination-label">
+                    Describe your {activeMode?.label}
+                </label>
+                <div className="transport-smart">
+                    <AutoAwesomeRoundedIcon className="transport-smart-spark" />
+                    <InputField
+                        variant="bare"
+                        name="transport-smart"
+                        value={transport.smartText}
+                        required={false}
+                        placeholder={smartPlaceholder(kind)}
+                        onChange={(e) => handleSmartText(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            {!showDetails && (
+                <div className="transport-edit-toggle">
+                    {lookupNotFound[0] && (
+                        <span className="transport-edit-toggle-warn">
+                            Couldn&rsquo;t find {lookupNotFound[0]}. Open Edit
+                            details to fill it in manually.
+                        </span>
+                    )}
                     <button
                         type="button"
-                        className="country-picker-chip-change"
-                        onClick={() => onCountryChange(null)}
+                        className="transport-edit-toggle-btn"
+                        onClick={() => setShowDetails(true)}
                     >
-                        change
+                        <EditRoundedIcon fontSize="small" />
+                        Edit details
                     </button>
                 </div>
-            ) : isFlightKind(kind) ? (
-                <div className="add-destination-field">
-                    <label className="add-destination-label">Destination</label>
-                    <p className="transport-resolving">
-                        Finding your destination from your flight… or pick it
-                        below.
-                    </p>
-                    <SearchBar
-                        defaultValue={defaultCountry ?? undefined}
-                        type="simple"
-                        onSelected={onCountryChange}
-                    />
-                </div>
-            ) : (
-                <div className="add-destination-field">
+            )}
+
+            {showDetails && isFlightKind(kind) && (
+                <FlightFields
+                    segments={
+                        transport.flightSegments.length
+                            ? transport.flightSegments
+                            : [emptyFlightSegment(isoDefaultDate)]
+                    }
+                    tripMaxDate={tripMaxDate}
+                    onField={setFlightField}
+                    isoDefaultDate={isoDefaultDate}
+                />
+            )}
+
+            {showDetails && !isFlightKind(kind) && (
+                <TransitFields
+                    segment={transitSeg ?? emptyTransitSegment(isoDefaultDate)}
+                    isRental={isRentalKind(kind)}
+                    tripMaxDate={tripMaxDate}
+                    onField={setTransitField}
+                />
+            )}
+
+            {showDetails && (
+                <div className="add-destination-field add-destination-flight-cost">
                     <label className="add-destination-label">
-                        Confirm country
+                        Cost{' '}
+                        <span className="add-destination-optional">
+                            (optional)
+                        </span>
                     </label>
-                    <SearchBar
-                        defaultValue={defaultCountry ?? undefined}
-                        type="simple"
-                        onSelected={onCountryChange}
+                    <InputField
+                        value={transport.cost}
+                        type="number"
+                        name="transportCost"
+                        label=""
+                        required={false}
+                        onChange={(e) =>
+                            setTransport((prev) => ({
+                                ...prev,
+                                cost: e.target.value,
+                            }))
+                        }
                     />
                 </div>
-            )}
-
-            {chooserOpen ? (
-                <div
-                    className="transport-tiles"
-                    role="tablist"
-                    aria-label="Transport type"
-                >
-                    {TYPE_CHIPS.map(({ value, label, sub, Icon }) => {
-                        const active =
-                            value === 'later' ? kind === null : kind === value;
-                        return (
-                            <button
-                                key={value}
-                                type="button"
-                                role="tab"
-                                aria-selected={active}
-                                className={classNames('transport-tile', {
-                                    'is-active': active,
-                                })}
-                                onClick={() => pickKind(value)}
-                            >
-                                <Icon className="transport-tile-icon" />
-                                <span className="transport-tile-title">
-                                    {label}
-                                </span>
-                                <span className="transport-tile-sub">{sub}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            ) : (
-                kind &&
-                activeChip && (
-                    <div className="transport-active-mode">
-                        <span className="transport-active-mode-label">
-                            <activeChip.Icon className="transport-active-mode-icon" />
-                            {activeChip.label}
-                        </span>
-                        <button
-                            type="button"
-                            className="transport-active-mode-change"
-                            onClick={() => setChooserOpen(true)}
-                        >
-                            Change
-                        </button>
-                    </div>
-                )
-            )}
-
-            {kind && (
-                <>
-                    {showSmartBox && (
-                    <div className="add-destination-field">
-                        <label className="add-destination-label">
-                            Describe your transportation
-                        </label>
-                        <div className="transport-smart">
-                            <AutoAwesomeRoundedIcon className="transport-smart-spark" />
-                            <InputField
-                                variant="bare"
-                                name="transport-smart"
-                                value={transport.smartText}
-                                required={false}
-                                placeholder={
-                                    isFlightKind(kind)
-                                        ? 'e.g. "Copa CM123 June 6"'
-                                        : isRentalKind(kind)
-                                          ? 'e.g. "Hertz pickup PTY June 6 10am $50"'
-                                          : 'e.g. "Panama City to Boquete 9am $30"'
-                                }
-                                onChange={(e) => handleSmartText(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                    )}
-
-                    {/* The flight/transit lookup watchers + the arrival-airport
-                        → country derivation that used to live here are now in
-                        the orchestrator's always-mounted TransportResolver, so
-                        they keep resolving after the user clicks Continue and
-                        this step unmounts. This step is entry-only. */}
-
-                    {/* Collapsed entry view: a quiet "Edit details" link to
-                        reveal the full editable fields. The read-only review of
-                        the parsed result moved to the Confirm step. */}
-                    {!showDetails && (
-                        <div className="transport-edit-toggle">
-                            {lookupNotFound[0] && (
-                                <span className="transport-edit-toggle-warn">
-                                    Couldn&rsquo;t find {lookupNotFound[0]}. Open
-                                    Edit details to fill it in manually.
-                                </span>
-                            )}
-                            <button
-                                type="button"
-                                className="transport-edit-toggle-btn"
-                                onClick={() => setShowDetails(true)}
-                            >
-                                <EditRoundedIcon fontSize="small" />
-                                Edit details
-                            </button>
-                        </div>
-                    )}
-
-                    {showDetails && isFlightKind(kind) && (
-                        <FlightFields
-                            segments={
-                                transport.flightSegments.length
-                                    ? transport.flightSegments
-                                    : [emptyFlightSegment(isoDefaultDate)]
-                            }
-                            tripMaxDate={tripMaxDate}
-                            onField={setFlightField}
-                            isoDefaultDate={isoDefaultDate}
-                        />
-                    )}
-
-                    {showDetails && kind && !isFlightKind(kind) && (
-                        <TransitFields
-                            segment={transitSeg ?? emptyTransitSegment(isoDefaultDate)}
-                            isRental={isRentalKind(kind)}
-                            tripMaxDate={tripMaxDate}
-                            onField={setTransitField}
-                        />
-                    )}
-
-                    {showDetails && (
-                        <div className="add-destination-field add-destination-flight-cost">
-                            <label className="add-destination-label">
-                                Cost{' '}
-                                <span className="add-destination-optional">
-                                    (optional)
-                                </span>
-                            </label>
-                            <InputField
-                                value={transport.cost}
-                                type="number"
-                                name="transportCost"
-                                label=""
-                                required={false}
-                                onChange={(e) =>
-                                    setTransport((prev) => ({
-                                        ...prev,
-                                        cost: e.target.value,
-                                    }))
-                                }
-                            />
-                        </div>
-                    )}
-                </>
             )}
         </section>
     );
 };
+
+interface ChangeTypeRowProps {
+    label: string;
+    Icon?: typeof EditRoundedIcon;
+    onChange: () => void;
+}
+
+/** Shows the active transport choice with a "Change" link back to step 1. */
+const ChangeTypeRow = ({ label, Icon, onChange }: ChangeTypeRowProps) => (
+    <div className="transport-active-mode">
+        <span className="transport-active-mode-label">
+            {Icon && <Icon className="transport-active-mode-icon" />}
+            {label}
+        </span>
+        <button
+            type="button"
+            className="transport-active-mode-change"
+            onClick={onChange}
+        >
+            Change
+        </button>
+    </div>
+);
 
 interface FlightFieldsProps {
     segments: FlightInfo[];
@@ -483,9 +349,8 @@ interface FlightFieldsProps {
     onField: (idx: number, name: keyof FlightInfo, value: string) => void;
 }
 
-/** Editable per-segment flight fields. Mirrors the prior AddDestination
- *  flight markup (outbound leg, no add-stopover — destination transport is
- *  the simple single-leg arrival case). */
+/** Editable per-segment flight fields (single outbound leg — destination
+ *  transport is the simple arrival case). */
 const FlightFields = ({
     segments,
     tripMaxDate,
@@ -770,4 +635,4 @@ const TransitFields = ({
     );
 };
 
-export default TransportStep;
+export default DescribeStep;

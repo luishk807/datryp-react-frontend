@@ -1,24 +1,23 @@
 import type { Country } from 'types';
-import type { TransportDraft } from '../TransportStep';
+import type { TransportDraft } from '../types';
 import { TRANSPORT_MODE, buildTransportSummary } from '../transportSummary';
 import './index.scss';
 
 export interface ConfirmStepProps {
     country: Country | null;
     transport: TransportDraft;
-    /** Jump back to step 1 (destination picker). */
-    onEditDestination: () => void;
-    /** Jump back to step 2 (getting there). */
+    /** Jump back to step 2 (describe). */
     onEditTransport: () => void;
 }
 
 /** Step 3 — read-only review of the destination + transport the wizard
- *  collected. The async route / country derivation is owned by
+ *  collected. The destination is derived from the smart text (no editable
+ *  destination field), so its row has no Edit link — change it via the
+ *  transport text. The async route / country derivation is owned by
  *  TransportResolver (always mounted), so this card only renders state. */
 const ConfirmStep = ({
     country,
     transport,
-    onEditDestination,
     onEditTransport,
 }: ConfirmStepProps) => {
     const mode = transport.kind ? TRANSPORT_MODE[transport.kind] : null;
@@ -35,16 +34,13 @@ const ConfirmStep = ({
             <div className="confirm-row">
                 <span className="confirm-row-label">Destination</span>
                 <div className="confirm-row-body">
-                    <span className="confirm-row-value">
-                        {country?.name ?? 'Not set'}
-                    </span>
-                    <button
-                        type="button"
-                        className="confirm-row-edit"
-                        onClick={onEditDestination}
-                    >
-                        Edit
-                    </button>
+                    {country ? (
+                        <span className="confirm-row-value">{country.name}</span>
+                    ) : (
+                        <span className="confirm-row-value confirm-row-muted">
+                            Finding it from your details…
+                        </span>
+                    )}
                 </div>
             </div>
 
