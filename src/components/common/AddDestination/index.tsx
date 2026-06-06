@@ -59,6 +59,10 @@ const AddDestinationBtn = ({
      *  that we materialize at submit time. */
     const [firstPlaceText, setFirstPlaceText] = useState('');
     const [firstPlace, setFirstPlace] = useState<PlaceSuggestion | null>(null);
+    // Flight is optional and collapsed by default so the common flow is
+    // just "pick a country → Add Destination". Opens automatically in edit
+    // mode when the saved destination already carries a flight.
+    const [flightOpen, setFlightOpen] = useState(false);
     const modelRef = useRef<ModalButtonHandle>(null);
     // Home-base lookup: when the user opens AddDestination to plan a
     // flight to a new country, the depart airport is almost always
@@ -212,6 +216,14 @@ const AddDestinationBtn = ({
                 },
                 itinerary: data.itinerary,
             });
+            // Reveal the flight section on edit only when the saved trip
+            // actually has a flight worth showing.
+            setFlightOpen(
+                Boolean(
+                    data.flightInfo?.flightNumber ||
+                        data.flightInfo?.arrivalAirport
+                )
+            );
         } else {
             const seedSegment: FlightInfo = {
                 departDate: fallback,
@@ -223,6 +235,7 @@ const AddDestinationBtn = ({
                 country: null,
                 flightInfo: { ...seedSegment, segments: [seedSegment] },
             });
+            setFlightOpen(false);
         }
     }, [data, defaultDate, type]);
 
@@ -403,7 +416,22 @@ const AddDestinationBtn = ({
                                     <h4 className="add-destination-group-title">
                                         Flight
                                     </h4>
+                                    <span className="add-destination-optional add-destination-group-optional">
+                                        optional
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="add-destination-flight-toggle"
+                                        onClick={() =>
+                                            setFlightOpen((open) => !open)
+                                        }
+                                        aria-expanded={flightOpen}
+                                    >
+                                        {flightOpen ? 'Hide flight' : 'Add flight'}
+                                    </button>
                                 </header>
+                                {flightOpen && (
+                                  <>
                                 {(destination.flightInfo?.segments ?? [{}]).map(
                                     (seg, segIdx, allSegs) => (
                                         <div
@@ -589,6 +617,8 @@ const AddDestinationBtn = ({
                                         }
                                     />
                                 </div>
+                                  </>
+                                )}
                             </section>
 
                         <div className="add-destination-actions">

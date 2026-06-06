@@ -58,6 +58,35 @@
   letter-spacing: -0.005em;
 }
 
+// "optional" tag sits right after the group title.
+.add-destination-group-optional {
+  font-size: 0.72rem;
+}
+
+// Expand / collapse pill for the optional flight section. Pushed to the
+// far right of the group header so the collapsed state reads as a single
+// tidy "Flight optional [Add flight]" row — the easy-flow default is just
+// the country picker, with flight details on demand.
+.add-destination-flight-toggle {
+  margin-left: auto;
+  appearance: none;
+  background: rgba(60, 181, 75, 0.1);
+  border: 1px solid rgba(60, 181, 75, 0.3);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.16);
+    border-color: theme('colors.primaryGreen');
+  }
+}
+
 .add-destination-field {
   display: flex;
   flex-direction: column;
