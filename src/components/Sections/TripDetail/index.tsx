@@ -5,6 +5,7 @@ import confetti from "canvas-confetti";
 import "./index.scss";
 import {
   Alert,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -134,6 +135,7 @@ export const TripDetail = () => {
   const {
     data: apiItineraries = [],
     isLoading,
+    isFetching,
     isSuccess: itinerariesLoaded,
   } = useMyItineraries();
 
@@ -524,22 +526,16 @@ export const TripDetail = () => {
       });
       setLocalTripData(next);
 
-      const lookupReady = activityStatusLookup.size > 0;
-      if (
-        isOrganizer &&
-        persistedStatusName === TRIP_STATUS.PLANNING &&
-        lookupReady
-      ) {
+      // Persist immediately while Planning. No activity-status-lookup gate
+      // here (unlike handleChangePlace): a destination add/edit/delete
+      // doesn't serialize per-activity status UUIDs, and gating on the
+      // lookup meant a slow/failed status query silently skipped the save —
+      // so the new destination vanished on the next refetch.
+      if (isOrganizer && persistedStatusName === TRIP_STATUS.PLANNING) {
         autoPersist(next);
       }
     },
-    [
-      localTripData,
-      isOrganizer,
-      persistedStatusName,
-      activityStatusLookup,
-      autoPersist,
-    ],
+    [localTripData, isOrganizer, persistedStatusName, autoPersist],
   );
 
   const handleSaveBasicInfo = useCallback(
@@ -813,14 +809,22 @@ export const TripDetail = () => {
     },
   });
 
-  // Wait on BOTH the live query and the IndexedDB snapshot read before
-  // rendering anything — otherwise a cold offline load briefly flashes
-  // "Trip not found" before the snapshot hydrates. Once we have a trip
-  // from either source, render immediately.
-  if (!apiTrip && (isLoading || !offline.isHydrated)) {
+  // Show a spinner until the trips list has actually SETTLED (and the
+  // IndexedDB snapshot is read) — never flash "Trip not found" while the
+  // list is still loading OR refetching. The old guard only checked
+  // `isLoading` (first-load), so navigating in with a stale/empty cache —
+  // where the list is refetching in the background — fell straight through
+  // to the not-found screen before the trip arrived.
+  // "Still resolving" = a fetch is in flight (first load OR background
+  // refetch) or the offline snapshot hasn't been read yet. When NO fetch is
+  // in flight and we still have no trip, it's genuinely not found (or the
+  // fetch errored) — only then show the error.
+  const tripStillResolving = isLoading || isFetching || !offline.isHydrated;
+  if (!apiTrip && tripStillResolving) {
     return (
       <Layout>
-        <div className="trip-detail-empty">
+        <div className="trip-detail-empty trip-detail-loading">
+          <CircularProgress size={28} className="trip-detail-loading-spinner" />
           <p>Loading trip…</p>
         </div>
       </Layout>

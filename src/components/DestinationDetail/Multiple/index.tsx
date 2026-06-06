@@ -314,6 +314,18 @@ const Multiple = ({
                                                         <FlightLandIcon className="leg-icon" />
                                                         <div className="leg-detail">
                                                             <span className="leg-label">{arriveLabel}</span>
+                                                            {seg.flightNumber && (
+                                                                <span className="leg-carrier">
+                                                                    <AirlineLogo
+                                                                        className="leg-carrier-logo"
+                                                                        flightNumber={seg.flightNumber}
+                                                                        label={`Flight ${seg.flightNumber}`}
+                                                                    />
+                                                                    <span className="leg-carrier-no">
+                                                                        {seg.flightNumber}
+                                                                    </span>
+                                                                </span>
+                                                            )}
                                                             <span className="leg-airport">
                                                                 {seg.arrivalAirport || 'Not set'}
                                                             </span>
