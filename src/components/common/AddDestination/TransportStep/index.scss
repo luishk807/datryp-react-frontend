@@ -41,6 +41,14 @@
   font-size: 1.15rem;
 }
 
+// Shown while the destination is being derived from a flight's arrival
+// airport (UA123 → EWR → United States).
+.transport-resolving {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
 // Resolved transport mode (chooser collapsed): "✈ Flight  ·  Change".
 .transport-active-mode {
   display: flex;

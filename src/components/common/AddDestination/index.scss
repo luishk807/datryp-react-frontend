@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+// The city/country search dropdown is absolutely positioned (top: 100%),
+// so on the short "Where to?" step it overflowed the modal body and got
+// clipped by the modal's rounded `overflow: hidden`. Give the body a
+// comfortable min-height so the dropdown has room to open inside the
+// modal, and cap the dropdown so long result lists scroll internally
+// instead of running off the bottom edge.
+.add-destination-modal {
+  .modalCustom-content {
+    min-height: 480px;
+  }
+
+  .searchbarMain .listContainerV2-simple {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+}
+
 .add-place-container-standard {
   width: 100%;
 }

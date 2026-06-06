@@ -97,10 +97,6 @@ const CountryPicker = ({
     // submit or a city pick so we don't fire the catalog on every key.
     const [resolveQuery, setResolveQuery] = useState('');
     const [resolvePurpose, setResolvePurpose] = useState<ResolvePurpose>('smart');
-    // True when a smart submit caught the transport but no destination (e.g.
-    // the user typed just "UA123"). We stay on step 1 and ask "where to?"
-    // rather than dropping them into step 2 with an empty country picker.
-    const [smartNeedsCountry, setSmartNeedsCountry] = useState(false);
 
     const { data: matches, isFetching } = useCountries(resolveQuery, {
         enabled: resolveQuery.length > 0,
@@ -123,29 +119,16 @@ const CountryPicker = ({
               }
             : null;
         if (resolvePurpose === 'smart') {
-            if (resolved) {
-                onSmartAdvance(
-                    smartText.trim(),
-                    resolved,
-                    detectTransportKind(smartText),
-                );
-            } else {
-                // Transport caught, destination missing — stay and ask.
-                setSmartNeedsCountry(true);
-            }
+            // Advance even when the text named no destination — for a flight,
+            // step 2 derives the country from the arrival airport (UA123 →
+            // LHR→EWR → United States).
+            onSmartAdvance(
+                smartText.trim(),
+                resolved,
+                detectTransportKind(smartText),
+            );
         } else if (resolved) {
-            // A pick that completes a transport-only smart entry advances
-            // with the parsed transport; a plain Search pick just sets the
-            // destination and waits for Continue.
-            if (smartNeedsCountry) {
-                onSmartAdvance(
-                    smartText.trim(),
-                    resolved,
-                    detectTransportKind(smartText),
-                );
-            } else {
-                onCountryChange(resolved);
-            }
+            onCountryChange(resolved);
         }
         setResolveQuery('');
         // Handlers are stable enough; re-running only on a settled query is
@@ -230,10 +213,7 @@ const CountryPicker = ({
                             value={smartText}
                             required={false}
                             placeholder={PLACEHOLDER}
-                            onChange={(e) => {
-                                setSmartText(e.target.value);
-                                setSmartNeedsCountry(false);
-                            }}
+                            onChange={(e) => setSmartText(e.target.value)}
                         />
                         <IconButton
                             type="submit"
@@ -244,23 +224,10 @@ const CountryPicker = ({
                             <ArrowForwardRoundedIcon fontSize="small" />
                         </IconButton>
                     </form>
-                    {smartNeedsCountry ? (
-                        <div className="country-picker-need">
-                            <label className="add-destination-label">
-                                And where are you headed?
-                            </label>
-                            <SearchBar
-                                type="simple"
-                                mode="place"
-                                onPlaceSelected={handlePlacePicked}
-                            />
-                        </div>
-                    ) : (
-                        <p className="country-picker-smart-note">
-                            We&rsquo;ll read the destination and how you&rsquo;re
-                            getting there from this.
-                        </p>
-                    )}
+                    <p className="country-picker-smart-note">
+                        We&rsquo;ll read the destination and how you&rsquo;re
+                        getting there from this.
+                    </p>
                 </div>
             ) : (
                 <div className="add-destination-field">

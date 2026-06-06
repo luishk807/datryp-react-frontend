@@ -257,6 +257,7 @@ const AddDestinationBtn = ({
                 }
                 ref={modelRef}
                 onClose={handleModalClose}
+                containerClassName="add-destination-modal"
                 buttonProps={{
                     title,
                     Icon:

@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type Dispatch,
+    type SetStateAction,
+} from 'react';
 import classNames from 'classnames';
 import FlightRoundedIcon from '@mui/icons-material/FlightRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
@@ -15,6 +22,8 @@ import FlightSegmentLookupWatcher from 'components/common/AddPlaceBtn/FlightSegm
 import TransitSegmentLookupWatcher from 'components/common/AddPlaceBtn/TransitSegmentLookupWatcher';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
 import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
+import { useAirports } from 'api/hooks/useAirports';
+import { useCountries } from 'api/hooks/useCountries';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
@@ -124,6 +133,47 @@ const TransportStep = ({
     useEffect(() => {
         setShowDetails(isEdit);
     }, [isEdit, kind]);
+
+    // Derive the destination from a flight's arrival airport when step 1's
+    // smart text named no country (e.g. "UA123" → LHR→EWR → United States).
+    // Two hops: arrival IATA → airports catalog (its country) → countries
+    // catalog (the Country with a savable id). Disabled once a country is
+    // set so it can't loop or fight a user pick.
+    const arrivalAirport =
+        transport.flightSegments[0]?.arrivalAirport?.trim() ?? '';
+    const needAirportCountry =
+        isFlightKind(kind) && !country && arrivalAirport.length >= 3;
+    const { data: airportData } = useAirports(
+        needAirportCountry ? arrivalAirport : '',
+    );
+    const derivedCountryName = useMemo(() => {
+        if (!needAirportCountry) return '';
+        const items = airportData?.items ?? [];
+        const match =
+            items.find(
+                (a) =>
+                    a.iataCode.toUpperCase() === arrivalAirport.toUpperCase(),
+            ) ?? items[0];
+        return match?.country ?? '';
+    }, [airportData, needAirportCountry, arrivalAirport]);
+    const { data: derivedCountryMatches } = useCountries(derivedCountryName, {
+        enabled: derivedCountryName.length > 0,
+        limit: 1,
+    });
+    useEffect(() => {
+        if (!needAirportCountry) return;
+        const best = derivedCountryMatches?.[0];
+        if (!best) return;
+        onCountryChange({
+            id: best.id,
+            name: best.name,
+            code: best.code,
+            local: best.local ?? undefined,
+            image: best.image ?? undefined,
+        });
+        // onCountryChange is stable; fire once per resolved match.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [derivedCountryMatches, needAirportCountry]);
 
     const pickKind = (value: TransportKind | 'later') => {
         if (value === 'later') {
@@ -349,6 +399,19 @@ const TransportStep = ({
                     >
                         change
                     </button>
+                </div>
+            ) : isFlightKind(kind) ? (
+                <div className="add-destination-field">
+                    <label className="add-destination-label">Destination</label>
+                    <p className="transport-resolving">
+                        Finding your destination from your flight… or pick it
+                        below.
+                    </p>
+                    <SearchBar
+                        defaultValue={defaultCountry ?? undefined}
+                        type="simple"
+                        onSelected={onCountryChange}
+                    />
                 </div>
             ) : (
                 <div className="add-destination-field">
