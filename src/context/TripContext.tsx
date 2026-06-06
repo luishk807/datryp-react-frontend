@@ -308,30 +308,8 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                 startDate,
                 endDate,
                 id: generateId(),
-                // Re-anchor any seeded itinerary day to the leg's (sequenced)
-                // start so a ground-transport activity lands on the right day
-                // instead of the wizard's placeholder "today".
-                itinerary: (value.itinerary ?? []).map((day) => ({
-                    ...day,
-                    date: startDate,
-                })),
+                itinerary: value.itinerary ?? [],
             } as Destination);
-            // Grow the trip to cover the newly-sequenced leg so its day block
-            // renders (computeDatesRange only emits blocks within the trip
-            // range). Also pull the start back for the first-ever leg.
-            if (
-                endDate &&
-                (!draft.endDate || moment(endDate).isAfter(moment(draft.endDate), 'day'))
-            ) {
-                draft.endDate = endDate;
-            }
-            if (
-                startDate &&
-                (!draft.startDate ||
-                    moment(startDate).isBefore(moment(draft.startDate), 'day'))
-            ) {
-                draft.startDate = startDate;
-            }
             return;
         }
         case 'editDestination': {
