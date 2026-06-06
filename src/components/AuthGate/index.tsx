@@ -66,11 +66,6 @@ const AuthGate = ({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    if (isLoading) return <PageLoader />;
-    if (user) return <>{children}</>;
-
-    const resetError = () => error && setError(null);
-
     // Force a soft reload of the current URL after auth success.
     // Without this, gated routes that lazy-load (notably /single and
     // /multiple) sometimes render blank after the user transitions
@@ -82,6 +77,50 @@ const AuthGate = ({
     const reloadAfterAuth = () => {
         window.location.reload();
     };
+
+    // Memoized so the GoogleSignInButton effect doesn't reinitialize the
+    // Google client on every render. The mutation surfaces backend errors
+    // (e.g. the 409 "email already has a password account" linking
+    // refusal) into the form's error banner so the user sees one place
+    // for all auth failures.
+    //
+    // MUST stay above the early returns below — every hook has to run on
+    // every render. This `useCallback` previously lived after the
+    // `isLoading` / `user` guards, so a render that bailed early called one
+    // fewer hook than the form render; when auth flipped during the
+    // post-login reload React saw the hook count change and threw
+    // "rendered more hooks than during the previous render", crashing the
+    // whole gated route (e.g. Start Planning → Google login → blank error).
+    const handleGoogleCredential = useCallback(
+        (credential: string) => {
+            googleSignin.mutate(credential, {
+                onSuccess: () => {
+                    // FE can't yet distinguish a NEW Google account
+                    // from a RETURNING login on the same response —
+                    // backend would need to return an `is_new_user`
+                    // flag for that. For now we always fire `login`
+                    // here and accept some events that are really
+                    // first-time signups; backend tracking (next
+                    // pass) will emit a clean `signup_completed`
+                    // for those.
+                    captureEvent('login', { method: 'google' });
+                    reloadAfterAuth();
+                },
+                onError: (err) =>
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : 'Google sign-in failed.'
+                    ),
+            });
+        },
+        [googleSignin]
+    );
+
+    if (isLoading) return <PageLoader />;
+    if (user) return <>{children}</>;
+
+    const resetError = () => error && setError(null);
 
     const handleLogin = async () => {
         const trimmed = email.trim();
@@ -163,37 +202,6 @@ const AuthGate = ({
         setMode((m) => (m === AUTH_MODE.LOGIN ? AUTH_MODE.SIGNUP : AUTH_MODE.LOGIN));
         setError(null);
     };
-
-    // Memoized so the GoogleSignInButton effect doesn't reinitialize the
-    // Google client on every render. The mutation surfaces backend errors
-    // (e.g. the 409 "email already has a password account" linking
-    // refusal) into the form's error banner so the user sees one place
-    // for all auth failures.
-    const handleGoogleCredential = useCallback(
-        (credential: string) => {
-            googleSignin.mutate(credential, {
-                onSuccess: () => {
-                    // FE can't yet distinguish a NEW Google account
-                    // from a RETURNING login on the same response —
-                    // backend would need to return an `is_new_user`
-                    // flag for that. For now we always fire `login`
-                    // here and accept some events that are really
-                    // first-time signups; backend tracking (next
-                    // pass) will emit a clean `signup_completed`
-                    // for those.
-                    captureEvent('login', { method: 'google' });
-                    reloadAfterAuth();
-                },
-                onError: (err) =>
-                    setError(
-                        err instanceof Error
-                            ? err.message
-                            : 'Google sign-in failed.'
-                    ),
-            });
-        },
-        [googleSignin]
-    );
 
     return (
         <div className="authgate-page">
