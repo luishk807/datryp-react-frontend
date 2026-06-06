@@ -924,6 +924,48 @@ $night-border: rgba(255, 255, 255, 0.1);
     }
   }
 
+  // ---- Multi-destination headers (Multiple: country name + flight legs +
+  //      flight money / paid-by chips). Every text color here is light-mode
+  //      dark (`colors.primary` / rgba(0,0,0,…)) and the dividers are
+  //      hairline black, so on the dark surface the whole destination header
+  //      band — country name, DEPART/ARRIVE labels, airports, dates — read as
+  //      near-invisible (the gap the user circled). Re-tint to the night
+  //      palette; the green leg icons + orange flight-no/chips already read.
+  .multrip-content-item {
+    .country-name,
+    .leg-airport,
+    .flight-cost-value,
+    .flight-paidby-value,
+    .flight-paidby-chip-name {
+      color: $night-text;
+    }
+    .leg-meta,
+    .flight-cost-label,
+    .flight-paidby-label {
+      color: $night-text-2;
+    }
+    .leg-label {
+      color: $night-text-3;
+    }
+    .flight-divider {
+      background: $night-border;
+    }
+    .content-info {
+      border-bottom-color: $night-border;
+    }
+    .destination-action button {
+      background: $night-surface-2;
+      border-color: $night-border;
+      color: $night-text-2;
+    }
+    .destination-action-edit button {
+      color: $night-text;
+    }
+    .flight-paidby-chip {
+      background: $night-surface-2;
+    }
+  }
+
   // ---- Banners + cards (planning / completed / cancelled / wrapped-up CTA
   //      / Trip details overview / budget summary) ----
   .trip-detail-planning-banner,
