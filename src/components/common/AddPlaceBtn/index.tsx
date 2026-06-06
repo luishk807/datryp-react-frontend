@@ -2115,9 +2115,19 @@ const AddPlaceBtn = ({
         // PLACE + HOTEL share the place-watcher shape. Resolved = a name
         // plus either a location string or real coordinates (the bare-
         // match path fills only the name and raises a warning → notfound).
+        //
+        // Exception: a pasted LINK that resolved a name counts as resolved even
+        // without an address/coords. Many hotel/booking sites (e.g. riu.com)
+        // expose only a <title>, no schema.org address, so the scraper returns
+        // a name-only result. The user explicitly handed us the place via the
+        // link, so advance to the prefilled review instead of dead-ending on
+        // "Couldn't find a match".
+        const isUrlEntry = /^https?:\/\//i.test(entry);
         const resolved =
             Boolean(place.name?.trim()) &&
-            (Boolean(place.location?.trim()) || place.latitude != null);
+            (Boolean(place.location?.trim()) ||
+                place.latitude != null ||
+                isUrlEntry);
         const loading = isHotelKind ? hotelSmartLoading : placeSmartLoading;
         const warning = isHotelKind ? hotelSmartWarning : placeSmartWarning;
         // PLACE-only: the place SEARCH and the suggest-fields AI call run in
