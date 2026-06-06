@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import classnames from 'classnames';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
 import './index.scss';
 import { NO_IMAGE } from 'constants';
 import { formatDate, isValidDate } from 'utils';
@@ -27,6 +29,8 @@ interface TripBoxProps {
 
 const TRIP_BOX_LABEL = {
     MULTIPLE: 'Multiple destinations',
+    KIND_SINGLE: 'Single',
+    KIND_MULTI: 'Multi-destination',
 } as const;
 
 const formatDateRange = (start: string, end: string) => {
@@ -68,6 +72,7 @@ export const TripBox = ({
     const friendsLabel = `${friendsCount} friend${friendsCount === 1 ? '' : 's'}`;
     const target = to ?? `/trip-detail?id=${data.id}`;
     const statusKey = data.status.name.toLowerCase();
+    const single = isSingle(data);
     const destinationLabel = getDestinationLabel(data);
     const tripImage = getTripImage(data);
     const isPlaceholder = tripImage === NO_IMAGE;
@@ -113,6 +118,26 @@ export const TripBox = ({
                         aria-hidden="true"
                     >
                         {selected && <CheckRoundedIcon fontSize="small" />}
+                    </span>
+                )}
+                {/* Trip-kind badge (top-right) — tells single vs
+                    multi-destination at a glance. Hidden in select mode to
+                    keep the photo uncluttered while picking trips to delete. */}
+                {!selectable && (
+                    <span
+                        className={classnames('trip-box-kind', {
+                            'is-single': single,
+                            'is-multi': !single,
+                        })}
+                    >
+                        {single ? (
+                            <PlaceRoundedIcon className="trip-box-kind-icon" />
+                        ) : (
+                            <RouteRoundedIcon className="trip-box-kind-icon" />
+                        )}
+                        {single
+                            ? TRIP_BOX_LABEL.KIND_SINGLE
+                            : TRIP_BOX_LABEL.KIND_MULTI}
                     </span>
                 )}
             </div>

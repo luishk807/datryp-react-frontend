@@ -140,6 +140,37 @@ button.trip-box-link.is-select-trigger {
   color: rgba(0, 0, 0, 0.55);
 }
 
+// Trip-kind badge — top-right of the photo, opposite the status badge.
+// Single = green pin; multi-destination = orange route icon.
+.trip-box-kind {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.trip-box-kind-icon {
+  font-size: 0.95rem;
+}
+
+.trip-box-kind.is-single {
+  color: theme('colors.primaryGreen');
+}
+
+.trip-box-kind.is-multi {
+  color: theme('colors.primaryOrange');
+}
+
 .trip-box-content {
   padding: 16px 18px 18px;
 }
