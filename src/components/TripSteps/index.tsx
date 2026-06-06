@@ -369,6 +369,18 @@ const TripSteps = ({
                           // are always Planning until the trip is saved
                           // (apiId materializes).
                           lockActivityStatus={!tripInfo.apiId}
+                          // Forward the trip's lifecycle name so DateBlock
+                          // tints each day-block by status (orange while
+                          // Planning, green once Confirmed) — same as the
+                          // edit flow above. Without this the create flow's
+                          // blocks defaulted to status-confirmed (green)
+                          // even though a brand-new trip is always Planning.
+                          tripStatusName={
+                              tripInfo.status &&
+                              typeof tripInfo.status === 'object'
+                                  ? tripInfo.status.name
+                                  : undefined
+                          }
                       />
                   ),
               },
