@@ -14,7 +14,7 @@ import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQue
 import { ACTIVITY_KIND, ADD_METHOD } from 'constants';
 import type { AddMethod, FlightInfo, TransitInfo } from 'types';
 import type { TransportDraft, TransportKind } from '../types';
-import { TRANSPORT_MODE } from '../transportSummary';
+import { TRANSPORT_MODE, buildTransportSummary } from '../transportSummary';
 import './index.scss';
 
 export interface DescribeStepProps {
@@ -72,9 +72,11 @@ const DescribeStep = ({
 }: DescribeStepProps) => {
     const isEdit = mode === 'edit';
     const { kind } = transport;
-    // Edit mode (and the CUSTOM method in add mode) opens straight into the
-    // editable fields; SMART shows the collapsed smart box + "Edit details".
-    const fieldsOpen = isEdit || method === ADD_METHOD.CUSTOM;
+    // Only the CUSTOM add-method opens straight into the editable fields.
+    // SMART (and edit mode) show the collapsed smart box + a summary chip +
+    // "Edit details" — mirroring the clean Add-Activity edit, which keeps the
+    // segment collapsed until the user chooses to tweak it.
+    const fieldsOpen = method === ADD_METHOD.CUSTOM;
     const [showDetails, setShowDetails] = useState(fieldsOpen);
     // Track whether we've already auto-parsed the current smart text so a
     // re-render doesn't clobber subsequent manual edits.
@@ -88,6 +90,10 @@ const DescribeStep = ({
     // CUSTOM drops the user straight into the fields, so the smart box is
     // suppressed. SMART (and edit mode) keep it as the primary entry.
     const showSmartBox = method !== ADD_METHOD.CUSTOM;
+    // One-line preview of the (seeded / parsed) transport shown while details
+    // are collapsed — e.g. "UA123 · LHR → EWR · 2026-06-06" — so the user can
+    // see what's there without expanding the full field grid.
+    const collapsedSummary = buildTransportSummary(transport);
 
     /** Apply the smart-box text to the active kind's first segment. */
     const handleSmartText = (text: string) => {
@@ -265,6 +271,16 @@ const DescribeStep = ({
 
             {showSmartBox && !showDetails && (
                 <div className="transport-edit-toggle">
+                    {collapsedSummary && (
+                        <div className="transport-edit-summary">
+                            {activeMode && (
+                                <activeMode.Icon className="transport-edit-summary-icon" />
+                            )}
+                            <span className="transport-edit-summary-text">
+                                {collapsedSummary}
+                            </span>
+                        </div>
+                    )}
                     {lookupNotFound[0] && (
                         <span className="transport-edit-toggle-warn">
                             Couldn&rsquo;t find {lookupNotFound[0]}. Open Edit

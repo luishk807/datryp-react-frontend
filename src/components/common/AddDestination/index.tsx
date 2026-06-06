@@ -25,7 +25,7 @@ import MethodStep from './MethodStep';
 import DescribeStep from './DescribeStep';
 import TransportResolver from './TransportResolver';
 import ConfirmStep from './ConfirmStep';
-import type { TransportKind, TransportDraft } from './types';
+import type { CountrySource, TransportKind, TransportDraft } from './types';
 
 // Detect the transport kind from a free-text smart entry. A destination
 // defaults to FLIGHT (you fly to a country far more often than not) and
@@ -128,6 +128,16 @@ const AddDestinationBtn = ({
 
     const [step, setStep] = useState<WizardStep>(WIZARD_STEP.TYPE);
     const [country, setCountry] = useState<Country | null>(null);
+    // How `country` was set, so TransportResolver can prefer the authoritative
+    // source: a flight's arrival airport overrides a fuzzy text guess, but
+    // neither overrides an explicit user pick (or the saved edit country). A
+    // ref (not state) — it's read during render alongside the country it
+    // describes and never needs to drive a render on its own.
+    const countrySourceRef = useRef<CountrySource>(null);
+    const applyCountry = (next: Country | null, source: CountrySource) => {
+        countrySourceRef.current = next ? source : null;
+        setCountry(next);
+    };
     const [transport, setTransport] = useState<TransportDraft>(emptyTransport);
     // Which add-method the user picked on the Method step. Drives the Describe
     // input (SMART = smart box, CUSTOM = fields open, SEARCH = flight search)
@@ -166,14 +176,16 @@ const AddDestinationBtn = ({
     useEffect(() => {
         if (data && type === ACTION.EDIT) {
             const seeded = seedTransportFromData(data, isoDate, isoDefaultDate);
-            setCountry(data.country ?? null);
+            // The saved destination is fixed — mark it `user` so derivation
+            // never re-resolves it from a flight/transit edit.
+            applyCountry(data.country ?? null, 'user');
             setTransport(seeded);
             setStep(WIZARD_STEP.TYPE);
             setChooseLater(seeded.kind === null);
             setMethod(null);
             setLookupNotFound({});
         } else {
-            setCountry(null);
+            applyCountry(null, null);
             setTransport(emptyTransport());
             setStep(WIZARD_STEP.TYPE);
             setChooseLater(false);
@@ -185,7 +197,7 @@ const AddDestinationBtn = ({
     }, [data, defaultDate, type]);
 
     const resetTransient = () => {
-        setCountry(null);
+        applyCountry(null, null);
         setTransport(emptyTransport());
         setStep(WIZARD_STEP.TYPE);
         setChooseLater(false);
@@ -202,7 +214,7 @@ const AddDestinationBtn = ({
             resetTransient();
         } else if (data) {
             const seeded = seedTransportFromData(data, isoDate, isoDefaultDate);
-            setCountry(data.country ?? null);
+            applyCountry(data.country ?? null, 'user');
             setTransport(seeded);
             setStep(WIZARD_STEP.TYPE);
             setChooseLater(seeded.kind === null);
@@ -373,7 +385,7 @@ const AddDestinationBtn = ({
             // ADD: switching to "later" drops any country derived from a
             // prior flight/transit entry so the destination-only text owns
             // it. EDIT: the saved destination is fixed — never clear it.
-            if (isAdd) setCountry(null);
+            if (isAdd) applyCountry(null, null);
             setStep(WIZARD_STEP.DESCRIBE);
             return;
         }
@@ -400,7 +412,7 @@ const AddDestinationBtn = ({
         }));
         // ADD: a kind change invalidates a previously-derived country so the
         // new entry re-derives it. EDIT: keep the saved destination fixed.
-        if (isAdd && kindChanged) setCountry(null);
+        if (isAdd && kindChanged) applyCountry(null, null);
         setStep(WIZARD_STEP.METHOD);
     };
 
@@ -436,7 +448,7 @@ const AddDestinationBtn = ({
             };
             return { ...prev, kind: ACTIVITY_KIND.FLIGHT, flightSegments: segs };
         });
-        if (isAdd) setCountry(null);
+        if (isAdd) applyCountry(null, null);
         setStep(WIZARD_STEP.CONFIRM);
     };
 
@@ -500,7 +512,7 @@ const AddDestinationBtn = ({
             };
         });
         // Re-derive the destination from this fresh entry.
-        if (isAdd) setCountry(null);
+        if (isAdd) applyCountry(null, null);
         setStep(WIZARD_STEP.CONFIRM);
     };
 
@@ -531,16 +543,18 @@ const AddDestinationBtn = ({
                 }}
             >
                 <div className="add-destination-comp">
-                    {/* ADD step 1 / EDIT always: transport-type tiles. A tile
-                        advances to the Method step in add mode ("later" jumps
-                        to Describe); in edit mode they sit inline above the
-                        (always-shown) Describe form. */}
-                    {(!isAdd || step === WIZARD_STEP.TYPE) && (
+                    {/* ADD step 1 only: transport-type tiles. A tile advances
+                        to the Method step ("later" jumps to Describe). Edit
+                        mode skips the tile grid entirely and opens straight on
+                        the (clean, collapsed) Describe form — mirroring the
+                        Add-Activity edit, which edits one transport in place
+                        rather than re-picking its type. */}
+                    {isAdd && step === WIZARD_STEP.TYPE && (
                         <TypeStep
                             currentKind={transport.kind}
                             laterActive={chooseLater}
                             onPick={pickType}
-                            onSmartSubmit={isAdd ? handleSmartSubmit : undefined}
+                            onSmartSubmit={handleSmartSubmit}
                         />
                     )}
 
@@ -613,7 +627,7 @@ const AddDestinationBtn = ({
                                 setStep(WIZARD_STEP.DESCRIBE)
                             }
                             onSetCountry={(c) => {
-                                setCountry(c);
+                                applyCountry(c, 'user');
                                 setError(null);
                             }}
                         />
@@ -628,12 +642,13 @@ const AddDestinationBtn = ({
                         transport={transport}
                         setTransport={setTransport}
                         country={country}
+                        countrySource={countrySourceRef.current}
                         isoDefaultDate={isoDefaultDate}
                         emptyFlightSegment={emptyFlightSegment}
                         emptyTransitSegment={emptyTransitSegment}
                         setLookupNotFound={setLookupNotFound}
-                        onCountryChange={(c) => {
-                            setCountry(c);
+                        onCountryChange={(c, source) => {
+                            applyCountry(c, source);
                             setError(null);
                         }}
                     />

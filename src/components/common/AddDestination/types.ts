@@ -9,6 +9,12 @@ export type TransportKind =
     | typeof ACTIVITY_KIND.BUS
     | typeof ACTIVITY_KIND.RENTAL_CAR;
 
+/** How the destination country on the draft was set, so the async
+ *  derivation can prefer the authoritative source: a flight's arrival airport
+ *  OVERRIDES a fuzzy text guess, but neither ever overrides an explicit user
+ *  pick. `null` = not set yet. */
+export type CountrySource = 'airport' | 'text' | 'user' | null;
+
 export interface TransportDraft {
     /** null = no transport chosen yet (or "I'll add later"). */
     kind: TransportKind | null;

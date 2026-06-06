@@ -12,7 +12,7 @@ import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
 import type { Country, FlightInfo, TransitInfo } from 'types';
-import type { TransportDraft } from '../types';
+import type { CountrySource, TransportDraft } from '../types';
 
 /** Pull the most country-like token out of the smart text. Bias the
  *  destination over the origin: take the chunk after the last "to" / arrow,
@@ -34,10 +34,14 @@ export interface TransportResolverProps {
     transport: TransportDraft;
     setTransport: Dispatch<SetStateAction<TransportDraft>>;
     country: Country | null;
+    /** How the current country was set — gates derivation so a flight's
+     *  arrival airport can override a text guess but neither touches a user
+     *  pick. */
+    countrySource: CountrySource;
     isoDefaultDate: string;
     emptyFlightSegment: (date: string) => FlightInfo;
     emptyTransitSegment: (date: string) => TransitInfo;
-    onCountryChange: (country: Country | null) => void;
+    onCountryChange: (country: Country, source: 'airport' | 'text') => void;
     /** Per-segment "couldn't find this flight/route" tracking, lifted to the
      *  orchestrator so the (now unmounted-on-confirm) DescribeStep can still
      *  surface the warning. */
@@ -63,6 +67,7 @@ const TransportResolver = ({
     transport,
     setTransport,
     country,
+    countrySource,
     isoDefaultDate,
     emptyFlightSegment,
     emptyTransitSegment,
@@ -71,15 +76,21 @@ const TransportResolver = ({
 }: TransportResolverProps) => {
     const { kind } = transport;
 
-    // Derive the destination from a flight's arrival airport when no country
-    // is set yet (e.g. "UA123" → LHR→EWR → United States). Two hops: arrival
-    // IATA → airports catalog (its country) → countries catalog (the Country
-    // with a savable id). Disabled once a country is set so it can't loop or
-    // fight a user pick.
+    // Derive the destination from a flight's arrival airport (e.g. "UA123" →
+    // LHR→EWR → United States). Two hops: arrival IATA → airports catalog (its
+    // country) → countries catalog (the Country with a savable id). This is the
+    // AUTHORITATIVE source for a flight, so — unlike the text fallback below —
+    // it keeps running even after the text path set a provisional country, and
+    // OVERRIDES it. Only an explicit user pick (`source === 'user'`) is left
+    // untouched, so derivation can't fight a manual correction.
     const arrivalAirport =
         transport.flightSegments[0]?.arrivalAirport?.trim() ?? '';
+    const flightNumber =
+        transport.flightSegments[0]?.flightNumber?.trim() ?? '';
     const needAirportCountry =
-        isFlightKind(kind) && !country && arrivalAirport.length >= 3;
+        isFlightKind(kind) &&
+        countrySource !== 'user' &&
+        arrivalAirport.length >= 3;
     const { data: airportData } = useAirports(
         needAirportCountry ? arrivalAirport : '',
     );
@@ -100,26 +111,38 @@ const TransportResolver = ({
     useEffect(() => {
         if (!needAirportCountry) return;
         const best = derivedCountryMatches?.[0];
-        if (!best) return;
-        onCountryChange({
-            id: best.id,
-            name: best.name,
-            code: best.code,
-            local: best.local ?? undefined,
-            image: best.image ?? undefined,
-        });
+        // Skip when it already matches — including `country.id` in the deps
+        // lets a text-derived country be overridden, then settles (best === id).
+        if (!best || best.id === country?.id) return;
+        onCountryChange(
+            {
+                id: best.id,
+                name: best.name,
+                code: best.code,
+                local: best.local ?? undefined,
+                image: best.image ?? undefined,
+            },
+            'airport',
+        );
         // onCountryChange is stable; fire once per resolved match.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [derivedCountryMatches, needAirportCountry]);
+    }, [derivedCountryMatches, needAirportCountry, country?.id]);
 
     // General fallback — derive the destination from the smart text for any
-    // kind the flight-arrival path didn't cover (transit, "I'll add later",
-    // or a flight whose arrival airport hasn't resolved a country). Disabled
-    // once a country is set and while the airport path is still in flight, so
-    // the two can't fight. `guessCountryQuery` narrows the text to the chunk
-    // after the last "to" / arrow; the catalog resolves it.
+    // kind the arrival-airport path doesn't cover (transit, "I'll add later",
+    // or a flight with no flight number to look up). `guessCountryQuery`
+    // narrows the text to the chunk after the last "to" / arrow; the catalog
+    // resolves it. Suppressed for a flight whose number is entered but whose
+    // arrival airport hasn't resolved yet, so a fuzzy guess (e.g. "Panama
+    // City" → the wrong country) can't preempt the authoritative airport.
+    const flightAwaitingAirport =
+        isFlightKind(kind) && flightNumber.length > 0 && arrivalAirport.length < 3;
     const textQuery = !country ? guessCountryQuery(transport.smartText) : '';
-    const needTextCountry = !country && !needAirportCountry && textQuery.length > 0;
+    const needTextCountry =
+        !country &&
+        !needAirportCountry &&
+        !flightAwaitingAirport &&
+        textQuery.length > 0;
     const { data: textCountryMatches } = useCountries(
         needTextCountry ? textQuery : '',
         { enabled: needTextCountry, limit: 1 },
@@ -128,13 +151,16 @@ const TransportResolver = ({
         if (!needTextCountry) return;
         const best = textCountryMatches?.[0];
         if (!best) return;
-        onCountryChange({
-            id: best.id,
-            name: best.name,
-            code: best.code,
-            local: best.local ?? undefined,
-            image: best.image ?? undefined,
-        });
+        onCountryChange(
+            {
+                id: best.id,
+                name: best.name,
+                code: best.code,
+                local: best.local ?? undefined,
+                image: best.image ?? undefined,
+            },
+            'text',
+        );
         // onCountryChange is stable; fire once per resolved match.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [textCountryMatches, needTextCountry]);
