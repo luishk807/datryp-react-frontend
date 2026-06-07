@@ -412,6 +412,7 @@ const CountryDetail = () => {
             imageUrl={country.image}
             photographerName={country.photographerName}
             photographerUrl={country.photographerUrl}
+            galleryQuery={country.name}
             className="country-detail-hero"
           />
 

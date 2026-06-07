@@ -339,6 +339,9 @@ const PlaceDetail = () => {
             imageUrl={heroImageUrl}
             photographerName={heroPhotographerName}
             photographerUrl={heroPhotographerUrl}
+            galleryQuery={[place.name, place.city, place.country]
+              .filter(Boolean)
+              .join(" ")}
           />
 
           {/* Mobile-only slot: chip sits directly under the hero,

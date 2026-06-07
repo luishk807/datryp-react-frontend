@@ -43,3 +43,29 @@ export const fetchPhotoSearch = async (
         photographerUrl: body.photographer_url,
     };
 };
+
+/**
+ * Up to `count` Unsplash photos for a query in ONE backend request — for the
+ * place-detail hero gallery. Same cost as the single-photo search (the
+ * backend caps `per_page`). Fails soft to an empty list so the hero can still
+ * show its main image.
+ */
+export const fetchPhotoGallery = async (
+    query: string,
+    count = 4
+): Promise<PhotoSearchResult[]> => {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+    const params = new URLSearchParams({
+        q: trimmed,
+        count: String(count),
+    });
+    const resp = await fetch(`${API_BASE}/photo-search/gallery?${params}`);
+    if (!resp.ok) return [];
+    const body = (await resp.json()) as { photos?: PhotoSearchResponseRaw[] };
+    return (body.photos ?? []).map((p) => ({
+        imageUrl: p.image_url,
+        photographerName: p.photographer_name,
+        photographerUrl: p.photographer_url,
+    }));
+};

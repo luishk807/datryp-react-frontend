@@ -26,6 +26,61 @@
   }
 }
 
+// Tap-to-swap thumbnail strip, overlaid bottom-left of the hero (the
+// attribution keeps the bottom-right). One row, scrim + border so each thumb
+// reads over any photo. Mobile: thumbs shrink but stay a single tappable row
+// — the hero itself never reflows.
+.place-hero-thumbs {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  max-width: calc(100% - 20px);
+}
+
+.place-hero-thumb {
+  appearance: none;
+  padding: 0;
+  width: 58px;
+  height: 42px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  opacity: 0.7;
+  transition: opacity 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease;
+  flex: 0 0 auto;
+
+  &:hover {
+    opacity: 0.95;
+  }
+
+  &.is-active {
+    opacity: 1;
+    border-color: #fff;
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 600px) {
+  .place-hero-thumbs {
+    bottom: 8px;
+    left: 8px;
+    gap: 5px;
+  }
+
+  .place-hero-thumb {
+    width: 46px;
+    height: 34px;
+    border-radius: 7px;
+  }
+}
+
 // Compliant (always present + working links) but dialed back so it
 // doesn't compete with the hero photo.
 .place-hero-attribution {

@@ -427,6 +427,9 @@ const CityDetail = () => {
                         imageUrl={heroImageUrl}
                         photographerName={heroPhotographerName}
                         photographerUrl={heroPhotographerUrl}
+                        galleryQuery={[city.name, city.country]
+                            .filter(Boolean)
+                            .join(' ')}
                         className="city-detail-hero"
                     />
 
