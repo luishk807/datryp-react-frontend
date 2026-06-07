@@ -152,15 +152,19 @@ const Multiple = ({
                         (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
                     );
                     // Resolve the destination's real index in the parent
-                    // state — onChangePlace/onChangeBudget already do this
-                    // by date, but drag-and-drop needs it eagerly so the
-                    // droppable's `data` payload carries the right index.
+                    // state. `trips` is `allDestinations.filter(...)`, so each
+                    // `trip` is the SAME object reference as in allDestinations
+                    // — match by reference (indexOf), which is correct even if
+                    // two legs share an id (id-matching returned the FIRST
+                    // match, so an activity added to the 2nd same-id leg landed
+                    // on the 1st). Fall back to id-match, then the loop index.
                     const realDestIdx = (() => {
-                        const byId = allDestinations.findIndex((d) => d.id === trip.id);
+                        const byRef = allDestinations.indexOf(trip);
+                        if (byRef !== -1) return byRef;
+                        const byId = allDestinations.findIndex(
+                            (d) => d.id === trip.id,
+                        );
                         if (byId !== -1) return byId;
-                        // Fall back to the filtered-loop index if the
-                        // destination has no id yet (early state during the
-                        // new-trip flow).
                         return indx;
                     })();
                     return (

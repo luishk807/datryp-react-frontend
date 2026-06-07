@@ -329,25 +329,6 @@ const DestinationDetail = ({
             }
         }
 
-        // TEMP diagnostic — routing of an added activity to the wrong
-        // destination. Logs the index the card passed vs. the one chosen, plus
-        // every destination's id so we can see if ids collide or the card sent
-        // the wrong index. Remove once the multi-dest routing is confirmed.
-        if (activity.type === 'add') {
-            // eslint-disable-next-line no-console
-            console.warn('[daTryp addPlace routing]', {
-                cardSentDestinationIndx: activity.destinationIndx,
-                chosenDestIndx: destIndx,
-                date,
-                destinations: destinations.map((d, i) => ({
-                    i,
-                    id: d.id,
-                    country: d.country?.name,
-                    startDate: d.startDate,
-                })),
-            });
-        }
-
         onChangePlace?.({
             activity: {
                 index: 0,

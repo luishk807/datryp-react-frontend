@@ -30,31 +30,36 @@ const SingleTrip = () => {
                 addBudget({
                     value: activity.value.value,
                     activityId: activity.value.activityId,
+                    destinationIndx: activity.destinationIndx,
                 })
             );
         }
     };
 
+    // Thread `destinationIndx` through every activity action. A trip created
+    // via /single can still be MULTIPLE-type (the user flipped the mode on
+    // step 1), in which case the destination card passes the real leg index —
+    // without forwarding it, every activity / budget / edit / delete fell back
+    // to destination 0, so activities added to the 2nd+ leg landed on the 1st.
+    // Mirrors MultipleTrip exactly.
     const handleChangePlace = ({ date, activity }: TripPlaceEvent) => {
+        const { index, value, destinationIndx } = activity;
         switch (activity.type) {
             case 'add':
-                dispatch(
-                    addPlace({ date, value: activity.value, index: activity.index })
-                );
+                dispatch(addPlace({ date, value, index, destinationIndx }));
                 break;
             case 'edit':
                 dispatch(
                     editPlace({
-                        value: activity.value.value,
-                        itineraryIndex: activity.index,
-                        activityIndex: activity.value.index,
+                        value: value.value,
+                        itineraryIndex: index,
+                        activityIndex: value.index,
+                        destinationIndx,
                     })
                 );
                 break;
             case 'delete':
-                dispatch(
-                    deletePlace({ value: activity.value, index: activity.index })
-                );
+                dispatch(deletePlace({ value, index, destinationIndx }));
                 break;
         }
     };
