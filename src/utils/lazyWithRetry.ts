@@ -73,30 +73,60 @@ export const installChunkReloadHandler = (): void => {
     });
 };
 
+/** How often an open tab polls for a new deploy. */
+const SW_UPDATE_POLL_MS = 60_000;
+
 /**
- * Auto-reload onto a new deploy. The PWA is `registerType: 'autoUpdate'`, so a
- * new build's service worker installs + claims the open tab (skipWaiting +
- * clientsClaim) — but the page keeps running the OLD in-memory bundle until it
- * reloads, which is why a deploy required a manual "Clear site data". Reload
- * once when a freshly-activated SW takes control so users land on the new
- * version automatically.
+ * Keep every tab on the latest deploy automatically, so users never see a
+ * stale version and never have to clear their cache.
  *
- * Guards:
- *  - only when there was ALREADY a controller (skip the first-ever install,
- *    which has nothing to reload to), and
- *  - once per page (the `refreshing` latch + the shared reload-timestamp).
+ * The PWA is `registerType: 'autoUpdate'`: a new build's service worker
+ * installs and claims the open tab (skipWaiting + clientsClaim). Two pieces:
+ *
+ *  1. **Reload on takeover** — when a freshly-activated SW takes control
+ *     (`controllerchange`), reload so the page runs the new bundle instead of
+ *     the old in-memory one. The first `controllerchange` after a load with no
+ *     controller is the initial install (nothing stale to escape) — skip that
+ *     one; treat every later one as a real update.
+ *
+ *  2. **Poll for updates** — by default the SW is only checked for updates on
+ *     a page load, so an OPEN tab could sit on the old version forever. Poll
+ *     `registration.update()` on an interval, on tab refocus, and on
+ *     reconnect, so an open tab notices a deploy within ~a minute (or
+ *     instantly when the user switches back to it) and the takeover reload
+ *     above fires.
+ *
  * Call this once at app boot.
  */
 export const installSWUpdateReload = (): void => {
     const swc = navigator.serviceWorker;
     if (!swc) return;
-    // No controller yet = first visit / SW installing for the first time.
-    // Nothing stale to escape, so don't reload when it first claims us.
-    if (!swc.controller) return;
+
+    // True when the page loaded WITHOUT a controlling SW (first visit / SW
+    // installing for the first time). The first controllerchange then is the
+    // initial claim, not an update — don't reload for it.
+    let controllerWasNull = !swc.controller;
     let refreshing = false;
     swc.addEventListener('controllerchange', () => {
+        if (controllerWasNull) {
+            controllerWasNull = false;
+            return;
+        }
         if (refreshing) return;
         refreshing = true;
         window.location.reload();
     });
+
+    swc.ready
+        .then((reg) => {
+            const check = () => {
+                reg.update().catch(() => {});
+            };
+            window.setInterval(check, SW_UPDATE_POLL_MS);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') check();
+            });
+            window.addEventListener('online', check);
+        })
+        .catch(() => {});
 };
