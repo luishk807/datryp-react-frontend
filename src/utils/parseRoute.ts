@@ -27,15 +27,38 @@ export interface ParsedRoute {
     destination?: string;
 }
 
-export const parseRoute = (text: string | undefined): ParsedRoute => {
+/**
+ * Ordered list of waypoints (stops) in a typed route. A multi-leg flight with
+ * a stopover — "london to oslo stopover then to moscow" or "london via oslo to
+ * moscow" — yields ["london", "oslo", "moscow"]; a plain "london to newark"
+ * yields ["london", "newark"]. Stopover/transfer connectives (stopover, stop
+ * in/at, layover, then, via) are folded into the canonical " to " separator so
+ * they don't pollute a waypoint or get dropped. Consecutive legs are formed by
+ * pairing adjacent stops (london→oslo, oslo→moscow).
+ */
+// A run of one or more transfer connectives between two place names —
+// "to", "stopover", "stop in/at", "layover", "then", "via", arrows — in any
+// combination ("stopover then to", "then to", "via"). Each connective is
+// whitespace-bounded so it can't bleed into a place name (e.g. the "to" in
+// "Toronto"). The whole run collapses to a single split point so chained
+// connectives don't leave a stray "to" token behind.
+const ROUTE_SEPARATOR_RUN =
+    /\s+(?:(?:->|→|stop\s?over|stop\s+in|stop\s+at|layover|then|via|to)\s+)+/gi;
+
+export const parseRouteStops = (text: string | undefined): string[] => {
     const raw = (text ?? '').trim();
-    if (!raw) return {};
-    const parts = raw.split(/\s+(?:to|->|→)\s+/i);
-    if (parts.length < 2) return {};
-    const destination = cleanPlacePhrase(parts[parts.length - 1]);
-    const origin = cleanPlacePhrase(parts.slice(0, -1).join(' to '));
+    if (!raw) return [];
+    return raw
+        .split(ROUTE_SEPARATOR_RUN)
+        .map(cleanPlacePhrase)
+        .filter(Boolean);
+};
+
+export const parseRoute = (text: string | undefined): ParsedRoute => {
+    const stops = parseRouteStops(text);
+    if (stops.length < 2) return {};
     return {
-        origin: origin || undefined,
-        destination: destination || undefined,
+        origin: stops[0] || undefined,
+        destination: stops[stops.length - 1] || undefined,
     };
 };

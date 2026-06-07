@@ -36,7 +36,7 @@ import {
     useNearestTrainStation,
 } from 'api/hooks/useHomeDeparture';
 import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
-import { parseRoute } from 'utils';
+import { parseRouteStops } from 'utils';
 import { useTripState } from 'context/TripContext';
 import PlaceForm from './forms/PlaceForm';
 import NoteForm from './forms/NoteForm';
@@ -404,52 +404,100 @@ const AddPlaceBtn = ({
     const defaultArrivalAirport =
         tripDestinationAirport ?? resolvedDestinationAirport ?? '';
 
-    // City-route resolution for a flight typed as "london to newark" (no
-    // flight number to look up): parse origin → destination and resolve each
-    // to an airport code via the catalog (london → LHR, newark → EWR), then
-    // fill the first segment. Skipped when a flight number is present — the
-    // lookup owns the airports then. Mirrors Add Destination's resolver.
+    // City-route resolution for a flight typed as a route with no flight
+    // number to look up: parse the ordered waypoints and resolve each to an
+    // airport code via the catalog (london → LHR, oslo → OSL, moscow → SVO),
+    // then build one segment per leg. A stopover ("london to oslo stopover
+    // then to moscow") becomes two legs (LHR→OSL, OSL→SVO). Skipped when a
+    // flight number is present — the lookup owns the airports then. Mirrors
+    // Add Destination's resolver, extended for multi-leg.
+    //
+    // Waypoints resolve through fixed hook slots (rules of hooks forbid a
+    // loop): up to 4 stops → up to 3 legs, which covers realistic stopover
+    // itineraries. Extra stops beyond the 4th are ignored.
     const firstFlightNumber =
         place.flightSegments?.[0]?.flightNumber?.trim() ?? '';
-    const flightRoute = useMemo(
+    const flightStops = useMemo(
         () =>
             place.kind === ACTIVITY_KIND.FLIGHT && !firstFlightNumber
-                ? parseRoute(smartEntry)
-                : {},
+                ? parseRouteStops(smartEntry).slice(0, 4)
+                : [],
         [place.kind, firstFlightNumber, smartEntry],
     );
-    const { data: routeDepartCode } = useDestinationAirport(
-        flightRoute.origin,
-        Boolean(flightRoute.origin),
+    const { data: routeCode0 } = useDestinationAirport(
+        flightStops[0],
+        Boolean(flightStops[0]),
     );
-    const { data: routeArriveCode } = useDestinationAirport(
-        flightRoute.destination,
-        Boolean(flightRoute.destination),
+    const { data: routeCode1 } = useDestinationAirport(
+        flightStops[1],
+        Boolean(flightStops[1]),
+    );
+    const { data: routeCode2 } = useDestinationAirport(
+        flightStops[2],
+        Boolean(flightStops[2]),
+    );
+    const { data: routeCode3 } = useDestinationAirport(
+        flightStops[3],
+        Boolean(flightStops[3]),
     );
     const routeAirportsAppliedRef = useRef('');
     useEffect(() => {
         if (place.kind !== ACTIVITY_KIND.FLIGHT) return;
-        if (!routeDepartCode && !routeArriveCode) return;
-        const key = `${routeDepartCode ?? ''}|${routeArriveCode ?? ''}`;
+        // Codes for the stops actually present, in order.
+        const codes = [routeCode0, routeCode1, routeCode2, routeCode3].slice(
+            0,
+            flightStops.length,
+        );
+        // A single typed city ("flight to tokyo") can't form a leg — mirror the
+        // old single-endpoint behavior and drop it on the arrival side so the
+        // "To" field still pre-fills.
+        if (flightStops.length === 1) {
+            const only = codes[0];
+            if (!only) return;
+            const soloKey = `arr:${only}`;
+            if (routeAirportsAppliedRef.current === soloKey) return;
+            routeAirportsAppliedRef.current = soloKey;
+            setPlace((prev) => {
+                if (prev.kind !== ACTIVITY_KIND.FLIGHT) return prev;
+                if (prev.flightSegments?.[0]?.flightNumber?.trim()) return prev;
+                const segs = prev.flightSegments?.length
+                    ? [...prev.flightSegments]
+                    : [emptySegment(isoDefaultDate)];
+                segs[0] = { ...segs[0], arrivalAirport: only };
+                return { ...prev, flightSegments: segs };
+            });
+            return;
+        }
+        // Need at least two resolved endpoints to form a leg.
+        if (codes.filter(Boolean).length < 2) return;
+        const key = codes.map((c) => c ?? '').join('|');
         if (routeAirportsAppliedRef.current === key) return;
         routeAirportsAppliedRef.current = key;
         setPlace((prev) => {
             if (prev.kind !== ACTIVITY_KIND.FLIGHT) return prev;
             // A flight number means the lookup fills the airports — don't fight.
             if (prev.flightSegments?.[0]?.flightNumber?.trim()) return prev;
-            const segs = prev.flightSegments?.length
-                ? [...prev.flightSegments]
-                : [emptySegment(isoDefaultDate)];
-            segs[0] = {
-                ...segs[0],
-                ...(routeDepartCode ? { departAirport: routeDepartCode } : {}),
-                ...(routeArriveCode ? { arrivalAirport: routeArriveCode } : {}),
+            const legCount = Math.max(1, codes.length - 1);
+            const existing = prev.flightSegments ?? [];
+            const legs = Array.from({ length: legCount }, (_, i) => {
+                const base = existing[i] ?? emptySegment(isoDefaultDate);
+                const depart = codes[i];
+                const arrive = codes[i + 1];
+                return {
+                    ...base,
+                    ...(depart ? { departAirport: depart } : {}),
+                    ...(arrive ? { arrivalAirport: arrive } : {}),
+                };
+            });
+            // Keep any user-added segments beyond the legs we resolved.
+            return {
+                ...prev,
+                flightSegments: [...legs, ...existing.slice(legCount)],
             };
-            return { ...prev, flightSegments: segs };
         });
         // setPlace / emptySegment / isoDefaultDate are stable; fire on codes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [routeDepartCode, routeArriveCode, place.kind]);
+    }, [routeCode0, routeCode1, routeCode2, routeCode3, place.kind]);
     const isFirstTransitActivity = isAdd && !tripState.destinations.some((d) =>
         d.itinerary?.some((day) =>
             day.activities.some(
