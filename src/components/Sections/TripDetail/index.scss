@@ -695,6 +695,14 @@
     flex: 1 1 auto;
   }
 
+  // Recap note sits on its own full-width line directly beneath the title
+  // (flex-basis:100% forces the wrap). Full width on every viewport so the
+  // textarea / note bar isn't cramped into the header's action row.
+  .trip-detail-note-row {
+    flex: 1 0 100%;
+    width: 100%;
+  }
+
   .trip-detail-name {
     margin: 0;
     font-size: 1.4rem;

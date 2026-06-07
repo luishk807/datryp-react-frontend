@@ -80,8 +80,7 @@ import { useTripDayReminders } from "hooks/useTripDayReminders";
 import { useOfflineTrip } from "hooks/useOfflineTrip";
 import { useIsOffline } from "hooks/useIsOffline";
 import TripOfflineButton from "components/TripOfflineButton";
-import { BUTTON_VARIANT, TRIP_BASIC, TRIP_STATUS } from "constants";
-import DialogBox from "components/common/FormFields/DialogBox";
+import { TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel, getTripExcelBlob } from "utils/exportTripExcel";
 import { exportTripToPdf, getTripPdfBlob, printTripPdf } from "utils/exportTripPdf";
 import { useEmailTripExport } from "api/hooks/useEmailTripExport";
@@ -559,66 +558,6 @@ export const TripDetail = () => {
     [localTripData, isOrganizer, persistedStatusName, autoPersist],
   );
 
-  // How many activities aren't Confirmed yet — drives the "Confirm all
-  // activities" affordance (hidden when there's nothing to confirm).
-  const unconfirmedActivityCount = useMemo(() => {
-    if (!localTripData) return 0;
-    let count = 0;
-    for (const dest of localTripData.destinations ?? []) {
-      for (const day of dest.itinerary ?? []) {
-        for (const act of day.activities ?? []) {
-          const confirmed =
-            !!act.status &&
-            typeof act.status === "object" &&
-            (act.status as ActivityStatus).name === TRIP_STATUS.CONFIRMED;
-          if (!confirmed) count += 1;
-        }
-      }
-    }
-    return count;
-  }, [localTripData]);
-
-  // Bulk-confirm every activity in one click while the trip stays in
-  // Planning — for an organizer who's locked in all their bookings but
-  // isn't ready to confirm the whole trip. Flips each activity's own
-  // Planning↔Confirmed status to Confirmed; the trip status is untouched,
-  // so the itinerary stays fully editable and any activity can be flipped
-  // back individually.
-  const handleConfirmAllActivities = useCallback(() => {
-    if (!localTripData) return;
-    const confirmedId = activityStatusLookup.get(TRIP_STATUS.CONFIRMED);
-    const confirmedStatus: ActivityStatus = {
-      id: confirmedId ?? 0,
-      name: TRIP_STATUS.CONFIRMED,
-    };
-    const next = produce(localTripData, (draft) => {
-      for (const dest of draft.destinations ?? []) {
-        for (const day of dest.itinerary ?? []) {
-          for (const act of day.activities ?? []) {
-            act.status = { ...confirmedStatus };
-          }
-        }
-      }
-    });
-    setLocalTripData(next);
-    // Same warm-lookup gate as the per-activity toggle: persist only once
-    // tripStatuses has resolved real UUIDs, else the statuses serialize as
-    // null and the refetch reverts everything to Planning.
-    if (
-      isOrganizer &&
-      persistedStatusName === TRIP_STATUS.PLANNING &&
-      activityStatusLookup.size > 0
-    ) {
-      autoPersist(next);
-    }
-  }, [
-    localTripData,
-    activityStatusLookup,
-    isOrganizer,
-    persistedStatusName,
-    autoPersist,
-  ]);
-
   const handleSaveBasicInfo = useCallback(
     async (next: TripState): Promise<boolean> => {
       if (!apiTrip || !apiTrip.interaryType?.id) return false;
@@ -705,12 +644,34 @@ export const TripDetail = () => {
   // Builds the save input from current local edits so any pending activity /
   // budget changes go along for the ride.
   const handleStatusChange = useCallback(
-    async (next: TripStatus) => {
+    async (next: TripStatus, opts?: { confirmAllActivities?: boolean }) => {
       if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
       setSaveError(null);
       const previousStatus = persistedStatusName;
+      // When the user promotes Planning → Confirmed and chose "confirm all"
+      // from the prompt, flip every activity to Confirmed in the SAME save —
+      // so a Confirmed trip never carries leftover Planning activities, and
+      // there's no second racing save (which the soft-delete-then-reinsert
+      // save path would duplicate).
+      let effectiveTrip = tripData;
+      if (opts?.confirmAllActivities) {
+        const confirmedId = activityStatusLookup.get(TRIP_STATUS.CONFIRMED);
+        effectiveTrip = produce(tripData, (draft) => {
+          for (const dest of draft.destinations ?? []) {
+            for (const day of dest.itinerary ?? []) {
+              for (const act of day.activities ?? []) {
+                act.status = {
+                  id: confirmedId ?? 0,
+                  name: TRIP_STATUS.CONFIRMED,
+                };
+              }
+            }
+          }
+        });
+        setLocalTripData(effectiveTrip);
+      }
       try {
-        const input = tripStateToSaveInput(tripData, {
+        const input = tripStateToSaveInput(effectiveTrip, {
           id: apiTrip.id,
           interaryTypeId: apiTrip.interaryType.id,
           tripStatusId: String(next.id),
@@ -736,7 +697,7 @@ export const TripDetail = () => {
           // confirmed copy (they're excluded from save notifications). Fire-
           // and-forget: a slow/failed export must never block the confirm,
           // which already succeeded above. Reuses the in-app export output.
-          const confirmedTrip = tripData;
+          const confirmedTrip = effectiveTrip;
           const tripId = apiTrip.id;
           void (async () => {
             try {
@@ -1253,32 +1214,13 @@ export const TripDetail = () => {
                     : "The organizer is still arranging activities. Check back soon."}
                 </span>
               </div>
-              {/* Confirm trip lives inside the planning box — the box
-                  already frames the "you're still planning" state, so the
-                  promote action belongs with it rather than as a separate
-                  card below. The secondary "Confirm all activities" flips
-                  every activity to Confirmed WITHOUT confirming the whole
-                  trip (it stays editable) — for when bookings are locked in
-                  but you're not ready to lock the trip. */}
+              {/* Confirm trip lives inside the planning box — the box already
+                  frames the "you're still planning" state. If any activities
+                  are still unconfirmed, the button's own prompt offers to
+                  confirm them all in one go (see TripStatusBadge), so there's
+                  no separate "Confirm all activities" button. */}
               {canPromoteStatus && (
                 <div className="trip-detail-planning-actions">
-                  {unconfirmedActivityCount > 0 && (
-                    <DialogBox
-                      buttonLabel="Confirm all activities"
-                      buttonType={BUTTON_VARIANT.LINE}
-                      title="Confirm all activities?"
-                      confirmLabel="Confirm all"
-                      onConfirm={handleConfirmAllActivities}
-                    >
-                      This marks all {unconfirmedActivityCount}{" "}
-                      {unconfirmedActivityCount === 1
-                        ? "activity"
-                        : "activities"}{" "}
-                      as Confirmed. The trip stays in Planning, so you can
-                      still add, edit, or remove anything — and you can flip
-                      any activity back on its own.
-                    </DialogBox>
-                  )}
                   <TripStatusBadge
                     data={tripData}
                     onStatusChange={handleStatusChange}
@@ -1616,15 +1558,19 @@ const TripDetailHeader = ({
             />
           )}
       </div>
-      {/* Recap note under the title — editable in any status by the
-          owner/organizer; persists via its own endpoint (not the
-          Planning-locked full save). Hidden in focus mode. */}
+      {/* Recap note — its own full-width row directly under the title
+          (forced onto its own line via flex-basis:100% in the wrapping
+          header). Editable in any status by the owner/organizer; persists
+          via its own endpoint (not the Planning-locked full save). Hidden
+          in focus mode. */}
       {!focusMode && tripData.apiId && (
-        <TripNote
-          tripId={tripData.apiId}
-          note={tripData.note}
-          canEdit={isOrganizer}
-        />
+        <div className="trip-detail-note-row">
+          <TripNote
+            tripId={tripData.apiId}
+            note={tripData.note}
+            canEdit={isOrganizer}
+          />
+        </div>
       )}
       <div className="trip-detail-header-actions">
         {/* Two groups: "Trip details" alone on the left, and everything else

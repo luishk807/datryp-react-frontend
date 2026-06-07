@@ -23,8 +23,13 @@ import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 interface TripStatusBadgeProps {
     data: TripState;
     /** Persists the new trip status. Awaited so the dialog can show
-     *  "Saving…" until the parent's mutation settles. */
-    onStatusChange: (status: TripStatus) => void | Promise<void>;
+     *  "Saving…" until the parent's mutation settles. `confirmAllActivities`
+     *  (Planning → Confirmed only) asks the parent to flip every activity to
+     *  Confirmed in the SAME save. */
+    onStatusChange: (
+        status: TripStatus,
+        opts?: { confirmAllActivities?: boolean }
+    ) => void | Promise<void>;
     isSaving?: boolean;
     /** Hides the button entirely. Used for non-organizers or while
      *  another save is in flight. */
@@ -92,6 +97,14 @@ export const TripStatusBadge = ({
     const [error, setError] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    // "Some activities aren't confirmed" prompt — shown when the organizer
+    // confirms the trip with activities still in Planning, offering to
+    // confirm them all as part of confirming the trip.
+    const [confirmAllOpen, setConfirmAllOpen] = useState(false);
+    const [unconfirmedNames, setUnconfirmedNames] = useState<string[]>([]);
+    // Threaded into the save so the empty-days bridge (which sits between the
+    // prompt and the actual promote) knows to confirm-all too.
+    const [confirmAllActivities, setConfirmAllActivities] = useState(false);
     const emptyDaysModalRef = useRef<ConfirmEmptyDaysModalHandle>(null);
     // Cached list of empty-day ISO strings for the current "Confirm trip"
     // attempt. Captured at the moment the user clicks promote so the
@@ -130,6 +143,51 @@ export const TripStatusBadge = ({
 
     if (disabled || !target) return null;
 
+    const unconfirmedPreview = (() => {
+        if (!unconfirmedNames.length) return '';
+        const preview = unconfirmedNames.slice(0, 3).join(', ');
+        const extra =
+            unconfirmedNames.length > 3
+                ? `, and ${unconfirmedNames.length - 3} more`
+                : '';
+        return `${preview}${extra}`;
+    })();
+
+    /** Empty-day warning + promote. Shared by the all-confirmed path and the
+     *  confirm-all path; `confirmAll` is threaded so the eventual save flips
+     *  every activity to Confirmed in one go. When `confirmAll` is true the
+     *  prompt already confirmed intent, so it saves directly; otherwise it
+     *  opens the standard "Confirm this trip?" dialog. Either path still
+     *  diverts to the empty-days warning first. */
+    const promote = async (confirmAll: boolean) => {
+        setConfirmAllActivities(confirmAll);
+        // Planning → Confirmed only: warn when day blocks would disappear
+        // from the itinerary view + exports because they have no activities.
+        const emptyDays = target.requiresActivitiesConfirmed
+            ? findEmptyDays(data)
+            : [];
+        if (emptyDays.length) {
+            setError(null);
+            setConfirmAllOpen(false);
+            setPendingEmptyDays(emptyDays);
+            emptyDaysModalRef.current?.openModel();
+            return;
+        }
+        setError(null);
+        if (confirmAll) {
+            try {
+                await onStatusChange(target.next as TripStatus, {
+                    confirmAllActivities: true,
+                });
+                setConfirmAllOpen(false);
+            } catch {
+                // Parent toasts the error; keep the prompt open to retry.
+            }
+            return;
+        }
+        setConfirmOpen(true);
+    };
+
     const handleClick = () => {
         if (!target.next) {
             setError(
@@ -140,38 +198,31 @@ export const TripStatusBadge = ({
         if (target.requiresActivitiesConfirmed) {
             const unconfirmed = findUnconfirmedActivities(data);
             if (unconfirmed.length) {
-                const preview = unconfirmed.slice(0, 3).join(', ');
-                const extra =
-                    unconfirmed.length > 3
-                        ? ` and ${unconfirmed.length - 3} more`
-                        : '';
-                setError(
-                    `Confirm every activity first (${preview}${extra}). ` +
-                        `Toggle each place to "Confirmed" before promoting the trip.`
-                );
-                return;
-            }
-            // Planning → Confirmed only: warn when day blocks would
-            // disappear from the itinerary view + exports because they
-            // have no activities. The user can fill them in, edit the
-            // trip dates, or confirm anyway and accept the trimmed view.
-            const emptyDays = findEmptyDays(data);
-            if (emptyDays.length) {
+                // Don't block — offer to confirm them all as part of
+                // confirming the trip (this button only renders for
+                // organizers, so the action is inherently organizer-only).
                 setError(null);
-                setPendingEmptyDays(emptyDays);
-                emptyDaysModalRef.current?.openModel();
+                setUnconfirmedNames(unconfirmed);
+                setConfirmAllOpen(true);
                 return;
             }
         }
-        setError(null);
-        setConfirmOpen(true);
+        void promote(false);
+    };
+
+    /** Primary action of the "some activities aren't confirmed" prompt. */
+    const handleConfirmAll = () => {
+        void promote(true);
     };
 
     const handleEmptyDaysConfirm = async () => {
         if (!target?.next) return;
         emptyDaysModalRef.current?.closeModal();
         try {
-            await onStatusChange(target.next as TripStatus);
+            await onStatusChange(target.next as TripStatus, {
+                confirmAllActivities,
+            });
+            setConfirmAllActivities(false);
         } catch {
             // Parent surfaces save errors via its own toast.
         }
@@ -179,10 +230,12 @@ export const TripStatusBadge = ({
 
     const handleEmptyDaysFillIn = () => {
         emptyDaysModalRef.current?.closeModal();
+        setConfirmAllActivities(false);
     };
 
     const handleEmptyDaysEditDates = () => {
         emptyDaysModalRef.current?.closeModal();
+        setConfirmAllActivities(false);
         if (onEditTripDates) {
             onEditTripDates();
             return;
@@ -206,6 +259,12 @@ export const TripStatusBadge = ({
     const handleClose = () => {
         if (isSaving) return;
         setConfirmOpen(false);
+        setConfirmAllActivities(false);
+    };
+
+    const handleConfirmAllClose = () => {
+        if (isSaving) return;
+        setConfirmAllOpen(false);
     };
 
     const { label, Icon, dialogTitle, dialogBody, confirmLabel } = target;
@@ -263,6 +322,47 @@ export const TripStatusBadge = ({
                 onEditDates={handleEmptyDaysEditDates}
                 isSaving={isSaving}
             />
+
+            <Dialog
+                open={confirmAllOpen}
+                onClose={handleConfirmAllClose}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>Some activities aren&rsquo;t confirmed</DialogTitle>
+                <DialogContent>
+                    <p>
+                        {unconfirmedNames.length}{' '}
+                        {unconfirmedNames.length === 1
+                            ? 'activity isn’t'
+                            : 'activities aren’t'}{' '}
+                        confirmed yet
+                        {unconfirmedPreview ? ` — ${unconfirmedPreview}.` : '.'}
+                    </p>
+                    <p>
+                        Confirming the trip will mark them all as Confirmed and
+                        lock the itinerary. You can cancel to review them first.
+                    </p>
+                </DialogContent>
+                <DialogActions>
+                    <ButtonCustom
+                        type="line"
+                        capitalizeType="uppercase"
+                        label="Cancel"
+                        onClick={handleConfirmAllClose}
+                        disabled={isSaving}
+                    />
+                    <ButtonCustom
+                        type="standard"
+                        capitalizeType="uppercase"
+                        label={
+                            isSaving ? 'Saving…' : 'Confirm all & confirm trip'
+                        }
+                        onClick={handleConfirmAll}
+                        disabled={isSaving}
+                    />
+                </DialogActions>
+            </Dialog>
 
             <Dialog
                 open={confirmOpen}
