@@ -471,6 +471,16 @@
   min-width: 0;
 }
 
+// Stacks the secondary "Confirm all activities" above the primary
+// "Confirm trip" on the right edge of the planning banner.
+.trip-detail-planning-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .trip-detail-planning-title {
   font-size: 1rem;
   font-weight: 700;

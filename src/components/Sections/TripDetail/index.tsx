@@ -77,7 +77,8 @@ import { useTripDayReminders } from "hooks/useTripDayReminders";
 import { useOfflineTrip } from "hooks/useOfflineTrip";
 import { useIsOffline } from "hooks/useIsOffline";
 import TripOfflineButton from "components/TripOfflineButton";
-import { TRIP_BASIC, TRIP_STATUS } from "constants";
+import { BUTTON_VARIANT, TRIP_BASIC, TRIP_STATUS } from "constants";
+import DialogBox from "components/common/FormFields/DialogBox";
 import { exportTripToExcel, getTripExcelBlob } from "utils/exportTripExcel";
 import { exportTripToPdf, getTripPdfBlob, printTripPdf } from "utils/exportTripPdf";
 import { useEmailTripExport } from "api/hooks/useEmailTripExport";
@@ -554,6 +555,66 @@ export const TripDetail = () => {
     },
     [localTripData, isOrganizer, persistedStatusName, autoPersist],
   );
+
+  // How many activities aren't Confirmed yet — drives the "Confirm all
+  // activities" affordance (hidden when there's nothing to confirm).
+  const unconfirmedActivityCount = useMemo(() => {
+    if (!localTripData) return 0;
+    let count = 0;
+    for (const dest of localTripData.destinations ?? []) {
+      for (const day of dest.itinerary ?? []) {
+        for (const act of day.activities ?? []) {
+          const confirmed =
+            !!act.status &&
+            typeof act.status === "object" &&
+            (act.status as ActivityStatus).name === TRIP_STATUS.CONFIRMED;
+          if (!confirmed) count += 1;
+        }
+      }
+    }
+    return count;
+  }, [localTripData]);
+
+  // Bulk-confirm every activity in one click while the trip stays in
+  // Planning — for an organizer who's locked in all their bookings but
+  // isn't ready to confirm the whole trip. Flips each activity's own
+  // Planning↔Confirmed status to Confirmed; the trip status is untouched,
+  // so the itinerary stays fully editable and any activity can be flipped
+  // back individually.
+  const handleConfirmAllActivities = useCallback(() => {
+    if (!localTripData) return;
+    const confirmedId = activityStatusLookup.get(TRIP_STATUS.CONFIRMED);
+    const confirmedStatus: ActivityStatus = {
+      id: confirmedId ?? 0,
+      name: TRIP_STATUS.CONFIRMED,
+    };
+    const next = produce(localTripData, (draft) => {
+      for (const dest of draft.destinations ?? []) {
+        for (const day of dest.itinerary ?? []) {
+          for (const act of day.activities ?? []) {
+            act.status = { ...confirmedStatus };
+          }
+        }
+      }
+    });
+    setLocalTripData(next);
+    // Same warm-lookup gate as the per-activity toggle: persist only once
+    // tripStatuses has resolved real UUIDs, else the statuses serialize as
+    // null and the refetch reverts everything to Planning.
+    if (
+      isOrganizer &&
+      persistedStatusName === TRIP_STATUS.PLANNING &&
+      activityStatusLookup.size > 0
+    ) {
+      autoPersist(next);
+    }
+  }, [
+    localTripData,
+    activityStatusLookup,
+    isOrganizer,
+    persistedStatusName,
+    autoPersist,
+  ]);
 
   const handleSaveBasicInfo = useCallback(
     async (next: TripState): Promise<boolean> => {
@@ -1134,15 +1195,37 @@ export const TripDetail = () => {
               {/* Confirm trip lives inside the planning box — the box
                   already frames the "you're still planning" state, so the
                   promote action belongs with it rather than as a separate
-                  card below. */}
+                  card below. The secondary "Confirm all activities" flips
+                  every activity to Confirmed WITHOUT confirming the whole
+                  trip (it stays editable) — for when bookings are locked in
+                  but you're not ready to lock the trip. */}
               {canPromoteStatus && (
-                <TripStatusBadge
-                  data={tripData}
-                  onStatusChange={handleStatusChange}
-                  isSaving={saveItinerary.isPending}
-                  onEditTripDates={handleChangeStep}
-                  className="trip-detail-status-cta-btn trip-detail-planning-confirm"
-                />
+                <div className="trip-detail-planning-actions">
+                  {unconfirmedActivityCount > 0 && (
+                    <DialogBox
+                      buttonLabel="Confirm all activities"
+                      buttonType={BUTTON_VARIANT.LINE}
+                      title="Confirm all activities?"
+                      confirmLabel="Confirm all"
+                      onConfirm={handleConfirmAllActivities}
+                    >
+                      This marks all {unconfirmedActivityCount}{" "}
+                      {unconfirmedActivityCount === 1
+                        ? "activity"
+                        : "activities"}{" "}
+                      as Confirmed. The trip stays in Planning, so you can
+                      still add, edit, or remove anything — and you can flip
+                      any activity back on its own.
+                    </DialogBox>
+                  )}
+                  <TripStatusBadge
+                    data={tripData}
+                    onStatusChange={handleStatusChange}
+                    isSaving={saveItinerary.isPending}
+                    onEditTripDates={handleChangeStep}
+                    className="trip-detail-status-cta-btn trip-detail-planning-confirm"
+                  />
+                </div>
               )}
             </div>
           </Grid>
