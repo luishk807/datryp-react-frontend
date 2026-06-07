@@ -524,11 +524,23 @@ export const TripDetail = () => {
             itinerary: draftDest.itinerary ?? [],
           });
           draft.destinations = dests;
-        } else if (type === "edit" && typeof index === "number") {
+        } else if (type === "edit") {
           const draftDest = value as Partial<Destination>;
-          const existing = dests[index];
+          // Match the destination by its real id first. The `index` handed up
+          // by DestinationDetail is the dates-array (calendar-block) index,
+          // which does NOT line up with the destinations array when two
+          // destinations share a date — editing one then left a stale
+          // duplicate behind. Fall back to the index only when no id rides
+          // along.
+          const targetIdx =
+            draftDest.id != null
+              ? dests.findIndex((d) => d.id === draftDest.id)
+              : typeof index === "number"
+                ? index
+                : -1;
+          const existing = dests[targetIdx];
           if (existing) {
-            dests[index] = {
+            dests[targetIdx] = {
               ...existing,
               ...draftDest,
               startDate,
