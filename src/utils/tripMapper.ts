@@ -11,7 +11,7 @@
  * tied to real backend User UUIDs yet. Wire those when friends-API integration lands.
  */
 
-import type { Activity, Country, FlightInfo, TripState } from 'types';
+import type { Activity, Country, Destination, FlightInfo, TripState } from 'types';
 import type {
     ActivityBudgetInput,
     ActivityInput,
@@ -19,7 +19,7 @@ import type {
     ItineraryDayInput,
     SaveItineraryInput,
 } from 'api/hooks/useItineraries';
-import { ITINERARY_TYPE, TRIP_BASIC } from 'constants';
+import { ACTIVITY_KIND, ITINERARY_TYPE, TRIP_BASIC } from 'constants';
 
 const isFiniteNumber = (v: unknown): v is number =>
     typeof v === 'number' && Number.isFinite(v);
@@ -256,6 +256,35 @@ export const tripStateToSaveInput = (
 
     const statusLookup = options.activityStatusLookup;
 
+    // Build a day's activities. The backend stores a day's country + flight on
+    // its activity (join) rows, so a day with NO activities loses both on
+    // reload ("Destination not set"). For an empty day that has a flight,
+    // synthesize a "Flight to <country>" activity — the same shape the country
+    // page seeds for the first leg — so the day carries its country + flight
+    // and round-trips. (A country-only leg with no flight still can't
+    // round-trip without a backend schema change; rare.)
+    const dayActivities = (
+        acts: Activity[],
+        dest: Destination,
+        dayDate: string,
+    ): ActivityInput[] => {
+        if (acts.length > 0) {
+            return acts.map((a) => activityToInput(a, dayDate, statusLookup));
+        }
+        if (dest.flightInfo) {
+            const synthetic = {
+                id: 0,
+                kind: ACTIVITY_KIND.FLIGHT,
+                name: `Flight to ${dest.country?.name ?? ''}`.trim() || 'Flight',
+                flightSegments: dest.flightInfo.segments?.length
+                    ? dest.flightInfo.segments
+                    : [dest.flightInfo],
+            } as Activity;
+            return [activityToInput(synthetic, dayDate, statusLookup)];
+        }
+        return [];
+    };
+
     const days: ItineraryDayInput[] = [];
     if (isMulti) {
         for (const dest of destinations) {
@@ -274,7 +303,7 @@ export const tripStateToSaveInput = (
                         date: fallbackDate,
                         countryId: countryIdOf(dest.country),
                         flightInfo: flightToInput(dest.flightInfo, fallbackDate),
-                        activities: [],
+                        activities: dayActivities([], dest, fallbackDate),
                     });
                 }
                 continue;
@@ -284,8 +313,10 @@ export const tripStateToSaveInput = (
                     date: day.date,
                     countryId: countryIdOf(dest.country),
                     flightInfo: flightToInput(dest.flightInfo, day.date),
-                    activities: (day.activities ?? []).map((a) =>
-                        activityToInput(a, day.date, statusLookup)
+                    activities: dayActivities(
+                        day.activities ?? [],
+                        dest,
+                        day.date,
                     ),
                 });
             }
