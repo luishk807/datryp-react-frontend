@@ -1,55 +1,48 @@
 .trip-note {
-  margin: 2px 0 6px;
+  margin: 4px 0 8px;
 }
 
-// "Add a recap note" affordance — subtle, text-like, only for editors.
-.trip-note-add {
+// Shared card frame for the view + edit states.
+.trip-note-card {
+  position: relative;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: theme('colors.gray.50');
+  border: 1px solid theme('colors.gray.200');
+  // A slim accent stripe down the left edge — reads as a memo / sticky note.
+  box-shadow: inset 3px 0 0 theme('colors.primaryOrange');
+}
+
+// "Trip recap" pill label at the top of the card.
+.trip-note-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  margin-left: -8px;
-  border-radius: 8px;
-  background: transparent;
-  border: 1px dashed theme('colors.gray.300');
-  color: theme('colors.gray.500');
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: theme('colors.primaryOrange');
 
-  &:hover {
-    color: theme('colors.primaryGreen');
-    border-color: theme('colors.primaryGreen');
-    background: rgba(60, 181, 75, 0.06);
-  }
-
-  .trip-note-add-icon {
-    font-size: 18px;
+  .trip-note-badge-icon {
+    font-size: 15px;
   }
 }
 
+// ── View ─────────────────────────────────────────────────────────────
 .trip-note-view {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: rgba(247, 159, 38, 0.08);
-  border: 1px solid rgba(247, 159, 38, 0.2);
-
-  .trip-note-view-icon {
-    flex-shrink: 0;
-    font-size: 18px;
-    margin-top: 1px;
-    color: theme('colors.primaryOrange');
+  .trip-note-view-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
   }
 
   .trip-note-text {
-    flex: 1;
-    min-width: 0;
     margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.55;
     color: theme('colors.gray.700');
     white-space: pre-wrap;
     word-break: break-word;
@@ -58,41 +51,78 @@
   .trip-note-edit {
     flex-shrink: 0;
     display: inline-flex;
-    padding: 2px;
+    padding: 4px;
     border: none;
     background: transparent;
-    color: theme('colors.gray.500');
+    color: theme('colors.gray.400');
     cursor: pointer;
     border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
 
     &:hover {
       color: theme('colors.primaryGreen');
-      background: rgba(60, 181, 75, 0.08);
+      background: rgba(60, 181, 75, 0.1);
     }
   }
 }
 
+// ── Add affordance (empty + editor) ──────────────────────────────────
+.trip-note-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px dashed theme('colors.gray.300');
+  color: theme('colors.gray.500');
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: theme('colors.primaryOrange');
+    border-color: theme('colors.primaryOrange');
+    background: rgba(247, 159, 38, 0.06);
+  }
+
+  .trip-note-add-icon {
+    font-size: 18px;
+  }
+}
+
+// ── Edit ─────────────────────────────────────────────────────────────
 .trip-note-editing {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+
+  .trip-note-badge {
+    margin-bottom: 2px;
+  }
 
   .trip-note-input {
     width: 100%;
-    min-height: 72px;
+    min-height: 84px;
     resize: vertical;
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid theme('colors.gray.300');
+    background: #fff;
     font: inherit;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.55;
     color: theme('colors.gray.800');
+
+    &::placeholder {
+      color: theme('colors.gray.400');
+    }
 
     &:focus {
       outline: none;
-      border-color: theme('colors.primaryGreen');
-      box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.12);
+      border-color: theme('colors.primaryOrange');
+      box-shadow: 0 0 0 3px rgba(247, 159, 38, 0.14);
     }
   }
 

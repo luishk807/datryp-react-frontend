@@ -1558,20 +1558,23 @@ const TripDetailHeader = ({
             />
           )}
       </div>
-      {/* Recap note — its own full-width row directly under the title
-          (forced onto its own line via flex-basis:100% in the wrapping
-          header). Editable in any status by the owner/organizer; persists
-          via its own endpoint (not the Planning-locked full save). Hidden
-          in focus mode. */}
-      {!focusMode && tripData.apiId && (
-        <div className="trip-detail-note-row">
-          <TripNote
-            tripId={tripData.apiId}
-            note={tripData.note}
-            canEdit={isOrganizer}
-          />
-        </div>
-      )}
+      {/* Recap note — a retrospective, so it's only offered once the trip
+          is done (Completed) or called off (Cancelled), never during
+          Planning/Confirmed. Its own full-width row under the title
+          (flex-basis:100% forces the wrap). Owner/organizer edits; persists
+          via its own endpoint. Hidden in focus mode. */}
+      {!focusMode &&
+        tripData.apiId &&
+        (statusName === TRIP_STATUS.COMPLETED ||
+          statusName === TRIP_STATUS.CANCELLED) && (
+          <div className="trip-detail-note-row">
+            <TripNote
+              tripId={tripData.apiId}
+              note={tripData.note}
+              canEdit={isOrganizer}
+            />
+          </div>
+        )}
       <div className="trip-detail-header-actions">
         {/* Two groups: "Trip details" alone on the left, and everything else
             (Focus / Text only / Offline / kebab) together on the right —

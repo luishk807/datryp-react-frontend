@@ -66,18 +66,28 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
         setEditing(false);
     };
 
+    const badge = (
+        <span className="trip-note-badge">
+            <StickyNote2OutlinedIcon className="trip-note-badge-icon" />
+            Trip recap
+        </span>
+    );
+
     if (editing) {
         return (
-            <div className="trip-note trip-note-editing">
+            <div className="trip-note trip-note-card trip-note-editing">
+                {badge}
                 <textarea
                     ref={textareaRef}
                     className="trip-note-input"
                     value={draft}
                     maxLength={NOTE_MAX_LEN}
-                    placeholder="Add a recap or reminder for this trip…"
+                    placeholder="How did the trip go? Anything to remember for next time…"
                     onChange={(e) => setDraft(e.target.value)}
                 />
-                {error && <ErrorAlert className="trip-note-error">{error}</ErrorAlert>}
+                {error && (
+                    <ErrorAlert className="trip-note-error">{error}</ErrorAlert>
+                )}
                 <div className="trip-note-actions">
                     <span className="trip-note-count">
                         {draft.length}/{NOTE_MAX_LEN}
@@ -108,25 +118,27 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
                 onClick={openEditor}
             >
                 <StickyNote2OutlinedIcon className="trip-note-add-icon" />
-                <span>Add a recap note</span>
+                <span>Add a trip recap</span>
             </button>
         );
     }
 
     return (
-        <div className="trip-note trip-note-view">
-            <StickyNote2OutlinedIcon className="trip-note-view-icon" />
+        <div className="trip-note trip-note-card trip-note-view">
+            <div className="trip-note-view-head">
+                {badge}
+                {canEdit && (
+                    <button
+                        type="button"
+                        className="trip-note-edit"
+                        aria-label="Edit trip recap"
+                        onClick={openEditor}
+                    >
+                        <EditOutlinedIcon fontSize="small" />
+                    </button>
+                )}
+            </div>
             <p className="trip-note-text">{value}</p>
-            {canEdit && (
-                <button
-                    type="button"
-                    className="trip-note-edit"
-                    aria-label="Edit recap note"
-                    onClick={openEditor}
-                >
-                    <EditOutlinedIcon fontSize="small" />
-                </button>
-            )}
         </div>
     );
 };
