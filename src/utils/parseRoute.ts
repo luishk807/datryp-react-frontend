@@ -12,7 +12,8 @@
  */
 
 /** Strip transport verbs / "from" and trailing date-cost noise off a place
- *  phrase so it resolves cleanly against the airports catalog. */
+ *  phrase, plus surrounding whitespace/punctuation ("argentina." → "argentina"),
+ *  so it resolves cleanly against the airports catalog. */
 const cleanPlacePhrase = (s: string): string =>
     s
         .replace(/\b(?:flights?|fly|flying|train|bus|coach)\b/gi, '')
@@ -20,7 +21,7 @@ const cleanPlacePhrase = (s: string): string =>
         .split(
             /\s+(?:on|for|\$|at|june|jul|aug|sep|oct|nov|dec|jan|feb|mar|apr|may|\d)/i,
         )[0]
-        .trim();
+        .replace(/^[\s.,;:]+|[\s.,;:]+$/g, '');
 
 export interface ParsedRoute {
     origin?: string;
@@ -38,43 +39,59 @@ export interface ParsedRoute {
  * formed by pairing adjacent stops (london→oslo, oslo→moscow).
  */
 
-// An explicit stopover / layover / via clause names an INTERMEDIATE waypoint,
-// e.g. "with a stopover in Oslo", "stopover at Oslo", "via Oslo", "stop in
-// Oslo". It reads in a different order than the main "A to B" route ("A to B
-// with stopover in C" means A→C→B), so we pull these out first. The negative
-// lookahead stops a bare "stopover then to …" (no place) from grabbing the
-// next route keyword as a fake place — that style is left for the run splitter
-// below. The place is captured up to the next route keyword / comma / end so a
-// multi-word city ("New York") survives whole.
+// An explicit stopover / layover / via clause names an INTERMEDIATE waypoint
+// that reads in a different order than the main "A to B" route ("A to B with
+// stopover in C" means A→C→B), so we pull these out first. Handles the many
+// ways people phrase it — optional fluff ("with", "with a", "making", "and"),
+// the stop word ("stopover", "stop over", "stop", "stops", "layover", or a bare
+// "via"), and an optional connector ("in/at/on/via/from/by"):
+//   "via C", "with stopover via C", "making stopover via C", "with stop from C",
+//   "with stops via C", "stopover C" …  all → C.
+// The negative lookahead stops a bare "stopover then to …" (no place) from
+// grabbing the next route keyword as a fake place. The place is captured up to
+// the next route keyword / comma / end so a multi-word city survives whole.
 const STOPOVER_CLAUSE =
-    /\b(?:via\s+|(?:with\s+(?:a\s+)?)?(?:stop\s?over|layover)\s+(?:in\s+|at\s+|on\s+)?|stop\s+(?:in|at|on)\s+)(?!(?:to|then|via|stop\s?over|layover)\b)([^,.]+?)(?=\s+(?:to|via|then|stop\s?over|layover|->|→)\b|[,.]|$)/gi;
+    /\b(?:(?:making|with|and|having|a)\s+)*(?:stop\s?over|stops?|layover|via)\s+(?:(?:in|at|on|via|from|by)\s+)?(?!(?:to|then|via|stop|stops|stopover|layover|from|by|with|making|and|having)\b)([^,.]+?)(?=\s+(?:to|via|then|stop|stops|stop\s?over|layover|from|by|with|making|and|having|->|→)\b|[,.]|\s*$)/gi;
 
-// A run of one or more "to" / "then" / arrow (and leftover stopover/via)
+// A trailing "from X" used as a stopover ("panama to argentina from colombia").
+// Anchored to a preceding "to <dest>" so the route's own origin "from" (at the
+// front: "flight from panama …") is never mistaken for a stopover. Only the
+// "from X" tail is removed; the "to <dest>" is kept.
+const TRAILING_FROM =
+    /(\bto\s+[^,.]+?)\s+from\s+(?!(?:to|via|stop|the)\b)([^,.]+?)(?=[,.]|\s*$)/i;
+
+// A run of one or more "to" / "then" / arrow (and leftover stop/via)
 // connectives between two place names. Whitespace-bounded so it can't bleed
 // into a place name (the "to" in "Toronto"); the whole run collapses to one
 // split point so chained connectives don't leave a stray token behind.
 const ROUTE_SEPARATOR_RUN =
-    /\s+(?:(?:->|→|stop\s?over|stop\s+in|stop\s+at|layover|then|via|to)\s+)+/gi;
+    /\s+(?:(?:->|→|stop\s?over|stops?|stop\s+in|stop\s+at|layover|then|via|to)\s+)+/gi;
 
 export const parseRouteStops = (text: string | undefined): string[] => {
-    const raw = (text ?? '').trim();
+    let raw = (text ?? '').trim();
     if (!raw) return [];
 
-    // 1. Pull stopover/via waypoints out and strip their clauses.
     const stopovers: string[] = [];
-    const mainText = raw.replace(STOPOVER_CLAUSE, (_m, place: string) => {
+    // 1. Pull keyword stopover clauses (via / stopover / stop / layover …) out.
+    raw = raw.replace(STOPOVER_CLAUSE, (_m, place: string) => {
         const cleaned = cleanPlacePhrase(place);
         if (cleaned) stopovers.push(cleaned);
         return ' ';
     });
+    // 2. Then the bare trailing "from X" form, on what's left.
+    raw = raw.replace(TRAILING_FROM, (_m, toDest: string, place: string) => {
+        const cleaned = cleanPlacePhrase(place);
+        if (cleaned) stopovers.push(cleaned);
+        return toDest;
+    });
 
-    // 2. Parse the remaining "A to B [to C]" forward route.
-    const main = mainText
+    // 3. Parse the remaining "A to B [to C]" forward route.
+    const main = raw
         .split(ROUTE_SEPARATOR_RUN)
         .map(cleanPlacePhrase)
         .filter(Boolean);
 
-    // 3. Splice the stopover(s) in after the origin, before the rest:
+    // 4. Splice the stopover(s) in after the origin, before the rest:
     //    "A to B with stopover in C" → [A, C, B]; "A to B to C" → [A, B, C].
     if (main.length <= 1) return [...main, ...stopovers];
     return [main[0], ...stopovers, ...main.slice(1)];
