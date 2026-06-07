@@ -70,6 +70,7 @@ import { tripStateToSaveInput } from "utils/tripMapper";
 import { isSameDay } from "utils";
 import { duplicateTripState, type DuplicateTripRange } from "utils";
 import DuplicateTripModal from "components/DuplicateTripModal";
+import TripNote from "components/TripNote";
 import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
 import TripDetailTour, {
   TRIP_DETAIL_TOUR_STORAGE_KEY,
@@ -1615,6 +1616,16 @@ const TripDetailHeader = ({
             />
           )}
       </div>
+      {/* Recap note under the title — editable in any status by the
+          owner/organizer; persists via its own endpoint (not the
+          Planning-locked full save). Hidden in focus mode. */}
+      {!focusMode && tripData.apiId && (
+        <TripNote
+          tripId={tripData.apiId}
+          note={tripData.note}
+          canEdit={isOrganizer}
+        />
+      )}
       <div className="trip-detail-header-actions">
         {/* Two groups: "Trip details" alone on the left, and everything else
             (Focus / Text only / Offline / kebab) together on the right —

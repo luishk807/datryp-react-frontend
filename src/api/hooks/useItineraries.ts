@@ -129,6 +129,7 @@ export interface ApiItinerary {
     endDate: string | null;
     budget: number | null;
     image: string | null;
+    note: string | null;
     status: { id: string; name: string } | null;
     interaryType: { id: string; name: string };
     user: ApiUserPublic;
@@ -263,6 +264,7 @@ const ITINERARY_FIELDS = gql`
         endDate
         budget
         image
+        note
         status {
             id
             name

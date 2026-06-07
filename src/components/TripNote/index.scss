@@ -1,0 +1,115 @@
+.trip-note {
+  margin: 2px 0 6px;
+}
+
+// "Add a recap note" affordance — subtle, text-like, only for editors.
+.trip-note-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px dashed theme('colors.gray.300');
+  color: theme('colors.gray.500');
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: theme('colors.primaryGreen');
+    border-color: theme('colors.primaryGreen');
+    background: rgba(60, 181, 75, 0.06);
+  }
+
+  .trip-note-add-icon {
+    font-size: 18px;
+  }
+}
+
+.trip-note-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(247, 159, 38, 0.08);
+  border: 1px solid rgba(247, 159, 38, 0.2);
+
+  .trip-note-view-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    margin-top: 1px;
+    color: theme('colors.primaryOrange');
+  }
+
+  .trip-note-text {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: theme('colors.gray.700');
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .trip-note-edit {
+    flex-shrink: 0;
+    display: inline-flex;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: theme('colors.gray.500');
+    cursor: pointer;
+    border-radius: 6px;
+
+    &:hover {
+      color: theme('colors.primaryGreen');
+      background: rgba(60, 181, 75, 0.08);
+    }
+  }
+}
+
+.trip-note-editing {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .trip-note-input {
+    width: 100%;
+    min-height: 72px;
+    resize: vertical;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid theme('colors.gray.300');
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: theme('colors.gray.800');
+
+    &:focus {
+      outline: none;
+      border-color: theme('colors.primaryGreen');
+      box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.12);
+    }
+  }
+
+  .trip-note-error {
+    margin: 0;
+  }
+
+  .trip-note-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .trip-note-count {
+    margin-right: auto;
+    font-size: 0.75rem;
+    color: theme('colors.gray.400');
+  }
+}

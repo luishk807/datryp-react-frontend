@@ -348,6 +348,7 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
     return {
         apiId: it.id,
         name: it.name ?? '',
+        note: it.note ?? undefined,
         startDate: it.startDate ?? undefined,
         endDate: it.endDate ?? undefined,
         status: it.status
