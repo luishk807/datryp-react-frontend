@@ -123,22 +123,29 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
         );
     }
 
+    // Saved state reads as a subtle comment: a small avatar-ish marker and
+    // a soft chat bubble, rather than the heavier edit card.
     return (
-        <div className="trip-note trip-note-card trip-note-view">
-            <div className="trip-note-view-head">
-                {badge}
-                {canEdit && (
-                    <button
-                        type="button"
-                        className="trip-note-edit"
-                        aria-label="Edit trip recap"
-                        onClick={openEditor}
-                    >
-                        <EditOutlinedIcon fontSize="small" />
-                    </button>
-                )}
+        <div className="trip-note trip-note-comment">
+            <span className="trip-note-comment-avatar" aria-hidden="true">
+                <StickyNote2OutlinedIcon className="trip-note-comment-avatar-icon" />
+            </span>
+            <div className="trip-note-comment-bubble">
+                <div className="trip-note-comment-head">
+                    <span className="trip-note-comment-label">Trip recap</span>
+                    {canEdit && (
+                        <button
+                            type="button"
+                            className="trip-note-edit"
+                            aria-label="Edit trip recap"
+                            onClick={openEditor}
+                        >
+                            <EditOutlinedIcon fontSize="small" />
+                        </button>
+                    )}
+                </div>
+                <p className="trip-note-comment-text">{value}</p>
             </div>
-            <p className="trip-note-text">{value}</p>
         </div>
     );
 };
