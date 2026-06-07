@@ -1,6 +1,7 @@
 import {
     useEffect,
     useMemo,
+    useRef,
     type Dispatch,
     type SetStateAction,
 } from 'react';
@@ -9,7 +10,7 @@ import TransitSegmentLookupWatcher from 'components/common/AddPlaceBtn/TransitSe
 import { useAirports } from 'api/hooks/useAirports';
 import { useCountries } from 'api/hooks/useCountries';
 import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
-import { parseRoute } from 'utils';
+import { parseRouteStops } from 'utils';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
@@ -85,65 +86,105 @@ const TransportResolver = ({
     // it keeps running even after the text path set a provisional country, and
     // OVERRIDES it. Only an explicit user pick (`source === 'user'`) is left
     // untouched, so derivation can't fight a manual correction.
+    // Destination country derives from the FINAL leg's arrival, not the first
+    // segment's — a stopover flight (PTY → SJO → BOG) lands in Colombia (BOG),
+    // not Costa Rica (the layover).
     const arrivalAirport =
-        transport.flightSegments[0]?.arrivalAirport?.trim() ?? '';
+        transport.flightSegments[transport.flightSegments.length - 1]
+            ?.arrivalAirport?.trim() ?? '';
     const flightNumber =
         transport.flightSegments[0]?.flightNumber?.trim() ?? '';
 
-    // Resolve airport codes from a free-text route — "flight from panama to
-    // iceland" → depart PTY / arrive KEF. Only for a flight with no flight
-    // number to look up (the lookup fills airports itself) and only fills a
-    // side that's still empty, so it never fights the lookup or a manual edit.
-    // The catalog ranks a country/city query's primary hub first.
-    const departAirport =
-        transport.flightSegments[0]?.departAirport?.trim() ?? '';
-    const route = useMemo(
-        () => parseRoute(transport.smartText),
-        [transport.smartText],
-    );
+    // Resolve airport codes from a free-text route, INCLUDING stopovers:
+    // "panama to colombia with stopover in costa rica" → PTY → SJO → BOG, one
+    // segment per leg. Only for a flight with no flight number to look up (the
+    // lookup fills airports itself). Up to 4 stops (→ 3 legs) via fixed hook
+    // slots (rules of hooks forbid a loop); the catalog ranks a country/city
+    // query's primary hub first.
     const canRouteResolve = isFlightKind(kind) && !flightNumber;
-    const { data: routeDepartCode } = useDestinationAirport(
-        route.origin,
-        canRouteResolve && !!route.origin && !departAirport,
+    const flightStops = useMemo(
+        () =>
+            canRouteResolve
+                ? parseRouteStops(transport.smartText).slice(0, 4)
+                : [],
+        [canRouteResolve, transport.smartText],
     );
-    const { data: routeArriveCode } = useDestinationAirport(
-        route.destination,
-        canRouteResolve && !!route.destination && !arrivalAirport,
+    const { data: routeCode0 } = useDestinationAirport(
+        flightStops[0],
+        !!flightStops[0],
     );
+    const { data: routeCode1 } = useDestinationAirport(
+        flightStops[1],
+        !!flightStops[1],
+    );
+    const { data: routeCode2 } = useDestinationAirport(
+        flightStops[2],
+        !!flightStops[2],
+    );
+    const { data: routeCode3 } = useDestinationAirport(
+        flightStops[3],
+        !!flightStops[3],
+    );
+    const routeAirportsAppliedRef = useRef('');
     useEffect(() => {
-        if (!routeDepartCode && !routeArriveCode) return;
+        if (!isFlightKind(kind)) return;
+        const codes = [routeCode0, routeCode1, routeCode2, routeCode3].slice(
+            0,
+            flightStops.length,
+        );
+        // Single typed city ("flight to bogota") — no leg to form; fill the
+        // open arrival side, mirroring the old single-endpoint behavior.
+        if (codes.filter(Boolean).length < 2) {
+            const only = flightStops.length === 1 ? codes[0] : undefined;
+            if (!only) return;
+            const key = `solo:${only}`;
+            if (routeAirportsAppliedRef.current === key) return;
+            setTransport((prev) => {
+                if (
+                    !isFlightKind(prev.kind) ||
+                    prev.flightSegments[0]?.flightNumber?.trim()
+                )
+                    return prev;
+                const segs = prev.flightSegments.length
+                    ? [...prev.flightSegments]
+                    : [emptyFlightSegment(isoDefaultDate)];
+                if (segs[0]?.arrivalAirport) return prev;
+                routeAirportsAppliedRef.current = key;
+                segs[0] = { ...segs[0], arrivalAirport: only };
+                return { ...prev, flightSegments: segs };
+            });
+            return;
+        }
+        const key = codes.map((c) => c ?? '').join('|');
+        if (routeAirportsAppliedRef.current === key) return;
+        routeAirportsAppliedRef.current = key;
         setTransport((prev) => {
-            if (!isFlightKind(prev.kind)) return prev;
             // A flight number means the lookup owns the airports — don't fight.
-            if (prev.flightSegments[0]?.flightNumber?.trim()) return prev;
-            const segs = prev.flightSegments.length
-                ? [...prev.flightSegments]
-                : [emptyFlightSegment(isoDefaultDate)];
-            const cur = segs[0];
-            const nextDepart =
-                !cur.departAirport && routeDepartCode
-                    ? routeDepartCode
-                    : cur.departAirport;
-            const nextArrival =
-                !cur.arrivalAirport && routeArriveCode
-                    ? routeArriveCode
-                    : cur.arrivalAirport;
             if (
-                nextDepart === cur.departAirport &&
-                nextArrival === cur.arrivalAirport
-            ) {
+                !isFlightKind(prev.kind) ||
+                prev.flightSegments[0]?.flightNumber?.trim()
+            )
                 return prev;
-            }
-            segs[0] = {
-                ...cur,
-                departAirport: nextDepart,
-                arrivalAirport: nextArrival,
+            const legCount = Math.max(1, codes.length - 1);
+            const existing = prev.flightSegments ?? [];
+            const legs = Array.from({ length: legCount }, (_, i) => {
+                const base = existing[i] ?? emptyFlightSegment(isoDefaultDate);
+                const dep = codes[i];
+                const arr = codes[i + 1];
+                return {
+                    ...base,
+                    ...(dep ? { departAirport: dep } : {}),
+                    ...(arr ? { arrivalAirport: arr } : {}),
+                };
+            });
+            return {
+                ...prev,
+                flightSegments: [...legs, ...existing.slice(legCount)],
             };
-            return { ...prev, flightSegments: segs };
         });
-        // setTransport / emptyFlightSegment are stable; fire on resolved codes.
+        // setTransport / emptyFlightSegment stable; fire on resolved codes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [routeDepartCode, routeArriveCode]);
+    }, [routeCode0, routeCode1, routeCode2, routeCode3, kind]);
 
     const needAirportCountry =
         isFlightKind(kind) &&
