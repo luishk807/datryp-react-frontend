@@ -37,6 +37,8 @@ import {
 } from 'api/hooks/useHomeDeparture';
 import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
 import { parseRouteStops } from 'utils';
+import { useQueryClient } from '@tanstack/react-query';
+import { prefetchActivitySuggestions } from 'api/suggestionsPrefetch';
 import { useTripState } from 'context/TripContext';
 import PlaceForm from './forms/PlaceForm';
 import NoteForm from './forms/NoteForm';
@@ -180,6 +182,7 @@ const AddPlaceBtn = ({
     defaultDate,
 }: AddPlaceBtnProps) => {
     const modelRef = useRef<ModalButtonHandle>(null);
+    const queryClient = useQueryClient();
 
     // Normalize the day-block date (which may arrive as MM/DD/YYYY from
     // DateBlock's formatted string) into the YYYY-MM-DD shape the date
@@ -2332,6 +2335,20 @@ const AddPlaceBtn = ({
             ref={modelRef}
             title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
             onClose={handleModalClose}
+            // Pre-warm the destination's place suggestions the moment the
+            // Add-Activity modal opens, so the Suggestions strip is already
+            // loaded by the time the user reaches it. Add-mode only; uses the
+            // same country/city scope the strip queries with so the cache hits.
+            onOpen={
+                isAdd
+                    ? () =>
+                          prefetchActivitySuggestions(
+                              queryClient,
+                              countryScope,
+                              cityScope,
+                          )
+                    : undefined
+            }
             // Activity form is content-heavy; flips to a full-viewport
             // sheet on mobile so the user doesn't fight a tiny centered
             // window with double scrollbars on every device under 480px.

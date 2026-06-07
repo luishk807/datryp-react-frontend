@@ -49,6 +49,10 @@ export interface ModalButtonProps {
      *  button, or a programmatic `closeModal()` from the ref. Use this to
      *  clean up transient form state that should not survive a dismissal. */
     onClose?: () => void;
+    /** Fires whenever the modal opens — the trigger button or a
+     *  programmatic `openModel()`. Use it to pre-warm data the modal will
+     *  need (e.g. prefetch suggestions) so the content is ready on arrival. */
+    onOpen?: () => void;
     /** Optional extra class on the modal container (`.modalCustom`).
      *  Lets a specific consumer scope its own size / shape overrides —
      *  for example, AddPlaceBtn flips its modal to a full-viewport
@@ -64,12 +68,16 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
             buttonProps = null,
             headerAction = null,
             onClose,
+            onOpen,
             containerClassName,
         },
         ref
     ) => {
         const [open, setOpen] = useState(false);
-        const handleOpen = () => setOpen(true);
+        const handleOpen = () => {
+            setOpen(true);
+            onOpen?.();
+        };
         const handleClose = () => {
             setOpen(false);
             onClose?.();

@@ -7,6 +7,7 @@ import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
+import { buildSuggestionsQuery } from 'api/suggestionsPrefetch';
 import RatingBadge from 'components/common/RatingBadge';
 import type { PlaceSuggestion } from 'components/common/PlaceAutocomplete';
 import type { PlaceRecommendation } from 'types';
@@ -79,9 +80,6 @@ const PlaceSuggestions = ({
     // city+country pair when known so a Boston trip doesn't keep
     // suggesting the Golden Gate Bridge. Falls back to country-only
     // when we don't have a city yet.
-    const geoScope = trimmedCity
-        ? `${trimmedCity}, ${trimmedCountry}`
-        : trimmedCountry;
     const headingScope = trimmedCity || trimmedCountry;
     // Picker is rendered inside the trip editor — read the trip id off
     // the URL so the per-card "View" link carries it into /place. A new
@@ -119,13 +117,13 @@ const PlaceSuggestions = ({
     // form passes "top hotels" instead). Adding the optional `bias`
     // term (e.g. arrival airport / city) narrows further. Empty
     // country means no useful query, so we skip the call entirely.
-    const queryParts = [
+    const query = buildSuggestionsQuery({
         topic,
-        bias?.trim() || '',
-        geoScope ? `in ${geoScope}` : '',
-        shuffleNonce ? `(shuffle ${shuffleNonce})` : '',
-    ].filter(Boolean);
-    const query = queryParts.join(' ');
+        bias,
+        country: trimmedCountry,
+        city: trimmedCity,
+        shuffleNonce,
+    });
 
     const { data, isFetching, isError } = useSearchPlaces(
         trimmedCountry ? query : '',
