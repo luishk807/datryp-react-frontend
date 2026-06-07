@@ -149,3 +149,58 @@
     color: theme('colors.primary');
   }
 }
+
+// ── Multi-leg flight (stopover) editing ──────────────────────────────
+// Per-leg header (title + remove) shown only when there is more than one
+// leg, plus the "Add stopover" button that appends a leg.
+.add-destination-segment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.add-destination-segment-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: theme('colors.primary');
+}
+
+.add-destination-segment-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  border-radius: 6px;
+
+  &:hover {
+    color: #c0392b;
+    background: rgba(192, 57, 43, 0.08);
+  }
+}
+
+.add-destination-add-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px dashed theme('colors.primaryGreen');
+  background: rgba(60, 181, 75, 0.05);
+  color: theme('colors.primaryGreen');
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.12);
+  }
+}

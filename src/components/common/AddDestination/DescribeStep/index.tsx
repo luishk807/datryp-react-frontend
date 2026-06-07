@@ -7,6 +7,8 @@ import {
 } from 'react';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
@@ -175,6 +177,37 @@ const DescribeStep = ({
         });
     };
 
+    /** Append a stopover leg. It continues from where the previous leg
+     *  landed — depart airport/date/time default to the prior leg's
+     *  arrival — so a London→Oslo flight extends naturally to Oslo→Moscow. */
+    const addFlightLeg = () => {
+        setTransport((prev) => {
+            const segs = prev.flightSegments.length
+                ? [...prev.flightSegments]
+                : [emptyFlightSegment(isoDefaultDate)];
+            const last = segs[segs.length - 1];
+            segs.push({
+                ...emptyFlightSegment(last?.arrivalDate || isoDefaultDate),
+                departAirport: last?.arrivalAirport,
+                departDate: last?.arrivalDate || isoDefaultDate,
+                departTime: last?.arrivalTime,
+                arrivalDate: last?.arrivalDate || isoDefaultDate,
+            });
+            return { ...prev, flightSegments: segs };
+        });
+        setShowDetails(true);
+    };
+
+    const removeFlightLeg = (idx: number) => {
+        setTransport((prev) => {
+            if (prev.flightSegments.length <= 1) return prev;
+            return {
+                ...prev,
+                flightSegments: prev.flightSegments.filter((_, i) => i !== idx),
+            };
+        });
+    };
+
     const setTransitField = (
         idx: number,
         name: keyof TransitInfo,
@@ -307,6 +340,8 @@ const DescribeStep = ({
                     }
                     tripMaxDate={tripMaxDate}
                     onField={setFlightField}
+                    onAddLeg={addFlightLeg}
+                    onRemoveLeg={removeFlightLeg}
                     isoDefaultDate={isoDefaultDate}
                 />
             )}
@@ -375,19 +410,41 @@ interface FlightFieldsProps {
     tripMaxDate?: string;
     isoDefaultDate: string;
     onField: (idx: number, name: keyof FlightInfo, value: string) => void;
+    onAddLeg: () => void;
+    onRemoveLeg: (idx: number) => void;
 }
 
-/** Editable per-segment flight fields (single outbound leg — destination
- *  transport is the simple arrival case). */
+/** Editable per-segment flight fields. One card per leg; "Add stopover"
+ *  appends another leg and each extra leg can be removed, so a flight with
+ *  a layover (London→Oslo→Moscow) can be edited in full. */
 const FlightFields = ({
     segments,
     tripMaxDate,
     isoDefaultDate,
     onField,
+    onAddLeg,
+    onRemoveLeg,
 }: FlightFieldsProps) => (
     <>
         {segments.map((seg, idx) => (
             <div key={idx} className="add-destination-segment">
+                {segments.length > 1 && (
+                    <div className="add-destination-segment-head">
+                        <span className="add-destination-segment-title">
+                            {idx === 0
+                                ? 'First leg'
+                                : `Stopover leg ${idx + 1}`}
+                        </span>
+                        <button
+                            type="button"
+                            className="add-destination-segment-remove"
+                            aria-label={`Remove leg ${idx + 1}`}
+                            onClick={() => onRemoveLeg(idx)}
+                        >
+                            <CloseRoundedIcon fontSize="small" />
+                        </button>
+                    </div>
+                )}
                 <div className="add-destination-field">
                     <label className="add-destination-label">Flight number</label>
                     <InputField
@@ -480,6 +537,14 @@ const FlightFields = ({
                 </div>
             </div>
         ))}
+        <button
+            type="button"
+            className="add-destination-add-leg"
+            onClick={onAddLeg}
+        >
+            <AddRoundedIcon fontSize="small" />
+            Add stopover
+        </button>
     </>
 );
 
