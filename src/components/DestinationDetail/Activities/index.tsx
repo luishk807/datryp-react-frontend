@@ -1251,13 +1251,19 @@ const Activities = ({
                         )}
                         {/* Organizer-only per-activity alert. Reuses the
                             same gate as Mark-as-paid (`allowPaidEdits` =
-                            organizer && trip not cancelled), and only
-                            mounts on a saved trip with other participants
-                            and a notifiable (non-note) activity. */}
+                            organizer && trip not cancelled), only mounts on a
+                            saved trip with other participants and a notifiable
+                            (non-note) activity — AND only once the activity is
+                            CONFIRMED (the trip is Confirmed, or this activity
+                            was individually confirmed). No point alerting
+                            people about a Planning-stage activity that may
+                            still change. */}
                         {allowPaidEdits &&
                           tripId &&
                           !isNote &&
-                          participants.length > 0 && (
+                          participants.length > 0 &&
+                          (isTripConfirmed ||
+                            isConfirmedStatus(activity.status)) && (
                             <div className="meta-row">
                               <NotifyParticipantsButton
                                 tripId={tripId}
