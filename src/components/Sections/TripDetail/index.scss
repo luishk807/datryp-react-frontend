@@ -471,14 +471,24 @@
   min-width: 0;
 }
 
-// Stacks the secondary "Confirm all activities" above the primary
-// "Confirm trip" on the right edge of the planning banner.
+// The secondary "Confirm all activities" (outlined) and the primary
+// "Confirm trip" (filled green) sit side by side and vertically centered,
+// wrapping to a second line only when the banner gets narrow. Right-
+// aligned on desktop so the pair hugs the card's trailing edge next to
+// the copy.
 .trip-detail-planning-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
   flex-shrink: 0;
+
+  // Match the filled CTA's compact height so the outlined secondary
+  // doesn't tower over the primary in the row.
+  > button {
+    min-height: 34px;
+  }
 }
 
 .trip-detail-planning-title {
@@ -590,6 +600,12 @@
 
   .trip-detail-status-cta-btn .trip-status-badge {
     white-space: nowrap;
+  }
+
+  // Full-width row beneath the copy; buttons sit bottom-left (not a
+  // chunky full-width block), matching the mark-complete card.
+  .trip-detail-planning-actions {
+    justify-content: flex-start;
   }
 }
 
