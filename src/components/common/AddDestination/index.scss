@@ -11,6 +11,33 @@
   }
 }
 
+// On phones flip the add/edit-destination modal to a full-viewport white
+// sheet (100% width, edge-to-edge) — same treatment as the Add-Activity
+// modal — so the transport/flight form has the whole screen to work with
+// rather than the default 12px-gutter centered card. Desktop is unchanged.
+// `dvh` + `safe-area-inset-bottom` keep the sticky action bar clear of the
+// iOS URL bar and home indicator.
+@media (max-width: 600px) {
+  .modalCustom.add-destination-modal {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .modalCustom.add-destination-modal .modalCustom-header {
+    padding: 16px 18px 12px;
+  }
+  .modalCustom.add-destination-modal .modalCustom-content {
+    flex: 1;
+    padding: 14px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
 .add-place-container-standard {
   width: 100%;
 }
