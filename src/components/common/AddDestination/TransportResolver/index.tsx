@@ -9,6 +9,7 @@ import TransitSegmentLookupWatcher from 'components/common/AddPlaceBtn/TransitSe
 import { useAirports } from 'api/hooks/useAirports';
 import { useCountries } from 'api/hooks/useCountries';
 import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
+import { parseRoute } from 'utils';
 import type { FlightLookupResult } from 'api/flightLookupApi';
 import type { TransitLookupResult } from 'api/transitLookupApi';
 import { ACTIVITY_KIND } from 'constants';
@@ -29,37 +30,6 @@ const guessCountryQuery = (text: string): string => {
         /\s+(?:on|for|\$|at|june|jul|aug|sep|oct|nov|dec|jan|feb|mar|apr|may|\d)/i,
     )[0];
     return (cut || tail).trim();
-};
-
-/** Strip transport verbs / "from" and trailing date-cost noise off a place
- *  phrase so it resolves cleanly against the airports catalog. */
-const cleanPlacePhrase = (s: string): string =>
-    s
-        .replace(/\b(?:flights?|fly|flying|train|bus|coach)\b/gi, '')
-        .replace(/\bfrom\b/gi, '')
-        .split(
-            /\s+(?:on|for|\$|at|june|jul|aug|sep|oct|nov|dec|jan|feb|mar|apr|may|\d)/i,
-        )[0]
-        .trim();
-
-/** Pull an origin → destination route out of free smart text, e.g.
- *  "flight from panama to iceland" → { origin: "panama", destination:
- *  "iceland" }. Returns empty sides when the text has no "to" / arrow split
- *  (a bare destination like "Panama" is handled by guessCountryQuery, not
- *  here). Each side is resolved to an airport code by the catalog lookup. */
-const parseRoute = (
-    text: string,
-): { origin?: string; destination?: string } => {
-    const raw = (text ?? '').trim();
-    if (!raw) return {};
-    const parts = raw.split(/\s+(?:to|->|→)\s+/i);
-    if (parts.length < 2) return {};
-    const destination = cleanPlacePhrase(parts[parts.length - 1]);
-    const origin = cleanPlacePhrase(parts.slice(0, -1).join(' to '));
-    return {
-        origin: origin || undefined,
-        destination: destination || undefined,
-    };
 };
 
 export interface TransportResolverProps {

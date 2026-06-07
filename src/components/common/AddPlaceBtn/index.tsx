@@ -36,6 +36,7 @@ import {
     useNearestTrainStation,
 } from 'api/hooks/useHomeDeparture';
 import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
+import { parseRoute } from 'utils';
 import { useTripState } from 'context/TripContext';
 import PlaceForm from './forms/PlaceForm';
 import NoteForm from './forms/NoteForm';
@@ -402,6 +403,53 @@ const AddPlaceBtn = ({
     );
     const defaultArrivalAirport =
         tripDestinationAirport ?? resolvedDestinationAirport ?? '';
+
+    // City-route resolution for a flight typed as "london to newark" (no
+    // flight number to look up): parse origin → destination and resolve each
+    // to an airport code via the catalog (london → LHR, newark → EWR), then
+    // fill the first segment. Skipped when a flight number is present — the
+    // lookup owns the airports then. Mirrors Add Destination's resolver.
+    const firstFlightNumber =
+        place.flightSegments?.[0]?.flightNumber?.trim() ?? '';
+    const flightRoute = useMemo(
+        () =>
+            place.kind === ACTIVITY_KIND.FLIGHT && !firstFlightNumber
+                ? parseRoute(smartEntry)
+                : {},
+        [place.kind, firstFlightNumber, smartEntry],
+    );
+    const { data: routeDepartCode } = useDestinationAirport(
+        flightRoute.origin,
+        Boolean(flightRoute.origin),
+    );
+    const { data: routeArriveCode } = useDestinationAirport(
+        flightRoute.destination,
+        Boolean(flightRoute.destination),
+    );
+    const routeAirportsAppliedRef = useRef('');
+    useEffect(() => {
+        if (place.kind !== ACTIVITY_KIND.FLIGHT) return;
+        if (!routeDepartCode && !routeArriveCode) return;
+        const key = `${routeDepartCode ?? ''}|${routeArriveCode ?? ''}`;
+        if (routeAirportsAppliedRef.current === key) return;
+        routeAirportsAppliedRef.current = key;
+        setPlace((prev) => {
+            if (prev.kind !== ACTIVITY_KIND.FLIGHT) return prev;
+            // A flight number means the lookup fills the airports — don't fight.
+            if (prev.flightSegments?.[0]?.flightNumber?.trim()) return prev;
+            const segs = prev.flightSegments?.length
+                ? [...prev.flightSegments]
+                : [emptySegment(isoDefaultDate)];
+            segs[0] = {
+                ...segs[0],
+                ...(routeDepartCode ? { departAirport: routeDepartCode } : {}),
+                ...(routeArriveCode ? { arrivalAirport: routeArriveCode } : {}),
+            };
+            return { ...prev, flightSegments: segs };
+        });
+        // setPlace / emptySegment / isoDefaultDate are stable; fire on codes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [routeDepartCode, routeArriveCode, place.kind]);
     const isFirstTransitActivity = isAdd && !tripState.destinations.some((d) =>
         d.itinerary?.some((day) =>
             day.activities.some(

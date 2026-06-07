@@ -3,6 +3,7 @@ import { TRIP_BASIC } from "constants";
 export * from "./date";
 export * from "./remapTripDates";
 export * from "./lazyWithRetry";
+export * from "./parseRoute";
 
 export const isSingleTrip = (type) => {
     return type === TRIP_BASIC.SINGLE.id ? true : false;
