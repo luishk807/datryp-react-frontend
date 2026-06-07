@@ -181,11 +181,25 @@ const Multiple = ({
                                     <span className="country-name">
                                         {country || 'Destination not set'}
                                     </span>
-                                    {showFlightHeader && headerFlightNumber && (
-                                        <span className="flight-no">
-                                            Flight {headerFlightNumber}
-                                        </span>
-                                    )}
+                                    {/* Single-segment: show the flight number
+                                        once here, with the airline icon next
+                                        to it — the legs below then skip it to
+                                        avoid repeating it 3×. A stopover flight
+                                        (multiple segments, different numbers
+                                        per leg) shows nothing here and labels
+                                        each leg instead. */}
+                                    {showFlightHeader &&
+                                        headerFlightNumber &&
+                                        headerSegments.length <= 1 && (
+                                            <span className="flight-no">
+                                                <AirlineLogo
+                                                    className="flight-no-logo"
+                                                    flightNumber={headerFlightNumber}
+                                                    label={`Flight ${headerFlightNumber}`}
+                                                />
+                                                {headerFlightNumber}
+                                            </span>
+                                        )}
                                 </Grid>
                                 <Grid
                                     item
@@ -290,18 +304,19 @@ const Multiple = ({
                                                         <FlightTakeoffIcon className="leg-icon" />
                                                         <div className="leg-detail">
                                                             <span className="leg-label">{legLabel}</span>
-                                                            {seg.flightNumber && (
-                                                                <span className="leg-carrier">
-                                                                    <AirlineLogo
-                                                                        className="leg-carrier-logo"
-                                                                        flightNumber={seg.flightNumber}
-                                                                        label={`Flight ${seg.flightNumber}`}
-                                                                    />
-                                                                    <span className="leg-carrier-no">
-                                                                        {seg.flightNumber}
+                                                            {segs.length > 1 &&
+                                                                seg.flightNumber && (
+                                                                    <span className="leg-carrier">
+                                                                        <AirlineLogo
+                                                                            className="leg-carrier-logo"
+                                                                            flightNumber={seg.flightNumber}
+                                                                            label={`Flight ${seg.flightNumber}`}
+                                                                        />
+                                                                        <span className="leg-carrier-no">
+                                                                            {seg.flightNumber}
+                                                                        </span>
                                                                     </span>
-                                                                </span>
-                                                            )}
+                                                                )}
                                                             <span className="leg-airport">
                                                                 {seg.departAirport || 'Not set'}
                                                             </span>
@@ -318,18 +333,6 @@ const Multiple = ({
                                                         <FlightLandIcon className="leg-icon" />
                                                         <div className="leg-detail">
                                                             <span className="leg-label">{arriveLabel}</span>
-                                                            {seg.flightNumber && (
-                                                                <span className="leg-carrier">
-                                                                    <AirlineLogo
-                                                                        className="leg-carrier-logo"
-                                                                        flightNumber={seg.flightNumber}
-                                                                        label={`Flight ${seg.flightNumber}`}
-                                                                    />
-                                                                    <span className="leg-carrier-no">
-                                                                        {seg.flightNumber}
-                                                                    </span>
-                                                                </span>
-                                                            )}
                                                             <span className="leg-airport">
                                                                 {seg.arrivalAirport || 'Not set'}
                                                             </span>

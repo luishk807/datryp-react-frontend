@@ -38,10 +38,22 @@
 }
 
 .multrip-content-item .flight-no {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.85rem;
   color: theme('colors.primaryOrange');
   letter-spacing: 0.04em;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+/* Airline logo shown next to the (single-segment) flight number in the
+ * destination header — the one place the number now appears. */
+.multrip-content-item .flight-no-logo {
+  width: 18px;
+  height: 18px;
+  padding: 2px;
+  border-radius: 5px;
 }
 
 /* Edit / Delete row sits right-aligned on desktop and left-aligned on
