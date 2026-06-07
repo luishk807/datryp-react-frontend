@@ -1,0 +1,113 @@
+.duplicate-trip-form {
+  .duplicate-trip-intro {
+    margin: 0 0 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: theme('colors.gray.600');
+  }
+
+  .form-input {
+    margin: 6px 0 12px;
+  }
+
+  .duplicate-trip-range {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: theme('colors.gray.50');
+    border: 1px solid theme('colors.gray.200');
+
+    .duplicate-trip-range-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: theme('colors.gray.500');
+    }
+
+    .duplicate-trip-range-value {
+      font-weight: 600;
+      color: theme('colors.primaryGreen');
+    }
+  }
+
+  .duplicate-trip-warnings {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .duplicate-trip-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(247, 159, 38, 0.1);
+    border: 1px solid rgba(247, 159, 38, 0.35);
+    font-size: 13px;
+    line-height: 1.45;
+    color: theme('colors.gray.700');
+
+    .duplicate-trip-warning-icon {
+      flex-shrink: 0;
+      font-size: 18px;
+      color: theme('colors.primaryOrange');
+    }
+  }
+
+  .duplicate-trip-preview {
+    margin-top: 16px;
+    border: 1px solid theme('colors.gray.200');
+    border-radius: 10px;
+    overflow: hidden;
+
+    .duplicate-trip-preview-head,
+    .duplicate-trip-preview-row {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr 0.8fr;
+      gap: 8px;
+      padding: 9px 12px;
+    }
+
+    .duplicate-trip-preview-head {
+      background: theme('colors.gray.50');
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: theme('colors.gray.500');
+    }
+
+    .duplicate-trip-preview-body {
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .duplicate-trip-preview-row {
+      font-size: 13px;
+      color: theme('colors.gray.700');
+
+      & + .duplicate-trip-preview-row {
+        border-top: 1px solid theme('colors.gray.100');
+      }
+
+      span:last-child {
+        text-align: right;
+      }
+    }
+
+    .duplicate-trip-preview-head span:last-child {
+      text-align: right;
+    }
+  }
+
+  .duplicate-trip-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+  }
+}

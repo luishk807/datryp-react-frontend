@@ -54,7 +54,7 @@ import TripStatusBadge from "components/TripStatusBadge";
 import TripSuggestionsCard from "components/TripSuggestionsCard";
 import TripCheckupCard from "components/TripCheckupCard";
 import { useUser } from "context/UserContext";
-import { basicInfo, useTripDispatch } from "context/TripContext";
+import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import {
   useDeleteItinerary,
   useMyItineraries,
@@ -68,6 +68,8 @@ import {
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
 import { isSameDay } from "utils";
+import { duplicateTripState, type DuplicateTripRange } from "utils";
+import DuplicateTripModal from "components/DuplicateTripModal";
 import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
 import TripDetailTour, {
   TRIP_DETAIL_TOUR_STORAGE_KEY,
@@ -822,6 +824,61 @@ export const TripDetail = () => {
     navigate(`${route}?id=${apiTrip.id}`);
   };
 
+  // "Duplicate this trip" is offered once a trip has run its course
+  // (Completed) or been called off (Cancelled) — the natural moment to
+  // re-run it. The copy is a fresh Planning draft, so we don't offer it
+  // while the original is still Planning/Confirmed (just keep editing that).
+  const canDuplicate =
+    persistedStatusName === TRIP_STATUS.COMPLETED ||
+    persistedStatusName === TRIP_STATUS.CANCELLED;
+
+  // Active trips (Planning / Confirmed) the copy could collide with — feeds
+  // the modal's overlap warning. Completed / Cancelled trips are records,
+  // not live plans, so an overlap with them isn't worth flagging.
+  const otherTripRanges = useMemo<DuplicateTripRange[]>(
+    () =>
+      apiItineraries
+        .filter(
+          (t) =>
+            t.id !== apiTrip?.id &&
+            !!t.startDate &&
+            !!t.endDate &&
+            (t.status?.name === TRIP_STATUS.PLANNING ||
+              t.status?.name === TRIP_STATUS.CONFIRMED),
+        )
+        .map((t) => ({
+          name: t.name ?? "Untitled trip",
+          startDate: t.startDate as string,
+          endDate: t.endDate as string,
+        })),
+    [apiItineraries, apiTrip?.id],
+  );
+
+  // Build a Planning copy shifted to the chosen start date, seed it into
+  // TripContext, and drop the user into the create/edit stepper with no
+  // ?id= (so the next save CREATEs a new trip). resetTrip() first is
+  // deliberate: the basicInfo reducer's multi-destination re-anchor fires
+  // on a date change when there's no apiId, collapsing any leg whose start
+  // matches the *previous* context start. Clearing the context first makes
+  // that previous start undefined, so the (correctly pre-shifted) legs are
+  // left untouched.
+  const handleDuplicate = useCallback(
+    (newStartDate: string) => {
+      if (!tripData || !apiTrip) return;
+      const planning = tripStatuses.find(
+        (s) => s.name === TRIP_STATUS.PLANNING,
+      );
+      const copy = duplicateTripState(tripData, newStartDate, planning);
+      dispatch(resetTrip());
+      dispatch(basicInfo(copy));
+      const route = apiIsSingleTrip(apiTrip)
+        ? TRIP_BASIC.SINGLE.route
+        : TRIP_BASIC.MULTIPLE.route;
+      navigate(route);
+    },
+    [tripData, apiTrip, tripStatuses, dispatch, navigate],
+  );
+
   const handleExportExcel = () => {
     if (!tripData) return;
     void exportTripToExcel(tripData);
@@ -1049,6 +1106,9 @@ export const TripDetail = () => {
             onStatusChange={handleStatusChange}
             onCancelTrip={handleCancelTrip}
             onDeleteTrip={handleDeleteTrip}
+            canDuplicate={canDuplicate}
+            otherTripRanges={otherTripRanges}
+            onDuplicate={handleDuplicate}
             showNotifyToggle={
               isOrganizer &&
               (apiTrip.friends.length + apiTrip.organizers.length) > 1
@@ -1362,6 +1422,11 @@ interface TripDetailHeaderProps {
   onStatusChange: (next: TripStatus) => void | Promise<void>;
   onCancelTrip: () => void | Promise<void>;
   onDeleteTrip: () => void | Promise<void>;
+  /** Completed / Cancelled trips can be cloned into a fresh Planning copy. */
+  canDuplicate: boolean;
+  /** Active trips used to warn about overlapping dates in the copy modal. */
+  otherTripRanges: DuplicateTripRange[];
+  onDuplicate: (newStartDate: string) => void;
   /** Only true for organizers on trips with other participants. Solo
    *  trips don't render the toggle at all — there's nobody to notify. */
   showNotifyToggle: boolean;
@@ -1401,6 +1466,9 @@ const TripDetailHeader = ({
   onStatusChange,
   onCancelTrip,
   onDeleteTrip,
+  canDuplicate,
+  otherTripRanges,
+  onDuplicate,
   showNotifyToggle,
   notifyParticipants,
   onChangeNotifyParticipants,
@@ -1412,6 +1480,7 @@ const TripDetailHeader = ({
 }: TripDetailHeaderProps) => {
   const exportModalRef = useRef<ModalButtonHandle>(null);
   const notifyPrefModalRef = useRef<ModalButtonHandle>(null);
+  const duplicateModalRef = useRef<ModalButtonHandle>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<
     null | "cancel" | "delete"
@@ -1812,6 +1881,16 @@ const TripDetailHeader = ({
               }}
             />
           )}
+          {canDuplicate && (
+            <MenuActionItem
+              icon={<ContentCopyRoundedIcon />}
+              label="Duplicate trip"
+              onClick={() => {
+                closeMenu();
+                duplicateModalRef.current?.openModel();
+              }}
+            />
+          )}
           {isOrganizer && canCancelTrip && (
             <MenuActionItem
               icon={<EventBusyRoundedIcon />}
@@ -1833,6 +1912,14 @@ const TripDetailHeader = ({
             ref={notifyPrefModalRef}
             tripId={tripData.apiId}
             isPro={isPro}
+          />
+        )}
+        {canDuplicate && (
+          <DuplicateTripModal
+            ref={duplicateModalRef}
+            data={tripData}
+            otherTrips={otherTripRanges}
+            onConfirm={onDuplicate}
           />
         )}
         </div>
