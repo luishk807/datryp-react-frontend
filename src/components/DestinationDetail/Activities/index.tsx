@@ -1,7 +1,9 @@
 import "./index.scss";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import { useSearchParams } from "react-router-dom";
+import { prefetchActivitySuggestions } from "api/suggestionsPrefetch";
 import classNames from "classnames";
 import { useNow } from "hooks/useNow";
 import {
@@ -423,6 +425,19 @@ const Activities = ({
     // place yet, return undefined so suggestions scope to the country alone.
     return scan(activities);
   }, [activities]);
+
+  // Pre-warm the place-suggestions recommender the moment a destination's day
+  // renders (not just when the Add-Activity modal opens — by then the live
+  // query is already racing, so the strip still spins on first open). Uses the
+  // SAME country/city scope the strip queries with, and react-query dedupes by
+  // key so the several day instances of one destination fire a single backend
+  // call. Skipped in read-only view mode (no Add-Activity affordance there) and
+  // when there's no country yet.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (isViewMode || !country) return;
+    prefetchActivitySuggestions(queryClient, country, cityScope);
+  }, [queryClient, country, cityScope, isViewMode]);
 
   // Tracks the activity whose status pill the user just clicked, so
   // we can render "Saving…" + disable just that one pill until the
