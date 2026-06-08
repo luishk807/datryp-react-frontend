@@ -54,19 +54,13 @@ export interface Activity {
    *  depart and the last segment's arrival drive the day-row time
    *  display and sort order. */
   flightSegments?: FlightInfo[];
-  /** Only set when `kind === 'train' | 'bus'`. Mirrors the
-   *  multi-segment shape of flights so a train with a transfer can
-   *  carry two legs. Currently frontend-only — see TransitInfo doc
-   *  for the backend-persistence caveat. */
+  /** Only set when `kind === 'train' | 'bus' | 'rental_car'`. Mirrors the
+   *  multi-segment shape of flights so a train with a transfer can carry two
+   *  legs. Persisted via the generic transport model (mapped to
+   *  `transport_legs`) — a train/bus added through Add Activity round-trips a
+   *  save now. A destination's ARRIVAL transport (any mode) lives on
+   *  `dest.flightInfo` (which carries `mode`), NOT as a flagged activity. */
   transitSegments?: TransitInfo[];
-  /** True for the ground-transport leg (train / bus / rental) that the
-   *  AddDestination wizard seeds as a destination's ARRIVAL — the thing
-   *  that brought you here. It renders in the destination header band (the
-   *  same single-edit-path treatment flights get via `dest.flightInfo`),
-   *  NOT as an itinerary card. A train/bus the user adds through Add
-   *  Activity leaves this unset, so it stays a normal day card. Flights
-   *  don't need this flag — their arrival lives on `dest.flightInfo`. */
-  isDestinationArrival?: boolean;
   /** Only set when `kind === 'hotel_checkin' | 'hotel_checkout'`.
    *  Holds the structured hotel fields that don't have an obvious
    *  home on the flat Activity columns — specifically the

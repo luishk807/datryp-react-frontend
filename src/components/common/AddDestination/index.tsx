@@ -7,7 +7,7 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import classNames from 'classnames';
 import { ACTION, ACTIVITY_KIND, ADD_METHOD, BUTTON_VARIANT } from 'constants';
 import type {
-    Activity,
+    ActivityKind,
     AddEditButtonProps,
     AddMethod,
     Country,
@@ -89,13 +89,13 @@ const methodsForKind = (kind: TransportKind): AddMethod[] =>
         ? [ADD_METHOD.SMART, ADD_METHOD.SEARCH, ADD_METHOD.CUSTOM]
         : [ADD_METHOD.SMART, ADD_METHOD.CUSTOM];
 
-/** Title prefix for the seeded transport activity, by kind. */
-const TRANSPORT_NAME_PREFIX: Record<TransportKind, string> = {
-    [ACTIVITY_KIND.FLIGHT]: 'Flight to',
-    [ACTIVITY_KIND.TRAIN]: 'Train to',
-    [ACTIVITY_KIND.BUS]: 'Bus to',
-    [ACTIVITY_KIND.RENTAL_CAR]: 'Car to',
-};
+/** Ground-transport kinds whose arrival rides on `dest.flightInfo` (tagged
+ *  with `mode`) the same way a flight does. */
+const GROUND_ARRIVAL_KINDS: ReadonlySet<ActivityKind> = new Set([
+    ACTIVITY_KIND.TRAIN,
+    ACTIVITY_KIND.BUS,
+    ACTIVITY_KIND.RENTAL_CAR,
+]);
 
 const emptyFlightSegment = (date: string): FlightInfo => ({
     departDate: date,
@@ -263,33 +263,40 @@ const AddDestinationBtn = ({
         };
     };
 
-    /** Build the seeded transport activity for GROUND kinds (train / bus /
-     *  rental). Flight no longer rides here — it's the destination header.
+    /** Build the destination's arrival header for GROUND kinds (train / bus /
+     *  rental) — same `flightInfo` home as a flight, tagged with `mode` so the
+     *  header band renders the right label. Maps transit legs (station /
+     *  operator) onto the generic FlightInfo leg shape (departAirport holds the
+     *  station, flightNumber the service number, carrier/seatOrClass the rest).
      *  Returns null for "add later" (no kind) or a flight draft. */
-    const buildTransportActivity = (
-        baseId: number,
-    ): { activity: Activity; arrivalDate?: string } | null => {
+    const buildGroundArrivalInfo = (): {
+        flightInfo: FlightInfo;
+        arrivalDate?: string;
+    } | null => {
         const { kind } = transport;
         if (!kind || kind === ACTIVITY_KIND.FLIGHT) return null;
-        const name = `${TRANSPORT_NAME_PREFIX[kind]} ${country?.name ?? ''}`.trim();
-
         const segments = transport.transitSegments.length
             ? transport.transitSegments
             : [emptyTransitSegment(isoDefaultDate)];
         const first = segments[0];
         const last = segments[segments.length - 1];
+        const legs: FlightInfo[] = segments.map((seg) => ({
+            departAirport: seg.departStation,
+            arrivalAirport: seg.arrivalStation,
+            flightNumber: seg.number,
+            carrier: seg.operator,
+            seatOrClass: seg.classOrSeat,
+            departDate: seg.departDate,
+            departTime: seg.departTime,
+            arrivalDate: seg.arrivalDate,
+            arrivalTime: seg.arrivalTime,
+        }));
         return {
-            activity: {
-                id: baseId,
-                kind,
-                name,
-                startTime: first.departTime,
-                endTime: last.arrivalTime,
+            flightInfo: {
+                mode: kind,
+                ...legs[0],
                 cost: transport.cost || undefined,
-                transitSegments: segments,
-                // Marks this leg as the destination's ARRIVAL so the timeline
-                // renders it in the header band (like a flight), not as a card.
-                isDestinationArrival: true,
+                segments: legs,
             },
             arrivalDate: last.arrivalDate ?? first.departDate,
         };
@@ -304,53 +311,46 @@ const AddDestinationBtn = ({
         }
         setError(null);
 
-        const base = Date.now();
         const isFlight = transport.kind === ACTIVITY_KIND.FLIGHT;
-        // FLIGHT → header (flightInfo). Ground kinds → first-day activity.
-        const flightSeed = isFlight ? buildFlightInfo() : null;
-        const transportSeed = isFlight ? null : buildTransportActivity(base + 2);
-        const activities: Activity[] = [];
-
-        if (transportSeed) activities.push(transportSeed.activity);
+        // Any arrival mode (flight OR ground) rides on the destination header
+        // via `flightInfo` (which now carries `mode`) — never as a seeded
+        // activity card. "Add later" (no kind) seeds nothing.
+        const arrival = isFlight ? buildFlightInfo() : buildGroundArrivalInfo();
 
         const departDate =
             transport.flightSegments[0]?.departDate ??
             transport.transitSegments[0]?.departDate;
         const dayDate =
-            flightSeed?.arrivalDate ??
-            transportSeed?.arrivalDate ??
-            departDate ??
-            isoDefaultDate;
+            arrival?.arrivalDate ?? departDate ?? isoDefaultDate;
 
-        // EDIT fallback: keep the saved itinerary, but when this destination's
-        // transport is now a FLIGHT header, strip any legacy "Flight to …"
-        // activity off day 1 so the flight isn't shown twice (header + card).
+        // EDIT: strip any legacy arrival activity (a "Flight to …" / transit
+        // leg saved as a day-1 card by an older client) so the arrival isn't
+        // shown twice (header + card). New saves never create one.
         const editItinerary: Destination['itinerary'] =
-            isFlight && data?.itinerary
+            type === ACTION.EDIT && data?.itinerary
                 ? data.itinerary.map((day, idx) =>
                       idx === 0
                           ? {
                                 ...day,
                                 activities: day.activities.filter(
-                                    (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
+                                    (a) =>
+                                        a.kind !== ACTIVITY_KIND.FLIGHT &&
+                                        !(
+                                            a.kind != null &&
+                                            GROUND_ARRIVAL_KINDS.has(a.kind)
+                                        ),
                                 ),
                             }
                           : day,
                   )
                 : data?.itinerary;
 
-        const itinerary: Destination['itinerary'] = activities.length
-            ? [{ id: base, date: dayDate, activities }]
-            : type === ACTION.EDIT
-              ? editItinerary
-              : undefined;
-
         modelRef.current?.closeModal();
         onChange?.({
             id: data?.id,
             country,
-            flightInfo: flightSeed?.flightInfo,
-            itinerary,
+            flightInfo: arrival?.flightInfo,
+            itinerary: type === ACTION.EDIT ? editItinerary : undefined,
             // Arrival day = this destination's start; the timeline derives the
             // end from the next destination's arrival.
             startDate: dayDate,
@@ -727,73 +727,76 @@ const AddDestinationBtn = ({
     );
 };
 
-/** Pre-fill the transport draft on edit from the saved destination. Reads
- *  the first FLIGHT / transit activity off day 1; falls back to the legacy
- *  header `flightInfo`. Returns an empty draft (kind=null) when the saved
- *  destination has no transport. */
+/** Pre-fill the transport draft on edit from the saved destination. The
+ *  arrival (any mode) lives on the header `flightInfo`, tagged with `mode`;
+ *  ground modes map their station/operator legs back into transit segments.
+ *  Falls back to a legacy day-1 FLIGHT activity (older saves). Returns an
+ *  empty draft (kind=null) when the destination has no transport. */
 const seedTransportFromData = (
     data: Destination,
     isoDate: (raw?: string | null) => string | undefined,
     fallbackDate: string,
 ): TransportDraft => {
-    const activities = data.itinerary?.[0]?.activities ?? [];
-    const flight = activities.find(
-        (a) => a.kind === ACTIVITY_KIND.FLIGHT && a.flightSegments?.length,
-    );
-    if (flight?.flightSegments?.length) {
+    const fi = data.flightInfo;
+    const hasArrival =
+        fi &&
+        (fi.flightNumber ||
+            fi.arrivalAirport ||
+            fi.departAirport ||
+            fi.carrier ||
+            fi.segments?.length);
+    if (fi && hasArrival) {
+        const mode = (fi.mode as TransportKind | undefined) ?? ACTIVITY_KIND.FLIGHT;
+        const segs = fi.segments?.length ? fi.segments : [fi];
+        const cost = fi.cost != null ? String(fi.cost) : '';
+        if (mode === ACTIVITY_KIND.FLIGHT) {
+            return {
+                kind: ACTIVITY_KIND.FLIGHT,
+                smartText: '',
+                flightSegments: segs.map((seg) => ({
+                    ...seg,
+                    departDate: isoDate(seg.departDate) ?? fallbackDate,
+                    arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
+                })),
+                transitSegments: [],
+                cost,
+            };
+        }
         return {
-            kind: ACTIVITY_KIND.FLIGHT,
-            smartText: '',
-            flightSegments: flight.flightSegments.map((seg) => ({
-                ...seg,
-                departDate: isoDate(seg.departDate) ?? fallbackDate,
-                arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
-            })),
-            transitSegments: [],
-            cost: flight.cost != null ? String(flight.cost) : '',
-        };
-    }
-
-    const isTransitKind = (a: Activity) =>
-        a.kind === ACTIVITY_KIND.TRAIN ||
-        a.kind === ACTIVITY_KIND.BUS ||
-        a.kind === ACTIVITY_KIND.RENTAL_CAR;
-    // Prefer the flagged arrival leg; fall back to the first transit activity
-    // for legacy drafts seeded before the flag existed.
-    const transit =
-        activities.find(
-            (a) => a.isDestinationArrival && isTransitKind(a) && a.transitSegments?.length,
-        ) ?? activities.find((a) => isTransitKind(a) && a.transitSegments?.length);
-    if (transit?.transitSegments?.length) {
-        return {
-            kind: transit.kind as TransportKind,
+            kind: mode,
             smartText: '',
             flightSegments: [],
-            transitSegments: transit.transitSegments.map((seg) => ({
-                ...seg,
+            // Generic FlightInfo legs → transit shape (station / operator).
+            transitSegments: segs.map((seg) => ({
+                departStation: seg.departAirport,
+                arrivalStation: seg.arrivalAirport,
+                number: seg.flightNumber,
+                operator: seg.carrier,
+                classOrSeat: seg.seatOrClass,
                 departDate: isoDate(seg.departDate) ?? fallbackDate,
+                departTime: seg.departTime,
                 arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
+                arrivalTime: seg.arrivalTime,
             })),
-            cost: transit.cost != null ? String(transit.cost) : '',
+            cost,
         };
     }
 
-    // Legacy header flight (older saved destinations).
-    const legacy = data.flightInfo;
-    if (legacy?.flightNumber || legacy?.arrivalAirport) {
-        const segments = legacy.segments?.length
-            ? legacy.segments
-            : [legacy];
+    // Legacy: an older save kept the arrival as a day-1 FLIGHT activity card.
+    const legacyFlight = (data.itinerary?.[0]?.activities ?? []).find(
+        (a) => a.kind === ACTIVITY_KIND.FLIGHT && a.flightSegments?.length,
+    );
+    if (legacyFlight?.flightSegments?.length) {
         return {
             kind: ACTIVITY_KIND.FLIGHT,
             smartText: '',
-            flightSegments: segments.map((seg) => ({
+            flightSegments: legacyFlight.flightSegments.map((seg) => ({
                 ...seg,
                 departDate: isoDate(seg.departDate) ?? fallbackDate,
                 arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
             })),
             transitSegments: [],
-            cost: legacy.cost != null ? String(legacy.cost) : '',
+            cost: legacyFlight.cost != null ? String(legacyFlight.cost) : '',
         };
     }
 

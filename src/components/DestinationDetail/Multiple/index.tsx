@@ -19,20 +19,10 @@ import type {
     Destination,
     FlightInfo,
     Friend,
-    TransitInfo,
 } from 'types';
 
 const segHasData = (seg?: FlightInfo) =>
     Boolean(seg && (seg.flightNumber || seg.departAirport || seg.arrivalAirport));
-
-/** Kinds whose FIRST occurrence is treated as the destination's arrival
- *  ground transport — rendered in the header band (not as a card), the
- *  same single-edit-path treatment flights already get. */
-const GROUND_ARRIVAL_KINDS: ReadonlySet<ActivityKind> = new Set([
-    ACTIVITY_KIND.TRAIN,
-    ACTIVITY_KIND.BUS,
-    ACTIVITY_KIND.RENTAL_CAR,
-]);
 
 const formatLegDate = (value?: string) =>
     value && isValidDate(value) ? formatDate(value, 'MMM D, YYYY') : '';
@@ -62,23 +52,16 @@ const isoKey = (value: string): string =>
  *  activity (with `dest.flightInfo` a bare stub). Saved days outside the
  *  computed range are appended defensively so no real activity is hidden. A
  *  destination with no usable range collapses to a single day on its start. */
-const buildDestinationDays = (
-    dest: Destination,
-    /** Id of the arrival ground-transport activity that now feeds the header
-     *  band — drop just that one card so it doesn't duplicate the header.
-     *  Other transit activities the user added as real day activities stay. */
-    arrivalTransitId?: number,
-): DestinationDay[] => {
+const buildDestinationDays = (dest: Destination): DestinationDay[] => {
     // When the header is the destination's own flightInfo, every flight
-    // activity is the user's and shows. Otherwise (seed stub) the FIRST flight
-    // activity is the arrival that feeds the header — drop just that one.
+    // activity is the user's and shows. Otherwise (legacy seed stub) the FIRST
+    // flight activity is the arrival that feeds the header — drop just that one.
     const headerFromFlightInfo =
         (dest.flightInfo?.segments ?? []).some(segHasData) ||
         Boolean(dest.flightInfo?.flightNumber) ||
         Boolean(dest.flightInfo?.departAirport);
     let droppedHeaderFlight = false;
     const keepActivity = (a: Activity): boolean => {
-        if (arrivalTransitId != null && a.id === arrivalTransitId) return false;
         if (a.kind !== ACTIVITY_KIND.FLIGHT) return true;
         if (headerFromFlightInfo) return true;
         if (!droppedHeaderFlight) {
@@ -240,37 +223,23 @@ const Multiple = ({
                         ? flightInfo?.budgets
                         : flightActivity?.budget;
 
-                    // Show the header whenever the unified model carries real
-                    // flight data — from flightInfo OR the flight activity.
-                    // Keep suppressing a genuinely-empty destination (no
-                    // flightInfo data AND no flight activity) so a bare
-                    // destination never shows a "Not set / Not set" stub.
-                    const showFlightHeader =
+                    // The destination's ARRIVAL transport (any mode) lives on
+                    // `flightInfo`, tagged with `mode`. Show the header band
+                    // whenever it carries real data (or a legacy flight
+                    // activity); a genuinely-empty destination stays bare.
+                    const arrivalMode: ActivityKind =
+                        (flightInfo?.mode as ActivityKind | undefined) ??
+                        ACTIVITY_KIND.FLIGHT;
+                    const isFlightArrival = arrivalMode === ACTIVITY_KIND.FLIGHT;
+                    const showTransportHeader =
                         headerSegments.some(segHasData) ||
                         Boolean(flightActivity);
 
-                    // When the arrival is NOT a flight, the destination's
-                    // arrival ground transport is the leg the AddDestination
-                    // wizard flagged `isDestinationArrival`. It feeds the SAME
-                    // header band (single edit path via the destination Edit
-                    // button) and is dropped from the card list below so it
-                    // never duplicates. A train/bus the user added through Add
-                    // Activity is NOT flagged, so it stays a real day card —
-                    // that's the "destination vs activity" line.
-                    const arrivalTransit = showFlightHeader
-                        ? undefined
-                        : (trip.itinerary ?? [])
-                              .flatMap((d) => d.activities ?? [])
-                              .find(
-                                  (a) =>
-                                      a.kind != null &&
-                                      GROUND_ARRIVAL_KINDS.has(a.kind) &&
-                                      a.isDestinationArrival,
-                              );
-
                     // Normalized header legs — one shape drives the shared
-                    // TransportHeader for both flight and transit.
-                    const flightLegs: TransportLeg[] = headerSegments.map(
+                    // TransportHeader for every mode. For ground transport the
+                    // station rides on `departAirport` and the service number on
+                    // `flightNumber` (the adapter maps `transport_legs` that way).
+                    const headerLegs: TransportLeg[] = headerSegments.map(
                         (seg) => ({
                             departPlace: seg.departAirport ?? '',
                             departMeta: formatLegMeta(
@@ -285,11 +254,10 @@ const Multiple = ({
                             flightNumber: seg.flightNumber,
                         }),
                     );
-                    // Flights with no segment at all still render a "Not set"
-                    // placeholder leg (matches the prior empty-state header).
-                    const flightHeaderLegs =
-                        flightLegs.length > 0
-                            ? flightLegs
+                    // No segment at all still renders a "Not set" placeholder leg.
+                    const transportHeaderLegs =
+                        headerLegs.length > 0
+                            ? headerLegs
                             : [
                                   {
                                       departPlace: '',
@@ -299,29 +267,11 @@ const Multiple = ({
                                   },
                               ];
 
-                    const transitSegments: TransitInfo[] =
-                        arrivalTransit?.transitSegments?.length
-                            ? arrivalTransit.transitSegments
-                            : [{}];
-                    const transitLegs: TransportLeg[] = transitSegments.map(
-                        (seg) => ({
-                            departPlace: seg.departStation ?? '',
-                            departMeta: formatLegMeta(
-                                seg.departDate,
-                                seg.departTime,
-                            ),
-                            arrivalPlace: seg.arrivalStation ?? '',
-                            arrivalMeta: formatLegMeta(
-                                seg.arrivalDate,
-                                seg.arrivalTime,
-                            ),
-                        }),
-                    );
-                    // Transit headline next to the country name: "JR 500" /
-                    // "Train" — operator + number, no airline logo.
+                    // Ground-transit headline next to the country name:
+                    // "JR 500" — operator + number, no airline logo.
                     const transitHeadline = [
-                        transitSegments[0]?.operator,
-                        transitSegments[0]?.number,
+                        headerSegments[0]?.carrier,
+                        headerSegments[0]?.flightNumber,
                     ]
                         .filter(Boolean)
                         .join(' ');
@@ -329,8 +279,8 @@ const Multiple = ({
                     // One section per day across this destination's range, so a
                     // multi-day stay shows each day (with its own Add Activity)
                     // instead of collapsing everything onto day 1. Drop the
-                    // arrival transit card so it lives only in the header.
-                    const days = buildDestinationDays(trip, arrivalTransit?.id);
+                    // arrival rides on the header (flightInfo), never a card.
+                    const days = buildDestinationDays(trip);
 
                     // Resolve the destination's real index in the parent
                     // state. `trips` is `allDestinations.filter(...)`, so each
@@ -401,7 +351,8 @@ const Multiple = ({
                                         (multiple segments, different numbers
                                         per leg) shows nothing here and labels
                                         each leg instead. */}
-                                    {showFlightHeader &&
+                                    {showTransportHeader &&
+                                        isFlightArrival &&
                                         headerFlightNumber &&
                                         headerSegments.length <= 1 && (
                                             <span className="flight-no">
@@ -416,11 +367,13 @@ const Multiple = ({
                                     {/* Ground-transit headline: operator + number
                                         (e.g. "JR 500"), no airline logo. Only when
                                         the arrival is transit, not a flight. */}
-                                    {arrivalTransit && transitHeadline && (
-                                        <span className="flight-no">
-                                            {transitHeadline}
-                                        </span>
-                                    )}
+                                    {showTransportHeader &&
+                                        !isFlightArrival &&
+                                        transitHeadline && (
+                                            <span className="flight-no">
+                                                {transitHeadline}
+                                            </span>
+                                        )}
                                 </Grid>
                                 <Grid
                                     item
@@ -456,11 +409,15 @@ const Multiple = ({
                                         </div>
                                     )}
                                 </Grid>
-                                {showFlightHeader && (
+                                {showTransportHeader && (
                                     <TransportHeader
-                                        mode={ACTIVITY_KIND.FLIGHT}
-                                        legs={flightHeaderLegs}
-                                        costLabel="Flight cost"
+                                        mode={arrivalMode}
+                                        legs={transportHeaderLegs}
+                                        costLabel={
+                                            isFlightArrival
+                                                ? 'Flight cost'
+                                                : 'Transport cost'
+                                        }
                                         cost={headerCost}
                                         budgets={headerBudgets}
                                         participants={participants}
@@ -510,16 +467,6 @@ const Multiple = ({
                                                 },
                                             });
                                         }}
-                                    />
-                                )}
-                                {arrivalTransit && (
-                                    <TransportHeader
-                                        mode={arrivalTransit.kind!}
-                                        legs={transitLegs}
-                                        costLabel="Transport cost"
-                                        cost={arrivalTransit.cost}
-                                        budgets={arrivalTransit.budget}
-                                        isViewMode={isViewMode}
                                     />
                                 )}
                                 <Grid item lg={12} md={12} xs={12} className="activity-button">
