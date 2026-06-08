@@ -36,6 +36,7 @@ import {
     collapseWs,
     computePayerTotals,
     confirmedPaidEntries,
+    destExportEntries,
     formatActivityTime,
     joinNames,
     safeFilename,
@@ -49,6 +50,7 @@ const ARGB = {
     headerFillBlack: 'FF000000',
     headerTextWhite: 'FFFFFFFF',
     borderGray: 'FFCCCCCC',
+    destinationGreen: 'FF3EB549', // brand green — multi-destination country band
 } as const;
 
 const HEADER_FILL = {
@@ -322,6 +324,8 @@ interface ItineraryWriteRow {
     date: Date | null;
     /** Plain ISO YYYY-MM-DD for grouping. */
     dateIso: string;
+    /** Destination (country) — drives the multi-destination country band. */
+    destinationName: string;
     isNoteOnly: boolean;
     time: string;
     activityCell: string;
@@ -342,39 +346,43 @@ interface ItineraryWriteRow {
 const collectItineraryRows = (trip: TripState): ItineraryWriteRow[] => {
     const out: ItineraryWriteRow[] = [];
     for (const dest of trip.destinations ?? []) {
-        for (const day of dest.itinerary ?? []) {
-            const date = parseDate(day.date);
-            for (const activity of day.activities ?? []) {
-                const budgetItems = (activity.budget ?? []) as BudgetItem[];
+        const destinationName = dest.country?.name ?? '';
+        // destExportEntries injects the destination's arrival flight (stored on
+        // dest.flightInfo, not as an activity) so it + its cost appear, and
+        // drops legacy duplicate flight activities.
+        for (const { date: dateIso, activity } of destExportEntries(dest)) {
+            const date = parseDate(dateIso);
+            const budgetItems = (activity.budget ?? []) as BudgetItem[];
+            out.push({
+                date,
+                dateIso,
+                destinationName,
+                isNoteOnly: false,
+                time: formatActivityTime(activity),
+                activityCell: activityCellLines(activity),
+                cost: activityCost(activity, budgetItems),
+                whoIsPaying: payerCellLines(budgetItems),
+                paidBy: activity.paidAt
+                    ? activity.paidBy?.name?.trim() || 'Unknown'
+                    : '',
+                paidOn: activity.paidAt ? parseDate(activity.paidAt) : null,
+                confirmedPaid: confirmedPaidEntries(activity).join('\n'),
+            });
+            const note = collapseWs(activity.note);
+            if (note) {
                 out.push({
                     date,
-                    dateIso: day.date,
-                    isNoteOnly: false,
-                    time: formatActivityTime(activity),
-                    activityCell: activityCellLines(activity),
-                    cost: activityCost(activity, budgetItems),
-                    whoIsPaying: payerCellLines(budgetItems),
-                    paidBy: activity.paidAt
-                        ? activity.paidBy?.name?.trim() || 'Unknown'
-                        : '',
-                    paidOn: activity.paidAt ? parseDate(activity.paidAt) : null,
-                    confirmedPaid: confirmedPaidEntries(activity).join('\n'),
+                    dateIso,
+                    destinationName,
+                    isNoteOnly: true,
+                    time: '',
+                    activityCell: `Note: ${note}`,
+                    cost: null,
+                    whoIsPaying: '',
+                    paidBy: '',
+                    paidOn: null,
+                    confirmedPaid: '',
                 });
-                const note = collapseWs(activity.note);
-                if (note) {
-                    out.push({
-                        date,
-                        dateIso: day.date,
-                        isNoteOnly: true,
-                        time: '',
-                        activityCell: `Note: ${note}`,
-                        cost: null,
-                        whoIsPaying: '',
-                        paidBy: '',
-                        paidOn: null,
-                        confirmedPaid: '',
-                    });
-                }
             }
         }
     }
@@ -432,6 +440,10 @@ const buildItinerarySheet = async (
     let r = headerRowIdx + 1;
     let groupStart = -1;
     let groupDateIso = '';
+    // Multi-destination: a green country band whenever the destination changes,
+    // so the date-grouped sheet reads as "Panama … then Colombia …". Empty for
+    // single trips.
+    let lastDest: string | null = null;
     const flushGroup = (endRow: number): void => {
         if (groupStart >= 0 && endRow > groupStart) {
             ws.mergeCells(groupStart, 1, endRow, 1);
@@ -446,6 +458,26 @@ const buildItinerarySheet = async (
     };
 
     for (const row of rows) {
+        if (row.destinationName && row.destinationName !== lastDest) {
+            // Close the current date group, then write a full-width country
+            // band that spans all columns.
+            flushGroup(r - 1);
+            groupDateIso = '';
+            groupStart = -1;
+            const bandCell = ws.getCell(r, 1);
+            bandCell.value = row.destinationName;
+            ws.mergeCells(r, 1, r, HEADER.length);
+            bandCell.font = { bold: true, color: { argb: ARGB.headerTextWhite } };
+            bandCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: ARGB.destinationGreen },
+            };
+            bandCell.alignment = { vertical: 'middle' };
+            ws.getRow(r).height = 18;
+            r += 1;
+            lastDest = row.destinationName;
+        }
         if (row.dateIso !== groupDateIso) {
             flushGroup(r - 1);
             groupDateIso = row.dateIso;
@@ -524,17 +556,16 @@ interface ExpenseItemRow {
 const collectExpenseItems = (trip: TripState): ExpenseItemRow[] => {
     const out: ExpenseItemRow[] = [];
     for (const dest of trip.destinations ?? []) {
-        for (const day of dest.itinerary ?? []) {
-            const date = parseDate(day.date);
-            for (const activity of day.activities ?? []) {
-                const budgetItems = (activity.budget ?? []) as BudgetItem[];
-                out.push({
-                    date,
-                    dateIso: day.date,
-                    item: activityDisplayName(activity),
-                    total: activityCost(activity, budgetItems),
-                });
-            }
+        // destExportEntries includes the destination's arrival flight so its
+        // cost lands in the expense report (was dropped for multi-trips).
+        for (const { date: dateIso, activity } of destExportEntries(dest)) {
+            const budgetItems = (activity.budget ?? []) as BudgetItem[];
+            out.push({
+                date: parseDate(dateIso),
+                dateIso,
+                item: activityDisplayName(activity),
+                total: activityCost(activity, budgetItems),
+            });
         }
     }
     return out;

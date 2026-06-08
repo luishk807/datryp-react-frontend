@@ -285,8 +285,31 @@ const buildItineraryTable = (rows: ItineraryRow[]): Content => {
     // column — matches the mockup. The Date rowSpan has to include
     // those note rows so the date cell still aligns visually.
     let cursor = 0;
+    // Multi-destination: a full-width country band whenever the destination
+    // changes, so the date-grouped table reads as "Panama … then Colombia …"
+    // instead of one undifferentiated list. Empty for single trips.
+    let lastDest: string | null = null;
     while (cursor < rows.length) {
         const date = rows[cursor].dateIso;
+        const destName = rows[cursor].destinationName;
+        if (destName && destName !== lastDest) {
+            tableBody.push([
+                {
+                    text: destName,
+                    colSpan: 6,
+                    bold: true,
+                    color: COLORS.headerText,
+                    fillColor: '#3EB549', // brand green destination band
+                    margin: [0, 1, 0, 1],
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+            ]);
+            lastDest = destName;
+        }
         let end = cursor + 1;
         while (end < rows.length && rows[end].dateIso === date) end += 1;
         const dayRows = rows.slice(cursor, end);

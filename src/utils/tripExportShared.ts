@@ -9,7 +9,65 @@
 import moment from 'moment';
 
 import { ACTIVITY_KIND } from 'constants';
-import type { Activity, BudgetItem, TripState } from 'types';
+import type {
+    Activity,
+    BudgetItem,
+    Destination,
+    FlightInfo,
+    TripState,
+} from 'types';
+
+/** Synthesize the destination's arrival FLIGHT (stored on `dest.flightInfo` in
+ *  the multi-destination model, not as an itinerary activity) into an Activity
+ *  so the export pipelines pick up the flight AND its cost. Returns null when
+ *  the destination has no flight with real data. */
+const flightInfoToActivity = (dest: Destination): Activity | null => {
+    const fi = dest.flightInfo;
+    if (!fi) return null;
+    const segs: FlightInfo[] = fi.segments?.length ? fi.segments : [fi];
+    const hasData =
+        segs.some(
+            (s) => s.flightNumber || s.departAirport || s.arrivalAirport
+        ) || fi.cost != null;
+    if (!hasData) return null;
+    const first = segs[0];
+    const last = segs[segs.length - 1];
+    return {
+        // Synthetic negative id so it never collides with a real activity id
+        // and the walk's id-dedupe still treats it as a distinct row.
+        id: dest.id ? -dest.id - 1 : undefined,
+        kind: ACTIVITY_KIND.FLIGHT,
+        name: `Flight to ${dest.country?.name ?? ''}`.trim() || 'Flight',
+        cost: fi.cost,
+        budget: (fi.budgets ?? undefined) as BudgetItem[] | undefined,
+        flightSegments: segs,
+        startTime: first?.departTime,
+        endTime: last?.arrivalTime,
+        paidAt: fi.paidAt ?? undefined,
+        paidBy: fi.paidBy ?? null,
+    } as Activity;
+};
+
+/** Every billable activity of a destination for export, in render order: the
+ *  arrival flight first (on the destination's start date), then each day's
+ *  activities. When the destination carries a header flight, legacy
+ *  flight-kind activities are dropped so the same flight isn't counted twice
+ *  (mirrors the on-screen Multiple consolidation). */
+export const destExportEntries = (
+    dest: Destination
+): { date: string; activity: Activity }[] => {
+    const flight = flightInfoToActivity(dest);
+    const entries: { date: string; activity: Activity }[] = [];
+    const startDate = dest.startDate ?? dest.itinerary?.[0]?.date ?? '';
+    if (flight) entries.push({ date: startDate, activity: flight });
+    for (const day of dest.itinerary ?? []) {
+        for (const activity of day.activities ?? []) {
+            if (flight && activity.kind === ACTIVITY_KIND.FLIGHT) continue;
+            entries.push({ date: day.date, activity });
+        }
+    }
+    return entries;
+};
 
 export const safeFilename = (name: string | undefined): string =>
     (name && name.trim() ? name : 'trip')
@@ -197,48 +255,41 @@ export const computePayerTotals = (trip: TripState): PayerTotals => {
     let grandTotal = 0;
     let unpaidTotal = 0;
     let totalCost = 0;
+    // destExportEntries includes each destination's arrival flight (stored on
+    // dest.flightInfo, not as an activity) so its cost + split land in the
+    // totals — without this, multi-destination flight costs were dropped.
     for (const dest of trip.destinations ?? []) {
-        for (const day of dest.itinerary ?? []) {
-            for (const activity of day.activities ?? []) {
-                totalCost += activityCostOf(activity);
-                const budget = activity.budget ?? [];
-                if (budget.length > 0) {
-                    for (const b of budget) {
-                        const name =
-                            b.user?.label ?? b.user?.name ?? '(unknown)';
-                        const amt =
-                            typeof b.budget === 'number'
-                                ? b.budget
-                                : Number(b.budget) || 0;
-                        totals.set(name, (totals.get(name) ?? 0) + amt);
-                        grandTotal += amt;
-                    }
-                } else if (activity.paidAt && activity.paidBy?.name) {
-                    // Single-payer fallback — when the user hit
-                    // "Mark as paid" with one assigned payer (no
-                    // split), the budget array stays empty but
-                    // the payer + activity cost are still real
-                    // attribution data. Without this branch the
-                    // payer-totals table was silently dropping
-                    // every single-payer activity, which read as
-                    // "I assigned who paid but the report is
-                    // missing them."
-                    const name = activity.paidBy.name.trim();
-                    const cost = activityCostOf(activity);
-                    if (name) {
-                        totals.set(name, (totals.get(name) ?? 0) + cost);
-                        grandTotal += cost;
-                    }
+        for (const { activity } of destExportEntries(dest)) {
+            totalCost += activityCostOf(activity);
+            const budget = activity.budget ?? [];
+            if (budget.length > 0) {
+                for (const b of budget) {
+                    const name = b.user?.label ?? b.user?.name ?? '(unknown)';
+                    const amt =
+                        typeof b.budget === 'number'
+                            ? b.budget
+                            : Number(b.budget) || 0;
+                    totals.set(name, (totals.get(name) ?? 0) + amt);
+                    grandTotal += amt;
                 }
-                // Outstanding = sum of activity costs for any
-                // activity NOT marked paid. Independent of who's
-                // assigned to pay — even unassigned-but-priced
-                // activities still drain cash. Skip when the
-                // activity has no cost so a free "Note" entry
-                // doesn't inflate the unpaid bucket.
-                if (!activity.paidAt) {
-                    unpaidTotal += activityCostOf(activity);
+            } else if (activity.paidAt && activity.paidBy?.name) {
+                // Single-payer fallback — when the user hit "Mark as paid"
+                // with one assigned payer (no split), the budget array stays
+                // empty but the payer + activity cost are still real
+                // attribution data. Without this branch the payer-totals table
+                // silently dropped every single-payer activity.
+                const name = activity.paidBy.name.trim();
+                const cost = activityCostOf(activity);
+                if (name) {
+                    totals.set(name, (totals.get(name) ?? 0) + cost);
+                    grandTotal += cost;
                 }
+            }
+            // Outstanding = sum of activity costs for any activity NOT marked
+            // paid. Independent of who's assigned to pay. Skip when the
+            // activity has no cost so a free "Note" doesn't inflate it.
+            if (!activity.paidAt) {
+                unpaidTotal += activityCostOf(activity);
             }
         }
     }
@@ -338,6 +389,9 @@ export interface ItineraryRow {
      *  per-payer split is present. Used as the line total in the
      *  itinerary's Budget column. */
     rowTotal: number;
+    /** Destination (country) this row belongs to — lets the exports group /
+     *  label a multi-destination trip by country. Empty for single trips. */
+    destinationName: string;
 }
 
 /** Stable content signature for dedupe — used when two backend rows
@@ -398,53 +452,56 @@ export const walkItinerary = (trip: TripState): ItineraryRow[] => {
     // two different days still both render.
     const seenSigsByDate = new Map<string, Set<string>>();
     for (const dest of trip.destinations ?? []) {
-        for (const day of dest.itinerary ?? []) {
-            for (const activity of day.activities ?? []) {
-                if (activity.id != null) {
-                    if (seenIds.has(activity.id)) continue;
-                    seenIds.add(activity.id);
-                }
-                const sig = activityContentSig(activity);
-                const dayKey = day.date ?? '';
-                let dateSigs = seenSigsByDate.get(dayKey);
-                if (!dateSigs) {
-                    dateSigs = new Set<string>();
-                    seenSigsByDate.set(dayKey, dateSigs);
-                }
-                if (dateSigs.has(sig)) continue;
-                dateSigs.add(sig);
-                const budgetItems = (activity.budget ?? []) as BudgetItem[];
-                // The data model doesn't track per-activity participants
-                // as a separate field — they're implicit via the budget
-                // split. Dedupe by displayable name so a single payer
-                // who appears twice in the split shows up once in the
-                // "Participants" list.
-                const participantSet = new Set<string>();
-                for (const b of budgetItems) {
-                    const name = b.user?.label ?? b.user?.name ?? '';
-                    if (name) participantSet.add(name);
-                }
-                const participants = Array.from(participantSet);
-                const rowTotal =
-                    budgetItems.length > 0
-                        ? budgetItems.reduce(
-                              (acc, b) =>
-                                  acc +
-                                  (typeof b.budget === 'number'
-                                      ? b.budget
-                                      : Number(b.budget) || 0),
-                              0
-                          )
-                        : activityCostOf(activity);
-                rows.push({
-                    date: formatDate(day.date),
-                    dateIso: day.date,
-                    activity,
-                    participants,
-                    budgetItems,
-                    rowTotal,
-                });
+        const destinationName = dest.country?.name ?? '';
+        // destExportEntries injects the destination's arrival flight (stored on
+        // dest.flightInfo, not as an activity) so the export shows it + its
+        // cost, and drops legacy duplicate flight activities.
+        for (const { date, activity } of destExportEntries(dest)) {
+            if (activity.id != null) {
+                if (seenIds.has(activity.id)) continue;
+                seenIds.add(activity.id);
             }
+            const sig = activityContentSig(activity);
+            const dayKey = date ?? '';
+            let dateSigs = seenSigsByDate.get(dayKey);
+            if (!dateSigs) {
+                dateSigs = new Set<string>();
+                seenSigsByDate.set(dayKey, dateSigs);
+            }
+            if (dateSigs.has(sig)) continue;
+            dateSigs.add(sig);
+            const budgetItems = (activity.budget ?? []) as BudgetItem[];
+            // The data model doesn't track per-activity participants
+            // as a separate field — they're implicit via the budget
+            // split. Dedupe by displayable name so a single payer
+            // who appears twice in the split shows up once in the
+            // "Participants" list.
+            const participantSet = new Set<string>();
+            for (const b of budgetItems) {
+                const name = b.user?.label ?? b.user?.name ?? '';
+                if (name) participantSet.add(name);
+            }
+            const participants = Array.from(participantSet);
+            const rowTotal =
+                budgetItems.length > 0
+                    ? budgetItems.reduce(
+                          (acc, b) =>
+                              acc +
+                              (typeof b.budget === 'number'
+                                  ? b.budget
+                                  : Number(b.budget) || 0),
+                          0
+                      )
+                    : activityCostOf(activity);
+            rows.push({
+                date: formatDate(date),
+                dateIso: date,
+                activity,
+                participants,
+                budgetItems,
+                rowTotal,
+                destinationName,
+            });
         }
     }
     return rows;
