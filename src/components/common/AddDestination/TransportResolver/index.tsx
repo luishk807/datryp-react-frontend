@@ -134,8 +134,8 @@ const TransportResolver = ({
         );
         // Single typed city ("flight to bogota") — no leg to form; fill the
         // open arrival side, mirroring the old single-endpoint behavior.
-        if (codes.filter(Boolean).length < 2) {
-            const only = flightStops.length === 1 ? codes[0] : undefined;
+        if (flightStops.length === 1) {
+            const only = codes[0];
             if (!only) return;
             const key = `solo:${only}`;
             if (routeAirportsAppliedRef.current === key) return;
@@ -155,6 +155,12 @@ const TransportResolver = ({
             });
             return;
         }
+        // 2+ stops: apply whatever resolved. A PARTIAL route — e.g. "bangkok to
+        // hoi an", where Hoi An has no airport — still sets the resolved depart
+        // (BKK) and leaves the unresolved side "Not set" for the user, instead
+        // of dropping the whole route and leaving an empty flight. Nothing
+        // resolved yet → wait for a code.
+        if (!codes.some(Boolean)) return;
         const key = codes.map((c) => c ?? '').join('|');
         if (routeAirportsAppliedRef.current === key) return;
         routeAirportsAppliedRef.current = key;

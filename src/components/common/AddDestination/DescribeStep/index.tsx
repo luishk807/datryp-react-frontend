@@ -11,6 +11,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
@@ -99,6 +100,15 @@ const DescribeStep = ({
     // are collapsed — e.g. "UA123 · LHR → EWR · 2026-06-06" — so the user can
     // see what's there without expanding the full field grid.
     const collapsedSummary = buildTransportSummary(transport);
+    // One side of a flight resolved but not the other — e.g. "bangkok to hoi
+    // an", where Hoi An has no airport of its own so only BKK comes back. Nudge
+    // the user to pick the missing airport (the nearest one) instead of leaving
+    // a half-empty flight.
+    const hasUnresolvedAirport =
+        isFlightKind(kind) &&
+        transport.flightSegments.some(
+            (s) => Boolean(s.departAirport) !== Boolean(s.arrivalAirport),
+        );
 
     /** Apply the smart-box text to the active kind's first segment. */
     const handleSmartText = (text: string) => {
@@ -303,6 +313,17 @@ const DescribeStep = ({
                         />
                     </div>
                 </div>
+            )}
+
+            {hasUnresolvedAirport && (
+                <p className="describe-step-airport-warn" role="alert">
+                    <WarningAmberRoundedIcon className="describe-step-warn-icon" />
+                    We couldn&rsquo;t find an airport for part of your route —
+                    some places (like Hoi An) have no airport of their own.
+                    {showDetails
+                        ? ' Pick the nearest airport in the fields below (e.g. Da Nang).'
+                        : ' Open Edit details to pick the nearest airport (e.g. Da Nang).'}
+                </p>
             )}
 
             {showSmartBox && !showDetails && (
