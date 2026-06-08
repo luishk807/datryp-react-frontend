@@ -87,6 +87,45 @@
   font-size: 1.25rem;
 }
 
+// Collapsed smart-box: once the description parses into a summary the tall
+// input shrinks to this compact success chip (spark + summary + re-edit link).
+.transport-smart-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(60, 181, 75, 0.3);
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: rgba(60, 181, 75, 0.06);
+  margin-bottom: 14px;
+}
+
+.transport-smart-chip-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  word-break: break-word;
+}
+
+.transport-smart-chip-edit {
+  flex: 0 0 auto;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: theme('colors.primary');
+  }
+}
+
 .describe-step-note {
   margin: 0;
   font-size: 0.78rem;
@@ -184,15 +223,76 @@
   color: theme('colors.primary');
 }
 
-.add-destination-segment-title {
+// Flight leg toggle aligns its (two-line) header to the top so the chevron
+// sits next to the route line, not centered against both lines.
+.flight-segment-toggle {
+  align-items: flex-start;
+}
+
+// Two-line collapsed flight header: a bold route line (Segment N · DEP → ARR)
+// over a muted meta line (logo + flight number + carrier · schedule).
+.flight-segment-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.flight-segment-route {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
   font-size: 0.92rem;
   font-weight: 600;
   color: theme('colors.primary');
 }
 
-.add-destination-segment-sub {
+.flight-segment-path {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.flight-segment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.flight-segment-flight {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.flight-segment-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.flight-segment-carrier {
+  font-weight: 700;
+  color: theme('colors.primaryGreen');
+}
+
+.flight-segment-schedule {
+  // A dot separates the schedule from the flight line when both are present.
+  &::before {
+    content: '·';
+    margin-right: 10px;
+    color: rgba(0, 0, 0, 0.3);
+  }
+
+  &:first-child::before {
+    content: none;
+  }
 }
 
 .add-destination-segment-body {
@@ -214,6 +314,55 @@
   &:hover {
     color: #c0392b;
     background: rgba(192, 57, 43, 0.08);
+  }
+}
+
+// Vertical route path above the "Add stopover" button — DEP ↓ ARR ↓ … so the
+// whole flight is visible without expanding every leg. Each stop is a dot on a
+// guide line.
+.flight-path {
+  list-style: none;
+  margin: 4px 0 10px;
+  padding: 0 0 0 4px;
+}
+
+.flight-path-stop {
+  position: relative;
+  padding: 2px 0 12px 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: theme('colors.primary');
+
+  // Dot marker.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: theme('colors.primaryGreen');
+  }
+
+  // Connecting line down to the next stop.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 12px;
+    bottom: 0;
+    width: 2px;
+    background: rgba(60, 181, 75, 0.35);
+  }
+
+  &:last-child {
+    padding-bottom: 2px;
+
+    &::after {
+      content: none;
+    }
   }
 }
 
