@@ -261,3 +261,100 @@
   flex-shrink: 0;
   margin-top: 1px;
 }
+
+// ── Transit edit form (train / bus / rental) ─────────────────────────
+// Grouped into subtle sections (Route / Schedule / Additional details) so
+// the form reads as a few small blocks instead of one long flat list.
+.transit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.transit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transit-section-title {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+// Route card: from / to stacked vertically with a mode (train/bus/car) or
+// fallback-arrow connector between them.
+.transit-route {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: rgba(60, 181, 75, 0.04);
+}
+
+.transit-route-connector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0 6px 2px;
+  color: rgba(0, 0, 0, 0.3);
+
+  // Vertical guide line down the left edge between the two fields.
+  &::before {
+    content: '';
+    width: 2px;
+    height: 16px;
+    margin-left: 9px;
+    border-radius: 1px;
+    background: rgba(60, 181, 75, 0.4);
+  }
+}
+
+.transit-route-connector-mode {
+  font-size: 1.1rem !important;
+  color: theme('colors.primaryGreen');
+}
+
+.transit-route-connector-arrow {
+  font-size: 1.1rem !important;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+// "Additional details" expand/collapse toggle — mirrors the flight-segment
+// toggle look (chevron + title) but for the optional secondary fields.
+.transit-more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.45);
+
+  &:hover .transit-more-title {
+    color: theme('colors.primary');
+  }
+}
+
+.transit-more-title {
+  transition: color 0.15s ease;
+}
+
+.transit-more-body {
+  margin-top: 4px;
+}
+
+// The combined date+time picker should fill its column like the other
+// fields (MUI's DateTimePicker defaults to an auto width otherwise).
+.transit-datetime .MuiFormControl-root,
+.transit-datetime .MuiTextField-root {
+  width: 100%;
+}
