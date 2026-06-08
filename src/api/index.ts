@@ -22,12 +22,13 @@ export type {
     ApiItineraryDate,
     ApiActivity,
     ApiCountry,
-    ApiFlightInfo,
+    ApiTransport,
+    ApiTransportLeg,
     ApiUserPublic,
     SaveItineraryInput,
     ItineraryDayInput,
     ActivityInput,
-    FlightInfoInput,
+    TransportInput,
 } from './hooks/useItineraries';
 export {
     useCurrentUser,

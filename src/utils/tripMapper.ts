@@ -16,9 +16,10 @@ import type {
     ActivityBudgetInput,
     ActivityInput,
     DestinationInput,
-    FlightInfoInput,
     ItineraryDayInput,
     SaveItineraryInput,
+    TransportInput,
+    TransportLegInput,
 } from 'api/hooks/useItineraries';
 import { ITINERARY_TYPE, TRIP_BASIC } from 'constants';
 import { deriveDestinationRanges } from 'utils/destinations';
@@ -61,30 +62,37 @@ const countryIdOf = (country: Country | undefined): string | null => {
     return UUID_RE.test(str) ? str : null;
 };
 
-const flightToInput = (
+/** Map one internal FlightInfo leg to a generic TransportLegInput (airport /
+ *  flight-number flavored; also carries carrier/seatOrClass for non-flight
+ *  modes that ride on FlightInfo, e.g. a train arrival on `dest.flightInfo`). */
+const flightLegToTransportLeg = (
+    seg: FlightInfo,
+    defaultDate?: string
+): TransportLegInput => ({
+    departAt: combineDateTime(seg.departDate ?? defaultDate, seg.departTime),
+    arriveAt: combineDateTime(seg.arrivalDate ?? defaultDate, seg.arrivalTime),
+    departPoint: seg.departAirport ?? null,
+    arrivePoint: seg.arrivalAirport ?? null,
+    number: seg.flightNumber ?? null,
+    carrier: seg.carrier ?? null,
+    seatOrClass: seg.seatOrClass ?? null,
+});
+
+/** Map an internal destination/trip-level FlightInfo (which may carry any
+ *  `mode` — flight/train/bus/rental) into a generic TransportInput. Legs come
+ *  from `segments` (or a one-element list synthesized from the headline so
+ *  legacy flat-field-only data still writes a leg). */
+const transportToInput = (
     flight: FlightInfo | undefined,
     defaultDate?: string
-): FlightInfoInput | null => {
+): TransportInput | null => {
     if (!flight) return null;
-    // Forward each segment as its own input row. If the user only edited
-    // the legacy flat fields (no segments list yet — possible for legacy
-    // saved data that hasn't been re-opened in the AddDestination form),
-    // synthesize a one-element segments list from the headline so the
-    // server still writes a flight_info_segments row.
     const segments: FlightInfo[] =
         flight.segments?.length ? flight.segments : [flight];
-    const segmentInputs = segments.map((seg) => ({
-        departDate: combineDateTime(seg.departDate ?? defaultDate, seg.departTime),
-        arrivalDate: combineDateTime(seg.arrivalDate ?? defaultDate, seg.arrivalTime),
-        flightNumber: seg.flightNumber ?? null,
-        departAirport: seg.departAirport ?? null,
-        arrivalAirport: seg.arrivalAirport ?? null,
-    }));
-    const headline = segmentInputs[0];
-    // `paidBy.id` carries a backend user UUID — only forward when it
-    // looks like one. Legacy mock-friend ids (numeric or local-only
-    // strings) can't be saved, so we drop them silently rather than
-    // 500 the save.
+    const legs = segments.map((seg) => flightLegToTransportLeg(seg, defaultDate));
+    const headline = legs[0];
+    // `paidBy.id` carries a backend user UUID — only forward when it looks
+    // like one. Legacy mock-friend ids can't be saved; drop them silently.
     const payerId = flight.paidBy?.id;
     const paidByUserId =
         payerId && UUID_RE.test(payerId) ? payerId : null;
@@ -102,19 +110,20 @@ const flightToInput = (
             })
             .filter((x): x is { userId: string; amount: number } => x !== null) ?? [];
     return {
-        // Keep the flat fields in sync with segment 0 — server uses them
-        // as a cached view of the headline, and any legacy reader that
-        // never learns about segments still sees the right values.
-        departDate: headline.departDate,
-        arrivalDate: headline.arrivalDate,
-        flightNumber: headline.flightNumber,
-        departAirport: headline.departAirport,
-        arrivalAirport: headline.arrivalAirport,
+        mode: flight.mode ?? 'flight',
+        // Keep the flat headline in sync with leg 0 — server uses it as a
+        // cached view, and any reader that doesn't walk legs still sees it.
+        departPoint: headline.departPoint,
+        arrivePoint: headline.arrivePoint,
+        departAt: headline.departAt,
+        arriveAt: headline.arriveAt,
+        number: headline.number,
+        carrier: headline.carrier,
         cost: toNumber(flight.cost),
         paidByUserId,
         paidAt: flight.paidAt ?? null,
         budgets: budgetInputs,
-        segments: segmentInputs,
+        legs,
     };
 };
 
@@ -182,17 +191,38 @@ const activityStatusIdOf = (
     return null;
 };
 
-const flightSegmentsToInput = (
-    segments: Activity['flightSegments']
-): FlightInfoInput[] => {
-    if (!segments?.length) return [];
-    return segments.map((seg) => ({
-        departDate: combineDateTime(seg.departDate, seg.departTime),
-        arrivalDate: combineDateTime(seg.arrivalDate, seg.arrivalTime),
-        flightNumber: seg.flightNumber ?? null,
-        departAirport: seg.departAirport ?? null,
-        arrivalAirport: seg.arrivalAirport ?? null,
-    }));
+/** Build the activity-owned TransportInput from whichever leg list the
+ *  activity carries: flights use `flightSegments`, ground transport
+ *  (train/bus/rental) uses `transitSegments`. The cost stays on the activity
+ *  row (the backend keeps activity transport cost-free), so we only forward
+ *  mode + legs. Returns null for non-transport activities. This is what makes
+ *  train/bus activities finally persist — transit legs had no storage before. */
+const activityTransportToInput = (
+    activity: Activity
+): TransportInput | null => {
+    if (activity.flightSegments?.length) {
+        return {
+            mode: 'flight',
+            legs: activity.flightSegments.map((seg) =>
+                flightLegToTransportLeg(seg)
+            ),
+        };
+    }
+    if (activity.transitSegments?.length) {
+        return {
+            mode: activity.kind ?? 'train',
+            legs: activity.transitSegments.map((seg) => ({
+                departAt: combineDateTime(seg.departDate, seg.departTime),
+                arriveAt: combineDateTime(seg.arrivalDate, seg.arrivalTime),
+                departPoint: seg.departStation ?? null,
+                arrivePoint: seg.arrivalStation ?? null,
+                number: seg.number ?? null,
+                carrier: seg.operator ?? null,
+                seatOrClass: seg.classOrSeat ?? null,
+            })),
+        };
+    }
+    return null;
 };
 
 const activityToInput = (
@@ -222,7 +252,7 @@ const activityToInput = (
         paidAt: activity.paidAt ?? null,
         budgets: budgetEntriesToInput(activity.budget),
         kind: activity.kind ?? null,
-        flightSegments: flightSegmentsToInput(activity.flightSegments),
+        transport: activityTransportToInput(activity),
         placeCity: activity.placeCity ?? null,
         placeCountry: activity.placeCountry ?? null,
         countryCode: activity.countryCode ?? null,
@@ -277,7 +307,7 @@ export const tripStateToSaveInput = (
             const dayInputs: ItineraryDayInput[] = destDays.map((day) => ({
                 date: day.date,
                 countryId: null,
-                flightInfo: null,
+                transport: null,
                 activities: (day.activities ?? []).map((a) =>
                     activityToInput(a, day.date, statusLookup)
                 ),
@@ -300,7 +330,7 @@ export const tripStateToSaveInput = (
                 countryId: countryIdOf(dest.country) ?? '',
                 startDate,
                 endDate,
-                flightInfo: flightToInput(dest.flightInfo, startDate),
+                transport: transportToInput(dest.flightInfo, startDate),
                 note: dest.note ?? null,
                 order,
                 days: dayInputs,
@@ -317,7 +347,7 @@ export const tripStateToSaveInput = (
             days.push({
                 date: day.date,
                 countryId: null,
-                flightInfo: null,
+                transport: null,
                 activities: (day.activities ?? []).map((a) =>
                     activityToInput(a, day.date, statusLookup)
                 ),
@@ -347,9 +377,9 @@ export const tripStateToSaveInput = (
         organizerIds,
         participantIds,
         countryId: isMulti ? null : countryIdOf(rootDest?.country),
-        flightInfo: isMulti
+        transport: isMulti
             ? null
-            : flightToInput(rootDest?.flightInfo, tripState.startDate),
+            : transportToInput(rootDest?.flightInfo, tripState.startDate),
         days,
         destinations: isMulti ? destinationInputs : null,
         notifyParticipants: options.notifyParticipants ?? true,

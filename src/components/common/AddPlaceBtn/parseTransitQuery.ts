@@ -460,6 +460,24 @@ const TRAILING_TRANSIT_CONNECTORS =
 const LEADING_STATION_CONNECTORS = /^(?:from|to|at|on|by|via)\s+/i;
 const TRAILING_STATION_CONNECTORS = /\s+(?:on|at|from|to|and|by|via)$/i;
 
+// Transport-mode descriptors users type around the route ("bullet train
+// from Tokyo to Osaka", "Tokyo to Osaka by bus"). The kind is already known
+// from the type tile / detectTransportKind, so these words add nothing to
+// the station names. We strip them off the leading edge and as a trailing
+// "by <mode>" so the station-pair regex sees a clean "Tokyo to Osaka". The
+// trailing form is gated on "by " to avoid clipping a real station name that
+// happens to end in one of these words.
+const MODE_WORDS =
+    'bullet\\s+trains?|high[\\s-]?speed\\s+trains?|express\\s+trains?|shinkansen|trains?|metro|subway|tram|coach|buses|bus|ferr(?:y|ies)|boats?|ships?|rental\\s+cars?';
+const LEADING_MODE_NOISE = new RegExp(
+    `^(?:(?:take|catch|ride|board|the|a|an)\\s+)*(?:${MODE_WORDS})\\b\\s*`,
+    'i',
+);
+const TRAILING_MODE_NOISE = new RegExp(
+    `\\s*\\bby\\s+(?:${MODE_WORDS})\\b\\s*$`,
+    'i',
+);
+
 const cleanStation = (value: string | undefined): string | undefined => {
     if (!value) return value;
     let out = value.trim();
@@ -566,6 +584,8 @@ export const parseTransitEntry = (
     let connectorProgressed = true;
     while (connectorProgressed) {
         const before = residual;
+        residual = residual.replace(LEADING_MODE_NOISE, '').trim();
+        residual = residual.replace(TRAILING_MODE_NOISE, '').trim();
         residual = residual.replace(LEADING_TRANSIT_CONNECTORS, '').trim();
         residual = residual.replace(TRAILING_TRANSIT_CONNECTORS, '').trim();
         connectorProgressed = residual !== before;

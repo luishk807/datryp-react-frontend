@@ -62,6 +62,30 @@
   }
 }
 
+// "Some activities aren't confirmed" dialog. Pad + round the paper so the
+// content breathes (the MUI defaults sit too tight against the edges) and
+// matches the shared DialogBox look.
+.confirm-all-dialog {
+  .MuiPaper-root {
+    padding: 12px 12px 8px;
+    border-radius: 14px;
+  }
+
+  .MuiDialogTitle-root {
+    padding-bottom: 6px;
+  }
+
+  .MuiDialogContent-root {
+    padding-top: 6px;
+    padding-bottom: 4px;
+  }
+
+  .MuiDialogActions-root {
+    padding: 12px 8px 8px;
+    gap: 12px;
+  }
+}
+
 // "Some activities aren't confirmed" dialog — warning icon inline with the
 // title so it reads as a caution before the (irreversible) lock.
 .confirm-all-title {
@@ -74,4 +98,63 @@
   color: theme('colors.primaryOrange');
   font-size: 1.4rem !important;
   flex-shrink: 0;
+}
+
+// Lead-in line above the activity list — a short count, not a run-on
+// sentence with the names jammed in.
+.confirm-all-intro {
+  margin: 0 0 10px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.82);
+}
+
+// The unconfirmed activities as a proper list: a soft-tinted card with
+// orange bullet dots, scrollable so a long itinerary can't blow out the
+// dialog height.
+.confirm-all-list {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  list-style: none;
+  background: rgba(0, 0, 0, 0.035);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 210px;
+  overflow-y: auto;
+
+  li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    color: rgba(0, 0, 0, 0.78);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 3px;
+      top: 0.55em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: theme('colors.primaryOrange');
+    }
+  }
+
+  .confirm-all-list-more {
+    color: rgba(0, 0, 0, 0.5);
+    font-style: italic;
+
+    &::before {
+      background: transparent;
+    }
+  }
+}
+
+.confirm-all-note {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.6);
 }

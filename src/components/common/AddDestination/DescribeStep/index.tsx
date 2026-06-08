@@ -5,6 +5,8 @@ import {
     type Dispatch,
     type SetStateAction,
 } from 'react';
+import moment from 'moment';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -14,6 +16,9 @@ import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import InputField from 'components/common/FormFields/InputField';
 import AirportAutocomplete from 'components/common/FormFields/AirportAutocomplete';
+import AirlineLogo, {
+    deriveAirlineCode,
+} from 'components/common/AirlineLogo';
 import { parseFlightInfo } from 'components/common/AddPlaceBtn/parseFlightInfo';
 import { parseTransitEntry } from 'components/common/AddPlaceBtn/parseTransitQuery';
 import { ACTIVITY_KIND, ADD_METHOD } from 'constants';
@@ -84,6 +89,9 @@ const DescribeStep = ({
     // right to the per-segment form with every leg shown.
     const fieldsOpen = method === ADD_METHOD.CUSTOM || isEdit;
     const [showDetails, setShowDetails] = useState(fieldsOpen);
+    // Once the smart text has parsed into a summary we collapse the tall input
+    // into a compact success chip; "Edit description" re-reveals the input.
+    const [editingSmart, setEditingSmart] = useState(false);
     // Track whether we've already auto-parsed the current smart text so a
     // re-render doesn't clobber subsequent manual edits.
     const parsedSmartRef = useRef<string | null>(null);
@@ -296,24 +304,41 @@ const DescribeStep = ({
                 />
             )}
 
-            {showSmartBox && (
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        Describe your {activeMode?.label}
-                    </label>
-                    <div className="transport-smart">
-                        <AutoAwesomeRoundedIcon className="transport-smart-spark" />
-                        <InputField
-                            variant="bare"
-                            name="transport-smart"
-                            value={transport.smartText}
-                            required={false}
-                            placeholder={smartPlaceholder(kind)}
-                            onChange={(e) => handleSmartText(e.target.value)}
-                        />
+            {showSmartBox &&
+                (collapsedSummary && !editingSmart ? (
+                    <div className="add-destination-field">
+                        <div className="transport-smart-chip">
+                            <AutoAwesomeRoundedIcon className="transport-smart-spark" />
+                            <span className="transport-smart-chip-text">
+                                {collapsedSummary}
+                            </span>
+                            <button
+                                type="button"
+                                className="transport-smart-chip-edit"
+                                onClick={() => setEditingSmart(true)}
+                            >
+                                Edit description
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div className="add-destination-field">
+                        <label className="add-destination-label">
+                            Describe your {activeMode?.label}
+                        </label>
+                        <div className="transport-smart">
+                            <AutoAwesomeRoundedIcon className="transport-smart-spark" />
+                            <InputField
+                                variant="bare"
+                                name="transport-smart"
+                                value={transport.smartText}
+                                required={false}
+                                placeholder={smartPlaceholder(kind)}
+                                onChange={(e) => handleSmartText(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                ))}
 
             {hasUnresolvedAirport && (
                 <p className="describe-step-airport-warn" role="alert">
@@ -375,6 +400,8 @@ const DescribeStep = ({
                     segment={transitSeg ?? emptyTransitSegment(isoDefaultDate)}
                     isRental={isRentalKind(kind)}
                     tripMaxDate={tripMaxDate}
+                    isoDefaultDate={isoDefaultDate}
+                    ModeIcon={activeMode?.Icon}
                     onField={setTransitField}
                 />
             )}
@@ -438,15 +465,27 @@ interface FlightFieldsProps {
     onRemoveLeg: (idx: number) => void;
 }
 
-/** Summary shown on a collapsed leg header — the flight number if set,
- *  else the "DEP → ARR" route, else nothing. */
-const flightSegmentSummary = (seg: FlightInfo): string => {
-    const fn = seg.flightNumber?.trim().toUpperCase();
-    if (fn) return fn;
+/** "DEP → ARR" route string for a leg, or '' when neither airport is set. */
+const flightRoute = (seg: FlightInfo): string => {
     const dep = seg.departAirport?.trim().toUpperCase();
     const arr = seg.arrivalAirport?.trim().toUpperCase();
     if (dep || arr) return `${dep || '—'} → ${arr || '—'}`;
     return '';
+};
+
+/** "Jun 15 · 10:30 AM → 3:20 PM" — the leg's schedule for the collapsed
+ *  header. Date shows once (depart date); the two times bracket the arrow.
+ *  Returns '' when nothing schedulable is set. */
+const flightSchedule = (seg: FlightInfo): string => {
+    const day = seg.departDate
+        ? moment(seg.departDate, 'YYYY-MM-DD').format('MMM D')
+        : '';
+    const fmtTime = (t?: string) =>
+        t ? moment(t, 'HH:mm').format('h:mm A') : '';
+    const dep = fmtTime(seg.departTime);
+    const arr = fmtTime(seg.arrivalTime);
+    const times = dep || arr ? `${dep || '—'} → ${arr || '—'}` : '';
+    return [day, times].filter(Boolean).join(' · ');
 };
 
 /** One collapsible card per flight leg — mirrors the Add-Activity flight
@@ -483,17 +522,34 @@ const FlightFields = ({
             return next;
         });
 
+    // Vertical airport path (DEP ↓ ARR ↓ …) shown above the add button so the
+    // whole flight is visible at a glance. Built from each leg's depart code
+    // plus the final leg's arrival, collapsing the shared stop between two
+    // legs (a leg's arrival == the next leg's depart) into one entry.
+    const pathStops: string[] = [];
+    const pushStop = (code?: string) => {
+        const c = code?.trim().toUpperCase();
+        if (c && pathStops[pathStops.length - 1] !== c) pathStops.push(c);
+    };
+    segments.forEach((seg) => {
+        pushStop(seg.departAirport);
+        pushStop(seg.arrivalAirport);
+    });
+
     return (
         <>
             {segments.map((seg, idx) => {
                 const open = openSegments.has(idx);
-                const sub = flightSegmentSummary(seg);
+                const route = flightRoute(seg);
+                const schedule = flightSchedule(seg);
+                const fn = seg.flightNumber?.trim().toUpperCase();
+                const carrier = deriveAirlineCode(null, seg.flightNumber);
                 return (
                     <div key={idx} className="add-destination-segment">
                         <div className="add-destination-segment-head">
                             <button
                                 type="button"
-                                className="add-destination-segment-toggle"
+                                className="add-destination-segment-toggle flight-segment-toggle"
                                 onClick={() => toggle(idx)}
                                 aria-expanded={open}
                             >
@@ -502,12 +558,40 @@ const FlightFields = ({
                                 ) : (
                                     <ExpandMoreRoundedIcon fontSize="small" />
                                 )}
-                                <span className="add-destination-segment-title">
-                                    Segment {idx + 1}
-                                    {sub && (
-                                        <span className="add-destination-segment-sub">
-                                            {' · '}
-                                            {sub}
+                                <span className="flight-segment-header">
+                                    <span className="flight-segment-route">
+                                        <span className="flight-segment-seg">
+                                            Segment {idx + 1}
+                                        </span>
+                                        {route && (
+                                            <span className="flight-segment-path">
+                                                {route}
+                                            </span>
+                                        )}
+                                    </span>
+                                    {(fn || schedule) && (
+                                        <span className="flight-segment-meta">
+                                            {fn && (
+                                                <span className="flight-segment-flight">
+                                                    <AirlineLogo
+                                                        flightNumber={
+                                                            seg.flightNumber
+                                                        }
+                                                        className="flight-segment-logo"
+                                                    />
+                                                    {fn}
+                                                    {carrier && (
+                                                        <span className="flight-segment-carrier">
+                                                            {carrier}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            )}
+                                            {schedule && (
+                                                <span className="flight-segment-schedule">
+                                                    {schedule}
+                                                </span>
+                                            )}
                                         </span>
                                     )}
                                 </span>
@@ -577,96 +661,55 @@ const FlightFields = ({
                                     </div>
                                 </div>
                                 <div className="add-destination-row">
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">
-                                            Depart date
-                                        </label>
-                                        <InputField
-                                            value={seg.departDate ?? ''}
-                                            type="date"
-                                            maxDate={tripMaxDate}
-                                            name={`departDate-${idx}`}
-                                            onChange={(e) =>
-                                                onField(
-                                                    idx,
-                                                    'departDate',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">
-                                            Depart time
-                                        </label>
-                                        <InputField
-                                            value={seg.departTime ?? ''}
-                                            name={`departTime-${idx}`}
-                                            type="time"
-                                            label=""
-                                            onChange={(e) =>
-                                                onField(
-                                                    idx,
-                                                    'departTime',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                                <div className="add-destination-row">
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">
-                                            Arrive date
-                                        </label>
-                                        <InputField
-                                            value={seg.arrivalDate ?? ''}
-                                            type="date"
-                                            minDate={
-                                                seg.departDate || isoDefaultDate
-                                            }
-                                            maxDate={tripMaxDate}
-                                            name={`arrivalDate-${idx}`}
-                                            onChange={(e) =>
-                                                onField(
-                                                    idx,
-                                                    'arrivalDate',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                    <div className="add-destination-field">
-                                        <label className="add-destination-label">
-                                            Arrive time
-                                        </label>
-                                        <InputField
-                                            value={seg.arrivalTime ?? ''}
-                                            name={`arrivalTime-${idx}`}
-                                            type="time"
-                                            label=""
-                                            onChange={(e) =>
-                                                onField(
-                                                    idx,
-                                                    'arrivalTime',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
+                                    <DateTimeField
+                                        label="Depart"
+                                        value={toDateTime(
+                                            seg.departDate,
+                                            seg.departTime,
+                                        )}
+                                        maxDate={tripMaxDate}
+                                        onChange={(date, time) => {
+                                            onField(idx, 'departDate', date);
+                                            onField(idx, 'departTime', time);
+                                        }}
+                                    />
+                                    <DateTimeField
+                                        label="Arrive"
+                                        value={toDateTime(
+                                            seg.arrivalDate,
+                                            seg.arrivalTime,
+                                        )}
+                                        minDate={
+                                            seg.departDate || isoDefaultDate
+                                        }
+                                        maxDate={tripMaxDate}
+                                        onChange={(date, time) => {
+                                            onField(idx, 'arrivalDate', date);
+                                            onField(idx, 'arrivalTime', time);
+                                        }}
+                                    />
                                 </div>
                             </div>
                         )}
                     </div>
                 );
             })}
+            {pathStops.length > 1 && (
+                <ul className="flight-path" aria-label="Flight route">
+                    {pathStops.map((stop, i) => (
+                        <li key={`${stop}-${i}`} className="flight-path-stop">
+                            {stop}
+                        </li>
+                    ))}
+                </ul>
+            )}
             <button
                 type="button"
                 className="add-destination-add-leg"
                 onClick={onAddLeg}
             >
                 <AddRoundedIcon fontSize="small" />
-                Add segment (stopover)
+                Add stopover
             </button>
         </>
     );
@@ -676,27 +719,114 @@ interface TransitFieldsProps {
     segment: TransitInfo;
     isRental: boolean;
     tripMaxDate?: string;
+    isoDefaultDate: string;
+    /** Transit-mode icon (train / bus / ferry / car) shown in the collapsed
+     *  header meta line, mirroring the flight card's airline logo slot. */
+    ModeIcon?: typeof EditRoundedIcon;
     onField: (idx: number, name: keyof TransitInfo, value: string) => void;
 }
 
-/** Editable transit fields (single leg). Labels re-map for rental cars,
- *  mirroring AddPlaceBtn's TransitForm vocabulary. */
+/** "FROM → TO" route string for a transit leg, or '' when neither station is
+ *  set. Mirrors `flightRoute` but keeps the user's casing (station names, not
+ *  IATA codes). */
+const transitRoute = (seg: TransitInfo): string => {
+    const dep = seg.departStation?.trim();
+    const arr = seg.arrivalStation?.trim();
+    if (dep || arr) return `${dep || '—'} → ${arr || '—'}`;
+    return '';
+};
+
+/** Provider/number summary for the collapsed meta line — "Renfe 3152", or
+ *  just one side when only one is set. '' when neither is present. */
+const transitOperatorLine = (seg: TransitInfo): string =>
+    [seg.operator?.trim(), seg.number?.trim()].filter(Boolean).join(' ');
+
+/** "Jun 15 · 10:30 AM → 3:20 PM" — the leg's schedule for the collapsed
+ *  header (depart date once, the two times bracketing the arrow). Shares the
+ *  shape of `flightSchedule`. */
+const transitSchedule = (seg: TransitInfo): string => {
+    const day = seg.departDate
+        ? moment(seg.departDate, 'YYYY-MM-DD').format('MMM D')
+        : '';
+    const fmtTime = (t?: string) =>
+        t ? moment(t, 'HH:mm').format('h:mm A') : '';
+    const dep = fmtTime(seg.departTime);
+    const arr = fmtTime(seg.arrivalTime);
+    const times = dep || arr ? `${dep || '—'} → ${arr || '—'}` : '';
+    return [day, times].filter(Boolean).join(' · ');
+};
+
+/** Combine the model's separate `date` (YYYY-MM-DD) + `time` (HH:mm) strings
+ *  into a single moment for the DateTimePicker. Returns null when neither is
+ *  set so an unfilled control renders blank (not today). */
+const toDateTime = (date?: string, time?: string): moment.Moment | null => {
+    if (!date && !time) return null;
+    const m = moment(
+        `${date || moment().format('YYYY-MM-DD')} ${time || '00:00'}`,
+        'YYYY-MM-DD HH:mm',
+    );
+    return m.isValid() ? m : null;
+};
+
+interface DateTimeFieldProps {
+    label: string;
+    value: moment.Moment | null;
+    minDate?: string;
+    maxDate?: string;
+    /** Splits the combined value back into the model's date + time strings.
+     *  Empty `date`/`time` when the picker is cleared. */
+    onChange: (date: string, time: string) => void;
+}
+
+/** A single date+time control that writes back to the two separate model
+ *  fields — used for both the depart and arrival rows in Schedule. */
+const DateTimeField = ({
+    label,
+    value,
+    minDate,
+    maxDate,
+    onChange,
+}: DateTimeFieldProps) => (
+    <div className="add-destination-field transit-datetime">
+        <label className="add-destination-label">{label}</label>
+        <DateTimePicker
+            value={value}
+            onChange={(m) =>
+                m && m.isValid()
+                    ? onChange(m.format('YYYY-MM-DD'), m.format('HH:mm'))
+                    : onChange('', '')
+            }
+            {...(minDate ? { minDate: moment(minDate) } : {})}
+            {...(maxDate ? { maxDate: moment(maxDate) } : {})}
+        />
+    </div>
+);
+
+/** Editable transit fields (single leg) as ONE collapsible segment card,
+ *  visually identical to a `FlightFields` leg: a rich collapsed header
+ *  (Segment 1 · FROM → TO over a muted provider/number · schedule line) that
+ *  expands to the detail fields. Labels re-map for rental cars, mirroring
+ *  AddPlaceBtn's TransitForm vocabulary, and the collapsed meta line reads
+ *  sensibly for train / bus / ferry / rental alike. Defaults collapsed so the
+ *  compact summary is the resting state and the user expands to edit. */
 const TransitFields = ({
     segment,
     isRental,
     tripMaxDate,
+    isoDefaultDate,
+    ModeIcon,
     onField,
 }: TransitFieldsProps) => {
+    const [open, setOpen] = useState(false);
+
     const labels = isRental
         ? {
               operator: 'Rental company',
               number: 'Confirmation number',
               departStation: 'Pickup location',
               arrivalStation: 'Dropoff location (optional)',
-              departDate: 'Pickup date',
-              departTime: 'Pickup time',
-              arrivalDate: 'Dropoff date (optional)',
-              arrivalTime: 'Dropoff time (optional)',
+              departDateTime: 'Pickup',
+              arrivalDateTime: 'Dropoff (optional)',
               classOrSeat: 'Car class (optional)',
           }
         : {
@@ -704,150 +834,160 @@ const TransitFields = ({
               number: 'Vehicle number (optional)',
               departStation: 'Departure location',
               arrivalStation: 'Arrival location (optional)',
-              departDate: 'Depart date',
-              departTime: 'Depart time',
-              arrivalDate: 'Arrival date (optional)',
-              arrivalTime: 'Arrival time (optional)',
+              departDateTime: 'Depart',
+              arrivalDateTime: 'Arrival (optional)',
               classOrSeat: 'Seat or class (optional)',
           };
 
+    const route = transitRoute(segment);
+    const operatorLine = transitOperatorLine(segment);
+    const schedule = transitSchedule(segment);
+
     return (
         <div className="add-destination-segment">
-            <div className="add-destination-row">
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.operator}
-                    </label>
-                    <InputField
-                        value={segment.operator ?? ''}
-                        name="transitOperator"
-                        label=""
-                        required={!isRental}
-                        onChange={(e) =>
-                            onField(0, 'operator', e.target.value)
-                        }
-                    />
-                </div>
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.number}
-                    </label>
-                    <InputField
-                        value={segment.number ?? ''}
-                        name="transitNumber"
-                        label=""
-                        required={false}
-                        onChange={(e) => onField(0, 'number', e.target.value)}
-                    />
-                </div>
+            <div className="add-destination-segment-head">
+                <button
+                    type="button"
+                    className="add-destination-segment-toggle flight-segment-toggle"
+                    onClick={() => setOpen((v) => !v)}
+                    aria-expanded={open}
+                >
+                    {open ? (
+                        <ExpandLessRoundedIcon fontSize="small" />
+                    ) : (
+                        <ExpandMoreRoundedIcon fontSize="small" />
+                    )}
+                    <span className="flight-segment-header">
+                        <span className="flight-segment-route">
+                            <span className="flight-segment-seg">Segment 1</span>
+                            {route && (
+                                <span className="flight-segment-path">
+                                    {route}
+                                </span>
+                            )}
+                        </span>
+                        {(operatorLine || schedule) && (
+                            <span className="flight-segment-meta">
+                                {operatorLine && (
+                                    <span className="flight-segment-flight">
+                                        {ModeIcon && (
+                                            <ModeIcon className="transit-segment-mode" />
+                                        )}
+                                        {operatorLine}
+                                    </span>
+                                )}
+                                {schedule && (
+                                    <span className="flight-segment-schedule">
+                                        {schedule}
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                    </span>
+                </button>
             </div>
-            <div className="add-destination-row">
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.departStation}
-                    </label>
-                    <InputField
-                        value={segment.departStation ?? ''}
-                        name="transitDepartStation"
-                        label=""
-                        onChange={(e) =>
-                            onField(0, 'departStation', e.target.value)
-                        }
-                    />
+            {open && (
+                <div className="add-destination-segment-body">
+                    <div className="add-destination-field">
+                        <label className="add-destination-label">
+                            {labels.operator}
+                        </label>
+                        <InputField
+                            value={segment.operator ?? ''}
+                            name="transitOperator"
+                            label=""
+                            required={!isRental}
+                            onChange={(e) =>
+                                onField(0, 'operator', e.target.value)
+                            }
+                        />
+                    </div>
+                    <div className="add-destination-field">
+                        <label className="add-destination-label">
+                            {labels.number}
+                        </label>
+                        <InputField
+                            value={segment.number ?? ''}
+                            name="transitNumber"
+                            label=""
+                            required={false}
+                            onChange={(e) =>
+                                onField(0, 'number', e.target.value)
+                            }
+                        />
+                    </div>
+                    <div className="add-destination-row">
+                        <div className="add-destination-field">
+                            <label className="add-destination-label">
+                                {labels.departStation}
+                            </label>
+                            <InputField
+                                value={segment.departStation ?? ''}
+                                name="transitDepartStation"
+                                label=""
+                                onChange={(e) =>
+                                    onField(0, 'departStation', e.target.value)
+                                }
+                            />
+                        </div>
+                        <div className="add-destination-field">
+                            <label className="add-destination-label">
+                                {labels.arrivalStation}
+                            </label>
+                            <InputField
+                                value={segment.arrivalStation ?? ''}
+                                name="transitArrivalStation"
+                                label=""
+                                required={false}
+                                onChange={(e) =>
+                                    onField(0, 'arrivalStation', e.target.value)
+                                }
+                            />
+                        </div>
+                    </div>
+                    <div className="add-destination-row">
+                        <DateTimeField
+                            label={labels.departDateTime}
+                            value={toDateTime(
+                                segment.departDate,
+                                segment.departTime,
+                            )}
+                            maxDate={tripMaxDate}
+                            onChange={(date, time) => {
+                                onField(0, 'departDate', date);
+                                onField(0, 'departTime', time);
+                            }}
+                        />
+                        <DateTimeField
+                            label={labels.arrivalDateTime}
+                            value={toDateTime(
+                                segment.arrivalDate,
+                                segment.arrivalTime,
+                            )}
+                            minDate={segment.departDate || isoDefaultDate}
+                            maxDate={tripMaxDate}
+                            onChange={(date, time) => {
+                                onField(0, 'arrivalDate', date);
+                                onField(0, 'arrivalTime', time);
+                            }}
+                        />
+                    </div>
+                    <div className="add-destination-field">
+                        <label className="add-destination-label">
+                            {labels.classOrSeat}
+                        </label>
+                        <InputField
+                            value={segment.classOrSeat ?? ''}
+                            name="transitClassOrSeat"
+                            label=""
+                            required={false}
+                            onChange={(e) =>
+                                onField(0, 'classOrSeat', e.target.value)
+                            }
+                        />
+                    </div>
                 </div>
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.arrivalStation}
-                    </label>
-                    <InputField
-                        value={segment.arrivalStation ?? ''}
-                        name="transitArrivalStation"
-                        label=""
-                        required={false}
-                        onChange={(e) =>
-                            onField(0, 'arrivalStation', e.target.value)
-                        }
-                    />
-                </div>
-            </div>
-            <div className="add-destination-row">
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.departDate}
-                    </label>
-                    <InputField
-                        value={segment.departDate ?? ''}
-                        type="date"
-                        maxDate={tripMaxDate}
-                        name="transitDepartDate"
-                        onChange={(e) =>
-                            onField(0, 'departDate', e.target.value)
-                        }
-                    />
-                </div>
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.departTime}
-                    </label>
-                    <InputField
-                        value={segment.departTime ?? ''}
-                        name="transitDepartTime"
-                        type="time"
-                        label=""
-                        required={false}
-                        onChange={(e) =>
-                            onField(0, 'departTime', e.target.value)
-                        }
-                    />
-                </div>
-            </div>
-            <div className="add-destination-row">
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.arrivalDate}
-                    </label>
-                    <InputField
-                        value={segment.arrivalDate ?? ''}
-                        type="date"
-                        minDate={segment.departDate || undefined}
-                        maxDate={tripMaxDate}
-                        name="transitArrivalDate"
-                        required={false}
-                        onChange={(e) =>
-                            onField(0, 'arrivalDate', e.target.value)
-                        }
-                    />
-                </div>
-                <div className="add-destination-field">
-                    <label className="add-destination-label">
-                        {labels.arrivalTime}
-                    </label>
-                    <InputField
-                        value={segment.arrivalTime ?? ''}
-                        name="transitArrivalTime"
-                        type="time"
-                        label=""
-                        required={false}
-                        onChange={(e) =>
-                            onField(0, 'arrivalTime', e.target.value)
-                        }
-                    />
-                </div>
-            </div>
-            <div className="add-destination-field">
-                <label className="add-destination-label">
-                    {labels.classOrSeat}
-                </label>
-                <InputField
-                    value={segment.classOrSeat ?? ''}
-                    name="transitClassOrSeat"
-                    label=""
-                    required={false}
-                    onChange={(e) =>
-                        onField(0, 'classOrSeat', e.target.value)
-                    }
-                />
-            </div>
+            )}
         </div>
     );
 };
