@@ -8,7 +8,7 @@
 } from 'react';
 import { produce } from 'immer';
 import moment from 'moment';
-import { isSameDay } from 'utils';
+import { isSameDay, remapTripDatesToRange } from 'utils';
 import { TRIP_BASIC } from 'constants';
 import type {
     Activity,
@@ -216,13 +216,16 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                 draft.endDate = draft.startDate;
             }
 
-            // Re-anchor orphan activities after a single-trip date change.
-            // The "/place → Add to itinerary → start fresh trip" flow stamps
-            // a place activity at today before the user picks real dates;
-            // once they pick dates that exclude today, the activity would
-            // otherwise vanish. Sweep up any single-trip itinerary day whose
-            // date falls outside [startDate, endDate] and re-park its
-            // activities on startDate so they remain on day 1.
+            // Single-destination date change: re-align the itinerary days to
+            // the new range so activities move WITH the trip instead of being
+            // stranded on an old day. We SHIFT every day by the start delta and
+            // then FIT onto [startDate, endDate] (pad new dates, drop ones the
+            // range no longer covers). The earlier version only re-homed days
+            // that fell OUTSIDE the range, so moving the start *earlier* while
+            // the end stayed in range (e.g. 6/12→6/13→6/12) left a seeded day-1
+            // flight stuck on the old start. `remapTripDatesToRange` is the same
+            // shift+fit the edit modal uses — sharing it keeps create + edit
+            // consistent and also re-homes the "/place stamped at today" seed.
             const dateChanged =
                 'startDate' in action.payload || 'endDate' in action.payload;
             if (
@@ -231,41 +234,10 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                 draft.startDate &&
                 draft.endDate
             ) {
-                const start = moment(draft.startDate);
-                const end = moment(draft.endDate);
-                const dest = draft.destinations[0];
-                const itin = dest?.itinerary;
-                if (start.isValid() && end.isValid() && itin && itin.length > 0) {
-                    const orphans: Activity[] = [];
-                    const kept: ItineraryDay[] = [];
-                    for (const day of itin) {
-                        const d = moment(day.date);
-                        if (
-                            !d.isValid() ||
-                            d.isBefore(start, 'day') ||
-                            d.isAfter(end, 'day')
-                        ) {
-                            orphans.push(...day.activities);
-                        } else {
-                            kept.push(day);
-                        }
-                    }
-                    if (orphans.length > 0) {
-                        let targetDay = kept.find((day) =>
-                            isSameDay(day.date, draft.startDate)
-                        );
-                        if (!targetDay) {
-                            targetDay = {
-                                id: generateId(),
-                                date: draft.startDate,
-                                activities: [],
-                            };
-                            kept.push(targetDay);
-                        }
-                        targetDay.activities.push(...orphans);
-                        dest.itinerary = kept;
-                    }
-                }
+                draft.destinations = remapTripDatesToRange(
+                    draft as TripState,
+                    prevStartDate
+                ).destinations;
             }
 
             // Multi-destination create flow: the country / city page seeds the
