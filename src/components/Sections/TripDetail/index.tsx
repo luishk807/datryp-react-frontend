@@ -13,6 +13,7 @@ import {
   Grid,
   IconButton,
   Snackbar,
+  useMediaQuery,
 } from "@mui/material";
 import Menu, { MenuActionItem } from "components/common/Menu";
 import IosShareIcon from "@mui/icons-material/IosShare";
@@ -39,6 +40,9 @@ import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import DownloadForOfflineOutlinedIcon from "@mui/icons-material/DownloadForOfflineOutlined";
+import CloudDoneRoundedIcon from "@mui/icons-material/CloudDoneRounded";
+import SyncRoundedIcon from "@mui/icons-material/SyncRounded";
 import classnames from "classnames";
 import Layout from "components/common/Layout/SubLayout";
 import BudgetSummary from "components/BudgetSummary";
@@ -80,7 +84,7 @@ import { useTripDayReminders } from "hooks/useTripDayReminders";
 import { useOfflineTrip } from "hooks/useOfflineTrip";
 import { useIsOffline } from "hooks/useIsOffline";
 import TripOfflineButton from "components/TripOfflineButton";
-import { TRIP_BASIC, TRIP_STATUS } from "constants";
+import { OFFLINE_STATUS, TRIP_BASIC, TRIP_STATUS } from "constants";
 import { exportTripToExcel, getTripExcelBlob } from "utils/exportTripExcel";
 import { exportTripToPdf, getTripPdfBlob, printTripPdf } from "utils/exportTripPdf";
 import { useEmailTripExport } from "api/hooks/useEmailTripExport";
@@ -165,7 +169,15 @@ export const TripDetail = () => {
   // Text-only mode: hide every activity's hero image so the itinerary reads
   // as a dense text list. Session-only (resets on reload), independent of
   // focus mode. Applied as a class on the trip wrapper below.
-  const [hideImages, setHideImages] = useState(false);
+  // Activity hero images default to hidden on mobile (dense, scannable
+  // itinerary — they make cards much taller), shown on desktop. Either way
+  // the header "show images" toggle flips it. Evaluated once at mount; a
+  // view toggle doesn't need to track later resizes.
+  const [hideImages, setHideImages] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 720px)").matches,
+  );
   // Night view: dark theme for the itinerary (+ its chrome). Session-only
   // and tied to this visit — resets to day mode when the user leaves the
   // itinerary (the component unmounts), like the focus/text toggles above.
@@ -1440,6 +1452,12 @@ const TripDetailHeader = ({
   const [confirmDialog, setConfirmDialog] = useState<
     null | "cancel" | "delete"
   >(null);
+  // On mobile the header action row is tight, so the offline control moves
+  // off the row into the kebab menu (see the offline item there). Desktop
+  // keeps the richer inline button/chip.
+  const isMobile = useMediaQuery("(max-width: 720px)");
+  const showOffline =
+    !focusMode && statusName === TRIP_STATUS.CONFIRMED;
 
   const handlePrint = () => {
     exportModalRef.current?.closeModal();
@@ -1682,7 +1700,7 @@ const TripDetailHeader = ({
             Planning itinerary is still changing, so an offline snapshot
             would go stale; once Confirmed the plan is locked and worth
             carrying abroad. */}
-        {!focusMode && statusName === TRIP_STATUS.CONFIRMED && (
+        {showOffline && !isMobile && (
           <TripOfflineButton
             status={offlineStatus}
             savedAt={offlineSavedAt}
@@ -1853,6 +1871,35 @@ const TripDetailHeader = ({
               }}
             />
           )}
+          {/* Offline lives in the menu on mobile (the header row is too
+              tight for it there); desktop keeps the inline button above. */}
+          {showOffline &&
+            isMobile &&
+            (offlineStatus === OFFLINE_STATUS.SAVED ? (
+              <MenuActionItem
+                icon={<CloudDoneRoundedIcon />}
+                label="Remove offline copy"
+                onClick={() => {
+                  closeMenu();
+                  onRemoveOffline();
+                }}
+              />
+            ) : offlineStatus === OFFLINE_STATUS.SYNCING ? (
+              <MenuActionItem
+                icon={<SyncRoundedIcon />}
+                label="Saving offline…"
+                onClick={closeMenu}
+              />
+            ) : (
+              <MenuActionItem
+                icon={<DownloadForOfflineOutlinedIcon />}
+                label={isOffline ? "Save offline (connect first)" : "Save offline"}
+                onClick={() => {
+                  closeMenu();
+                  if (!isOffline) onDownloadOffline();
+                }}
+              />
+            ))}
           {canDuplicate && (
             <MenuActionItem
               icon={<ContentCopyRoundedIcon />}

@@ -248,12 +248,6 @@
   .trip-detail-focus-label {
     display: none;
   }
-
-  // Text-only toggle is redundant on mobile: activity images are already
-  // hidden here (view mode), so there's nothing to hide. Drop the button.
-  .trip-detail-textonly-toggle {
-    display: none;
-  }
 }
 
 // Floating "Show overview" exit pill, shown only in focus mode (the
