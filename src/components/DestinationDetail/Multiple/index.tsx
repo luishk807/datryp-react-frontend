@@ -229,7 +229,7 @@ const Multiple = ({
                                                     buttonType="text"
                                                     onConfirm={() => onChangeDestination('delete', trip.id)}
                                                 >
-                                                    You are about to delete {country}. Are you sure you want to delete this item
+                                                    You are about to delete {country}. Are you sure? This can&rsquo;t be undone.
                                                 </DialogBox>
                                             </span>
                                         </div>
