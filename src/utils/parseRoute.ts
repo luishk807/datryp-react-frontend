@@ -78,18 +78,31 @@ export const parseRouteStops = (text: string | undefined): string[] => {
         if (cleaned) stopovers.push(cleaned);
         return ' ';
     });
-    // 2. Then the bare trailing "from X" form, on what's left.
+
+    // 2. A trailing "from X" is ambiguous: with an origin already before the
+    //    "to" it's a STOPOVER ("panama to argentina from colombia"); without
+    //    one it's the ORIGIN of a reversed phrasing ("flight to newark from
+    //    switzerland" = switzerland → newark). Decide by whether a real place
+    //    precedes the first "to".
+    const originBeforeTo =
+        cleanPlacePhrase(raw.split(/\s+(?:to|->|→)\s+/i)[0]).length > 0;
+    let reversedOrigin: string | undefined;
     raw = raw.replace(TRAILING_FROM, (_m, toDest: string, place: string) => {
         const cleaned = cleanPlacePhrase(place);
-        if (cleaned) stopovers.push(cleaned);
+        if (cleaned) {
+            if (originBeforeTo) stopovers.push(cleaned);
+            else reversedOrigin = cleaned;
+        }
         return toDest;
     });
 
-    // 3. Parse the remaining "A to B [to C]" forward route.
-    const main = raw
+    // 3. Parse the remaining "A to B [to C]" forward route; a reversed-phrasing
+    //    origin leads it.
+    let main = raw
         .split(ROUTE_SEPARATOR_RUN)
         .map(cleanPlacePhrase)
         .filter(Boolean);
+    if (reversedOrigin) main = [reversedOrigin, ...main];
 
     // 4. Splice the stopover(s) in after the origin, before the rest:
     //    "A to B with stopover in C" → [A, C, B]; "A to B to C" → [A, B, C].
