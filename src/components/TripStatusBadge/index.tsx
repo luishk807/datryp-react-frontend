@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ConfirmEmptyDaysModal, {
@@ -329,7 +330,10 @@ export const TripStatusBadge = ({
                 maxWidth="xs"
                 fullWidth
             >
-                <DialogTitle>Some activities aren&rsquo;t confirmed</DialogTitle>
+                <DialogTitle className="confirm-all-title">
+                    <WarningAmberRoundedIcon className="confirm-all-title-icon" />
+                    Some activities aren&rsquo;t confirmed
+                </DialogTitle>
                 <DialogContent>
                     <p>
                         {unconfirmedNames.length}{' '}
@@ -340,8 +344,8 @@ export const TripStatusBadge = ({
                         {unconfirmedPreview ? ` — ${unconfirmedPreview}.` : '.'}
                     </p>
                     <p>
-                        Confirming the trip will mark them all as Confirmed and
-                        lock the itinerary. You can cancel to review them first.
+                        Confirming locks the itinerary and marks everything
+                        Confirmed. Cancel to review first.
                     </p>
                 </DialogContent>
                 <DialogActions>
@@ -355,9 +359,7 @@ export const TripStatusBadge = ({
                     <ButtonCustom
                         type="standard"
                         capitalizeType="uppercase"
-                        label={
-                            isSaving ? 'Saving…' : 'Confirm all & lock trip'
-                        }
+                        label={isSaving ? 'Saving…' : 'Confirm all'}
                         onClick={handleConfirmAll}
                         disabled={isSaving}
                     />
