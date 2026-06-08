@@ -238,3 +238,26 @@
     background: rgba(60, 181, 75, 0.12);
   }
 }
+
+// "We couldn't find an airport for part of your route" — amber caution shown
+// when a flight has one airport resolved but not the other (e.g. a no-airport
+// city like Hoi An). Guides the user to pick the nearest airport manually.
+.describe-step-airport-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(246, 137, 31, 0.1);
+  color: #9a5a12;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.describe-step-warn-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 1.1rem !important;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
