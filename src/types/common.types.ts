@@ -64,6 +64,12 @@ export interface Country {
 }
 
 export interface FlightInfo {
+  /** Transport mode this booking represents. Backed by the generic
+   *  `transports` table — a flight is just `mode === 'flight'`. Defaults to
+   *  'flight' when omitted (legacy / flight-only callers). Lets a destination
+   *  ARRIVAL carry a train/bus/rental on `dest.flightInfo` without a separate
+   *  field, and TransportHeader renders the right label off it. */
+  mode?: ActivityKind;
   departDate?: string;
   departTime?: string;
   arrivalDate?: string;
@@ -71,6 +77,12 @@ export interface FlightInfo {
   flightNumber?: string;
   departAirport?: string;
   arrivalAirport?: string;
+  /** Carrier / operator for ground transport (JR, FlixBus, Hertz). Null on
+   *  flights, which identify by `flightNumber`. Maps to `transport_leg.carrier`. */
+  carrier?: string;
+  /** Free-form seat / class / fare (train class, seat number). Maps to
+   *  `transport_leg.seat_or_class`. */
+  seatOrClass?: string;
   /** Total cost for the whole booking. One number, not per-segment —
    *  multi-leg flights still have a single fare. Per-friend split
    *  (who's paying) is queued for a follow-up and will live in its own

@@ -7,7 +7,13 @@
  */
 
 import { addDays, formatDate, isValidDate } from 'utils';
-import type { ApiActivity, ApiActivityBudget, ApiItinerary } from 'api/hooks/useItineraries';
+import type {
+    ApiActivity,
+    ApiActivityBudget,
+    ApiItinerary,
+    ApiTransport,
+    ApiTransportLeg,
+} from 'api/hooks/useItineraries';
 import { ITINERARY_TYPE, TRIP_BASIC, TRIP_STATUS } from 'constants';
 import type {
     Activity,
@@ -18,6 +24,7 @@ import type {
     Friend,
     MultipleDestinations,
     SingleDestination,
+    TransitInfo,
     TripState,
 } from 'types';
 import { ACTIVITY_KIND } from 'constants';
@@ -75,69 +82,56 @@ const splitDateTime = (
     };
 };
 
-const apiFlightSegmentToFlightInfo = (s: {
-    departDate: string | null;
-    arrivalDate: string | null;
-    flightNumber: string | null;
-    departAirport: string | null;
-    arrivalAirport: string | null;
-}): FlightInfo => {
-    const dep = splitDateTime(s.departDate);
-    const arr = splitDateTime(s.arrivalDate);
+/** Map one generic transport leg into the frontend's FlightInfo leg shape
+ *  (airport/flight-number flavored). Used for flight-mode transports and for
+ *  the destination-arrival header (which renders any mode off FlightInfo). */
+const apiLegToFlightInfo = (l: ApiTransportLeg): FlightInfo => {
+    const dep = splitDateTime(l.departAt);
+    const arr = splitDateTime(l.arriveAt);
     return {
         departDate: dep.date,
         departTime: dep.time,
         arrivalDate: arr.date,
         arrivalTime: arr.time,
-        flightNumber: s.flightNumber ?? undefined,
-        departAirport: s.departAirport ?? undefined,
-        arrivalAirport: s.arrivalAirport ?? undefined,
+        flightNumber: l.number ?? undefined,
+        departAirport: l.departPoint ?? undefined,
+        arrivalAirport: l.arrivePoint ?? undefined,
+        carrier: l.carrier ?? undefined,
+        seatOrClass: l.seatOrClass ?? undefined,
     };
 };
 
-/** Map a destination-level ApiFlightInfo (headline + segments) into the
- *  frontend's FlightInfo shape. The headline drives the flat fields;
- *  each segment becomes one entry in the nested `segments` list. Both
- *  are split into date + time pairs since the form expects them
- *  separate (tripMapper recombines on save). When the API omits the
- *  segments list (legacy / pre-migration rows), a one-element list is
- *  synthesized from the headline so the form's segment-based UI doesn't
- *  collapse to an empty state on first open. */
-const apiFlightInfoToFlightInfo = (
-    f: {
-        departDate: string | null;
-        arrivalDate: string | null;
-        flightNumber: string | null;
-        departAirport: string | null;
-        arrivalAirport: string | null;
-        cost?: number | null;
-        paidBy?: { id: string; name: string | null } | null;
-        paidAt?: string | null;
-        budgets?: Array<{
-            id: string;
-            user: { id: string; email: string; name: string | null };
-            amount: number;
-        }>;
-        segments?: Array<{
-            departDate: string | null;
-            arrivalDate: string | null;
-            flightNumber: string | null;
-            departAirport: string | null;
-            arrivalAirport: string | null;
-        }>;
-    } | null,
-): FlightInfo => {
-    if (!f) return {};
-    const headline = apiFlightSegmentToFlightInfo(f);
-    const segments = f.segments?.length
-        ? f.segments.map(apiFlightSegmentToFlightInfo)
-        : [headline];
-    const budgets = f.budgets?.length
-        ? f.budgets.map((b) => ({
-              // Frontend uses numeric ids for budget entries; numeric
-              // hash of the backend UUID would collide rarely but isn't
-              // worth the complexity — just use a fresh local id since
-              // the UI keys on user, not entry id.
+/** Map one generic transport leg into the frontend's TransitInfo leg shape
+ *  (station/operator flavored). Used for train/bus/rental activity legs. */
+const apiLegToTransitInfo = (l: ApiTransportLeg): TransitInfo => {
+    const dep = splitDateTime(l.departAt);
+    const arr = splitDateTime(l.arriveAt);
+    return {
+        operator: l.carrier ?? undefined,
+        number: l.number ?? undefined,
+        departStation: l.departPoint ?? undefined,
+        arrivalStation: l.arrivePoint ?? undefined,
+        departDate: dep.date,
+        departTime: dep.time,
+        arrivalDate: arr.date,
+        arrivalTime: arr.time,
+        classOrSeat: l.seatOrClass ?? undefined,
+    };
+};
+
+/** Map a destination/trip-level ApiTransport (headline + legs + cost/payer)
+ *  into the frontend's FlightInfo shape, carrying `mode` so a train/bus/rental
+ *  arrival renders correctly in the header band. Each leg becomes one entry in
+ *  the nested `segments` list; the headline (leg 0) drives the flat fields. */
+const apiTransportToFlightInfo = (t: ApiTransport | null): FlightInfo => {
+    if (!t) return {};
+    const legs = t.legs?.length ? t.legs : [];
+    const segments = legs.map(apiLegToFlightInfo);
+    const headline = segments[0] ?? {};
+    const budgets = t.budgets?.length
+        ? t.budgets.map((b) => ({
+              // Frontend uses numeric ids for budget entries; a fresh local id
+              // is fine since the UI keys on user, not entry id.
               id: Date.now() + Math.floor(Math.random() * 1000),
               user: apiUserToFriend(b.user),
               budget: b.amount,
@@ -145,19 +139,35 @@ const apiFlightInfoToFlightInfo = (
         : undefined;
     // Backend may serialize `paidAt` as a full ISO datetime; collapse to
     // `YYYY-MM-DD` so the date picker in MarkPaidModal hydrates cleanly.
-    const paidAt = f.paidAt
-        ? (isValidDate(f.paidAt) ? formatDate(f.paidAt, 'YYYY-MM-DD') : f.paidAt)
+    const paidAt = t.paidAt
+        ? (isValidDate(t.paidAt) ? formatDate(t.paidAt, 'YYYY-MM-DD') : t.paidAt)
         : null;
     return {
         ...headline,
-        cost: f.cost ?? undefined,
-        paidBy: f.paidBy
-            ? { id: f.paidBy.id, name: f.paidBy.name }
-            : null,
+        mode: normalizeKind(t.mode),
+        cost: t.cost ?? undefined,
+        paidBy: t.paidBy ? { id: t.paidBy.id, name: t.paidBy.name } : null,
         paidAt,
         budgets,
         segments,
     };
+};
+
+/** Split an activity's transport into the frontend's flight-vs-transit shapes.
+ *  Flights populate `flightSegments`; ground transport (train/bus/rental)
+ *  populates `transitSegments`. Returns both keys (one undefined) so the spread
+ *  at the call site is clean. This is what now lets a saved train/bus activity
+ *  round-trip — previously transit legs had no backend storage and were
+ *  dropped on save. */
+const apiActivityTransport = (
+    t: ApiTransport | null,
+): Pick<Activity, 'flightSegments' | 'transitSegments'> => {
+    if (!t || !t.legs?.length) return {};
+    const mode = normalizeKind(t.mode);
+    if (mode === ACTIVITY_KIND.FLIGHT) {
+        return { flightSegments: t.legs.map(apiLegToFlightInfo) };
+    }
+    return { transitSegments: t.legs.map(apiLegToTransitInfo) };
 };
 
 const normalizeKind = (k: string | null | undefined): ActivityKind | undefined => {
@@ -198,9 +208,7 @@ const apiActivityToActivity = (a: ApiActivity): Activity => ({
     image: a.image ? { url: a.image, name: a.name } : undefined,
     status: a.status ? { id: a.status.id, name: a.status.name } : undefined,
     budget: apiBudgetsToItems(a.budgets),
-    flightSegments: a.flightSegments?.length
-        ? a.flightSegments.map(apiFlightSegmentToFlightInfo)
-        : undefined,
+    ...apiActivityTransport(a.transport),
     placeKey: a.placeKey,
     placeCity: a.placeCity,
     placeCountry: a.placeCountry,
@@ -275,7 +283,7 @@ export const apiToTripEntry = (
         return {
             ...shared,
             country: it.country ?? { id: 0, name: '' },
-            flightInfo: apiFlightInfoToFlightInfo(it.flightInfo),
+            flightInfo: apiTransportToFlightInfo(it.transport),
             intenaryDates: it.intenaryDates.map((d) => ({
                 id: uuidToNumericId(d.id),
                 date: d.date,
@@ -290,7 +298,7 @@ export const apiToTripEntry = (
             id: uuidToNumericId(d.id),
             date: d.date,
             country: d.country ?? { id: 0, name: '' },
-            flightInfo: apiFlightInfoToFlightInfo(d.flightInfo),
+            flightInfo: apiTransportToFlightInfo(d.transport),
             activities: d.activities.map(apiActivityToActivity),
         })),
     } as unknown as MultipleDestinations & { apiId: string };
@@ -308,8 +316,8 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
             {
                 id: uuidToNumericId(it.id),
                 country: it.country ?? { id: 0, name: '' },
-                flightInfo: it.flightInfo
-                    ? apiFlightInfoToFlightInfo(it.flightInfo)
+                flightInfo: it.transport
+                    ? apiTransportToFlightInfo(it.transport)
                     : undefined,
                 itinerary: it.intenaryDates.map((d) => ({
                     id: uuidToNumericId(d.id),
@@ -326,8 +334,8 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
         destinations = it.destinations.map((dest) => ({
             id: uuidToNumericId(dest.id),
             country: dest.country ?? { id: 0, name: '' },
-            flightInfo: dest.flightInfo
-                ? apiFlightInfoToFlightInfo(dest.flightInfo)
+            flightInfo: dest.transport
+                ? apiTransportToFlightInfo(dest.transport)
                 : undefined,
             startDate: dest.startDate,
             endDate: dest.endDate,
@@ -349,8 +357,8 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
             return {
                 id: uuidToNumericId(d.id),
                 country: d.country ?? { id: 0, name: '' },
-                flightInfo: d.flightInfo
-                    ? apiFlightInfoToFlightInfo(d.flightInfo)
+                flightInfo: d.transport
+                    ? apiTransportToFlightInfo(d.transport)
                     : undefined,
                 startDate: d.date,
                 endDate,

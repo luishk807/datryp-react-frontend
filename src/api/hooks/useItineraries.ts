@@ -31,42 +31,47 @@ export interface ApiCountry {
     image: string | null;
 }
 
-export interface ApiFlightInfoSegment {
-    segmentIndex: number;
-    departDate: string | null;
-    arrivalDate: string | null;
-    flightNumber: string | null;
-    departAirport: string | null;
-    arrivalAirport: string | null;
+export interface ApiTransportLeg {
+    legIndex: number;
+    departPoint: string | null;
+    arrivePoint: string | null;
+    departAt: string | null;
+    arriveAt: string | null;
+    carrier: string | null;
+    number: string | null;
+    seatOrClass: string | null;
 }
 
-export interface ApiFlightInfoBudgetEntry {
+export interface ApiTransportBudgetEntry {
     id: string;
     user: ApiUserPublic;
     amount: number;
 }
 
-export interface ApiFlightInfo {
-    departDate: string | null;
-    arrivalDate: string | null;
-    flightNumber: string | null;
-    departAirport: string | null;
-    arrivalAirport: string | null;
-    /** Total cost for the booking (whole flight, not per-segment). */
+/** A mode-agnostic transport booking (flight | train | bus | rental_car). A
+ *  flight is just `mode === 'flight'`. Generalizes the old ApiFlightInfo. */
+export interface ApiTransport {
+    mode: string;
+    /** Headline cached view of leg 0 (point/datetime/number). */
+    departPoint: string | null;
+    arrivePoint: string | null;
+    departAt: string | null;
+    arriveAt: string | null;
+    carrier: string | null;
+    number: string | null;
+    /** Total cost for the booking (whole journey). Null for activity-owned
+     *  transports — those keep their cost on the activity row. */
     cost: number | null;
-    /** Single payer (one participant covered the booking). Auto-
-     *  derived from `budgets` when the split has exactly one entry. */
+    /** Single payer (one participant covered the booking). Auto-derived from
+     *  `budgets` when the split has exactly one entry. */
     paidBy: ApiUserPublic | null;
-    /** ISO date (`YYYY-MM-DD`) the booking was paid on, set by the
-     *  organizer. Null when unpaid; cleared together with `paidBy`. */
+    /** ISO date (`YYYY-MM-DD`) the booking was paid on. Null when unpaid. */
     paidAt: string | null;
     /** Per-friend split of the cost. Empty when no split is set. */
-    budgets: ApiFlightInfoBudgetEntry[];
-    /** Per-leg breakdown for stopover flights on destination-level
-     *  flights. Always populated by the backend (at minimum a one-
-     *  element list mirroring the headline fields above) so the
-     *  client can iterate without special-casing single-leg trips. */
-    segments: ApiFlightInfoSegment[];
+    budgets: ApiTransportBudgetEntry[];
+    /** Per-leg breakdown. At minimum a one-element list mirroring the
+     *  headline so the client can iterate without special-casing single-leg. */
+    legs: ApiTransportLeg[];
 }
 
 export interface ApiActivityBudget {
@@ -96,8 +101,10 @@ export interface ApiActivity {
     /** `'place' | 'note' | 'flight'`. Null on rows persisted before
      *  the kind column shipped; frontend defaults those to `'place'`. */
     kind: string | null;
-    /** One row per flight leg. Empty for non-flight activities. */
-    flightSegments: ApiFlightInfo[];
+    /** The transport for a transport-kind activity (mode + legs). Null for
+     *  non-transport activities. Cost stays on the activity row, so this
+     *  transport's `cost`/`budgets` are null/empty. */
+    transport: ApiTransport | null;
     /** Structured place data set when the user added the activity via
      *  PlaceAutocomplete / PlaceSuggestions. Null on free-text
      *  activities ("dinner with mom"). Drives the Mapper trip-link
@@ -118,17 +125,17 @@ export interface ApiItineraryDate {
     id: string;
     date: string;
     country: ApiCountry | null;
-    flightInfo: ApiFlightInfo | null;
+    transport: ApiTransport | null;
     activities: ApiActivity[];
 }
 
 /** A first-class, date-range destination on a multi-destination trip. Owns
- *  the country + arrival flight; `intenaryDates` are this destination's own
+ *  the country + arrival transport; `intenaryDates` are this destination's own
  *  days (with activities). Empty for single trips. */
 export interface ApiDestination {
     id: string;
     country: ApiCountry;
-    flightInfo: ApiFlightInfo | null;
+    transport: ApiTransport | null;
     startDate: string;
     endDate: string;
     order: number;
@@ -150,7 +157,7 @@ export interface ApiItinerary {
     friends: ApiUserPublic[];
     organizers: ApiUserPublic[];
     country: ApiCountry | null;
-    flightInfo: ApiFlightInfo | null;
+    transport: ApiTransport | null;
     intenaryDates: ApiItineraryDate[];
     /** Multi-destination trips fill this with date-range destinations; single
      *  trips leave it empty. The flat `intenaryDates` stays populated for both
@@ -158,25 +165,31 @@ export interface ApiItinerary {
     destinations: ApiDestination[];
 }
 
-export interface FlightInfoSegmentInput {
-    departDate?: string | null;
-    arrivalDate?: string | null;
-    flightNumber?: string | null;
-    departAirport?: string | null;
-    arrivalAirport?: string | null;
+export interface TransportLegInput {
+    departPoint?: string | null;
+    arrivePoint?: string | null;
+    departAt?: string | null;
+    arriveAt?: string | null;
+    carrier?: string | null;
+    number?: string | null;
+    seatOrClass?: string | null;
 }
 
-export interface FlightInfoBudgetInput {
+export interface TransportBudgetInput {
     userId: string;
     amount: number;
 }
 
-export interface FlightInfoInput {
-    departDate?: string | null;
-    arrivalDate?: string | null;
-    flightNumber?: string | null;
-    departAirport?: string | null;
-    arrivalAirport?: string | null;
+export interface TransportInput {
+    /** 'flight' | 'train' | 'bus' | 'rental_car'. Defaults to flight server-side. */
+    mode?: string | null;
+    departPoint?: string | null;
+    arrivePoint?: string | null;
+    departAt?: string | null;
+    arriveAt?: string | null;
+    carrier?: string | null;
+    number?: string | null;
+    seatOrClass?: string | null;
     cost?: number | null;
     /** UUID of the participant who paid. Null to clear. Auto-derived
      *  server-side when `budgets` has exactly one entry. */
@@ -184,13 +197,12 @@ export interface FlightInfoInput {
     /** ISO date (`YYYY-MM-DD`) the booking was paid on. Null to clear. */
     paidAt?: string | null;
     /** Per-friend split entries. Omit / empty list = no split. */
-    budgets?: FlightInfoBudgetInput[];
-    /** Per-leg breakdown for stopover flights. Backward-compatible:
-     *  callers that only know about the flat fields can omit this and
-     *  the backend materializes a single segment_index=0 row mirroring
-     *  them. When provided, segments are the source of truth — the
-     *  flat fields above become a cached view of segments[0]. */
-    segments?: FlightInfoSegmentInput[];
+    budgets?: TransportBudgetInput[];
+    /** Per-leg breakdown. Backward-compatible: callers that only know the
+     *  flat fields can omit this and the backend materializes a single
+     *  leg_index=0 row mirroring them. When provided, legs are the source
+     *  of truth — the flat fields become a cached view of legs[0]. */
+    legs?: TransportLegInput[];
 }
 
 export interface ActivityBudgetInput {
@@ -217,10 +229,11 @@ export interface ActivityInput {
     paidByUserId?: string | null;
     paidAt?: string | null;
     budgets?: ActivityBudgetInput[];
-    /** `'place' | 'note' | 'flight'`. */
+    /** `'place' | 'note' | 'flight' | 'train' | 'bus' | 'rental_car'`. */
     kind?: string | null;
-    /** Flight legs, in chronological depart order. Empty for non-flight. */
-    flightSegments?: FlightInfoInput[];
+    /** Transport for a transport-kind activity (mode + legs). Null for
+     *  non-transport activities. Cost stays on the activity row. */
+    transport?: TransportInput | null;
     /** Structured place data captured when the user picks a real place
      *  from PlaceAutocomplete / PlaceSuggestions. All optional —
      *  free-text activities omit them and the backend stores nulls.
@@ -241,17 +254,17 @@ export interface ActivityInput {
 export interface ItineraryDayInput {
     date: string;
     countryId?: string | null;
-    flightInfo?: FlightInfoInput | null;
+    transport?: TransportInput | null;
     activities: ActivityInput[];
 }
 
-/** Multi-destination save unit. The destination owns country + arrival flight
- *  + date range; its `days` carry only date + activities. */
+/** Multi-destination save unit. The destination owns country + arrival
+ *  transport + date range; its `days` carry only date + activities. */
 export interface DestinationInput {
     countryId: string;
     startDate: string;
     endDate: string;
-    flightInfo?: FlightInfoInput | null;
+    transport?: TransportInput | null;
     note?: string | null;
     order?: number;
     days: ItineraryDayInput[];
@@ -269,9 +282,9 @@ export interface SaveItineraryInput {
     tripStatusId?: string | null;
     organizerIds: string[];
     participantIds: string[];
-    /** Single-destination only — root country / flight. */
+    /** Single-destination only — root country / transport. */
     countryId?: string | null;
-    flightInfo?: FlightInfoInput | null;
+    transport?: TransportInput | null;
     days: ItineraryDayInput[];
     /** Multi-destination trips send date-range destinations here. When present
      *  the backend uses these and ignores `days`; single trips omit it. */
@@ -299,13 +312,15 @@ const COUNTRY_FIELDS = gql`
     }
 `;
 
-const FLIGHT_FIELDS = gql`
-    fragment FlightFields on FlightInfo {
-        departDate
-        arrivalDate
-        flightNumber
-        departAirport
-        arrivalAirport
+const TRANSPORT_FIELDS = gql`
+    fragment TransportFields on Transport {
+        mode
+        departPoint
+        arrivePoint
+        departAt
+        arriveAt
+        carrier
+        number
         cost
         paidAt
         paidBy {
@@ -322,13 +337,15 @@ const FLIGHT_FIELDS = gql`
             }
             amount
         }
-        segments {
-            segmentIndex
-            departDate
-            arrivalDate
-            flightNumber
-            departAirport
-            arrivalAirport
+        legs {
+            legIndex
+            departPoint
+            arrivePoint
+            departAt
+            arriveAt
+            carrier
+            number
+            seatOrClass
         }
     }
 `;
@@ -365,12 +382,8 @@ const ACTIVITY_FIELDS = gql`
             name
         }
         kind
-        flightSegments {
-            departDate
-            arrivalDate
-            flightNumber
-            departAirport
-            arrivalAirport
+        transport {
+            ...TransportFields
         }
         placeKey
         placeCity
@@ -384,7 +397,7 @@ const ACTIVITY_FIELDS = gql`
 
 const DAY_FIELDS = gql`
     ${COUNTRY_FIELDS}
-    ${FLIGHT_FIELDS}
+    ${TRANSPORT_FIELDS}
     ${ACTIVITY_FIELDS}
     fragment DayFields on IntenaryDate {
         id
@@ -392,8 +405,8 @@ const DAY_FIELDS = gql`
         country {
             ...CountryFields
         }
-        flightInfo {
-            ...FlightFields
+        transport {
+            ...TransportFields
         }
         activities {
             ...ActivityFields
@@ -437,8 +450,8 @@ const ITINERARY_FIELDS = gql`
         country {
             ...CountryFields
         }
-        flightInfo {
-            ...FlightFields
+        transport {
+            ...TransportFields
         }
         intenaryDates {
             ...DayFields
@@ -452,8 +465,8 @@ const ITINERARY_FIELDS = gql`
             country {
                 ...CountryFields
             }
-            flightInfo {
-                ...FlightFields
+            transport {
+                ...TransportFields
             }
             intenaryDates {
                 ...DayFields
