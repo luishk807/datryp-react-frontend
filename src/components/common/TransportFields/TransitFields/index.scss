@@ -1,0 +1,9 @@
+@use '../index' as *;
+
+// Transit segment card reuses the shared `.flight-segment-*` collapsed-header
+// chrome. The only transit addition is the mode icon that fills the slot the
+// airline logo occupies on a flight card.
+.transit-segment-mode {
+  font-size: 1.05rem !important;
+  color: theme('colors.primaryGreen');
+}

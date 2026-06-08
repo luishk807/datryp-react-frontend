@@ -199,69 +199,9 @@
   color: currentColor;
 }
 
-// Flight form: one labeled block per segment so stopovers read as
-// discrete legs rather than blurring into one long form.
-.flight-segment-block {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  padding: 10px 12px 4px;
-  margin-bottom: 12px;
-  background: rgba(60, 181, 75, 0.03);
-}
-
-.flight-segment-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.flight-segment-label {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: theme('colors.primary');
-  letter-spacing: 0.02em;
-}
-
-.flight-segment-remove {
-  appearance: none;
-  background: none;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #c0392b;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background: rgba(192, 57, 43, 0.08);
-  }
-}
-
-.flight-segment-add {
-  appearance: none;
-  width: 100%;
-  background: none;
-  border: 1px dashed rgba(60, 181, 75, 0.45);
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: theme('colors.primaryGreen');
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-
-  &:hover {
-    background: rgba(60, 181, 75, 0.06);
-    border-color: theme('colors.primaryGreen');
-  }
-}
-
-// Auto-fill hint row: explains the AeroDataBox lookup + offers the
-// expand toggle. Sits between the flight number and the (collapsed by
-// default) airport / date / time grid.
+// Auto-fill hint row: explains the flight / schedule lookup. Rendered
+// inside an open transport segment (via the shared FlightFields /
+// TransitFields `renderSegmentExtra` slot), above the segment fields.
 .flight-segment-hint {
   display: flex;
   align-items: center;
@@ -287,72 +227,6 @@
 .flight-segment-hint-text {
   flex: 1;
   min-width: 140px;
-}
-
-.flight-segment-toggle {
-  appearance: none;
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: theme('colors.primaryGreen');
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.15s ease;
-
-  &:hover,
-  &:focus-visible {
-    background: rgba(60, 181, 75, 0.08);
-    outline: none;
-  }
-
-  svg {
-    font-size: 1rem !important;
-  }
-}
-
-// Whole-segment collapse toggle. Lives in the segment header to the
-// left of the optional Remove button. Flat / borderless so the header
-// reads as a row, not a button strip.
-.flight-segment-open-toggle {
-  appearance: none;
-  background: none;
-  border: none;
-  padding: 4px 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  border-radius: 6px;
-  flex: 1;
-  text-align: left;
-  transition: background-color 0.15s ease;
-
-  &:hover,
-  &:focus-visible {
-    background: rgba(0, 0, 0, 0.04);
-    outline: none;
-  }
-
-  svg {
-    font-size: 1.2rem !important;
-    color: rgba(0, 0, 0, 0.55);
-  }
-}
-
-// Sub-label that appears next to "Segment 1" once the segment has a
-// flight number — gives the user a quick way to identify what's
-// inside without expanding.
-.flight-segment-label-sub {
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.55);
-  font-size: 0.85rem;
 }
 
 // ---------- Smart entry (AI-tinted flight input) ----------

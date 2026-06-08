@@ -1,0 +1,228 @@
+// Shared field-layout utilities used by BOTH the destination editor and the
+// Add-Activity transport forms. They live here (not in AddDestination) so the
+// shared FlightFields / TransitFields render fully styled wherever they mount.
+.add-destination-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.add-destination-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.add-destination-optional {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.add-destination-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .add-destination-field {
+    margin-bottom: 0;
+  }
+
+  // Side-by-side fields: reserve two lines for every label so a wrapping
+  // label (e.g. "Arrival location (optional)") doesn't push its input down
+  // out of line with the single-line label beside it.
+  .add-destination-label {
+    min-height: 2.6em;
+  }
+}
+
+// Shared transport-segment chrome — used by BOTH FlightFields and
+// TransitFields. Each card is a collapsible leg: a "Segment N · summary"
+// header that expands the fields, with a remove control once there's more
+// than one leg. Tighter padding than the default group card so a collapsed
+// header reads as a compact row.
+.add-destination-segment {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  background: rgba(60, 181, 75, 0.03);
+  padding: 10px 12px;
+
+  &:last-of-type {
+    margin-bottom: 12px;
+  }
+
+  &:has(.add-destination-segment-body) {
+    padding: 12px 14px 14px;
+  }
+}
+
+.add-destination-segment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.add-destination-segment-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: theme('colors.primary');
+}
+
+// Segment toggle aligns its (two-line) header to the top so the chevron
+// sits next to the route line, not centered against both lines.
+.flight-segment-toggle {
+  align-items: flex-start;
+}
+
+// Two-line collapsed header: a bold route line (Segment N · DEP → ARR)
+// over a muted meta line (logo / mode icon + number + carrier · schedule).
+.flight-segment-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.flight-segment-route {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.flight-segment-path {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.flight-segment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.flight-segment-flight {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.flight-segment-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.flight-segment-carrier {
+  font-weight: 700;
+  color: theme('colors.primaryGreen');
+}
+
+.flight-segment-schedule {
+  // A dot separates the schedule from the flight line when both are present.
+  &::before {
+    content: '·';
+    margin-right: 10px;
+    color: rgba(0, 0, 0, 0.3);
+  }
+
+  &:first-child::before {
+    content: none;
+  }
+}
+
+.add-destination-segment-body {
+  margin-top: 14px;
+}
+
+.add-destination-segment-remove {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  border-radius: 6px;
+
+  &:hover {
+    color: #c0392b;
+    background: rgba(192, 57, 43, 0.08);
+  }
+}
+
+.add-destination-add-leg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px dashed theme('colors.primaryGreen');
+  background: rgba(60, 181, 75, 0.05);
+  color: theme('colors.primaryGreen');
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.12);
+  }
+}
+
+// The combined date+time picker should fill its column like the other
+// fields (MUI's DateTimePicker defaults to an auto width otherwise).
+.transit-datetime .MuiFormControl-root,
+.transit-datetime .MuiTextField-root {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .add-destination-row {
+    grid-template-columns: 1fr;
+
+    // Stacked single-column: no neighbor to align with, so drop the
+    // two-line label reservation and let labels size to their content.
+    .add-destination-label {
+      min-height: 0;
+    }
+  }
+}

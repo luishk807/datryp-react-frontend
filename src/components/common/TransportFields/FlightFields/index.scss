@@ -1,0 +1,50 @@
+@use '../index' as *;
+
+// Vertical route path above the "Add stopover" button — DEP ↓ ARR ↓ … so the
+// whole flight is visible without expanding every leg. Each stop is a dot on a
+// guide line.
+.flight-path {
+  list-style: none;
+  margin: 4px 0 10px;
+  padding: 0 0 0 4px;
+}
+
+.flight-path-stop {
+  position: relative;
+  padding: 2px 0 12px 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: theme('colors.primary');
+
+  // Dot marker.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: theme('colors.primaryGreen');
+  }
+
+  // Connecting line down to the next stop.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 12px;
+    bottom: 0;
+    width: 2px;
+    background: rgba(60, 181, 75, 0.35);
+  }
+
+  &:last-child {
+    padding-bottom: 2px;
+
+    &::after {
+      content: none;
+    }
+  }
+}
