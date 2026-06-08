@@ -417,16 +417,12 @@ const Activities = ({
       }
       return undefined;
     };
-    const direct = scan(activities);
-    if (direct) return direct;
-    for (const d of destinations ?? []) {
-      for (const day of d.itinerary ?? []) {
-        const fromDay = scan(day.activities);
-        if (fromDay) return fromDay;
-      }
-    }
-    return undefined;
-  }, [activities, destinations]);
+    // Only the CURRENT destination's own activities — never fall back to
+    // scanning every destination, which returned the first city in the whole
+    // trip (e.g. a Colombia leg suggesting Panama City). When this leg has no
+    // place yet, return undefined so suggestions scope to the country alone.
+    return scan(activities);
+  }, [activities]);
 
   // Tracks the activity whose status pill the user just clicked, so
   // we can render "Saving…" + disable just that one pill until the
