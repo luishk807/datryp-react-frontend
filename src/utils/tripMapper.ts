@@ -22,6 +22,7 @@ import type {
 } from 'api/hooks/useItineraries';
 import { ITINERARY_TYPE, TRIP_BASIC } from 'constants';
 import { deriveDestinationRanges } from 'utils/destinations';
+import { formatDate } from 'utils/date';
 
 const isFiniteNumber = (v: unknown): v is number =>
     typeof v === 'number' && Number.isFinite(v);
@@ -281,20 +282,25 @@ export const tripStateToSaveInput = (
                     activityToInput(a, day.date, statusLookup)
                 ),
             }));
-            const start =
+            const rawStart =
                 dest.startDate || destDays[0]?.date || tripState.startDate || '';
-            const end =
+            const rawEnd =
                 dest.endDate ||
                 destDays[destDays.length - 1]?.date ||
-                start;
+                rawStart;
+            // DestinationInput.startDate/endDate are GraphQL `Date`
+            // (YYYY-MM-DD). The derived end can be the trip end, which is stored
+            // as a full datetime — strip the time so coercion doesn't reject it.
+            const startDate = rawStart ? formatDate(rawStart) : '';
+            const endDate = rawEnd ? formatDate(rawEnd) : startDate;
             destinationInputs.push({
                 // Empty when the destination has no real country yet — the
                 // backend's required-field check surfaces a clear error rather
                 // than a UUID-cast 500.
                 countryId: countryIdOf(dest.country) ?? '',
-                startDate: start,
-                endDate: end,
-                flightInfo: flightToInput(dest.flightInfo, start),
+                startDate,
+                endDate,
+                flightInfo: flightToInput(dest.flightInfo, startDate),
                 note: dest.note ?? null,
                 order,
                 days: dayInputs,
