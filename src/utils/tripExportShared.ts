@@ -48,21 +48,40 @@ const flightInfoToActivity = (dest: Destination): Activity | null => {
     } as Activity;
 };
 
+/** Depart->arrival airport key for a flight activity (first leg depart, last
+ *  leg arrival). Used to spot the flight activity that DUPLICATES the
+ *  destination's synthesized arrival so only it is dropped. */
+const flightRouteKey = (a: Activity): string => {
+    const segs = a.flightSegments ?? [];
+    if (!segs.length) return '';
+    const dep = (segs[0]?.departAirport ?? '').trim().toUpperCase();
+    const arr = (segs[segs.length - 1]?.arrivalAirport ?? '').trim().toUpperCase();
+    return `${dep}>${arr}`;
+};
+
 /** Every billable activity of a destination for export, in render order: the
  *  arrival flight first (on the destination's start date), then each day's
- *  activities. When the destination carries a header flight, legacy
- *  flight-kind activities are dropped so the same flight isn't counted twice
- *  (mirrors the on-screen Multiple consolidation). */
+ *  activities. Only the flight that DUPLICATES the destination's arrival (same
+ *  route as the synthesized header flight) is dropped — a flight the user added
+ *  as its own activity still shows (and is counted). */
 export const destExportEntries = (
     dest: Destination
 ): { date: string; activity: Activity }[] => {
     const flight = flightInfoToActivity(dest);
+    const headerRoute = flight ? flightRouteKey(flight) : '';
     const entries: { date: string; activity: Activity }[] = [];
     const startDate = dest.startDate ?? dest.itinerary?.[0]?.date ?? '';
     if (flight) entries.push({ date: startDate, activity: flight });
     for (const day of dest.itinerary ?? []) {
         for (const activity of day.activities ?? []) {
-            if (flight && activity.kind === ACTIVITY_KIND.FLIGHT) continue;
+            if (
+                flight &&
+                activity.kind === ACTIVITY_KIND.FLIGHT &&
+                headerRoute !== '' &&
+                flightRouteKey(activity) === headerRoute
+            ) {
+                continue;
+            }
             entries.push({ date: day.date, activity });
         }
     }

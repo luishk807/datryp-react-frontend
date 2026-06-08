@@ -61,3 +61,17 @@
     font-size: 0.78rem !important;
   }
 }
+
+// "Some activities aren't confirmed" dialog — warning icon inline with the
+// title so it reads as a caution before the (irreversible) lock.
+.confirm-all-title {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.confirm-all-title-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 1.4rem !important;
+  flex-shrink: 0;
+}
