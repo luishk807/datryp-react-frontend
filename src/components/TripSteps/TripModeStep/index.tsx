@@ -44,7 +44,7 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
                 >
                     <FlightTakeoffRoundedIcon className="trip-mode-card-icon" />
                     <span className="trip-mode-card-title">
-                        Single destination
+                        One destination
                     </span>
                     <span className="trip-mode-card-sub">
                         One country, one set of dates.
@@ -59,7 +59,7 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
                 >
                     <PublicRoundedIcon className="trip-mode-card-icon" />
                     <span className="trip-mode-card-title">
-                        Multi destination
+                        Multiple destinations
                     </span>
                     <span className="trip-mode-card-sub">
                         Hop across countries on one itinerary.

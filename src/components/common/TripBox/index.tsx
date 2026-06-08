@@ -29,8 +29,8 @@ interface TripBoxProps {
 
 const TRIP_BOX_LABEL = {
     MULTIPLE: 'Multiple destinations',
-    KIND_SINGLE: 'Single',
-    KIND_MULTI: 'Multi-destination',
+    KIND_SINGLE: 'One destination',
+    KIND_MULTI: 'Multiple destinations',
 } as const;
 
 const formatDateRange = (start: string, end: string) => {

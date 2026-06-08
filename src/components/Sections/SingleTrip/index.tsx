@@ -107,7 +107,7 @@ const SingleTrip = () => {
 
     return (
         <TripSteps
-            title="Single Trip Detail"
+            title="Plan your trip"
             containerClassName="singleTrip"
             currentType="single"
             onBasicChange={handleBasicOnChange}
