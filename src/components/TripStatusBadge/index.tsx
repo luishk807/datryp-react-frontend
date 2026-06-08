@@ -356,7 +356,7 @@ export const TripStatusBadge = ({
                         type="standard"
                         capitalizeType="uppercase"
                         label={
-                            isSaving ? 'Saving…' : 'Confirm all & confirm trip'
+                            isSaving ? 'Saving…' : 'Confirm all & lock trip'
                         }
                         onClick={handleConfirmAll}
                         disabled={isSaving}
