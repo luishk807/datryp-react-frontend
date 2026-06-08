@@ -47,18 +47,36 @@ const isoKey = (value: string): string =>
 
 /** Expand a destination into one entry per day across its
  *  [startDate, endDate] range, attaching each day's activities (empty when a
- *  day has none yet). The arrival FLIGHT is dropped — it renders in the
- *  destination header band, not as an activity card. Saved days that fall
- *  outside the computed range are appended defensively so no real activity is
- *  ever hidden. A destination with no usable range collapses to a single day
- *  on its start date (the pre-range behavior). */
+ *  day has none yet). The destination's ARRIVAL flight renders in the header
+ *  band, not as a card — but ONLY that one is hidden, so a flight the user adds
+ *  as an activity still shows. The arrival lives either on `dest.flightInfo`
+ *  (modal-added: real segment data) or, for the country-page seed, as a flight
+ *  activity (with `dest.flightInfo` a bare stub). Saved days outside the
+ *  computed range are appended defensively so no real activity is hidden. A
+ *  destination with no usable range collapses to a single day on its start. */
 const buildDestinationDays = (dest: Destination): DestinationDay[] => {
+    // When the header is the destination's own flightInfo, every flight
+    // activity is the user's and shows. Otherwise (seed stub) the FIRST flight
+    // activity is the arrival that feeds the header — drop just that one.
+    const headerFromFlightInfo =
+        (dest.flightInfo?.segments ?? []).some(segHasData) ||
+        Boolean(dest.flightInfo?.flightNumber) ||
+        Boolean(dest.flightInfo?.departAirport);
+    let droppedHeaderFlight = false;
+    const keepActivity = (a: Activity): boolean => {
+        if (a.kind !== ACTIVITY_KIND.FLIGHT) return true;
+        if (headerFromFlightInfo) return true;
+        if (!droppedHeaderFlight) {
+            droppedHeaderFlight = true;
+            return false;
+        }
+        return true;
+    };
+
     const byDate = new Map<string, Activity[]>();
     for (const day of dest.itinerary ?? []) {
         const key = isoKey(day.date);
-        const acts = (day.activities ?? []).filter(
-            (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
-        );
+        const acts = (day.activities ?? []).filter(keepActivity);
         byDate.set(key, [...(byDate.get(key) ?? []), ...acts]);
     }
 
