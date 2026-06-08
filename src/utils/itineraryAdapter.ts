@@ -318,18 +318,33 @@ export const apiToTripState = (it: ApiItinerary): TripState => {
                 })),
             },
         ];
+    } else if (it.destinations && it.destinations.length) {
+        // First-class, date-range destinations (current model): each owns its
+        // country + arrival flight and spans `startDate`..`endDate`, holding
+        // every day in that range. This is what lets a destination cover
+        // multiple days without re-adding it per day.
+        destinations = it.destinations.map((dest) => ({
+            id: uuidToNumericId(dest.id),
+            country: dest.country ?? { id: 0, name: '' },
+            flightInfo: dest.flightInfo
+                ? apiFlightInfoToFlightInfo(dest.flightInfo)
+                : undefined,
+            startDate: dest.startDate,
+            endDate: dest.endDate,
+            note: dest.note ?? undefined,
+            itinerary: dest.intenaryDates.map((d) => ({
+                id: uuidToNumericId(d.id),
+                date: d.date,
+                activities: d.activities.map(apiActivityToActivity),
+            })),
+        }));
     } else {
-        // Group days by country to form Destination[].
+        // Legacy fallback: a multi trip from an OLD backend with no
+        // `destinations` field. Group each day into its own single-day
+        // destination (the pre-date-range behavior) so the editor still opens.
         const dates = it.intenaryDates;
         destinations = dates.map((d, i) => {
             const nextDate = dates[i + 1]?.date;
-            // Each multi-dest destination is a SINGLE day (its activities live
-            // on `d.date`), so the last destination must NOT inherit the trip's
-            // end date — doing so made it a phantom multi-day span that
-            // swallowed every trailing trip day into one block (e.g. a Panama
-            // June-8 leg on a trip ending June 9 hid the empty, addable June-9
-            // day). Cap it to its own day so trailing days render as their own
-            // empty blocks the user can add a destination to.
             const endDate = nextDate ? addDays(nextDate, -1) : d.date;
             return {
                 id: uuidToNumericId(d.id),

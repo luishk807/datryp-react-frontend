@@ -286,6 +286,16 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                 draft.startDate
             ) {
                 const newStart = draft.startDate;
+                // Shift any placeholder date stamped at the OLD anchor onto the
+                // new start. The country/city seed stamps the outbound flight
+                // with TODAY's date (before the user picks real dates) — that's
+                // what made the flight show e.g. "Jun 7" on a Jun 9 trip.
+                // Matching on prevStartDate means a flight the user actually
+                // dated (a different day) is left untouched.
+                const reanchorDate = (d?: string): string | undefined =>
+                    d && prevStartDate && isSameDay(d, prevStartDate)
+                        ? newStart
+                        : d;
                 for (const dest of draft.destinations ?? []) {
                     const tracksOldStart =
                         !dest.startDate ||
@@ -296,6 +306,34 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
                     dest.endDate = newStart;
                     for (const day of dest.itinerary ?? []) {
                         day.date = newStart;
+                        // The seeded outbound flight is an activity (kind=
+                        // FLIGHT) whose segments carry the date — re-anchor them
+                        // too, plus any transit segments, so the depart/arrive
+                        // dates follow the trip start.
+                        for (const act of day.activities ?? []) {
+                            for (const seg of act.flightSegments ?? []) {
+                                seg.departDate = reanchorDate(seg.departDate);
+                                seg.arrivalDate = reanchorDate(seg.arrivalDate);
+                            }
+                            for (const seg of act.transitSegments ?? []) {
+                                seg.departDate = reanchorDate(seg.departDate);
+                                seg.arrivalDate = reanchorDate(seg.arrivalDate);
+                            }
+                        }
+                    }
+                    // Destination header flight (multi model stores it here) —
+                    // re-anchor its segments + flat headline the same way.
+                    if (dest.flightInfo) {
+                        for (const seg of dest.flightInfo.segments ?? []) {
+                            seg.departDate = reanchorDate(seg.departDate);
+                            seg.arrivalDate = reanchorDate(seg.arrivalDate);
+                        }
+                        dest.flightInfo.departDate = reanchorDate(
+                            dest.flightInfo.departDate,
+                        );
+                        dest.flightInfo.arrivalDate = reanchorDate(
+                            dest.flightInfo.arrivalDate,
+                        );
                     }
                 }
             }

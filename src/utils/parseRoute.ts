@@ -56,9 +56,12 @@ const STOPOVER_CLAUSE =
 // A trailing "from X" used as a stopover ("panama to argentina from colombia").
 // Anchored to a preceding "to <dest>" so the route's own origin "from" (at the
 // front: "flight from panama …") is never mistaken for a stopover. Only the
-// "from X" tail is removed; the "to <dest>" is kept.
+// "from X" tail is removed; the "to <dest>" is kept. The negative lookahead
+// also excludes a TIME after "from" ("…to argentina from 8pm to 2am") so a
+// departure-time phrase isn't read as a phantom waypoint (it produced a
+// bogus "Not set" leg).
 const TRAILING_FROM =
-    /(\bto\s+[^,.]+?)\s+from\s+(?!(?:to|via|stop|the)\b)([^,.]+?)(?=[,.]|\s*$)/i;
+    /(\bto\s+[^,.]+?)\s+from\s+(?!(?:to|via|stop|the)\b|\d{1,2}(?::\d{2})?\s*(?:am|pm)\b)([^,.]+?)(?=[,.]|\s*$)/i;
 
 // A run of one or more "to" / "then" / arrow (and leftover stop/via)
 // connectives between two place names. Whitespace-bounded so it can't bleed
@@ -67,8 +70,16 @@ const TRAILING_FROM =
 const ROUTE_SEPARATOR_RUN =
     /\s+(?:(?:->|→|stop\s?over|stops?|stop\s+in|stop\s+at|layover|then|via|to)\s+)+/gi;
 
+// Clock times / departure windows ("8pm", "8:30 pm", "from 8pm to 2am",
+// "at 11pm") are not part of a route. Strip them BEFORE route parsing so the
+// "to" inside "8pm to 2am" isn't read as a route separator (which leaked a
+// phantom "2am" waypoint → a "Not set" leg). A leading from/at/between/around
+// and an optional second time (range) are absorbed.
+const TIME_PHRASE =
+    /\b(?:from|at|between|around)?\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b(?:\s*(?:to|-|–|and|until|til|till)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\b)?/gi;
+
 export const parseRouteStops = (text: string | undefined): string[] => {
-    let raw = (text ?? '').trim();
+    let raw = (text ?? '').replace(TIME_PHRASE, ' ').trim();
     if (!raw) return [];
 
     const stopovers: string[] = [];

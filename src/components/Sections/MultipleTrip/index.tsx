@@ -96,7 +96,7 @@ const MultiTrip = () => {
 
     return (
         <TripSteps
-            title="Multrip Information"
+            title="Plan your trip"
             containerClassName="multriTrip"
             currentType="multiple"
             onBasicChange={handleBasicOnChange}

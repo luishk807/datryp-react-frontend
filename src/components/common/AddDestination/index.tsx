@@ -54,6 +54,10 @@ const DESTINATION_LABEL = {
 export interface DestinationDraft {
     id?: number;
     country?: Country | null;
+    /** The day the traveler arrives at this destination (its flight/transport
+     *  arrival, or the trip default). Drives the destination's `startDate`; its
+     *  `endDate` is derived from the next destination's start at render time. */
+    startDate?: string;
     /** The destination's arrival FLIGHT, rendered as the destination header
      *  band (depart/arrive legs) — NOT as an itinerary activity. Carries the
      *  per-leg `segments` plus the flat headline fields synced from segment 0
@@ -68,6 +72,10 @@ export interface AddDestinationBtnProps
     extends AddEditButtonProps<DestinationDraft, Destination> {
     defaultDate?: string;
     tripMaxDate?: string | null;
+    /** Trigger-button label override for the ADD variant. The timeline uses
+     *  "Add next destination" to make clear it's moving to the next place, not
+     *  adding a per-day destination. Defaults to "Add Destination". */
+    addButtonLabel?: string;
 }
 
 const WIZARD_STEP = { TYPE: 1, METHOD: 2, DESCRIBE: 3, CONFIRM: 4 } as const;
@@ -117,11 +125,15 @@ const AddDestinationBtn = ({
     data = null,
     buttonType = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
+    addButtonLabel,
 }: AddDestinationBtnProps) => {
     const isAdd = type === ACTION.ADD;
     const title = useMemo(
-        () => (isAdd ? DESTINATION_LABEL.ADD : DESTINATION_LABEL.EDIT),
-        [isAdd],
+        () =>
+            isAdd
+                ? addButtonLabel ?? DESTINATION_LABEL.ADD
+                : DESTINATION_LABEL.EDIT,
+        [isAdd, addButtonLabel],
     );
 
     const modelRef = useRef<ModalButtonHandle>(null);
@@ -336,6 +348,9 @@ const AddDestinationBtn = ({
             country,
             flightInfo: flightSeed?.flightInfo,
             itinerary,
+            // Arrival day = this destination's start; the timeline derives the
+            // end from the next destination's arrival.
+            startDate: dayDate,
         });
 
         if (isAdd) resetTransient();

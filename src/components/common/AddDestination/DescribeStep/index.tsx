@@ -76,11 +76,12 @@ const DescribeStep = ({
 }: DescribeStepProps) => {
     const isEdit = mode === 'edit';
     const { kind } = transport;
-    // Only the CUSTOM add-method opens straight into the editable fields.
-    // SMART (and edit mode) show the collapsed smart box + a summary chip +
-    // "Edit details" — mirroring the clean Add-Activity edit, which keeps the
-    // segment collapsed until the user chooses to tweak it.
-    const fieldsOpen = method === ADD_METHOD.CUSTOM;
+    // Edit mode — and the CUSTOM add-method — open straight into the editable
+    // segment fields. The collapsed smart-box summary + "Edit details" toggle
+    // is an ADD affordance (describe a flight from scratch); when the user taps
+    // Edit on an existing destination they came to change its details, so jump
+    // right to the per-segment form with every leg shown.
+    const fieldsOpen = method === ADD_METHOD.CUSTOM || isEdit;
     const [showDetails, setShowDetails] = useState(fieldsOpen);
     // Track whether we've already auto-parsed the current smart text so a
     // re-render doesn't clobber subsequent manual edits.

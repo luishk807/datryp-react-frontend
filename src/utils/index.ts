@@ -1,6 +1,7 @@
 import { TRIP_BASIC } from "constants";
 
 export * from "./date";
+export * from "./destinations";
 export * from "./remapTripDates";
 export * from "./duplicateTrip";
 export * from "./lazyWithRetry";

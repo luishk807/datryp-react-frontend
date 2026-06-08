@@ -110,6 +110,16 @@ const extractAllFlightNumbers = (text: string): FlightMatch[] => {
     return out;
 };
 
+// A month-name date embedded ANYWHERE in a sentence — "...on june 9 from
+// 11pm", "Aug 15, 2026", "December 1st". Captures month, day, optional year so
+// it can be parsed out of a longer phrase (the strict whole-string formats
+// below only match when the input IS just a date, so they miss embedded ones).
+const MONTH_DATE_RE =
+    /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?\b/i;
+
+// A numeric date embedded in a sentence — "8/15", "8/15/2026".
+const NUMERIC_DATE_RE = /\b(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\b/;
+
 const extractDate = (text: string): string | undefined => {
     const lower = text.toLowerCase();
     for (const [keyword, resolver] of Object.entries(DATE_KEYWORDS)) {
@@ -118,6 +128,29 @@ const extractDate = (text: string): string | undefined => {
         // bounds are sufficient — we don't need full NLP here.
         if (new RegExp(`\\b${keyword}\\b`).test(lower)) {
             return resolver().format('YYYY-MM-DD');
+        }
+    }
+
+    // Embedded month-name date — parse the matched "june 9" / "Aug 15 2026"
+    // substring. No year in the text → assume the current year (matches what
+    // the rest of the planner does for near-term dates).
+    const mName = text.match(MONTH_DATE_RE);
+    if (mName) {
+        const year = mName[3] ?? String(moment().year());
+        const candidate = moment(
+            `${mName[1]} ${mName[2]} ${year}`,
+            ['MMMM D YYYY', 'MMM D YYYY'],
+            false,
+        );
+        if (candidate.isValid()) return candidate.format('YYYY-MM-DD');
+    }
+
+    // Embedded numeric date — "8/15" / "8/15/2026".
+    const mNum = text.match(NUMERIC_DATE_RE);
+    if (mNum) {
+        for (const fmt of ['M/D/YYYY', 'M/D/YY', 'M/D']) {
+            const parsedNum = moment(mNum[1], fmt, true);
+            if (parsedNum.isValid()) return parsedNum.format('YYYY-MM-DD');
         }
     }
     // Try the formal date formats. Loop in DATE_FORMATS order so the

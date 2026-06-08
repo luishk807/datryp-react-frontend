@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import { convertMoney, formatDate, isValidDate, reformatDate } from 'utils';
+import moment from 'moment';
+import { convertMoney, formatDate, isSameDay, isValidDate, reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
@@ -36,6 +37,67 @@ const formatLegMeta = (date?: string, time?: string) => {
     return parts.length ? parts.join(' · ') : 'Not set';
 };
 
+interface DestinationDay {
+    date: string;
+    activities: Activity[];
+}
+
+const isoKey = (value: string): string =>
+    isValidDate(value) ? formatDate(value, 'YYYY-MM-DD') : value;
+
+/** Expand a destination into one entry per day across its
+ *  [startDate, endDate] range, attaching each day's activities (empty when a
+ *  day has none yet). The arrival FLIGHT is dropped — it renders in the
+ *  destination header band, not as an activity card. Saved days that fall
+ *  outside the computed range are appended defensively so no real activity is
+ *  ever hidden. A destination with no usable range collapses to a single day
+ *  on its start date (the pre-range behavior). */
+const buildDestinationDays = (dest: Destination): DestinationDay[] => {
+    const byDate = new Map<string, Activity[]>();
+    for (const day of dest.itinerary ?? []) {
+        const key = isoKey(day.date);
+        const acts = (day.activities ?? []).filter(
+            (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
+        );
+        byDate.set(key, [...(byDate.get(key) ?? []), ...acts]);
+    }
+
+    const days: DestinationDay[] = [];
+    const start = dest.startDate;
+    const end = dest.endDate || start;
+    if (start && isValidDate(start)) {
+        let cur = moment(start);
+        const last = end && isValidDate(end) ? moment(end) : cur.clone();
+        let guard = 0;
+        while (cur.isSameOrBefore(last, 'day') && guard < 370) {
+            const iso = cur.format('YYYY-MM-DD');
+            days.push({ date: iso, activities: byDate.get(iso) ?? [] });
+            byDate.delete(iso);
+            cur = cur.clone().add(1, 'day');
+            guard += 1;
+        }
+    }
+    for (const day of dest.itinerary ?? []) {
+        const key = isoKey(day.date);
+        if (byDate.has(key)) {
+            const acts = byDate.get(key) ?? [];
+            // Only surface an out-of-range saved day when it actually carries
+            // activities. An EMPTY out-of-range day is a stale phantom — e.g. a
+            // day that belonged to this destination before a later destination
+            // shrank its range — and would render a confusing duplicate date
+            // (the day now belongs to the next destination's block).
+            if (acts.length > 0) {
+                days.push({ date: key, activities: acts });
+            }
+            byDate.delete(key);
+        }
+    }
+    if (days.length === 0) {
+        days.push({ date: start ?? '', activities: [] });
+    }
+    return days;
+};
+
 export interface MultipleProps {
     defaultDate?: string;
     tripMaxDate?: string | null;
@@ -44,9 +106,20 @@ export interface MultipleProps {
      *  each filtered trip's real index in the parent state — the index that
      *  movePlace expects in dnd-kit's drag-end payload. */
     allDestinations?: Destination[];
+    /** Previous destination's country when this one arrives the same calendar
+     *  day (same-day flight boundary). Renders a "same day — after X" marker so
+     *  the repeated date reads as a transition, not a duplicate. */
+    sameDayFromCountry?: string;
     onChangeDestination: (type: ActionType, value: unknown) => void;
     onChangeBudget: (type: ActionType, value: unknown, destinationIndx?: number) => void;
-    onChangePlace: (type: ActionType, value: unknown, destinationIndx?: number) => void;
+    /** `date` targets a specific day inside a multi-day destination so the
+     *  added activity lands on that day rather than the destination's start. */
+    onChangePlace: (
+        type: ActionType,
+        value: unknown,
+        destinationIndx?: number,
+        date?: string,
+    ) => void;
     participants?: Friend[];
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
@@ -67,6 +140,7 @@ const Multiple = ({
     tripMaxDate,
     trips = [],
     allDestinations = [],
+    sameDayFromCountry,
     onChangeDestination,
     onChangeBudget,
     onChangePlace,
@@ -87,10 +161,10 @@ const Multiple = ({
                     const country = _.get(trip, 'country.name') as
                         | string
                         | undefined;
-                    const activities = _.get(
-                        trip,
-                        'itinerary.0.activities',
-                    ) as Activity[] | undefined;
+                    // One section per day across this destination's range, so a
+                    // multi-day stay shows each day (with its own Add Activity)
+                    // instead of collapsing everything onto day 1.
+                    const days = buildDestinationDays(trip);
 
                     // Legacy trips persist the destination's arrival flight
                     // BOTH as `flightInfo` (drives this header band) AND as a
@@ -146,11 +220,6 @@ const Multiple = ({
                         headerSegments.some(segHasData) ||
                         Boolean(flightActivity);
 
-                    // Drop the flight activity from the card list — it now lives
-                    // exclusively in the header band above.
-                    const cardActivities = (activities ?? []).filter(
-                        (a) => a.kind !== ACTIVITY_KIND.FLIGHT,
-                    );
                     // Resolve the destination's real index in the parent
                     // state. `trips` is `allDestinations.filter(...)`, so each
                     // `trip` is the SAME object reference as in allDestinations
@@ -177,10 +246,42 @@ const Multiple = ({
                             className="multrip-content-item"
                         >
                             <Grid container>
+                                {sameDayFromCountry && (
+                                    <Grid
+                                        item
+                                        lg={12}
+                                        md={12}
+                                        xs={12}
+                                        className="destination-sameday"
+                                    >
+                                        <FlightLandIcon className="destination-sameday-icon" />
+                                        <span>
+                                            Same day — after{' '}
+                                            {sameDayFromCountry}
+                                        </span>
+                                    </Grid>
+                                )}
                                 <Grid item lg={6} md={6} xs={12} className="content-header">
                                     <span className="country-name">
                                         {country || 'Destination not set'}
                                     </span>
+                                    {/* The destination owns the date — shown as
+                                        its span here (destination-first), so the
+                                        day-block date header above is dropped. */}
+                                    {trip.startDate && (
+                                        <span className="destination-range">
+                                            {trip.endDate &&
+                                            !isSameDay(
+                                                trip.startDate,
+                                                trip.endDate,
+                                            )
+                                                ? `${formatDate(trip.startDate, 'MMM D')} – ${formatDate(trip.endDate, 'MMM D, YYYY')}`
+                                                : formatDate(
+                                                      trip.startDate,
+                                                      'LL',
+                                                  )}
+                                        </span>
+                                    )}
                                     {/* Single-segment: show the flight number
                                         once here, with the airline icon next
                                         to it — the legs below then skip it to
@@ -462,48 +563,51 @@ const Multiple = ({
                                     </Grid>
                                 )}
                                 <Grid item lg={12} md={12} xs={12} className="activity-button">
-                                    <Activities
-                                        isViewMode={isViewMode}
-                                        tripTypeId={TRIP_BASIC.MULTIPLE.id}
-                                        activities={cardActivities}
-                                        destinations={allDestinations}
-                                        onChangePlace={(type, e) => onChangePlace(type, e, realDestIdx)}
-                                        participants={participants}
-                                        onChangeBudget={(type, e) => onChangeBudget(type, e, realDestIdx)}
-                                        destIdx={realDestIdx}
-                                        date={trip.startDate ?? defaultDate ?? ''}
-                                        country={country ?? ''}
-                                        lockActivityStatus={lockActivityStatus}
-                                        allowStatusToggle={allowStatusToggle}
-                                        allowPaidEdits={allowPaidEdits}
-                                        tripStatusName={tripStatusName}
-                                        isAutoSaving={isAutoSaving}
-                                    />
+                                    {days.map((day) => (
+                                        <div
+                                            key={day.date || 'day'}
+                                            className="destination-day"
+                                        >
+                                            {days.length > 1 && (
+                                                <div className="destination-day-label">
+                                                    {isValidDate(day.date)
+                                                        ? formatDate(day.date, 'LL')
+                                                        : day.date}
+                                                </div>
+                                            )}
+                                            <Activities
+                                                isViewMode={isViewMode}
+                                                tripTypeId={TRIP_BASIC.MULTIPLE.id}
+                                                activities={day.activities}
+                                                destinations={allDestinations}
+                                                onChangePlace={(type, e) =>
+                                                    onChangePlace(
+                                                        type,
+                                                        e,
+                                                        realDestIdx,
+                                                        day.date,
+                                                    )
+                                                }
+                                                participants={participants}
+                                                onChangeBudget={(type, e) =>
+                                                    onChangeBudget(type, e, realDestIdx)
+                                                }
+                                                destIdx={realDestIdx}
+                                                date={day.date || defaultDate || ''}
+                                                country={country ?? ''}
+                                                lockActivityStatus={lockActivityStatus}
+                                                allowStatusToggle={allowStatusToggle}
+                                                allowPaidEdits={allowPaidEdits}
+                                                tripStatusName={tripStatusName}
+                                                isAutoSaving={isAutoSaving}
+                                            />
+                                        </div>
+                                    ))}
                                 </Grid>
                             </Grid>
                         </Grid>
                     );
                 })}
-            {!isViewMode && (
-                <Grid
-                    item
-                    lg={12}
-                    md={12}
-                    xs={12}
-                    className="multrip-content add-destination-button"
-                >
-                    <Grid container>
-                        <Grid item>
-                            <AddDestinationBtn
-                                tripMaxDate={tripMaxDate}
-                                isViewMode={isViewMode}
-                                defaultDate={defaultDate}
-                                onChange={(e) => onChangeDestination('add', e)}
-                            />
-                        </Grid>
-                    </Grid>
-                </Grid>
-            )}
         </>
     );
 };
