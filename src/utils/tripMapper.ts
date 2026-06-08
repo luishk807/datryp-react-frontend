@@ -11,15 +11,17 @@
  * tied to real backend User UUIDs yet. Wire those when friends-API integration lands.
  */
 
-import type { Activity, Country, Destination, FlightInfo, TripState } from 'types';
+import type { Activity, Country, FlightInfo, TripState } from 'types';
 import type {
     ActivityBudgetInput,
     ActivityInput,
+    DestinationInput,
     FlightInfoInput,
     ItineraryDayInput,
     SaveItineraryInput,
 } from 'api/hooks/useItineraries';
-import { ACTIVITY_KIND, ITINERARY_TYPE, TRIP_BASIC } from 'constants';
+import { ITINERARY_TYPE, TRIP_BASIC } from 'constants';
+import { deriveDestinationRanges } from 'utils/destinations';
 
 const isFiniteNumber = (v: unknown): v is number =>
     typeof v === 'number' && Number.isFinite(v);
@@ -252,76 +254,58 @@ export const tripStateToSaveInput = (
     options: MapTripOptions
 ): SaveItineraryInput => {
     const isMulti = tripState.type?.id === TRIP_BASIC.MULTIPLE.id;
-    const destinations = tripState.destinations ?? [];
+    // Multi trips persist each destination with its end derived from the next
+    // destination's start (last → trip end), matching what the timeline shows.
+    const destinations = isMulti
+        ? deriveDestinationRanges(
+              tripState.destinations ?? [],
+              tripState.endDate ?? undefined,
+          )
+        : tripState.destinations ?? [];
 
     const statusLookup = options.activityStatusLookup;
 
-    // Build a day's activities. The backend stores a day's country + flight on
-    // its activity (join) rows, so a day with NO activities loses both on
-    // reload ("Destination not set"). For an empty day that has a flight,
-    // synthesize a "Flight to <country>" activity — the same shape the country
-    // page seeds for the first leg — so the day carries its country + flight
-    // and round-trips. (A country-only leg with no flight still can't
-    // round-trip without a backend schema change; rare.)
-    const dayActivities = (
-        acts: Activity[],
-        dest: Destination,
-        dayDate: string,
-    ): ActivityInput[] => {
-        if (acts.length > 0) {
-            return acts.map((a) => activityToInput(a, dayDate, statusLookup));
-        }
-        if (dest.flightInfo) {
-            const synthetic = {
-                id: 0,
-                kind: ACTIVITY_KIND.FLIGHT,
-                name: `Flight to ${dest.country?.name ?? ''}`.trim() || 'Flight',
-                flightSegments: dest.flightInfo.segments?.length
-                    ? dest.flightInfo.segments
-                    : [dest.flightInfo],
-            } as Activity;
-            return [activityToInput(synthetic, dayDate, statusLookup)];
-        }
-        return [];
-    };
-
-    const days: ItineraryDayInput[] = [];
+    // Multi-destination trips persist as first-class destinations (country +
+    // arrival flight + date range), each owning its own days. Empty days in a
+    // destination's range need no rows — the backend infers them from the
+    // range — so we only send the days that actually carry activities.
+    const destinationInputs: DestinationInput[] = [];
     if (isMulti) {
-        for (const dest of destinations) {
+        destinations.forEach((dest, order) => {
             const destDays = dest.itinerary ?? [];
-            // A destination with no itinerary day (just a header flight, or a
-            // bare country with no activities yet) still has to persist. The
-            // save model is day-based — one day row per destination — so a
-            // day-less destination would contribute no rows and silently
-            // vanish on save. Emit a single placeholder day carrying the
-            // destination's country + flight so it round-trips back as a
-            // destination on reload.
-            if (destDays.length === 0) {
-                const fallbackDate = dest.startDate || tripState.startDate;
-                if (fallbackDate) {
-                    days.push({
-                        date: fallbackDate,
-                        countryId: countryIdOf(dest.country),
-                        flightInfo: flightToInput(dest.flightInfo, fallbackDate),
-                        activities: dayActivities([], dest, fallbackDate),
-                    });
-                }
-                continue;
-            }
-            for (const day of destDays) {
-                days.push({
-                    date: day.date,
-                    countryId: countryIdOf(dest.country),
-                    flightInfo: flightToInput(dest.flightInfo, day.date),
-                    activities: dayActivities(
-                        day.activities ?? [],
-                        dest,
-                        day.date,
-                    ),
-                });
-            }
-        }
-    } else {
+            const dayInputs: ItineraryDayInput[] = destDays.map((day) => ({
+                date: day.date,
+                countryId: null,
+                flightInfo: null,
+                activities: (day.activities ?? []).map((a) =>
+                    activityToInput(a, day.date, statusLookup)
+                ),
+            }));
+            const start =
+                dest.startDate || destDays[0]?.date || tripState.startDate || '';
+            const end =
+                dest.endDate ||
+                destDays[destDays.length - 1]?.date ||
+                start;
+            destinationInputs.push({
+                // Empty when the destination has no real country yet — the
+                // backend's required-field check surfaces a clear error rather
+                // than a UUID-cast 500.
+                countryId: countryIdOf(dest.country) ?? '',
+                startDate: start,
+                endDate: end,
+                flightInfo: flightToInput(dest.flightInfo, start),
+                note: dest.note ?? null,
+                order,
+                days: dayInputs,
+            });
+        });
+    }
+
+    // Single-destination trips keep the day-based payload (root country +
+    // flight live at the top level; days carry only activities).
+    const days: ItineraryDayInput[] = [];
+    if (!isMulti) {
         const dest = destinations[0];
         for (const day of dest?.itinerary ?? []) {
             days.push({
@@ -361,6 +345,7 @@ export const tripStateToSaveInput = (
             ? null
             : flightToInput(rootDest?.flightInfo, tripState.startDate),
         days,
+        destinations: isMulti ? destinationInputs : null,
         notifyParticipants: options.notifyParticipants ?? true,
     };
 };

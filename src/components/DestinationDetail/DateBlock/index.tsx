@@ -14,11 +14,25 @@ interface DateBlockProps {
     endDate: string;
     tripMaxDate?: string | null;
     destinations?: Destination[];
+    /** Multi-destination: the specific destination this block renders. When
+     *  set, the block shows exactly this destination (spanning its date range)
+     *  instead of date-matching against `destinations` — so two destinations
+     *  that share a start day don't collapse into one block. `destinations`
+     *  stays the full list (Multiple needs it to resolve the real index). */
+    destination?: Destination;
+    /** Previous destination's country when this one arrives the same day
+     *  (same-day flight boundary) — forwarded to Multiple for the marker. */
+    sameDayFromCountry?: string;
     participants?: Friend[];
     index?: number;
     typeId?: number;
     onChangeBudget: (type: ActionType, value: any, destinationIndx?: number) => void;
-    onChangePlace: (type: ActionType, value: any, destinationIndx?: number) => void;
+    onChangePlace: (
+        type: ActionType,
+        value: any,
+        destinationIndx?: number,
+        date?: string,
+    ) => void;
     onChangeDestination?: (type: ActionType, value: any) => void;
     isViewMode?: boolean;
     /** Disable the per-activity status pill (new-trip flow only). */
@@ -42,6 +56,8 @@ const DateBlock = ({
     endDate,
     tripMaxDate,
     destinations = [],
+    destination,
+    sameDayFromCountry,
     participants = [],
     index = 0,
     typeId,
@@ -73,11 +89,16 @@ const DateBlock = ({
             return matchingDay.length ? matchingDay[0].activities : null;
         }
 
+        // One block == one destination (passed explicitly) so destinations
+        // sharing a start day each get their own block. Fall back to
+        // date-matching only when no explicit destination is given (e.g. the
+        // empty-trip case that still uses calendar-day blocks).
+        if (destination) return [destination];
         const matchingDest = destinations.length
             ? destinations.filter((d) => isSameDay(startDate, d?.startDate))
             : [];
         return matchingDest.length ? matchingDest : null;
-    }, [destinations, startDate, isSingle]);
+    }, [destinations, destination, startDate, isSingle]);
 
     // Confirmed trips trim empty day blocks from the timeline. The user
     // opted in via the Planning → Confirmed flow (gated by the empty-days
@@ -116,8 +137,14 @@ const DateBlock = ({
     })();
 
     return (
-        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className={classnames('date-block', statusClass)}>
+        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className={classnames('date-block', statusClass, { 'is-destination-first': !isSingle })}>
             <Grid container>
+                {/* Single trips are date-first (one block per day, dark date
+                    header). Multi trips are destination-first: the destination
+                    header (country + range, rendered inside Multiple) IS the
+                    block header, so the date header is suppressed to avoid two
+                    competing "June X" headings fighting each other. */}
+                {isSingle && (
                 <Grid
                     item
                     lg={12}
@@ -140,6 +167,7 @@ const DateBlock = ({
                         </Grid>
                     </Grid>
                 </Grid>
+                )}
                 <Grid item lg={12} md={12} xs={12} className="content item-border">
                     <Grid container>
                         {isSingle ? (
@@ -164,6 +192,7 @@ const DateBlock = ({
                                 isViewMode={isViewMode}
                                 trips={trips as Destination[] | null}
                                 allDestinations={destinations}
+                                sameDayFromCountry={sameDayFromCountry}
                                 tripMaxDate={tripMaxDate}
                                 onChangePlace={onChangePlace}
                                 onChangeDestination={onChangeDestination}

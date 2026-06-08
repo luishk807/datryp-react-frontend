@@ -104,6 +104,14 @@
   border-left: 2px solid rgba(60, 181, 75, 0.3);
 }
 
+// Destination-first blocks (multi trips) drop the dark date header — the
+// destination's own header (country + date range, rendered inside Multiple)
+// leads each block. Add breathing room between consecutive destinations so
+// they read as distinct stops rather than one long list.
+.date-block.is-destination-first + .date-block.is-destination-first {
+  margin-top: 22px;
+}
+
 /* Day-bottom "Add Activity" affordance — full-width dashed ghost button
  * so it reads as a soft container action rather than a floating CTA, and
  * pairs visually with the dashed "Drop a place here" empty-state hint. */

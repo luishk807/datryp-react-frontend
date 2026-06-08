@@ -1,0 +1,13 @@
+// Single "Add next destination" affordance at the end of the multi timeline.
+// Separated from the last destination's content with a dashed rule so it reads
+// as a distinct, deliberate action (the per-block buttons were removed).
+.destination-detail-add-next {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+
+  button {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+}

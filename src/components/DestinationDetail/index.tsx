@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import moment from 'moment'; // computeDatesRange iterates moment objects directly (clone/add/isAfter/isBefore); kept on raw moment
 import { Grid, Snackbar } from '@mui/material';
 import _ from 'lodash';
@@ -13,7 +13,16 @@ import {
     type DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { formatDate, isAfter, isBefore, isSameDay } from 'utils';
+import {
+    addDays,
+    deriveDestinationRanges,
+    formatDate,
+    isAfter,
+    isBefore,
+    isSameDay,
+    isSingleTrip,
+} from 'utils';
+import AddDestinationBtn from 'components/common/AddDestination';
 import { ACTIVITY_KIND } from 'constants';
 import {
     movePlace as movePlaceAction,
@@ -34,6 +43,14 @@ import type {
 interface DateRange {
     startDate: string;
     endDate: string;
+    /** Multi-destination blocks carry the specific destination they render so
+     *  two destinations sharing a start day each get their own block. */
+    destination?: Destination;
+    /** Country of the previous destination when THIS one arrives on a day the
+     *  previous one also occupies (same-day flight boundary). Drives a "same
+     *  day — after X" marker so the repeated date reads as a transition, not a
+     *  duplicate. */
+    sameDayFromCountry?: string;
 }
 
 /** Derive a destination's end date from its transport. A FLIGHT lives in the
@@ -176,13 +193,68 @@ const DestinationDetail = ({
     isAutoSaving = false,
     tripStatusName,
 }: DestinationDetailProps) => {
-    const [dates, setDates] = useState<DateRange[]>([]);
     const [dndError, setDndError] = useState<string | null>(null);
     const dispatch = useTripDispatch();
 
-    useEffect(() => {
-        setDates(computeDatesRange(startDate, endDate, destinations));
-    }, [startDate, endDate, destinations]);
+    // Fill each destination's end date from the next destination's start (last
+    // → trip end) so a stop spans every day until the next flight. All grouping
+    // / routing / drag logic below works off these derived ranges; order is
+    // preserved so destinationIndx stays valid.
+    const derivedDestinations = useMemo(
+        () => deriveDestinationRanges(destinations, endDate ?? undefined),
+        [destinations, endDate],
+    );
+
+    // Timeline blocks. Single trips iterate calendar days (one block per day).
+    // Multi trips render one block PER DESTINATION spanning its range, so
+    // uncovered in-between days never leak out as standalone empty blocks and
+    // two destinations sharing a start day stay distinct. Falls back to
+    // calendar-day blocks only when no destination has a date yet (brand-new
+    // trip) so the first destination can still be added.
+    const dates = useMemo<DateRange[]>(() => {
+        if (isSingleTrip(type?.id)) {
+            return computeDatesRange(startDate, endDate, derivedDestinations);
+        }
+        const dated = derivedDestinations.filter((d) => d.startDate);
+        if (dated.length === 0) {
+            return computeDatesRange(startDate, endDate, derivedDestinations);
+        }
+        const sorted = dated
+            .slice()
+            .sort((a, b) => (isBefore(a.startDate, b.startDate) ? -1 : 1));
+        return sorted.map((d, i) => {
+            const prev = sorted[i - 1];
+            // Same-day boundary: this destination arrives on a day the previous
+            // one still occupies (its start <= the previous one's end).
+            const sameDay =
+                prev?.endDate != null &&
+                d.startDate != null &&
+                !isAfter(d.startDate, prev.endDate);
+            return {
+                startDate: fmt(moment(d.startDate)),
+                endDate: fmt(moment(d.endDate ?? d.startDate)),
+                destination: d,
+                sameDayFromCountry: sameDay
+                    ? prev?.country?.name ?? undefined
+                    : undefined,
+            };
+        });
+    }, [type, startDate, endDate, derivedDestinations]);
+
+    // Seed date for the trailing "Add next destination" — the day after the
+    // last destination ends (clamped to the trip end), else the trip start.
+    const addNextDefaultDate = useMemo(() => {
+        const dated = derivedDestinations.filter((d) => d.startDate);
+        if (!dated.length) return startDate ?? undefined;
+        const last = dated
+            .slice()
+            .sort((a, b) => (isBefore(a.startDate, b.startDate) ? -1 : 1))
+            .pop();
+        const base = last?.endDate ?? last?.startDate;
+        if (!base) return startDate ?? undefined;
+        const next = addDays(base, 1);
+        return endDate && isAfter(next, endDate) ? formatDate(endDate) : next;
+    }, [derivedDestinations, startDate, endDate]);
 
     // Split sensors so desktop and mobile both feel right:
     //   - MouseSensor: 8px distance threshold so clicks on edit/X buttons
@@ -206,8 +278,8 @@ const DestinationDetail = ({
     const findSourceDest = (
         activityId: number
     ): { destIdx: number; activity: Activity } | null => {
-        for (let i = 0; i < destinations.length; i++) {
-            const itin = destinations[i]?.itinerary;
+        for (let i = 0; i < derivedDestinations.length; i++) {
+            const itin = derivedDestinations[i]?.itinerary;
             if (!itin) continue;
             for (const day of itin) {
                 const found = day.activities.find((a) => a.id === activityId);
@@ -249,7 +321,7 @@ const DestinationDetail = ({
         // Cross-destination guard: target date must fall within target
         // destination's start..end range. Snap back with a toast otherwise.
         if (source.destIdx !== toDestIdx) {
-            const toDest = destinations[toDestIdx];
+            const toDest = derivedDestinations[toDestIdx];
             const start = toDest?.startDate;
             const end = toDest?.endDate;
             const inRange =
@@ -266,7 +338,7 @@ const DestinationDetail = ({
         }
 
         // No-op if dropped back exactly where it came from.
-        const fromDay = destinations[source.destIdx]?.itinerary?.find((d) =>
+        const fromDay = derivedDestinations[source.destIdx]?.itinerary?.find((d) =>
             d.activities.some((a) => a.id === activityId)
         );
         if (
@@ -292,8 +364,8 @@ const DestinationDetail = ({
         const { startDate: flagStart, endDate: flagEnd } = obj;
 
         const indxList: number[] = [];
-        for (let i = 0; i < destinations.length; i++) {
-            const dest = destinations[i];
+        for (let i = 0; i < derivedDestinations.length; i++) {
+            const dest = derivedDestinations[i];
             const startsInRange =
                 isAfter(dest.startDate, flagStart) ||
                 isSameDay(dest.startDate, flagStart);
@@ -321,8 +393,8 @@ const DestinationDetail = ({
                 ? activity.destinationIndx
                 : null;
         if (destIndx === null) {
-            for (let i = 0; i < destinations.length; i++) {
-                if (isSameDay(destinations[i].startDate, date)) {
+            for (let i = 0; i < derivedDestinations.length; i++) {
+                if (isSameDay(derivedDestinations[i].startDate, date)) {
                     destIndx = i;
                     break;
                 }
@@ -363,7 +435,9 @@ const DestinationDetail = ({
                         typeId={type?.id}
                         startDate={date.startDate}
                         endDate={date.endDate}
-                        destinations={destinations}
+                        destinations={derivedDestinations}
+                        destination={date.destination}
+                        sameDayFromCountry={date.sameDayFromCountry}
                         onChangeBudget={(type: ActionType, value: any, destinationIndx?: number) =>
                             onChangeBudget({
                                 activity: { type, value, index: indx, destinationIndx },
@@ -374,26 +448,60 @@ const DestinationDetail = ({
                             type: ActionType,
                             value: any,
                             destinationIndx?: number,
+                            date?: string,
                         ) =>
                             handleChangePlace({
                                 activity: { type, value, destinationIndx },
-                                date: dateStr,
+                                // A multi-day destination passes the specific
+                                // day; otherwise fall back to the block's date.
+                                date: date ?? dateStr,
                             })
                         }
-                        onChangeDestination={(type: ActionType, value: any) =>
+                        onChangeDestination={(type: ActionType, value: any) => {
+                            // The modal reports the arrival date as the
+                            // destination's start; fall back to the block date
+                            // for legacy callers. The end is a placeholder —
+                            // deriveDestinationRanges recomputes it from the
+                            // next destination on every render.
+                            const start = value?.startDate ?? dateStr;
                             handleChangeDestination({
                                 activity: { type, value, index: indx },
-                                startDate: dateStr,
-                                endDate: deriveDestinationEndDate(
-                                    value,
-                                    dateStr,
-                                ),
-                            })
-                        }
+                                startDate: start,
+                                endDate: deriveDestinationEndDate(value, start),
+                            });
+                        }}
                     />
                 );
             })}
             </Grid>
+            {/* One "Add next destination" for the whole multi timeline (the
+                per-block buttons are gone) — adds the next stop after the last
+                one. Single trips don't add destinations this way. */}
+            {!isViewMode && !isSingleTrip(type?.id) && (
+                <div className="destination-detail-add-next">
+                    <AddDestinationBtn
+                        addButtonLabel="Add next destination"
+                        tripMaxDate={endDate}
+                        defaultDate={addNextDefaultDate}
+                        onChange={(value) => {
+                            const start =
+                                value?.startDate ?? addNextDefaultDate ?? '';
+                            handleChangeDestination({
+                                activity: {
+                                    type: 'add',
+                                    value,
+                                    index: derivedDestinations.length,
+                                },
+                                startDate: start,
+                                endDate: deriveDestinationEndDate(
+                                    value as unknown as Destination,
+                                    start,
+                                ),
+                            });
+                        }}
+                    />
+                </div>
+            )}
             <Snackbar
                 open={Boolean(dndError)}
                 onClose={() => setDndError(null)}

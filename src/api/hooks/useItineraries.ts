@@ -122,6 +122,20 @@ export interface ApiItineraryDate {
     activities: ApiActivity[];
 }
 
+/** A first-class, date-range destination on a multi-destination trip. Owns
+ *  the country + arrival flight; `intenaryDates` are this destination's own
+ *  days (with activities). Empty for single trips. */
+export interface ApiDestination {
+    id: string;
+    country: ApiCountry;
+    flightInfo: ApiFlightInfo | null;
+    startDate: string;
+    endDate: string;
+    order: number;
+    note: string | null;
+    intenaryDates: ApiItineraryDate[];
+}
+
 export interface ApiItinerary {
     id: string;
     name: string | null;
@@ -138,6 +152,10 @@ export interface ApiItinerary {
     country: ApiCountry | null;
     flightInfo: ApiFlightInfo | null;
     intenaryDates: ApiItineraryDate[];
+    /** Multi-destination trips fill this with date-range destinations; single
+     *  trips leave it empty. The flat `intenaryDates` stays populated for both
+     *  (backward compatibility) — the adapter prefers `destinations`. */
+    destinations: ApiDestination[];
 }
 
 export interface FlightInfoSegmentInput {
@@ -227,6 +245,18 @@ export interface ItineraryDayInput {
     activities: ActivityInput[];
 }
 
+/** Multi-destination save unit. The destination owns country + arrival flight
+ *  + date range; its `days` carry only date + activities. */
+export interface DestinationInput {
+    countryId: string;
+    startDate: string;
+    endDate: string;
+    flightInfo?: FlightInfoInput | null;
+    note?: string | null;
+    order?: number;
+    days: ItineraryDayInput[];
+}
+
 export interface SaveItineraryInput {
     /** Omit to create; include to update. */
     id?: string;
@@ -243,6 +273,9 @@ export interface SaveItineraryInput {
     countryId?: string | null;
     flightInfo?: FlightInfoInput | null;
     days: ItineraryDayInput[];
+    /** Multi-destination trips send date-range destinations here. When present
+     *  the backend uses these and ignores `days`; single trips omit it. */
+    destinations?: DestinationInput[] | null;
     /** Per-save opt-out: when false, the backend skips both the email and
      *  the in-app notification fan-out for this save. Defaults to true so
      *  the silence has to be explicit. */
@@ -256,7 +289,120 @@ export interface DeleteItineraryArgs {
 
 // ── Queries / mutations ──────────────────────────────────────────────────────
 
+const COUNTRY_FIELDS = gql`
+    fragment CountryFields on Country {
+        id
+        name
+        code
+        local
+        image
+    }
+`;
+
+const FLIGHT_FIELDS = gql`
+    fragment FlightFields on FlightInfo {
+        departDate
+        arrivalDate
+        flightNumber
+        departAirport
+        arrivalAirport
+        cost
+        paidAt
+        paidBy {
+            id
+            email
+            name
+        }
+        budgets {
+            id
+            user {
+                id
+                email
+                name
+            }
+            amount
+        }
+        segments {
+            segmentIndex
+            departDate
+            arrivalDate
+            flightNumber
+            departAirport
+            arrivalAirport
+        }
+    }
+`;
+
+const ACTIVITY_FIELDS = gql`
+    fragment ActivityFields on Activity {
+        id
+        name
+        place
+        location
+        startTime
+        endTime
+        cost
+        notes
+        image
+        budget
+        status {
+            id
+            name
+        }
+        budgets {
+            id
+            user {
+                id
+                email
+                name
+            }
+            amount
+        }
+        paidAt
+        paidBy {
+            id
+            email
+            name
+        }
+        kind
+        flightSegments {
+            departDate
+            arrivalDate
+            flightNumber
+            departAirport
+            arrivalAirport
+        }
+        placeKey
+        placeCity
+        placeCountry
+        countryCode
+        latitude
+        longitude
+        sourceUrl
+    }
+`;
+
+const DAY_FIELDS = gql`
+    ${COUNTRY_FIELDS}
+    ${FLIGHT_FIELDS}
+    ${ACTIVITY_FIELDS}
+    fragment DayFields on IntenaryDate {
+        id
+        date
+        country {
+            ...CountryFields
+        }
+        flightInfo {
+            ...FlightFields
+        }
+        activities {
+            ...ActivityFields
+        }
+    }
+`;
+
 const ITINERARY_FIELDS = gql`
+    ${DAY_FIELDS}
     fragment ItineraryFields on Itinerary {
         id
         name
@@ -289,129 +435,28 @@ const ITINERARY_FIELDS = gql`
             name
         }
         country {
-            id
-            name
-            code
-            local
-            image
+            ...CountryFields
         }
         flightInfo {
-            departDate
-            arrivalDate
-            flightNumber
-            departAirport
-            arrivalAirport
-            cost
-            paidAt
-            paidBy {
-                id
-                email
-                name
-            }
-            budgets {
-                id
-                user {
-                    id
-                    email
-                    name
-                }
-                amount
-            }
-            segments {
-                segmentIndex
-                departDate
-                arrivalDate
-                flightNumber
-                departAirport
-                arrivalAirport
-            }
+            ...FlightFields
         }
         intenaryDates {
+            ...DayFields
+        }
+        destinations {
             id
-            date
+            startDate
+            endDate
+            order
+            note
             country {
-                id
-                name
-                code
-                local
-                image
+                ...CountryFields
             }
             flightInfo {
-                departDate
-                arrivalDate
-                flightNumber
-                departAirport
-                arrivalAirport
-                cost
-                paidAt
-                paidBy {
-                    id
-                    email
-                    name
-                }
-                budgets {
-                    id
-                    user {
-                        id
-                        email
-                        name
-                    }
-                    amount
-                }
-                segments {
-                    segmentIndex
-                    departDate
-                    arrivalDate
-                    flightNumber
-                    departAirport
-                    arrivalAirport
-                }
+                ...FlightFields
             }
-            activities {
-                id
-                name
-                place
-                location
-                startTime
-                endTime
-                cost
-                notes
-                image
-                budget
-                status {
-                    id
-                    name
-                }
-                budgets {
-                    id
-                    user {
-                        id
-                        email
-                        name
-                    }
-                    amount
-                }
-                paidAt
-                paidBy {
-                    id
-                    email
-                    name
-                }
-                kind
-                flightSegments {
-                    departDate
-                    arrivalDate
-                    flightNumber
-                    departAirport
-                    arrivalAirport
-                }
-                placeKey
-                placeCity
-                placeCountry
-                countryCode
-                latitude
-                longitude
-                sourceUrl
+            intenaryDates {
+                ...DayFields
             }
         }
     }

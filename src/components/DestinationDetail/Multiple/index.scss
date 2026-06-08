@@ -10,18 +10,22 @@
   padding-top: 20px !important;
 }
 
-// "Add destination" sits right under the day's "Add activity" row, so they
-// were easy to mis-tap. Give it clear separation + its own affordance so it
-// reads as a distinct, deliberate action.
-.add-destination-button {
-  margin-top: 28px !important;
-  padding-top: 16px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+// Per-day sections inside a multi-day destination. A multi-night stay reads
+// as distinct days under one destination header — each labelled with its date
+// and carrying its own Add Activity. Single-day destinations render no label
+// (the date already shows in the day-block header above).
+.multrip-content-item .destination-day:not(:first-child) {
+  margin-top: 18px;
+}
 
-  button {
-    font-weight: 600;
-    letter-spacing: 0.01em;
-  }
+.multrip-content-item .destination-day-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primaryGreen');
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .multrip-content-item .content-header {
@@ -35,6 +39,36 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: theme('colors.primary');
+}
+
+// The destination's date span, under the country name — makes each
+// destination own its dates (destination-first), replacing the dropped
+// day-block date header.
+.multrip-content-item .destination-range {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+// Same-day flight boundary marker — shown atop a destination that arrives on a
+// day the previous one still occupies, so the repeated date reads as "you
+// moved here mid-day" rather than a duplicate.
+.multrip-content-item .destination-sameday {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(246, 137, 31, 0.12);
+  color: theme('colors.primaryOrange');
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.multrip-content-item .destination-sameday-icon {
+  font-size: 1rem !important;
 }
 
 .multrip-content-item .flight-no {
