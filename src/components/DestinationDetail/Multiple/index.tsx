@@ -1,30 +1,38 @@
 import _ from 'lodash';
 import moment from 'moment';
-import { convertMoney, formatDate, isSameDay, isValidDate, reformatDate } from 'utils';
+import { formatDate, isSameDay, isValidDate, reformatDate } from 'utils';
 import { Grid } from '@mui/material';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
-import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import './index.scss';
 import { TRIP_BASIC, ACTIVITY_KIND } from 'constants';
 import Activities from 'components/DestinationDetail/Activities';
-import AddBudget from 'components/DestinationDetail/AddBudget';
 import AddDestinationBtn from 'components/common/AddDestination';
 import AirlineLogo from 'components/common/AirlineLogo';
 import DialogBox from 'components/common/FormFields/DialogBox';
+import TransportHeader, {
+    type TransportLeg,
+} from 'components/DestinationDetail/Multiple/TransportHeader';
 import type {
     ActionType,
     Activity,
-    BudgetEntry,
-    BudgetItem,
+    ActivityKind,
     Destination,
     FlightInfo,
     Friend,
+    TransitInfo,
 } from 'types';
 
 const segHasData = (seg?: FlightInfo) =>
     Boolean(seg && (seg.flightNumber || seg.departAirport || seg.arrivalAirport));
+
+/** Kinds whose FIRST occurrence is treated as the destination's arrival
+ *  ground transport — rendered in the header band (not as a card), the
+ *  same single-edit-path treatment flights already get. */
+const GROUND_ARRIVAL_KINDS: ReadonlySet<ActivityKind> = new Set([
+    ACTIVITY_KIND.TRAIN,
+    ACTIVITY_KIND.BUS,
+    ACTIVITY_KIND.RENTAL_CAR,
+]);
 
 const formatLegDate = (value?: string) =>
     value && isValidDate(value) ? formatDate(value, 'MMM D, YYYY') : '';
@@ -54,7 +62,13 @@ const isoKey = (value: string): string =>
  *  activity (with `dest.flightInfo` a bare stub). Saved days outside the
  *  computed range are appended defensively so no real activity is hidden. A
  *  destination with no usable range collapses to a single day on its start. */
-const buildDestinationDays = (dest: Destination): DestinationDay[] => {
+const buildDestinationDays = (
+    dest: Destination,
+    /** Id of the arrival ground-transport activity that now feeds the header
+     *  band — drop just that one card so it doesn't duplicate the header.
+     *  Other transit activities the user added as real day activities stay. */
+    arrivalTransitId?: number,
+): DestinationDay[] => {
     // When the header is the destination's own flightInfo, every flight
     // activity is the user's and shows. Otherwise (seed stub) the FIRST flight
     // activity is the arrival that feeds the header — drop just that one.
@@ -64,6 +78,7 @@ const buildDestinationDays = (dest: Destination): DestinationDay[] => {
         Boolean(dest.flightInfo?.departAirport);
     let droppedHeaderFlight = false;
     const keepActivity = (a: Activity): boolean => {
+        if (arrivalTransitId != null && a.id === arrivalTransitId) return false;
         if (a.kind !== ACTIVITY_KIND.FLIGHT) return true;
         if (headerFromFlightInfo) return true;
         if (!droppedHeaderFlight) {
@@ -179,10 +194,6 @@ const Multiple = ({
                     const country = _.get(trip, 'country.name') as
                         | string
                         | undefined;
-                    // One section per day across this destination's range, so a
-                    // multi-day stay shows each day (with its own Add Activity)
-                    // instead of collapsing everything onto day 1.
-                    const days = buildDestinationDays(trip);
 
                     // Legacy trips persist the destination's arrival flight
                     // BOTH as `flightInfo` (drives this header band) AND as a
@@ -237,6 +248,89 @@ const Multiple = ({
                     const showFlightHeader =
                         headerSegments.some(segHasData) ||
                         Boolean(flightActivity);
+
+                    // When the arrival is NOT a flight, the destination's
+                    // arrival ground transport is the leg the AddDestination
+                    // wizard flagged `isDestinationArrival`. It feeds the SAME
+                    // header band (single edit path via the destination Edit
+                    // button) and is dropped from the card list below so it
+                    // never duplicates. A train/bus the user added through Add
+                    // Activity is NOT flagged, so it stays a real day card —
+                    // that's the "destination vs activity" line.
+                    const arrivalTransit = showFlightHeader
+                        ? undefined
+                        : (trip.itinerary ?? [])
+                              .flatMap((d) => d.activities ?? [])
+                              .find(
+                                  (a) =>
+                                      a.kind != null &&
+                                      GROUND_ARRIVAL_KINDS.has(a.kind) &&
+                                      a.isDestinationArrival,
+                              );
+
+                    // Normalized header legs — one shape drives the shared
+                    // TransportHeader for both flight and transit.
+                    const flightLegs: TransportLeg[] = headerSegments.map(
+                        (seg) => ({
+                            departPlace: seg.departAirport ?? '',
+                            departMeta: formatLegMeta(
+                                seg.departDate,
+                                seg.departTime,
+                            ),
+                            arrivalPlace: seg.arrivalAirport ?? '',
+                            arrivalMeta: formatLegMeta(
+                                seg.arrivalDate,
+                                seg.arrivalTime,
+                            ),
+                            flightNumber: seg.flightNumber,
+                        }),
+                    );
+                    // Flights with no segment at all still render a "Not set"
+                    // placeholder leg (matches the prior empty-state header).
+                    const flightHeaderLegs =
+                        flightLegs.length > 0
+                            ? flightLegs
+                            : [
+                                  {
+                                      departPlace: '',
+                                      departMeta: 'Not set',
+                                      arrivalPlace: '',
+                                      arrivalMeta: 'Not set',
+                                  },
+                              ];
+
+                    const transitSegments: TransitInfo[] =
+                        arrivalTransit?.transitSegments?.length
+                            ? arrivalTransit.transitSegments
+                            : [{}];
+                    const transitLegs: TransportLeg[] = transitSegments.map(
+                        (seg) => ({
+                            departPlace: seg.departStation ?? '',
+                            departMeta: formatLegMeta(
+                                seg.departDate,
+                                seg.departTime,
+                            ),
+                            arrivalPlace: seg.arrivalStation ?? '',
+                            arrivalMeta: formatLegMeta(
+                                seg.arrivalDate,
+                                seg.arrivalTime,
+                            ),
+                        }),
+                    );
+                    // Transit headline next to the country name: "JR 500" /
+                    // "Train" — operator + number, no airline logo.
+                    const transitHeadline = [
+                        transitSegments[0]?.operator,
+                        transitSegments[0]?.number,
+                    ]
+                        .filter(Boolean)
+                        .join(' ');
+
+                    // One section per day across this destination's range, so a
+                    // multi-day stay shows each day (with its own Add Activity)
+                    // instead of collapsing everything onto day 1. Drop the
+                    // arrival transit card so it lives only in the header.
+                    const days = buildDestinationDays(trip, arrivalTransit?.id);
 
                     // Resolve the destination's real index in the parent
                     // state. `trips` is `allDestinations.filter(...)`, so each
@@ -319,6 +413,14 @@ const Multiple = ({
                                                 {headerFlightNumber}
                                             </span>
                                         )}
+                                    {/* Ground-transit headline: operator + number
+                                        (e.g. "JR 500"), no airline logo. Only when
+                                        the arrival is transit, not a flight. */}
+                                    {arrivalTransit && transitHeadline && (
+                                        <span className="flight-no">
+                                            {transitHeadline}
+                                        </span>
+                                    )}
                                 </Grid>
                                 <Grid
                                     item
@@ -355,240 +457,70 @@ const Multiple = ({
                                     )}
                                 </Grid>
                                 {showFlightHeader && (
-                                <Grid item lg={12} md={12} xs={12} className="content-info">
-                                    {(() => {
-                                        // Render one Depart/Arrive pair per segment so stopovers
-                                        // read as discrete legs stacked vertically. Each leg is
-                                        // wrapped in its own `.flight-leg-row` so the parent
-                                        // container can stack legs as columns without the
-                                        // depart/arrive halves wrapping into a tangled grid.
-                                        // Unified leg list (flightInfo segments,
-                                        // else the flight activity's segments,
-                                        // else flightInfo's flat fields) computed
-                                        // above as `headerSegments`.
-                                        const segs = headerSegments;
-                                        if (segs.length === 0) {
-                                            return (
-                                                <div className="flight-leg-row">
-                                                    <div className="flight-leg">
-                                                        <FlightTakeoffIcon className="leg-icon" />
-                                                        <div className="leg-detail">
-                                                            <span className="leg-label">Depart</span>
-                                                            <span className="leg-airport">Not set</span>
-                                                            <span className="leg-meta">Not set</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flight-divider" aria-hidden="true" />
-                                                    <div className="flight-leg">
-                                                        <FlightLandIcon className="leg-icon" />
-                                                        <div className="leg-detail">
-                                                            <span className="leg-label">Arrive</span>
-                                                            <span className="leg-airport">Not set</span>
-                                                            <span className="leg-meta">Not set</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
-                                        const blocks: React.ReactNode[] = [];
-                                        segs.forEach((seg, idx) => {
-                                            if (idx > 0) {
-                                                blocks.push(
-                                                    <div
-                                                        key={`gap-${idx}`}
-                                                        className="flight-stopover-gap"
-                                                        aria-label="stopover"
-                                                    >
-                                                        <KeyboardArrowDownRoundedIcon
-                                                            fontSize="small"
-                                                            aria-hidden="true"
-                                                        />
-                                                    </div>
-                                                );
-                                            }
-                                            const legLabel =
-                                                segs.length > 1
-                                                    ? `Depart · Leg ${idx + 1}`
-                                                    : 'Depart';
-                                            const arriveLabel =
-                                                segs.length > 1
-                                                    ? `Arrive · Leg ${idx + 1}`
-                                                    : 'Arrive';
-                                            blocks.push(
-                                                <div
-                                                    key={`leg-${idx}`}
-                                                    className="flight-leg-row"
-                                                >
-                                                    <div className="flight-leg">
-                                                        <FlightTakeoffIcon className="leg-icon" />
-                                                        <div className="leg-detail">
-                                                            <span className="leg-label">{legLabel}</span>
-                                                            {segs.length > 1 &&
-                                                                seg.flightNumber && (
-                                                                    <span className="leg-carrier">
-                                                                        <AirlineLogo
-                                                                            className="leg-carrier-logo"
-                                                                            flightNumber={seg.flightNumber}
-                                                                            label={`Flight ${seg.flightNumber}`}
-                                                                        />
-                                                                        <span className="leg-carrier-no">
-                                                                            {seg.flightNumber}
-                                                                        </span>
-                                                                    </span>
-                                                                )}
-                                                            <span className="leg-airport">
-                                                                {seg.departAirport || 'Not set'}
-                                                            </span>
-                                                            <span className="leg-meta">
-                                                                {formatLegMeta(seg.departDate, seg.departTime)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        className="flight-divider"
-                                                        aria-hidden="true"
-                                                    />
-                                                    <div className="flight-leg">
-                                                        <FlightLandIcon className="leg-icon" />
-                                                        <div className="leg-detail">
-                                                            <span className="leg-label">{arriveLabel}</span>
-                                                            <span className="leg-airport">
-                                                                {seg.arrivalAirport || 'Not set'}
-                                                            </span>
-                                                            <span className="leg-meta">
-                                                                {formatLegMeta(seg.arrivalDate, seg.arrivalTime)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        });
-                                        return <>{blocks}</>;
-                                    })()}
-                                </Grid>
-                                )}
-                                {showFlightHeader &&
-                                    ((headerCost != null &&
-                                    headerCost !== '') ||
-                                    flightInfo?.paidBy ||
-                                    (headerBudgets &&
-                                        headerBudgets.length > 0)) && (
-                                    <Grid
-                                        item
-                                        lg={12}
-                                        md={12}
-                                        xs={12}
-                                        className="content-flight-money"
-                                    >
-                                        {headerCost != null &&
-                                            headerCost !== '' && (
-                                                <div className="content-flight-cost">
-                                                    <PaymentsOutlinedIcon className="flight-cost-icon" />
-                                                    <span className="flight-cost-label">
-                                                        Flight cost
-                                                    </span>
-                                                    <span className="flight-cost-value">
-                                                        {convertMoney(headerCost)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        {/* "Paid by" block: when budgets exist, render
-                                            the chips inline + edit pencil. When empty,
-                                            AddBudget itself renders as the prominent
-                                            "Who is paying?" pill. Either way the pencil
-                                            stays anchored to the chip group instead of
-                                            floating on its own line. The chips READ the
-                                            unified model (flightInfo split, else the
-                                            flight activity's), but the AddBudget edit
-                                            still WRITES to flightInfo — the editable
-                                            destination-level source of truth. */}
-                                        {/* Only render the paid-by pill when it
-                                            has content: the per-friend chips, or
-                                            (edit mode) the AddBudget button. In
-                                            view mode with no split set, both are
-                                            absent — skip it so it doesn't show
-                                            as an empty pill. */}
-                                        {((headerBudgets &&
-                                            headerBudgets.length > 0) ||
-                                            !isViewMode) && (
-                                        <div className="content-flight-paidby-wrap">
-                                            {headerBudgets &&
-                                                headerBudgets.length > 0 && (
-                                                    <>
-                                                        <span className="flight-paidby-label">
-                                                            Paid by
-                                                        </span>
-                                                        <div className="flight-paidby-chips">
-                                                            {headerBudgets.map(
-                                                                (entry) => (
-                                                                    <span
-                                                                        key={entry.id}
-                                                                        className="flight-paidby-chip"
-                                                                    >
-                                                                        <span className="flight-paidby-chip-name">
-                                                                            {entry.user.name ??
-                                                                                entry.user.label ??
-                                                                                'Friend'}
-                                                                        </span>
-                                                                        <span className="flight-paidby-chip-amount">
-                                                                            {convertMoney(
-                                                                                entry.budget,
-                                                                            )}
-                                                                        </span>
-                                                                    </span>
-                                                                ),
-                                                            )}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            <AddBudget
-                                                isViewMode={isViewMode}
-                                                participants={participants}
-                                                budget={headerBudgets as BudgetItem[] | undefined}
-                                                cost={headerCost}
-                                                onSubmit={(entries: BudgetEntry[]) => {
-                                                const budgets = entries.map((e, idx) => ({
-                                                    // Local-only id keeps React keys
-                                                    // stable until the save mutation
-                                                    // assigns the backend UUID. Mirrors
-                                                    // the placeholder ids used by the
-                                                    // activity flow.
+                                    <TransportHeader
+                                        mode={ACTIVITY_KIND.FLIGHT}
+                                        legs={flightHeaderLegs}
+                                        costLabel="Flight cost"
+                                        cost={headerCost}
+                                        budgets={headerBudgets}
+                                        participants={participants}
+                                        isViewMode={isViewMode}
+                                        onBudgetSubmit={(entries) => {
+                                            const budgets = entries.map(
+                                                (e, idx) => ({
+                                                    // Local-only id keeps React
+                                                    // keys stable until the save
+                                                    // mutation assigns the backend
+                                                    // UUID. Mirrors the placeholder
+                                                    // ids used by the activity flow.
                                                     id: Date.now() + idx,
                                                     user: e.user,
                                                     budget: e.budget,
-                                                }));
-                                                // When the split has exactly one entry,
-                                                // auto-derive `paidBy` for the legacy
-                                                // single-payer chip readers. Otherwise
-                                                // clear paidBy — the split is the
-                                                // source of truth for who paid.
-                                                const nextPaidBy =
-                                                    budgets.length === 1
-                                                        ? {
-                                                              id:
-                                                                  budgets[0].user.userId ??
-                                                                  String(
-                                                                      budgets[0].user.id,
-                                                                  ),
-                                                              name:
-                                                                  budgets[0].user.name ??
-                                                                  budgets[0].user.label ??
-                                                                  'Friend',
-                                                          }
-                                                        : null;
-                                                onChangeDestination('edit', {
-                                                    ...trip,
-                                                    flightInfo: {
-                                                        ...(flightInfo ?? {}),
-                                                        paidBy: nextPaidBy,
-                                                        budgets,
-                                                    },
-                                                });
-                                            }}
-                                        />
-                                        </div>
-                                        )}
-                                    </Grid>
+                                                }),
+                                            );
+                                            // When the split has exactly one entry,
+                                            // auto-derive `paidBy` for the legacy
+                                            // single-payer chip readers. Otherwise
+                                            // clear paidBy — the split is the source
+                                            // of truth for who paid.
+                                            const nextPaidBy =
+                                                budgets.length === 1
+                                                    ? {
+                                                          id:
+                                                              budgets[0].user
+                                                                  .userId ??
+                                                              String(
+                                                                  budgets[0].user
+                                                                      .id,
+                                                              ),
+                                                          name:
+                                                              budgets[0].user
+                                                                  .name ??
+                                                              budgets[0].user
+                                                                  .label ??
+                                                              'Friend',
+                                                      }
+                                                    : null;
+                                            onChangeDestination('edit', {
+                                                ...trip,
+                                                flightInfo: {
+                                                    ...(flightInfo ?? {}),
+                                                    paidBy: nextPaidBy,
+                                                    budgets,
+                                                },
+                                            });
+                                        }}
+                                    />
+                                )}
+                                {arrivalTransit && (
+                                    <TransportHeader
+                                        mode={arrivalTransit.kind!}
+                                        legs={transitLegs}
+                                        costLabel="Transport cost"
+                                        cost={arrivalTransit.cost}
+                                        budgets={arrivalTransit.budget}
+                                        isViewMode={isViewMode}
+                                    />
                                 )}
                                 <Grid item lg={12} md={12} xs={12} className="activity-button">
                                     {days.map((day) => (

@@ -287,6 +287,9 @@ const AddDestinationBtn = ({
                 endTime: last.arrivalTime,
                 cost: transport.cost || undefined,
                 transitSegments: segments,
+                // Marks this leg as the destination's ARRIVAL so the timeline
+                // renders it in the header band (like a flight), not as a card.
+                isDestinationArrival: true,
             },
             arrivalDate: last.arrivalDate ?? first.departDate,
         };
@@ -751,13 +754,16 @@ const seedTransportFromData = (
         };
     }
 
-    const transit = activities.find(
-        (a) =>
-            (a.kind === ACTIVITY_KIND.TRAIN ||
-                a.kind === ACTIVITY_KIND.BUS ||
-                a.kind === ACTIVITY_KIND.RENTAL_CAR) &&
-            a.transitSegments?.length,
-    );
+    const isTransitKind = (a: Activity) =>
+        a.kind === ACTIVITY_KIND.TRAIN ||
+        a.kind === ACTIVITY_KIND.BUS ||
+        a.kind === ACTIVITY_KIND.RENTAL_CAR;
+    // Prefer the flagged arrival leg; fall back to the first transit activity
+    // for legacy drafts seeded before the flag existed.
+    const transit =
+        activities.find(
+            (a) => a.isDestinationArrival && isTransitKind(a) && a.transitSegments?.length,
+        ) ?? activities.find((a) => isTransitKind(a) && a.transitSegments?.length);
     if (transit?.transitSegments?.length) {
         return {
             kind: transit.kind as TransportKind,

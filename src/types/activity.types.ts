@@ -59,6 +59,14 @@ export interface Activity {
    *  carry two legs. Currently frontend-only — see TransitInfo doc
    *  for the backend-persistence caveat. */
   transitSegments?: TransitInfo[];
+  /** True for the ground-transport leg (train / bus / rental) that the
+   *  AddDestination wizard seeds as a destination's ARRIVAL — the thing
+   *  that brought you here. It renders in the destination header band (the
+   *  same single-edit-path treatment flights get via `dest.flightInfo`),
+   *  NOT as an itinerary card. A train/bus the user adds through Add
+   *  Activity leaves this unset, so it stays a normal day card. Flights
+   *  don't need this flag — their arrival lives on `dest.flightInfo`. */
+  isDestinationArrival?: boolean;
   /** Only set when `kind === 'hotel_checkin' | 'hotel_checkout'`.
    *  Holds the structured hotel fields that don't have an obvious
    *  home on the flat Activity columns — specifically the

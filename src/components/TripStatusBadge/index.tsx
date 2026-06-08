@@ -43,6 +43,11 @@ interface TripStatusBadgeProps {
     onEditTripDates?: () => void;
 }
 
+/** Cap the names listed in the "some activities aren't confirmed" dialog so a
+ *  long itinerary doesn't blow out the dialog height — the rest collapse into
+ *  a "+N more" row. */
+const UNCONFIRMED_PREVIEW_CAP = 6;
+
 const deriveStatusName = (raw: TripState['status']): string => {
     if (raw && typeof raw === 'object' && raw.name) return raw.name;
     return TRIP_STATUS.PLANNING;
@@ -143,16 +148,6 @@ export const TripStatusBadge = ({
     }, [statusName, tripStatuses]);
 
     if (disabled || !target) return null;
-
-    const unconfirmedPreview = (() => {
-        if (!unconfirmedNames.length) return '';
-        const preview = unconfirmedNames.slice(0, 3).join(', ');
-        const extra =
-            unconfirmedNames.length > 3
-                ? `, and ${unconfirmedNames.length - 3} more`
-                : '';
-        return `${preview}${extra}`;
-    })();
 
     /** Empty-day warning + promote. Shared by the all-confirmed path and the
      *  confirm-all path; `confirmAll` is threaded so the eventual save flips
@@ -329,23 +324,39 @@ export const TripStatusBadge = ({
                 onClose={handleConfirmAllClose}
                 maxWidth="xs"
                 fullWidth
+                className="confirm-all-dialog"
             >
                 <DialogTitle className="confirm-all-title">
                     <WarningAmberRoundedIcon className="confirm-all-title-icon" />
                     Some activities aren&rsquo;t confirmed
                 </DialogTitle>
                 <DialogContent>
-                    <p>
+                    <p className="confirm-all-intro">
                         {unconfirmedNames.length}{' '}
                         {unconfirmedNames.length === 1
-                            ? 'activity isn’t'
-                            : 'activities aren’t'}{' '}
-                        confirmed yet
-                        {unconfirmedPreview ? ` — ${unconfirmedPreview}.` : '.'}
+                            ? 'activity is'
+                            : 'activities are'}{' '}
+                        still in Planning:
                     </p>
-                    <p>
-                        Confirming locks the itinerary and marks everything
-                        Confirmed. Cancel to review first.
+                    <ul className="confirm-all-list">
+                        {unconfirmedNames
+                            .slice(0, UNCONFIRMED_PREVIEW_CAP)
+                            .map((name, i) => (
+                                <li key={`${name}-${i}`}>{name}</li>
+                            ))}
+                        {unconfirmedNames.length > UNCONFIRMED_PREVIEW_CAP && (
+                            <li className="confirm-all-list-more">
+                                +
+                                {unconfirmedNames.length -
+                                    UNCONFIRMED_PREVIEW_CAP}{' '}
+                                more
+                            </li>
+                        )}
+                    </ul>
+                    <p className="confirm-all-note">
+                        Confirming marks them all Confirmed and locks the
+                        itinerary — you won&rsquo;t be able to edit afterward.
+                        Cancel to review first.
                     </p>
                 </DialogContent>
                 <DialogActions>
