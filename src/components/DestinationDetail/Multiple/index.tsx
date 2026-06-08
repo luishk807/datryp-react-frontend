@@ -502,6 +502,15 @@ const Multiple = ({
                                             flight activity's), but the AddBudget edit
                                             still WRITES to flightInfo — the editable
                                             destination-level source of truth. */}
+                                        {/* Only render the paid-by pill when it
+                                            has content: the per-friend chips, or
+                                            (edit mode) the AddBudget button. In
+                                            view mode with no split set, both are
+                                            absent — skip it so it doesn't show
+                                            as an empty pill. */}
+                                        {((headerBudgets &&
+                                            headerBudgets.length > 0) ||
+                                            !isViewMode) && (
                                         <div className="content-flight-paidby-wrap">
                                             {headerBudgets &&
                                                 headerBudgets.length > 0 && (
@@ -578,6 +587,7 @@ const Multiple = ({
                                             }}
                                         />
                                         </div>
+                                        )}
                                     </Grid>
                                 )}
                                 <Grid item lg={12} md={12} xs={12} className="activity-button">
