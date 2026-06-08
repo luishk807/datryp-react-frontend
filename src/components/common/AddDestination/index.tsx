@@ -732,75 +732,80 @@ const AddDestinationBtn = ({
  *  ground modes map their station/operator legs back into transit segments.
  *  Falls back to a legacy day-1 FLIGHT activity (older saves). Returns an
  *  empty draft (kind=null) when the destination has no transport. */
+/** A transport leg carries real data when any of its identifying fields is
+ *  set — mirrors `segHasData` in DestinationDetail/Multiple so the edit seed
+ *  and the header band agree on which source to read. */
+const segHasData = (seg?: Partial<FlightInfo>): boolean =>
+    Boolean(seg && (seg.flightNumber || seg.departAirport || seg.arrivalAirport));
+
 const seedTransportFromData = (
     data: Destination,
     isoDate: (raw?: string | null) => string | undefined,
     fallbackDate: string,
 ): TransportDraft => {
     const fi = data.flightInfo;
-    const hasArrival =
-        fi &&
-        (fi.flightNumber ||
-            fi.arrivalAirport ||
-            fi.departAirport ||
-            fi.carrier ||
-            fi.segments?.length);
-    if (fi && hasArrival) {
-        const mode = (fi.mode as TransportKind | undefined) ?? ACTIVITY_KIND.FLIGHT;
-        const segs = fi.segments?.length ? fi.segments : [fi];
-        const cost = fi.cost != null ? String(fi.cost) : '';
-        if (mode === ACTIVITY_KIND.FLIGHT) {
-            return {
-                kind: ACTIVITY_KIND.FLIGHT,
-                smartText: '',
-                flightSegments: segs.map((seg) => ({
-                    ...seg,
-                    departDate: isoDate(seg.departDate) ?? fallbackDate,
-                    arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
-                })),
-                transitSegments: [],
-                cost,
-            };
-        }
-        return {
-            kind: mode,
-            smartText: '',
-            flightSegments: [],
-            // Generic FlightInfo legs → transit shape (station / operator).
-            transitSegments: segs.map((seg) => ({
-                departStation: seg.departAirport,
-                arrivalStation: seg.arrivalAirport,
-                number: seg.flightNumber,
-                operator: seg.carrier,
-                classOrSeat: seg.seatOrClass,
-                departDate: isoDate(seg.departDate) ?? fallbackDate,
-                departTime: seg.departTime,
-                arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
-                arrivalTime: seg.arrivalTime,
-            })),
-            cost,
-        };
-    }
+    const mode =
+        (fi?.mode as TransportKind | undefined) ?? ACTIVITY_KIND.FLIGHT;
 
-    // Legacy: an older save kept the arrival as a day-1 FLIGHT activity card.
-    const legacyFlight = (data.itinerary?.[0]?.activities ?? []).find(
-        (a) => a.kind === ACTIVITY_KIND.FLIGHT && a.flightSegments?.length,
-    );
-    if (legacyFlight?.flightSegments?.length) {
+    if (mode === ACTIVITY_KIND.FLIGHT) {
+        // Mirror the header band's source precedence (DestinationDetail/
+        // Multiple): populated flightInfo segments → the day-1 flight activity
+        // the country-page seed parks (with `flightInfo` a bare stub) →
+        // flightInfo's flat fields. Reading the stub directly would seed a
+        // half-empty leg (arrival only, no depart) and fire a false "couldn't
+        // find an airport" warning even though the band shows the full route.
+        const legacyFlight = (data.itinerary?.[0]?.activities ?? []).find(
+            (a) => a.kind === ACTIVITY_KIND.FLIGHT && a.flightSegments?.length,
+        );
+        const fiSegments = fi?.segments?.some(segHasData)
+            ? fi.segments
+            : undefined;
+        const segs =
+            fiSegments ??
+            legacyFlight?.flightSegments ??
+            (fi && segHasData(fi) ? [fi] : undefined);
+        if (!segs?.length) return emptyTransport();
+        const cost =
+            fi?.cost != null
+                ? String(fi.cost)
+                : legacyFlight?.cost != null
+                  ? String(legacyFlight.cost)
+                  : '';
         return {
             kind: ACTIVITY_KIND.FLIGHT,
             smartText: '',
-            flightSegments: legacyFlight.flightSegments.map((seg) => ({
+            flightSegments: segs.map((seg) => ({
                 ...seg,
                 departDate: isoDate(seg.departDate) ?? fallbackDate,
                 arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
             })),
             transitSegments: [],
-            cost: legacyFlight.cost != null ? String(legacyFlight.cost) : '',
+            cost,
         };
     }
 
-    return emptyTransport();
+    // Ground arrival (train / bus / rental) rides on `flightInfo` tagged with
+    // `mode`; map its generic legs back to the transit shape (station /
+    // operator).
+    const segs = fi?.segments?.length ? fi.segments : fi ? [fi] : [];
+    if (!segs.length) return emptyTransport();
+    return {
+        kind: mode,
+        smartText: '',
+        flightSegments: [],
+        transitSegments: segs.map((seg) => ({
+            departStation: seg.departAirport,
+            arrivalStation: seg.arrivalAirport,
+            number: seg.flightNumber,
+            operator: seg.carrier,
+            classOrSeat: seg.seatOrClass,
+            departDate: isoDate(seg.departDate) ?? fallbackDate,
+            departTime: seg.departTime,
+            arrivalDate: isoDate(seg.arrivalDate) ?? fallbackDate,
+            arrivalTime: seg.arrivalTime,
+        })),
+        cost: fi?.cost != null ? String(fi.cost) : '',
+    };
 };
 
 export default AddDestinationBtn;

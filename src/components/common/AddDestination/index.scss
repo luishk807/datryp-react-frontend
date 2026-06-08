@@ -94,6 +94,7 @@
 .add-destination-label {
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.3;
   color: rgba(0, 0, 0, 0.7);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -118,6 +119,13 @@
 
   .add-destination-field {
     margin-bottom: 0;
+  }
+
+  // Side-by-side fields: reserve two lines for every label so a wrapping
+  // label (e.g. "Arrival location (optional)") doesn't push its input down
+  // out of line with the single-line label beside it.
+  .add-destination-label {
+    min-height: 2.6em;
   }
 }
 
@@ -194,5 +202,11 @@
 
   .add-destination-row {
     grid-template-columns: 1fr;
+
+    // Stacked single-column: no neighbor to align with, so drop the
+    // two-line label reservation and let labels size to their content.
+    .add-destination-label {
+      min-height: 0;
+    }
   }
 }
