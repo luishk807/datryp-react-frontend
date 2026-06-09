@@ -269,7 +269,7 @@ const Home = () => {
                         search field above by an explicit "or" divider
                         so users don't read the button as a "submit
                         the search" affordance. Clicking the button
-                        navigates to /plan-trip-ai, completely
+                        navigates to /discover, completely
                         independent of whatever is in the search
                         input. */}
                     <div className="home-hero-or-divider" aria-hidden="true">
@@ -280,7 +280,7 @@ const Home = () => {
                             Not sure where to go?
                         </span>
                         <Link
-                            to="/plan-trip-ai"
+                            to="/discover"
                             data-tour="home-ai-cta"
                             className="home-hero-ai-cta"
                             aria-label="Let us plan a trip for you"

@@ -228,8 +228,18 @@ const tripReducer = produce((draft: TripState, action: TripAction) => {
             // consistent and also re-homes the "/place stamped at today" seed.
             const dateChanged =
                 'startDate' in action.payload || 'endDate' in action.payload;
+            // Only remap on a genuine USER date edit (payload is just
+            // `{startDate}` / `{endDate}`). A full HYDRATION from the API
+            // (`apiToTripState`) also carries `startDate`/`endDate`, but it
+            // brings its OWN authoritative `destinations` — remapping those
+            // against the stale previous context start shifted every day off
+            // the range and silently dropped the activities (AI-built / edited
+            // trips opened to empty days). When the payload carries
+            // `destinations`, trust them as-is.
+            const isHydration = 'destinations' in action.payload;
             if (
                 dateChanged &&
+                !isHydration &&
                 draft.type?.id === TRIP_BASIC.SINGLE.id &&
                 draft.startDate &&
                 draft.endDate

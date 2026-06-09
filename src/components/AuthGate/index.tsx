@@ -31,7 +31,7 @@ interface AuthGateProps {
 }
 
 const DEFAULT_HIGHLIGHTS = [
-    'AI-picked destinations from a single sentence',
+    'Personalized destinations from a single sentence',
     'Plan day-by-day with friends',
     'Track flights, activities, and budget in one place',
 ];

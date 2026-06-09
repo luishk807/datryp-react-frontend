@@ -7,6 +7,8 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
+import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
+import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import './index.scss';
 
 type LoaderPhase = 'options' | 'build';
@@ -33,7 +35,9 @@ type Step = { Icon: React.ElementType; label: string };
 const OPTIONS_STEPS: Step[] = [
     { Icon: TuneRoundedIcon, label: 'Analyzing your budget and interests…' },
     { Icon: PublicRoundedIcon, label: 'Scanning destinations worldwide…' },
+    { Icon: WbSunnyRoundedIcon, label: 'Comparing weather and seasonality…' },
     { Icon: EventAvailableRoundedIcon, label: 'Checking what fits your duration…' },
+    { Icon: SavingsRoundedIcon, label: 'Looking for great-value destinations…' },
     { Icon: MapRoundedIcon, label: 'Ranking the best matches…' },
     { Icon: AutoAwesomeIcon, label: 'Almost there — preparing your picks…' },
 ];

@@ -238,7 +238,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 <MenuActionItem
                                     icon={<AutoAwesomeRoundedIcon />}
                                     label="Plan a trip"
-                                    onClick={() => handleNavigate('/plan-trip-ai')}
+                                    onClick={() => handleNavigate('/discover')}
                                 />
                                 <MenuActionItem
                                     icon={<CheckCircleRoundedIcon />}
@@ -380,7 +380,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     capitalizeType="none"
                                     className="drawer-link"
                                     label="Plan a trip"
-                                    onClick={() => handleNavigate('/plan-trip-ai')}
+                                    onClick={() => handleNavigate('/discover')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}

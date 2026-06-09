@@ -1,5 +1,5 @@
 /**
- * `/plan-trip-ai` — Pro-only multi-step wizard.
+ * `/discover` — Pro-only multi-step wizard.
  *
  * Two-phase flow (the "shopping" experience):
  *   Phase 1 — WIZARD: ask the user about budget, interests, duration,
@@ -49,7 +49,6 @@ import {
 } from 'api/aiTripBuilderApi';
 import { BucketListPaywallError } from 'api/bucketListApi';
 import { capture as captureEvent } from 'lib/posthog';
-import { TRIP_BASIC } from 'constants';
 import './index.scss';
 
 const SUGGESTED_INTERESTS = [
@@ -81,11 +80,27 @@ const DURATION_PRESETS = [3, 5, 7, 10, 14];
 const MIN_BUDGET = 100;
 const MAX_BUDGET = 50_000;
 
+// Quick-pick destinations under the (optional) destination input. A mix of
+// regions and vibes so a user who doesn't have a specific country in mind can
+// still steer the suggestions with one tap. `value` is dropped straight into
+// the `countryHint` the AI already honors; "Anywhere" clears it.
+const QUICK_DESTINATIONS: { label: string; value: string }[] = [
+    { label: 'Anywhere', value: '' },
+    { label: 'Europe', value: 'Europe' },
+    { label: 'Asia', value: 'Asia' },
+    { label: 'Latin America', value: 'Latin America' },
+    { label: 'Beach', value: 'somewhere with great beaches' },
+    { label: 'Mountains', value: 'somewhere in the mountains' },
+    { label: 'Cities', value: 'a vibrant city destination' },
+];
+
 const WIZARD_STEPS = [
     { key: 'budget', label: 'Budget', Icon: PaymentsRoundedIcon },
     { key: 'interests', label: 'Interests', Icon: ExploreRoundedIcon },
     { key: 'destination', label: 'Destination', Icon: LocationOnRoundedIcon },
-    { key: 'duration', label: 'Duration', Icon: EventRoundedIcon },
+    // Holds duration + party size — two quick inputs, so the step reads as
+    // "Trip details" rather than implying only one question.
+    { key: 'duration', label: 'Trip details', Icon: EventRoundedIcon },
 ] as const;
 
 type WizardStepKey = (typeof WIZARD_STEPS)[number]['key'];
@@ -160,11 +175,11 @@ const AiTripBuilderPage = () => {
                 trip_type: result.tripType,
                 duration_days: result.durationDays,
             });
-            const route =
-                result.tripType === 'multi'
-                    ? TRIP_BASIC.MULTIPLE.route
-                    : TRIP_BASIC.SINGLE.route;
-            navigate(`${route}?id=${encodeURIComponent(result.itineraryId)}`);
+            // Land on the trip-detail page — its modern header + inline,
+            // auto-saving Planning editor are the single source of truth for
+            // viewing/tweaking a trip. (The standalone /single|/multiple
+            // stepper stays for the manual create flow + "Edit Trip".)
+            navigate(`/trip-detail?id=${encodeURIComponent(result.itineraryId)}`);
         },
         onError: (err: unknown) => {
             setBuildingCode(null);
@@ -332,7 +347,7 @@ const AiTripBuilderPage = () => {
                     <p className="ai-trip-builder-page-sub">
                         {inOptionsPhase
                             ? 'Each option is a real trip we can build for you. Pick one and we’ll generate the full day-by-day plan.'
-                            : 'Three quick questions. We’ll then suggest four destinations to choose from — pick one and we’ll build the full itinerary.'}
+                            : 'Answer a few quick questions and we’ll suggest personalized destinations — pick one and we’ll build the full itinerary.'}
                     </p>
                 </header>
 
@@ -443,8 +458,9 @@ const AiTripBuilderPage = () => {
                                         What do you want to do?
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        Pick a few activities or vibes — these
-                                        drive what destinations show up.
+                                        Pick 3–8 that sound fun — these drive
+                                        what destinations show up. Choose
+                                        anything that appeals to you.
                                     </p>
                                     <input
                                         type="text"
@@ -512,6 +528,27 @@ const AiTripBuilderPage = () => {
                                             setCountryHint(e.target.value)
                                         }
                                     />
+                                    <h3 className="ai-trip-builder-page-suggest-title">
+                                        Or start from a quick pick
+                                    </h3>
+                                    <div className="ai-trip-builder-page-quickpicks">
+                                        {QUICK_DESTINATIONS.map((q) => (
+                                            <Chip
+                                                key={q.label}
+                                                label={q.label}
+                                                onClick={() =>
+                                                    setCountryHint(q.value)
+                                                }
+                                                className={
+                                                    'ai-trip-builder-page-chip' +
+                                                    (countryHint.trim() ===
+                                                    q.value
+                                                        ? ' is-selected'
+                                                        : ' is-suggestion')
+                                                }
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -727,12 +764,34 @@ const AiTripBuilderPage = () => {
                         </div>
 
                         <div className="ai-trip-builder-page-options-grid">
-                            {options.map((option) => {
+                            {options.map((option, idx) => {
                                 const isThisBuilding =
                                     buildingCode === option.countryCode &&
                                     buildMutation.isPending;
                                 const isOtherBuilding =
                                     buildMutation.isPending && !isThisBuilding;
+                                // The first option is the top-ranked match —
+                                // flag it in our own voice (no "AI" / no number)
+                                // so the user gets a gentle steer toward it.
+                                const isTopPick = idx === 0;
+                                // "Why this matches you" — derived client-side
+                                // so it needs no backend change: surface the
+                                // user's own interests that show up in this
+                                // option's copy, plus a budget-fit tick. Gives
+                                // each card a concrete, trust-building rationale
+                                // beyond the single `whyThisFits` sentence.
+                                const optionText = `${option.headline} ${
+                                    option.whyThisFits
+                                } ${option.highlights.join(' ')}`.toLowerCase();
+                                const matchReasons = [
+                                    ...interests.filter((i) =>
+                                        optionText.includes(i.toLowerCase()),
+                                    ),
+                                    ...(Number.isFinite(budgetNum) &&
+                                    option.estimatedCostUsd <= budgetNum
+                                        ? [`Fits your ${formatCost(budgetNum)} budget`]
+                                        : []),
+                                ].slice(0, 5);
                                 return (
                                     <article
                                         key={option.countryCode}
@@ -781,12 +840,33 @@ const AiTripBuilderPage = () => {
                                             )}
                                         </div>
                                         <div className="ai-trip-builder-page-option-body">
+                                            {isTopPick && (
+                                                <span className="ai-trip-builder-page-option-bestfit">
+                                                    <AutoAwesomeRoundedIcon fontSize="inherit" />
+                                                    We think this is the best fit
+                                                </span>
+                                            )}
                                             <h3 className="ai-trip-builder-page-option-headline">
                                                 {option.headline}
                                             </h3>
                                             <p className="ai-trip-builder-page-option-why">
                                                 {option.whyThisFits}
                                             </p>
+                                            {matchReasons.length > 0 && (
+                                                <div className="ai-trip-builder-page-option-match">
+                                                    <span className="ai-trip-builder-page-option-match-title">
+                                                        Why this matches you
+                                                    </span>
+                                                    <ul className="ai-trip-builder-page-option-match-list">
+                                                        {matchReasons.map((r) => (
+                                                            <li key={r}>
+                                                                <CheckCircleRoundedIcon fontSize="inherit" />
+                                                                <span>{r}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
                                             <ul className="ai-trip-builder-page-option-highlights">
                                                 {option.highlights
                                                     .slice(0, 4)
@@ -848,6 +928,21 @@ const AiTripBuilderPage = () => {
                                 );
                             })}
                         </div>
+
+                        {/* Let the undecided hand the choice back to us — picks
+                            the top-ranked option (first card) and builds it. */}
+                        {options.length > 0 && (
+                            <div className="ai-trip-builder-page-surprise">
+                                <button
+                                    type="button"
+                                    className="ai-trip-builder-page-surprise-btn"
+                                    onClick={() => handlePickOption(options[0])}
+                                    disabled={buildMutation.isPending}
+                                >
+                                    🎲 Not sure? We’ll pick the best fit for you
+                                </button>
+                            </div>
+                        )}
 
                         {error && (
                             <p

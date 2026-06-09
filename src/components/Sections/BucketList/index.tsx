@@ -42,7 +42,7 @@ import { useUser } from 'context/UserContext';
 import { formatDate } from 'utils/date';
 import { getUserFirstName } from 'utils/userName';
 import Pagination from 'components/common/Pagination';
-import { LIST_PAGE_SIZE, TRIP_BASIC } from 'constants';
+import { LIST_PAGE_SIZE } from 'constants';
 import './index.scss';
 
 // Mirrors the backend `FREE_TIER_BUCKET_LIST_LIMIT`. Kept in sync manually
@@ -200,14 +200,12 @@ const BucketList = () => {
                         : undefined,
                 },
             });
-            // Route to the editor for the trip type the AI picked. Edit
-            // mode renders the just-saved trip with all fields filled in
-            // so the user can review, tweak, and confirm.
-            const route =
-                result.tripType === 'multi'
-                    ? TRIP_BASIC.MULTIPLE.route
-                    : TRIP_BASIC.SINGLE.route;
-            navigate(`${route}?id=${encodeURIComponent(result.itineraryId)}`);
+            // The trip is already saved in Planning — land on the trip-detail
+            // page, whose modern header + inline, auto-saving editor let the
+            // user review, tweak, and confirm without a separate stepper.
+            navigate(
+                `/trip-detail?id=${encodeURIComponent(result.itineraryId)}`
+            );
         } catch (err) {
             if (err instanceof BucketListPaywallError) {
                 // Belt + suspenders — if a stale user-context says we're

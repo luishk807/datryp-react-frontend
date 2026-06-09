@@ -3,7 +3,7 @@
  *
  * Big, image-anchored ad block — two-column on desktop (visual on
  * left, copy + CTA on right), stacked on mobile. Tapping the CTA
- * routes the user to the full `/plan-trip-ai` wizard page (modal
+ * routes the user to the full `/discover` wizard page (modal
  * was replaced because the feature deserves a real page experience
  * for Pro users).
  *
@@ -136,7 +136,7 @@ const AiTripBuilderCard = () => {
                 </ol>
 
                 <Link
-                    to="/plan-trip-ai"
+                    to="/discover"
                     className="ai-trip-builder-card-cta"
                 >
                     <AutoAwesomeRoundedIcon className="ai-trip-builder-card-cta-sparkle" />

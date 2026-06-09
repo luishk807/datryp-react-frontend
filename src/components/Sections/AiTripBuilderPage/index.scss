@@ -340,7 +340,8 @@
 }
 
 .ai-trip-builder-page-chips,
-.ai-trip-builder-page-suggestions {
+.ai-trip-builder-page-suggestions,
+.ai-trip-builder-page-quickpicks {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -743,11 +744,105 @@
   line-height: 1.25;
 }
 
+// "We think this is the best fit" — top-pick badge in our own voice (no
+// "AI", no numeric score). Sits above the headline on the first card only.
+.ai-trip-builder-page-option-bestfit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: theme('colors.primaryGreen');
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+
+  svg {
+    font-size: 0.9rem;
+  }
+}
+
 .ai-trip-builder-page-option-why {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.62);
+}
+
+// "Why this matches you" — a soft green panel with green ticks so the
+// per-card rationale reads as a trust signal, distinct from the plain
+// "things to do" highlights below it.
+.ai-trip-builder-page-option-match {
+  margin: 2px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(60, 181, 75, 0.07);
+  border: 1px solid rgba(60, 181, 75, 0.16);
+}
+
+.ai-trip-builder-page-option-match-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: theme('colors.primaryGreen');
+  margin-bottom: 6px;
+}
+
+.ai-trip-builder-page-option-match-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.72);
+    line-height: 1.35;
+
+    svg {
+      flex-shrink: 0;
+      font-size: 1rem;
+      color: theme('colors.primaryGreen');
+    }
+  }
+}
+
+// "Surprise me" — quiet, centered text link under the option grid. Low
+// visual weight so it complements (doesn't compete with) the card CTAs.
+.ai-trip-builder-page-surprise {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.ai-trip-builder-page-surprise-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primaryOrange');
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  &:hover:not(:disabled) {
+    background: rgba(247, 159, 38, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .ai-trip-builder-page-option-highlights {

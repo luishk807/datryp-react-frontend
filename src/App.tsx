@@ -205,7 +205,7 @@ function App() {
                         <BucketList />
                     </Gated>
                 }/>
-                <Route path='/plan-trip-ai' element={
+                <Route path='/discover' element={
                     <Gated
                         title="Sign in to plan a trip"
                         subtitle="Pro members get trips built for them. Free users land on the pricing page after signing in."
@@ -213,6 +213,12 @@ function App() {
                         <AiTripBuilderPage />
                     </Gated>
                 }/>
+                {/* Legacy path — keep redirecting so old links / bookmarks /
+                    shared URLs still land on the renamed page. */}
+                <Route
+                    path='/plan-trip-ai'
+                    element={<Navigate to="/discover" replace />}
+                />
                 <Route path='/dashboard' element={
                     <AdminGate>
                         <Suspense fallback={<PageLoader />}>

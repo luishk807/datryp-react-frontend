@@ -87,13 +87,13 @@ const HomeTour = ({ run, onClose }: HomeTourProps) => {
             {
                 target: '[data-tour="home-ai-cta"]',
                 placement: 'top',
-                title: 'Let AI plan it for you',
+                title: 'Let us plan it for you',
                 content: (
                     <p>
                         Totally undecided? Tap{' '}
-                        <strong>Plan my trip for me</strong> and the AI
-                        builder asks a few questions, then drafts a full
-                        itinerary you can tweak. (Pro feature.)
+                        <strong>Plan my trip for me</strong> — we’ll ask a
+                        few quick questions, then draft a full itinerary you
+                        can tweak. (Pro feature.)
                     </p>
                 ),
             },

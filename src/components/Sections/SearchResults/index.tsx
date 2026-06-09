@@ -47,7 +47,7 @@ const SearchResults = () => {
             // implied this was an AI-trip-building endpoint, which
             // it isn't — Description search is just sentence-based
             // place lookup. The real AI trip-builder loader lives
-            // on /plan-trip-ai behind its own wizard.
+            // on /discover behind its own wizard.
             return (
                 <div
                     className="search-results-grid"
