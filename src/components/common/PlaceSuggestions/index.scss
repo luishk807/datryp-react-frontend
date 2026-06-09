@@ -31,6 +31,47 @@
   letter-spacing: 0.04em;
 }
 
+// Left side of the header — title + the scope toggle sit together so the
+// toggle reads as belonging to "Suggested for <X>", with the action
+// cluster pushed to the far right by the header's space-between.
+.place-suggestions-head-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0; // let a long title ellipsis instead of shoving the toggle
+}
+
+// Scope toggle pill — jumps between the narrowed city and the whole
+// country. Quiet by default (it's a secondary affordance) and tinted
+// to the brand green on hover so it reads as actionable.
+.place-suggestions-scope {
+  appearance: none;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+
+  svg {
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    color: theme('colors.primaryGreen');
+    background: rgba(60, 181, 75, 0.08);
+  }
+}
+
 // Action cluster on the right side of the header — refresh + hide
 // sit side-by-side as small round buttons. Refresh disappears when
 // the panel is hidden (nothing to refresh), the hide toggle is

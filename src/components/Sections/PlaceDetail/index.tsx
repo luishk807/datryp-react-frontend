@@ -14,6 +14,7 @@ import ErrorPage from "components/common/ErrorPage";
 import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import ShareButton from "components/ShareButton";
 import BookmarkButton from "components/BookmarkButton";
+import DetailTour from "components/DetailTour";
 import VisitedButton from "components/VisitedButton";
 import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
@@ -281,6 +282,7 @@ const PlaceDetail = () => {
 
   return (
     <Layout>
+      <DetailTour kind="place" />
       <article className="place-detail">
         <div
           className={classnames("place-detail-toolbar", {

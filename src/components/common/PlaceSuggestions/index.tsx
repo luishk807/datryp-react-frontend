@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
@@ -76,11 +77,6 @@ const PlaceSuggestions = ({
 }: PlaceSuggestionsProps) => {
     const trimmedCountry = country?.trim();
     const trimmedCity = city?.trim();
-    // The recommender hits OpenAI with this geo string — prefer a
-    // city+country pair when known so a Boston trip doesn't keep
-    // suggesting the Golden Gate Bridge. Falls back to country-only
-    // when we don't have a city yet.
-    const headingScope = trimmedCity || trimmedCountry;
     // Picker is rendered inside the trip editor — read the trip id off
     // the URL so the per-card "View" link carries it into /place. A new
     // /place tab with the trip id lets "Add to itinerary" persist
@@ -91,6 +87,26 @@ const PlaceSuggestions = ({
     // recommender returns a fresh set instead of the cached top-3.
     const [shuffleNonce, setShuffleNonce] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
+    // Suggestion scope. The strip narrows to the trip's current city
+    // (e.g. the last activity's city — "Jeju") by default, but once it's
+    // narrowed the user can't see the broader country picks. This toggle
+    // flips between the narrowed city and the whole country ("South
+    // Korea") so they can jump back to the country-wide list and return.
+    // Only meaningful when we actually have a distinct city + country.
+    const canToggleScope =
+        !!trimmedCity &&
+        !!trimmedCountry &&
+        trimmedCity.toLowerCase() !== trimmedCountry.toLowerCase();
+    const [scope, setScope] = useState<'city' | 'country'>('city');
+    // When the country scope is active (or there's no city to narrow to),
+    // drop the city so the heading + recommender query broaden out.
+    const effectiveCity =
+        canToggleScope && scope === 'country' ? undefined : trimmedCity;
+    // The recommender hits OpenAI with this geo string — prefer a
+    // city+country pair when known so a Boston trip doesn't keep
+    // suggesting the Golden Gate Bridge. Falls back to country-only
+    // when we don't have a city yet (or the user broadened the scope).
+    const headingScope = effectiveCity || trimmedCountry;
     // Start HIDDEN by default — the panel is opt-in per session via the
     // chevron in the header, with no persistence across openings, so
     // users who don't want it never see it after the first dismiss and
@@ -121,7 +137,7 @@ const PlaceSuggestions = ({
         topic,
         bias,
         country: trimmedCountry,
-        city: trimmedCity,
+        city: effectiveCity,
         shuffleNonce,
     });
 
@@ -160,9 +176,41 @@ const PlaceSuggestions = ({
             aria-label={`Suggested places in ${headingScope}`}
         >
             <header className="place-suggestions-head">
-                <h4 className="place-suggestions-title">
-                    {headingPrefix} {headingScope}
-                </h4>
+                <div className="place-suggestions-head-left">
+                    <h4 className="place-suggestions-title">
+                        {headingPrefix} {headingScope}
+                    </h4>
+                    {/* Scope toggle — jump between the narrowed city and the
+                        whole country. Label/icon show the OTHER scope (where
+                        the tap takes you), so on "Suggested for Jeju" it
+                        offers "South Korea", and vice-versa. */}
+                    {canToggleScope && (
+                        <button
+                            type="button"
+                            className="place-suggestions-scope"
+                            onClick={() => {
+                                setScope((s) =>
+                                    s === 'city' ? 'country' : 'city',
+                                );
+                                setPicked(null);
+                            }}
+                            title={`Show suggestions for ${
+                                scope === 'city' ? trimmedCountry : trimmedCity
+                            }`}
+                        >
+                            {scope === 'city' ? (
+                                <PublicRoundedIcon fontSize="small" />
+                            ) : (
+                                <LocationOnRoundedIcon fontSize="small" />
+                            )}
+                            <span>
+                                {scope === 'city'
+                                    ? trimmedCountry
+                                    : trimmedCity}
+                            </span>
+                        </button>
+                    )}
+                </div>
                 <div className="place-suggestions-head-actions">
                     {showShuffle && !isHidden && (
                         <button

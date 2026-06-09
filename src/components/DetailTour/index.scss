@@ -1,0 +1,29 @@
+/* Icon legend inside the "Your quick actions" tour step. Each row pairs
+   the actual action icon with a short label so users map the on-page
+   chip to what it does. Scoped to the tour tooltip (rendered in a
+   Joyride portal, so the class lives globally). */
+.detail-tour-legend {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .detail-tour-legend-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 1.15rem;
+    color: theme('colors.primaryGreen');
+  }
+
+  strong {
+    font-weight: 700;
+  }
+}

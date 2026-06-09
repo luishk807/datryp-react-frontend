@@ -17,6 +17,7 @@ import Stars from "components/common/Stars";
 import ReviewSection from "components/Review/ReviewSection";
 import ReviewSummary from "components/Review/ReviewSummary";
 import BookmarkCityButton from "components/BookmarkCityButton";
+import DetailTour from "components/DetailTour";
 import VisitedCityButton from "components/VisitedCityButton";
 import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
@@ -331,6 +332,7 @@ const CityDetail = () => {
 
     return (
         <Layout>
+            <DetailTour kind="city" />
             <article className="city-detail">
                 <div
                     className={classnames("city-detail-toolbar", {
