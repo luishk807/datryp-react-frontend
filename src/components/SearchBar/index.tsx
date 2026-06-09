@@ -44,6 +44,14 @@ interface SearchBarProps {
     /** Fired in 'recommend' mode when the user presses Enter on a non-empty
      *  query. Receives the raw input value (trimmed). */
     onAiSearchSubmit?: (query: string) => void;
+    /** Rotating placeholder list for the search input (place OR description
+     *  mode). When 2+ entries are given, the input cycles through them every
+     *  few seconds (the first entry is the resting prompt; the rest are
+     *  example searches). Switching the list (e.g. on a tab change) restarts
+     *  from the first entry. Pass a referentially-stable array (module const)
+     *  so the rotation timer isn't reset on every parent render. Omitted →
+     *  the mode's static placeholder. */
+    placeholders?: string[];
 }
 
 // Country lookup is a cheap DB query (no OpenAI); 500ms felt sluggish on
@@ -69,6 +77,7 @@ const SearchBar = ({
     type = SEARCH_VARIANT.STANDARD,
     mode = SEARCH_MODE.COUNTRY,
     onAiSearchSubmit,
+    placeholders,
 }: SearchBarProps) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [selectedDestination, setSelectedDestination] = useState('');
@@ -77,6 +86,31 @@ const SearchBar = ({
     // submitted-query state based on `mode` so React Query can debounce.
     const [rawQuery, setRawQuery] = useState('');
     const [submittedQuery, setSubmittedQuery] = useState('');
+
+    // Rotating placeholder. The placeholder is only ever visible on an
+    // empty, unfocused field, so that's the only time we cycle it — once
+    // the user focuses the input or types anything, the animation stops
+    // (and resumes if they blur it while still empty). Switching the list
+    // (a tab change) restarts from the first entry. The resolved value is
+    // `rotatingPlaceholder` (undefined when no list is passed); each mode's
+    // input falls back to its own static placeholder.
+    const [placeholderIdx, setPlaceholderIdx] = useState(0);
+    const [isFocused, setIsFocused] = useState(false);
+    const canRotate = !isFocused && rawQuery.trim().length === 0;
+    useEffect(() => {
+        setPlaceholderIdx(0);
+    }, [placeholders]);
+    useEffect(() => {
+        if (!placeholders || placeholders.length < 2 || !canRotate) return;
+        const id = setInterval(() => {
+            setPlaceholderIdx((i) => (i + 1) % placeholders.length);
+        }, 3000);
+        return () => clearInterval(id);
+    }, [placeholders, canRotate]);
+    const rotatingPlaceholder =
+        placeholders && placeholders.length > 0
+            ? placeholders[placeholderIdx % placeholders.length]
+            : undefined;
 
     const {
         data: countryResults,
@@ -190,8 +224,11 @@ const SearchBar = ({
     const handleClickAway = () => closeResults();
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        setIsFocused(true);
         e.target.select();
     };
+
+    const handleBlur = () => setIsFocused(false);
 
     const renderCountryMode = () => {
         const items = countryResults ?? [];
@@ -320,7 +357,10 @@ const SearchBar = ({
                             className="inputBar"
                             type="text"
                             onFocus={handleFocus}
-                            placeholder="Search a city or country"
+                            onBlur={handleBlur}
+                            placeholder={
+                                rotatingPlaceholder ?? 'Search a city or country'
+                            }
                         />
                         {isPlaceFetching && (
                             <span className="searchbar-country-spinner" aria-hidden="true" />
@@ -331,7 +371,9 @@ const SearchBar = ({
                         <InputField
                             ref={inputRef}
                             defaultValue={selectedDestination}
-                            placeholder="Search a city or country"
+                            placeholder={
+                                rotatingPlaceholder ?? 'Search a city or country'
+                            }
                             onChange={handleKeystroke}
                         />
                     </Grid>
@@ -438,9 +480,14 @@ const SearchBar = ({
                         className={classNames('searchbar-recommend-input', {
                             'is-standard': type === SEARCH_VARIANT.STANDARD,
                         })}
-                        placeholder="Try 'beach yoga retreat' or 'ancient ruins'"
+                        placeholder={
+                            rotatingPlaceholder ??
+                            "Try 'beach yoga retreat' or 'ancient ruins'"
+                        }
                         value={rawQuery}
                         onChange={(e) => setRawQuery(e.target.value)}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
                         onKeyDown={useNavigationFlow ? handleAiKeyDown : undefined}
                         aria-label="Describe what you're looking for"
                     />

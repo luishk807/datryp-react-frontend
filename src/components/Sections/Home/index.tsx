@@ -45,6 +45,30 @@ const KNOWN_BROKEN_HERO_HOSTS = ['d111x5lpaimz3o.cloudfront.net'];
 const isUsableHeroUrl = (url: string): boolean =>
     !KNOWN_BROKEN_HERO_HOSTS.some((host) => url.includes(host));
 
+/** Rotating hero placeholders, one list per search tab. First entry is
+ *  the resting prompt; the rest are example searches the bar cycles
+ *  through every few seconds. Module-level so each reference is stable
+ *  across renders (SearchBar's rotation timer keys off identity, and
+ *  swapping the list on a tab change restarts it from the first entry). */
+const PLACE_PLACEHOLDERS: string[] = [
+    'Search a city or country',
+    'Try: Tokyo, Japan',
+    'Try: Thailand',
+    'Try: Paris, France',
+    'Try: Bali, Indonesia',
+    'Try: New York City',
+    'Try: Banff, Canada',
+];
+
+const DESCRIBE_PLACEHOLDERS: string[] = [
+    'Describe your dream trip',
+    'Try: 7 day family trip in Japan',
+    'Try: Beach vacation under $2,000',
+    'Try: Romantic getaway in Europe',
+    'Try: Food and coffee trip in Italy',
+    'Try: Adventure trip in Patagonia',
+];
+
 const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
     const usable = (heroes ?? []).filter((h) => isUsableHeroUrl(h.imageUrl));
     if (usable.length > 0) {
@@ -217,6 +241,11 @@ const Home = () => {
                         <SearchBar
                             onPlaceSelected={handlePlaceSelected}
                             mode={homeMode === 'describe' ? 'recommend' : 'place'}
+                            placeholders={
+                                homeMode === 'describe'
+                                    ? DESCRIBE_PLACEHOLDERS
+                                    : PLACE_PLACEHOLDERS
+                            }
                             onAiSearchSubmit={(q) =>
                                 navigate(`/search?q=${encodeURIComponent(q)}`)
                             }
