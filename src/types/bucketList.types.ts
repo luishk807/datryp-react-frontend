@@ -11,6 +11,10 @@ export interface BucketListItem {
     description?: string | null;
     emoji?: string | null;
     tags?: string[];
+    /** True once the backend has attempted enrichment on this row (success
+     *  or miss). The bucket page uses it to decide whether a Pro one-time
+     *  backfill pass is still due. */
+    enrichmentAttempted?: boolean;
     createdAt: string;
     updatedAt: string;
 }

@@ -299,6 +299,32 @@
   padding: 11px 24px;
 }
 
+// Highlight pulse fired when the "Already dreaming?" entry tile is clicked
+// — a visible green ring on the input so the action lands even when the
+// input was already on-screen (desktop).
+.bucket-add.is-pulsing .input-field-bare {
+  border-radius: 8px;
+  animation: bucket-add-pulse 0.9s ease;
+}
+
+@keyframes bucket-add-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(60, 181, 75, 0);
+  }
+  25% {
+    box-shadow: 0 0 0 4px rgba(60, 181, 75, 0.28);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(60, 181, 75, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bucket-add.is-pulsing .input-field-bare {
+    animation: none;
+  }
+}
+
 .bucket-error {
   margin: 0;
   padding: 10px 12px;

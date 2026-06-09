@@ -11,7 +11,7 @@
  * call runs, then navigates the user straight into the trip's edit page
  * so they can review and tweak before confirming.
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
@@ -40,6 +40,7 @@ import {
     useAddBucketListItem,
     useBucketList,
     useDeleteBucketListItem,
+    useEnrichExistingBucketList,
     useGenerateTripFromBucket,
 } from 'api/hooks/useBucketList';
 import { useUser } from 'context/UserContext';
@@ -103,12 +104,21 @@ const BucketList = () => {
     // tile scrolls here and focuses the input rather than navigating
     // away (the user is already on the bucket-list page).
     const addFormRef = useRef<HTMLFormElement>(null);
+    // Brief highlight pulse on the add-goal input when the "Already
+    // dreaming?" entry tile is clicked. Without it the tile feels dead on
+    // desktop, where the input is already on-screen so scroll + focus
+    // produce no visible change.
+    const [addPulse, setAddPulse] = useState(false);
+    const pulseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const focusAddInput = () => {
         const form = addFormRef.current;
         if (!form) return;
         form.scrollIntoView({ behavior: 'smooth', block: 'center' });
         form.querySelector<HTMLInputElement>('input')?.focus();
+        if (pulseTimer.current) clearTimeout(pulseTimer.current);
+        setAddPulse(true);
+        pulseTimer.current = setTimeout(() => setAddPulse(false), 900);
     };
 
     // Slice the list into LIST_PAGE_SIZE chunks. Shared with the
@@ -123,6 +133,25 @@ const BucketList = () => {
 
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
     const atCap = !isPro && items.length >= FREE_TIER_BUCKET_LIST_LIMIT;
+
+    // One-time enrichment backfill for Pro users: when the list still holds
+    // goals that were never enriched (added while free, or before the
+    // feature shipped), kick off the backfill pass and show a loader so the
+    // user knows their existing cards are being polished. Guarded by a ref
+    // so it fires once per mount; the server skips already-attempted rows,
+    // so even if it re-ran it would be a no-op (and cost nothing).
+    const { mutate: runBackfill, isPending: isBackfilling } =
+        useEnrichExistingBucketList();
+    const backfillTriedRef = useRef(false);
+    const needsBackfill =
+        isPro && items.some((i) => !i.enrichmentAttempted);
+
+    useEffect(() => {
+        if (needsBackfill && !backfillTriedRef.current) {
+            backfillTriedRef.current = true;
+            runBackfill();
+        }
+    }, [needsBackfill, runBackfill]);
 
     const openPaywall = (state: PaywallState) => {
         setPaywall(state);
@@ -407,7 +436,10 @@ const BucketList = () => {
                     via the browser's default form behavior — no manual
                     keydown plumbing through InputField. */}
                 <form
-                    className="bucket-add"
+                    ref={addFormRef}
+                    className={classNames('bucket-add', {
+                        'is-pulsing': addPulse,
+                    })}
                     onSubmit={(e) => {
                         e.preventDefault();
                         void handleAdd();
@@ -466,6 +498,12 @@ const BucketList = () => {
                             : undefined
                     }
                 />
+
+                {/* One-time "polishing" loader for the Pro enrichment
+                    backfill of existing goals. Distinct `enrich` phase so
+                    the rotating messages talk about the goals, not trip
+                    planning. */}
+                <AiTripLoader open={isBackfilling} phase="enrich" />
 
                 <PaywallModal
                     ref={paywallRef}

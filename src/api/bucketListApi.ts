@@ -18,6 +18,7 @@ interface BucketListItemRaw {
     description?: string | null;
     emoji?: string | null;
     tags?: string[];
+    enrichment_attempted?: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -39,6 +40,7 @@ const toItem = (r: BucketListItemRaw): BucketListItem => ({
     description: r.description ?? null,
     emoji: r.emoji ?? null,
     tags: r.tags ?? [],
+    enrichmentAttempted: r.enrichment_attempted ?? false,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
 });
@@ -153,6 +155,20 @@ export const addBucketListItem = async (
     });
     if (!resp.ok) await handleError(resp, 'add bucket-list item');
     return toItem((await resp.json()) as BucketListItemRaw);
+};
+
+/** POST /me/bucket-list/enrich-existing — Pro-only backfill. Enriches the
+ *  caller's existing un-attempted goals into titled cards and returns the
+ *  full, updated list. Idempotent: already-attempted rows are skipped
+ *  server-side, so it's safe to call whenever un-enriched rows remain. */
+export const enrichExistingBucketList = async (): Promise<BucketListItem[]> => {
+    const resp = await fetch(`${API_BASE}/me/bucket-list/enrich-existing`, {
+        method: 'POST',
+        headers: authHeaders(),
+    });
+    if (!resp.ok) await handleError(resp, 'enrich bucket-list');
+    const body = (await resp.json()) as BucketListResponseRaw;
+    return body.items.map(toItem);
 };
 
 export const deleteBucketListItem = async (id: string): Promise<void> => {

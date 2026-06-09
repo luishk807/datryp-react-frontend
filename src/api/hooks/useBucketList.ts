@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     addBucketListItem,
     deleteBucketListItem,
+    enrichExistingBucketList,
     fetchBucketList,
     generateTripFromBucket,
     type BucketTripGenerationResult,
@@ -47,6 +48,19 @@ export const useDeleteBucketListItem = () => {
         mutationFn: (id: string) => deleteBucketListItem(id),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: bucketListKey });
+        },
+    });
+};
+
+/** POST /me/bucket-list/enrich-existing — Pro-only backfill. Writes the
+ *  returned (fully-enriched) list straight into the cache so the cards
+ *  re-render with their new titles/tags without a second fetch. */
+export const useEnrichExistingBucketList = () => {
+    const qc = useQueryClient();
+    return useMutation<BucketListItem[], Error, void>({
+        mutationFn: () => enrichExistingBucketList(),
+        onSuccess: (items) => {
+            qc.setQueryData(bucketListKey, items);
         },
     });
 };
