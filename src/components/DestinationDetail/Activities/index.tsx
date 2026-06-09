@@ -1271,6 +1271,7 @@ const Activities = ({
                             still change. */}
                         {allowPaidEdits &&
                           tripId &&
+                          activity.apiId &&
                           !isNote &&
                           participants.length > 0 &&
                           (isTripConfirmed ||
@@ -1278,7 +1279,7 @@ const Activities = ({
                             <div className="meta-row">
                               <NotifyParticipantsButton
                                 tripId={tripId}
-                                activityId={activity.id}
+                                activityId={activity.apiId}
                                 activityName={activity.name}
                                 participants={participants}
                               />

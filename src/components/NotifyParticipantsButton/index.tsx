@@ -14,9 +14,9 @@ import './index.scss';
 export interface NotifyParticipantsButtonProps {
     /** Saved trip UUID from the URL — the notify endpoint is scoped to it. */
     tripId: string;
-    /** Activity the alert is about. Numeric on the client; serialized to
-     *  the path as-is. */
-    activityId: number;
+    /** Backend UUID of the activity the alert is about — the notify endpoint
+     *  targets it by UUID (the client's numeric `id` is a hash and 422s). */
+    activityId: string;
     /** Short label for the activity, surfaced in the confirm modal copy so
      *  the organizer knows exactly which card they're alerting about. */
     activityName?: string;
@@ -101,7 +101,7 @@ const NotifyParticipantsButton = ({
         try {
             const result = await notify.mutateAsync({
                 tripId,
-                activityId: String(activityId),
+                activityId,
                 message: message.trim() || undefined,
                 // Omit when everyone's selected so the server keeps its
                 // fan-out path (and still reaches any unlisted members).

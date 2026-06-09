@@ -31,6 +31,13 @@ export type BudgetEntry = Omit<BudgetItem, "id">;
 
 export interface Activity {
   id: number;
+  /** Backend UUID for this activity, preserved from the API (the numeric
+   *  `id` above is a hash for legacy list keys and can't round-trip to the
+   *  server). Mirrors how `Friend.userId` keeps the real id alongside the
+   *  numeric one. Undefined for freshly-added, not-yet-saved activities.
+   *  Required by endpoints that target a specific activity by UUID — e.g.
+   *  the per-activity "Notify participants" alert. */
+  apiId?: string;
   /** What kind of entry this is on the day timeline. Locked at create
    *  time — editing can't change it. Missing/undefined is treated as
    *  `'place'` so pre-existing activities keep rendering as before. */

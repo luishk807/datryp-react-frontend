@@ -193,6 +193,9 @@ const normalizeKind = (k: string | null | undefined): ActivityKind | undefined =
  *  card and `activityToInput` on save both have the real backend identifier. */
 const apiActivityToActivity = (a: ApiActivity): Activity => ({
     id: uuidToNumericId(a.id),
+    // Keep the real backend UUID so endpoints that target a specific activity
+    // (e.g. the per-activity notify alert) get a valid id, not the numeric hash.
+    apiId: a.id,
     kind: normalizeKind(a.kind),
     name: a.name,
     place: a.place ?? undefined,

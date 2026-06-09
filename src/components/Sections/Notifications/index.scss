@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 .notifications-page {
+  // The shared layout wrapper (`.homeContainer`) is `display:flex`, so a
+  // child with no explicit width shrinks to its content — which left this
+  // narrow text list collapsed to a thin centered column on mobile. `flex:1`
+  // makes it claim the full row width; `min-width:0` still lets long titles
+  // truncate rather than forcing the column wider.
+  flex: 1;
+  min-width: 0;
   // Widened from 760px so trip names + subtitles have more room on
   // desktop. 1100px matches the list-page baseline (My Trips, Bucket
   // List, Saved). The content still centers on viewport widths above
