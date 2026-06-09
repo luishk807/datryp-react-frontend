@@ -210,9 +210,10 @@ const ITINERARY_STEPS: Step[] = [
             <p>
                 When you're ready, click <strong>Finish</strong>.
                 We'll save the trip and notify any participants you
-                added on step 2. After saving you can mark activities
-                as <strong>Confirmed</strong> or{' '}
-                <strong>Completed</strong> from the trip detail page.
+                added on step 2. The trip page has its own quick tour
+                covering <strong>PDF download</strong>,{' '}
+                <strong>offline</strong>, <strong>night view</strong>,
+                and marking activities <strong>Completed</strong>.
             </p>
         ),
     },

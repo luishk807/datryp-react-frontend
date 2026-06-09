@@ -236,13 +236,45 @@
  * The horizontal line + small lowercase "or" pill is the standard
  * form-divider pattern (Google, Auth0, Linear all use it) — reads
  * unambiguously as "these are two separate paths". */
+/* Inline "How Datryp works" help link, sits just under the search
+   box. Subtle white-on-photo text; the trailing phrase is underlined
+   on hover/focus to read as the actionable part. Styled as a button
+   (it launches the tour, not a navigation) but presented as a link. */
+.home-hero-help {
+  display: inline-block;
+  margin: 12px auto 0;
+  padding: 3px 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  .home-hero-help-link {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    text-underline-offset: 2px;
+  }
+
+  &:hover .home-hero-help-link,
+  &:focus-visible .home-hero-help-link {
+    text-decoration: underline;
+  }
+}
+
 .home-hero-or-divider {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
   max-width: 320px;
-  margin: 28px auto 18px;
+  // Extra top gap (was 28px) so the "How Datryp works" help link above
+  // stays grouped with the search box, and this divider reads as the
+  // lead-in to the AI callout below rather than competing with the link.
+  margin: 44px auto 18px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.78rem;
   text-transform: uppercase;

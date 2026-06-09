@@ -1,14 +1,19 @@
 /**
  * Onboarding tour for the read-only trip-detail view. Points out the
- * key affordances a user finds AFTER saving their trip: the Confirm
- * Trip button (lifecycle promote), the activity status / live "now"
- * indicator, the participant-notify bell, the share/export menu, and
- * the Edit Trip button.
+ * key affordances a user finds AFTER saving their trip: the trip
+ * lifecycle promote, the view controls (Focus / Night / Text-only),
+ * the offline download, the share/export → PDF menu, the participant-
+ * notify bell, the day-by-day timeline, and per-activity status.
  *
  * Auto-runs once per user (localStorage `trip-detail-tour-completed-
  * v1`) the first time they land on `/trip-detail?id=...`. After
  * dismissal, the "Take the tour" pill in the trip-detail header
  * re-runs it any time.
+ *
+ * react-joyride v3 skips any step whose target isn't mounted, so the
+ * conditionally-rendered anchors here (the offline button shows only
+ * on Confirmed desktop trips; the notify bell only on multi-member
+ * trips) safely no-op when absent rather than stalling the tour.
  */
 import { useMemo } from 'react';
 import {
@@ -68,6 +73,89 @@ const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
                 ),
             },
             {
+                target: '.trip-detail-actions-left .trip-detail-basic-info-toggle',
+                placement: 'bottom',
+                title: 'Trip details & editing',
+                content: (
+                    <p>
+                        Tap <strong>Trip details</strong> to expand the
+                        overview — dates, destination, budget, and who's
+                        going. While the trip is in Planning the organizer
+                        can edit any of it (and the day list) right here;
+                        changes save as you go.
+                    </p>
+                ),
+            },
+            {
+                target: '.trip-detail-focusmode-toggle',
+                placement: 'bottom',
+                title: 'Focus mode',
+                content: (
+                    <p>
+                        Tap <strong>Focus</strong> to hide every overview
+                        card — even the app's header and nav — so the page
+                        is just your dates and activities. A floating{' '}
+                        <strong>Show</strong> pill brings the chrome back.
+                        Great for reading the itinerary on the go.
+                    </p>
+                ),
+            },
+            {
+                target: '.trip-detail-night-toggle',
+                placement: 'bottom',
+                title: 'Night view',
+                content: (
+                    <p>
+                        Tap <strong>Night</strong> for a dark theme scoped
+                        to the itinerary — easier on the eyes on a plane or
+                        in a dim hotel room. It resets to day view when you
+                        leave the page.
+                    </p>
+                ),
+            },
+            {
+                target: '.trip-detail-textonly-toggle',
+                placement: 'bottom',
+                title: 'Text-only view',
+                content: (
+                    <p>
+                        Tap <strong>Text only</strong> to hide every
+                        activity's photo for a dense, scannable list. Handy
+                        on a slow connection or when you just want the plan,
+                        not the pictures.
+                    </p>
+                ),
+            },
+            {
+                target: '.trip-offline-download-wrap',
+                placement: 'bottom',
+                title: 'Take it offline',
+                content: (
+                    <p>
+                        Once a trip is <strong>Confirmed</strong>, tap{' '}
+                        <strong>Offline</strong> to save a copy to this
+                        device. It opens with no signal — perfect for
+                        reading your itinerary abroad without data. On
+                        mobile this lives in the <strong>⋮</strong> menu.
+                    </p>
+                ),
+            },
+            {
+                target: '.trip-detail-download-btn',
+                placement: 'bottom',
+                title: 'Share & download PDF',
+                content: (
+                    <p>
+                        Tap <strong>Share</strong> to send the trip on
+                        WhatsApp or email, copy the link, or{' '}
+                        <strong>Download PDF</strong> — a branded report
+                        with the itinerary and expense summary. You can
+                        also grab an <strong>Excel</strong> sheet or{' '}
+                        <strong>Print</strong> a paper copy.
+                    </p>
+                ),
+            },
+            {
                 target: '.notify-participants-checkbox',
                 placement: 'bottom',
                 title: 'Quiet edits',
@@ -77,32 +165,6 @@ const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
                         notification fan-out when you save a tiny
                         edit. The trip still saves; the rest of the
                         group just isn't pinged.
-                    </p>
-                ),
-            },
-            {
-                target: '.trip-detail-edit-btn',
-                placement: 'bottom',
-                title: 'Edit the trip',
-                content: (
-                    <p>
-                        Tap <strong>Edit Trip</strong> to change
-                        dates, swap places, add participants, or
-                        adjust the budget. Save Changes commits the
-                        edit and returns you here.
-                    </p>
-                ),
-            },
-            {
-                target: '.trip-detail-download-btn',
-                placement: 'bottom',
-                title: 'Share & export',
-                content: (
-                    <p>
-                        Send the trip on WhatsApp or email, copy the
-                        link to paste anywhere, or download a PDF /
-                        Excel summary for offline use. Print to take
-                        it physically with you.
                     </p>
                 ),
             },

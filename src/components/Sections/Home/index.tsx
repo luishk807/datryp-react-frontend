@@ -19,6 +19,7 @@ import CountryOfBirthEvent from 'components/CountryOfBirthEvent';
 import MonthlyBestPlace from 'components/MonthlyBestPlace';
 import SeasonalBestPlaces from 'components/SeasonalBestPlaces';
 import AiTripBuilderCard from 'components/AiTripBuilderCard';
+import HomeTour from 'components/HomeTour';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import { useUser } from 'context/UserContext';
 import { getUserFirstName } from 'utils/userName';
@@ -62,6 +63,10 @@ const Home = () => {
     const [homeMode, setHomeMode] = useState<HomeMode>('place');
     const navigate = useNavigate();
     const { user } = useUser();
+
+    // Manual-only homepage tour, launched from the "How Datryp works"
+    // help link under the search box (see the hero markup below).
+    const [tourRun, setTourRun] = useState(false);
 
     const { data: heroImages } = useHeroImages();
     const heroImage = useMemo(() => pickRandomHero(heroImages), [heroImages]);
@@ -176,6 +181,7 @@ const Home = () => {
                         <span className="hero-option-thumb" aria-hidden="true" />
                         <button
                             role="tab"
+                            data-tour="home-search-place"
                             aria-selected={homeMode === 'place'}
                             aria-label="Search by place"
                             className={classnames('hero-option', {
@@ -191,6 +197,7 @@ const Home = () => {
                         </button>
                         <button
                             role="tab"
+                            data-tour="home-search-describe"
                             aria-selected={homeMode === 'describe'}
                             aria-label="Search by description"
                             className={classnames('hero-option', {
@@ -206,7 +213,7 @@ const Home = () => {
                         </button>
                     </div>
 
-                    <div className="home-hero-search">
+                    <div className="home-hero-search" data-tour="home-searchbar">
                         <SearchBar
                             onPlaceSelected={handlePlaceSelected}
                             mode={homeMode === 'describe' ? 'recommend' : 'place'}
@@ -215,6 +222,19 @@ const Home = () => {
                             }
                         />
                     </div>
+
+                    {/* Inline help — launches the homepage walkthrough
+                        (HomeTour) right where the user is, no navigation. */}
+                    <button
+                        type="button"
+                        className="home-hero-help"
+                        onClick={() => setTourRun(true)}
+                    >
+                        First time here?{' '}
+                        <span className="home-hero-help-link">
+                            Learn how Datryp works →
+                        </span>
+                    </button>
 
                     {/* Marketing CTA — visually separated from the
                         search field above by an explicit "or" divider
@@ -232,6 +252,7 @@ const Home = () => {
                         </span>
                         <Link
                             to="/plan-trip-ai"
+                            data-tour="home-ai-cta"
                             className="home-hero-ai-cta"
                             aria-label="Let us plan a trip for you"
                         >
@@ -278,6 +299,7 @@ const Home = () => {
             <SeasonalBestPlaces />
             <UpcomingHoliday />
             <TopPlaces onPlaceClick={handlePlaceClick} />
+            <HomeTour run={tourRun} onClose={() => setTourRun(false)} />
         </Layout>
     );
 };
