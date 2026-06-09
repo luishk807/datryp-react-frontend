@@ -308,10 +308,17 @@ export const computePayerTotals = (trip: TripState): PayerTotals => {
                     grandTotal += cost;
                 }
             }
-            // Outstanding = sum of activity costs for any activity NOT marked
-            // paid. Independent of who's assigned to pay. Skip when the
-            // activity has no cost so a free "Note" doesn't inflate it.
-            if (!activity.paidAt) {
+            // Outstanding = activities with NO payer settled yet. Assigning
+            // "Who is paying" (a budget split) means the expense is already
+            // covered — the user's model is "assigned a payer = it's paid" —
+            // as does an explicit Mark-as-paid attestation. So an activity is
+            // only outstanding when it has NEITHER a payer split NOR a paid
+            // mark. (A free $0 Note with no payer contributes 0 either way.)
+            const hasPayer =
+                budget.length > 0 ||
+                Boolean(activity.paidAt) ||
+                Boolean(activity.paidBy?.name);
+            if (!hasPayer) {
                 unpaidTotal += activityCostOf(activity);
             }
         }
