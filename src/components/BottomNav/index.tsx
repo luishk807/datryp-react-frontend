@@ -371,7 +371,7 @@ const BottomNav = () => {
                         />
                         <AccountItem
                             icon={<PublicRoundedIcon />}
-                            label="Mapper"
+                            label="Travel Atlas"
                             onClick={() => handleNavigate('/my-map')}
                         />
                         <AccountItem

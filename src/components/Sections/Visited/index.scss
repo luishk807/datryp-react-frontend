@@ -55,10 +55,35 @@
   margin: 0;
 }
 
-.visited-page-summary {
-  font-size: 0.95rem;
-  color: rgba(0, 0, 0, 0.6);
-  margin: 0;
+// Scannable stat pills replacing the old "17 countries · 7 cities · 48
+// places" run-on line. Each pill = icon + count + label.
+.visited-page-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.visited-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  background: rgba(60, 181, 75, 0.1);
+  border: 1px solid rgba(60, 181, 75, 0.2);
+  color: theme('colors.primary');
+  font-size: 0.85rem;
+
+  strong {
+    font-weight: 700;
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.visited-stat-pill-icon {
+  font-size: 1rem !important;
+  color: theme('colors.primaryGreen');
 }
 
 .visited-page-map-link {
@@ -123,6 +148,11 @@
 .visited-page-empty-hint {
   font-size: 0.9rem;
   color: rgba(0, 0, 0, 0.5);
+  max-width: 46ch;
+}
+
+.visited-empty-cta.visited-empty-cta {
+  margin-top: 8px;
 }
 
 .visited-list {
@@ -210,6 +240,43 @@
   margin-top: 2px;
 }
 
+// "From <trip>" provenance line on a place card — tells the user why
+// this place is in their history. Orange luggage glyph ties it to trips.
+.visited-card-trip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+
+  strong {
+    color: theme('colors.primary');
+    font-weight: 600;
+  }
+}
+
+.visited-card-trip-icon {
+  font-size: 0.95rem !important;
+  color: theme('colors.primaryOrange');
+}
+
 .visited-card-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// "View trip" jump from a visited place back to the trip that created it.
+.visited-card-trip-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
