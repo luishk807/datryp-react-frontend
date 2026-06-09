@@ -1712,13 +1712,12 @@ const MyMap = () => {
                      *  pin popup + camera fly already confirm the
                      *  click, no need for a panel that just says
                      *  "nothing to show here." */}
-                    {/* Travel-atlas summary card — bottom-left. Hidden
-                     *  while a region is selected (the trips panel takes
-                     *  over that side) so the two don't stack. Pro-only,
-                     *  like the rest of the map chrome. */}
-                    {isPro &&
-                        !tripsPanelOpen &&
-                        (statsOpen ? (
+                    {/* Travel-atlas summary card — bottom-left, Pro-only.
+                     *  Shown only when expanded AND no trips panel is up
+                     *  (the big card would overlap the panel). The small
+                     *  reopen pill below stays reachable in every other
+                     *  state so the stats are never a dead end. */}
+                    {isPro && statsOpen && !tripsPanelOpen && (
                         <aside
                             className="my-map-atlas-stats"
                             aria-label="Your travel atlas summary"
@@ -1806,18 +1805,32 @@ const MyMap = () => {
                                 </div>
                             )}
                         </aside>
-                    ) : (
+                    )}
+
+                    {/* Collapsed "Stats" pill — visible whenever the card
+                     *  isn't: collapsed by the user, OR suppressed because
+                     *  the trips panel is up. Clicking it clears any region
+                     *  selection and reopens the card, so the stats are
+                     *  always one tap away (the bug was hiding this too). */}
+                    {isPro && (!statsOpen || tripsPanelOpen) && (
                         <button
                             type="button"
-                            className="my-map-stats-pill"
-                            onClick={handleOpenStats}
+                            className={
+                                tripsPanelOpen
+                                    ? 'my-map-stats-pill is-trips-open'
+                                    : 'my-map-stats-pill'
+                            }
+                            onClick={() => {
+                                handleClearSelection();
+                                handleOpenStats();
+                            }}
                             aria-label="Show travel stats"
                             title="Travel stats"
                         >
                             <InsightsRoundedIcon fontSize="small" />
                             <span>Stats</span>
                         </button>
-                    ))}
+                    )}
 
                     {tripsPanelOpen && (
                         <aside

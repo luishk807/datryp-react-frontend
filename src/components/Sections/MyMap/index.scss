@@ -433,12 +433,14 @@
 }
 
 // Collapsed-state pill — bottom-left "Stats" chip that reopens the card.
-// Same look as the intro's "About" pill but mirrored to the left.
+// Same look as the intro's "About" pill but mirrored to the left. Lifted
+// above the Mapbox wordmark (which lives in the bottom-left corner) so the
+// chip isn't lost in that clutter, with a high z-index to sit over it.
 .my-map-stats-pill {
   position: absolute;
-  bottom: 14px;
+  bottom: 38px;
   left: 14px;
-  z-index: 4;
+  z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -472,6 +474,13 @@
   .my-map-stats-pill {
     bottom: 12px;
     left: 12px;
+  }
+
+  // On phones the trips panel takes the whole bottom band, so a
+  // bottom-left pill would sit on top of it — hide it there (the panel's
+  // own close button returns the user to the stats).
+  .my-map-stats-pill.is-trips-open {
+    display: none;
   }
 }
 
