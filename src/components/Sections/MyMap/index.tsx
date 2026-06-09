@@ -32,6 +32,7 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
@@ -176,6 +177,39 @@ const MyMap = () => {
     }, []);
     const handleOpenIntro = useCallback(() => {
         setIntroOpen(true);
+    }, []);
+
+    // Collapse/expand for the atlas-stats card — same hide/show pattern as
+    // the intro card, with the reopen pill at bottom-left. Default: open on
+    // desktop (room for it), collapsed on phones so it doesn't crowd the
+    // intro card on first load. Choice persists in localStorage.
+    const STATS_STORAGE_KEY = 'my-map-stats-collapsed';
+    const [statsOpen, setStatsOpen] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return true;
+        try {
+            const stored = window.localStorage.getItem(STATS_STORAGE_KEY);
+            if (stored === '1') return false;
+            if (stored === '0') return true;
+            return !window.matchMedia('(max-width: 720px)').matches;
+        } catch {
+            return true;
+        }
+    });
+    const handleCloseStats = useCallback(() => {
+        setStatsOpen(false);
+        try {
+            window.localStorage.setItem(STATS_STORAGE_KEY, '1');
+        } catch {
+            /* localStorage unavailable — in-memory collapse only. */
+        }
+    }, []);
+    const handleOpenStats = useCallback(() => {
+        setStatsOpen(true);
+        try {
+            window.localStorage.setItem(STATS_STORAGE_KEY, '0');
+        } catch {
+            /* localStorage unavailable — in-memory expand only. */
+        }
     }, []);
 
     const paywallRef = useRef<ModalButtonHandle>(null);
@@ -1466,6 +1500,14 @@ const MyMap = () => {
         setOpenDropdown(null);
     };
 
+    // The trips panel only renders when the selected region actually has
+    // trips. Gate the atlas-stats card on THIS (not just `selection`) so a
+    // click on a trip-less country doesn't hide the stats with nothing to
+    // replace it — which left the user stuck with no way to get it back.
+    const tripsPanelOpen = Boolean(
+        selection && selectionTrips && selectionTrips.length > 0
+    );
+
     if (!MAPBOX_TOKEN) {
         return (
             <Layout title="Travel Atlas">
@@ -1674,11 +1716,21 @@ const MyMap = () => {
                      *  while a region is selected (the trips panel takes
                      *  over that side) so the two don't stack. Pro-only,
                      *  like the rest of the map chrome. */}
-                    {isPro && !selection && (
+                    {isPro &&
+                        !tripsPanelOpen &&
+                        (statsOpen ? (
                         <aside
                             className="my-map-atlas-stats"
                             aria-label="Your travel atlas summary"
                         >
+                            <button
+                                type="button"
+                                className="my-map-atlas-stats-close"
+                                onClick={handleCloseStats}
+                                aria-label="Hide stats"
+                            >
+                                <CloseRoundedIcon fontSize="small" />
+                            </button>
                             <div className="my-map-atlas-stats-counts">
                                 <span>
                                     <strong>{atlasStats.countries}</strong>{' '}
@@ -1754,11 +1806,20 @@ const MyMap = () => {
                                 </div>
                             )}
                         </aside>
-                    )}
+                    ) : (
+                        <button
+                            type="button"
+                            className="my-map-stats-pill"
+                            onClick={handleOpenStats}
+                            aria-label="Show travel stats"
+                            title="Travel stats"
+                        >
+                            <InsightsRoundedIcon fontSize="small" />
+                            <span>Stats</span>
+                        </button>
+                    ))}
 
-                    {selection &&
-                        selectionTrips &&
-                        selectionTrips.length > 0 && (
+                    {tripsPanelOpen && (
                         <aside
                             className="my-map-trips-panel"
                             aria-labelledby="my-map-trips-panel-title"

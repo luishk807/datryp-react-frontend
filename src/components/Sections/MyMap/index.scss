@@ -294,6 +294,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 14px;
+  padding-right: 24px; /* clear the collapse X in the corner */
   font-size: 0.85rem;
   color: rgba(0, 0, 0, 0.6);
 
@@ -395,12 +396,82 @@
 }
 
 @media (max-width: 720px) {
+  // Stays bottom-left, a touch narrower. On phones the card defaults to
+  // collapsed (see the JS default) so it doesn't crowd the bottom-right
+  // intro card on first load — the bottom-left "Stats" pill reopens it.
   .my-map-atlas-stats {
-    width: 200px;
+    width: 220px;
     bottom: 12px;
     left: 12px;
     padding: 12px;
     gap: 10px;
+  }
+}
+
+// Close (collapse) button — top-right corner of the stats card, mirrors
+// the intro card's close X.
+.my-map-atlas-stats-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+// Collapsed-state pill — bottom-left "Stats" chip that reopens the card.
+// Same look as the intro's "About" pill but mirrored to the left.
+.my-map-stats-pill {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid rgba(60, 181, 75, 0.22);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: theme('colors.primary');
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.15s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  .MuiSvgIcon-root {
+    color: theme('colors.primaryGreen');
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+  }
+}
+
+@media (max-width: 720px) {
+  .my-map-stats-pill {
+    bottom: 12px;
+    left: 12px;
   }
 }
 
@@ -424,6 +495,9 @@
     top: 12px;
     left: 12px;
     gap: 4px;
+    // Reserve room on the right for the zoom control so the pills row
+    // never slides underneath it on a narrow viewport.
+    max-width: calc(100% - 58px);
   }
 }
 
