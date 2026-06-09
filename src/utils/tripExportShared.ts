@@ -274,11 +274,15 @@ export const computePayerTotals = (trip: TripState): PayerTotals => {
     let grandTotal = 0;
     let unpaidTotal = 0;
     let totalCost = 0;
-    // destExportEntries includes each destination's arrival flight (stored on
-    // dest.flightInfo, not as an activity) so its cost + split land in the
-    // totals — without this, multi-destination flight costs were dropped.
-    for (const dest of trip.destinations ?? []) {
-        for (const { activity } of destExportEntries(dest)) {
+    // Walk the SAME deduplicated rows the itinerary / expense tables use.
+    // Iterating destExportEntries directly here double-counted any activity a
+    // corrupted backend state surfaced on more than one day (the same dupe
+    // walkItinerary guards against), inflating Unpaid + Total cost above the
+    // expense-report subtotal. walkItinerary already injects each
+    // destination's arrival flight, so multi-destination flight costs still
+    // land in the totals.
+    for (const { activity } of walkItinerary(trip)) {
+        {
             totalCost += activityCostOf(activity);
             const budget = activity.budget ?? [];
             if (budget.length > 0) {
