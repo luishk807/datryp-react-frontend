@@ -72,6 +72,119 @@
   }
 }
 
+// Two-path entry header — orients the user toward the right feature:
+// "Not sure where to go?" → AI destination matcher (/discover); "Already
+// dreaming?" → focus the add-goal input on this page. Sits at the very top
+// so the choice is the first thing they see.
+.bucket-paths {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bucket-path {
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.bucket-path-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+
+  .MuiSvgIcon-root {
+    font-size: 1.3rem;
+  }
+}
+
+.bucket-path-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bucket-path-eyebrow {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.bucket-path-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.bucket-path-arrow {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.3);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.bucket-path:hover .bucket-path-arrow {
+  transform: translateX(3px);
+}
+
+// Matcher path leans on the AI violet palette so it reads as one family
+// with every other "Plan with AI" affordance in the product.
+.bucket-path--matcher {
+  .bucket-path-icon {
+    background: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+  }
+
+  &:hover {
+    border-color: #7c3aed;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.15);
+  }
+
+  &:hover .bucket-path-arrow {
+    color: #7c3aed;
+  }
+}
+
+// Bucket path uses the brand green — it's this page's own primary action.
+.bucket-path--bucket {
+  .bucket-path-icon {
+    background: rgba(60, 181, 75, 0.12);
+    color: theme('colors.primaryGreen');
+  }
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 4px 14px rgba(60, 181, 75, 0.15);
+  }
+
+  &:hover .bucket-path-arrow {
+    color: theme('colors.primaryGreen');
+  }
+}
+
+@media (max-width: 700px) {
+  .bucket-paths {
+    grid-template-columns: 1fr;
+  }
+}
+
 // Three-step "how it works" explainer that sits between the header and
 // the add-form. Tells new users what the bucket list is, what tapping
 // "AI-build trip" actually does, and that nothing is locked in until they
@@ -274,14 +387,87 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+// Emoji avatar — the single leading glyph that turns a plain row into an
+// aspirational card. Comes from the Pro AI enrichment when present, else
+// the client-side keyword heuristic, else a plane fallback.
+.bucket-card-emoji {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 1.45rem;
+  line-height: 1;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.1) 0%,
+    rgba(246, 137, 31, 0.1) 100%
+  );
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .bucket-card-main {
-  flex: 1;
+  flex: 1 1 200px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+// One-line aspirational description (Pro enrichment only). Sits between the
+// title and the tag row; clamps to two lines so a long sentence can't
+// balloon the card height.
+.bucket-card-desc {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Category tag chips — AI-detected (Pro) or heuristic (free). Small, low-
+// chroma pills so they enrich without competing with the Build-trip CTA.
+.bucket-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.bucket-card-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: theme('colors.primaryGreen');
+  background: rgba(60, 181, 75, 0.1);
+  border: 1px solid rgba(60, 181, 75, 0.2);
+}
+
+// Free-tier upsell whisper under the meta line — tells free users the
+// titled-card treatment they're seeing on Pro rows is a Pro perk, without
+// nagging. Inline + muted so it reads as a hint, not an ad.
+.bucket-card-pro-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  color: #7c3aed;
+  font-weight: 600;
+
+  .MuiSvgIcon-root {
+    font-size: 0.85rem;
+  }
 }
 
 .bucket-card-text {
@@ -471,11 +657,10 @@
 }
 
 @media (max-width: 600px) {
-  .bucket-card-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  // Keep the emoji + text together on the first line (they fit), and wrap
+  // the actions onto a full-width second row beneath them.
   .bucket-card-actions {
+    flex-basis: 100%;
     justify-content: space-between;
   }
 }
@@ -683,11 +868,55 @@
   }
 }
 
-.bucket-wizard-styles-hint {
-  margin: 4px 0 0;
-  font-size: 0.78rem;
+// Confidence builder — a "We'll build it using:" checklist shown in the
+// wizard so the user knows the AI is folding in everything we already know
+// (their saved style, this goal, budget, past trips), not guessing blind.
+.bucket-wizard-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(60, 181, 75, 0.15);
+}
+
+.bucket-wizard-summary-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: rgba(0, 0, 0, 0.5);
-  line-height: 1.45;
+}
+
+.bucket-wizard-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.72);
+    min-width: 0;
+
+    .MuiSvgIcon-root {
+      flex-shrink: 0;
+      color: theme('colors.primaryGreen');
+      font-size: 1rem;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .bucket-wizard-summary-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {

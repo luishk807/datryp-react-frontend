@@ -14,6 +14,10 @@ const API_BASE =
 interface BucketListItemRaw {
     id: string;
     text: string;
+    title?: string | null;
+    description?: string | null;
+    emoji?: string | null;
+    tags?: string[];
     created_at: string;
     updated_at: string;
 }
@@ -31,6 +35,10 @@ const authHeaders = (): Record<string, string> => {
 const toItem = (r: BucketListItemRaw): BucketListItem => ({
     id: r.id,
     text: r.text,
+    title: r.title ?? null,
+    description: r.description ?? null,
+    emoji: r.emoji ?? null,
+    tags: r.tags ?? [],
     createdAt: r.created_at,
     updatedAt: r.updated_at,
 });

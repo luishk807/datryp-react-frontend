@@ -20,6 +20,10 @@ import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
+import TrackChangesRoundedIcon from '@mui/icons-material/TrackChangesRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { IconButton } from '@mui/material';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -41,6 +45,7 @@ import {
 import { useUser } from 'context/UserContext';
 import { formatDate } from 'utils/date';
 import { getUserFirstName } from 'utils/userName';
+import { enrichBucketGoal } from 'utils/bucketGoalEnrich';
 import Pagination from 'components/common/Pagination';
 import { LIST_PAGE_SIZE } from 'constants';
 import './index.scss';
@@ -94,6 +99,17 @@ const BucketList = () => {
     const [generatingText, setGeneratingText] = useState<string | null>(null);
     const paywallRef = useRef<ModalButtonHandle>(null);
     const [paywall, setPaywall] = useState<PaywallState | null>(null);
+    // The add-goal <form>; the two-path entry header's "have a dream"
+    // tile scrolls here and focuses the input rather than navigating
+    // away (the user is already on the bucket-list page).
+    const addFormRef = useRef<HTMLFormElement>(null);
+
+    const focusAddInput = () => {
+        const form = addFormRef.current;
+        if (!form) return;
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        form.querySelector<HTMLInputElement>('input')?.focus();
+    };
 
     // Slice the list into LIST_PAGE_SIZE chunks. Shared with the
     // other list pages (Notifications, Trips, Friends, Recent
@@ -299,6 +315,48 @@ const BucketList = () => {
                 </header>
 
                 <section
+                    className="bucket-paths"
+                    aria-label="Two ways to start a trip"
+                >
+                    <button
+                        type="button"
+                        className="bucket-path bucket-path--matcher"
+                        onClick={() => navigate('/discover')}
+                    >
+                        <span className="bucket-path-icon">
+                            <TravelExploreRoundedIcon />
+                        </span>
+                        <span className="bucket-path-body">
+                            <span className="bucket-path-eyebrow">
+                                Not sure where to go?
+                            </span>
+                            <span className="bucket-path-title">
+                                Get AI destination ideas
+                            </span>
+                        </span>
+                        <ArrowForwardRoundedIcon className="bucket-path-arrow" />
+                    </button>
+                    <button
+                        type="button"
+                        className="bucket-path bucket-path--bucket"
+                        onClick={focusAddInput}
+                    >
+                        <span className="bucket-path-icon">
+                            <TrackChangesRoundedIcon />
+                        </span>
+                        <span className="bucket-path-body">
+                            <span className="bucket-path-eyebrow">
+                                Already have a dream in mind?
+                            </span>
+                            <span className="bucket-path-title">
+                                Add it to your bucket list
+                            </span>
+                        </span>
+                        <ArrowForwardRoundedIcon className="bucket-path-arrow" />
+                    </button>
+                </section>
+
+                <section
                     className="bucket-howto"
                     aria-label="How the bucket list works"
                 >
@@ -425,6 +483,20 @@ const BucketList = () => {
                     <ul className="bucket-list">
                         {pagedItems.map((item) => {
                             const isWizardOpen = wizardItemId === item.id;
+                            // Pro rows arrive AI-enriched (titled card). Free
+                            // rows fall back to the lightweight client-side
+                            // heuristic — emoji + category tags, no rewrite.
+                            const isEnriched = Boolean(item.title);
+                            const heuristic = isEnriched
+                                ? null
+                                : enrichBucketGoal(item.text);
+                            const emoji =
+                                item.emoji || heuristic?.emoji || '✈️';
+                            const headline = item.title || item.text;
+                            const tags =
+                                item.tags && item.tags.length
+                                    ? item.tags
+                                    : heuristic?.tags ?? [];
                             return (
                                 <li
                                     key={item.id}
@@ -433,15 +505,45 @@ const BucketList = () => {
                                     })}
                                 >
                                     <div className="bucket-card-row">
+                                        <span
+                                            className="bucket-card-emoji"
+                                            aria-hidden="true"
+                                        >
+                                            {emoji}
+                                        </span>
                                         <div className="bucket-card-main">
                                             <span className="bucket-card-text">
-                                                {item.text}
+                                                {headline}
                                             </span>
+                                            {item.description && (
+                                                <span className="bucket-card-desc">
+                                                    {item.description}
+                                                </span>
+                                            )}
+                                            {tags.length > 0 && (
+                                                <span className="bucket-card-tags">
+                                                    {tags.map((t) => (
+                                                        <span
+                                                            key={t}
+                                                            className="bucket-card-tag"
+                                                        >
+                                                            {t}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            )}
                                             <span className="bucket-card-meta">
                                                 Added{' '}
                                                 {formatDate(
                                                     item.createdAt,
                                                     'MMM D, YYYY'
+                                                )}
+                                                {!isPro && (
+                                                    <span className="bucket-card-pro-hint">
+                                                        <AutoAwesomeRoundedIcon fontSize="inherit" />
+                                                        Pro polishes goals into
+                                                        titled cards
+                                                    </span>
                                                 )}
                                             </span>
                                         </div>
@@ -694,6 +796,41 @@ const BucketList = () => {
                                                 </>
                                             )}
 
+                                            {/* Confidence builder — reminds
+                                                the user the AI isn't starting
+                                                from scratch; it folds in
+                                                everything we already know
+                                                about them. */}
+                                            <div className="bucket-wizard-summary">
+                                                <span className="bucket-wizard-summary-title">
+                                                    We&rsquo;ll build it using:
+                                                </span>
+                                                <ul className="bucket-wizard-summary-list">
+                                                    <li>
+                                                        <CheckCircleRoundedIcon fontSize="inherit" />
+                                                        {(user?.travelerStyles
+                                                            ?.length ?? 0) > 0
+                                                            ? `Your travel style (${(
+                                                                  user?.travelerStyles ??
+                                                                  []
+                                                              ).join(', ')})`
+                                                            : 'Your saved travel style'}
+                                                    </li>
+                                                    <li>
+                                                        <CheckCircleRoundedIcon fontSize="inherit" />
+                                                        This bucket-list goal
+                                                    </li>
+                                                    <li>
+                                                        <CheckCircleRoundedIcon fontSize="inherit" />
+                                                        Your budget preferences
+                                                    </li>
+                                                    <li>
+                                                        <CheckCircleRoundedIcon fontSize="inherit" />
+                                                        Your previous trips
+                                                    </li>
+                                                </ul>
+                                            </div>
+
                                             <div className="bucket-wizard-actions">
                                                 {wizardStep === 2 && (
                                                     <button
@@ -730,18 +867,6 @@ const BucketList = () => {
                                                     />
                                                 )}
                                             </div>
-                                            {(user?.travelerStyles?.length ??
-                                                0) > 0 && (
-                                                <p className="bucket-wizard-styles-hint">
-                                                    Your saved travel style (
-                                                    {(
-                                                        user?.travelerStyles ??
-                                                        []
-                                                    ).join(', ')}
-                                                    ) will also be used to
-                                                    personalize the trip.
-                                                </p>
-                                            )}
                                         </div>
                                     )}
                                 </li>
