@@ -11,7 +11,7 @@ import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import './index.scss';
 
-type LoaderPhase = 'options' | 'build';
+type LoaderPhase = 'options' | 'build' | 'enrich';
 
 interface AiTripLoaderProps {
     /** Drives mount/unmount. When false the overlay is removed. */
@@ -28,6 +28,9 @@ interface AiTripLoaderProps {
      *  full-overlay reassurance, but with messages that match what's
      *  actually happening at that step. */
     phase?: LoaderPhase;
+    /** Optional override for the fixed sub-headline under the title.
+     *  Defaults are phase-aware. */
+    subtitle?: string;
 }
 
 type Step = { Icon: React.ElementType; label: string };
@@ -51,14 +54,27 @@ const BUILD_STEPS: Step[] = [
     { Icon: AutoAwesomeIcon, label: 'Finalizing your itinerary…' },
 ];
 
+// Bucket-list enrichment backfill — the one-time pass that turns a Pro
+// user's existing plain goals into titled cards. Messaging is about the
+// goals themselves, not trip planning, so it can't reuse BUILD_STEPS.
+const ENRICH_STEPS: Step[] = [
+    { Icon: AutoAwesomeIcon, label: 'Reading your saved goals…' },
+    { Icon: TuneRoundedIcon, label: 'Writing a title for each dream…' },
+    { Icon: PublicRoundedIcon, label: 'Detecting themes and vibes…' },
+    { Icon: WbSunnyRoundedIcon, label: 'Adding a splash of personality…' },
+    { Icon: AutoAwesomeIcon, label: 'Polishing the finishing touches…' },
+];
+
 const DEFAULT_TITLES: Record<LoaderPhase, string> = {
     options: 'Finding your destination matches',
     build: 'Crafting your trip',
+    enrich: 'Polishing your bucket list',
 };
 
 const DEFAULT_SUBTITLES: Record<LoaderPhase, string> = {
     options: 'Hold tight — we’re matching your preferences to the right spots.',
     build: 'Hold tight — we’re shaping this into a real itinerary.',
+    enrich: 'Your Pro perk — we’re turning your saved goals into rich cards.',
 };
 
 /**
@@ -66,9 +82,19 @@ const DEFAULT_SUBTITLES: Record<LoaderPhase, string> = {
  * status. Rendered through a portal so it sits above any modal /
  * dropdown without z-index gymnastics in the parent.
  */
-const AiTripLoader = ({ open, title, phase = 'build' }: AiTripLoaderProps) => {
+const AiTripLoader = ({
+    open,
+    title,
+    phase = 'build',
+    subtitle,
+}: AiTripLoaderProps) => {
     const [stepIdx, setStepIdx] = useState(0);
-    const steps = phase === 'options' ? OPTIONS_STEPS : BUILD_STEPS;
+    const steps =
+        phase === 'options'
+            ? OPTIONS_STEPS
+            : phase === 'enrich'
+              ? ENRICH_STEPS
+              : BUILD_STEPS;
 
     useEffect(() => {
         if (!open) return;
@@ -95,7 +121,9 @@ const AiTripLoader = ({ open, title, phase = 'build' }: AiTripLoaderProps) => {
                 <h2 className="ai-trip-loader-title">
                     {title ?? DEFAULT_TITLES[phase]}
                 </h2>
-                <p className="ai-trip-loader-sub">{DEFAULT_SUBTITLES[phase]}</p>
+                <p className="ai-trip-loader-sub">
+                    {subtitle ?? DEFAULT_SUBTITLES[phase]}
+                </p>
 
                 <div className="ai-trip-loader-step" key={stepIdx}>
                     <StepIcon className="ai-trip-loader-step-icon" />
