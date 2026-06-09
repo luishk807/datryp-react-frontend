@@ -36,13 +36,32 @@ const FILTERS: { value: FilterValue; label: string }[] = [
     { value: 'completed', label: 'Completed' },
 ];
 
-// Status display order for the "All" view: Confirmed first (active and
-// locked in), then Planning (in progress), then Completed, then anything
-// else (Cancelled). Lower number = higher in the list.
+// Status display order: Confirmed first (active and locked in), then
+// Planning (in progress), then Completed, then anything else (Cancelled,
+// via the `?? 99` fallback). Lower number = higher in the list.
 const STATUS_SORT_ORDER: Record<string, number> = {
     confirmed: 1,
     planning: 2,
     completed: 3,
+    cancelled: 4,
+};
+
+const statusRank = (t: TripBoxData): number =>
+    STATUS_SORT_ORDER[t.status.name.toLowerCase()] ?? 99;
+
+// Sortable start-date timestamp; dateless trips sink to the bottom of
+// their status group rather than jumping to the top.
+const tripStartTime = (t: TripBoxData): number => {
+    const ts = Date.parse(t.startDate ?? '');
+    return Number.isNaN(ts) ? Infinity : ts;
+};
+
+// Order trips by status (Confirmed → Planning → Completed → Cancelled),
+// then soonest start date first within each status group.
+const compareTrips = (a: TripBoxData, b: TripBoxData): number => {
+    const byStatus = statusRank(a) - statusRank(b);
+    if (byStatus !== 0) return byStatus;
+    return tripStartTime(a) - tripStartTime(b);
 };
 
 export const Trips = () => {
@@ -93,16 +112,16 @@ export const Trips = () => {
     }, [allTrips]);
 
     const filteredTrips = useMemo(() => {
-        if (filter === 'all') {
-            // Sort is stable, so trips sharing a status keep their original
-            // (API) order. Unknown statuses (e.g. Cancelled) fall to the end.
-            return [...allTrips].sort(
-                (a, b) =>
-                    (STATUS_SORT_ORDER[a.status.name.toLowerCase()] ?? 99) -
-                    (STATUS_SORT_ORDER[b.status.name.toLowerCase()] ?? 99)
-            );
-        }
-        return allTrips.filter((t) => t.status.name.toLowerCase() === filter);
+        // Filter first (a single-status view collapses the status tier, so
+        // only the time tiebreak matters there), then apply the shared
+        // status → soonest-first ordering to whatever's left.
+        const list =
+            filter === 'all'
+                ? allTrips
+                : allTrips.filter(
+                      (t) => t.status.name.toLowerCase() === filter
+                  );
+        return [...list].sort(compareTrips);
     }, [filter, allTrips]);
 
     // Paginate the filtered list (50/page, shared constant). Reset
