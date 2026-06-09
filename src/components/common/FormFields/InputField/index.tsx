@@ -71,7 +71,13 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
 
         const labelText = useMemo(() => {
             if (type === 'date') return null;
-            return label || (name ? name.charAt(0).toUpperCase() + name.slice(1) : '');
+            // Only fall back to the field name when NO label was provided at
+            // all (null/undefined). An explicit empty string means "no
+            // floating label" — the caller renders its own external <label>
+            // (e.g. the shared transport fields) and must not have the raw
+            // field name ("transitOperator-0") leak in as the MUI label.
+            if (label != null) return label;
+            return name ? name.charAt(0).toUpperCase() + name.slice(1) : '';
         }, [label, name, type]);
 
         useEffect(() => {

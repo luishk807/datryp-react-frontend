@@ -174,11 +174,36 @@
 // transition from "owed" to "paid" reads at a glance.
 .mark-paid-split-row {
   display: grid;
-  grid-template-columns: auto 1fr 130px 160px 32px;
+  // Vertical-friendly layout: checkbox + name + remove on the top line,
+  // then Amount + Date side-by-side below it. The old single-line
+  // 5-column grid (auto 1fr 130px 160px 32px) had fixed-width input
+  // columns that couldn't shrink, so the row overflowed the modal card
+  // and forced a horizontal scrollbar. Stacking the inputs keeps every
+  // field visible at any width.
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'check name remove'
+    'amount date date';
   align-items: center;
-  gap: 12px;
+  column-gap: 12px;
+  row-gap: 10px;
   padding: 10px 14px;
   border-radius: 12px;
+
+  .mark-paid-split-name {
+    grid-area: name;
+  }
+  .mark-paid-split-remove {
+    grid-area: remove;
+  }
+  .mark-paid-split-amount {
+    grid-area: amount;
+    width: 100%;
+  }
+  .mark-paid-split-date {
+    grid-area: date;
+    width: 100%;
+  }
   background: #fafafa;
   border: 1px solid rgba(0, 0, 0, 0.06);
   transition: background 160ms ease, border-color 160ms ease,
@@ -209,6 +234,7 @@
   // Bigger, brand-tinted checkbox so it reads as the row's primary
   // affordance — not a tiny system control.
   .MuiCheckbox-root {
+    grid-area: check;
     padding: 6px;
     color: rgba(0, 0, 0, 0.3);
 
@@ -261,23 +287,14 @@
     }
   }
 
-  // Stack the inputs below the name on narrow viewports — keeps the
-  // row legible without horizontal scroll on a phone.
-  @media (max-width: 600px) {
-    grid-template-columns: auto 1fr 32px;
+  // On the narrowest phones give Amount and Date their own full-width
+  // lines so neither gets cramped.
+  @media (max-width: 400px) {
+    grid-template-columns: auto 1fr auto;
     grid-template-areas:
       'check name remove'
       'amount amount amount'
       'date date date';
-    gap: 8px;
-    padding: 12px 14px;
-
-    .mark-paid-split-amount {
-      grid-area: amount;
-    }
-    .mark-paid-split-date {
-      grid-area: date;
-    }
   }
 }
 
