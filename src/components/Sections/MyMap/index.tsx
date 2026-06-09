@@ -32,6 +32,7 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
@@ -41,9 +42,27 @@ import MyMapStatDropdown, {
     type MyMapStatDropdownOption,
 } from './MyMapStatDropdown';
 import { placeDetailUrl } from 'utils/placeUrl';
+import { haversineKm, KM_TO_MI } from 'utils/geo';
 import './index.scss';
 
 type StatDropdownKey = 'countries' | 'cities' | 'places';
+
+/** Rough count of sovereign countries — the denominator for the
+ *  "% of the world explored" stat. 195 = UN members + observers. */
+const WORLD_COUNTRY_COUNT = 195;
+
+/** Map a visited-country count to a playful, *honest* explorer tier.
+ *  Deliberately NOT a "you've traveled more than X% of people" claim —
+ *  we have no real population distribution to back that up. Levels are
+ *  self-referential (your own count), so they motivate without lying. */
+const explorerLevel = (n: number): { emoji: string; label: string } => {
+    if (n >= 61) return { emoji: '🏆', label: 'World Citizen' };
+    if (n >= 31) return { emoji: '✈️', label: 'Globe Trekker' };
+    if (n >= 16) return { emoji: '🌍', label: 'World Explorer' };
+    if (n >= 6) return { emoji: '🧳', label: 'Frequent Traveler' };
+    if (n >= 1) return { emoji: '🌱', label: 'Beginner Explorer' };
+    return { emoji: '🧭', label: 'New Explorer' };
+};
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
 
@@ -108,6 +127,15 @@ const MyMap = () => {
     const [openDropdown, setOpenDropdown] = useState<StatDropdownKey | null>(
         null
     );
+    // Per-layer visibility, toggled from the eye on each stat pill so a
+    // crowded map can be filtered down to just the layer the user cares
+    // about. Defaults all-on.
+    const [layerVisibility, setLayerVisibility] = useState<
+        Record<StatDropdownKey, boolean>
+    >({ countries: true, cities: true, places: true });
+    const toggleLayer = useCallback((key: StatDropdownKey) => {
+        setLayerVisibility((v) => ({ ...v, [key]: !v[key] }));
+    }, []);
     // Active map selection — populates the left-side trips panel.
     // Set when the user clicks a country shading, a city pin, or a
     // place pin (and when those targets are chosen from the
@@ -149,6 +177,39 @@ const MyMap = () => {
     }, []);
     const handleOpenIntro = useCallback(() => {
         setIntroOpen(true);
+    }, []);
+
+    // Collapse/expand for the atlas-stats card — same hide/show pattern as
+    // the intro card, with the reopen pill at bottom-left. Default: open on
+    // desktop (room for it), collapsed on phones so it doesn't crowd the
+    // intro card on first load. Choice persists in localStorage.
+    const STATS_STORAGE_KEY = 'my-map-stats-collapsed';
+    const [statsOpen, setStatsOpen] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return true;
+        try {
+            const stored = window.localStorage.getItem(STATS_STORAGE_KEY);
+            if (stored === '1') return false;
+            if (stored === '0') return true;
+            return !window.matchMedia('(max-width: 720px)').matches;
+        } catch {
+            return true;
+        }
+    });
+    const handleCloseStats = useCallback(() => {
+        setStatsOpen(false);
+        try {
+            window.localStorage.setItem(STATS_STORAGE_KEY, '1');
+        } catch {
+            /* localStorage unavailable — in-memory collapse only. */
+        }
+    }, []);
+    const handleOpenStats = useCallback(() => {
+        setStatsOpen(true);
+        try {
+            window.localStorage.setItem(STATS_STORAGE_KEY, '0');
+        } catch {
+            /* localStorage unavailable — in-memory expand only. */
+        }
     }, []);
 
     const paywallRef = useRef<ModalButtonHandle>(null);
@@ -271,6 +332,64 @@ const MyMap = () => {
                 })),
         [visitedCities]
     );
+
+    // Travel-atlas summary stats for the corner card: world-exploration
+    // %, explorer level (off the country union), and the single farthest
+    // visited point from the user's saved home — the "personal" stat that
+    // travelers actually enjoy. Furthest is null when no home coords are
+    // saved (we won't fabricate a reference point).
+    const atlasStats = useMemo(() => {
+        const countries = countryCodes.length;
+        const worldPct = (countries / WORLD_COUNTRY_COUNT) * 100;
+        const level = explorerLevel(countries);
+
+        let furthest: { label: string; miles: number } | null = null;
+        const homeLat = user?.homeLatitude;
+        const homeLng = user?.homeLongitude;
+        if (typeof homeLat === 'number' && typeof homeLng === 'number') {
+            const home = { lat: homeLat, lng: homeLng };
+            let bestKm = -1;
+            let bestLabel = '';
+            const consider = (label: string, lat: number, lng: number) => {
+                const km = haversineKm(home, { lat, lng });
+                if (km > bestKm) {
+                    bestKm = km;
+                    bestLabel = label;
+                }
+            };
+            for (const p of placePins) {
+                const label =
+                    [p.city, p.country].filter(Boolean).join(', ') || p.name;
+                consider(label, p.lat, p.lng);
+            }
+            for (const c of cityPins) {
+                consider(`${c.cityName}, ${c.countryName}`, c.lat, c.lng);
+            }
+            if (bestKm > 0) {
+                furthest = {
+                    label: bestLabel,
+                    miles: Math.round(bestKm * KM_TO_MI),
+                };
+            }
+        }
+
+        return {
+            countries,
+            cities: visitedCities.length,
+            places: visitedPlaces.length,
+            worldPct,
+            level,
+            furthest,
+        };
+    }, [
+        countryCodes,
+        visitedCities,
+        visitedPlaces,
+        placePins,
+        cityPins,
+        user?.homeLatitude,
+        user?.homeLongitude,
+    ]);
 
     // Initialize the Mapbox map. Runs once — subsequent data changes
     // are handled by separate effects that mutate the existing map.
@@ -458,6 +577,26 @@ const MyMap = () => {
             map.setFilter('visited-country-line', filter as any);
         }
     }, [countryCodes, mapReady]);
+
+    // Apply per-layer visibility toggles (eye on each stat pill). Country
+    // shading is fill + outline, so both ride the `countries` toggle.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const set = (layerId: string, on: boolean) => {
+            if (map.getLayer(layerId)) {
+                map.setLayoutProperty(
+                    layerId,
+                    'visibility',
+                    on ? 'visible' : 'none'
+                );
+            }
+        };
+        set('visited-country-fill', layerVisibility.countries);
+        set('visited-country-line', layerVisibility.countries);
+        set(CITY_PINS_LAYER, layerVisibility.cities);
+        set(PLACE_PINS_LAYER, layerVisibility.places);
+    }, [layerVisibility, mapReady]);
 
     // Sync place pins into the GeoJSON source backing the circle
     // layer. Replaces the old `mapboxgl.Marker` loop — features are
@@ -1361,9 +1500,17 @@ const MyMap = () => {
         setOpenDropdown(null);
     };
 
+    // The trips panel only renders when the selected region actually has
+    // trips. Gate the atlas-stats card on THIS (not just `selection`) so a
+    // click on a trip-less country doesn't hide the stats with nothing to
+    // replace it — which left the user stuck with no way to get it back.
+    const tripsPanelOpen = Boolean(
+        selection && selectionTrips && selectionTrips.length > 0
+    );
+
     if (!MAPBOX_TOKEN) {
         return (
-            <Layout title="Mapper">
+            <Layout title="Travel Atlas">
                 <div className="my-map-setup-missing">
                     <h2>Map setup needed</h2>
                     <p>
@@ -1385,7 +1532,7 @@ const MyMap = () => {
     }
 
     return (
-        <Layout title="Mapper" fullBleed>
+        <Layout title="Travel Atlas" fullBleed>
             <div className="my-map-page">
                 <div
                     className={
@@ -1422,6 +1569,8 @@ const MyMap = () => {
                                 handleSelectFromDropdown('countries', id)
                             }
                             emptyHint="No visited countries yet."
+                            visible={layerVisibility.countries}
+                            onToggleVisible={() => toggleLayer('countries')}
                         />
                         <MyMapStatDropdown
                             icon={
@@ -1441,6 +1590,8 @@ const MyMap = () => {
                                 handleSelectFromDropdown('cities', id)
                             }
                             emptyHint="No visited cities yet."
+                            visible={layerVisibility.cities}
+                            onToggleVisible={() => toggleLayer('cities')}
                         />
                         <MyMapStatDropdown
                             icon={<PlaceRoundedIcon fontSize="small" />}
@@ -1458,6 +1609,8 @@ const MyMap = () => {
                                 handleSelectFromDropdown('places', id)
                             }
                             emptyHint="No visited places yet."
+                            visible={layerVisibility.places}
+                            onToggleVisible={() => toggleLayer('places')}
                         />
                     </div>
                     )}
@@ -1541,8 +1694,8 @@ const MyMap = () => {
                             type="button"
                             className="my-map-intro-pill"
                             onClick={handleOpenIntro}
-                            aria-label="About Mapper"
-                            title="About Mapper"
+                            aria-label="About Travel Atlas"
+                            title="About Travel Atlas"
                         >
                             <InfoOutlinedIcon fontSize="small" />
                             <span>About</span>
@@ -1559,9 +1712,114 @@ const MyMap = () => {
                      *  pin popup + camera fly already confirm the
                      *  click, no need for a panel that just says
                      *  "nothing to show here." */}
-                    {selection &&
-                        selectionTrips &&
-                        selectionTrips.length > 0 && (
+                    {/* Travel-atlas summary card — bottom-left. Hidden
+                     *  while a region is selected (the trips panel takes
+                     *  over that side) so the two don't stack. Pro-only,
+                     *  like the rest of the map chrome. */}
+                    {isPro &&
+                        !tripsPanelOpen &&
+                        (statsOpen ? (
+                        <aside
+                            className="my-map-atlas-stats"
+                            aria-label="Your travel atlas summary"
+                        >
+                            <button
+                                type="button"
+                                className="my-map-atlas-stats-close"
+                                onClick={handleCloseStats}
+                                aria-label="Hide stats"
+                            >
+                                <CloseRoundedIcon fontSize="small" />
+                            </button>
+                            <div className="my-map-atlas-stats-counts">
+                                <span>
+                                    <strong>{atlasStats.countries}</strong>{' '}
+                                    countries
+                                </span>
+                                <span>
+                                    <strong>{atlasStats.cities}</strong> cities
+                                </span>
+                                <span>
+                                    <strong>{atlasStats.places}</strong> places
+                                </span>
+                            </div>
+                            <div className="my-map-atlas-stats-progress">
+                                <div className="my-map-atlas-stats-progress-head">
+                                    <span className="my-map-atlas-stats-progress-pct">
+                                        {atlasStats.worldPct.toFixed(1)}% of the
+                                        world explored
+                                    </span>
+                                    <span className="my-map-atlas-stats-progress-frac">
+                                        {atlasStats.countries}/
+                                        {WORLD_COUNTRY_COUNT}
+                                    </span>
+                                </div>
+                                <div className="my-map-atlas-stats-bar">
+                                    <span
+                                        className="my-map-atlas-stats-bar-fill"
+                                        style={{
+                                            width: `${Math.min(
+                                                100,
+                                                Math.max(
+                                                    2,
+                                                    atlasStats.worldPct
+                                                )
+                                            )}%`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="my-map-atlas-stats-row">
+                                <span
+                                    className="my-map-atlas-stats-emoji"
+                                    aria-hidden="true"
+                                >
+                                    {atlasStats.level.emoji}
+                                </span>
+                                <span className="my-map-atlas-stats-row-text">
+                                    <span className="my-map-atlas-stats-row-label">
+                                        Explorer level
+                                    </span>
+                                    <strong>{atlasStats.level.label}</strong>
+                                </span>
+                            </div>
+                            {atlasStats.furthest && (
+                                <div className="my-map-atlas-stats-row">
+                                    <span
+                                        className="my-map-atlas-stats-emoji"
+                                        aria-hidden="true"
+                                    >
+                                        <PlaceRoundedIcon fontSize="small" />
+                                    </span>
+                                    <span className="my-map-atlas-stats-row-text">
+                                        <span className="my-map-atlas-stats-row-label">
+                                            Furthest destination
+                                        </span>
+                                        <strong>
+                                            {atlasStats.furthest.label}
+                                        </strong>
+                                        <span className="my-map-atlas-stats-row-sub">
+                                            {atlasStats.furthest.miles.toLocaleString()}{' '}
+                                            mi from home
+                                        </span>
+                                    </span>
+                                </div>
+                            )}
+                        </aside>
+                    ) : (
+                        <button
+                            type="button"
+                            className="my-map-stats-pill"
+                            onClick={handleOpenStats}
+                            aria-label="Show travel stats"
+                            title="Travel stats"
+                        >
+                            <InsightsRoundedIcon fontSize="small" />
+                            <span>Stats</span>
+                        </button>
+                    ))}
+
+                    {tripsPanelOpen && (
                         <aside
                             className="my-map-trips-panel"
                             aria-labelledby="my-map-trips-panel-title"
@@ -1674,7 +1932,7 @@ const MyMap = () => {
                                 className="my-map-paywall-icon"
                             />
                             <h3 className="my-map-paywall-title">
-                                Mapper is a Pro feature
+                                Travel Atlas is a Pro feature
                             </h3>
                             <p className="my-map-paywall-body">
                                 Visualize every country and place
@@ -1705,14 +1963,14 @@ const MyMap = () => {
                 ref={paywallRef}
                 currentCount={visitedCountries.length}
                 cap={0}
-                title="Unlock Mapper"
+                title="Unlock Travel Atlas"
                 headline={
                     <>
                         Take your travel history out of a list and onto
                         a beautiful world map.
                     </>
                 }
-                body="Mapper shades every country you've visited and pins every place — a living record of your travels. Available on every Pro plan."
+                body="Travel Atlas shades every country you've visited and pins every place — a living record of your travels. Available on every Pro plan."
             />
         </Layout>
     );

@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './index.scss';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
+import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
+import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
+import LuggageRoundedIcon from '@mui/icons-material/LuggageRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import DeleteBtn from 'components/common/DeleteBtn';
+import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import Pagination from 'components/common/Pagination';
 import VisitedMenu, {
     type VisitedTabKey,
@@ -33,6 +38,7 @@ const sourceLabel = (source: VisitedPlace['source']): string =>
     source === VISITED_SOURCE.ITINERARY ? 'From itinerary' : 'Marked manually';
 
 const Visited = () => {
+    const navigate = useNavigate();
     const { data, isLoading, isError, error } = useVisitedPlaces();
     const {
         data: countriesData,
@@ -105,12 +111,25 @@ const Visited = () => {
                     <div className="visited-page-header-text">
                         <h1 className="visited-page-title">Where you've been</h1>
                         {!anyLoading && !anyError && !allEmpty && (
-                            <p className="visited-page-summary">
-                                {countryCount}{' '}
-                                countr{countryCount === 1 ? 'y' : 'ies'} ·{' '}
-                                {cityTotal} cit{cityTotal === 1 ? 'y' : 'ies'} ·{' '}
-                                {total} place{total === 1 ? '' : 's'}
-                            </p>
+                            <div className="visited-page-stats">
+                                <span className="visited-stat-pill">
+                                    <PublicRoundedIcon className="visited-stat-pill-icon" />
+                                    <strong>{countryCount}</strong>{' '}
+                                    {countryCount === 1
+                                        ? 'Country'
+                                        : 'Countries'}
+                                </span>
+                                <span className="visited-stat-pill">
+                                    <LocationCityRoundedIcon className="visited-stat-pill-icon" />
+                                    <strong>{cityTotal}</strong>{' '}
+                                    {cityTotal === 1 ? 'City' : 'Cities'}
+                                </span>
+                                <span className="visited-stat-pill">
+                                    <PlaceRoundedIcon className="visited-stat-pill-icon" />
+                                    <strong>{total}</strong>{' '}
+                                    {total === 1 ? 'Place' : 'Places'}
+                                </span>
+                            </div>
                         )}
                     </div>
                     <Link to="/my-map" className="visited-page-map-link">
@@ -134,13 +153,21 @@ const Visited = () => {
                 {!anyLoading && !anyError && allEmpty && (
                     <div className="visited-page-empty">
                         <CheckCircleRoundedIcon className="visited-page-empty-icon" />
-                        <p>You haven't marked anywhere as visited yet.</p>
+                        <p>No visited places yet.</p>
                         <p className="visited-page-empty-hint">
-                            Open a country from the{' '}
-                            <Link to="/">home page</Link> and tap{' '}
-                            <em>"I've been here"</em>, or do the same on a
-                            specific place page.
+                            Complete a trip or mark a destination as visited to
+                            start building your travel history. Open a country
+                            or place and tap <em>"I've been here"</em>, or plan
+                            a trip and it lands here when it&rsquo;s done.
                         </p>
+                        <ButtonIcon
+                            type={BUTTON_VARIANT.STANDARD}
+                            Icon={FlightTakeoffRoundedIcon}
+                            iconPosition="start"
+                            title="Build your first trip"
+                            className="visited-empty-cta"
+                            onClick={() => navigate('/single')}
+                        />
                     </div>
                 )}
 
@@ -331,9 +358,44 @@ const Visited = () => {
                                                                     v.source
                                                                 )}
                                                             </span>
+                                                            {v.trips &&
+                                                                v.trips.length >
+                                                                    0 &&
+                                                                v.trips[0]
+                                                                    .tripName && (
+                                                                    <span className="visited-card-trip">
+                                                                        <LuggageRoundedIcon className="visited-card-trip-icon" />
+                                                                        From{' '}
+                                                                        <strong>
+                                                                            {
+                                                                                v
+                                                                                    .trips[0]
+                                                                                    .tripName
+                                                                            }
+                                                                        </strong>
+                                                                        {v.trips
+                                                                            .length >
+                                                                        1
+                                                                            ? ` +${v.trips.length - 1} more`
+                                                                            : ''}
+                                                                    </span>
+                                                                )}
                                                         </div>
                                                     </Link>
                                                     <div className="visited-card-actions">
+                                                        {v.trips &&
+                                                            v.trips.length >
+                                                                0 && (
+                                                                <Link
+                                                                    to={`/trip-detail?id=${encodeURIComponent(
+                                                                        v.trips[0]
+                                                                            .tripId
+                                                                    )}`}
+                                                                    className="visited-card-trip-link"
+                                                                >
+                                                                    View trip
+                                                                </Link>
+                                                            )}
                                                         <DeleteBtn
                                                             title="Remove from visited"
                                                             label="Remove"

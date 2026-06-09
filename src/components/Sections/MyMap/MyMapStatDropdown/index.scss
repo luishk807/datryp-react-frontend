@@ -1,6 +1,46 @@
 .my-map-stat-dropdown {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// Eye toggle — shows/hides this layer on the map. Sits left of the
+// pill so the count stays the dominant element.
+.my-map-stat-dropdown-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: theme('colors.primaryGreen');
+  font-size: 1.05rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: theme('colors.primaryGreen');
+    background: #fff;
+  }
+}
+
+// Dimmed pill + muted eye when the layer is toggled off, so the
+// off-state reads at a glance.
+.my-map-stat-dropdown.is-hidden {
+  .my-map-stat-dropdown-trigger {
+    opacity: 0.5;
+  }
+
+  .my-map-stat-dropdown-eye {
+    color: rgba(0, 0, 0, 0.4);
+  }
 }
 
 .my-map-stat-dropdown-trigger {
@@ -162,5 +202,15 @@
     padding: 6px 8px;
     gap: 4px;
     font-size: 0.85rem;
+  }
+
+  .my-map-stat-dropdown {
+    gap: 2px;
+  }
+
+  .my-map-stat-dropdown-eye {
+    width: 26px;
+    height: 26px;
+    font-size: 0.95rem;
   }
 }

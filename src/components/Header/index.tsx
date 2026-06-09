@@ -247,7 +247,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 />
                                 <MenuActionItem
                                     icon={<PublicRoundedIcon />}
-                                    label="Mapper"
+                                    label="Travel Atlas"
                                     onClick={() => handleNavigate('/my-map')}
                                 />
                                 <MenuActionItem

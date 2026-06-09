@@ -4,6 +4,8 @@ import {
     type ReactNode,
 } from 'react';
 import classNames from 'classnames';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import './index.scss';
 
 export interface MyMapStatDropdownOption {
@@ -30,6 +32,11 @@ export interface MyMapStatDropdownProps {
     onClose: () => void;
     onSelect: (id: string) => void;
     emptyHint?: string;
+    /** When provided, renders an eye toggle that shows/hides this layer
+     *  on the map. `visible` drives the eye/eye-off icon + a dimmed pill
+     *  when off. Omit both to keep the pill as a pure selector. */
+    visible?: boolean;
+    onToggleVisible?: () => void;
 }
 
 const MyMapStatDropdown = ({
@@ -42,6 +49,8 @@ const MyMapStatDropdown = ({
     onClose,
     onSelect,
     emptyHint = 'Nothing here yet.',
+    visible = true,
+    onToggleVisible,
 }: MyMapStatDropdownProps) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -70,8 +79,29 @@ const MyMapStatDropdown = ({
             ref={containerRef}
             className={classNames('my-map-stat-dropdown', {
                 'is-open': isOpen,
+                'is-hidden': !visible,
             })}
         >
+            {onToggleVisible && (
+                <button
+                    type="button"
+                    className="my-map-stat-dropdown-eye"
+                    onClick={onToggleVisible}
+                    aria-pressed={visible}
+                    aria-label={
+                        visible
+                            ? `Hide ${label} on map`
+                            : `Show ${label} on map`
+                    }
+                    title={visible ? `Hide ${label}` : `Show ${label}`}
+                >
+                    {visible ? (
+                        <VisibilityRoundedIcon fontSize="inherit" />
+                    ) : (
+                        <VisibilityOffRoundedIcon fontSize="inherit" />
+                    )}
+                </button>
+            )}
             <button
                 type="button"
                 className="my-map-stat-dropdown-trigger"
