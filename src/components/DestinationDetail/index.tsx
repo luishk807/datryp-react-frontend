@@ -366,9 +366,15 @@ const DestinationDetail = ({
         const indxList: number[] = [];
         for (let i = 0; i < derivedDestinations.length; i++) {
             const dest = derivedDestinations[i];
-            const startsInRange =
-                isAfter(dest.startDate, flagStart) ||
-                isSameDay(dest.startDate, flagStart);
+            // Absorb (remove) a destination ONLY when it sits STRICTLY inside
+            // the edited destination's range — i.e. it arrives on a LATER day
+            // the edited range now covers. A same-day sibling (same startDate)
+            // is a distinct arrival, not an overlap: same-day destinations are
+            // allowed (sequential flights), so editing one single-day stop must
+            // not delete another that arrives the same day. The old
+            // `isSameDay(dest.startDate, flagStart)` clause did exactly that —
+            // editing Panama (6/12) silently dropped Colombia (also 6/12).
+            const startsInRange = isAfter(dest.startDate, flagStart);
             const endsInRange =
                 isBefore(dest.endDate, flagEnd) ||
                 isSameDay(dest.endDate, flagEnd);
