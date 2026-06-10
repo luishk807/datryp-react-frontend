@@ -1,0 +1,49 @@
+// Favorite toggle in the activity title row (where the per-activity status
+// chip used to sit). Pill with icon + label; label collapses to icon-only on
+// mobile to keep the title row compact.
+.activity-fav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
+    background: #fff;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease,
+        color 0.15s ease;
+
+    &:hover:not(:disabled) {
+        border-color: theme('colors.primaryOrange');
+        color: theme('colors.primaryOrange');
+    }
+
+    &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    &.is-saved {
+        border-color: theme('colors.primaryOrange');
+        background: rgba(247, 159, 38, 0.1);
+        color: theme('colors.primaryOrange');
+    }
+}
+
+.activity-fav-btn-icon {
+    font-size: 1rem !important;
+}
+
+// Mobile (matches the app's ≤1024px mobile chrome): icon only.
+@media (max-width: 1024px) {
+    .activity-fav-btn {
+        padding: 5px;
+        gap: 0;
+    }
+    .activity-fav-btn-label {
+        display: none;
+    }
+}

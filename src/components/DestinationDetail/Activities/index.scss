@@ -406,6 +406,24 @@
   opacity: 1;
 }
 
+// On a COMPLETED trip the itinerary reads as a browsable memory/journal, not
+// a sealed record — drop the per-activity faded look entirely so places are
+// bright and the review/favorite actions are fully interactive.
+.trip-detail-status-completed .activity-content-trip.is-completed {
+  opacity: 1;
+  pointer-events: auto;
+  filter: none;
+}
+
+// Even on a still-active trip (a past activity auto-completes and dims), the
+// review + favorite controls stay clickable — same escape hatch as the
+// complete tick.
+.activity-content-trip.is-completed .activity-fav-btn,
+.activity-content-trip.is-completed .activity-review-stars {
+  pointer-events: auto;
+  opacity: 1;
+}
+
 /* Compact pencil-icon trigger for the edit modal — drops MUI text-button
  * padding so it sits flush next to the activity name. */
 .activity-content-trip .activity-edit-btn {

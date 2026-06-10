@@ -140,25 +140,32 @@ button.trip-box-link.is-select-trigger {
   color: rgba(0, 0, 0, 0.55);
 }
 
-// Live progress pill — sits in the card body, just under the destination
-// line. A static tinted chip (no longer an image overlay). Color tracks
-// urgency. The tint is a soft wash of the same accent the text uses.
-.trip-box-progress {
+// Row holding the live/countdown pill and (for planning trips) the
+// "N% planned" completeness chip, just under the destination line.
+.trip-box-pills {
   display: flex;
-  width: fit-content;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+// Live progress pill — a static tinted chip. Color tracks urgency.
+.trip-box-progress {
+  display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 12px;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 999px;
   white-space: nowrap;
 
-  // Travelling now — the most "alive" state.
+  // Travelling now — the most "alive" state. Red so "Live" pops against the
+  // green/neutral upcoming cards.
   &.is-active {
-    color: theme('colors.primaryOrange');
-    background: rgba(246, 137, 31, 0.1);
+    color: #e2574c;
+    background: rgba(226, 87, 76, 0.12);
   }
   // Departing within two weeks.
   &.is-soon {
@@ -170,6 +177,43 @@ button.trip-box-link.is-select-trigger {
     color: rgba(0, 0, 0, 0.6);
     background: rgba(0, 0, 0, 0.05);
   }
+}
+
+// Planning completeness chip — subtle, neutral; nudges the user to finish.
+.trip-box-planned {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: theme('colors.primaryOrange');
+  background: rgba(246, 137, 31, 0.1);
+}
+
+// Completed "memory card" stat row — days / places / friends.
+.trip-box-memory {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.trip-box-memory-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.trip-box-memory-icon {
+  font-size: 0.95rem !important;
+  color: theme('colors.primaryGreen');
 }
 
 // Pulsing dot on the "Day X of Y" pill — signals a trip in motion.

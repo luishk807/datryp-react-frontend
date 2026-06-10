@@ -1,0 +1,33 @@
+// Traveler-review rating shown right under the activity title — a clickable
+// row that opens the full reviews window.
+.activity-review-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0 4px;
+    padding: 2px 4px 2px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+
+    .stars-display-star {
+        font-size: 1rem;
+    }
+
+    &:hover .activity-review-count,
+    &:hover .activity-review-rate {
+        color: theme('colors.primaryOrange');
+    }
+}
+
+.activity-review-count {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.activity-review-rate {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: theme('colors.primaryGreen');
+}

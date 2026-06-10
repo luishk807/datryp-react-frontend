@@ -69,6 +69,17 @@
 
 .planning-box-confirm {
     flex-shrink: 0;
+
+    // Solid green CTA with white text — the primary "go" action of the box.
+    // Overrides the shared TripStatusBadge's soft-pill look in this context.
+    .trip-status-badge {
+        background: theme('colors.primaryGreen') !important;
+        color: #fff !important;
+
+        &:hover:not(:disabled) {
+            background: #2e9a3d !important;
+        }
+    }
 }
 
 .planning-box-toggle {
@@ -115,4 +126,22 @@
     border-radius: 999px;
     background: var(--readiness-accent);
     transition: width 0.35s ease;
+}
+
+// On mobile the Confirm button drops to its own full-width row beneath the
+// copy (the chevron stays up top-right with the title). DOM order is
+// icon → text → confirm → chevron, so re-order the chevron ahead of the
+// confirm and let the confirm wrap to a new line.
+@media (max-width: 720px) {
+    .planning-box-head {
+        flex-wrap: wrap;
+    }
+    .planning-box-toggle {
+        order: 2;
+    }
+    .planning-box-confirm {
+        order: 3;
+        flex-basis: 100%;
+        margin-top: 12px;
+    }
 }

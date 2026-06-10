@@ -8,6 +8,7 @@ export * from "./lazyWithRetry";
 export * from "./parseRoute";
 export * from "./tripStats";
 export * from "./tripReadiness";
+export * from "./tripCardStats";
 
 export const isSingleTrip = (type) => {
     return type === TRIP_BASIC.SINGLE.id ? true : false;

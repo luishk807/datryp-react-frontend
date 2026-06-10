@@ -58,6 +58,7 @@ import TripSuggestionsCard from "components/TripSuggestionsCard";
 import TripCheckupCard from "components/TripCheckupCard";
 import TripCompletionSummary from "components/TripCompletionSummary";
 import TripRatingCard from "components/TripRatingCard";
+import TripCompanionsCard from "components/TripCompanionsCard";
 import PlanningBox from "components/PlanningBox";
 import { useUser } from "context/UserContext";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
@@ -1203,6 +1204,7 @@ export const TripDetail = () => {
             {apiTrip?.id && (
               <TripRatingCard tripId={apiTrip.id} canRate={canRateTrip} />
             )}
+            {apiTrip?.id && <TripCompanionsCard tripId={apiTrip.id} />}
           </Grid>
         )}
         {!focusMode && persistedStatusName === TRIP_STATUS.CANCELLED && (

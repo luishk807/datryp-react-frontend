@@ -3,11 +3,19 @@ import classnames from 'classnames';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import AvatarStack from 'components/common/AvatarStack';
 import { useUser } from 'context/UserContext';
 import './index.scss';
-import { NO_IMAGE } from 'constants';
-import { formatDate, isValidDate } from 'utils';
+import { NO_IMAGE, TRIP_STATUS } from 'constants';
+import {
+    formatDate,
+    isValidDate,
+    tripCardDays,
+    tripCardPlaces,
+    tripCardPlannedPercent,
+} from 'utils';
 import type {
     MultipleDestinations,
     SingleDestination,
@@ -92,7 +100,9 @@ const getTripProgress = (
     if (today <= e) {
         const total = Math.round((e - s) / MS_PER_DAY) + 1;
         const dayNum = Math.round((today - s) / MS_PER_DAY) + 1;
-        return { label: `Day ${dayNum} of ${total}`, tone: 'active' };
+        // "Live" prefix + a red pulsing dot makes a trip happening RIGHT NOW
+        // read distinctly from an upcoming "Starts in N days" card.
+        return { label: `Live · Day ${dayNum} of ${total}`, tone: 'active' };
     }
     return null;
 };
@@ -161,6 +171,15 @@ export const TripBox = ({
         data.status.name
     );
 
+    // Lifecycle-specific card extras: a Completed trip reads as a "memory
+    // card" (days / places / friends), while a Planning trip shows how filled
+    // in the itinerary is. Both derive straight from the card's itinerary.
+    const isCompleted = statusKey === TRIP_STATUS.COMPLETED.toLowerCase();
+    const isPlanning = statusKey === TRIP_STATUS.PLANNING.toLowerCase();
+    const memoryDays = isCompleted ? tripCardDays(data) : 0;
+    const memoryPlaces = isCompleted ? tripCardPlaces(data) : 0;
+    const plannedPercent = isPlanning ? tripCardPlannedPercent(data) : 0;
+
     // Body shared by both interaction modes — only the wrapper element
     // changes (`<Link>` for navigation vs `<button>` for selection).
     const inner = (
@@ -217,24 +236,61 @@ export const TripBox = ({
                         </span>
                     )}
                 </p>
-                {/* Live countdown / day-counter pill — sits in the body right
-                    under the destination. Hidden in selectable mode and for
-                    ended trips (the COMPLETED badge covers those). */}
-                {!selectable && progress && (
-                    <span
-                        className={classnames(
-                            'trip-box-progress',
-                            `is-${progress.tone}`
+                {/* Live countdown / day-counter pill (+ planning completeness)
+                    — sits in the body right under the destination. Hidden in
+                    selectable mode. */}
+                {!selectable &&
+                    (progress || (isPlanning && plannedPercent > 0)) && (
+                        <div className="trip-box-pills">
+                            {progress && (
+                                <span
+                                    className={classnames(
+                                        'trip-box-progress',
+                                        `is-${progress.tone}`
+                                    )}
+                                >
+                                    {progress.tone === 'active' && (
+                                        <span
+                                            className="trip-box-progress-dot"
+                                            aria-hidden="true"
+                                        />
+                                    )}
+                                    {progress.label}
+                                </span>
+                            )}
+                            {isPlanning && plannedPercent > 0 && (
+                                <span
+                                    className="trip-box-planned"
+                                    title="How filled in the itinerary is"
+                                >
+                                    {plannedPercent}% planned
+                                </span>
+                            )}
+                        </div>
+                    )}
+                {/* Completed = a "memory card": at-a-glance stats instead of a
+                    countdown. */}
+                {!selectable && isCompleted && (
+                    <div className="trip-box-memory">
+                        <span className="trip-box-memory-stat">
+                            <CalendarMonthRoundedIcon className="trip-box-memory-icon" />
+                            {memoryDays} day{memoryDays === 1 ? '' : 's'}
+                        </span>
+                        {memoryPlaces > 0 && (
+                            <span className="trip-box-memory-stat">
+                                <PlaceRoundedIcon className="trip-box-memory-icon" />
+                                {memoryPlaces} place
+                                {memoryPlaces === 1 ? '' : 's'}
+                            </span>
                         )}
-                    >
-                        {progress.tone === 'active' && (
-                            <span
-                                className="trip-box-progress-dot"
-                                aria-hidden="true"
-                            />
+                        {friendsCount > 0 && (
+                            <span className="trip-box-memory-stat">
+                                <GroupRoundedIcon className="trip-box-memory-icon" />
+                                {friendsCount} friend
+                                {friendsCount === 1 ? '' : 's'}
+                            </span>
                         )}
-                        {progress.label}
-                    </span>
+                    </div>
                 )}
                 {/* Trip-kind chip — single vs multi-destination, sitting just
                     below the country in the card body. */}

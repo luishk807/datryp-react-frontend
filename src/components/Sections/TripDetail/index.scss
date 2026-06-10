@@ -1025,6 +1025,22 @@ $night-border: rgba(255, 255, 255, 0.1);
     color: $night-text-2;
   }
 
+  // ---- Friends who joined (TripCompanionsCard) ----
+  .trip-companions-card {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+  }
+  .trip-companions-title,
+  .trip-companion-name {
+    color: $night-text;
+  }
+  .trip-companion-fav {
+    color: $night-text-2;
+  }
+  .trip-companion-muted {
+    color: $night-text-3;
+  }
+
   // ---- Empty / hint / end states ----
   .trip-detail-empty,
   .trip-detail-end-label,

@@ -53,6 +53,8 @@ import MarkPaidModal, {
   type MarkPaidValue,
 } from "components/MarkPaidModal";
 import NotifyParticipantsButton from "components/NotifyParticipantsButton";
+import ActivityFavoriteButton from "components/ActivityFavoriteButton";
+import ActivityReviewStars from "components/ActivityReviewStars";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import { convertMoney } from "utils";
@@ -629,6 +631,14 @@ const Activities = ({
           const activityKind = activity.kind ?? ACTIVITY_KIND.PLACE;
           const isNote = activityKind === ACTIVITY_KIND.NOTE;
           const isFlight = activityKind === ACTIVITY_KIND.FLIGHT;
+          // A real place we can review / favorite (has the structured place
+          // fields needed to key it to the reviews + saved systems).
+          const hasPlaceIdentity =
+            !isNote &&
+            !isFlight &&
+            Boolean(
+              activity.name && activity.placeCity && activity.placeCountry,
+            );
           // Live timing bin used for the past/current/upcoming
           // CSS class on the card. Notes (no time) return null
           // and skip the live-state styling. The full now/date
@@ -1059,7 +1069,31 @@ const Activities = ({
                               </button>
                             );
                           })()}
+                        {/* Favorite sits in the title row (where the per-
+                            activity status chip used to be). Icon-only on
+                            mobile. */}
+                        {hasPlaceIdentity && (
+                          <ActivityFavoriteButton
+                            placeName={activity.name}
+                            placeCity={activity.placeCity as string}
+                            placeCountry={activity.placeCountry as string}
+                            placeKey={activity.placeKey}
+                            countryCode={activity.countryCode}
+                            imageUrl={activity.image?.url}
+                          />
+                        )}
                       </div>
+                      {/* Traveler-review rating right under the title — opens
+                          the place's reviews window on click. Same place-keyed
+                          data the place detail page reads. */}
+                      {hasPlaceIdentity && (
+                        <ActivityReviewStars
+                          placeName={activity.name}
+                          placeCity={activity.placeCity as string}
+                          placeCountry={activity.placeCountry as string}
+                          placeKey={activity.placeKey}
+                        />
+                      )}
                       <div className="activity-meta">
                         {(() => {
                           // AI-built activities frequently leave the

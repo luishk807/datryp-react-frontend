@@ -1,0 +1,76 @@
+// "Friends who joined" — on a Completed trip, each other member with the
+// rating they gave the trip and their favorite place on it.
+.trip-companions-card {
+    margin: 4px 8px 18px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
+.trip-companions-title {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+    letter-spacing: -0.005em;
+}
+
+.trip-companions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+}
+
+.trip-companion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.trip-companion-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.trip-companion-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+}
+
+.trip-companion-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 0.84rem;
+}
+
+.trip-companion-rating {
+    display: inline-flex;
+    align-items: center;
+}
+
+.trip-companion-muted {
+    color: rgba(0, 0, 0, 0.42);
+}
+
+.trip-companion-fav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: rgba(0, 0, 0, 0.6);
+    min-width: 0;
+}
+
+.trip-companion-fav-icon {
+    color: theme('colors.primaryOrange');
+    font-size: 0.95rem !important;
+    flex-shrink: 0;
+}
