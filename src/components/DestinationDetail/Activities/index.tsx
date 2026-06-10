@@ -55,6 +55,8 @@ import MarkPaidModal, {
 import NotifyParticipantsButton from "components/NotifyParticipantsButton";
 import ActivityFavoriteButton from "components/ActivityFavoriteButton";
 import ActivityReviewStars from "components/ActivityReviewStars";
+import FriendsVisitedBadge from "components/FriendsVisitedBadge";
+import { getPlaceKey } from "utils/placeKey";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import { convertMoney } from "utils";
@@ -1195,6 +1197,25 @@ const Activities = ({
                             </div>
                           );
                         })()}
+                        {/* Friends who visited this place — social-proof chip
+                            (avatar stack + "Visited by N"). Self-hides at
+                            count 0, so it only shows when a friend overlap
+                            exists. Keyed identically to the place detail page
+                            (backend slug when present, else derived) so the
+                            drawer surfaces the same friend ratings + quotes. */}
+                        {hasPlaceIdentity && (
+                          <FriendsVisitedBadge
+                            kind="place"
+                            placeKey={
+                              activity.placeKey ||
+                              getPlaceKey(
+                                activity.name,
+                                activity.placeCity as string,
+                                activity.placeCountry as string,
+                              )
+                            }
+                          />
+                        )}
                         {/* Source link — the original page the user pasted
                             into smart-entry (TripAdvisor / Yelp / Maps). PLACE
                             kind only; other kinds never carry one. */}
