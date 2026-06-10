@@ -247,6 +247,11 @@
     background: theme('colors.primaryOrange');
     box-shadow: 0 0 0 2px rgba(246, 137, 31, 0.25);
   }
+
+  &.is-friends {
+    background: rgba(124, 77, 255, 0.45);
+    border: 1.5px solid #7c4dff;
+  }
 }
 
 .my-map-intro-tip {
@@ -1055,6 +1060,39 @@
 .my-map-pin-popup-date {
   font-size: 0.78rem;
   color: rgba(0, 0, 0, 0.5);
+}
+
+// Friends overlay popup — "Visited by" + name chips. Purple to match
+// the friends map layers (distinct from the green own-visit chips).
+.my-map-friends-popup-label {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.my-map-friends-popup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.my-map-friends-popup-chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(124, 77, 255, 0.12);
+  color: #6a3df0;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.my-map-friends-popup-empty {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .my-map-pin-popup-trip {

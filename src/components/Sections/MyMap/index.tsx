@@ -29,6 +29,7 @@ import type { ModalButtonHandle } from 'components/ModalButton';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -37,6 +38,7 @@ import { useUser } from 'context/UserContext';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
 import { useVisitedCities } from 'api/hooks/useVisitedCities';
+import { useFriendsVisitedAll } from 'api/hooks/useFriendsVisitedAll';
 import { useMyItineraries } from 'api/hooks/useItineraries';
 import MyMapStatDropdown, {
     type MyMapStatDropdownOption,
@@ -94,6 +96,16 @@ const PLACE_PINS_LAYER = 'visited-place-pins-layer';
 const CITY_PINS_SOURCE = 'visited-city-pins';
 const CITY_PINS_LAYER = 'visited-city-pins-layer';
 
+/** Friends overlay — opted-in friends' visited countries (purple
+ *  shading + dashed outline) and a single purple pin layer combining
+ *  their visited cities + places. Distinct hue from the user's own
+ *  green/orange so "mine" vs "my friends'" reads at a glance. */
+const FRIENDS_COUNTRY_FILL = 'friends-country-fill';
+const FRIENDS_COUNTRY_LINE = 'friends-country-line';
+const FRIENDS_PINS_SOURCE = 'friends-visited-pins';
+const FRIENDS_PINS_LAYER = 'friends-visited-pins-layer';
+const FRIENDS_COLOR = '#7c4dff';
+
 const MyMap = () => {
     const navigate = useNavigate();
     const { user, isAdmin } = useUser();
@@ -142,6 +154,12 @@ const MyMap = () => {
     const toggleLayer = useCallback((key: StatDropdownKey) => {
         setLayerVisibility((v) => ({ ...v, [key]: !v[key] }));
     }, []);
+    // Friends overlay — kept separate from the three own-layer toggles
+    // above (StatDropdownKey) so the tightly-coupled own-data wiring
+    // stays untouched. `friendsLayerOn` drives the purple layers'
+    // visibility; `friendsDropdownOpen` is the pill's own panel state.
+    const [friendsLayerOn, setFriendsLayerOn] = useState(true);
+    const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
     // Active map selection — populates the left-side trips panel.
     // Set when the user clicks a country shading, a city pin, or a
     // place pin (and when those targets are chosen from the
@@ -294,6 +312,81 @@ const MyMap = () => {
                     visitedAt: c.visitedAt,
                 })),
         [visitedCities]
+    );
+
+    // ── Friends overlay data ──────────────────────────────────────────
+    // Pro-only feature, so only fetch when the user is Pro (the map is
+    // blurred behind the paywall otherwise). Backend already filters to
+    // friends who opted into `share_visited_places`.
+    const { data: friendsAll } = useFriendsVisitedAll(isPro);
+
+    const friendsCountryCodes = useMemo<string[]>(
+        () =>
+            (friendsAll?.countries ?? []).map((c) =>
+                c.countryCode.toUpperCase()
+            ),
+        [friendsAll]
+    );
+    // ISO → group, for the country popup ("Visited by Luis, Joanna").
+    const friendsByCode = useMemo(() => {
+        const m = new Map<string, { countryName: string; names: string[] }>();
+        for (const c of friendsAll?.countries ?? []) {
+            m.set(c.countryCode.toUpperCase(), {
+                countryName: c.countryName,
+                names: c.friends.map((f) => f.name),
+            });
+        }
+        return m;
+    }, [friendsAll]);
+    // Friends' cities + places merged into one purple pin layer. The
+    // `friendNames` string rides along on the feature so the click
+    // handler can render the popup without re-walking the arrays.
+    const friendsPins = useMemo(() => {
+        const out: {
+            id: string;
+            lng: number;
+            lat: number;
+            title: string;
+            sub: string;
+            friendNames: string;
+        }[] = [];
+        for (const c of friendsAll?.cities ?? []) {
+            out.push({
+                id: `city:${c.citySlug}`,
+                lng: c.longitude,
+                lat: c.latitude,
+                title: c.cityName,
+                sub: c.countryName,
+                friendNames: c.friends.map((f) => f.name).join(', '),
+            });
+        }
+        for (const p of friendsAll?.places ?? []) {
+            out.push({
+                id: `place:${p.placeKey}`,
+                lng: p.longitude,
+                lat: p.latitude,
+                title: p.placeName,
+                sub: [p.placeCity, p.placeCountry].filter(Boolean).join(', '),
+                friendNames: p.friends.map((f) => f.name).join(', '),
+            });
+        }
+        return out;
+    }, [friendsAll]);
+    // Dropdown options for the Friends pill — one row per country a
+    // friend has visited, with a "N friends" caption. Click flies there.
+    const friendsCountryOptions = useMemo<MyMapStatDropdownOption[]>(
+        () =>
+            (friendsAll?.countries ?? [])
+                .slice()
+                .sort((a, b) => a.countryName.localeCompare(b.countryName))
+                .map((c) => ({
+                    id: c.countryCode.toUpperCase(),
+                    label: c.countryName,
+                    sublabel: `${c.friends.length} friend${
+                        c.friends.length === 1 ? '' : 's'
+                    }`,
+                })),
+        [friendsAll]
     );
 
     // Travel-atlas summary stats for the corner card: world-exploration
@@ -537,6 +630,68 @@ const MyMap = () => {
                     },
                 });
             }
+            // ── Friends overlay layers ──────────────────────────────
+            // Purple country shading + dashed outline (inserted below
+            // the labels, so it sits above the user's own green fill —
+            // a country both visited reads as blended green+purple and
+            // the friends popup wins the click). Filters start empty.
+            if (!map.getLayer(FRIENDS_COUNTRY_FILL)) {
+                map.addLayer(
+                    {
+                        id: FRIENDS_COUNTRY_FILL,
+                        source: COUNTRY_BOUNDARIES_SOURCE,
+                        'source-layer': 'country_boundaries',
+                        type: 'fill',
+                        paint: {
+                            'fill-color': FRIENDS_COLOR,
+                            'fill-opacity': 0.28,
+                        },
+                        filter: ['in', 'iso_3166_1', ''],
+                    },
+                    'country-label'
+                );
+            }
+            if (!map.getLayer(FRIENDS_COUNTRY_LINE)) {
+                map.addLayer(
+                    {
+                        id: FRIENDS_COUNTRY_LINE,
+                        source: COUNTRY_BOUNDARIES_SOURCE,
+                        'source-layer': 'country_boundaries',
+                        type: 'line',
+                        paint: {
+                            'line-color': FRIENDS_COLOR,
+                            'line-width': 1.2,
+                            'line-dasharray': [2, 1],
+                        },
+                        filter: ['in', 'iso_3166_1', ''],
+                    },
+                    'country-label'
+                );
+            }
+            // Friends' cities + places share one purple circle layer
+            // (no own-vs-friend hover-grow distinction needed — a flat
+            // purple dot reads as "a friend was here").
+            if (!map.getSource(FRIENDS_PINS_SOURCE)) {
+                map.addSource(FRIENDS_PINS_SOURCE, {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] },
+                    promoteId: 'id',
+                });
+            }
+            if (!map.getLayer(FRIENDS_PINS_LAYER)) {
+                map.addLayer({
+                    id: FRIENDS_PINS_LAYER,
+                    source: FRIENDS_PINS_SOURCE,
+                    type: 'circle',
+                    paint: {
+                        'circle-radius': 6,
+                        'circle-color': FRIENDS_COLOR,
+                        'circle-stroke-color': '#ffffff',
+                        'circle-stroke-width': 2,
+                        'circle-opacity': 0.95,
+                    },
+                });
+            }
             setMapReady(true);
             // Trigger a resize once layout has settled (style + sources
             // applied), in case the container grew between construction
@@ -572,6 +727,23 @@ const MyMap = () => {
         }
     }, [countryCodes, mapReady]);
 
+    // Push the friends' visited-country filter into the purple overlay
+    // layers whenever the aggregate resolves.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const filter =
+            friendsCountryCodes.length === 0
+                ? ['in', 'iso_3166_1', '']
+                : ['in', 'iso_3166_1', ...friendsCountryCodes];
+        if (map.getLayer(FRIENDS_COUNTRY_FILL)) {
+            map.setFilter(FRIENDS_COUNTRY_FILL, filter as any);
+        }
+        if (map.getLayer(FRIENDS_COUNTRY_LINE)) {
+            map.setFilter(FRIENDS_COUNTRY_LINE, filter as any);
+        }
+    }, [friendsCountryCodes, mapReady]);
+
     // Apply per-layer visibility toggles (eye on each stat pill). Country
     // shading is fill + outline, so both ride the `countries` toggle.
     useEffect(() => {
@@ -590,7 +762,10 @@ const MyMap = () => {
         set('visited-country-line', layerVisibility.countries);
         set(CITY_PINS_LAYER, layerVisibility.cities);
         set(PLACE_PINS_LAYER, layerVisibility.places);
-    }, [layerVisibility, mapReady]);
+        set(FRIENDS_COUNTRY_FILL, friendsLayerOn);
+        set(FRIENDS_COUNTRY_LINE, friendsLayerOn);
+        set(FRIENDS_PINS_LAYER, friendsLayerOn);
+    }, [layerVisibility, friendsLayerOn, mapReady]);
 
     // Sync place pins into the GeoJSON source backing the circle
     // layer. Replaces the old `mapboxgl.Marker` loop — features are
@@ -664,6 +839,40 @@ const MyMap = () => {
             })),
         });
     }, [cityPins, mapReady]);
+
+    // Sync friends' pins (cities + places) into the purple circle layer.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        const source = map.getSource(FRIENDS_PINS_SOURCE) as
+            | mapboxgl.GeoJSONSource
+            | undefined;
+        if (!source) return;
+        source.setData({
+            type: 'FeatureCollection',
+            features: friendsPins.map((pin) => ({
+                type: 'Feature',
+                id: pin.id,
+                geometry: {
+                    type: 'Point',
+                    coordinates: [pin.lng, pin.lat],
+                },
+                properties: {
+                    id: pin.id,
+                    title: pin.title,
+                    sub: pin.sub,
+                    friendNames: pin.friendNames,
+                },
+            })),
+        });
+    }, [friendsPins, mapReady]);
+
+    // Keep the Friends dropdown mutually exclusive with the three stat
+    // dropdowns (they share the top-center row) — opening any stat
+    // dropdown closes Friends.
+    useEffect(() => {
+        if (openDropdown) setFriendsDropdownOpen(false);
+    }, [openDropdown]);
 
     // Frame the camera so every visited country polygon AND every
     // visited place pin is inside the viewport. Used twice:
@@ -1295,6 +1504,99 @@ const MyMap = () => {
         };
     }, [mapReady]);
 
+    // Friends-overlay interactions — click a purple country or pin to
+    // see which friends have been there. Separate from the own-layer
+    // handlers above; the own-country click only flies + selects (no
+    // popup), so these compose without fighting over a popup.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+
+        const openPopupAt = (
+            lngLat: mapboxgl.LngLat | [number, number],
+            html: string
+        ) => {
+            openPopupRef.current?.remove();
+            const popup = new mapboxgl.Popup({
+                offset: 8,
+                closeButton: true,
+                maxWidth: '260px',
+                className: 'my-map-pin-popup',
+            })
+                .setLngLat(lngLat)
+                .setHTML(html)
+                .addTo(map);
+            openPopupRef.current = popup;
+        };
+
+        const onCountryClick = (e: mapboxgl.MapLayerMouseEvent) => {
+            // A friends pin sits on top of the country fill; if one is
+            // under the cursor, let its own handler own the click so we
+            // don't stack two popups.
+            const pinHit = map.queryRenderedFeatures(e.point, {
+                layers: [
+                    PLACE_PINS_LAYER,
+                    CITY_PINS_LAYER,
+                    FRIENDS_PINS_LAYER,
+                ],
+            });
+            if (pinHit.length > 0) return;
+            const feat = e.features?.[0];
+            if (!feat) return;
+            const iso = String(
+                feat.properties?.iso_3166_1 ?? ''
+            ).toUpperCase();
+            if (!iso) return;
+            const group = friendsByCode.get(iso);
+            openPopupAt(
+                e.lngLat,
+                renderFriendsPopupHtml({
+                    title: group?.countryName ?? iso,
+                    sub: 'Country',
+                    names: group?.names ?? [],
+                    youVisited: countryCodes.includes(iso),
+                })
+            );
+            flyToCountry(iso);
+        };
+
+        const onPinClick = (e: mapboxgl.MapLayerMouseEvent) => {
+            const feat = e.features?.[0];
+            if (!feat) return;
+            const props = feat.properties ?? {};
+            const names = String(props.friendNames ?? '')
+                .split(', ')
+                .filter(Boolean);
+            openPopupAt(
+                e.lngLat,
+                renderFriendsPopupHtml({
+                    title: String(props.title ?? ''),
+                    sub: String(props.sub ?? ''),
+                    names,
+                    youVisited: false,
+                })
+            );
+        };
+
+        const onEnter = () => {
+            map.getCanvas().style.cursor = 'pointer';
+        };
+        const onLeave = () => {
+            map.getCanvas().style.cursor = '';
+        };
+
+        map.on('click', FRIENDS_COUNTRY_FILL, onCountryClick);
+        map.on('click', FRIENDS_PINS_LAYER, onPinClick);
+        map.on('mouseenter', FRIENDS_PINS_LAYER, onEnter);
+        map.on('mouseleave', FRIENDS_PINS_LAYER, onLeave);
+        return () => {
+            map.off('click', FRIENDS_COUNTRY_FILL, onCountryClick);
+            map.off('click', FRIENDS_PINS_LAYER, onPinClick);
+            map.off('mouseenter', FRIENDS_PINS_LAYER, onEnter);
+            map.off('mouseleave', FRIENDS_PINS_LAYER, onLeave);
+        };
+    }, [mapReady, friendsByCode, countryCodes, flyToCountry]);
+
     const flyToCity = useCallback(
         (citySlug: string) => {
             const map = mapRef.current;
@@ -1608,6 +1910,28 @@ const MyMap = () => {
                             onToggleVisible={() => toggleLayer('places')}
                             alignRight
                         />
+                        <MyMapStatDropdown
+                            icon={<GroupRoundedIcon fontSize="small" />}
+                            count={friendsCountryOptions.length}
+                            label="friends"
+                            options={friendsCountryOptions}
+                            isOpen={friendsDropdownOpen}
+                            onToggle={() => {
+                                setFriendsDropdownOpen((o) => !o);
+                                setOpenDropdown(null);
+                            }}
+                            onClose={() => setFriendsDropdownOpen(false)}
+                            onSelect={(id) => {
+                                flyToCountry(id);
+                                setFriendsDropdownOpen(false);
+                            }}
+                            emptyHint="No friends sharing visits yet."
+                            visible={friendsLayerOn}
+                            onToggleVisible={() =>
+                                setFriendsLayerOn((v) => !v)
+                            }
+                            alignRight
+                        />
                     </div>
                     )}
 
@@ -1677,6 +2001,16 @@ const MyMap = () => {
                                     />
                                     <span>
                                         <strong>Places</strong> as orange pins.
+                                    </span>
+                                </li>
+                                <li className="my-map-intro-legend-item">
+                                    <span
+                                        className="my-map-intro-legend-dot is-friends"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <strong>Friends&rsquo;</strong> visits in
+                                        purple — tap to see who.
                                     </span>
                                 </li>
                             </ul>
@@ -2181,6 +2515,48 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                 >View detail</a>
                 ${tripCta}
             </div>
+        </div>
+    `;
+};
+
+interface FriendsPopupInput {
+    title: string;
+    sub: string;
+    /** Friend display names who visited this location. */
+    names: string[];
+    /** Prepend "You" to the list when the current user also visited —
+     *  delivers the "Visited by: You, Luis, Joanna" reading. */
+    youVisited: boolean;
+}
+
+/** Popup body for the friends overlay (a purple country or pin). Lists
+ *  who's been here as name chips. Read-only — no CTA, since the point is
+ *  social proof, not navigation (the user can click their own layers or
+ *  the dropdown to navigate). */
+const renderFriendsPopupHtml = (input: FriendsPopupInput): string => {
+    const all = [...(input.youVisited ? ['You'] : []), ...input.names];
+    const chips = all
+        .map(
+            (n) =>
+                `<span class="my-map-friends-popup-chip">${escapeHtml(
+                    n
+                )}</span>`
+        )
+        .join('');
+    return `
+        <div class="my-map-pin-popup-inner">
+            <div class="my-map-pin-popup-title">${escapeHtml(input.title)}</div>
+            ${
+                input.sub
+                    ? `<div class="my-map-pin-popup-loc">${escapeHtml(
+                          input.sub
+                      )}</div>`
+                    : ''
+            }
+            <div class="my-map-friends-popup-label">Visited by</div>
+            <div class="my-map-friends-popup-chips">${
+                chips || '<span class="my-map-friends-popup-empty">—</span>'
+            }</div>
         </div>
     `;
 };

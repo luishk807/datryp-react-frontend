@@ -61,6 +61,120 @@ const toItem = (r: FriendVisitedItemRaw): FriendVisitedItem => ({
     reviewText: r.review_text ?? null,
 });
 
+// ── Aggregate: every opted-in friend's visits, for the Atlas overlay ──
+
+export interface FriendBrief {
+    userId: string;
+    name: string;
+    profileImageUrl: string | null;
+}
+
+export interface FriendsVisitedCountryGroup {
+    countryCode: string;
+    countryName: string;
+    friends: FriendBrief[];
+}
+
+export interface FriendsVisitedCityGroup {
+    citySlug: string;
+    cityName: string;
+    countryName: string;
+    countryCode: string;
+    latitude: number;
+    longitude: number;
+    friends: FriendBrief[];
+}
+
+export interface FriendsVisitedPlaceGroup {
+    placeKey: string;
+    placeName: string;
+    placeCity: string;
+    placeCountry: string;
+    latitude: number;
+    longitude: number;
+    friends: FriendBrief[];
+}
+
+export interface FriendsVisitedAllResult {
+    countries: FriendsVisitedCountryGroup[];
+    cities: FriendsVisitedCityGroup[];
+    places: FriendsVisitedPlaceGroup[];
+}
+
+interface FriendBriefRaw {
+    user_id: string;
+    name: string;
+    profile_image_url: string | null;
+}
+
+interface FriendsVisitedAllRaw {
+    countries: {
+        country_code: string;
+        country_name: string;
+        friends: FriendBriefRaw[];
+    }[];
+    cities: {
+        city_slug: string;
+        city_name: string;
+        country_name: string;
+        country_code: string;
+        latitude: number;
+        longitude: number;
+        friends: FriendBriefRaw[];
+    }[];
+    places: {
+        place_key: string;
+        place_name: string;
+        place_city: string;
+        place_country: string;
+        latitude: number;
+        longitude: number;
+        friends: FriendBriefRaw[];
+    }[];
+}
+
+const toBrief = (f: FriendBriefRaw): FriendBrief => ({
+    userId: f.user_id,
+    name: f.name,
+    profileImageUrl: f.profile_image_url,
+});
+
+export const fetchFriendsVisitedAll =
+    async (): Promise<FriendsVisitedAllResult> => {
+        const resp = await fetch(`${API_BASE}/me/friends-visited/all`, {
+            headers: authHeaders(),
+        });
+        if (!resp.ok) {
+            throw new Error(`/me/friends-visited/all ${resp.status}`);
+        }
+        const body = (await resp.json()) as FriendsVisitedAllRaw;
+        return {
+            countries: body.countries.map((c) => ({
+                countryCode: c.country_code,
+                countryName: c.country_name,
+                friends: c.friends.map(toBrief),
+            })),
+            cities: body.cities.map((c) => ({
+                citySlug: c.city_slug,
+                cityName: c.city_name,
+                countryName: c.country_name,
+                countryCode: c.country_code,
+                latitude: c.latitude,
+                longitude: c.longitude,
+                friends: c.friends.map(toBrief),
+            })),
+            places: body.places.map((p) => ({
+                placeKey: p.place_key,
+                placeName: p.place_name,
+                placeCity: p.place_city,
+                placeCountry: p.place_country,
+                latitude: p.latitude,
+                longitude: p.longitude,
+                friends: p.friends.map(toBrief),
+            })),
+        };
+    };
+
 export const fetchFriendsVisited = async (
     kind: FriendsVisitedKind,
     key: string,
