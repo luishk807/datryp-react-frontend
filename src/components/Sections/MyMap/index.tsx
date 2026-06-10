@@ -43,6 +43,7 @@ import { useMyItineraries } from 'api/hooks/useItineraries';
 import MyMapStatDropdown, {
     type MyMapStatDropdownOption,
 } from './MyMapStatDropdown';
+import MyMapLayersMenu from './MyMapLayersMenu';
 import { placeDetailUrl } from 'utils/placeUrl';
 import { haversineKm, KM_TO_MI } from 'utils/geo';
 import {
@@ -1848,6 +1849,7 @@ const MyMap = () => {
                      *  (non-Pro) state so the upgrade panel isn't crowded
                      *  by chrome that doesn't do anything yet. */}
                     {isPro && (
+                    <>
                     <div className="my-map-stats">
                         <MyMapStatDropdown
                             icon={<PublicRoundedIcon fontSize="small" />}
@@ -1933,6 +1935,72 @@ const MyMap = () => {
                             alignRight
                         />
                     </div>
+                    {/* Mobile-only: the four pills above collapse to one
+                        "Layers" button here (CSS swaps which is shown).
+                        Same handlers so both stay in lockstep. */}
+                    <MyMapLayersMenu
+                        layers={[
+                            {
+                                key: 'countries',
+                                icon: (
+                                    <PublicRoundedIcon fontSize="small" />
+                                ),
+                                label: 'Countries',
+                                count: countryOptions.length,
+                                visible: layerVisibility.countries,
+                                onToggleVisible: () =>
+                                    toggleLayer('countries'),
+                                options: countryOptions,
+                                onSelect: (id) =>
+                                    handleSelectFromDropdown('countries', id),
+                                emptyHint: 'No visited countries yet.',
+                            },
+                            {
+                                key: 'cities',
+                                icon: (
+                                    <LocationCityRoundedIcon fontSize="small" />
+                                ),
+                                label: 'Cities',
+                                count: cityOptions.length,
+                                visible: layerVisibility.cities,
+                                onToggleVisible: () => toggleLayer('cities'),
+                                options: cityOptions,
+                                onSelect: (id) =>
+                                    handleSelectFromDropdown('cities', id),
+                                emptyHint: 'No visited cities yet.',
+                            },
+                            {
+                                key: 'places',
+                                icon: (
+                                    <PlaceRoundedIcon fontSize="small" />
+                                ),
+                                label: 'Places',
+                                count: placeOptions.length,
+                                visible: layerVisibility.places,
+                                onToggleVisible: () => toggleLayer('places'),
+                                options: placeOptions,
+                                onSelect: (id) =>
+                                    handleSelectFromDropdown('places', id),
+                                emptyHint: 'No visited places yet.',
+                            },
+                            {
+                                key: 'friends',
+                                icon: (
+                                    <GroupRoundedIcon fontSize="small" />
+                                ),
+                                label: 'Friends',
+                                count: friendsCountryOptions.length,
+                                visible: friendsLayerOn,
+                                onToggleVisible: () =>
+                                    setFriendsLayerOn((v) => !v),
+                                options: friendsCountryOptions,
+                                onSelect: (id) => flyToCountry(id),
+                                emptyHint:
+                                    'No friends sharing visits yet.',
+                            },
+                        ]}
+                    />
+                    </>
                     )}
 
                     {/* Intro panel + collapsed pill — absolute-

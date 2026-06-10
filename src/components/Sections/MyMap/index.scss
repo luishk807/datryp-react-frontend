@@ -487,25 +487,11 @@
 }
 
 @media (max-width: 720px) {
-  /* On phones the labels are hidden (see MyMapStatDropdown SCSS), so
-   * the pills collapse to icon + number. We hide Mapbox's zoom/compass
-   * control on mobile (pinch-zoom is native to touch), which frees the
-   * top-right corner so the four pills — countries / cities / places /
-   * friends — get the full width and never slide under the control.
-   * `wrap` is the safety net for the narrowest phones: a pill drops to
-   * a second row rather than overflowing off-screen. */
+  /* Phones don't have width for four permanent pills, so they're
+   * hidden here and replaced by a single "Layers" button
+   * (MyMapLayersMenu) anchored top-left. The Mapbox zoom control keeps
+   * its top-right spot — the lone Layers button doesn't reach it. */
   .my-map-stats {
-    top: 12px;
-    left: 12px;
-    gap: 4px;
-    row-gap: 6px;
-    flex-wrap: wrap;
-    max-width: calc(100% - 24px);
-  }
-
-  // Pinch-to-zoom replaces the +/− buttons on touch; reclaim the corner
-  // so the stats pills (now four of them) own the top edge.
-  .my-map-canvas-wrap .mapboxgl-ctrl-top-right {
     display: none;
   }
 }

@@ -1,0 +1,219 @@
+// Mobile-only Layers menu — a single button that replaces the four
+// desktop stat pills. Hidden on desktop (the pills show instead);
+// shown only at the mobile breakpoint that mirrors the rest of the
+// Atlas chrome.
+.my-map-layers {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .my-map-layers {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 6;
+    display: block;
+  }
+}
+
+.my-map-layers-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: none;
+  background: #fff;
+  color: theme('colors.primary');
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+
+  svg {
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.my-map-layers-trigger-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(60, 181, 75, 0.14);
+  color: theme('colors.primaryGreen');
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.my-map-layers-panel {
+  margin-top: 6px;
+  width: min(78vw, 280px);
+  max-height: 60vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  -webkit-overflow-scrolling: touch;
+}
+
+// ── Main view: one row per layer ──────────────────────────────────────
+.my-map-layers-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.my-map-layers-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 10px;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
+
+.my-map-layers-check {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: theme('colors.primaryGreen');
+
+  // Unchecked square reads as muted so the checked-green state pops.
+  &[aria-pressed='false'] {
+    color: rgba(0, 0, 0, 0.32);
+  }
+}
+
+.my-map-layers-row-main {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 8px 10px 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+}
+
+.my-map-layers-row-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: theme('colors.primary');
+}
+
+.my-map-layers-row-label {
+  flex: 1 1 auto;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.my-map-layers-row-count {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.my-map-layers-row-chevron {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+// ── Detail view: a layer's fly-to list ────────────────────────────────
+.my-map-layers-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+
+.my-map-layers-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+
+.my-map-layers-detail-title {
+  flex: 1 1 auto;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.my-map-layers-detail-count {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.my-map-layers-options {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.my-map-layers-option {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  &:active {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  &.is-disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.my-map-layers-option-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.my-map-layers-option-sub {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.my-map-layers-empty {
+  padding: 18px 14px;
+  text-align: center;
+  font-size: 0.86rem;
+  color: rgba(0, 0, 0, 0.5);
+}
