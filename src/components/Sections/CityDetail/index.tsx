@@ -21,6 +21,7 @@ import DetailTour from "components/DetailTour";
 import VisitedCityButton from "components/VisitedCityButton";
 import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
+import { getPlaceKey } from "utils/placeKey";
 import ShareButton from "components/ShareButton";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
 import WeatherSection from "components/PlaceDetail/WeatherSection";
@@ -445,6 +446,11 @@ const CityDetail = () => {
                         <FriendsVisitedBadge
                             kind="city"
                             placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
+                            reviewKey={getPlaceKey(
+                                city.name,
+                                city.name,
+                                city.country,
+                            )}
                         />
                     </div>
 
@@ -481,6 +487,11 @@ const CityDetail = () => {
                         <FriendsVisitedBadge
                             kind="city"
                             placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
+                            reviewKey={getPlaceKey(
+                                city.name,
+                                city.name,
+                                city.country,
+                            )}
                         />
                     </div>
                     <p className="city-detail-highlight">

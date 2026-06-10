@@ -32,6 +32,11 @@ export interface FriendsVisitedBadgeProps {
     /** place_key / city_slug / ISO-2. May be null while the detail
      *  page is mid-fetch — the hook is gated on a truthy key. */
     placeKey: string | null | undefined;
+    /** City / country pages only: the synthetic review slug
+     *  (`getPlaceKey(name, name, country|name)`) so the drawer can show
+     *  each friend's city/country review. Places omit it — their
+     *  place_key already serves as the review key. */
+    reviewKey?: string | null;
 }
 
 const formatVisitedAt = (iso: string): string => {
@@ -57,9 +62,10 @@ const initialsFor = (name: string): string => {
 const FriendsVisitedBadge = ({
     kind,
     placeKey,
+    reviewKey,
 }: FriendsVisitedBadgeProps) => {
     const navigate = useNavigate();
-    const { data, isLoading } = useFriendsVisited(kind, placeKey);
+    const { data, isLoading } = useFriendsVisited(kind, placeKey, reviewKey);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     // Desktop ≥ 720px gets a centered Dialog; mobile keeps the

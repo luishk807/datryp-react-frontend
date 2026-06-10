@@ -64,9 +64,19 @@ const toItem = (r: FriendVisitedItemRaw): FriendVisitedItem => ({
 export const fetchFriendsVisited = async (
     kind: FriendsVisitedKind,
     key: string,
+    /** The page's synthetic review-slug (city / country pages only).
+     *  Lets the backend attach each friend's city/country review, whose
+     *  key differs from the visited city_slug / country code. Places
+     *  don't need it — their place_key already IS the review key. */
+    reviewKey?: string | null,
 ): Promise<FriendsVisitedResult> => {
+    const params = reviewKey
+        ? `?review_key=${encodeURIComponent(reviewKey)}`
+        : '';
     const resp = await fetch(
-        `${API_BASE}/me/friends-visited/${kind}/${encodeURIComponent(key)}`,
+        `${API_BASE}/me/friends-visited/${kind}/${encodeURIComponent(
+            key,
+        )}${params}`,
         { headers: authHeaders() },
     );
     if (!resp.ok) {

@@ -20,6 +20,7 @@ import VisitedCountryButton from "components/VisitedCountryButton";
 import DetailTour from "components/DetailTour";
 import AddToBucketButton from "components/AddToBucketButton";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
+import { getPlaceKey } from "utils/placeKey";
 import BookmarkCountryButton from "components/BookmarkCountryButton";
 import ShareButton from "components/ShareButton";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
@@ -425,6 +426,11 @@ const CountryDetail = () => {
             <FriendsVisitedBadge
               kind="country"
               placeKey={country.code ?? ""}
+              reviewKey={getPlaceKey(
+                country.name,
+                country.name,
+                country.name,
+              )}
             />
           </div>
 
@@ -455,6 +461,11 @@ const CountryDetail = () => {
             <FriendsVisitedBadge
               kind="country"
               placeKey={country.code ?? ""}
+              reviewKey={getPlaceKey(
+                country.name,
+                country.name,
+                country.name,
+              )}
             />
           </div>
           <p className="country-detail-highlight">{details.countryHighlight}</p>

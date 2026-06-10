@@ -19,11 +19,14 @@ import { useUser } from 'context/UserContext';
 export const useFriendsVisited = (
     kind: FriendsVisitedKind,
     key: string | null | undefined,
+    /** Synthetic review-slug for city / country pages — see
+     *  `fetchFriendsVisited`. Omitted on place pages. */
+    reviewKey?: string | null,
 ) => {
     const { user } = useUser();
     return useQuery<FriendsVisitedResult>({
-        queryKey: ['me', 'friends-visited', kind, key],
-        queryFn: () => fetchFriendsVisited(kind, key as string),
+        queryKey: ['me', 'friends-visited', kind, key, reviewKey ?? null],
+        queryFn: () => fetchFriendsVisited(kind, key as string, reviewKey),
         // Skip entirely when there's no key yet (detail page mid-load)
         // or no signed-in user. Both produce the "no badge" state.
         enabled: Boolean(user && key),
