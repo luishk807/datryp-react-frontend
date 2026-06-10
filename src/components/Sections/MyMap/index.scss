@@ -487,17 +487,26 @@
 }
 
 @media (max-width: 720px) {
-  /* On phones keep them in one horizontal row anchored top-left;
-   * the labels are hidden (see MyMapStatDropdown SCSS), so the
-   * three pills collapse to icon + number and fit comfortably
-   * across a narrow viewport. */
+  /* On phones the labels are hidden (see MyMapStatDropdown SCSS), so
+   * the pills collapse to icon + number. We hide Mapbox's zoom/compass
+   * control on mobile (pinch-zoom is native to touch), which frees the
+   * top-right corner so the four pills — countries / cities / places /
+   * friends — get the full width and never slide under the control.
+   * `wrap` is the safety net for the narrowest phones: a pill drops to
+   * a second row rather than overflowing off-screen. */
   .my-map-stats {
     top: 12px;
     left: 12px;
     gap: 4px;
-    // Reserve room on the right for the zoom control so the pills row
-    // never slides underneath it on a narrow viewport.
-    max-width: calc(100% - 58px);
+    row-gap: 6px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 24px);
+  }
+
+  // Pinch-to-zoom replaces the +/− buttons on touch; reclaim the corner
+  // so the stats pills (now four of them) own the top edge.
+  .my-map-canvas-wrap .mapboxgl-ctrl-top-right {
+    display: none;
   }
 }
 
