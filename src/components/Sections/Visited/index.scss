@@ -251,19 +251,38 @@
 }
 
 @media (max-width: 600px) {
-  // Stack the place-card actions so "View trip" sits above "Remove"
-  // instead of cramming them side-by-side on a narrow screen.
+  // Stack the place-card actions ("View trip" above "Remove"). Render both
+  // as matching, equal-width pills so they read as a consistent pair
+  // instead of a pill next to loose text.
   .visited-card-actions {
     flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 100px;
   }
 
-  // Outline "View trip" as a pill so it reads as its own button and
-  // doesn't blend with the "Remove" text stacked beneath it.
-  .visited-card-trip-link {
-    padding: 5px 14px;
-    border: 1px solid rgba(60, 181, 75, 0.5);
+  .visited-card-actions .visited-card-trip-link,
+  .visited-card-actions .text-button {
+    display: block;
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid;
     border-radius: 9999px;
+  }
+
+  .visited-card-actions .visited-card-trip-link {
+    color: theme('colors.primaryGreen');
+    border-color: rgba(60, 181, 75, 0.5);
+  }
+
+  // "Remove" is the destructive action — red-outlined pill.
+  .visited-card-actions .text-button {
+    color: #c0392b;
+    background: transparent;
+    border-color: rgba(192, 57, 43, 0.45);
   }
 }
