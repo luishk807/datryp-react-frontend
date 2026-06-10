@@ -4,6 +4,7 @@ import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
 import AvatarStack from 'components/common/AvatarStack';
+import { useUser } from 'context/UserContext';
 import './index.scss';
 import { NO_IMAGE } from 'constants';
 import { formatDate, isValidDate } from 'utils';
@@ -69,7 +70,14 @@ export const TripBox = ({
     selected = false,
     onToggleSelect,
 }: TripBoxProps) => {
-    const friends = data.friends ?? [];
+    const { user } = useUser();
+    // Exclude the logged-in user from the trip's friend avatars — you
+    // don't need to see yourself on your own trip. The trip `friends`
+    // list includes the owner/participant rows, so filter on the backend
+    // UUID the adapter stamps onto each (`userId`).
+    const friends = (data.friends ?? []).filter(
+        (f) => !user?.id || f.userId !== user.id
+    );
     const friendsCount = friends.length;
     const friendPeople = friends.map((f) => ({
         id: f.id,
