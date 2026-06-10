@@ -1,0 +1,30 @@
+.readiness-checklist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.readiness-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: theme('colors.primary');
+
+    &-icon {
+        flex-shrink: 0;
+        font-size: 1.05rem;
+    }
+
+    &.is-ok .readiness-item-icon {
+        color: theme('colors.primaryGreen');
+    }
+    &.is-warn .readiness-item-icon {
+        color: theme('colors.primaryOrange');
+    }
+    &.is-warn .readiness-item-label {
+        color: rgba(0, 0, 0, 0.62);
+    }
+}

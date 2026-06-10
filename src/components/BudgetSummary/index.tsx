@@ -11,10 +11,10 @@ import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { convertMoney } from 'utils';
+import { convertMoney, sumActivityCosts } from 'utils';
 import { useBudgetVerdict } from 'hooks/useBudgetVerdict';
 import { BUDGET_STATUS } from 'constants';
-import type { BudgetStatus, Destination, TripState } from 'types';
+import type { BudgetStatus, TripState } from 'types';
 
 interface BudgetSummaryProps {
     data: TripState;
@@ -37,22 +37,6 @@ const toNumber = (v?: string | number): number => {
     if (v == null) return 0;
     const n = typeof v === 'number' ? v : parseFloat(v);
     return Number.isFinite(n) ? n : 0;
-};
-
-const sumActivityCosts = (destinations: Destination[] = []): number => {
-    let total = 0;
-    destinations.forEach((dest) => {
-        // The destination's arrival flight lives on `flightInfo` (the header
-        // band), NOT as an itinerary activity, so its cost must be summed
-        // here too — otherwise multi-destination flight spend goes uncounted.
-        total += toNumber(dest.flightInfo?.cost);
-        dest.itinerary?.forEach((day) => {
-            day.activities?.forEach((activity) => {
-                total += toNumber(activity.cost);
-            });
-        });
-    });
-    return total;
 };
 
 const BudgetSummary = ({

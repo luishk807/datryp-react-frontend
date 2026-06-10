@@ -140,34 +140,35 @@ button.trip-box-link.is-select-trigger {
   color: rgba(0, 0, 0, 0.55);
 }
 
-// Live progress pill — top-right of the image, mirrors the status badge
-// shape on the opposite corner. Color tracks urgency.
+// Live progress pill — sits in the card body, just under the destination
+// line. A static tinted chip (no longer an image overlay). Color tracks
+// urgency. The tint is a soft wash of the same accent the text uses.
 .trip-box-progress {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: 5px;
-  font-size: 0.7rem;
+  margin: 0 0 12px;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   white-space: nowrap;
 
   // Travelling now — the most "alive" state.
   &.is-active {
     color: theme('colors.primaryOrange');
+    background: rgba(246, 137, 31, 0.1);
   }
   // Departing within two weeks.
   &.is-soon {
     color: theme('colors.primaryGreen');
+    background: rgba(60, 181, 75, 0.1);
   }
   // Further out — calmer, neutral.
   &.is-upcoming {
     color: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.05);
   }
 }
 

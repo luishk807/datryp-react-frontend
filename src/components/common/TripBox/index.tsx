@@ -204,8 +204,21 @@ export const TripBox = ({
                         {selected && <CheckRoundedIcon fontSize="small" />}
                     </span>
                 )}
-                {/* Live countdown / day-counter pill — top-right, opposite
-                    the status badge. Hidden in selectable mode and for
+            </div>
+            <div className="trip-box-content">
+                <h3 className="trip-box-name">{data.name}</h3>
+                <p className="trip-box-destination" title={destinationLabel}>
+                    {shownDestinations.join(' · ') ||
+                        TRIP_BOX_LABEL.MULTIPLE}
+                    {moreDestinations > 0 && (
+                        <span className="trip-box-destination-more">
+                            {' '}
+                            +{moreDestinations} more
+                        </span>
+                    )}
+                </p>
+                {/* Live countdown / day-counter pill — sits in the body right
+                    under the destination. Hidden in selectable mode and for
                     ended trips (the COMPLETED badge covers those). */}
                 {!selectable && progress && (
                     <span
@@ -223,19 +236,6 @@ export const TripBox = ({
                         {progress.label}
                     </span>
                 )}
-            </div>
-            <div className="trip-box-content">
-                <h3 className="trip-box-name">{data.name}</h3>
-                <p className="trip-box-destination" title={destinationLabel}>
-                    {shownDestinations.join(' · ') ||
-                        TRIP_BOX_LABEL.MULTIPLE}
-                    {moreDestinations > 0 && (
-                        <span className="trip-box-destination-more">
-                            {' '}
-                            +{moreDestinations} more
-                        </span>
-                    )}
-                </p>
                 {/* Trip-kind chip — single vs multi-destination, sitting just
                     below the country in the card body. */}
                 <span

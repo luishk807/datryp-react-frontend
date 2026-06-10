@@ -458,6 +458,13 @@ const Activities = ({
   // the status pill is hidden. After Completed/Cancelled the actions
   // disappear entirely — the trip is locked in.
   const isTripConfirmed = tripStatusName === TRIP_STATUS.CONFIRMED;
+  // Notifying participants only makes sense while the trip is still active.
+  // Once it's Completed/Cancelled the trip is locked in, so suppress the
+  // notify button even for activities that kept a "Confirmed" status (e.g.
+  // hotel check-ins, which the auto-complete pass deliberately skips).
+  const isTripLockedIn =
+    tripStatusName === TRIP_STATUS.COMPLETED ||
+    tripStatusName === TRIP_STATUS.CANCELLED;
 
   // Trip id pulled from the URL — present on /trip-detail?id=, /single?id=,
   // /multiple?id=. Drives the place-name → /place link in PLACE activities
@@ -1274,6 +1281,7 @@ const Activities = ({
                           activity.apiId &&
                           !isNote &&
                           participants.length > 0 &&
+                          !isTripLockedIn &&
                           (isTripConfirmed ||
                             isConfirmedStatus(activity.status)) && (
                             <div className="meta-row">

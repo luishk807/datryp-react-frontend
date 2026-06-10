@@ -1,0 +1,118 @@
+// "Trip in planning" box — now a collapsible card that folds the readiness
+// checklist + meter inside (was a separate card). Header carries the title,
+// the Confirm button (which shows "N% ready"), and the collapse chevron.
+.planning-box {
+    margin: 4px 8px 32px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: linear-gradient(
+        135deg,
+        rgba(247, 159, 38, 0.14) 0%,
+        rgba(247, 159, 38, 0.06) 100%
+    );
+    border: 1px solid rgba(247, 159, 38, 0.28);
+
+    // Meter accent tracks readiness.
+    &-tone-high {
+        --readiness-accent: theme('colors.primaryGreen');
+    }
+    &-tone-mid {
+        --readiness-accent: theme('colors.primaryOrange');
+    }
+    &-tone-low {
+        --readiness-accent: #e2574c;
+    }
+
+    // Read-only (non-organizer) variant is a plain banner row.
+    &.is-readonly {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+}
+
+.planning-box-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.planning-box-icon {
+    color: theme('colors.primaryOrange');
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(247, 159, 38, 0.32);
+}
+
+.planning-box-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.planning-box-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+    letter-spacing: -0.005em;
+}
+
+.planning-box-sub {
+    font-size: 0.86rem;
+    color: rgba(0, 0, 0, 0.62);
+    line-height: 1.45;
+}
+
+.planning-box-confirm {
+    flex-shrink: 0;
+}
+
+.planning-box-toggle {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.2s ease;
+
+    &:hover {
+        background: #fff;
+    }
+
+    .planning-box.is-collapsed & {
+        transform: rotate(-90deg);
+    }
+}
+
+.planning-box-body {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(247, 159, 38, 0.22);
+}
+
+.planning-box-meter {
+    height: 7px;
+    margin: 0 0 14px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+}
+
+.planning-box-meter-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--readiness-accent);
+    transition: width 0.35s ease;
+}

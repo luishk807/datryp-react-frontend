@@ -16,9 +16,11 @@ import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import ConfirmEmptyDaysModal, {
     type ConfirmEmptyDaysModalHandle,
 } from 'components/ConfirmEmptyDaysModal';
+import ReadinessChecklist from 'components/ReadinessChecklist';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
 import { findEmptyDays } from 'utils/emptyDays';
+import type { TripReadiness } from 'utils';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 
 interface TripStatusBadgeProps {
@@ -41,6 +43,11 @@ interface TripStatusBadgeProps {
      *  omitted, the modal surfaces an inline hint instead so the user
      *  knows where to look. */
     onEditTripDates?: () => void;
+    /** Deterministic readiness (percent + checklist). When supplied on a
+     *  Planning trip, the Confirm button shows "N% ready" and the
+     *  "some activities aren't confirmed" modal appends the checklist so the
+     *  organizer sees what's still missing before they commit. */
+    readiness?: TripReadiness;
 }
 
 /** Cap the names listed in the "some activities aren't confirmed" dialog so a
@@ -98,6 +105,7 @@ export const TripStatusBadge = ({
     disabled = false,
     className,
     onEditTripDates,
+    readiness,
 }: TripStatusBadgeProps) => {
     const { data: tripStatuses = [] } = useTripStatuses();
     const [error, setError] = useState<string | null>(null);
@@ -264,6 +272,10 @@ export const TripStatusBadge = ({
     };
 
     const { label, Icon, dialogTitle, dialogBody, confirmLabel } = target;
+    // Only the Planning → Confirmed button surfaces readiness; "Mark complete"
+    // has no checklist behind it.
+    const showReady =
+        statusName === TRIP_STATUS.PLANNING && readiness != null;
 
     return (
         <span className={classnames('trip-status-badge-wrapper', className)}>
@@ -275,7 +287,14 @@ export const TripStatusBadge = ({
                 disabled={isSaving}
             >
                 <Icon className="trip-status-badge-icon" />
-                <span className="trip-status-badge-label">{label}</span>
+                <span className="trip-status-badge-text">
+                    <span className="trip-status-badge-label">{label}</span>
+                    {showReady && (
+                        <span className="trip-status-badge-ready">
+                            {readiness.percent}% ready
+                        </span>
+                    )}
+                </span>
             </ButtonCustom>
             <Snackbar
                 open={!!error}
@@ -358,6 +377,17 @@ export const TripStatusBadge = ({
                         itinerary — you won&rsquo;t be able to edit afterward.
                         Cancel to review first.
                     </p>
+                    {readiness && (
+                        <div className="confirm-all-readiness">
+                            <p className="confirm-all-readiness-head">
+                                Trip readiness · {readiness.percent}% ready
+                            </p>
+                            <ReadinessChecklist
+                                checks={readiness.checks}
+                                freeDays={readiness.freeDays}
+                            />
+                        </div>
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom

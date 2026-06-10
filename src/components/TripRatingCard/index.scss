@@ -1,0 +1,58 @@
+// Per-user trip rating shown under the completion summary on a Completed
+// trip. Average (read) up top, the viewer's own interactive stars below.
+.trip-rating-card {
+    margin: 4px 8px 18px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+
+    &-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    &-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: theme('colors.primary');
+        letter-spacing: -0.005em;
+    }
+
+    &-avg {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &-count {
+        font-size: 0.82rem;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    &-mine {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    &-mine-label {
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    &-error {
+        font-size: 0.8rem;
+        color: #e2574c;
+    }
+}

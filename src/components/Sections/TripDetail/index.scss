@@ -426,77 +426,9 @@
 }
 
 // ───── Planning banner ─────────────────────────────────────────────────
-// Soft orange treatment to match the per-activity Planning chip — same
-// shape as the completed banner above but tuned to the in-progress
-// vibe (no green, gentler gradient, slightly larger emphasis on the
-// title since the user is mid-flow and needs the affordance cue).
-.trip-detail-planning-banner {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  margin: 4px 8px 32px;
-  border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    rgba(247, 159, 38, 0.14) 0%,
-    rgba(247, 159, 38, 0.06) 100%
-  );
-  border: 1px solid rgba(247, 159, 38, 0.28);
-}
-
-.trip-detail-planning-icon {
-  color: theme('colors.primaryOrange');
-  flex-shrink: 0;
-  background: #fff;
-  border-radius: 50%;
-  padding: 6px;
-  box-shadow: 0 2px 8px rgba(247, 159, 38, 0.32);
-}
-
-.trip-detail-planning-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  // Take the remaining width so the confirm CTA is pushed to the
-  // right edge on desktop. min-width:0 lets the sub-copy wrap instead
-  // of forcing the row wider than the card.
-  flex: 1;
-  min-width: 0;
-}
-
-// The secondary "Confirm all activities" (outlined) and the primary
-// "Confirm trip" (filled green) sit side by side and vertically centered,
-// wrapping to a second line only when the banner gets narrow. Right-
-// aligned on desktop so the pair hugs the card's trailing edge next to
-// the copy.
-.trip-detail-planning-actions {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-shrink: 0;
-
-  // Match the filled CTA's compact height so the outlined secondary
-  // doesn't tower over the primary in the row.
-  > button {
-    min-height: 34px;
-  }
-}
-
-.trip-detail-planning-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: theme('colors.primary');
-  letter-spacing: -0.005em;
-}
-
-.trip-detail-planning-sub {
-  font-size: 0.86rem;
-  color: rgba(0, 0, 0, 0.62);
-  line-height: 1.45;
-}
+// (The "Trip in planning" banner moved to the standalone, collapsible
+//  PlanningBox component, which owns its own styles + the readiness
+//  checklist. The old .trip-detail-planning-* rules were removed with it.)
 
 // Trip-status promotion CTA card ("Confirm trip" / "Mark complete")
 // anchored directly above the itinerary date blocks: a short prompt on
@@ -580,12 +512,10 @@
 }
 
 @media (max-width: 720px) {
-  // Both status cards stack on mobile: icon + copy, then the button on
-  // its own line at the bottom. The button stays content-width (the
-  // .trip-status-badge is width:auto) so it sits bottom-left, not a
-  // chunky full-width block. Identical treatment so the planning and
-  // mark-complete cards read as a matched pair.
-  .trip-detail-planning-banner,
+  // The Confirmed "mark-complete" CTA stacks on mobile: icon + copy, then
+  // the button on its own line. The button stays content-width (the
+  // .trip-status-badge is width:auto) so it sits bottom-left, not a chunky
+  // full-width block. (PlanningBox handles its own mobile stacking.)
   .trip-detail-status-cta {
     flex-direction: column;
     align-items: stretch;
@@ -594,12 +524,6 @@
 
   .trip-detail-status-cta-btn .trip-status-badge {
     white-space: nowrap;
-  }
-
-  // Full-width row beneath the copy; buttons sit bottom-left (not a
-  // chunky full-width block), matching the mark-complete card.
-  .trip-detail-planning-actions {
-    justify-content: flex-start;
   }
 }
 
@@ -1013,7 +937,6 @@ $night-border: rgba(255, 255, 255, 0.1);
 
   // ---- Banners + cards (planning / completed / cancelled / wrapped-up CTA
   //      / Trip details overview / budget summary) ----
-  .trip-detail-planning-banner,
   .trip-detail-completed-banner,
   .trip-detail-cancelled-banner,
   .trip-detail-status-cta,
@@ -1023,16 +946,82 @@ $night-border: rgba(255, 255, 255, 0.1);
     border-color: $night-border !important;
     color: $night-text;
   }
-  .trip-detail-planning-title,
   .trip-detail-completed-title,
   .trip-detail-cancelled-title,
   .trip-detail-status-cta-title {
     color: $night-text;
   }
-  .trip-detail-planning-sub,
   .trip-detail-completed-sub,
   .trip-detail-cancelled-sub,
   .trip-detail-status-cta-sub {
+    color: $night-text-2;
+  }
+
+  // ---- Completion recap (TripCompletionSummary) ----
+  .trip-completion-summary {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+  }
+  .trip-completion-summary-title {
+    color: $night-text;
+  }
+  .trip-completion-summary-sub {
+    color: $night-text-2;
+  }
+  .trip-completion-stat {
+    background: $night-surface-2;
+    border-color: $night-border;
+  }
+  .trip-completion-stat-value {
+    color: $night-text;
+  }
+  .trip-completion-stat-label {
+    color: $night-text-3;
+  }
+
+  // ---- Planning box + readiness checklist (PlanningBox / ReadinessChecklist) ----
+  .planning-box {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+  }
+  .planning-box-title {
+    color: $night-text;
+  }
+  .planning-box-sub {
+    color: $night-text-2;
+  }
+  .planning-box-body {
+    border-top-color: $night-border;
+  }
+  .planning-box-meter {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .planning-box-toggle {
+    background: $night-surface-2;
+    color: $night-text-2;
+  }
+  .readiness-item {
+    color: $night-text;
+  }
+  .readiness-item.is-warn .readiness-item-label {
+    color: $night-text-2;
+  }
+
+  // ---- Trip rating card (TripRatingCard) ----
+  .trip-rating-card {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+  }
+  .trip-rating-card-title {
+    color: $night-text;
+  }
+  .trip-rating-card-count {
+    color: $night-text-3;
+  }
+  .trip-rating-card-mine {
+    border-top-color: $night-border;
+  }
+  .trip-rating-card-mine-label {
     color: $night-text-2;
   }
 

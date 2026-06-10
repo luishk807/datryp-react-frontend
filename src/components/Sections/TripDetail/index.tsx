@@ -29,7 +29,6 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
-import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
 import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import WrongLocationRoundedIcon from "@mui/icons-material/WrongLocationRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
@@ -57,6 +56,9 @@ import EditBasicInfoModal from "components/EditBasicInfoModal";
 import TripStatusBadge from "components/TripStatusBadge";
 import TripSuggestionsCard from "components/TripSuggestionsCard";
 import TripCheckupCard from "components/TripCheckupCard";
+import TripCompletionSummary from "components/TripCompletionSummary";
+import TripRatingCard from "components/TripRatingCard";
+import PlanningBox from "components/PlanningBox";
 import { useUser } from "context/UserContext";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import {
@@ -71,7 +73,7 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
-import { isSameDay } from "utils";
+import { isSameDay, isValidDate, diffDays } from "utils";
 import { duplicateTripState, type DuplicateTripRange } from "utils";
 import DuplicateTripModal from "components/DuplicateTripModal";
 import TripNote from "components/TripNote";
@@ -990,6 +992,22 @@ export const TripDetail = () => {
   })();
   const destinations = tripData.destinations ?? [];
 
+  // For the Confirmed "Mark Complete" nudge: how many whole days ago the
+  // trip's end date passed (0 / negative = not over yet). Lets the CTA
+  // gently prompt users who travelled but forgot to mark the trip done.
+  const tripEndedDaysAgo = isValidDate(tripData.endDate)
+    ? diffDays(tripData.endDate, new Date())
+    : 0;
+
+  // Any trip member (organizer or invited friend) may rate the trip. On their
+  // own trip-detail the viewer is always a member, but gate the interactive
+  // stars anyway so a non-member never sees an input the server would 403.
+  const canRateTrip =
+    isOrganizer ||
+    (tripData.friends ?? []).some(
+      (f) => f.userId && f.userId === currentUser?.id,
+    );
+
   return (
     <Layout>
       <div
@@ -1178,6 +1196,13 @@ export const TripDetail = () => {
                 </span>
               </div>
             </div>
+            <TripCompletionSummary
+              data={tripData}
+              travelers={participants.length}
+            />
+            {apiTrip?.id && (
+              <TripRatingCard tripId={apiTrip.id} canRate={canRateTrip} />
+            )}
           </Grid>
         )}
         {!focusMode && persistedStatusName === TRIP_STATUS.CANCELLED && (
@@ -1221,40 +1246,20 @@ export const TripDetail = () => {
             /> */}
           </Grid>
         )}
+        {/* "Trip in planning" box now folds the readiness checklist + meter
+            inside (collapsible). The Confirm button it renders shows "N% ready"
+            and its "some activities aren't confirmed" modal lists what's still
+            missing — all driven by deriveTripReadiness inside PlanningBox. */}
         {!focusMode && persistedStatusName === TRIP_STATUS.PLANNING && (
           <Grid item lg={12} md={12} xs={12}>
-            <div className="trip-detail-planning-banner">
-              <EditCalendarRoundedIcon
-                className="trip-detail-planning-icon"
-                fontSize="medium"
-              />
-              <div className="trip-detail-planning-text">
-                <span className="trip-detail-planning-title">
-                  Trip in planning
-                </span>
-                <span className="trip-detail-planning-sub">
-                  {isOrganizer
-                    ? "Your itinerary is fully editable — add, edit, or remove activities and changes save as you go."
-                    : "The organizer is still arranging activities. Check back soon."}
-                </span>
-              </div>
-              {/* Confirm trip lives inside the planning box — the box already
-                  frames the "you're still planning" state. If any activities
-                  are still unconfirmed, the button's own prompt offers to
-                  confirm them all in one go (see TripStatusBadge), so there's
-                  no separate "Confirm all activities" button. */}
-              {canPromoteStatus && (
-                <div className="trip-detail-planning-actions">
-                  <TripStatusBadge
-                    data={tripData}
-                    onStatusChange={handleStatusChange}
-                    isSaving={saveItinerary.isPending}
-                    onEditTripDates={handleChangeStep}
-                    className="trip-detail-status-cta-btn trip-detail-planning-confirm"
-                  />
-                </div>
-              )}
-            </div>
+            <PlanningBox
+              data={tripData}
+              isOrganizer={isOrganizer}
+              canPromoteStatus={canPromoteStatus}
+              onStatusChange={handleStatusChange}
+              isSaving={saveItinerary.isPending}
+              onEditTripDates={handleChangeStep}
+            />
           </Grid>
         )}
         {/* Mark-complete CTA above the itinerary — Confirmed only. The
@@ -1272,11 +1277,16 @@ export const TripDetail = () => {
               />
               <div className="trip-detail-status-cta-text">
                 <span className="trip-detail-status-cta-title">
-                  Trip all wrapped up?
+                  {tripEndedDaysAgo > 0
+                    ? `Trip ended ${tripEndedDaysAgo} day${
+                        tripEndedDaysAgo === 1 ? "" : "s"
+                      } ago`
+                    : "Trip all wrapped up?"}
                 </span>
                 <span className="trip-detail-status-cta-sub">
-                  Mark it complete to archive it as a record of where
-                  you&rsquo;ve been.
+                  {tripEndedDaysAgo > 0
+                    ? "Did you complete this trip? Mark it complete to archive it as a record of where you’ve been."
+                    : "Mark it complete to archive it as a record of where you’ve been."}
                 </span>
               </div>
               <TripStatusBadge
@@ -1576,10 +1586,12 @@ const TripDetailHeader = ({
         {/* Participant-notification bell sits right next to the trip name
             — it's tied to the trip identity (broadcast changes to the
             people on THIS trip), not to the export/overview action
-            cluster on the right. Hidden on Cancelled trips: the itinerary
-            is inactive, so there are no changes to broadcast. */}
+            cluster on the right. Hidden once the trip is locked in
+            (Completed or Cancelled): the itinerary is sealed, so there
+            are no changes left to broadcast. */}
         {!focusMode &&
           showNotifyToggle &&
+          statusName !== TRIP_STATUS.COMPLETED &&
           statusName !== TRIP_STATUS.CANCELLED && (
             <NotifyParticipantsCheckbox
               checked={notifyParticipants}
