@@ -55,37 +55,6 @@
   margin: 0;
 }
 
-// Scannable stat pills replacing the old "17 countries · 7 cities · 48
-// places" run-on line. Each pill = icon + count + label.
-.visited-page-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.visited-stat-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 11px;
-  border-radius: 9999px;
-  background: rgba(60, 181, 75, 0.1);
-  border: 1px solid rgba(60, 181, 75, 0.2);
-  color: theme('colors.primary');
-  font-size: 0.85rem;
-
-  strong {
-    font-weight: 700;
-    color: theme('colors.primaryGreen');
-  }
-}
-
-.visited-stat-pill-icon {
-  font-size: 1rem !important;
-  color: theme('colors.primaryGreen');
-}
-
 .visited-page-map-link {
   display: inline-flex;
   align-items: center;
@@ -278,5 +247,15 @@
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+@media (max-width: 600px) {
+  // Stack the place-card actions so "View trip" sits above "Remove"
+  // instead of cramming them side-by-side on a narrow screen.
+  .visited-card-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
   }
 }

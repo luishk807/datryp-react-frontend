@@ -1,11 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './index.scss';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
-import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
-import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import LuggageRoundedIcon from '@mui/icons-material/LuggageRounded';
 import Layout from 'components/common/Layout/SubLayout';
@@ -76,16 +74,6 @@ const Visited = () => {
         setPageByTab((prev) => ({ ...prev, [activeTab]: page }));
     };
 
-    // Distinct countries union: explicit country marks + city marks +
-    // implicit codes derived from visited places. Drives the top rollup.
-    const countryCount = useMemo(() => {
-        const seen = new Set<string>();
-        for (const v of items) seen.add(v.countryCode ?? v.placeCountry);
-        for (const c of countryItems) seen.add(c.countryCode);
-        for (const c of cityItems) seen.add(c.countryCode);
-        return seen.size;
-    }, [items, countryItems, cityItems]);
-
     const anyLoading = isLoading || countriesLoading || citiesLoading;
     const anyError = isError || countriesError || citiesError;
     const allEmpty =
@@ -110,27 +98,6 @@ const Visited = () => {
                 <header className="visited-page-header">
                     <div className="visited-page-header-text">
                         <h1 className="visited-page-title">Where you've been</h1>
-                        {!anyLoading && !anyError && !allEmpty && (
-                            <div className="visited-page-stats">
-                                <span className="visited-stat-pill">
-                                    <PublicRoundedIcon className="visited-stat-pill-icon" />
-                                    <strong>{countryCount}</strong>{' '}
-                                    {countryCount === 1
-                                        ? 'Country'
-                                        : 'Countries'}
-                                </span>
-                                <span className="visited-stat-pill">
-                                    <LocationCityRoundedIcon className="visited-stat-pill-icon" />
-                                    <strong>{cityTotal}</strong>{' '}
-                                    {cityTotal === 1 ? 'City' : 'Cities'}
-                                </span>
-                                <span className="visited-stat-pill">
-                                    <PlaceRoundedIcon className="visited-stat-pill-icon" />
-                                    <strong>{total}</strong>{' '}
-                                    {total === 1 ? 'Place' : 'Places'}
-                                </span>
-                            </div>
-                        )}
                     </div>
                     <Link to="/my-map" className="visited-page-map-link">
                         <MapRoundedIcon className="visited-page-map-link-icon" />
