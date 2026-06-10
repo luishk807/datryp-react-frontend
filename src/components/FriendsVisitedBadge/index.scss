@@ -216,6 +216,13 @@
     &:hover {
         background: rgba(0, 0, 0, 0.04);
     }
+
+    // Review rows carry stars + a multi-line quote, so the avatar
+    // top-aligns against the text block instead of centering on it —
+    // the standard review-card layout.
+    &.has-review {
+        align-items: flex-start;
+    }
 }
 
 .friends-visited-avatar {
@@ -261,6 +268,27 @@
 .friends-visited-row-date {
     font-size: 0.78rem;
     color: rgba(0, 0, 0, 0.55);
+}
+
+// The friend's review body — the trust payload. Clamp to 3 lines so a
+// long review doesn't blow out the row; the full text lives on the
+// place's own reviews section. Italic + quoted to read as a citation.
+.friends-visited-row-quote {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.72);
+    line-height: 1.4;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+// Tighten the gap between the name and the readonly star row so the
+// rating reads as part of the friend's identity block, not floating.
+.friends-visited-row .star-input {
+    margin: 1px 0 2px;
 }
 
 .friends-visited-empty {

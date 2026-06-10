@@ -19,6 +19,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useFriendsVisited } from 'api/hooks/useFriendsVisited';
 import type { FriendsVisitedKind } from 'api/friendsVisitedApi';
+import StarInput from 'components/common/FormFields/StarInput';
 import './index.scss';
 
 // Cap the chip's avatar stack — 3 overlapping mini-avatars reads
@@ -179,7 +180,11 @@ const FriendsVisitedBadge = ({
                                 filteredFriends.map((friend) => (
                                     <li
                                         key={friend.userId}
-                                        className="friends-visited-row"
+                                        className={
+                                            friend.rating
+                                                ? 'friends-visited-row has-review'
+                                                : 'friends-visited-row'
+                                        }
                                         onClick={() => {
                                             handleClose();
                                             // No public profile route today —
@@ -208,6 +213,18 @@ const FriendsVisitedBadge = ({
                                             <span className="friends-visited-row-name">
                                                 {friend.name}
                                             </span>
+                                            {friend.rating ? (
+                                                <StarInput
+                                                    value={friend.rating}
+                                                    readonly
+                                                    size="sm"
+                                                />
+                                            ) : null}
+                                            {friend.reviewText ? (
+                                                <span className="friends-visited-row-quote">
+                                                    &ldquo;{friend.reviewText}&rdquo;
+                                                </span>
+                                            ) : null}
                                             <span className="friends-visited-row-date">
                                                 Visited{' '}
                                                 {formatVisitedAt(friend.visitedAt)}
