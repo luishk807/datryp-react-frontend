@@ -120,6 +120,10 @@ export interface ApiActivity {
     /** Original pasted URL (TripAdvisor / Yelp / Maps) for a PLACE added
      *  via smart-entry. Null on typed entries and non-place kinds. */
     sourceUrl: string | null;
+    /** Global (Google Places) rating snapshot captured at place-pull time.
+     *  Null on free-text entries and unmatched places. */
+    googleRating: number | null;
+    googleRatingCount: number | null;
 }
 
 export interface ApiItineraryDate {
@@ -250,6 +254,10 @@ export interface ActivityInput {
     /** Original pasted URL for a PLACE added via smart-entry. Omitted /
      *  null for typed entries and non-place kinds. */
     sourceUrl?: string | null;
+    /** Global (Google Places) rating snapshot captured at place-pull time.
+     *  Omitted / null on free-text entries and unmatched places. */
+    googleRating?: number | null;
+    googleRatingCount?: number | null;
 }
 
 export interface ItineraryDayInput {
@@ -393,6 +401,8 @@ const ACTIVITY_FIELDS = gql`
         latitude
         longitude
         sourceUrl
+        googleRating
+        googleRatingCount
     }
 `;
 

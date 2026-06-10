@@ -259,6 +259,8 @@ const activityToInput = (
         latitude: activity.latitude ?? null,
         longitude: activity.longitude ?? null,
         sourceUrl: activity.sourceUrl ?? null,
+        googleRating: activity.googleRating ?? null,
+        googleRatingCount: activity.googleRatingCount ?? null,
     };
 };
 

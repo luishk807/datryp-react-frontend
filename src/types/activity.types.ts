@@ -93,6 +93,14 @@ export interface Activity {
    *  "View source" affordance. Null on typed (non-URL) entries and on
    *  every non-place kind. */
   sourceUrl?: string | null;
+  /** Global (Google Places) rating snapshot captured at place-pull time
+   *  during activity creation. Persisted so the card shows the rating to
+   *  every viewer (free included) without a live, Pro-gated lookup. Null
+   *  on free-text entries and places the lookup didn't match. A point-in-
+   *  time value — not re-polled — so it can drift from the live Google
+   *  number over the life of a saved trip. */
+  googleRating?: number | null;
+  googleRatingCount?: number | null;
   /** Set by the organizer when they confirm a participant has paid for
    *  this activity. `paidAt` is the date the payment was made (ISO
    *  `YYYY-MM-DD`); `paidBy` is the participant who paid. Both are

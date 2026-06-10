@@ -26,6 +26,15 @@ export interface RatingBadgeProps {
      *  - `'compact'` — inline "★ 4.6" without the review count, for
      *    tight cards where space is at a premium. */
     variant?: 'chip' | 'compact';
+    /** Pre-resolved global rating snapshot. When provided (non-null), the
+     *  badge renders it directly and SKIPS the live, Pro-gated Google
+     *  lookup — so a rating captured at place-pull time and persisted on
+     *  the activity shows to every viewer (including free users) without a
+     *  fresh call. Falls back to the live lookup when null/undefined. */
+    rating?: number | null;
+    /** Review count paired with `rating` (the persisted snapshot). Only
+     *  read when `rating` is provided. */
+    ratingCount?: number | null;
 }
 
 const formatCount = (n: number): string => {
@@ -52,18 +61,37 @@ const RatingBadge = ({
     className,
     linkToMaps = true,
     variant = 'chip',
+    rating,
+    ratingCount,
 }: RatingBadgeProps) => {
+    // A persisted snapshot short-circuits the live lookup — render it
+    // directly (works for free users, no Google call). Only hit the
+    // network when no snapshot was passed.
+    const hasSnapshot = rating != null;
     // RatingBadge shows only the star + count — request the 'rating'
     // variant so the backend skips the (separately-billed) Place Photo
     // call and the pricier place-fields tier.
-    const { data } = usePlaceRating(name, location, enabled, 'rating');
+    const { data } = usePlaceRating(
+        name,
+        location,
+        enabled && !hasSnapshot,
+        'rating',
+    );
 
-    if (!data || data.rating == null) return null;
+    const effectiveRating = hasSnapshot ? rating : data?.rating ?? null;
+    const effectiveCount = hasSnapshot
+        ? ratingCount ?? null
+        : data?.userRatingCount ?? null;
+    // Maps deep-link only comes off the live lookup; the snapshot doesn't
+    // persist the URI, so it renders as a non-linked span.
+    const mapsUri = hasSnapshot ? null : data?.googleMapsUri ?? null;
 
-    const ratingStr = data.rating.toFixed(1);
+    if (effectiveRating == null) return null;
+
+    const ratingStr = effectiveRating.toFixed(1);
     const countStr =
-        data.userRatingCount != null && data.userRatingCount > 0
-            ? formatCount(data.userRatingCount)
+        effectiveCount != null && effectiveCount > 0
+            ? formatCount(effectiveCount)
             : null;
 
     const content = (
@@ -84,10 +112,10 @@ const RatingBadge = ({
         `Rated ${ratingStr} out of 5` +
         (countStr ? ` based on ${countStr} reviews` : '');
 
-    if (linkToMaps && data.googleMapsUri) {
+    if (linkToMaps && mapsUri) {
         return (
             <a
-                href={data.googleMapsUri}
+                href={mapsUri}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={classNames(

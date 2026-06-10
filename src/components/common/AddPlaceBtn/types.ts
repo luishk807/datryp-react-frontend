@@ -48,6 +48,12 @@ export interface PlaceDraft {
      *  the draft so it survives save (via the placePayload spread) and
      *  edit hydration. Null/undefined for typed entries and other kinds. */
     sourceUrl?: string | null;
+    /** Global (Google Places) rating snapshot captured by the PLACE
+     *  smart-entry. Rides the `...placePayload` spread onto the saved
+     *  Activity. Null/undefined for typed entries, non-place kinds, and
+     *  pulls that didn't resolve a rating. */
+    googleRating?: number | null;
+    googleRatingCount?: number | null;
 }
 
 /** The cohesive controller bundle the parent assembles once and threads

@@ -1193,6 +1193,8 @@ const Activities = ({
                                 location={displayLocation}
                                 variant="compact"
                                 enabled={!isFlight && !isNote}
+                                rating={activity.googleRating}
+                                ratingCount={activity.googleRatingCount}
                               />
                             </div>
                           );

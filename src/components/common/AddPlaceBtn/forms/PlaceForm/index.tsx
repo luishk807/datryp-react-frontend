@@ -211,6 +211,9 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 latitude: item.latitude,
                                 longitude: item.longitude,
                                 sourceUrl: pastedUrl ?? null,
+                                googleRating: extras?.googleRating ?? null,
+                                googleRatingCount:
+                                    extras?.googleRatingCount ?? null,
                             });
                             if (parsed.startTime) {
                                 handleOnChange('startTime', parsed.startTime);

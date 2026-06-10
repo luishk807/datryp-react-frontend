@@ -219,6 +219,8 @@ const apiActivityToActivity = (a: ApiActivity): Activity => ({
     latitude: a.latitude,
     longitude: a.longitude,
     sourceUrl: a.sourceUrl ?? null,
+    googleRating: a.googleRating ?? null,
+    googleRatingCount: a.googleRatingCount ?? null,
     // Backend may serialize `paidAt` as a full ISO datetime; collapse to
     // `YYYY-MM-DD` so the date picker in MarkPaidModal hydrates cleanly
     // and the chip renders a stable date regardless of TZ.

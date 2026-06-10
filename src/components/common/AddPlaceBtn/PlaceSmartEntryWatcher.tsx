@@ -31,6 +31,11 @@ export interface SmartEntryExtras {
      *  place — skipping the wrong-country guard, since the user pointed
      *  us at this exact page. */
     fromScrape?: boolean;
+    /** Global (Google Places) rating + count for the resolved place, set
+     *  only when the Google match is trustworthy. The parent persists it
+     *  on the activity so the card shows it without a live lookup. */
+    googleRating?: number;
+    googleRatingCount?: number;
 }
 
 /** Pull the country name out of a Google Places `formattedAddress`.
@@ -229,10 +234,11 @@ const PlaceSmartEntryWatcher = ({
         query,
         country,
         Boolean(query),
-        // The watcher only uses the address / coords / photo — never the
-        // star rating — so the 'place' variant drops the pricier rating
-        // tier from the Google call.
-        'place',
+        // 'all' pulls the star rating + count alongside the address /
+        // coords / photo in the SAME searchText call (just a wider field
+        // mask — no extra request). We persist that rating snapshot on the
+        // activity so the card can show it later without a live lookup.
+        'all',
     );
 
     useEffect(() => {
@@ -452,6 +458,15 @@ const PlaceSmartEntryWatcher = ({
         }
         if (ratingTrustworthy && ratingData?.placeId) {
             extras.placeId = ratingData.placeId;
+        }
+        // Persist the global rating snapshot when Google matched this
+        // place — the create flow stashes it on the activity so the card
+        // shows it without a live lookup.
+        if (ratingTrustworthy && ratingData?.rating != null) {
+            extras.googleRating = ratingData.rating;
+            if (ratingData.userRatingCount != null) {
+                extras.googleRatingCount = ratingData.userRatingCount;
+            }
         }
         // Free-tier upsell: a deliberately-pasted link resolved a real
         // place, but the street address comes from Google Places (Pro).

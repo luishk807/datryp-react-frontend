@@ -47,6 +47,12 @@ export interface PlaceSuggestion {
      *  user pasted a link (not a typed name). Suggestion-chip / autocomplete
      *  picks omit it — `handlePlacePicked` then clears any prior value. */
     sourceUrl?: string | null;
+    /** Global (Google Places) rating + count resolved by the smart-entry
+     *  lookup, so the create flow can persist it on the activity. Set only
+     *  by the smart-entry path when Google matched the place; omitted on
+     *  autocomplete/chip picks and bare-name entries. */
+    googleRating?: number | null;
+    googleRatingCount?: number | null;
 }
 
 export interface PlaceAutocompleteProps {

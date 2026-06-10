@@ -1334,6 +1334,11 @@ const AddPlaceBtn = ({
             // autocomplete pick has none, which clears any prior link so
             // re-picking a different place doesn't keep a stale source.
             sourceUrl: suggestion.sourceUrl ?? null,
+            // Global rating snapshot from the smart-entry Google lookup.
+            // Cleared on a chip/autocomplete pick (no snapshot) so a
+            // re-pick doesn't keep the previous place's rating.
+            googleRating: suggestion.googleRating ?? null,
+            googleRatingCount: suggestion.googleRatingCount ?? null,
         }));
         // Reveal the details panel so the just-populated name /
         // location / image are visible. Same intent as the smart-
@@ -1857,6 +1862,9 @@ const AddPlaceBtn = ({
                 // structured place block, it isn't user-editable in the form
                 // but must survive a save so it isn't nulled server-side.
                 sourceUrl: data.sourceUrl ?? null,
+                // Likewise preserve the rating snapshot across an edit.
+                googleRating: data.googleRating ?? null,
+                googleRatingCount: data.googleRatingCount ?? null,
             });
         } else {
             setPlace(buildInitialPlace());
