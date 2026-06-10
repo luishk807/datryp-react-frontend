@@ -645,7 +645,13 @@ const MyMap = () => {
                         type: 'fill',
                         paint: {
                             'fill-color': FRIENDS_COLOR,
-                            'fill-opacity': 0.28,
+                            // Higher than a typical overlay so the purple
+                            // tint reads even on a country the user has
+                            // ALSO visited (green underneath) — otherwise
+                            // "a friend was here too" vanishes into the
+                            // green. The bold dashed border below is the
+                            // primary signal; this just tints the fill.
+                            'fill-opacity': 0.4,
                         },
                         filter: ['in', 'iso_3166_1', ''],
                     },
@@ -661,8 +667,13 @@ const MyMap = () => {
                         type: 'line',
                         paint: {
                             'line-color': FRIENDS_COLOR,
-                            'line-width': 1.2,
-                            'line-dasharray': [2, 1],
+                            // Bold dashed purple ring — the load-bearing
+                            // "a friend visited here" cue. Reads clearly
+                            // over the user's solid-green own-visit border,
+                            // so overlap countries (you + a friend) are
+                            // unmistakable.
+                            'line-width': 2.8,
+                            'line-dasharray': [1.6, 1.1],
                         },
                         filter: ['in', 'iso_3166_1', ''],
                     },
