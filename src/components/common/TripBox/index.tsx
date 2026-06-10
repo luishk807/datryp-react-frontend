@@ -43,6 +43,60 @@ const formatDateRange = (start: string, end: string) => {
     return `${formatDate(start, 'MMM D, YYYY')} – ${formatDate(end, 'MMM D, YYYY')}`;
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const startOfDayMs = (d: Date) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+/** Local-midnight epoch for a trip date. Parses the leading YYYY-MM-DD
+ *  as LOCAL (not `new Date("…")`, which reads a date-only string as UTC
+ *  and shifts the day by one in negative-UTC zones — that would skew the
+ *  countdown). Falls back to the native parser for odd formats. */
+const tripDateMs = (value: string): number | null => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]).getTime();
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : startOfDayMs(d);
+};
+
+type TripProgress = {
+    label: string;
+    /** Drives the pill color — `active` = travelling now, `soon` =
+     *  within two weeks, `upcoming` = further out. */
+    tone: 'active' | 'soon' | 'upcoming';
+};
+
+/** Live status pill text for the card: counts down to an upcoming trip
+ *  and counts up through one in progress. Returns null for trips that
+ *  have already ended (the COMPLETED badge speaks for those) or with
+ *  unusable dates. */
+const getTripProgress = (
+    start: string,
+    end: string,
+    statusName: string
+): TripProgress | null => {
+    if (statusName.toLowerCase() === 'completed') return null;
+    const today = startOfDayMs(new Date());
+    const s = tripDateMs(start);
+    const e = tripDateMs(end);
+    if (s === null || e === null) return null;
+
+    if (today < s) {
+        const days = Math.round((s - today) / MS_PER_DAY);
+        if (days === 0) return { label: 'Starts today', tone: 'soon' };
+        if (days === 1) return { label: 'Starts tomorrow', tone: 'soon' };
+        return {
+            label: `Starts in ${days} days`,
+            tone: days <= 14 ? 'soon' : 'upcoming',
+        };
+    }
+    if (today <= e) {
+        const total = Math.round((e - s) / MS_PER_DAY) + 1;
+        const dayNum = Math.round((today - s) / MS_PER_DAY) + 1;
+        return { label: `Day ${dayNum} of ${total}`, tone: 'active' };
+    }
+    return null;
+};
+
 const isSingle = (data: TripBoxData): data is SingleDestination =>
     (data as SingleDestination).country !== undefined;
 
@@ -101,6 +155,11 @@ export const TripBox = ({
     const moreDestinations = destinations.length - shownDestinations.length;
     const tripImage = getTripImage(data);
     const isPlaceholder = tripImage === NO_IMAGE;
+    const progress = getTripProgress(
+        data.startDate,
+        data.endDate,
+        data.status.name
+    );
 
     // Body shared by both interaction modes — only the wrapper element
     // changes (`<Link>` for navigation vs `<button>` for selection).
@@ -143,6 +202,25 @@ export const TripBox = ({
                         aria-hidden="true"
                     >
                         {selected && <CheckRoundedIcon fontSize="small" />}
+                    </span>
+                )}
+                {/* Live countdown / day-counter pill — top-right, opposite
+                    the status badge. Hidden in selectable mode and for
+                    ended trips (the COMPLETED badge covers those). */}
+                {!selectable && progress && (
+                    <span
+                        className={classnames(
+                            'trip-box-progress',
+                            `is-${progress.tone}`
+                        )}
+                    >
+                        {progress.tone === 'active' && (
+                            <span
+                                className="trip-box-progress-dot"
+                                aria-hidden="true"
+                            />
+                        )}
+                        {progress.label}
                     </span>
                 )}
             </div>

@@ -140,6 +140,58 @@ button.trip-box-link.is-select-trigger {
   color: rgba(0, 0, 0, 0.55);
 }
 
+// Live progress pill — top-right of the image, mirrors the status badge
+// shape on the opposite corner. Color tracks urgency.
+.trip-box-progress {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+
+  // Travelling now — the most "alive" state.
+  &.is-active {
+    color: theme('colors.primaryOrange');
+  }
+  // Departing within two weeks.
+  &.is-soon {
+    color: theme('colors.primaryGreen');
+  }
+  // Further out — calmer, neutral.
+  &.is-upcoming {
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+// Pulsing dot on the "Day X of Y" pill — signals a trip in motion.
+.trip-box-progress-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: theme('colors.primaryOrange');
+  animation: trip-box-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes trip-box-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+}
+
 // Trip-kind chip — sits in the card body just below the country.
 // Single = green pin; multi-destination = orange route icon.
 .trip-box-kind {
