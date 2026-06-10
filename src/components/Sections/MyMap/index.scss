@@ -32,7 +32,7 @@
 .my-map-intro {
   position: absolute;
   bottom: 14px;
-  right: 14px;
+  left: 14px;
   z-index: 4;
   width: 340px;
   max-width: calc(100% - 28px);
@@ -85,18 +85,24 @@
   color: rgba(0, 0, 0, 0.8);
 }
 
-/* Collapsed-state pill — small floating "About" chip on the map
- * when the panel is dismissed. Same anchor + look as the expanded
- * panel so the user knows where to click to bring it back. */
-.my-map-intro-pill {
+// Toggle pills — bottom-right, stacked (Stats above About). Persistent
+// triggers for the two mutually-exclusive cards; the active one is filled
+// green. Icon-only on phones (label hidden, round chip).
+.my-map-atlas-pills {
   position: absolute;
   bottom: 14px;
   right: 14px;
-  z-index: 4;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-map-atlas-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px 6px 10px;
+  padding: 6px 14px 6px 11px;
   border: 1px solid rgba(60, 181, 75, 0.22);
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.92);
@@ -109,16 +115,44 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   transition: background 0.15s ease, transform 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease, border-color 0.15s ease;
 
   .MuiSvgIcon-root {
     color: theme('colors.primaryGreen');
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 1);
+    background: #fff;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+  }
+
+  &.is-active {
+    border-color: theme('colors.primaryGreen');
+    background: theme('colors.primaryGreen');
+    color: #fff;
+
+    .MuiSvgIcon-root {
+      color: #fff;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .my-map-atlas-pills {
+    right: 6px;
+    bottom: 10px;
+  }
+
+  .my-map-atlas-pill {
+    padding: 0;
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+
+    span {
+      display: none;
+    }
   }
 }
 
@@ -233,19 +267,13 @@
 
 @media (max-width: 720px) {
   .my-map-intro {
-    width: calc(100% - 24px);
-    // The page-shell already reserves 88px below the canvas for the
-    // fixed BottomNav, so the panel can sit at the canvas's natural
-    // bottom — adding more here just opens a big dead-space band.
+    // Leave a gutter on the right for the bottom-right toggle pills so
+    // the full-width card doesn't sit under them.
+    width: calc(100% - 70px);
     bottom: 12px;
-    right: 12px;
+    left: 12px;
     padding: 14px 14px 12px;
     gap: 10px;
-  }
-
-  .my-map-intro-pill {
-    bottom: 12px;
-    right: 12px;
   }
 
   .my-map-intro-title {
@@ -349,6 +377,23 @@
   transition: width 0.4s ease;
 }
 
+// Per-continent stat — appears when a country (or a city/place inside one)
+// is selected. A faint divider sets it apart from the world stat above, and
+// the bar uses solid brand orange so it reads as the "drilled-in" layer.
+.my-map-atlas-stats-continent {
+  padding-top: 10px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+
+  .my-map-atlas-stats-bar-fill {
+    background: theme('colors.primaryOrange');
+  }
+}
+
+.my-map-atlas-stats-continent-sub {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .my-map-atlas-stats-row {
   display: flex;
   align-items: center;
@@ -429,58 +474,6 @@
   &:hover {
     background: rgba(0, 0, 0, 0.1);
     color: rgba(0, 0, 0, 0.8);
-  }
-}
-
-// Collapsed-state pill — bottom-left "Stats" chip that reopens the card.
-// Same look as the intro's "About" pill but mirrored to the left. Lifted
-// above the Mapbox wordmark (which lives in the bottom-left corner) so the
-// chip isn't lost in that clutter, with a high z-index to sit over it.
-.my-map-stats-pill {
-  position: absolute;
-  bottom: 38px;
-  left: 14px;
-  z-index: 6;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px 6px 10px;
-  border: 1px solid rgba(60, 181, 75, 0.22);
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: theme('colors.primary');
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background 0.15s ease, transform 0.15s ease,
-    box-shadow 0.15s ease;
-
-  .MuiSvgIcon-root {
-    color: theme('colors.primaryGreen');
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 1);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
-  }
-}
-
-@media (max-width: 720px) {
-  .my-map-stats-pill {
-    bottom: 12px;
-    left: 12px;
-  }
-
-  // On phones the trips panel takes the whole bottom band, so a
-  // bottom-left pill would sit on top of it — hide it there (the panel's
-  // own close button returns the user to the stats).
-  .my-map-stats-pill.is-trips-open {
-    display: none;
   }
 }
 
@@ -862,20 +855,12 @@
 }
 
 @media (max-width: 720px) {
-  /* Phone: dock the panel just above the canvas bottom, centered
-   * horizontally and held narrow so a single trip card doesn't sit
-   * in a slab of dead space. The page-shell already reserves room
-   * for the fixed BottomNav, so we only need a small `bottom`
-   * offset here — extra clearance just opens a gap. */
+  /* Phone: the trips panel is desktop-only — on a small screen it
+   * collides with the stats/about cards and the pin popup already
+   * confirms the click. Hide it; the popup's "View trip" CTA still
+   * gets the user to the trip. */
   .my-map-trips-panel {
-    top: auto;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    bottom: 12px;
-    width: min(300px, calc(100vw - 24px));
-    max-height: none;
-    animation-name: my-map-trips-panel-in-bottom;
+    display: none;
   }
 
   .my-map-trips-panel-header {

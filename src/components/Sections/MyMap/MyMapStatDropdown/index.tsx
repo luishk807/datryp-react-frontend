@@ -37,6 +37,10 @@ export interface MyMapStatDropdownProps {
      *  when off. Omit both to keep the pill as a pure selector. */
     visible?: boolean;
     onToggleVisible?: () => void;
+    /** Anchor the open panel to the trigger's RIGHT edge (opens leftward)
+     *  instead of the left. Used for the right-hand pills so their panel
+     *  doesn't overflow the viewport and get clipped on mobile. */
+    alignRight?: boolean;
 }
 
 const MyMapStatDropdown = ({
@@ -51,6 +55,7 @@ const MyMapStatDropdown = ({
     emptyHint = 'Nothing here yet.',
     visible = true,
     onToggleVisible,
+    alignRight = false,
 }: MyMapStatDropdownProps) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -80,6 +85,7 @@ const MyMapStatDropdown = ({
             className={classNames('my-map-stat-dropdown', {
                 'is-open': isOpen,
                 'is-hidden': !visible,
+                'is-align-right': alignRight,
             })}
         >
             {onToggleVisible && (

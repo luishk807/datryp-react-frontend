@@ -43,6 +43,12 @@ import MyMapStatDropdown, {
 } from './MyMapStatDropdown';
 import { placeDetailUrl } from 'utils/placeUrl';
 import { haversineKm, KM_TO_MI } from 'utils/geo';
+import {
+    CONTINENT_LABEL,
+    CONTINENT_TOTAL,
+    continentForCode,
+    continentMembers,
+} from 'utils/continents';
 import './index.scss';
 
 type StatDropdownKey = 'countries' | 'cities' | 'places';
@@ -152,65 +158,22 @@ const MyMap = () => {
     }
     const [selection, setSelection] = useState<MapSelection | null>(null);
     const handleClearSelection = useCallback(() => setSelection(null), []);
-    // Intro panel open/closed. First visit shows it (educational
-    // moment); subsequent visits start collapsed so the map gets the
-    // full canvas. The little floating "i" pill on the map always
-    // lets the user re-open it. Persisted in localStorage so the
-    // dismiss survives reloads.
-    const INTRO_STORAGE_KEY = 'my-map-intro-dismissed';
-    const [introOpen, setIntroOpen] = useState<boolean>(() => {
-        if (typeof window === 'undefined') return true;
-        try {
-            return window.localStorage.getItem(INTRO_STORAGE_KEY) !== '1';
-        } catch {
-            return true;
-        }
-    });
-    const handleCloseIntro = useCallback(() => {
-        setIntroOpen(false);
-        try {
-            window.localStorage.setItem(INTRO_STORAGE_KEY, '1');
-        } catch {
-            /* localStorage unavailable (private mode / quota) —
-             * fall back to in-memory dismiss only. */
-        }
-    }, []);
+    // Atlas side-panels: the About (intro/legend) card and the Stats card
+    // share one position and are MUTUALLY EXCLUSIVE — opening one closes the
+    // other (driven by the two stacked pills bottom-right). About is open by
+    // default so first-timers get the legend; either dismisses to its pill.
+    const [introOpen, setIntroOpen] = useState(true);
+    const [statsOpen, setStatsOpen] = useState(false);
     const handleOpenIntro = useCallback(() => {
         setIntroOpen(true);
-    }, []);
-
-    // Collapse/expand for the atlas-stats card — same hide/show pattern as
-    // the intro card, with the reopen pill at bottom-left. Default: open on
-    // desktop (room for it), collapsed on phones so it doesn't crowd the
-    // intro card on first load. Choice persists in localStorage.
-    const STATS_STORAGE_KEY = 'my-map-stats-collapsed';
-    const [statsOpen, setStatsOpen] = useState<boolean>(() => {
-        if (typeof window === 'undefined') return true;
-        try {
-            const stored = window.localStorage.getItem(STATS_STORAGE_KEY);
-            if (stored === '1') return false;
-            if (stored === '0') return true;
-            return !window.matchMedia('(max-width: 720px)').matches;
-        } catch {
-            return true;
-        }
-    });
-    const handleCloseStats = useCallback(() => {
         setStatsOpen(false);
-        try {
-            window.localStorage.setItem(STATS_STORAGE_KEY, '1');
-        } catch {
-            /* localStorage unavailable — in-memory collapse only. */
-        }
     }, []);
+    const handleCloseIntro = useCallback(() => setIntroOpen(false), []);
     const handleOpenStats = useCallback(() => {
         setStatsOpen(true);
-        try {
-            window.localStorage.setItem(STATS_STORAGE_KEY, '0');
-        } catch {
-            /* localStorage unavailable — in-memory expand only. */
-        }
+        setIntroOpen(false);
     }, []);
+    const handleCloseStats = useCallback(() => setStatsOpen(false), []);
 
     const paywallRef = useRef<ModalButtonHandle>(null);
 
@@ -390,6 +353,37 @@ const MyMap = () => {
         user?.homeLatitude,
         user?.homeLongitude,
     ]);
+
+    // The ISO country code implied by the current selection (a country
+    // shading, or the country a selected city / place sits in). Drives the
+    // per-continent completion stat: click a country and the card surfaces
+    // "South America 3/12 · 25%" for that country's continent.
+    const selectedCountryCode = useMemo<string | null>(() => {
+        if (!selection) return null;
+        if (selection.kind === 'country') return selection.id.toUpperCase();
+        if (selection.kind === 'city') {
+            const c = visitedCities.find((x) => x.citySlug === selection.id);
+            return c?.countryCode?.toUpperCase() ?? null;
+        }
+        const p = visitedPlaces.find((x) => x.id === selection.id);
+        return p?.countryCode?.toUpperCase() ?? null;
+    }, [selection, visitedCities, visitedPlaces]);
+
+    const continentStat = useMemo(() => {
+        const key = continentForCode(selectedCountryCode);
+        if (!key) return null;
+        const members = continentMembers(key);
+        const visited = countryCodes.filter((c) =>
+            members.has(c.toUpperCase())
+        ).length;
+        const total = CONTINENT_TOTAL[key];
+        return {
+            label: CONTINENT_LABEL[key],
+            visited,
+            total,
+            pct: total > 0 ? (visited / total) * 100 : 0,
+        };
+    }, [selectedCountryCode, countryCodes]);
 
     // Initialize the Mapbox map. Runs once — subsequent data changes
     // are handled by separate effects that mutate the existing map.
@@ -1592,6 +1586,7 @@ const MyMap = () => {
                             emptyHint="No visited cities yet."
                             visible={layerVisibility.cities}
                             onToggleVisible={() => toggleLayer('cities')}
+                            alignRight
                         />
                         <MyMapStatDropdown
                             icon={<PlaceRoundedIcon fontSize="small" />}
@@ -1611,6 +1606,7 @@ const MyMap = () => {
                             emptyHint="No visited places yet."
                             visible={layerVisibility.places}
                             onToggleVisible={() => toggleLayer('places')}
+                            alignRight
                         />
                     </div>
                     )}
@@ -1621,7 +1617,7 @@ const MyMap = () => {
                      *  First visit opens the panel; localStorage
                      *  flag dismisses it for subsequent visits. The
                      *  "ⓘ" pill always reopens it. */}
-                    {isPro && (introOpen ? (
+                    {isPro && introOpen && (
                         <section
                             className="my-map-intro"
                             aria-labelledby="my-map-intro-title"
@@ -1689,18 +1685,7 @@ const MyMap = () => {
                                 anywhere on the globe.
                             </p>
                         </section>
-                    ) : (
-                        <button
-                            type="button"
-                            className="my-map-intro-pill"
-                            onClick={handleOpenIntro}
-                            aria-label="About Travel Atlas"
-                            title="About Travel Atlas"
-                        >
-                            <InfoOutlinedIcon fontSize="small" />
-                            <span>About</span>
-                        </button>
-                    ))}
+                    )}
 
                     {/* Trips panel — slides in from the left side
                      *  when the user clicks a country / city / place
@@ -1712,12 +1697,10 @@ const MyMap = () => {
                      *  pin popup + camera fly already confirm the
                      *  click, no need for a panel that just says
                      *  "nothing to show here." */}
-                    {/* Travel-atlas summary card — bottom-left, Pro-only.
-                     *  Shown only when expanded AND no trips panel is up
-                     *  (the big card would overlap the panel). The small
-                     *  reopen pill below stays reachable in every other
-                     *  state so the stats are never a dead end. */}
-                    {isPro && statsOpen && !tripsPanelOpen && (
+                    {/* Travel-atlas summary card — Pro-only, shares the
+                     *  bottom-left slot with the About card (mutually
+                     *  exclusive). Toggled from the Stats pill. */}
+                    {isPro && statsOpen && (
                         <aside
                             className="my-map-atlas-stats"
                             aria-label="Your travel atlas summary"
@@ -1768,6 +1751,37 @@ const MyMap = () => {
                                     />
                                 </div>
                             </div>
+                            {continentStat && (
+                                <div className="my-map-atlas-stats-progress my-map-atlas-stats-continent">
+                                    <div className="my-map-atlas-stats-progress-head">
+                                        <span className="my-map-atlas-stats-progress-pct">
+                                            {continentStat.label}
+                                        </span>
+                                        <span className="my-map-atlas-stats-progress-frac">
+                                            {continentStat.visited}/
+                                            {continentStat.total}
+                                        </span>
+                                    </div>
+                                    <div className="my-map-atlas-stats-bar">
+                                        <span
+                                            className="my-map-atlas-stats-bar-fill"
+                                            style={{
+                                                width: `${Math.min(
+                                                    100,
+                                                    Math.max(
+                                                        2,
+                                                        continentStat.pct
+                                                    )
+                                                )}%`,
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="my-map-atlas-stats-continent-sub">
+                                        {continentStat.pct.toFixed(0)}% of{' '}
+                                        {continentStat.label} explored
+                                    </span>
+                                </div>
+                            )}
                             <div className="my-map-atlas-stats-row">
                                 <span
                                     className="my-map-atlas-stats-emoji"
@@ -1807,29 +1821,51 @@ const MyMap = () => {
                         </aside>
                     )}
 
-                    {/* Collapsed "Stats" pill — visible whenever the card
-                     *  isn't: collapsed by the user, OR suppressed because
-                     *  the trips panel is up. Clicking it clears any region
-                     *  selection and reopens the card, so the stats are
-                     *  always one tap away (the bug was hiding this too). */}
-                    {isPro && (!statsOpen || tripsPanelOpen) && (
-                        <button
-                            type="button"
-                            className={
-                                tripsPanelOpen
-                                    ? 'my-map-stats-pill is-trips-open'
-                                    : 'my-map-stats-pill'
-                            }
-                            onClick={() => {
-                                handleClearSelection();
-                                handleOpenStats();
-                            }}
-                            aria-label="Show travel stats"
-                            title="Travel stats"
-                        >
-                            <InsightsRoundedIcon fontSize="small" />
-                            <span>Stats</span>
-                        </button>
+                    {/* Toggle pills — bottom-right, Stats stacked above
+                     *  About. Each opens its card (closing the other);
+                     *  clicking the active one closes it. Icon-only on
+                     *  mobile (text hidden via CSS). */}
+                    {isPro && (
+                        <div className="my-map-atlas-pills">
+                            <button
+                                type="button"
+                                className={
+                                    statsOpen
+                                        ? 'my-map-atlas-pill is-active'
+                                        : 'my-map-atlas-pill'
+                                }
+                                onClick={() =>
+                                    statsOpen
+                                        ? handleCloseStats()
+                                        : handleOpenStats()
+                                }
+                                aria-pressed={statsOpen}
+                                aria-label="Travel stats"
+                                title="Travel stats"
+                            >
+                                <InsightsRoundedIcon fontSize="small" />
+                                <span>Stats</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={
+                                    introOpen
+                                        ? 'my-map-atlas-pill is-active'
+                                        : 'my-map-atlas-pill'
+                                }
+                                onClick={() =>
+                                    introOpen
+                                        ? handleCloseIntro()
+                                        : handleOpenIntro()
+                                }
+                                aria-pressed={introOpen}
+                                aria-label="About Travel Atlas"
+                                title="About Travel Atlas"
+                            >
+                                <InfoOutlinedIcon fontSize="small" />
+                                <span>About</span>
+                            </button>
+                        </div>
                     )}
 
                     {tripsPanelOpen && (

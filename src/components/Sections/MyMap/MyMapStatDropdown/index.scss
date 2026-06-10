@@ -213,4 +213,11 @@
     height: 26px;
     font-size: 0.95rem;
   }
+
+  // Right-hand pills (cities / places) open their panel anchored to the
+  // right edge so it doesn't overflow the viewport and get clipped.
+  .my-map-stat-dropdown.is-align-right .my-map-stat-dropdown-panel {
+    left: auto;
+    right: 0;
+  }
 }
