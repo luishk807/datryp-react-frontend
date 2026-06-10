@@ -32,6 +32,51 @@
   font-size: 1.25rem !important;
 }
 
+/* ── Ratings breakdown (activity-card entry only) ────────────────────── */
+.review-section-ratings {
+  list-style: none;
+  margin: 0;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+
+  .rating-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .rating-row-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: theme('colors.primary');
+  }
+
+  .rating-row-icon {
+    font-size: 1.1rem !important;
+    color: rgba(0, 0, 0, 0.45);
+  }
+
+  .rating-row-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .rating-row-count {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.5);
+  }
+}
+
 /* ── CTA blocks (auth / leave-review) ────────────────────────────────── */
 .review-section-cta {
   padding: 4px 0 2px;

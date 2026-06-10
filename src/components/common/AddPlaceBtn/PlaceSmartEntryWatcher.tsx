@@ -36,6 +36,9 @@ export interface SmartEntryExtras {
      *  on the activity so the card shows it without a live lookup. */
     googleRating?: number;
     googleRatingCount?: number;
+    /** OpenAI/recommender "overall rating" from the trustworthy top match,
+     *  persisted on the activity so the card can blend it. */
+    openaiRating?: number;
 }
 
 /** Pull the country name out of a Google Places `formattedAddress`.
@@ -467,6 +470,13 @@ const PlaceSmartEntryWatcher = ({
             if (ratingData.userRatingCount != null) {
                 extras.googleRatingCount = ratingData.userRatingCount;
             }
+        }
+        // The OpenAI/recommender "overall rating" rides on the AI top
+        // match — capture it only when that match is the one we trust
+        // (its rating is meaningless when we fell back to a Google-only
+        // or bare-synthetic result, where `top` was rejected or absent).
+        if (top && topTrustworthy && top.rating != null && top.rating > 0) {
+            extras.openaiRating = top.rating;
         }
         // Free-tier upsell: a deliberately-pasted link resolved a real
         // place, but the street address comes from Google Places (Pro).

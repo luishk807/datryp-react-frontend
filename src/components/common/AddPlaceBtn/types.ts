@@ -54,6 +54,9 @@ export interface PlaceDraft {
      *  pulls that didn't resolve a rating. */
     googleRating?: number | null;
     googleRatingCount?: number | null;
+    /** OpenAI/recommender rating from the smart-entry top match. Rides the
+     *  `...placePayload` spread onto the saved Activity. */
+    openaiRating?: number | null;
 }
 
 /** The cohesive controller bundle the parent assembles once and threads

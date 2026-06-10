@@ -1339,6 +1339,7 @@ const AddPlaceBtn = ({
             // re-pick doesn't keep the previous place's rating.
             googleRating: suggestion.googleRating ?? null,
             googleRatingCount: suggestion.googleRatingCount ?? null,
+            openaiRating: suggestion.openaiRating ?? null,
         }));
         // Reveal the details panel so the just-populated name /
         // location / image are visible. Same intent as the smart-
@@ -1862,9 +1863,10 @@ const AddPlaceBtn = ({
                 // structured place block, it isn't user-editable in the form
                 // but must survive a save so it isn't nulled server-side.
                 sourceUrl: data.sourceUrl ?? null,
-                // Likewise preserve the rating snapshot across an edit.
+                // Likewise preserve the rating snapshots across an edit.
                 googleRating: data.googleRating ?? null,
                 googleRatingCount: data.googleRatingCount ?? null,
+                openaiRating: data.openaiRating ?? null,
             });
         } else {
             setPlace(buildInitialPlace());

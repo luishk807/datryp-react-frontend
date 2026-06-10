@@ -44,7 +44,6 @@ import AddPlaceBtn from "components/common/AddPlaceBtn";
 import { pickSmartEntryLocation } from "components/common/AddPlaceBtn/pickSmartEntryLocation";
 import { useTripState } from "context/TripContext";
 import AddBudget from "components/DestinationDetail/AddBudget";
-import RatingBadge from "components/common/RatingBadge";
 import AirlineLogo from "components/common/AirlineLogo";
 import DraggableActivity from "components/DestinationDetail/Activities/DraggableActivity";
 import IconConfirmButton from "components/common/IconConfirmButton";
@@ -1094,6 +1093,9 @@ const Activities = ({
                           placeCity={activity.placeCity as string}
                           placeCountry={activity.placeCountry as string}
                           placeKey={activity.placeKey}
+                          googleRating={activity.googleRating}
+                          googleRatingCount={activity.googleRatingCount}
+                          openaiRating={activity.openaiRating}
                         />
                       )}
                       <div className="activity-meta">
@@ -1188,14 +1190,6 @@ const Activities = ({
                                   </IconButton>
                                 );
                               })()}
-                              <RatingBadge
-                                name={activity.name ?? ""}
-                                location={displayLocation}
-                                variant="compact"
-                                enabled={!isFlight && !isNote}
-                                rating={activity.googleRating}
-                                ratingCount={activity.googleRatingCount}
-                              />
                             </div>
                           );
                         })()}

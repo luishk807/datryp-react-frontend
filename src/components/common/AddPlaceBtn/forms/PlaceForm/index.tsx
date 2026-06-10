@@ -214,6 +214,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 googleRating: extras?.googleRating ?? null,
                                 googleRatingCount:
                                     extras?.googleRatingCount ?? null,
+                                openaiRating: extras?.openaiRating ?? null,
                             });
                             if (parsed.startTime) {
                                 handleOnChange('startTime', parsed.startTime);

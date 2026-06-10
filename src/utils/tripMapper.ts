@@ -261,6 +261,7 @@ const activityToInput = (
         sourceUrl: activity.sourceUrl ?? null,
         googleRating: activity.googleRating ?? null,
         googleRatingCount: activity.googleRatingCount ?? null,
+        openaiRating: activity.openaiRating ?? null,
     };
 };
 

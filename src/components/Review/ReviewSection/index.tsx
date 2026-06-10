@@ -14,10 +14,14 @@
  */
 import { useState } from "react";
 import RateReviewRoundedIcon from "@mui/icons-material/RateReviewRounded";
+import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import classNames from "classnames";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
 import Pagination from "components/common/Pagination";
 import RatingStats from "components/common/RatingStats";
+import GoogleGlyph from "components/common/GoogleGlyph";
+import Stars from "components/common/Stars";
 import ReviewCard from "components/Review/ReviewCard";
 import ReviewForm from "components/Review/ReviewForm";
 import Skeleton from "components/common/Skeleton";
@@ -36,6 +40,15 @@ interface ReviewSectionProps {
   placeName: string;
   placeCity: string;
   placeCountry: string;
+  /** When a Google and/or OpenAI rating is passed (i.e. opened from an
+   *  activity card, where these are persisted on the activity), the
+   *  section renders a "Ratings" breakdown listing each source
+   *  separately above the traveler reviews. Omitted on the place detail
+   *  page — it already shows the global ratings in its own header, so
+   *  the breakdown would duplicate them. */
+  googleRating?: number | null;
+  googleRatingCount?: number | null;
+  openaiRating?: number | null;
 }
 
 // ── Main component ─────────────────────────────────────────────────────────
@@ -58,9 +71,15 @@ const ReviewSection = ({
   placeName,
   placeCity,
   placeCountry,
+  googleRating,
+  googleRatingCount,
+  openaiRating,
 }: ReviewSectionProps) => {
   const { user } = useUser();
   const placeKey = getPlaceKey(placeName, placeCity, placeCountry);
+  // Only the activity-card entry point passes external ratings; the place
+  // page omits them (it shows the same numbers in its own header).
+  const showRatingBreakdown = googleRating != null || openaiRating != null;
 
   const [sort, setSort] = useState<ReviewSort>("recent");
   const [page, setPage] = useState(1);
@@ -133,6 +152,50 @@ const ReviewSection = ({
           />
         )}
       </header>
+
+      {showRatingBreakdown && (
+        <ul className="review-section-ratings">
+          {googleRating != null && (
+            <li className="rating-row">
+              <span className="rating-row-source">
+                <GoogleGlyph size={16} />
+                Google
+              </span>
+              <span className="rating-row-value">
+                <Stars rating={googleRating} />
+                {googleRatingCount != null && googleRatingCount > 0 && (
+                  <span className="rating-row-count">
+                    ({googleRatingCount.toLocaleString()})
+                  </span>
+                )}
+              </span>
+            </li>
+          )}
+          {openaiRating != null && (
+            <li className="rating-row">
+              <span className="rating-row-source">
+                <PublicRoundedIcon className="rating-row-icon" />
+                OpenAI
+              </span>
+              <span className="rating-row-value">
+                <Stars rating={openaiRating} />
+              </span>
+            </li>
+          )}
+          {data && data.averageRating != null && data.total > 0 && (
+            <li className="rating-row">
+              <span className="rating-row-source">
+                <GroupsRoundedIcon className="rating-row-icon" />
+                daTryp travelers
+              </span>
+              <span className="rating-row-value">
+                <Stars rating={data.averageRating} />
+                <span className="rating-row-count">({data.total})</span>
+              </span>
+            </li>
+          )}
+        </ul>
+      )}
 
       {/* CTA / form area. The `/place` route is auth-gated upstream
                 via `<Gated>`, so we can assume `user` exists by the time

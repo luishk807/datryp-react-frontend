@@ -4,6 +4,7 @@ import ReviewSection from "components/Review/ReviewSection";
 import Stars from "components/common/Stars";
 import { usePlaceReviews } from "api/hooks/useReviews";
 import { getPlaceKey } from "utils/placeKey";
+import { blendRatings } from "utils/blendedRating";
 import "./index.scss";
 
 export interface ActivityReviewStarsProps {
@@ -13,23 +14,42 @@ export interface ActivityReviewStarsProps {
     /** Backend-stored slug when present — keeps the key identical to the
      *  place detail page so the rating + comments are the same data. */
     placeKey?: string | null;
+    /** Persisted Google Places rating snapshot for the place. */
+    googleRating?: number | null;
+    googleRatingCount?: number | null;
+    /** Persisted OpenAI/recommender "overall rating" snapshot. */
+    openaiRating?: number | null;
 }
 
-/** The place's traveler-review rating, shown right under the activity title.
- *  Clicking opens the full reviews window (`ReviewSection` — the same
- *  comments + rate/review form the place detail page shows). Falls back to a
- *  "Rate this place" prompt when there are no reviews yet. */
+/** One consolidated rating for the activity, shown right under the title:
+ *  a single blended star value across whichever of the three sources have
+ *  data — Google, OpenAI/recommender, and daTryp traveler reviews. Clicking
+ *  opens the reviews window, where the three are broken out separately
+ *  above the comments. Falls back to a "Rate this place" prompt when no
+ *  source has a rating yet. */
 const ActivityReviewStars = ({
     placeName,
     placeCity,
     placeCountry,
     placeKey,
+    googleRating,
+    googleRatingCount,
+    openaiRating,
 }: ActivityReviewStarsProps) => {
     const key = placeKey || getPlaceKey(placeName, placeCity, placeCountry);
     const modalRef = useRef<ModalButtonHandle>(null);
     const { data } = usePlaceReviews(key);
-    const average = data?.averageRating ?? null;
-    const total = data?.total ?? 0;
+    const travelerAverage = data?.averageRating ?? null;
+    const travelerTotal = data?.total ?? 0;
+
+    // Equal-weight blend across whichever sources have a rating. Real
+    // review counts (Google + traveler) feed the "(N)" beside the stars;
+    // the OpenAI estimate lifts the average but carries no count.
+    const blended = blendRatings([
+        { rating: googleRating, count: googleRatingCount },
+        { rating: openaiRating },
+        { rating: travelerAverage, count: travelerTotal },
+    ]);
 
     return (
         <>
@@ -38,24 +58,26 @@ const ActivityReviewStars = ({
                 className="activity-review-stars"
                 onClick={() => modalRef.current?.openModel()}
                 aria-label={
-                    average != null
-                        ? `${average} out of 5 from ${total} review${
-                              total === 1 ? "" : "s"
-                          } — open reviews`
+                    blended
+                        ? `${blended.average.toFixed(1)} out of 5` +
+                          (blended.totalCount > 0
+                              ? ` from ${blended.totalCount} review${
+                                    blended.totalCount === 1 ? "" : "s"
+                                }`
+                              : "") +
+                          " — open ratings & reviews"
                         : `Rate ${placeName}`
                 }
-                title={
-                    average != null
-                        ? "View reviews"
-                        : "Be the first to review"
-                }
+                title={blended ? "View ratings & reviews" : "Be the first to review"}
             >
-                {average != null ? (
+                {blended ? (
                     <>
-                        <Stars rating={average} />
-                        <span className="activity-review-count">
-                            ({total})
-                        </span>
+                        <Stars rating={blended.average} />
+                        {blended.totalCount > 0 && (
+                            <span className="activity-review-count">
+                                ({blended.totalCount})
+                            </span>
+                        )}
                     </>
                 ) : (
                     <>
@@ -71,6 +93,9 @@ const ActivityReviewStars = ({
                     placeName={placeName}
                     placeCity={placeCity}
                     placeCountry={placeCountry}
+                    googleRating={googleRating}
+                    googleRatingCount={googleRatingCount}
+                    openaiRating={openaiRating}
                 />
             </ModalButton>
         </>

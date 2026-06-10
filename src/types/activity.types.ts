@@ -101,6 +101,12 @@ export interface Activity {
    *  number over the life of a saved trip. */
   googleRating?: number | null;
   googleRatingCount?: number | null;
+  /** OpenAI/recommender "overall rating" snapshot captured at add time
+   *  (recommender top match for a smart-entry pick, or the rating the AI
+   *  trip-generation emits for a place). Blended with the Google +
+   *  traveler ratings on the card. A model estimate — no review count.
+   *  Null on free-text entries and unrated places. */
+  openaiRating?: number | null;
   /** Set by the organizer when they confirm a participant has paid for
    *  this activity. `paidAt` is the date the payment was made (ISO
    *  `YYYY-MM-DD`); `paidBy` is the participant who paid. Both are

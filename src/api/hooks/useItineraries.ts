@@ -124,6 +124,8 @@ export interface ApiActivity {
      *  Null on free-text entries and unmatched places. */
     googleRating: number | null;
     googleRatingCount: number | null;
+    /** OpenAI/recommender "overall rating" snapshot. Null when unrated. */
+    openaiRating: number | null;
 }
 
 export interface ApiItineraryDate {
@@ -258,6 +260,8 @@ export interface ActivityInput {
      *  Omitted / null on free-text entries and unmatched places. */
     googleRating?: number | null;
     googleRatingCount?: number | null;
+    /** OpenAI/recommender "overall rating" snapshot. Omitted when unrated. */
+    openaiRating?: number | null;
 }
 
 export interface ItineraryDayInput {
@@ -403,6 +407,7 @@ const ACTIVITY_FIELDS = gql`
         sourceUrl
         googleRating
         googleRatingCount
+        openaiRating
     }
 `;
 

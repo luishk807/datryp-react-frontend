@@ -53,6 +53,9 @@ export interface PlaceSuggestion {
      *  autocomplete/chip picks and bare-name entries. */
     googleRating?: number | null;
     googleRatingCount?: number | null;
+    /** OpenAI/recommender "overall rating" for the picked place, so the
+     *  create flow can persist it. Set only by the smart-entry path. */
+    openaiRating?: number | null;
 }
 
 export interface PlaceAutocompleteProps {
