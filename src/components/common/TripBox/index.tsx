@@ -46,13 +46,18 @@ const formatDateRange = (start: string, end: string) => {
 const isSingle = (data: TripBoxData): data is SingleDestination =>
     (data as SingleDestination).country !== undefined;
 
-const getDestinationLabel = (data: TripBoxData) => {
-    if (isSingle(data)) return data.country.name;
+// How many destinations to show before collapsing the rest into
+// "+N more" — keeps 5–8-destination cards from sprawling across two
+// lines. Tunable in one place.
+const DESTINATIONS_SHOWN = 1;
+
+/** Unique destination country names, in itinerary order. */
+const getDestinations = (data: TripBoxData): string[] => {
+    if (isSingle(data)) return data.country?.name ? [data.country.name] : [];
     const countries = data.intenaryDates
         .map((d) => d.country?.name)
         .filter(Boolean) as string[];
-    const unique = Array.from(new Set(countries));
-    return unique.join(' · ') || TRIP_BOX_LABEL.MULTIPLE;
+    return Array.from(new Set(countries));
 };
 
 const getTripImage = (data: TripBoxData) => {
@@ -87,7 +92,13 @@ export const TripBox = ({
     const target = to ?? `/trip-detail?id=${data.id}`;
     const statusKey = data.status.name.toLowerCase();
     const single = isSingle(data);
-    const destinationLabel = getDestinationLabel(data);
+    const destinations = getDestinations(data);
+    // Full list for the image alt text (accessibility / SEO); the visible
+    // line below truncates with "+N more".
+    const destinationLabel =
+        destinations.join(' · ') || TRIP_BOX_LABEL.MULTIPLE;
+    const shownDestinations = destinations.slice(0, DESTINATIONS_SHOWN);
+    const moreDestinations = destinations.length - shownDestinations.length;
     const tripImage = getTripImage(data);
     const isPlaceholder = tripImage === NO_IMAGE;
 
@@ -137,7 +148,16 @@ export const TripBox = ({
             </div>
             <div className="trip-box-content">
                 <h3 className="trip-box-name">{data.name}</h3>
-                <p className="trip-box-destination">{destinationLabel}</p>
+                <p className="trip-box-destination" title={destinationLabel}>
+                    {shownDestinations.join(' · ') ||
+                        TRIP_BOX_LABEL.MULTIPLE}
+                    {moreDestinations > 0 && (
+                        <span className="trip-box-destination-more">
+                            {' '}
+                            +{moreDestinations} more
+                        </span>
+                    )}
+                </p>
                 {/* Trip-kind chip — single vs multi-destination, sitting just
                     below the country in the card body. */}
                 <span

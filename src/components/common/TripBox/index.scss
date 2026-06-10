@@ -185,6 +185,16 @@ button.trip-box-link.is-select-trigger {
   color: theme('colors.primaryOrange');
   margin: 0 0 12px;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// "+N more" overflow — muted + lighter weight so the primary
+// destination stays the focal point.
+.trip-box-destination-more {
+  color: rgba(0, 0, 0, 0.45);
+  font-weight: 400;
 }
 
 .trip-box-meta {
