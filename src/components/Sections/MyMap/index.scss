@@ -31,9 +31,11 @@
  * globe. */
 .my-map-intro {
   position: absolute;
+  // Lower-right — same slot the toggle pills occupy. The pills are hidden
+  // while a window is open, so they never overlap.
   bottom: 14px;
-  left: 14px;
-  z-index: 4;
+  right: 14px;
+  z-index: 6;
   width: 340px;
   max-width: calc(100% - 28px);
   display: flex;
@@ -125,16 +127,6 @@
     background: #fff;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
-  }
-
-  &.is-active {
-    border-color: theme('colors.primaryGreen');
-    background: theme('colors.primaryGreen');
-    color: #fff;
-
-    .MuiSvgIcon-root {
-      color: #fff;
-    }
   }
 }
 
@@ -267,11 +259,11 @@
 
 @media (max-width: 720px) {
   .my-map-intro {
-    // Leave a gutter on the right for the bottom-right toggle pills so
-    // the full-width card doesn't sit under them.
-    width: calc(100% - 70px);
-    bottom: 12px;
+    // Full-width lower window; the pills are hidden while it's open.
+    width: auto;
     left: 12px;
+    right: 12px;
+    bottom: 12px;
     padding: 14px 14px 12px;
     gap: 10px;
   }
@@ -303,8 +295,8 @@
 .my-map-atlas-stats {
   position: absolute;
   bottom: 14px;
-  left: 14px;
-  z-index: 5;
+  right: 14px;
+  z-index: 6;
   width: 250px;
   max-width: calc(100vw - 28px);
   display: flex;
@@ -445,9 +437,10 @@
   // collapsed (see the JS default) so it doesn't crowd the bottom-right
   // intro card on first load — the bottom-left "Stats" pill reopens it.
   .my-map-atlas-stats {
-    width: 220px;
-    bottom: 12px;
+    width: auto;
     left: 12px;
+    right: 12px;
+    bottom: 12px;
     padding: 12px;
     gap: 10px;
   }

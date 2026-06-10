@@ -1822,24 +1822,16 @@ const MyMap = () => {
                     )}
 
                     {/* Toggle pills — bottom-right, Stats stacked above
-                     *  About. Each opens its card (closing the other);
-                     *  clicking the active one closes it. Icon-only on
-                     *  mobile (text hidden via CSS). */}
-                    {isPro && (
+                     *  About. Shown only when NO window is open; opening a
+                     *  window (lower-right) hides them, and closing it via
+                     *  the window's X brings them back. Icon-only on mobile
+                     *  (text hidden via CSS). */}
+                    {isPro && !statsOpen && !introOpen && (
                         <div className="my-map-atlas-pills">
                             <button
                                 type="button"
-                                className={
-                                    statsOpen
-                                        ? 'my-map-atlas-pill is-active'
-                                        : 'my-map-atlas-pill'
-                                }
-                                onClick={() =>
-                                    statsOpen
-                                        ? handleCloseStats()
-                                        : handleOpenStats()
-                                }
-                                aria-pressed={statsOpen}
+                                className="my-map-atlas-pill"
+                                onClick={handleOpenStats}
                                 aria-label="Travel stats"
                                 title="Travel stats"
                             >
@@ -1848,17 +1840,8 @@ const MyMap = () => {
                             </button>
                             <button
                                 type="button"
-                                className={
-                                    introOpen
-                                        ? 'my-map-atlas-pill is-active'
-                                        : 'my-map-atlas-pill'
-                                }
-                                onClick={() =>
-                                    introOpen
-                                        ? handleCloseIntro()
-                                        : handleOpenIntro()
-                                }
-                                aria-pressed={introOpen}
+                                className="my-map-atlas-pill"
+                                onClick={handleOpenIntro}
                                 aria-label="About Travel Atlas"
                                 title="About Travel Atlas"
                             >
