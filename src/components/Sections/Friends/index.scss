@@ -22,6 +22,25 @@
   vertical-align: middle;
 }
 
+// Status chip on an accepted friend row — green, so a glance tells the
+// user this person is connected (vs the orange "Pending" on sent rows).
+.friend-status-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+
+  &.is-friend {
+    background: rgba(60, 181, 75, 0.12);
+    color: theme('colors.primaryGreen');
+  }
+}
+
 .friends-page {
   width: 100%;
   padding: 8px;

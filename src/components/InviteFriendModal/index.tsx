@@ -120,10 +120,9 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
                     ) : (
                         <>
                             <p className="invite-friend-helper">
-                                If they&rsquo;re already on DaTryp.com,
-                                we&rsquo;ll send them a friend request.
-                                Otherwise we&rsquo;ll email them an invitation
-                                to sign up.
+                                Enter an email address. If they&rsquo;re already
+                                on DaTryp we&rsquo;ll send a friend request —
+                                otherwise we&rsquo;ll send an invitation to join.
                             </p>
                             <InputField
                                 name="email"

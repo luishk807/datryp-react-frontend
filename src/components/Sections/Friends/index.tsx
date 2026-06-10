@@ -211,8 +211,8 @@ export const Friends = () => {
                         <div className="friends-card-headings">
                             <h2 className="friends-card-title">Your friends</h2>
                             <p className="friends-card-subtitle">
-                                People you travel with — add them once and pick
-                                from the list when planning a trip.
+                                Friends can be added to trips to plan
+                                itineraries together and share travel plans.
                             </p>
                         </div>
                         <div className="friends-card-actions">
@@ -244,6 +244,9 @@ export const Friends = () => {
                                     <div className="friend-info">
                                         <span className="friend-name">
                                             {f.name ?? f.email}
+                                            <span className="friend-status-badge is-friend">
+                                                Friend
+                                            </span>
                                         </span>
                                         {f.email && (
                                             <div className="friend-meta">
@@ -259,9 +262,9 @@ export const Friends = () => {
                                             className="friend-remove"
                                             onClick={() => handleUnfriendClick(f)}
                                             disabled={unfriendMutation.isPending}
-                                            aria-label={`Unfriend ${f.name ?? f.email}`}
+                                            aria-label={`Remove ${f.name ?? f.email}`}
                                         >
-                                            Unfriend
+                                            Remove
                                         </button>
                                     </div>
                                 </div>
@@ -322,7 +325,7 @@ export const Friends = () => {
                                     <div className="friend-info">
                                         <span className="friend-name">
                                             {req.otherUser.name ??
-                                                req.otherUser.email}
+                                                'Invitation sent'}
                                             <span className="friend-pending-badge">
                                                 Pending
                                             </span>
@@ -377,7 +380,7 @@ export const Friends = () => {
                 fullWidth
             >
                 <DialogTitle>
-                    Unfriend{' '}
+                    Remove{' '}
                     {unfriendCandidate?.name ?? unfriendCandidate?.email}?
                 </DialogTitle>
                 <DialogContent>
@@ -402,7 +405,7 @@ export const Friends = () => {
                         label={
                             unfriendMutation.isPending
                                 ? 'Removing…'
-                                : 'Unfriend'
+                                : 'Remove friend'
                         }
                         onClick={handleUnfriendConfirm}
                         disabled={unfriendMutation.isPending}
