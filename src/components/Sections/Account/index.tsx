@@ -164,6 +164,15 @@ export const Account = () => {
         text: string;
     } | null>(null);
 
+    // Privacy — visited-history sharing. OFF by default; when on, friends
+    // see your visits on destination pages + the Atlas. Seeded from
+    // `/me/preferences` like the notification toggles.
+    const [shareVisitedPlaces, setShareVisitedPlaces] = useState(false);
+    const [privacyMessage, setPrivacyMessage] = useState<{
+        type: 'success' | 'error';
+        text: string;
+    } | null>(null);
+
     // Danger zone — self-service account deletion. The confirm modal is
     // ref-controlled; the user must type DELETE (exact, case-sensitive)
     // before the destructive button enables.
@@ -228,6 +237,7 @@ export const Account = () => {
         if (!preferences) return;
         setNotifyEmail(preferences.notifyEmail ?? true);
         setNotifySms(preferences.notifySms ?? false);
+        setShareVisitedPlaces(preferences.shareVisitedPlaces ?? false);
     }, [preferences]);
 
     const interestOptions = useMemo(
@@ -483,6 +493,26 @@ export const Account = () => {
                     err instanceof Error
                         ? err.message
                         : 'Could not save notification settings.',
+            });
+        }
+    };
+
+    const handlePrivacySave = async () => {
+        setPrivacyMessage(null);
+        try {
+            await updatePrefs.mutateAsync({ shareVisitedPlaces });
+            setPrivacyMessage({
+                type: 'success',
+                text: 'Privacy settings saved.',
+            });
+            setTimeout(() => setPrivacyMessage(null), 2500);
+        } catch (err) {
+            setPrivacyMessage({
+                type: 'error',
+                text:
+                    err instanceof Error
+                        ? err.message
+                        : 'Could not save privacy settings.',
             });
         }
     };
@@ -1046,6 +1076,50 @@ export const Account = () => {
                                         : 'Save notifications'
                                 }
                                 onClick={handleNotificationsSave}
+                                disabled={updatePrefs.isPending}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Privacy — visited-history sharing. Off by default; turning
+                    it on lets friends see where you've been on destination
+                    pages and the Travel Atlas. */}
+                <section className="account-card" id="privacy">
+                    <div className="account-card-headings simple">
+                        <h2 className="account-card-title">Privacy</h2>
+                        <p className="account-card-subtitle">
+                            Control what your friends can see about where
+                            you&rsquo;ve travelled.
+                        </p>
+                    </div>
+                    <div className="account-form account-notifications">
+                        <div className="account-notify-row">
+                            <Toggle
+                                label="Share visited places with friends"
+                                description="When on, friends see the places, cities, and countries you've visited — on destination pages (“Visited by…”) and your Travel Atlas. Off keeps your travel history private to you."
+                                checked={shareVisitedPlaces}
+                                onChange={setShareVisitedPlaces}
+                                disabled={updatePrefs.isPending}
+                            />
+                        </div>
+                        {privacyMessage && (
+                            <div
+                                className={`account-message account-message-${privacyMessage.type}`}
+                            >
+                                {privacyMessage.text}
+                            </div>
+                        )}
+                        <div className="account-actions">
+                            <ButtonCustom
+                                type={BUTTON_VARIANT.STANDARD_MINI}
+                                capitalizeType="uppercase"
+                                label={
+                                    updatePrefs.isPending
+                                        ? 'Saving…'
+                                        : 'Save privacy'
+                                }
+                                onClick={handlePrivacySave}
                                 disabled={updatePrefs.isPending}
                             />
                         </div>

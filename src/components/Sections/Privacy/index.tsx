@@ -202,8 +202,11 @@ const Privacy = () => (
                     and to participants on trips you share with them. Trips,
                     activities, and notes inside a shared itinerary are visible
                     to everyone on that trip. Your visited places, bucket list,
-                    and saved places are private to you unless you choose to
-                    share a specific item.
+                    and saved places are private to you by default. You can
+                    let friends see where you&rsquo;ve travelled by turning on
+                    <em> Share visited places with friends</em> under
+                    <em> Account &rsaquo; Privacy</em>; until you do, your
+                    travel history stays private to you.
                 </p>
             </section>
 

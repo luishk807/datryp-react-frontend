@@ -35,6 +35,7 @@ interface PreferencesRaw {
     kids_age_buckets: string[];
     notify_email: boolean;
     notify_sms: boolean;
+    share_visited_places: boolean;
 }
 
 interface InterestsCatalogRaw {
@@ -85,6 +86,7 @@ const toPreferences = (r: PreferencesRaw): Preferences => ({
     kidsAgeBuckets: r.kids_age_buckets ?? [],
     notifyEmail: r.notify_email ?? true,
     notifySms: r.notify_sms ?? false,
+    shareVisitedPlaces: r.share_visited_places ?? false,
 });
 
 export const fetchMyPreferences = async (): Promise<Preferences> => {
@@ -154,6 +156,9 @@ export const updateMyPreferences = async (
     }
     if (payload.notifySms !== undefined) {
         body.notify_sms = payload.notifySms;
+    }
+    if (payload.shareVisitedPlaces !== undefined) {
+        body.share_visited_places = payload.shareVisitedPlaces;
     }
 
     const resp = await fetch(`${API_BASE}/me/preferences`, {

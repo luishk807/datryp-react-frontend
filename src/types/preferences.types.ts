@@ -39,6 +39,10 @@ export interface Preferences {
      *  when `phone` is also set to a valid number. */
     notifyEmail: boolean;
     notifySms: boolean;
+    /** Whether friends can see your visited places/cities/countries on
+     *  destination pages (the "Visited by N" badge + your review quotes)
+     *  and the Travel Atlas. OFF by default — opt-in sharing. */
+    shareVisitedPlaces: boolean;
 }
 
 /** Partial update for `PATCH /me/preferences`. Any field set to
@@ -62,6 +66,7 @@ export interface PreferencesUpdate {
     kidsAgeBuckets?: string[];
     notifyEmail?: boolean;
     notifySms?: boolean;
+    shareVisitedPlaces?: boolean;
 }
 
 /** One row in a slug-based catalog (interests, traveler styles).
