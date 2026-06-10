@@ -32,52 +32,8 @@
     }
 }
 
-// Avatar stack inside the chip. Each avatar overlaps the previous
-// one by ~5px so up to 3 fit in a tight space without losing
-// readability. The white ring (border) separates one avatar from the
-// next visually — classic social-proof stack pattern.
-.friends-visited-chip-stack {
-    display: inline-flex;
-    align-items: center;
-    // Negative gap so the avatars overlap. Combined with the white
-    // border on each, this creates the layered look.
-    gap: -5px;
-    // Flex doesn't honor negative `gap` everywhere yet; the
-    // `margin-left: -5px` on every avatar after the first is the
-    // load-bearing rule. Keep the `gap` declaration anyway as a
-    // future-proofing note.
-}
-
-.friends-visited-chip-avatar {
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #e8e8e3;
-    // White ring so adjacent avatars in the stack read as distinct.
-    border: 2px solid #fff;
-    // Stack each avatar to the right but pull it leftward into the
-    // previous one. The overlap scales with avatar size — at 32px,
-    // -11px keeps the same visual proportion as -8px did at 24px.
-    &:not(:first-child) {
-        margin-left: -11px;
-    }
-
-    &.is-placeholder {
-        // Initials fallback. Brand green ties back to the modal
-        // initials styling.
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: theme('colors.primaryGreen');
-        color: #fff;
-        font-weight: 700;
-        font-size: 0.88rem;
-        line-height: 1;
-        letter-spacing: 0;
-    }
-}
+// The chip's avatar stack is now the shared `AvatarStack` (size="md");
+// its styles live in components/common/AvatarStack.
 
 // ── Drawer (bottom sheet) ─────────────────────────────────────────────
 // Mirrors `.bottom-nav-account-paper`'s shape — rounded top, sized to

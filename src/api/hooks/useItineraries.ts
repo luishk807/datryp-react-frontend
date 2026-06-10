@@ -21,6 +21,7 @@ export interface ApiUserPublic {
     id: string;
     email: string;
     name: string | null;
+    profileImageUrl?: string | null;
 }
 
 export interface ApiCountry {
@@ -441,11 +442,13 @@ const ITINERARY_FIELDS = gql`
             id
             email
             name
+            profileImageUrl
         }
         organizers {
             id
             email
             name
+            profileImageUrl
         }
         country {
             ...CountryFields

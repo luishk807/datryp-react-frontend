@@ -239,12 +239,14 @@ const apiUserToLegacyUser = (u: {
     id: string;
     name: string | null;
     email: string;
+    profileImageUrl?: string | null;
 }) =>
     ({
         id: uuidToNumericId(u.id),
         name: u.name ?? u.email,
         email: u.email,
         userId: u.id,
+        profileImageUrl: u.profileImageUrl ?? null,
         // Fields demanded by the legacy User type but irrelevant to the UI:
         phone: '',
         dob: '',

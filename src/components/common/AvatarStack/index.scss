@@ -1,0 +1,52 @@
+// Overlapping avatar stack — mirrors the original "Visited by N" chip
+// markup so the detail badge and the trip cards render identically.
+.avatar-stack {
+    display: inline-flex;
+    align-items: center;
+}
+
+.avatar-stack-avatar {
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e8e8e3;
+    // White ring separates adjacent avatars in the overlap.
+    border: 2px solid #fff;
+
+    &.is-placeholder,
+    &.is-overflow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: theme('colors.primaryGreen');
+        color: #fff;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0;
+    }
+
+    // Overflow bubble is neutral so it reads as "+ more", not a person.
+    &.is-overflow {
+        background: rgba(0, 0, 0, 0.45);
+    }
+}
+
+.avatar-stack.size-sm .avatar-stack-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 0.62rem;
+
+    &:not(:first-child) {
+        margin-left: -8px;
+    }
+}
+
+.avatar-stack.size-md .avatar-stack-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.88rem;
+
+    &:not(:first-child) {
+        margin-left: -11px;
+    }
+}

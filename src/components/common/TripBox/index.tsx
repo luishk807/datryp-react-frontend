@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
+import AvatarStack from 'components/common/AvatarStack';
 import './index.scss';
 import { NO_IMAGE } from 'constants';
 import { formatDate, isValidDate } from 'utils';
@@ -68,8 +69,13 @@ export const TripBox = ({
     selected = false,
     onToggleSelect,
 }: TripBoxProps) => {
-    const friendsCount = data.friends?.length ?? 0;
-    const friendsLabel = `${friendsCount} friend${friendsCount === 1 ? '' : 's'}`;
+    const friends = data.friends ?? [];
+    const friendsCount = friends.length;
+    const friendPeople = friends.map((f) => ({
+        id: f.id,
+        name: f.name,
+        imageUrl: f.profileImageUrl,
+    }));
     const target = to ?? `/trip-detail?id=${data.id}`;
     const statusKey = data.status.name.toLowerCase();
     const single = isSingle(data);
@@ -143,7 +149,24 @@ export const TripBox = ({
                 </span>
                 <div className="trip-box-meta">
                     <span>{formatDateRange(data.startDate, data.endDate)}</span>
-                    <span className="trip-box-friends">{friendsLabel}</span>
+                    {friendsCount > 0 && (
+                        <span
+                            className="trip-box-friends"
+                            title={`${friendsCount} friend${
+                                friendsCount === 1 ? '' : 's'
+                            } on this trip`}
+                        >
+                            <AvatarStack
+                                people={friendPeople}
+                                max={3}
+                                size="sm"
+                                showOverflow={false}
+                            />
+                            <span className="trip-box-friends-count">
+                                {friendsCount}
+                            </span>
+                        </span>
+                    )}
                 </div>
             </div>
         </article>

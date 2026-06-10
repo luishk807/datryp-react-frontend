@@ -190,12 +190,20 @@ button.trip-box-link.is-select-trigger {
 .trip-box-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.85rem;
   color: rgba(0, 0, 0, 0.6);
   gap: 8px;
 }
 
 .trip-box-friends {
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
+}
+
+.trip-box-friends-count {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
 }

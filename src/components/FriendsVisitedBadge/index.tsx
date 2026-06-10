@@ -20,6 +20,7 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useFriendsVisited } from 'api/hooks/useFriendsVisited';
 import type { FriendsVisitedKind } from 'api/friendsVisitedApi';
 import StarInput from 'components/common/FormFields/StarInput';
+import AvatarStack from 'components/common/AvatarStack';
 import './index.scss';
 
 // Cap the chip's avatar stack — 3 overlapping mini-avatars reads
@@ -93,10 +94,6 @@ const FriendsVisitedBadge = ({
     if (isLoading || !data || data.count === 0) return null;
 
     const countLabel = `Visited by ${data.count}`;
-    // Avatar stack feeds the chip preview — up to 3 friends, in the
-    // order the backend returned them (no sort applied; the user
-    // can see the full list in the drawer if order matters).
-    const chipFriends = data.friends.slice(0, CHIP_AVATAR_CAP);
 
     const handleClose = () => {
         setOpen(false);
@@ -115,29 +112,16 @@ const FriendsVisitedBadge = ({
                 aria-label={`${countLabel} — open friend list`}
                 onClick={() => setOpen(true)}
             >
-                <span
-                    className="friends-visited-chip-stack"
-                    aria-hidden="true"
-                >
-                    {chipFriends.map((friend) =>
-                        friend.profileImageUrl ? (
-                            <img
-                                key={friend.userId}
-                                src={friend.profileImageUrl}
-                                alt=""
-                                className="friends-visited-chip-avatar"
-                                loading="lazy"
-                            />
-                        ) : (
-                            <span
-                                key={friend.userId}
-                                className="friends-visited-chip-avatar is-placeholder"
-                            >
-                                {initialsFor(friend.name)}
-                            </span>
-                        ),
-                    )}
-                </span>
+                <AvatarStack
+                    people={data.friends.map((friend) => ({
+                        id: friend.userId,
+                        name: friend.name,
+                        imageUrl: friend.profileImageUrl,
+                    }))}
+                    max={CHIP_AVATAR_CAP}
+                    size="md"
+                    showOverflow={false}
+                />
                 <span>{countLabel}</span>
             </button>
 
