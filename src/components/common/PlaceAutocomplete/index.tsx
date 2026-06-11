@@ -56,6 +56,11 @@ export interface PlaceSuggestion {
     /** OpenAI/recommender "overall rating" for the picked place, so the
      *  create flow can persist it. Set only by the smart-entry path. */
     openaiRating?: number | null;
+    /** Short AI summary of the place (the recommender's `description`).
+     *  Prefilled into the activity's note on pick so the user doesn't have
+     *  to write one — `handlePlacePicked` fills it only when the note is
+     *  still empty, so a note the user typed is never clobbered. */
+    note?: string | null;
 }
 
 export interface PlaceAutocompleteProps {
@@ -184,6 +189,7 @@ const PlaceAutocomplete = ({
             imageUrl: next.imageUrl,
             latitude: next.latitude,
             longitude: next.longitude,
+            note: next.description,
         });
     };
 

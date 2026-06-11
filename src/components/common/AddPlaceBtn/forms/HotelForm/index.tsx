@@ -252,6 +252,7 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                                 imageUrl: item.imageUrl,
                                 latitude: item.latitude,
                                 longitude: item.longitude,
+                                note: item.description,
                             });
                             if (parsed.startTime) {
                                 handleOnChange('startTime', parsed.startTime);

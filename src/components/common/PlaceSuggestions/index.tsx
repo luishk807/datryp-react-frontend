@@ -165,6 +165,7 @@ const PlaceSuggestions = ({
             imageUrl: item.imageUrl,
             latitude: item.latitude,
             longitude: item.longitude,
+            note: item.description,
         });
     };
 

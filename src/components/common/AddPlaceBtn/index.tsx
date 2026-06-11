@@ -1337,6 +1337,12 @@ const AddPlaceBtn = ({
             googleRating: suggestion.googleRating ?? null,
             googleRatingCount: suggestion.googleRatingCount ?? null,
             openaiRating: suggestion.openaiRating ?? null,
+            // Prefill the note with the place's AI summary (the recommender's
+            // `description`), but ONLY when the note is still empty — so a note
+            // the user typed, or a previous pick's summary they chose to keep,
+            // is never clobbered. There's no separate description column on the
+            // activity, so the note is where this lives + renders in the card.
+            note: prev.note?.trim() ? prev.note : suggestion.note ?? prev.note,
         }));
         // Reveal the details panel so the just-populated name /
         // location / image are visible. Same intent as the smart-
