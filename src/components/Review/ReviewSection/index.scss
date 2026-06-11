@@ -44,11 +44,25 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 10px;
 
+  /* Two fixed columns so every row's stars + values line up: source
+     label on the left, the rating value block on the right. */
   .rating-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 140px 1fr;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
+  }
+
+  /* Overall (blended) sits above the per-source rows, set off by a rule
+     and heavier weight so it reads as the headline number. */
+  .rating-row-overall {
+    padding-bottom: 8px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+    .rating-row-source {
+      font-weight: 700;
+    }
   }
 
   .rating-row-source {

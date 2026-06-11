@@ -33,6 +33,7 @@ import {
 } from "api/hooks/useReviews";
 import type { ReviewSort } from "api/reviewsApi";
 import { getPlaceKey } from "utils/placeKey";
+import { blendRatings } from "utils/blendedRating";
 import { BUTTON_VARIANT } from "constants";
 import "./index.scss";
 
@@ -103,6 +104,18 @@ const ReviewSection = ({
   const viewerReview = data?.items.find((r) => r.id === data.viewerReviewId);
   const hasOwnReview = Boolean(data?.viewerReviewId);
 
+  // Blended "overall" across whichever of the three sources have data —
+  // the same number the activity card shows. Only computed in the
+  // breakdown context (activity entry); the place page keeps the plain
+  // traveler-review stat in its own header.
+  const blendedOverall = showRatingBreakdown
+    ? blendRatings([
+        { rating: googleRating, count: googleRatingCount },
+        { rating: openaiRating },
+        { rating: data?.averageRating, count: data?.total },
+      ])
+    : null;
+
   const handleSortChange = (next: ReviewSort) => {
     if (next === sort) return;
     setSort(next);
@@ -142,9 +155,11 @@ const ReviewSection = ({
       <header className="review-section-head">
         <h2 className="review-section-title">
           <RateReviewRoundedIcon className="review-section-title-icon" />
-          Traveler reviews
+          {showRatingBreakdown ? "Ratings & reviews" : "Traveler reviews"}
         </h2>
-        {data && (
+        {/* The breakdown box below carries the overall + per-source
+            ratings, so the header stat is only for the place page. */}
+        {!showRatingBreakdown && data && (
           <RatingStats
             average={data.averageRating}
             total={data.total}
@@ -155,6 +170,14 @@ const ReviewSection = ({
 
       {showRatingBreakdown && (
         <ul className="review-section-ratings">
+          {blendedOverall && (
+            <li className="rating-row rating-row-overall">
+              <span className="rating-row-source">Overall</span>
+              <span className="rating-row-value">
+                <Stars rating={blendedOverall.average} />
+              </span>
+            </li>
+          )}
           {googleRating != null && (
             <li className="rating-row">
               <span className="rating-row-source">
