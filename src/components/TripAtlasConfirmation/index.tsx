@@ -49,7 +49,7 @@ const TripAtlasConfirmation = ({ data }: TripAtlasConfirmationProps) => {
                 </p>
             )}
             <ButtonCustom
-                type={BUTTON_VARIANT.STANDARD}
+                type={BUTTON_VARIANT.STANDARD_SMALL}
                 capitalizeType="none"
                 label="View Atlas"
                 onClick={() => navigate("/my-map")}
