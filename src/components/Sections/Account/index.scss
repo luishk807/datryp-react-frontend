@@ -312,22 +312,52 @@
   color: rgba(0, 0, 0, 0.55);
 }
 
-/* SMS opt-in consent — mandated fine print. Indent under the toggle and
-   shrink the checkbox label so the long disclosure reads as terms, not a
-   headline. */
+/* SMS opt-in consent — mandated fine print. Grouped in a tinted box,
+   indented to line up under the toggle's label column, with a small green
+   checkbox so the long disclosure reads as terms, not a headline. */
 .account-sms-consent {
-  padding-left: 40px;
+  margin: 4px 0 0 52px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
 
   .MuiFormControlLabel-root {
     align-items: flex-start;
     margin: 0;
   }
 
+  .MuiCheckbox-root {
+    padding: 0 8px 0 0;
+    margin-top: -1px;
+    color: rgba(0, 0, 0, 0.38);
+
+    &.Mui-checked {
+      color: theme('colors.primaryGreen');
+    }
+
+    .MuiSvgIcon-root {
+      font-size: 1.2rem;
+    }
+  }
+
   .MuiFormControlLabel-label {
     font-size: 0.8rem;
-    line-height: 1.45;
-    color: rgba(0, 0, 0, 0.6);
-    padding-top: 7px;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.62);
+  }
+
+  /* Links line sits under the consent text, not at the toggle indent. */
+  .account-notify-helper {
+    padding-left: 28px;
+    margin-top: 7px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .account-sms-consent {
+    margin-left: 0;
   }
 }
 
