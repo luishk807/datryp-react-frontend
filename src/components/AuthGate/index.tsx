@@ -12,6 +12,8 @@ import Footer from 'components/Footer';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import { useUser } from 'context/UserContext';
 import { useGoogleSignin } from 'api/hooks/useAuth';
+import { useHeroImages } from 'api/hooks/useHeroImages';
+import { pickMonthlyHeroUrl } from 'utils/heroImages';
 import { capture as captureEvent } from 'lib/posthog';
 import {
     MAX_BIRTH_YEAR,
@@ -203,9 +205,18 @@ const AuthGate = ({
         setError(null);
     };
 
+    // Hero photo rotates monthly through popular destinations (the same
+    // backend set the homepage uses). Deterministic per month so it doesn't
+    // flicker on reload, and the dead CloudFront host is filtered out.
+    const { data: heroImages } = useHeroImages();
+    const heroUrl = useMemo(() => pickMonthlyHeroUrl(heroImages), [heroImages]);
+
     return (
         <div className="authgate-page">
-            <aside className="authgate-hero">
+            <aside
+                className="authgate-hero"
+                style={{ backgroundImage: `url(${heroUrl})` }}
+            >
                 <div className="authgate-hero-inner">
                     <IconLink
                         to="/"
