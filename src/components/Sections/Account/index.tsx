@@ -14,6 +14,7 @@ import ModalButton, {
     type ModalButtonHandle,
 } from 'components/ModalButton';
 import Toggle from 'components/common/FormFields/Toggle';
+import CheckBoxCustom from 'components/common/FormFields/CheckBoxCustom';
 import InputField from 'components/common/FormFields/InputField';
 import PhoneInput from 'components/common/FormFields/PhoneInput';
 import DropDown from 'components/common/FormFields/DropDown';
@@ -159,6 +160,11 @@ export const Account = () => {
     // since these aren't embedded on the UserContext user.
     const [notifyEmail, setNotifyEmail] = useState(true);
     const [notifySms, setNotifySms] = useState(false);
+    // Explicit SMS opt-in consent (A2P 10DLC / Twilio requirement). The
+    // toggle can't be turned on until this is checked, and unchecking it
+    // revokes SMS. Seeded true for users who already had SMS on — they
+    // opted in previously, so we don't force a re-consent on them.
+    const [smsConsent, setSmsConsent] = useState(false);
     const [notifyMessage, setNotifyMessage] = useState<{
         type: 'success' | 'error';
         text: string;
@@ -237,6 +243,7 @@ export const Account = () => {
         if (!preferences) return;
         setNotifyEmail(preferences.notifyEmail ?? true);
         setNotifySms(preferences.notifySms ?? false);
+        setSmsConsent(preferences.notifySms ?? false);
         setShareVisitedPlaces(preferences.shareVisitedPlaces ?? false);
     }, [preferences]);
 
@@ -471,15 +478,40 @@ export const Account = () => {
         }
     };
 
+    // SMS opt-in is gated on explicit consent. Turning the toggle on
+    // without the consent box checked is blocked with a nudge; turning it
+    // off is always allowed.
+    const handleSmsToggle = (next: boolean) => {
+        if (next && !smsConsent) {
+            setNotifyMessage({
+                type: 'error',
+                text: 'Please check the SMS consent box below to receive text alerts.',
+            });
+            return;
+        }
+        setNotifyMessage(null);
+        setNotifySms(next);
+    };
+
+    // Unchecking consent revokes SMS — you can't be opted in without it.
+    const handleSmsConsentToggle = () => {
+        setSmsConsent((prev) => {
+            const next = !prev;
+            if (!next) setNotifySms(false);
+            return next;
+        });
+    };
+
     const handleNotificationsSave = async () => {
         setNotifyMessage(null);
         try {
             // Non-Pro users can't have SMS on — force false so a stale
             // opt-in (e.g. after a downgrade) doesn't trip the backend's
-            // Pro guard and block the whole save.
+            // Pro guard and block the whole save. SMS also stays off
+            // without explicit consent, even for Pro.
             await updatePrefs.mutateAsync({
                 notifyEmail,
-                notifySms: isPro ? notifySms : false,
+                notifySms: isPro && smsConsent ? notifySms : false,
             });
             setNotifyMessage({
                 type: 'success',
@@ -1040,9 +1072,9 @@ export const Account = () => {
                         <div className="account-notify-row">
                             <Toggle
                                 label="SMS notifications (Pro)"
-                                description="Text alerts for time-sensitive trip updates. Standard message rates may apply."
+                                description="Text alerts for time-sensitive trip updates."
                                 checked={isPro && notifySms}
-                                onChange={setNotifySms}
+                                onChange={handleSmsToggle}
                                 disabled={updatePrefs.isPending || !isPro}
                             />
                             {!isPro && (
@@ -1057,6 +1089,20 @@ export const Account = () => {
                                     Add a phone number in your Profile above to
                                     receive texts.
                                 </p>
+                            )}
+                            {/* Explicit A2P 10DLC / Twilio opt-in consent.
+                                Required for SMS to be enabled — the toggle is
+                                gated on this box. The label carries the full
+                                mandated disclosure (program, frequency, rates,
+                                STOP/HELP). */}
+                            {isPro && (
+                                <div className="account-sms-consent">
+                                    <CheckBoxCustom
+                                        label="I agree to receive SMS text messages from DaTryp. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help."
+                                        defaultCheck={smsConsent}
+                                        onClick={handleSmsConsentToggle}
+                                    />
+                                </div>
                             )}
                         </div>
                         {notifyMessage && (

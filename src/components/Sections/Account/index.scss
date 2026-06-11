@@ -312,6 +312,25 @@
   color: rgba(0, 0, 0, 0.55);
 }
 
+/* SMS opt-in consent — mandated fine print. Indent under the toggle and
+   shrink the checkbox label so the long disclosure reads as terms, not a
+   headline. */
+.account-sms-consent {
+  padding-left: 40px;
+
+  .MuiFormControlLabel-root {
+    align-items: flex-start;
+    margin: 0;
+  }
+
+  .MuiFormControlLabel-label {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.6);
+    padding-top: 7px;
+  }
+}
+
 .account-message {
   padding: 10px 14px;
   border-radius: 10px;
