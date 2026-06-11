@@ -179,10 +179,12 @@ const MyMap = () => {
     const handleClearSelection = useCallback(() => setSelection(null), []);
     // Atlas side-panels: the About (intro/legend) card and the Stats card
     // share one position and are MUTUALLY EXCLUSIVE — opening one closes the
-    // other (driven by the two stacked pills bottom-right). About is open by
-    // default so first-timers get the legend; either dismisses to its pill.
-    const [introOpen, setIntroOpen] = useState(true);
-    const [statsOpen, setStatsOpen] = useState(false);
+    // other (driven by the two stacked pills bottom-right). The Stats card
+    // (countries / cities / % explored / explorer level) opens by default —
+    // it's the payoff of the atlas; the About/legend is one tap away via the
+    // card's "About Travel Atlas" button. Either dismisses to its pill.
+    const [introOpen, setIntroOpen] = useState(false);
+    const [statsOpen, setStatsOpen] = useState(true);
     const handleOpenIntro = useCallback(() => {
         setIntroOpen(true);
         setStatsOpen(false);
