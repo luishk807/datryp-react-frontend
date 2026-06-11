@@ -146,9 +146,14 @@ export const TripStatusBadge = ({
                 label: 'Mark complete',
                 Icon: CheckCircleRoundedIcon,
                 requiresActivitiesConfirmed: false,
-                dialogTitle: 'Mark this trip as completed?',
+                dialogTitle: 'Complete this trip?',
                 dialogBody:
-                    "Once completed the trip is read-only. It stays in your list as a record of where you've been.",
+                    "Once completed the trip is read-only — it stays in your list as a record of where you've been. Completing it also:",
+                benefits: [
+                    'Adds your destinations to your Travel Atlas',
+                    'Marks the places you visited',
+                    'Unlocks reviews so you can rate where you went',
+                ],
                 confirmLabel: 'Mark complete',
             };
         }
@@ -272,6 +277,10 @@ export const TripStatusBadge = ({
     };
 
     const { label, Icon, dialogTitle, dialogBody, confirmLabel } = target;
+    // Only the "Mark complete" target carries the benefits list (what
+    // completing unlocks); the `in` guard narrows it without forcing the
+    // Planning target to declare an empty one.
+    const benefits = "benefits" in target ? target.benefits : undefined;
     // Only the Planning → Confirmed button surfaces readiness; "Mark complete"
     // has no checklist behind it.
     const showReady =
@@ -416,6 +425,13 @@ export const TripStatusBadge = ({
                 <DialogTitle>{dialogTitle}</DialogTitle>
                 <DialogContent>
                     <p>{dialogBody}</p>
+                    {benefits && benefits.length > 0 && (
+                        <ul className="trip-status-benefits">
+                            {benefits.map((b) => (
+                                <li key={b}>{b}</li>
+                            ))}
+                        </ul>
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom

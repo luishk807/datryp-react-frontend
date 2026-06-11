@@ -65,3 +65,48 @@ export const deriveTripStats = (data: TripState): TripStats => {
         countries: countryKeys.size,
     };
 };
+
+export interface AtlasRecord {
+    countries: number;
+    cities: number;
+    places: number;
+}
+
+/** What completing a trip wrote into the Travel Atlas: deduped countries +
+ *  cities and the count of real places recorded. Mirrors the backend
+ *  visited-place cascade — a "place" is an activity carrying full place
+ *  identity (name + city + country), which is exactly what gets a
+ *  `place_key` and a `visited_places` row. Free-text entries, notes, and
+ *  transport legs lack that identity and don't count. */
+export const deriveAtlasRecord = (data: TripState): AtlasRecord => {
+    const destinations = data.destinations ?? [];
+    const countryKeys = new Set<string>();
+    const cityKeys = new Set<string>();
+    let places = 0;
+
+    destinations.forEach((dest) => {
+        const name = dest.country?.name;
+        if (name) countryKeys.add((dest.country?.code ?? name).toLowerCase());
+        dest.itinerary?.forEach((day) => {
+            day.activities?.forEach((activity) => {
+                if (
+                    !activity.name ||
+                    !activity.placeCity ||
+                    !activity.placeCountry
+                ) {
+                    return;
+                }
+                places += 1;
+                cityKeys.add(
+                    `${activity.placeCity}|${activity.placeCountry}`.toLowerCase(),
+                );
+            });
+        });
+    });
+
+    return {
+        countries: countryKeys.size,
+        cities: cityKeys.size,
+        places,
+    };
+};

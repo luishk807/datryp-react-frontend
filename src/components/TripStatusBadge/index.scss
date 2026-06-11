@@ -191,3 +191,29 @@
   letter-spacing: 0.01em;
   color: rgba(0, 0, 0, 0.7);
 }
+
+.trip-status-benefits {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 0.88rem;
+    color: rgba(0, 0, 0, 0.72);
+    line-height: 1.4;
+  }
+
+  li::before {
+    content: '\2713';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 700;
+    color: theme("colors.primaryGreen");
+  }
+}

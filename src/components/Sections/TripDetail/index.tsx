@@ -57,6 +57,7 @@ import TripStatusBadge from "components/TripStatusBadge";
 import TripSuggestionsCard from "components/TripSuggestionsCard";
 import TripCheckupCard from "components/TripCheckupCard";
 import TripCompletionSummary from "components/TripCompletionSummary";
+import TripAtlasConfirmation from "components/TripAtlasConfirmation";
 import TripRatingCard from "components/TripRatingCard";
 import TripCompanionsCard from "components/TripCompanionsCard";
 import PlanningBox from "components/PlanningBox";
@@ -1197,6 +1198,7 @@ export const TripDetail = () => {
                 </span>
               </div>
             </div>
+            <TripAtlasConfirmation data={tripData} />
             <TripCompletionSummary
               data={tripData}
               travelers={participants.length}
