@@ -1,0 +1,63 @@
+.sms-policy-page {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px 0 60px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.78);
+
+    .sms-policy-last-updated {
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 24px;
+    }
+
+    .sms-policy-section {
+        margin-bottom: 28px;
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: theme('colors.primary');
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        ul,
+        ol {
+            margin: 0 0 10px 20px;
+            padding: 0;
+
+            li {
+                font-size: 1rem;
+                margin-bottom: 6px;
+            }
+        }
+
+        ul {
+            list-style: disc;
+        }
+
+        ol {
+            list-style: decimal;
+        }
+    }
+
+    .sms-policy-consent {
+        margin: 6px 0 0;
+        padding: 12px 16px;
+        border-left: 3px solid theme('colors.primaryGreen');
+        background: rgba(46, 139, 87, 0.06);
+        border-radius: 6px;
+        font-style: italic;
+        color: rgba(0, 0, 0, 0.7);
+    }
+}

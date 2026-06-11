@@ -1102,6 +1102,12 @@ export const Account = () => {
                                         defaultCheck={smsConsent}
                                         onClick={handleSmsConsentToggle}
                                     />
+                                    <p className="account-notify-helper">
+                                        See our{' '}
+                                        <Link to="/sms">SMS Messaging Policy</Link>,{' '}
+                                        <Link to="/terms">Terms</Link>, and{' '}
+                                        <Link to="/privacy">Privacy Policy</Link>.
+                                    </p>
                                 </div>
                             )}
                         </div>
