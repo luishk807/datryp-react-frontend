@@ -22,6 +22,7 @@ export const FOOTER_QUICK_LINKS: QuickLink[] = [
     { label: 'Contact', href: '/contact', internal: true },
     { label: 'Terms', href: '/terms', internal: true },
     { label: 'Privacy', href: '/privacy', internal: true },
+    { label: 'SMS', href: '/sms', internal: true },
 ];
 
 interface FooterProps {
