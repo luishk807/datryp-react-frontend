@@ -67,6 +67,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
         handleRemoveTransitSegment,
         applyTransitLookup,
         handleTransitLookupLoadingChange,
+        tripMinDate,
+        tripMaxDate,
     } = controller;
 
     const isEdit = mode === 'edit';
@@ -242,6 +244,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                     </Grid>
                     <Grid item lg={12} xs={12} className="py-5">
                         <TransitFields
+                            tripMinDate={tripMinDate}
+                            tripMaxDate={tripMaxDate}
                             segments={segments}
                             isRental={isRental}
                             isoDefaultDate={isoDefaultDate ?? ''}

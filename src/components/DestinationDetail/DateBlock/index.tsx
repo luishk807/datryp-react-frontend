@@ -12,6 +12,7 @@ import type { ActionType, Activity, Destination, Friend } from 'types';
 interface DateBlockProps {
     startDate: string;
     endDate: string;
+    tripMinDate?: string | null;
     tripMaxDate?: string | null;
     destinations?: Destination[];
     /** Multi-destination: the specific destination this block renders. When
@@ -54,6 +55,7 @@ interface DateBlockProps {
 const DateBlock = ({
     startDate,
     endDate,
+    tripMinDate,
     tripMaxDate,
     destinations = [],
     destination,
@@ -193,6 +195,7 @@ const DateBlock = ({
                                 trips={trips as Destination[] | null}
                                 allDestinations={destinations}
                                 sameDayFromCountry={sameDayFromCountry}
+                                tripMinDate={tripMinDate}
                                 tripMaxDate={tripMaxDate}
                                 onChangePlace={onChangePlace}
                                 onChangeDestination={onChangeDestination}

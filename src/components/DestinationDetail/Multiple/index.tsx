@@ -116,6 +116,7 @@ const buildDestinationDays = (dest: Destination): DestinationDay[] => {
 
 export interface MultipleProps {
     defaultDate?: string;
+    tripMinDate?: string | null;
     tripMaxDate?: string | null;
     trips?: Destination[] | null;
     /** Full destinations array from TripState, unfiltered. Used to compute
@@ -153,6 +154,7 @@ export interface MultipleProps {
 
 const Multiple = ({
     defaultDate,
+    tripMinDate,
     tripMaxDate,
     trips = [],
     allDestinations = [],
@@ -387,6 +389,7 @@ const Multiple = ({
                                             <span className="destination-action destination-action-edit">
                                                 <AddDestinationBtn
                                                     defaultDate={defaultDate}
+                                                    tripMinDate={tripMinDate}
                                                     tripMaxDate={tripMaxDate}
                                                     isViewMode={isViewMode}
                                                     onChange={(e) => onChangeDestination('edit', e)}

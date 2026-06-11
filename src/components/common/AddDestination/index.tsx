@@ -71,6 +71,7 @@ export interface DestinationDraft {
 export interface AddDestinationBtnProps
     extends AddEditButtonProps<DestinationDraft, Destination> {
     defaultDate?: string;
+    tripMinDate?: string | null;
     tripMaxDate?: string | null;
     /** Trigger-button label override for the ADD variant. The timeline uses
      *  "Add next destination" to make clear it's moving to the next place, not
@@ -119,6 +120,7 @@ const emptyTransport = (): TransportDraft => ({
 
 const AddDestinationBtn = ({
     defaultDate,
+    tripMinDate,
     tripMaxDate,
     onChange,
     type = ACTION.ADD,
@@ -180,6 +182,7 @@ const AddDestinationBtn = ({
     };
 
     const isoDefaultDate = isoDate(defaultDate) ?? now();
+    const normalizedTripMinDate = isoDate(tripMinDate ?? undefined);
     const normalizedTripMaxDate = isoDate(tripMaxDate ?? undefined);
 
     // Seed edit mode from the saved destination: country + a single
@@ -617,6 +620,7 @@ const AddDestinationBtn = ({
                                 transport={transport}
                                 setTransport={setTransport}
                                 isoDefaultDate={isoDefaultDate}
+                                tripMinDate={normalizedTripMinDate}
                                 tripMaxDate={normalizedTripMaxDate}
                                 emptyFlightSegment={emptyFlightSegment}
                                 emptyTransitSegment={emptyTransitSegment}

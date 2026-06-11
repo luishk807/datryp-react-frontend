@@ -34,6 +34,8 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
         handleSegmentField,
         setArrivalCity,
         handleAddSegment,
+        tripMinDate,
+        tripMaxDate,
     } = controller;
 
     const isEdit = mode === 'edit';
@@ -120,6 +122,8 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
                 <Grid item lg={12} xs={12} className="py-5">
                     <FlightFields
                         segments={segments}
+                        tripMinDate={tripMinDate}
+                        tripMaxDate={tripMaxDate}
                         isoDefaultDate={isoDefaultDate ?? ''}
                         // The shared slot only writes the string fields
                         // (flight number, airports, dates, times); cast past

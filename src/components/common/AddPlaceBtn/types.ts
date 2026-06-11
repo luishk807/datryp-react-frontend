@@ -139,9 +139,6 @@ export interface FormController {
     setHotelSmartWarning: (v: string | null) => void;
     hotelDetailsExpanded: boolean;
     setHotelDetailsExpanded: Dispatch<SetStateAction<boolean>>;
-    setPendingHotelCheckout: (
-        v: { startTime?: string; date?: string } | null,
-    ) => void;
 
     // ---- TRANSIT / GROUND ----
     transitSmartEntry: string;
@@ -174,4 +171,9 @@ export interface FormController {
         itemCountry?: string | null,
     ) => boolean;
     smartEntryLocation?: string;
+    /** Trip date range — locks the transport (flight / transit) date
+     *  pickers so a leg can't be dated outside the trip. Undefined when the
+     *  trip dates aren't in context. */
+    tripMinDate?: string;
+    tripMaxDate?: string;
 }

@@ -12,6 +12,9 @@ import './index.scss';
 
 export interface FlightFieldsProps {
     segments: FlightInfo[];
+    /** Trip start — locks the depart picker so a leg can't be dated before
+     *  the trip begins. The user widens it by editing the trip dates. */
+    tripMinDate?: string;
     tripMaxDate?: string;
     isoDefaultDate: string;
     onField: (idx: number, name: keyof FlightInfo, value: string) => void;
@@ -39,6 +42,7 @@ export interface FlightFieldsProps {
  *  editable. */
 const FlightFields = ({
     segments,
+    tripMinDate,
     tripMaxDate,
     isoDefaultDate,
     onField,
@@ -222,6 +226,7 @@ const FlightFields = ({
                                             seg.departDate,
                                             seg.departTime,
                                         )}
+                                        minDate={tripMinDate}
                                         maxDate={tripMaxDate}
                                         onChange={(date, time) => {
                                             onField(idx, 'departDate', date);

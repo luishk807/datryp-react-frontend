@@ -298,15 +298,6 @@ const AddPlaceBtn = ({
     const [transitSmartEntry, setTransitSmartEntry] = useState('');
     const [transitDetailsExpanded, setTransitDetailsExpanded] = useState(false);
     const [transitSmartWarning, setTransitSmartWarning] = useState<string | null>(null);
-    // Pending HOTEL_CHECKOUT to spawn alongside the primary
-    // HOTEL_CHECKIN once the user clicks Save. Populated by the hotel
-    // smart entry when the input mentions a separate check-out time
-    // ("check-in 3pm, check-out tomorrow 11am"). Cleared on modal
-    // close or after the second save fires.
-    const [pendingHotelCheckout, setPendingHotelCheckout] = useState<{
-        startTime?: string;
-        date?: string;
-    } | null>(null);
     // City of the most-recently picked arrival airport — drives the
     // optional auto-fetch of a hero image for the flight activity.
     // Resets when the modal closes or the kind toggles away from
@@ -351,6 +342,13 @@ const AddPlaceBtn = ({
     // on the second-onwards flight (by then they're planning an
     // internal-to-trip leg, not the home-to-destination one).
     const tripState = useTripState();
+    // Lock the transport date pickers to the trip's date range so a flight /
+    // transit leg can't be dated outside it (the bug where a flight set to
+    // depart the day before the trip orphaned its day-block). Undefined when
+    // the trip dates aren't in context — degrades to no constraint. The user
+    // widens the range by editing the trip dates.
+    const tripMinDate = tripState.startDate || undefined;
+    const tripMaxDate = tripState.endDate || undefined;
     const { data: nearestAirport } = useNearestAirport();
     const { data: nearestStation } = useNearestTrainStation();
     // Smart-entry search bias: pick the tightest known location for
@@ -1245,7 +1243,6 @@ const AddPlaceBtn = ({
         setTransitSmartEntry('');
         setTransitDetailsExpanded(false);
         setTransitSmartWarning(null);
-        setPendingHotelCheckout(null);
         const isHotel =
             next === ACTIVITY_KIND.HOTEL_CHECKIN ||
             next === ACTIVITY_KIND.HOTEL_CHECKOUT;
@@ -1454,16 +1451,6 @@ const AddPlaceBtn = ({
                             ? prev.cost
                             : s.cost,
                 }));
-                // Check-out time spawns the paired checkout activity on
-                // save — only seed it when the smart entry hadn't already
-                // captured one.
-                if (s.checkOutTime) {
-                    setPendingHotelCheckout((prev) =>
-                        prev?.startTime
-                            ? prev
-                            : { startTime: s.checkOutTime ?? undefined },
-                    );
-                }
             })
             .catch(() => {});
     };
@@ -1744,38 +1731,6 @@ const AddPlaceBtn = ({
             endTime: transitEndTime ?? place.endTime,
             hotelInfo,
         });
-        // Spawn the paired HOTEL_CHECKOUT activity when the smart entry
-        // captured a separate check-out instruction. Same hotel details
-        // (name, address, image, confirmation, city/country) — only the
-        // kind, name prefix, and start time differ. Note: the parent
-        // adds activities to the current day-block; if the user
-        // mentioned a different checkout date, they may need to drag
-        // the spawned checkout to the right day after save.
-        if (
-            kind === ACTIVITY_KIND.HOTEL_CHECKIN &&
-            pendingHotelCheckout?.startTime &&
-            type === ACTION.ADD
-        ) {
-            const checkoutName = place.name?.trim()
-                ? `Check out: ${place.name.trim()}`
-                : 'Hotel check-out';
-            onChange?.({
-                ...placePayload,
-                kind: ACTIVITY_KIND.HOTEL_CHECKOUT,
-                name: checkoutName,
-                startTime: pendingHotelCheckout.startTime,
-                endTime: undefined,
-                hotelInfo,
-                // Cost lives on the check-in activity (whole-stay
-                // total). Don't double-charge by repeating it on the
-                // check-out row. Budget split is on the check-in row
-                // for the same reason — it's not in PlaceDraft so we
-                // don't need to clear it here; the spread can't carry
-                // it across.
-                cost: undefined,
-            });
-            setPendingHotelCheckout(null);
-        }
         if (type === ACTION.ADD) {
             setPlace(buildInitialPlace());
             setFormKey((k) => k + 1);
@@ -1892,7 +1847,6 @@ const AddPlaceBtn = ({
         setTransitSmartEntry('');
         setTransitDetailsExpanded(false);
         setTransitSmartWarning(null);
-        setPendingHotelCheckout(null);
         setOpenSegments(new Set());
         setExpandedSegments(new Set());
         setLookupLoading(new Set());
@@ -2102,7 +2056,6 @@ const AddPlaceBtn = ({
         setHotelSmartWarning,
         hotelDetailsExpanded,
         setHotelDetailsExpanded,
-        setPendingHotelCheckout,
         transitSmartEntry,
         setTransitSmartEntry,
         transitSmartWarning,
@@ -2121,6 +2074,8 @@ const AddPlaceBtn = ({
         isoDefaultDate,
         sameCountry,
         smartEntryLocation,
+        tripMinDate,
+        tripMaxDate,
     };
 
     /** Render the right per-kind form for the given mode (edit full-form

@@ -24,6 +24,7 @@ export interface DescribeStepProps {
     transport: TransportDraft;
     setTransport: Dispatch<SetStateAction<TransportDraft>>;
     isoDefaultDate: string;
+    tripMinDate?: string;
     tripMaxDate?: string;
     emptyFlightSegment: (date: string) => FlightInfo;
     emptyTransitSegment: (date: string) => TransitInfo;
@@ -65,6 +66,7 @@ const DescribeStep = ({
     transport,
     setTransport,
     isoDefaultDate,
+    tripMinDate,
     tripMaxDate,
     emptyFlightSegment,
     emptyTransitSegment,
@@ -379,6 +381,7 @@ const DescribeStep = ({
                             ? transport.flightSegments
                             : [emptyFlightSegment(isoDefaultDate)]
                     }
+                    tripMinDate={tripMinDate}
                     tripMaxDate={tripMaxDate}
                     onField={setFlightField}
                     onAddLeg={addFlightLeg}
@@ -393,6 +396,7 @@ const DescribeStep = ({
                         transitSeg ?? emptyTransitSegment(isoDefaultDate),
                     ]}
                     isRental={isRentalKind(kind)}
+                    tripMinDate={tripMinDate}
                     tripMaxDate={tripMaxDate}
                     isoDefaultDate={isoDefaultDate}
                     ModeIcon={activeMode?.Icon}

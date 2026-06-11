@@ -436,6 +436,7 @@ const DestinationDetail = ({
                         tripStatusName={tripStatusName}
                         key={indx}
                         index={indx}
+                        tripMinDate={startDate}
                         tripMaxDate={endDate}
                         participants={participants}
                         typeId={type?.id}

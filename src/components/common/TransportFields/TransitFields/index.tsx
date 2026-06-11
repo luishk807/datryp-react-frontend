@@ -18,6 +18,9 @@ import './index.scss';
 export interface TransitFieldsProps {
     segments: TransitInfo[];
     isRental: boolean;
+    /** Trip start — locks the depart picker so a leg can't be dated before
+     *  the trip begins. The user widens it by editing the trip dates. */
+    tripMinDate?: string;
     tripMaxDate?: string;
     isoDefaultDate: string;
     /** Transit-mode icon (train / bus / ferry / car) shown in each collapsed
@@ -49,6 +52,7 @@ export interface TransitFieldsProps {
 const TransitFields = ({
     segments,
     isRental,
+    tripMinDate,
     tripMaxDate,
     isoDefaultDate,
     ModeIcon,
@@ -239,6 +243,7 @@ const TransitFields = ({
                                             segment.departDate,
                                             segment.departTime,
                                         )}
+                                        minDate={tripMinDate}
                                         maxDate={tripMaxDate}
                                         onChange={(date, time) => {
                                             onField(idx, 'departDate', date);

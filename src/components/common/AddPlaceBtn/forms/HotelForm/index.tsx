@@ -41,7 +41,6 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
         hotelSmartWarning,
         setHotelSmartWarning,
         setHotelDetailsExpanded,
-        setPendingHotelCheckout,
         sameCountry,
         smartEntryLocation,
     } = controller;
@@ -265,14 +264,6 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                                     'confirmationNumber',
                                     parsed.confirmationNumber,
                                 );
-                            }
-                            if (parsed.checkOutTime) {
-                                setPendingHotelCheckout({
-                                    startTime: parsed.checkOutTime,
-                                    date: parsed.checkOutDate,
-                                });
-                            } else {
-                                setPendingHotelCheckout(null);
                             }
                             if (
                                 parsed.startTime ||
