@@ -9,7 +9,7 @@ Purpose: concise agent instructions and quick links so AI assistants can be prod
 2) Remote-focused notes (what "remote" means here)
 - Remote dev modes used by this project:
   - Docker / `docker-compose.yml` in `datryp-python.backend` for local reproduction of services.
-  - Remote DB / cloud-hosted Postgres used in CI or deployed environments (credentials are NOT checked into git; see `/secrets`).
+  - Remote DB / cloud-hosted Postgres used in CI or deployed environments. Credentials belong in the gitignored `datryp-python.backend/secrets/` folder and in `.env` — never commit them.
   - SSH tunnels or port-forwarding may be required to reach private services when working from a remote host.
 
 3) Useful commands (run from repository root unless noted)
@@ -24,7 +24,7 @@ Purpose: concise agent instructions and quick links so AI assistants can be prod
 - Tests: see `datryp-python.backend/tests` — run with `pytest` from `datryp-python.backend`
 
 4) Secrets & environment
-- Secrets are stored locally under the `secrets/` folder (not committed). Do NOT attempt to retrieve secrets from remote services without explicit permission.
+- Secrets live locally under the gitignored `datryp-python.backend/secrets/` folder and in `.env`; they must never be committed. Do NOT attempt to retrieve secrets from remote services without explicit permission.
 - Typical env vars: `DATABASE_URL`, `POSTHOG_API_KEY`, any third-party OAuth credentials. Look in `app/config.py` and `pyproject.toml` for expected variables.
 
 5) What agents should do (short actionable rules)
