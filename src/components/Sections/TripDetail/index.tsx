@@ -145,8 +145,8 @@ export const TripDetail = () => {
 
   const {
     data: apiItineraries = [],
-    isLoading,
     isFetching,
+    isError: itinerariesErrored,
     isSuccess: itinerariesLoaded,
   } = useMyItineraries();
 
@@ -940,11 +940,18 @@ export const TripDetail = () => {
   // `isLoading` (first-load), so navigating in with a stale/empty cache —
   // where the list is refetching in the background — fell straight through
   // to the not-found screen before the trip arrived.
-  // "Still resolving" = a fetch is in flight (first load OR background
-  // refetch) or the offline snapshot hasn't been read yet. When NO fetch is
-  // in flight and we still have no trip, it's genuinely not found (or the
-  // fetch errored) — only then show the error.
-  const tripStillResolving = isLoading || isFetching || !offline.isHydrated;
+  // "Still resolving" = the itineraries query hasn't settled (neither
+  // succeeded nor errored yet), a fetch is in flight (first load OR
+  // background refetch), or the offline snapshot hasn't been read. Only
+  // once it has settled AND nothing is fetching AND we still have no trip
+  // is it genuinely not found — this keeps the loader up the whole time
+  // instead of flashing "Trip not found" mid-load. Using the success/error
+  // status (not `isLoading`) closes the gap where a cached-but-empty list
+  // reports "not loading" before the real fetch confirms the trip.
+  const tripStillResolving =
+    (!itinerariesLoaded && !itinerariesErrored) ||
+    isFetching ||
+    !offline.isHydrated;
   if (!apiTrip && tripStillResolving) {
     return (
       <Layout>

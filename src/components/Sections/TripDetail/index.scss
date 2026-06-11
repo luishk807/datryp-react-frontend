@@ -11,9 +11,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-height: 240px;
   justify-content: center;
+  gap: 12px;
+  // Span the content area and fill the viewport so the spinner sits dead
+  // center — without an explicit width the block can shrink-wrap and hug
+  // the left when its parent is a flex container.
+  width: 100%;
+  min-height: 60vh;
 }
 
 .trip-detail-loading-spinner {
