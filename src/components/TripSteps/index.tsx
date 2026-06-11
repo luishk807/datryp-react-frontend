@@ -22,6 +22,8 @@ import TripTour, {
 import { basicInfo, useTripDispatch, useTripState } from 'context/TripContext';
 import { useUser } from 'context/UserContext';
 import { useMyItineraries } from 'api/hooks/useItineraries';
+import { useQueryClient } from '@tanstack/react-query';
+import { prefetchActivitySuggestions } from 'api/suggestionsPrefetch';
 import { apiToTripState } from 'utils/itineraryAdapter';
 import { status as statusOptions } from 'sample';
 import { TRIP_BASIC, TRIP_MODE, TRIP_STATUS } from 'constants';
@@ -108,6 +110,25 @@ const TripSteps = ({
         const handle = window.setTimeout(() => setTourRun(true), 400);
         return () => window.clearTimeout(handle);
     }, [user, editingId]);
+
+    // Pre-warm the Add-Activity "things to do" suggestions as soon as the
+    // destination country is known in the wizard — typically a step or two
+    // before the user reaches the day view and opens Add Activity. The
+    // recommender is a multi-second AI call, so this head start is what keeps
+    // the Suggestions strip from spinning on first open (the per-day prewarm in
+    // Activities only fires once that row mounts, by which point the user is
+    // already there). Single-destination only: country-only scope is exactly
+    // what the strip queries before any activity pins a city, so the cache key
+    // matches. Multi-destination legs keep warming per-row as their days mount.
+    const queryClient = useQueryClient();
+    const singleDestinationCountry =
+        tripInfo.destinations?.length === 1
+            ? tripInfo.destinations[0]?.country?.name?.trim() || undefined
+            : undefined;
+    useEffect(() => {
+        if (!singleDestinationCountry) return;
+        prefetchActivitySuggestions(queryClient, singleDestinationCountry);
+    }, [singleDestinationCountry, queryClient]);
 
     const handleTourClose = () => {
         setTourRun(false);
