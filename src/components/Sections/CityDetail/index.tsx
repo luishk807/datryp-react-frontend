@@ -140,15 +140,24 @@ const CityDetail = () => {
         // (which skips for same-country because there's no specific city
         // anchor), city-level seeding goes ahead even for same-country
         // trips — a specific destination city has a known arrival airport,
-        // so NYC→SEA still benefits from a pre-populated flight. The only
-        // requirement is that we know both the user's nearest airport AND
-        // the destination's arrival airport.
+        // so NYC→SEA still benefits from a pre-populated flight.
+        //
+        // The home airport (depart side) is the only hard requirement — it's
+        // what kept the original guard from shipping a half-empty depart. The
+        // destination's arrival airport is best-effort and attached only when
+        // resolved: it arrives via a LATER progressive city-details slice (or
+        // the `useDestinationAirport` fallback), but the CTA is clickable as
+        // soon as the prose slice paints. Requiring the arrival airport here
+        // meant a fast click — before that slice landed — seeded NO flight at
+        // all ("the default flight sometimes wasn't added"). Seeding on the
+        // home airport alone makes the flight appear reliably; the arrival
+        // fills in from the data when present, or the user edits it later.
         //
         // We seed ONLY the outbound — the return leg used to be seeded too
         // but read as confusing (a same-day round trip at 00:00). Users
         // add their return flight themselves when they're ready.
         const seededActivities: Activity[] = [];
-        if (nearestAirport?.iataCode && args.arrivalAirportCode) {
+        if (nearestAirport?.iataCode) {
             seededActivities.push({
                 id: 0,
                 kind: ACTIVITY_KIND.FLIGHT,
@@ -156,7 +165,9 @@ const CityDetail = () => {
                 flightSegments: [
                     {
                         departAirport: nearestAirport.iataCode,
-                        arrivalAirport: args.arrivalAirportCode,
+                        ...(args.arrivalAirportCode
+                            ? { arrivalAirport: args.arrivalAirportCode }
+                            : {}),
                         departDate: today,
                         departTime: '00:00',
                         arrivalDate: today,

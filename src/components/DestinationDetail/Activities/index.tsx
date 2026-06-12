@@ -354,9 +354,10 @@ const PaidByRow = ({
  *   - rental car → car-rental icon
  *   - note → lined notepad (reads as "note" — a sticky-note icon is
  *     too generic to differentiate)
- *   - place WITHOUT an image → map pin (the image was the visual cue
- *     for places; without one the icon takes over)
- *   - place WITH an image → no icon (the thumbnail says "place")
+ *   - place → map pin, ALWAYS (even with a thumbnail). Suggestion-added
+ *     places always carry an image, so gating the pin on "no image" left
+ *     them with a bare title while manually-added (image-less) places got
+ *     the pin — an inconsistency the icon now removes.
  *  Returns `null` when no icon should render. */
 const titleIconFor = (a: Activity) => {
   const kind = a.kind ?? ACTIVITY_KIND.PLACE;
@@ -368,8 +369,7 @@ const titleIconFor = (a: Activity) => {
   if (kind === ACTIVITY_KIND.RENTAL_CAR) return CarRentalRoundedIcon;
   if (kind === ACTIVITY_KIND.OTHER) return LocalTaxiRoundedIcon;
   if (kind === ACTIVITY_KIND.NOTE) return EditNoteRoundedIcon;
-  if (!a.image?.url) return PlaceRoundedIcon;
-  return null;
+  return PlaceRoundedIcon;
 };
 
 const Activities = ({
