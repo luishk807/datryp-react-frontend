@@ -20,7 +20,9 @@ import {
     useState,
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
+import i18n from 'i18n';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Layout from 'components/common/Layout/SubLayout';
@@ -37,6 +39,7 @@ import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import InsightsRoundedIcon from '@mui/icons-material/InsightsRounded';
 import { useUser } from 'context/UserContext';
@@ -69,13 +72,22 @@ const WORLD_COUNTRY_COUNT = 195;
  *  Deliberately NOT a "you've traveled more than X% of people" claim —
  *  we have no real population distribution to back that up. Levels are
  *  self-referential (your own count), so they motivate without lying. */
-const explorerLevel = (n: number): { emoji: string; label: string } => {
-    if (n >= 61) return { emoji: '🏆', label: 'World Citizen' };
-    if (n >= 31) return { emoji: '✈️', label: 'Globe Trekker' };
-    if (n >= 16) return { emoji: '🌍', label: 'World Explorer' };
-    if (n >= 6) return { emoji: '🧳', label: 'Frequent Traveler' };
-    if (n >= 1) return { emoji: '🌱', label: 'Beginner Explorer' };
-    return { emoji: '🧭', label: 'New Explorer' };
+type ExplorerLevelKey =
+    | 'worldCitizen'
+    | 'globeTrekker'
+    | 'worldExplorer'
+    | 'frequentTraveler'
+    | 'beginnerExplorer'
+    | 'newExplorer';
+const explorerLevel = (
+    n: number
+): { emoji: string; levelKey: ExplorerLevelKey } => {
+    if (n >= 61) return { emoji: '🏆', levelKey: 'worldCitizen' };
+    if (n >= 31) return { emoji: '✈️', levelKey: 'globeTrekker' };
+    if (n >= 16) return { emoji: '🌍', levelKey: 'worldExplorer' };
+    if (n >= 6) return { emoji: '🧳', levelKey: 'frequentTraveler' };
+    if (n >= 1) return { emoji: '🌱', levelKey: 'beginnerExplorer' };
+    return { emoji: '🧭', levelKey: 'newExplorer' };
 };
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
@@ -346,6 +358,7 @@ const addAtlasSourcesAndLayers = (map: mapboxgl.Map): void => {
 
 const MyMap = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { user, isAdmin } = useUser();
     // Admins bypass the paywall — same pattern as Bucket List + the
     // Pro AI features. The user role is server-authoritative, so this
@@ -634,12 +647,12 @@ const MyMap = () => {
                 .map((c) => ({
                     id: c.countryCode.toUpperCase(),
                     label: c.countryName,
-                    sublabel: `${c.friends.length} friend${
-                        c.friends.length === 1 ? '' : 's'
-                    }`,
+                    sublabel: t('atlas.friendsCount', {
+                        count: c.friends.length,
+                    }),
                     flagCode: c.countryCode.toUpperCase(),
                 })),
-        [friendsAll]
+        [friendsAll, t]
     );
 
     // Travel-atlas summary stats for the corner card: world-exploration
@@ -1314,11 +1327,11 @@ const MyMap = () => {
                     disabled: !hasCoords,
                     disabledReason: hasCoords
                         ? undefined
-                        : 'No coordinates yet for this city',
+                        : t('atlas.noCoordsCity'),
                     tripCount: tripCountByCity.get(c.citySlug) ?? 0,
                 };
             });
-    }, [visitedCities, visitedPlaces, tripCountByCity]);
+    }, [visitedCities, visitedPlaces, tripCountByCity, t]);
 
     const placeOptions = useMemo<MyMapStatDropdownOption[]>(() => {
         return visitedPlaces
@@ -1339,10 +1352,10 @@ const MyMap = () => {
                     tripCount: tripCountByPlace.get(p.id) ?? 0,
                     disabledReason: hasCoords
                         ? undefined
-                        : 'No coordinates for this place yet',
+                        : t('atlas.noCoordsPlace'),
                 };
             });
-    }, [visitedPlaces, tripCountByPlace]);
+    }, [visitedPlaces, tripCountByPlace, t]);
 
     // Compute a bounding box from the country-boundaries source. Mapbox
     // returns the feature(s) only after the relevant tiles have loaded;
@@ -1465,7 +1478,7 @@ const MyMap = () => {
                 kind: 'country',
                 id: code,
                 label: meta?.label ?? code,
-                sublabel: `Country · ${code}`,
+                sublabel: t('atlas.selection.countryCode', { code }),
             });
         };
         const onMove = (e: mapboxgl.MapLayerMouseEvent) => {
@@ -1493,7 +1506,7 @@ const MyMap = () => {
             // brightened country.
             setHover(null);
         };
-    }, [mapReady, flyToCountry, countryOptions]);
+    }, [mapReady, flyToCountry, countryOptions, t]);
 
     // Pin layer interactions — click to open popup, mousemove to
     // grow the dot via feature-state. Same wiring for both place
@@ -1576,10 +1589,11 @@ const MyMap = () => {
                     kind: 'place',
                     id: placeId,
                     label: String(props.name ?? ''),
-                    sublabel: [props.city, props.country]
-                        .filter(Boolean)
-                        .map(String)
-                        .join(', ') || 'Place',
+                    sublabel:
+                        [props.city, props.country]
+                            .filter(Boolean)
+                            .map(String)
+                            .join(', ') || t('atlas.selection.place'),
                 });
             }
         };
@@ -1604,7 +1618,9 @@ const MyMap = () => {
                     kind: 'city',
                     id: citySlug,
                     label: String(props.cityName ?? ''),
-                    sublabel: `${String(props.countryName ?? '')} · City`,
+                    sublabel: t('atlas.selection.cityWithCountry', {
+                        country: String(props.countryName ?? ''),
+                    }),
                 });
             }
         };
@@ -1639,7 +1655,7 @@ const MyMap = () => {
             map.off('mouseleave', CITY_PINS_LAYER, onPinLeave);
             setPinHover('', null);
         };
-    }, [mapReady]);
+    }, [mapReady, t]);
 
     // Friends-overlay interactions — click a purple country or pin to
     // see which friends have been there. Separate from the own-layer
@@ -1689,7 +1705,7 @@ const MyMap = () => {
                 e.lngLat,
                 renderFriendsPopupHtml({
                     title: group?.countryName ?? iso,
-                    sub: 'Country',
+                    sub: t('atlas.selection.country'),
                     names: group?.names ?? [],
                     youVisited: countryCodes.includes(iso),
                 })
@@ -1732,7 +1748,7 @@ const MyMap = () => {
             map.off('mouseenter', FRIENDS_PINS_LAYER, onEnter);
             map.off('mouseleave', FRIENDS_PINS_LAYER, onLeave);
         };
-    }, [mapReady, friendsByCode, countryCodes, flyToCountry]);
+    }, [mapReady, friendsByCode, countryCodes, flyToCountry, t]);
 
     const flyToCity = useCallback(
         (citySlug: string) => {
@@ -1899,7 +1915,7 @@ const MyMap = () => {
                 kind: 'country',
                 id,
                 label: meta?.label ?? id,
-                sublabel: `Country · ${id}`,
+                sublabel: t('atlas.selection.countryCode', { code: id }),
             });
         } else if (key === 'cities') {
             flyToCity(id);
@@ -1909,8 +1925,10 @@ const MyMap = () => {
                 id,
                 label: meta?.cityName ?? id,
                 sublabel: meta
-                    ? `${meta.countryName} · City`
-                    : 'City',
+                    ? t('atlas.selection.cityWithCountry', {
+                          country: meta.countryName,
+                      })
+                    : t('atlas.selection.city'),
             });
         } else {
             flyToPlace(id);
@@ -1927,7 +1945,7 @@ const MyMap = () => {
                         ? [meta.placeCity, meta.placeCountry]
                               .filter(Boolean)
                               .join(', ')
-                        : 'Place',
+                        : t('atlas.selection.place'),
             });
         }
         setOpenDropdown(null);
@@ -1943,13 +1961,13 @@ const MyMap = () => {
 
     if (!MAPBOX_TOKEN) {
         return (
-            <Layout title="Travel Atlas">
+            <Layout title={t('atlas.title')}>
                 <div className="my-map-setup-missing">
-                    <h2>Map setup needed</h2>
+                    <h2>{t('atlas.setup.title')}</h2>
                     <p>
-                        Set <code>VITE_MAPBOX_TOKEN</code> in your
-                        environment to enable the map. Grab a free token
-                        at{' '}
+                        {t('atlas.setup.bodyBefore')}{' '}
+                        <code>VITE_MAPBOX_TOKEN</code>{' '}
+                        {t('atlas.setup.bodyAfter')}{' '}
                         <a
                             href="https://account.mapbox.com/access-tokens/"
                             target="_blank"
@@ -1965,7 +1983,23 @@ const MyMap = () => {
     }
 
     return (
-        <Layout title="Travel Atlas" fullBleed>
+        <Layout
+            title={t('atlas.title')}
+            fullBleed
+            titleAction={
+                isPro ? (
+                    <button
+                        type="button"
+                        className="my-map-title-help"
+                        onClick={handleOpenIntro}
+                        aria-label={t('atlas.pills.aboutTitle')}
+                        title={t('atlas.pills.aboutTitle')}
+                    >
+                        <HelpOutlineRoundedIcon fontSize="small" />
+                    </button>
+                ) : undefined
+            }
+        >
             <div className="my-map-page">
                 <div
                     className={classNames('my-map-canvas-wrap', {
@@ -1976,7 +2010,7 @@ const MyMap = () => {
                     <div
                         ref={mapContainerRef}
                         className="my-map-canvas"
-                        aria-label="World map of places you have visited"
+                        aria-label={t('atlas.canvasAria')}
                     />
 
                     {/* Stats dropdowns — absolute-positioned at the
@@ -1995,7 +2029,7 @@ const MyMap = () => {
                         <div
                             className="my-map-segctl"
                             role="group"
-                            aria-label="Map projection"
+                            aria-label={t('atlas.controls.projectionGroup')}
                         >
                             <button
                                 type="button"
@@ -2004,10 +2038,10 @@ const MyMap = () => {
                                 })}
                                 onClick={() => setProjection('globe')}
                                 aria-pressed={projection === 'globe'}
-                                title="Globe view"
+                                title={t('atlas.controls.globeTitle')}
                             >
                                 <PublicRoundedIcon fontSize="small" />
-                                <span>Globe</span>
+                                <span>{t('atlas.controls.globe')}</span>
                             </button>
                             <button
                                 type="button"
@@ -2016,16 +2050,16 @@ const MyMap = () => {
                                 })}
                                 onClick={() => setProjection('mercator')}
                                 aria-pressed={projection === 'mercator'}
-                                title="Flat map"
+                                title={t('atlas.controls.flatTitle')}
                             >
                                 <MapRoundedIcon fontSize="small" />
-                                <span>Flat</span>
+                                <span>{t('atlas.controls.flat')}</span>
                             </button>
                         </div>
                         <div
                             className="my-map-segctl"
                             role="group"
-                            aria-label="Map theme"
+                            aria-label={t('atlas.controls.themeGroup')}
                         >
                             <button
                                 type="button"
@@ -2034,10 +2068,10 @@ const MyMap = () => {
                                 })}
                                 onClick={() => setMapTheme('day')}
                                 aria-pressed={mapTheme === 'day'}
-                                title="Day map"
+                                title={t('atlas.controls.dayTitle')}
                             >
                                 <LightModeOutlinedIcon fontSize="small" />
-                                <span>Day</span>
+                                <span>{t('atlas.controls.day')}</span>
                             </button>
                             <button
                                 type="button"
@@ -2046,10 +2080,10 @@ const MyMap = () => {
                                 })}
                                 onClick={() => setMapTheme('night')}
                                 aria-pressed={mapTheme === 'night'}
-                                title="Night map"
+                                title={t('atlas.controls.nightTitle')}
                             >
                                 <DarkModeOutlinedIcon fontSize="small" />
-                                <span>Night</span>
+                                <span>{t('atlas.controls.night')}</span>
                             </button>
                         </div>
 
@@ -2067,13 +2101,13 @@ const MyMap = () => {
                             }
                             aria-label={
                                 projection === 'globe'
-                                    ? 'Switch to flat map'
-                                    : 'Switch to globe view'
+                                    ? t('atlas.controls.switchToFlat')
+                                    : t('atlas.controls.switchToGlobe')
                             }
                             title={
                                 projection === 'globe'
-                                    ? 'Switch to flat map'
-                                    : 'Switch to globe view'
+                                    ? t('atlas.controls.switchToFlat')
+                                    : t('atlas.controls.switchToGlobe')
                             }
                         >
                             {projection === 'globe' ? (
@@ -2082,7 +2116,9 @@ const MyMap = () => {
                                 <PublicRoundedIcon fontSize="small" />
                             )}
                             <span>
-                                {projection === 'globe' ? 'Flat' : 'Globe'}
+                                {projection === 'globe'
+                                    ? t('atlas.controls.flat')
+                                    : t('atlas.controls.globe')}
                             </span>
                         </button>
                         <button
@@ -2095,13 +2131,13 @@ const MyMap = () => {
                             }
                             aria-label={
                                 mapTheme === 'day'
-                                    ? 'Switch to night map'
-                                    : 'Switch to day map'
+                                    ? t('atlas.controls.switchToNight')
+                                    : t('atlas.controls.switchToDay')
                             }
                             title={
                                 mapTheme === 'day'
-                                    ? 'Switch to night map'
-                                    : 'Switch to day map'
+                                    ? t('atlas.controls.switchToNight')
+                                    : t('atlas.controls.switchToDay')
                             }
                         >
                             {mapTheme === 'day' ? (
@@ -2109,14 +2145,18 @@ const MyMap = () => {
                             ) : (
                                 <LightModeOutlinedIcon fontSize="small" />
                             )}
-                            <span>{mapTheme === 'day' ? 'Night' : 'Day'}</span>
+                            <span>
+                                {mapTheme === 'day'
+                                    ? t('atlas.controls.night')
+                                    : t('atlas.controls.day')}
+                            </span>
                         </button>
                     </div>
                     <div className="my-map-stats">
                         <MyMapStatDropdown
                             icon={<PublicRoundedIcon fontSize="small" />}
                             count={countryOptions.length}
-                            label="countries"
+                            label={t('atlas.stats.countries')}
                             options={countryOptions}
                             isOpen={openDropdown === 'countries'}
                             onToggle={() =>
@@ -2128,7 +2168,7 @@ const MyMap = () => {
                             onSelect={(id) =>
                                 handleSelectFromDropdown('countries', id)
                             }
-                            emptyHint="No visited countries yet."
+                            emptyHint={t('atlas.empty.countries')}
                             visible={layerVisibility.countries}
                             onToggleVisible={() => toggleLayer('countries')}
                         />
@@ -2137,7 +2177,7 @@ const MyMap = () => {
                                 <LocationCityRoundedIcon fontSize="small" />
                             }
                             count={cityOptions.length}
-                            label="cities"
+                            label={t('atlas.stats.cities')}
                             options={cityOptions}
                             isOpen={openDropdown === 'cities'}
                             onToggle={() =>
@@ -2149,7 +2189,7 @@ const MyMap = () => {
                             onSelect={(id) =>
                                 handleSelectFromDropdown('cities', id)
                             }
-                            emptyHint="No visited cities yet."
+                            emptyHint={t('atlas.empty.cities')}
                             visible={layerVisibility.cities}
                             onToggleVisible={() => toggleLayer('cities')}
                             alignRight
@@ -2157,7 +2197,7 @@ const MyMap = () => {
                         <MyMapStatDropdown
                             icon={<PlaceRoundedIcon fontSize="small" />}
                             count={placeOptions.length}
-                            label="places"
+                            label={t('atlas.stats.places')}
                             options={placeOptions}
                             isOpen={openDropdown === 'places'}
                             onToggle={() =>
@@ -2169,7 +2209,7 @@ const MyMap = () => {
                             onSelect={(id) =>
                                 handleSelectFromDropdown('places', id)
                             }
-                            emptyHint="No visited places yet."
+                            emptyHint={t('atlas.empty.places')}
                             visible={layerVisibility.places}
                             onToggleVisible={() => toggleLayer('places')}
                             alignRight
@@ -2177,7 +2217,7 @@ const MyMap = () => {
                         <MyMapStatDropdown
                             icon={<GroupRoundedIcon fontSize="small" />}
                             count={friendsCountryOptions.length}
-                            label="friends"
+                            label={t('atlas.stats.friends')}
                             options={friendsCountryOptions}
                             isOpen={friendsDropdownOpen}
                             onToggle={() => {
@@ -2189,7 +2229,7 @@ const MyMap = () => {
                                 flyToCountry(id);
                                 setFriendsDropdownOpen(false);
                             }}
-                            emptyHint="No friends sharing visits yet."
+                            emptyHint={t('atlas.empty.friends')}
                             visible={friendsLayerOn}
                             onToggleVisible={() =>
                                 setFriendsLayerOn((v) => !v)
@@ -2207,7 +2247,7 @@ const MyMap = () => {
                                 icon: (
                                     <PublicRoundedIcon fontSize="small" />
                                 ),
-                                label: 'Countries',
+                                label: t('atlas.layerName.countries'),
                                 count: countryOptions.length,
                                 visible: layerVisibility.countries,
                                 onToggleVisible: () =>
@@ -2215,50 +2255,49 @@ const MyMap = () => {
                                 options: countryOptions,
                                 onSelect: (id) =>
                                     handleSelectFromDropdown('countries', id),
-                                emptyHint: 'No visited countries yet.',
+                                emptyHint: t('atlas.empty.countries'),
                             },
                             {
                                 key: 'cities',
                                 icon: (
                                     <LocationCityRoundedIcon fontSize="small" />
                                 ),
-                                label: 'Cities',
+                                label: t('atlas.layerName.cities'),
                                 count: cityOptions.length,
                                 visible: layerVisibility.cities,
                                 onToggleVisible: () => toggleLayer('cities'),
                                 options: cityOptions,
                                 onSelect: (id) =>
                                     handleSelectFromDropdown('cities', id),
-                                emptyHint: 'No visited cities yet.',
+                                emptyHint: t('atlas.empty.cities'),
                             },
                             {
                                 key: 'places',
                                 icon: (
                                     <PlaceRoundedIcon fontSize="small" />
                                 ),
-                                label: 'Places',
+                                label: t('atlas.layerName.places'),
                                 count: placeOptions.length,
                                 visible: layerVisibility.places,
                                 onToggleVisible: () => toggleLayer('places'),
                                 options: placeOptions,
                                 onSelect: (id) =>
                                     handleSelectFromDropdown('places', id),
-                                emptyHint: 'No visited places yet.',
+                                emptyHint: t('atlas.empty.places'),
                             },
                             {
                                 key: 'friends',
                                 icon: (
                                     <GroupRoundedIcon fontSize="small" />
                                 ),
-                                label: 'Friends',
+                                label: t('atlas.layerName.friends'),
                                 count: friendsCountryOptions.length,
                                 visible: friendsLayerOn,
                                 onToggleVisible: () =>
                                     setFriendsLayerOn((v) => !v),
                                 options: friendsCountryOptions,
                                 onSelect: (id) => flyToCountry(id),
-                                emptyHint:
-                                    'No friends sharing visits yet.',
+                                emptyHint: t('atlas.empty.friends'),
                             },
                         ]}
                     />
@@ -2280,7 +2319,7 @@ const MyMap = () => {
                                 type="button"
                                 className="my-map-intro-close"
                                 onClick={handleCloseIntro}
-                                aria-label="Hide intro"
+                                aria-label={t('atlas.intro.hide')}
                             >
                                 <CloseRoundedIcon fontSize="small" />
                             </button>
@@ -2296,12 +2335,10 @@ const MyMap = () => {
                                         id="my-map-intro-title"
                                         className="my-map-intro-title"
                                     >
-                                        Your travel atlas
+                                        {t('atlas.intro.title')}
                                     </h2>
                                     <p className="my-map-intro-sub">
-                                        Every country, city, and place
-                                        you&rsquo;ve visited — on one
-                                        living world map.
+                                        {t('atlas.intro.sub')}
                                     </p>
                                 </div>
                             </div>
@@ -2312,7 +2349,10 @@ const MyMap = () => {
                                         aria-hidden="true"
                                     />
                                     <span>
-                                        <strong>Countries</strong> shaded green.
+                                        <Trans
+                                            i18nKey="atlas.intro.legendCountries"
+                                            components={{ strong: <strong /> }}
+                                        />
                                     </span>
                                 </li>
                                 <li className="my-map-intro-legend-item">
@@ -2321,7 +2361,10 @@ const MyMap = () => {
                                         aria-hidden="true"
                                     />
                                     <span>
-                                        <strong>Cities</strong> as green rings.
+                                        <Trans
+                                            i18nKey="atlas.intro.legendCities"
+                                            components={{ strong: <strong /> }}
+                                        />
                                     </span>
                                 </li>
                                 <li className="my-map-intro-legend-item">
@@ -2330,7 +2373,10 @@ const MyMap = () => {
                                         aria-hidden="true"
                                     />
                                     <span>
-                                        <strong>Places</strong> as orange pins.
+                                        <Trans
+                                            i18nKey="atlas.intro.legendPlaces"
+                                            components={{ strong: <strong /> }}
+                                        />
                                     </span>
                                 </li>
                                 <li className="my-map-intro-legend-item">
@@ -2339,14 +2385,15 @@ const MyMap = () => {
                                         aria-hidden="true"
                                     />
                                     <span>
-                                        <strong>Friends&rsquo;</strong> visits in
-                                        purple — tap to see who.
+                                        <Trans
+                                            i18nKey="atlas.intro.legendFriends"
+                                            components={{ strong: <strong /> }}
+                                        />
                                     </span>
                                 </li>
                             </ul>
                             <p className="my-map-intro-tip">
-                                Tap a country, pin, or dropdown to fly
-                                anywhere on the globe.
+                                {t('atlas.intro.tip')}
                             </p>
                         </section>
                     )}
@@ -2367,33 +2414,36 @@ const MyMap = () => {
                     {isPro && statsOpen && (
                         <aside
                             className="my-map-atlas-stats"
-                            aria-label="Your travel atlas summary"
+                            aria-label={t('atlas.stats.summaryAria')}
                         >
                             <button
                                 type="button"
                                 className="my-map-atlas-stats-close"
                                 onClick={handleCloseStats}
-                                aria-label="Hide stats"
+                                aria-label={t('atlas.stats.hide')}
                             >
                                 <CloseRoundedIcon fontSize="small" />
                             </button>
                             <div className="my-map-atlas-stats-counts">
                                 <span>
                                     <strong>{atlasStats.countries}</strong>{' '}
-                                    countries
+                                    {t('atlas.stats.countries')}
                                 </span>
                                 <span>
-                                    <strong>{atlasStats.cities}</strong> cities
+                                    <strong>{atlasStats.cities}</strong>{' '}
+                                    {t('atlas.stats.cities')}
                                 </span>
                                 <span>
-                                    <strong>{atlasStats.places}</strong> places
+                                    <strong>{atlasStats.places}</strong>{' '}
+                                    {t('atlas.stats.places')}
                                 </span>
                             </div>
                             <div className="my-map-atlas-stats-progress">
                                 <div className="my-map-atlas-stats-progress-head">
                                     <span className="my-map-atlas-stats-progress-pct">
-                                        {atlasStats.worldPct.toFixed(1)}% of the
-                                        world explored
+                                        {t('atlas.stats.worldExplored', {
+                                            pct: atlasStats.worldPct.toFixed(1),
+                                        })}
                                     </span>
                                     <span className="my-map-atlas-stats-progress-frac">
                                         {atlasStats.countries}/
@@ -2441,8 +2491,10 @@ const MyMap = () => {
                                         />
                                     </div>
                                     <span className="my-map-atlas-stats-continent-sub">
-                                        {continentStat.pct.toFixed(0)}% of{' '}
-                                        {continentStat.label} explored
+                                        {t('atlas.stats.continentExplored', {
+                                            pct: continentStat.pct.toFixed(0),
+                                            continent: continentStat.label,
+                                        })}
                                     </span>
                                 </div>
                             )}
@@ -2455,9 +2507,13 @@ const MyMap = () => {
                                 </span>
                                 <span className="my-map-atlas-stats-row-text">
                                     <span className="my-map-atlas-stats-row-label">
-                                        Explorer level
+                                        {t('atlas.stats.explorerLevel')}
                                     </span>
-                                    <strong>{atlasStats.level.label}</strong>
+                                    <strong>
+                                        {t(
+                                            `atlas.level.${atlasStats.level.levelKey}`
+                                        )}
+                                    </strong>
                                 </span>
                             </div>
                             {atlasStats.furthest && (
@@ -2470,14 +2526,15 @@ const MyMap = () => {
                                     </span>
                                     <span className="my-map-atlas-stats-row-text">
                                         <span className="my-map-atlas-stats-row-label">
-                                            Furthest destination
+                                            {t('atlas.stats.furthest')}
                                         </span>
                                         <strong>
                                             {atlasStats.furthest.label}
                                         </strong>
                                         <span className="my-map-atlas-stats-row-sub">
-                                            {atlasStats.furthest.miles.toLocaleString()}{' '}
-                                            mi from home
+                                            {t('atlas.stats.milesFromHome', {
+                                                miles: atlasStats.furthest.miles.toLocaleString(),
+                                            })}
                                         </span>
                                     </span>
                                 </div>
@@ -2496,21 +2553,21 @@ const MyMap = () => {
                                 type="button"
                                 className="my-map-atlas-pill"
                                 onClick={handleOpenStats}
-                                aria-label="Travel stats"
-                                title="Travel stats"
+                                aria-label={t('atlas.pills.statsTitle')}
+                                title={t('atlas.pills.statsTitle')}
                             >
                                 <InsightsRoundedIcon fontSize="small" />
-                                <span>Stats</span>
+                                <span>{t('atlas.pills.stats')}</span>
                             </button>
                             <button
                                 type="button"
                                 className="my-map-atlas-pill"
                                 onClick={handleOpenIntro}
-                                aria-label="About Travel Atlas"
-                                title="About Travel Atlas"
+                                aria-label={t('atlas.pills.aboutTitle')}
+                                title={t('atlas.pills.aboutTitle')}
                             >
                                 <InfoOutlinedIcon fontSize="small" />
-                                <span>About</span>
+                                <span>{t('atlas.pills.about')}</span>
                             </button>
                         </div>
                     )}
@@ -2561,14 +2618,20 @@ const MyMap = () => {
                                         type="button"
                                         className="my-map-trips-panel-close"
                                         onClick={handleClearSelection}
-                                        aria-label="Close trips panel"
+                                        aria-label={t('atlas.trips.close')}
                                     >
                                         <CloseRoundedIcon fontSize="small" />
                                     </button>
                                 </header>
                                 <div className="my-map-trips-panel-stat">
-                                    <strong>{selectionTrips.length}</strong>{' '}
-                                    trip{selectionTrips.length === 1 ? '' : 's'}
+                                    <Trans
+                                        i18nKey="atlas.trips.count"
+                                        count={selectionTrips.length}
+                                        values={{
+                                            count: selectionTrips.length,
+                                        }}
+                                        components={{ strong: <strong /> }}
+                                    />
                                 </div>
                             </div>
                             <div className="my-map-trips-panel-list">
@@ -2588,7 +2651,9 @@ const MyMap = () => {
                                                 <div className="my-map-trips-panel-trip-head">
                                                     <span className="my-map-trips-panel-trip-name">
                                                         {trip.tripName?.trim() ||
-                                                            'Untitled trip'}
+                                                            t(
+                                                                'atlas.trips.untitled'
+                                                            )}
                                                     </span>
                                                     {visitedOn && (
                                                         <span className="my-map-trips-panel-trip-date">
@@ -2614,11 +2679,16 @@ const MyMap = () => {
                                                         {trip.places.length >
                                                             6 && (
                                                             <li className="my-map-trips-panel-trip-place is-more">
-                                                                +{' '}
-                                                                {trip.places
-                                                                    .length -
-                                                                    6}{' '}
-                                                                more
+                                                                {t(
+                                                                    'atlas.trips.more',
+                                                                    {
+                                                                        count:
+                                                                            trip
+                                                                                .places
+                                                                                .length -
+                                                                            6,
+                                                                    }
+                                                                )}
                                                             </li>
                                                         )}
                                                     </ul>
@@ -2636,26 +2706,23 @@ const MyMap = () => {
                                 className="my-map-paywall-icon"
                             />
                             <h3 className="my-map-paywall-title">
-                                Travel Atlas is a Pro feature
+                                {t('atlas.paywall.title')}
                             </h3>
                             <p className="my-map-paywall-body">
-                                Visualize every country and place
-                                you&rsquo;ve visited, with shaded
-                                regions and pinpoints. Upgrade to
-                                unlock the full map.
+                                {t('atlas.paywall.body')}
                             </p>
                             <div className="my-map-paywall-actions">
                                 <ButtonCustom
                                     type="standard"
                                     capitalizeType="none"
                                     onClick={handleOpenPaywall}
-                                    label="Upgrade to Pro"
+                                    label={t('atlas.paywall.upgrade')}
                                 />
                                 <ButtonCustom
                                     type="line"
                                     capitalizeType="none"
                                     onClick={() => navigate('/visited')}
-                                    label="See visited list"
+                                    label={t('atlas.paywall.seeVisited')}
                                 />
                             </div>
                         </div>
@@ -2667,14 +2734,9 @@ const MyMap = () => {
                 ref={paywallRef}
                 currentCount={visitedCountries.length}
                 cap={0}
-                title="Unlock Travel Atlas"
-                headline={
-                    <>
-                        Take your travel history out of a list and onto
-                        a beautiful world map.
-                    </>
-                }
-                body="Travel Atlas shades every country you've visited and pins every place — a living record of your travels. Available on every Pro plan."
+                title={t('atlas.paywall.modalTitle')}
+                headline={t('atlas.paywall.modalHeadline')}
+                body={t('atlas.paywall.modalBody')}
             />
         </Layout>
     );
@@ -2768,9 +2830,9 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
     const visited = formatVisitedAt(pin.visitedAt);
     const sourceLabel =
         pin.source === 'itinerary'
-            ? 'From a trip'
+            ? i18n.t('atlas.popup.fromTrip')
             : pin.source === 'manual'
-              ? 'Marked visited'
+              ? i18n.t('atlas.popup.markedVisited')
               : '';
 
     let tripBlock = '';
@@ -2779,23 +2841,28 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
         const trip = trips[0];
         const tripHref = `/trip-detail?id=${encodeURIComponent(trip.tripId)}`;
         if (trip.tripName) {
-            tripBlock = `<div class="my-map-pin-popup-trip">From <strong>${escapeHtml(
-                trip.tripName
-            )}</strong></div>`;
+            tripBlock = `<div class="my-map-pin-popup-trip">${i18n.t(
+                'atlas.popup.fromTripName',
+                {
+                    trip: `<strong>${escapeHtml(trip.tripName)}</strong>`,
+                    interpolation: { escapeValue: false },
+                }
+            )}</div>`;
         }
         tripCta = `<a
                 class="my-map-pin-popup-cta my-map-pin-popup-cta-trip"
                 href="${tripHref}"
                 target="_blank"
                 rel="noopener noreferrer"
-            >View trip</a>`;
+            >${escapeHtml(i18n.t('atlas.popup.viewTrip'))}</a>`;
     } else if (trips.length > 1) {
         // Inline list — one row per trip with its own date. Replaces
         // the single orange CTA; the popup wraps if there are many.
         const rows = trips
             .map((t) => {
                 const tripHref = `/trip-detail?id=${encodeURIComponent(t.tripId)}`;
-                const name = t.tripName?.trim() || 'Untitled trip';
+                const name =
+                    t.tripName?.trim() || i18n.t('atlas.trips.untitled');
                 const visitedOn = formatVisitedAt(t.visitedAt);
                 const dateBit = visitedOn
                     ? `<span class="my-map-pin-popup-trip-row-date">${escapeHtml(
@@ -2813,7 +2880,9 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
             })
             .join('');
         tripBlock = `<div class="my-map-pin-popup-trip-list">
-            <div class="my-map-pin-popup-trip-list-label">Visited on ${trips.length} trips</div>
+            <div class="my-map-pin-popup-trip-list-label">${escapeHtml(
+                i18n.t('atlas.popup.visitedOnTrips', { count: trips.length })
+            )}</div>
             ${rows}
         </div>`;
     }
@@ -2837,8 +2906,10 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                               : ''
                       }${
                           visited
-                              ? `<span class="my-map-pin-popup-date">Visited ${escapeHtml(
-                                    visited
+                              ? `<span class="my-map-pin-popup-date">${escapeHtml(
+                                    i18n.t('atlas.popup.visitedDate', {
+                                        date: visited,
+                                    })
                                 )}</span>`
                               : ''
                       }</div>`
@@ -2850,7 +2921,7 @@ const renderPinPopupHtml = (pin: PinPopupInput): string => {
                     href="${detailHref}"
                     target="_blank"
                     rel="noopener noreferrer"
-                >View detail</a>
+                >${escapeHtml(i18n.t('atlas.popup.viewDetail'))}</a>
                 ${tripCta}
             </div>
         </div>
@@ -2872,7 +2943,10 @@ interface FriendsPopupInput {
  *  social proof, not navigation (the user can click their own layers or
  *  the dropdown to navigate). */
 const renderFriendsPopupHtml = (input: FriendsPopupInput): string => {
-    const all = [...(input.youVisited ? ['You'] : []), ...input.names];
+    const all = [
+        ...(input.youVisited ? [i18n.t('atlas.popup.you')] : []),
+        ...input.names,
+    ];
     const chips = all
         .map(
             (n) =>
@@ -2891,7 +2965,9 @@ const renderFriendsPopupHtml = (input: FriendsPopupInput): string => {
                       )}</div>`
                     : ''
             }
-            <div class="my-map-friends-popup-label">Visited by</div>
+            <div class="my-map-friends-popup-label">${escapeHtml(
+                i18n.t('atlas.popup.visitedBy')
+            )}</div>
             <div class="my-map-friends-popup-chips">${
                 chips || '<span class="my-map-friends-popup-empty">—</span>'
             }</div>
@@ -2922,7 +2998,9 @@ const renderCityPopupHtml = (pin: CityPopupInput): string => {
         `&mode=single`;
     const visited = formatVisitedAt(pin.visitedAt);
     const sourceLabel =
-        pin.source === 'itinerary' ? 'From a trip' : 'Marked visited';
+        pin.source === 'itinerary'
+            ? i18n.t('atlas.popup.fromTrip')
+            : i18n.t('atlas.popup.markedVisited');
     return `
         <div class="my-map-pin-popup-inner">
             <div class="my-map-pin-popup-title">${escapeHtml(pin.cityName)}</div>
@@ -2939,8 +3017,10 @@ const renderCityPopupHtml = (pin: CityPopupInput): string => {
                               : ''
                       }${
                           visited
-                              ? `<span class="my-map-pin-popup-date">Visited ${escapeHtml(
-                                    visited,
+                              ? `<span class="my-map-pin-popup-date">${escapeHtml(
+                                    i18n.t('atlas.popup.visitedDate', {
+                                        date: visited,
+                                    }),
                                 )}</span>`
                               : ''
                       }</div>`
@@ -2952,7 +3032,7 @@ const renderCityPopupHtml = (pin: CityPopupInput): string => {
                     href="${cityHref}"
                     target="_blank"
                     rel="noopener noreferrer"
-                >View city</a>
+                >${escapeHtml(i18n.t('atlas.popup.viewCity'))}</a>
             </div>
         </div>
     `;

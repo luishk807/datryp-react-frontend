@@ -3,6 +3,7 @@ import {
     useRef,
     type ReactNode,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
@@ -56,12 +57,14 @@ const MyMapStatDropdown = ({
     onToggle,
     onClose,
     onSelect,
-    emptyHint = 'Nothing here yet.',
+    emptyHint,
     visible = true,
     onToggleVisible,
     alignRight = false,
 }: MyMapStatDropdownProps) => {
+    const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const emptyText = emptyHint ?? t('atlas.dropdown.nothingHere');
 
     useEffect(() => {
         if (!isOpen) return;
@@ -131,14 +134,14 @@ const MyMapStatDropdown = ({
                             )}
                             <span>
                                 {visible
-                                    ? `Hide ${label} on map`
-                                    : `Show ${label} on map`}
+                                    ? t('atlas.dropdown.hideOnMap', { label })
+                                    : t('atlas.dropdown.showOnMap', { label })}
                             </span>
                         </button>
                     )}
                     {options.length === 0 ? (
                         <p className="my-map-stat-dropdown-empty">
-                            {emptyHint}
+                            {emptyText}
                         </p>
                     ) : (
                         <ul className="my-map-stat-dropdown-list">
@@ -180,8 +183,14 @@ const MyMapStatDropdown = ({
                                             {(opt.tripCount ?? 0) > 0 ? (
                                                 <span
                                                     className="my-map-stat-dropdown-item-dot"
-                                                    aria-label={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
-                                                    title={`${opt.tripCount} trip${opt.tripCount === 1 ? '' : 's'} on file`}
+                                                    aria-label={t(
+                                                        'atlas.dropdown.tripsOnFile',
+                                                        { count: opt.tripCount }
+                                                    )}
+                                                    title={t(
+                                                        'atlas.dropdown.tripsOnFile',
+                                                        { count: opt.tripCount }
+                                                    )}
                                                 />
                                             ) : null}
                                             {opt.label}

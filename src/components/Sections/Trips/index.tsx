@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     Grid,
     Dialog,
@@ -29,11 +30,11 @@ import './index.scss';
 
 type FilterValue = 'all' | 'planning' | 'confirmed' | 'completed';
 
-const FILTERS: { value: FilterValue; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'planning', label: 'Planning' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'completed', label: 'Completed' },
+const FILTERS: { value: FilterValue; labelKey: string }[] = [
+    { value: 'all', labelKey: 'trips.filters.all' },
+    { value: 'planning', labelKey: 'trips.filters.planning' },
+    { value: 'confirmed', labelKey: 'trips.filters.confirmed' },
+    { value: 'completed', labelKey: 'trips.filters.completed' },
 ];
 
 // Status display order: Confirmed first (active and locked in), then
@@ -65,6 +66,7 @@ const compareTrips = (a: TripBoxData, b: TripBoxData): number => {
 };
 
 export const Trips = () => {
+    const { t } = useTranslation();
     const [filter, setFilter] = useState<FilterValue>('all');
     const navigate = useNavigate();
     const {
@@ -191,16 +193,17 @@ export const Trips = () => {
         const failed = results.length - ok;
         if (failed === 0) {
             setToast({
-                msg:
-                    ok === 1
-                        ? 'Trip deleted.'
-                        : `${ok} trips deleted.`,
+                msg: t('trips.toast.deleted', { count: ok }),
                 severity: 'success',
             });
             exitSelectMode();
         } else {
             setToast({
-                msg: `Deleted ${ok} of ${results.length} trips. ${failed} couldn't be removed — try again.`,
+                msg: t('trips.toast.partialDelete', {
+                    ok,
+                    total: results.length,
+                    failed,
+                }),
                 severity: 'error',
             });
             // Keep the failed ones selected so the user can retry; drop
@@ -216,26 +219,34 @@ export const Trips = () => {
     };
 
     return (
-        <Layout title="My Trips">
+        <Layout title={t('trips.title')}>
             <div className="trips-page">
                 <div className="trips-header">
                     <div className="trips-summary">
                         <span className="trips-count">
-                            {allTrips.length} trip{allTrips.length === 1 ? '' : 's'}
+                            {t('trips.summary.count', {
+                                count: allTrips.length,
+                            })}
                         </span>
                         {counts.planning > 0 && (
                             <span className="trips-summary-item">
-                                · {counts.planning} planning
+                                · {t('trips.summary.planning', {
+                                    count: counts.planning,
+                                })}
                             </span>
                         )}
                         {counts.confirmed > 0 && (
                             <span className="trips-summary-item">
-                                · {counts.confirmed} confirmed
+                                · {t('trips.summary.confirmed', {
+                                    count: counts.confirmed,
+                                })}
                             </span>
                         )}
                         {counts.completed > 0 && (
                             <span className="trips-summary-item">
-                                · {counts.completed} completed
+                                · {t('trips.summary.completed', {
+                                    count: counts.completed,
+                                })}
                             </span>
                         )}
                     </div>
@@ -247,14 +258,14 @@ export const Trips = () => {
                                 onClick={enterSelectMode}
                             >
                                 <CheckBoxOutlinedIcon fontSize="small" />
-                                <span>Select</span>
+                                <span>{t('trips.actions.select')}</span>
                             </button>
                         )}
                         <ButtonCustom
                             type="standard"
                             capitalizeType="uppercase"
                             className="trips-plan-cta"
-                            label="+ Plan new trip"
+                            label={t('trips.actions.planNew')}
                             onClick={() => navigate('/')}
                         />
                     </div>
@@ -264,14 +275,18 @@ export const Trips = () => {
                     <div
                         className="trips-select-bar"
                         role="region"
-                        aria-label="Selection actions"
+                        aria-label={t('trips.select.regionLabel')}
                     >
                         <div className="trips-select-bar-meta">
                             <strong>
-                                {selectedIds.size} selected
+                                {t('trips.select.selectedCount', {
+                                    count: selectedIds.size,
+                                })}
                             </strong>
                             <span>
-                                · {filteredTrips.length} on this view
+                                · {t('trips.select.onThisView', {
+                                    count: filteredTrips.length,
+                                })}
                             </span>
                         </div>
                         <div className="trips-select-bar-actions">
@@ -283,7 +298,7 @@ export const Trips = () => {
                                     selectedIds.size === filteredTrips.length
                                 }
                             >
-                                Select all
+                                {t('trips.select.selectAll')}
                             </button>
                             <button
                                 type="button"
@@ -293,16 +308,18 @@ export const Trips = () => {
                             >
                                 <DeleteOutlineRoundedIcon fontSize="small" />
                                 <span>
-                                    Delete{selectedIds.size > 1
-                                        ? ` ${selectedIds.size}`
-                                        : ''}
+                                    {selectedIds.size > 1
+                                        ? t('trips.select.deleteN', {
+                                              count: selectedIds.size,
+                                          })
+                                        : t('trips.select.delete')}
                                 </span>
                             </button>
                             <button
                                 type="button"
                                 className="trips-select-bar-cancel"
                                 onClick={exitSelectMode}
-                                aria-label="Cancel selection"
+                                aria-label={t('trips.select.cancelAria')}
                             >
                                 <CloseRoundedIcon fontSize="small" />
                             </button>
@@ -319,9 +336,9 @@ export const Trips = () => {
                     type="button"
                     className="trips-plan-cta-mobile"
                     onClick={() => navigate('/')}
-                    aria-label="Plan new trip"
+                    aria-label={t('trips.actions.planNewAria')}
                 >
-                    + Plan new trip
+                    {t('trips.actions.planNew')}
                 </button>
 
                 <div className="trips-filters">
@@ -333,7 +350,7 @@ export const Trips = () => {
                             })}
                             onClick={() => setFilter(f.value)}
                         >
-                            {f.label}
+                            {t(f.labelKey)}
                             <span className="trips-filter-count">
                                 {counts[f.value]}
                             </span>
@@ -343,21 +360,24 @@ export const Trips = () => {
 
                 {isLoading ? (
                     <div className="trips-empty">
-                        <p>Loading trips…</p>
+                        <p>{t('trips.loading')}</p>
                     </div>
                 ) : isError ? (
                     <div className="trips-empty trips-error">
                         <p className="trips-error-title">
-                            We couldn't load your trips
+                            {t('trips.error.title')}
                         </p>
                         <p className="trips-error-sub">
-                            Something went wrong on our end. Check your
-                            connection and try again in a moment.
+                            {t('trips.error.sub')}
                         </p>
                         <ButtonCustom
                             type="standard"
                             capitalizeType="uppercase"
-                            label={isFetching ? 'Retrying…' : 'Try again'}
+                            label={
+                                isFetching
+                                    ? t('trips.error.retrying')
+                                    : t('trips.error.tryAgain')
+                            }
                             disabled={isFetching}
                             onClick={() => {
                                 void refetch();
@@ -367,7 +387,7 @@ export const Trips = () => {
                 ) : filteredTrips.length === 0 ? (
                     <>
                         <div className="trips-empty">
-                            <p>No trips in this category yet.</p>
+                            <p>{t('trips.empty.category')}</p>
                         </div>
                         {/* When the user is fully tripless (not just filtered to
                             an empty bucket), surface the personalized
@@ -413,7 +433,7 @@ export const Trips = () => {
                                     behavior: 'smooth',
                                 });
                             }}
-                            ariaLabel="Trips pagination"
+                            ariaLabel={t('trips.paginationAria')}
                         />
                     </>
                 )}
@@ -424,16 +444,15 @@ export const Trips = () => {
                     aria-labelledby="trips-delete-confirm-title"
                 >
                     <DialogTitle id="trips-delete-confirm-title">
-                        Delete {selectedIds.size}{' '}
-                        {selectedIds.size === 1 ? 'trip' : 'trips'}?
+                        {t('trips.deleteDialog.title', {
+                            count: selectedIds.size,
+                        })}
                     </DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            This will remove the{' '}
-                            {selectedIds.size === 1 ? 'trip' : 'trips'}{' '}
-                            from your list. Participants you invited
-                            will be notified, and the data is removed
-                            from your account.
+                            {t('trips.deleteDialog.body', {
+                                count: selectedIds.size,
+                            })}
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
@@ -443,7 +462,7 @@ export const Trips = () => {
                             onClick={() => setConfirmOpen(false)}
                             disabled={isDeleting}
                         >
-                            Cancel
+                            {t('trips.deleteDialog.cancel')}
                         </button>
                         <button
                             type="button"
@@ -452,8 +471,10 @@ export const Trips = () => {
                             disabled={isDeleting}
                         >
                             {isDeleting
-                                ? 'Deleting…'
-                                : `Delete ${selectedIds.size}`}
+                                ? t('trips.deleteDialog.deleting')
+                                : t('trips.deleteDialog.confirm', {
+                                      count: selectedIds.size,
+                                  })}
                         </button>
                     </DialogActions>
                 </Dialog>

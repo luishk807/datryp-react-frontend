@@ -308,13 +308,15 @@ export const Account = () => {
         // gets immediate feedback instead of waiting for the request to
         // fail with a 413.
         if (file.size > 6 * 1024 * 1024) {
-            setImageError('Image must be under 6 MB.');
+            setImageError(t('account.profile.imageTooLarge'));
             return;
         }
         uploadProfileImage.mutate(file, {
             onError: (err) =>
                 setImageError(
-                    err instanceof Error ? err.message : 'Upload failed.'
+                    err instanceof Error
+                        ? err.message
+                        : t('account.profile.uploadFailed')
                 ),
         });
     };
@@ -325,16 +327,18 @@ export const Account = () => {
         removeProfileImageMutation.mutate(undefined, {
             onError: (err) =>
                 setImageError(
-                    err instanceof Error ? err.message : 'Could not remove.'
+                    err instanceof Error
+                        ? err.message
+                        : t('account.profile.removeFailed')
                 ),
         });
     };
 
     if (!user) {
         return (
-            <Layout title="Account">
+            <Layout title={t('account.common.pageTitle')}>
                 <div className="account-page account-logged-out">
-                    <p>Log in to manage your profile.</p>
+                    <p>{t('account.common.loggedOut')}</p>
                 </div>
             </Layout>
         );
@@ -345,7 +349,7 @@ export const Account = () => {
         if (!name.trim()) {
             setProfileToast({
                 type: 'error',
-                text: 'Name is required.',
+                text: t('account.profile.nameRequired'),
             });
             return;
         }
@@ -411,18 +415,18 @@ export const Account = () => {
                 prefsError =
                     err instanceof Error
                         ? err.message
-                        : 'Could not save profile fields.';
+                        : t('account.profile.saveFieldsFailed');
             }
         }
         if (prefsError) {
             setProfileToast({
                 type: 'error',
-                text: `Saved partially, but: ${prefsError}`,
+                text: t('account.profile.savedPartially', { error: prefsError }),
             });
         } else {
             setProfileToast({
                 type: 'success',
-                text: 'Profile saved.',
+                text: t('account.profile.saved'),
             });
         }
         setProfileSaved(true);
@@ -431,24 +435,24 @@ export const Account = () => {
 
     const handlePasswordSave = () => {
         if (!currentPwd || !newPwd || !confirmPwd) {
-            setPwdMessage({ type: 'error', text: 'Fill in all password fields.' });
+            setPwdMessage({ type: 'error', text: t('account.password.fillAll') });
             return;
         }
         if (newPwd !== confirmPwd) {
-            setPwdMessage({ type: 'error', text: "Passwords don't match." });
+            setPwdMessage({ type: 'error', text: t('account.password.mismatch') });
             return;
         }
         if (newPwd.length < 6) {
             setPwdMessage({
                 type: 'error',
-                text: 'New password must be at least 6 characters.',
+                text: t('account.password.tooShort'),
             });
             return;
         }
         setCurrentPwd('');
         setNewPwd('');
         setConfirmPwd('');
-        setPwdMessage({ type: 'success', text: 'Password updated.' });
+        setPwdMessage({ type: 'success', text: t('account.password.updated') });
         setTimeout(() => setPwdMessage(null), 2500);
     };
 
@@ -471,7 +475,7 @@ export const Account = () => {
             });
             setTravelPrefsMessage({
                 type: 'success',
-                text: 'Travel preferences saved.',
+                text: t('account.travelPrefs.saved'),
             });
             setTimeout(() => setTravelPrefsMessage(null), 2500);
         } catch (err) {
@@ -480,7 +484,7 @@ export const Account = () => {
                 text:
                     err instanceof Error
                         ? err.message
-                        : 'Could not save travel preferences.',
+                        : t('account.travelPrefs.saveFailed'),
             });
         }
     };
@@ -492,7 +496,7 @@ export const Account = () => {
         if (next && !smsConsent) {
             setNotifyMessage({
                 type: 'error',
-                text: 'Please check the SMS consent box below to receive text alerts.',
+                text: t('account.notifications.smsConsentRequired'),
             });
             return;
         }
@@ -522,7 +526,7 @@ export const Account = () => {
             });
             setNotifyMessage({
                 type: 'success',
-                text: 'Notification settings saved.',
+                text: t('account.notifications.savedSettings'),
             });
             setTimeout(() => setNotifyMessage(null), 2500);
         } catch (err) {
@@ -531,7 +535,7 @@ export const Account = () => {
                 text:
                     err instanceof Error
                         ? err.message
-                        : 'Could not save notification settings.',
+                        : t('account.notifications.saveFailed'),
             });
         }
     };
@@ -542,7 +546,7 @@ export const Account = () => {
             await updatePrefs.mutateAsync({ shareVisitedPlaces });
             setPrivacyMessage({
                 type: 'success',
-                text: 'Privacy settings saved.',
+                text: t('account.common.privacySaved'),
             });
             setTimeout(() => setPrivacyMessage(null), 2500);
         } catch (err) {
@@ -551,7 +555,7 @@ export const Account = () => {
                 text:
                     err instanceof Error
                         ? err.message
-                        : 'Could not save privacy settings.',
+                        : t('account.common.privacySaveFailed'),
             });
         }
     };
@@ -569,7 +573,7 @@ export const Account = () => {
             setDeleteError(
                 err instanceof Error
                     ? err.message
-                    : 'Could not delete your account. Please try again.'
+                    : t('account.deleteAccount.deleteFailed')
             );
         }
     };
@@ -580,14 +584,14 @@ export const Account = () => {
     // currently in view and highlights the matching nav item.
     const navSections = useMemo(
         () => [
-            { id: 'profile', label: 'Profile', icon: PersonOutlineRoundedIcon },
-            { id: 'subscription', label: 'Subscription', icon: WorkspacePremiumRoundedIcon },
-            { id: 'password', label: 'Password', icon: LockOutlinedIcon },
-            { id: 'travel-preferences', label: 'Travel preferences', icon: FlightTakeoffRoundedIcon },
-            { id: 'notifications', label: 'Notifications', icon: NotificationsNoneRoundedIcon },
-            { id: 'danger-zone', label: 'Delete account', icon: WarningAmberRoundedIcon },
+            { id: 'profile', label: t('account.nav.profile'), icon: PersonOutlineRoundedIcon },
+            { id: 'subscription', label: t('account.nav.subscription'), icon: WorkspacePremiumRoundedIcon },
+            { id: 'password', label: t('account.nav.password'), icon: LockOutlinedIcon },
+            { id: 'travel-preferences', label: t('account.nav.travelPreferences'), icon: FlightTakeoffRoundedIcon },
+            { id: 'notifications', label: t('account.nav.notifications'), icon: NotificationsNoneRoundedIcon },
+            { id: 'danger-zone', label: t('account.nav.deleteAccount'), icon: WarningAmberRoundedIcon },
         ],
-        []
+        [t]
     );
 
     const [activeSection, setActiveSection] = useState<string>('profile');
@@ -659,9 +663,9 @@ export const Account = () => {
     };
 
     return (
-        <Layout title="Account">
+        <Layout title={t('account.common.pageTitle')}>
             <div className="account-page">
-                <nav className="account-nav" aria-label="Account sections">
+                <nav className="account-nav" aria-label={t('account.common.navAria')}>
                     <ul className="account-nav-list">
                         {navSections.map(({ id, label, icon: Icon }) => (
                             <li key={id}>
@@ -687,7 +691,7 @@ export const Account = () => {
                 <div
                     className="account-nav-mobile"
                     role="tablist"
-                    aria-label="Account sections"
+                    aria-label={t('account.common.navAria')}
                     ref={mobileNavRef}
                 >
                     {navSections.map(({ id, label, icon: Icon }) => (
@@ -723,8 +727,8 @@ export const Account = () => {
                                 disabled={uploadProfileImage.isPending}
                                 aria-label={
                                     user.profileImageUrl
-                                        ? 'Change profile picture'
-                                        : 'Upload a profile picture'
+                                        ? t('account.profile.changePictureAria')
+                                        : t('account.profile.uploadPictureAria')
                                 }
                             >
                                 {user.profileImageUrl && !imageLoadFailed ? (
@@ -765,9 +769,11 @@ export const Account = () => {
                             />
                         </div>
                         <div className="account-card-headings">
-                            <h2 className="account-card-title">Profile</h2>
+                            <h2 className="account-card-title">
+                                {t('account.profile.title')}
+                            </h2>
                             <p className="account-card-subtitle">
-                                Manage how your name, email and phone appear.
+                                {t('account.profile.subtitle')}
                             </p>
                             <div className="account-avatar-actions">
                                 <button
@@ -777,10 +783,10 @@ export const Account = () => {
                                     disabled={uploadProfileImage.isPending}
                                 >
                                     {uploadProfileImage.isPending
-                                        ? 'Uploading…'
+                                        ? t('account.profile.uploading')
                                         : user.profileImageUrl
-                                            ? 'Change picture'
-                                            : 'Upload picture'}
+                                            ? t('account.profile.changePicture')
+                                            : t('account.profile.uploadPicture')}
                                 </button>
                                 {user.profileImageUrl && (
                                     <button
@@ -792,8 +798,8 @@ export const Account = () => {
                                         }
                                     >
                                         {removeProfileImageMutation.isPending
-                                            ? 'Removing…'
-                                            : 'Remove'}
+                                            ? t('account.profile.removing')
+                                            : t('account.profile.remove')}
                                     </button>
                                 )}
                             </div>
@@ -810,11 +816,11 @@ export const Account = () => {
                     <div className="account-form">
                         <InputField
                             variant="bare"
-                            label="Full name"
+                            label={t('account.profile.fullName')}
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Your name"
+                            placeholder={t('account.profile.fullNamePlaceholder')}
                             required={false}
                         />
                         {/* Email is the login identity + notification and
@@ -823,7 +829,7 @@ export const Account = () => {
                             Stripe customer update); not self-service. */}
                         <InputField
                             variant="bare"
-                            label="Email"
+                            label={t('account.profile.email')}
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -832,18 +838,18 @@ export const Account = () => {
                             disabled
                         />
                         <PhoneInput
-                            label="Phone"
+                            label={t('account.profile.phone')}
                             value={phone}
                             onChange={setPhone}
                             placeholder="(555) 123-4567"
                         />
                         <DropDown
                             variant="bare"
-                            label="Year of birth"
+                            label={t('account.profile.yearOfBirth')}
                             options={yearOptions}
                             valueKey="id"
                             value={birthYear === '' ? null : birthYear}
-                            placeholder="Select a year"
+                            placeholder={t('account.profile.selectYear')}
                             onChange={(opt) =>
                                 setBirthYear(
                                     opt && typeof opt.id === 'number'
@@ -854,24 +860,24 @@ export const Account = () => {
                         />
                         <DropDown
                             variant="bare"
-                            label="Country of birth"
+                            label={t('account.profile.countryOfBirth')}
                             options={countries}
                             valueKey="code"
                             value={countryOfBirth}
-                            placeholder={countriesLoading ? 'Loading countries…' : 'Select a country'}
+                            placeholder={countriesLoading ? t('account.profile.loadingCountries') : t('account.profile.selectCountry')}
                             disabled={countriesLoading}
                             onChange={(opt) => setCountryOfBirth(opt?.code ?? '')}
                         />
                         <DropDown
                             variant="bare"
-                            label="Gender"
+                            label={t('account.profile.gender')}
                             options={genders}
                             valueKey="id"
                             value={genderId || null}
                             placeholder={
                                 gendersLoading
-                                    ? 'Loading…'
-                                    : 'Select an option'
+                                    ? t('account.profile.loading')
+                                    : t('account.profile.selectOption')
                             }
                             disabled={gendersLoading}
                             onChange={(opt) =>
@@ -896,7 +902,7 @@ export const Account = () => {
                             <ButtonCustom
                                 type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
-                                label={profileSaved ? 'Saved' : 'Save profile'}
+                                label={profileSaved ? t('account.profile.savedLabel') : t('account.profile.saveProfile')}
                                 onClick={handleProfileSave}
                             />
                         </div>
@@ -908,15 +914,17 @@ export const Account = () => {
                 {/* Password */}
                 <section className="account-card" id="password">
                     <div className="account-card-headings simple">
-                        <h2 className="account-card-title">Password</h2>
+                        <h2 className="account-card-title">
+                            {t('account.password.title')}
+                        </h2>
                         <p className="account-card-subtitle">
-                            Use at least 6 characters.
+                            {t('account.password.subtitle')}
                         </p>
                     </div>
                     <div className="account-form">
                         <InputField
                             variant="bare"
-                            label="Current password"
+                            label={t('account.password.current')}
                             type="password"
                             value={currentPwd}
                             onChange={(e) => setCurrentPwd(e.target.value)}
@@ -925,7 +933,7 @@ export const Account = () => {
                         />
                         <InputField
                             variant="bare"
-                            label="New password"
+                            label={t('account.password.new')}
                             type="password"
                             value={newPwd}
                             onChange={(e) => setNewPwd(e.target.value)}
@@ -934,7 +942,7 @@ export const Account = () => {
                         />
                         <InputField
                             variant="bare"
-                            label="Confirm new password"
+                            label={t('account.password.confirm')}
                             type="password"
                             value={confirmPwd}
                             onChange={(e) => setConfirmPwd(e.target.value)}
@@ -952,7 +960,7 @@ export const Account = () => {
                             <ButtonCustom
                                 type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
-                                label="Update password"
+                                label={t('account.password.update')}
                                 onClick={handlePasswordSave}
                             />
                         </div>
@@ -964,43 +972,45 @@ export const Account = () => {
                     collects on Step 6. */}
                 <section className="account-card" id="travel-preferences">
                     <div className="account-card-headings simple">
-                        <h2 className="account-card-title">Travel preferences</h2>
+                        <h2 className="account-card-title">
+                            {t('account.travelPrefs.title')}
+                        </h2>
                         <p className="account-card-subtitle">
-                            We use these to suggest places you might love.
+                            {t('account.travelPrefs.subtitle')}
                         </p>
                     </div>
                     <div className="account-form account-travel-prefs">
                         <SearchablePicker
-                            label="Interests"
+                            label={t('account.travelPrefs.interests')}
                             options={interestOptions}
                             value={interests}
                             onChange={setInterests}
-                            placeholder="Search interests…"
+                            placeholder={t('account.travelPrefs.interestsPlaceholder')}
                             maxSelected={8}
-                            helperText="Pick up to 8."
+                            helperText={t('account.travelPrefs.pickUpTo8')}
                         />
                         <SearchablePicker
-                            label="What kind of traveler are you?"
+                            label={t('account.travelPrefs.travelerType')}
                             options={travelerStyleOptions}
                             value={travelerStyles}
                             onChange={setTravelerStyles}
-                            placeholder="Search traveler styles…"
+                            placeholder={t('account.travelPrefs.travelerTypePlaceholder')}
                             maxSelected={4}
-                            helperText="Pick up to 4."
+                            helperText={t('account.travelPrefs.pickUpTo4')}
                         />
                         <SearchablePicker
-                            label="Places you'd like to visit"
+                            label={t('account.travelPrefs.placesToVisit')}
                             options={dreamDestinationOptions}
                             value={dreamDestinations}
                             onChange={setDreamDestinations}
                             placeholder={
                                 countriesLoading
-                                    ? 'Loading countries…'
-                                    : 'Search countries…'
+                                    ? t('account.travelPrefs.loadingCountries')
+                                    : t('account.travelPrefs.searchCountries')
                             }
                             disabled={countriesLoading}
                             maxSelected={8}
-                            helperText="Pick up to 8 countries."
+                            helperText={t('account.travelPrefs.pickUpTo8Countries')}
                         />
                         {/* OPT-IN travel companions. Helps the AI bias picks
                           * (Disney + toddler picks for "family with kids",
@@ -1008,27 +1018,27 @@ export const Account = () => {
                           * Coarse buckets only — see our Privacy Policy for
                           * what we collect and why. */}
                         <SearchablePicker
-                            label="Who do you usually travel with?"
+                            label={t('account.travelPrefs.companions')}
                             options={TRAVEL_COMPANIONS.map((c) => ({
                                 value: c.slug,
                                 label: c.label,
                             }))}
                             value={travelCompanions}
                             onChange={setTravelCompanions}
-                            placeholder="Pick any that apply…"
-                            helperText="Optional. We use this to bias trip suggestions."
+                            placeholder={t('account.travelPrefs.pickAnyThatApply')}
+                            helperText={t('account.travelPrefs.companionsHelper')}
                         />
                         {shouldShowKidsAgePicker(travelCompanions) && (
                             <SearchablePicker
-                                label="Kids' age ranges"
+                                label={t('account.travelPrefs.kidsAges')}
                                 options={KIDS_AGE_BUCKETS.map((b) => ({
                                     value: b.slug,
                                     label: b.label,
                                 }))}
                                 value={kidsAgeBuckets}
                                 onChange={setKidsAgeBuckets}
-                                placeholder="Pick any that apply…"
-                                helperText="Optional. Coarse ranges only — we don't store exact ages or names."
+                                placeholder={t('account.travelPrefs.pickAnyThatApply')}
+                                helperText={t('account.travelPrefs.kidsAgesHelper')}
                             />
                         )}
                         {travelPrefsMessage && (
@@ -1044,8 +1054,8 @@ export const Account = () => {
                                 capitalizeType="uppercase"
                                 label={
                                     updatePrefs.isPending
-                                        ? 'Saving…'
-                                        : 'Save travel preferences'
+                                        ? t('common.saving')
+                                        : t('account.travelPrefs.save')
                                 }
                                 onClick={handleTravelPrefsSave}
                                 disabled={updatePrefs.isPending}
@@ -1091,15 +1101,14 @@ export const Account = () => {
                                 />
                                 {!isPro && (
                                     <p className="account-notify-helper">
-                                        SMS alerts are a Pro feature.{' '}
-                                        <Link to="/membership">Upgrade to Pro</Link>{' '}
-                                        to enable texts.
+                                        {t('account.notifications.smsProPrefix')}{' '}
+                                        <Link to="/membership">{t('account.notifications.upgradeToPro')}</Link>{' '}
+                                        {t('account.notifications.smsProSuffix')}
                                     </p>
                                 )}
                                 {isPro && !phone.trim() && (
                                     <p className="account-notify-helper">
-                                        Add a phone number in your Profile above to
-                                        receive texts.
+                                        {t('account.notifications.addPhone')}
                                     </p>
                                 )}
                                 {/* Explicit A2P 10DLC / Twilio opt-in consent.
@@ -1110,15 +1119,15 @@ export const Account = () => {
                                 {isPro && (
                                     <div className="account-sms-consent">
                                         <CheckBoxCustom
-                                            label="I agree to receive SMS text messages from DaTryp. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help."
+                                            label={t('account.notifications.smsConsentLabel')}
                                             defaultCheck={smsConsent}
                                             onClick={handleSmsConsentToggle}
                                         />
                                         <p className="account-notify-helper">
-                                            See our{' '}
-                                            <Link to="/sms">SMS Messaging Policy</Link>,{' '}
-                                            <Link to="/terms">Terms</Link>, and{' '}
-                                            <Link to="/privacy">Privacy Policy</Link>.
+                                            {t('account.notifications.seeOur')}{' '}
+                                            <Link to="/sms">{t('account.notifications.smsPolicy')}</Link>,{' '}
+                                            <Link to="/terms">{t('account.notifications.terms')}</Link>{t('account.notifications.andSeparator')}{' '}
+                                            <Link to="/privacy">{t('account.notifications.privacyPolicy')}</Link>.
                                         </p>
                                     </div>
                                 )}
@@ -1202,13 +1211,11 @@ export const Account = () => {
                     id="danger-zone"
                 >
                     <div className="account-card-headings simple">
-                        <h2 className="account-card-title">Delete account</h2>
+                        <h2 className="account-card-title">
+                            {t('account.deleteAccount.title')}
+                        </h2>
                         <p className="account-card-subtitle">
-                            Permanently close your account. This cancels any
-                            active subscription and signs you out. Trips you
-                            organize remain for the other participants, but
-                            you'll lose access to them — and you can't undo this
-                            yourself.
+                            {t('account.deleteAccount.subtitle')}
                         </p>
                     </div>
                     <div className="account-actions">
@@ -1216,7 +1223,7 @@ export const Account = () => {
                             type={BUTTON_VARIANT.STANDARD_MINI}
                             capitalizeType="none"
                             className="account-danger-btn"
-                            label="Delete my account"
+                            label={t('account.deleteAccount.deleteCta')}
                             onClick={() => {
                                 setDeleteConfirmText('');
                                 setDeleteError(null);
@@ -1226,7 +1233,7 @@ export const Account = () => {
                     </div>
                     <ModalButton
                         ref={deleteModalRef}
-                        title="Delete account"
+                        title={t('account.deleteAccount.title')}
                         onClose={() => {
                             setDeleteConfirmText('');
                             setDeleteError(null);
@@ -1234,21 +1241,17 @@ export const Account = () => {
                     >
                         <div className="account-delete-modal">
                             <p className="account-delete-warning">
-                                This is permanent and can't be undone. When you
-                                delete your account:
+                                {t('account.deleteAccount.warning')}
                             </p>
                             <ul className="account-delete-list">
-                                <li>Your account is closed.</li>
-                                <li>Any active subscription is cancelled.</li>
-                                <li>
-                                    Trips you organize remain for the other
-                                    participants, but you'll lose access to them.
-                                </li>
-                                <li>You'll be signed out right away.</li>
+                                <li>{t('account.deleteAccount.bullet1')}</li>
+                                <li>{t('account.deleteAccount.bullet2')}</li>
+                                <li>{t('account.deleteAccount.bullet3')}</li>
+                                <li>{t('account.deleteAccount.bullet4')}</li>
                             </ul>
                             <InputField
                                 variant="bare"
-                                label="Type DELETE to confirm"
+                                label={t('account.deleteAccount.typeToConfirm')}
                                 type="text"
                                 value={deleteConfirmText}
                                 onChange={(e) =>
@@ -1266,7 +1269,7 @@ export const Account = () => {
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.TEXT}
                                     capitalizeType="none"
-                                    label="Cancel"
+                                    label={t('account.common.cancel')}
                                     disabled={deleteAccount.isPending}
                                     onClick={() =>
                                         deleteModalRef.current?.closeModal()
@@ -1278,8 +1281,8 @@ export const Account = () => {
                                     className="account-danger-btn"
                                     label={
                                         deleteAccount.isPending
-                                            ? 'Deleting…'
-                                            : 'Delete my account'
+                                            ? t('account.deleteAccount.deleting')
+                                            : t('account.deleteAccount.deleteCta')
                                     }
                                     disabled={
                                         !canConfirmDelete ||

@@ -31,7 +31,17 @@ const Layout = ({
                     full-bleed pages so the chrome row stays a single
                     line and the page-body can claim 100% vertical
                     space (e.g. the /my-map globe). */}
-                <Header withSearch pageTitle={title || undefined} />
+                <Header
+                    withSearch
+                    pageTitle={
+                        title || titleAction ? (
+                            <>
+                                {title}
+                                {titleAction}
+                            </>
+                        ) : undefined
+                    }
+                />
                 <main className="page-content page-content-full-bleed">
                     {children}
                 </main>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import LayersRoundedIcon from '@mui/icons-material/LayersRounded';
 import CheckBoxRoundedIcon from '@mui/icons-material/CheckBoxRounded';
@@ -42,6 +43,7 @@ export interface MyMapLayersMenuProps {
  * the mobile breakpoint) — desktop keeps the four pills.
  */
 const MyMapLayersMenu = ({ layers }: MyMapLayersMenuProps) => {
+    const { t } = useTranslation();
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
     const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -87,7 +89,9 @@ const MyMapLayersMenu = ({ layers }: MyMapLayersMenuProps) => {
                 onClick={() => (open ? close() : setOpen(true))}
             >
                 <LayersRoundedIcon fontSize="small" />
-                <span className="my-map-layers-trigger-text">Layers</span>
+                <span className="my-map-layers-trigger-text">
+                    {t('atlas.layers.title')}
+                </span>
                 <span className="my-map-layers-trigger-count">{total}</span>
             </button>
 
@@ -106,8 +110,12 @@ const MyMapLayersMenu = ({ layers }: MyMapLayersMenuProps) => {
                                         aria-pressed={layer.visible}
                                         aria-label={
                                             layer.visible
-                                                ? `Hide ${layer.label}`
-                                                : `Show ${layer.label}`
+                                                ? t('atlas.layers.hide', {
+                                                      label: layer.label,
+                                                  })
+                                                : t('atlas.layers.show', {
+                                                      label: layer.label,
+                                                  })
                                         }
                                         onClick={layer.onToggleVisible}
                                     >
@@ -148,7 +156,7 @@ const MyMapLayersMenu = ({ layers }: MyMapLayersMenuProps) => {
                                     type="button"
                                     className="my-map-layers-back"
                                     onClick={() => setActiveKey(null)}
-                                    aria-label="Back to layers"
+                                    aria-label={t('atlas.layers.back')}
                                 >
                                     <ArrowBackRoundedIcon fontSize="small" />
                                 </button>
@@ -161,7 +169,8 @@ const MyMapLayersMenu = ({ layers }: MyMapLayersMenuProps) => {
                             </div>
                             {active.options.length === 0 ? (
                                 <p className="my-map-layers-empty">
-                                    {active.emptyHint ?? 'Nothing here yet.'}
+                                    {active.emptyHint ??
+                                        t('atlas.layers.nothingHere')}
                                 </p>
                             ) : (
                                 <ul className="my-map-layers-options">

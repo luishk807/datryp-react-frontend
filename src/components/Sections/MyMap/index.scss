@@ -148,6 +148,28 @@
   }
 }
 
+// Tutorial / "About Travel Atlas" help icon shown next to the page title in
+// the header. Opens the intro panel. Lives in the global header, so it's
+// styled to sit inline with the title text and inherit the green accent.
+.my-map-title-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  border-radius: 50%;
+  vertical-align: middle;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(60, 181, 75, 0.12);
+  }
+}
+
 // Map controls — top-center on desktop (the labeled segmented Globe|Flat /
 // Day|Night toggles). On mobile they collapse to single icon chips placed
 // next to the "Layers" button (see the mobile media query below).

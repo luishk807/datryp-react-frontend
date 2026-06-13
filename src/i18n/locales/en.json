@@ -20,7 +20,20 @@
             "emailDesc": "Trip invites, status changes, and activity alerts by email.",
             "smsLabel": "SMS notifications (Pro)",
             "smsDesc": "Text alerts for time-sensitive trip updates.",
-            "save": "Save notifications"
+            "save": "Save notifications",
+            "smsProPrefix": "SMS alerts are a Pro feature.",
+            "upgradeToPro": "Upgrade to Pro",
+            "smsProSuffix": "to enable texts.",
+            "addPhone": "Add a phone number in your Profile above to receive texts.",
+            "smsConsentLabel": "I agree to receive SMS text messages from DaTryp. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help.",
+            "seeOur": "See our",
+            "smsPolicy": "SMS Messaging Policy",
+            "terms": "Terms",
+            "andSeparator": ", and",
+            "privacyPolicy": "Privacy Policy",
+            "smsConsentRequired": "Please check the SMS consent box below to receive text alerts.",
+            "savedSettings": "Notification settings saved.",
+            "saveFailed": "Could not save notification settings."
         },
         "privacy": {
             "title": "Privacy",
@@ -28,6 +41,101 @@
             "shareVisitedLabel": "Share visited places with friends",
             "shareVisitedDesc": "When on, friends see the places, cities, and countries you've visited — on destination pages (“Visited by…”) and your Travel Atlas. Off keeps your travel history private to you.",
             "save": "Save privacy"
+        },
+        "common": {
+            "pageTitle": "Account",
+            "navAria": "Account sections",
+            "loggedOut": "Log in to manage your profile.",
+            "cancel": "Cancel",
+            "privacySaved": "Privacy settings saved.",
+            "privacySaveFailed": "Could not save privacy settings."
+        },
+        "nav": {
+            "profile": "Profile",
+            "subscription": "Subscription",
+            "password": "Password",
+            "travelPreferences": "Travel preferences",
+            "notifications": "Notifications",
+            "deleteAccount": "Delete account"
+        },
+        "profile": {
+            "title": "Profile",
+            "subtitle": "Manage how your name, email and phone appear.",
+            "changePictureAria": "Change profile picture",
+            "uploadPictureAria": "Upload a profile picture",
+            "uploading": "Uploading…",
+            "changePicture": "Change picture",
+            "uploadPicture": "Upload picture",
+            "removing": "Removing…",
+            "remove": "Remove",
+            "fullName": "Full name",
+            "fullNamePlaceholder": "Your name",
+            "email": "Email",
+            "phone": "Phone",
+            "yearOfBirth": "Year of birth",
+            "selectYear": "Select a year",
+            "countryOfBirth": "Country of birth",
+            "loadingCountries": "Loading countries…",
+            "selectCountry": "Select a country",
+            "gender": "Gender",
+            "loading": "Loading…",
+            "selectOption": "Select an option",
+            "saveProfile": "Save profile",
+            "savedLabel": "Saved",
+            "imageTooLarge": "Image must be under 6 MB.",
+            "uploadFailed": "Upload failed.",
+            "removeFailed": "Could not remove.",
+            "nameRequired": "Name is required.",
+            "saveFieldsFailed": "Could not save profile fields.",
+            "savedPartially": "Saved partially, but: {{error}}",
+            "saved": "Profile saved."
+        },
+        "password": {
+            "title": "Password",
+            "subtitle": "Use at least 6 characters.",
+            "current": "Current password",
+            "new": "New password",
+            "confirm": "Confirm new password",
+            "update": "Update password",
+            "fillAll": "Fill in all password fields.",
+            "mismatch": "Passwords don't match.",
+            "tooShort": "New password must be at least 6 characters.",
+            "updated": "Password updated."
+        },
+        "travelPrefs": {
+            "title": "Travel preferences",
+            "subtitle": "We use these to suggest places you might love.",
+            "interests": "Interests",
+            "interestsPlaceholder": "Search interests…",
+            "pickUpTo8": "Pick up to 8.",
+            "travelerType": "What kind of traveler are you?",
+            "travelerTypePlaceholder": "Search traveler styles…",
+            "pickUpTo4": "Pick up to 4.",
+            "placesToVisit": "Places you'd like to visit",
+            "loadingCountries": "Loading countries…",
+            "searchCountries": "Search countries…",
+            "pickUpTo8Countries": "Pick up to 8 countries.",
+            "companions": "Who do you usually travel with?",
+            "pickAnyThatApply": "Pick any that apply…",
+            "companionsHelper": "Optional. We use this to bias trip suggestions.",
+            "kidsAges": "Kids' age ranges",
+            "kidsAgesHelper": "Optional. Coarse ranges only — we don't store exact ages or names.",
+            "save": "Save travel preferences",
+            "saved": "Travel preferences saved.",
+            "saveFailed": "Could not save travel preferences."
+        },
+        "deleteAccount": {
+            "title": "Delete account",
+            "subtitle": "Permanently close your account. This cancels any active subscription and signs you out. Trips you organize remain for the other participants, but you'll lose access to them — and you can't undo this yourself.",
+            "deleteCta": "Delete my account",
+            "warning": "This is permanent and can't be undone. When you delete your account:",
+            "bullet1": "Your account is closed.",
+            "bullet2": "Any active subscription is cancelled.",
+            "bullet3": "Trips you organize remain for the other participants, but you'll lose access to them.",
+            "bullet4": "You'll be signed out right away.",
+            "typeToConfirm": "Type DELETE to confirm",
+            "deleting": "Deleting…",
+            "deleteFailed": "Could not delete your account. Please try again."
         }
     },
     "nav": {
@@ -1073,5 +1181,226 @@
         "save": "Save",
         "cancel": "Cancel",
         "saving": "Saving…"
+    },
+    "trips": {
+        "title": "My Trips",
+        "loading": "Loading trips…",
+        "paginationAria": "Trips pagination",
+        "summary": {
+            "count_one": "{{count}} trip",
+            "count_other": "{{count}} trips",
+            "planning": "{{count}} planning",
+            "confirmed": "{{count}} confirmed",
+            "completed": "{{count}} completed"
+        },
+        "actions": {
+            "select": "Select",
+            "planNew": "+ Plan new trip",
+            "planNewAria": "Plan new trip"
+        },
+        "filters": {
+            "all": "All",
+            "planning": "Planning",
+            "confirmed": "Confirmed",
+            "completed": "Completed"
+        },
+        "select": {
+            "regionLabel": "Selection actions",
+            "selectedCount": "{{count}} selected",
+            "onThisView_one": "{{count}} on this view",
+            "onThisView_other": "{{count}} on this view",
+            "selectAll": "Select all",
+            "delete": "Delete",
+            "deleteN": "Delete {{count}}",
+            "cancelAria": "Cancel selection"
+        },
+        "empty": {
+            "category": "No trips in this category yet."
+        },
+        "error": {
+            "title": "We couldn't load your trips",
+            "sub": "Something went wrong on our end. Check your connection and try again in a moment.",
+            "retrying": "Retrying…",
+            "tryAgain": "Try again"
+        },
+        "deleteDialog": {
+            "title_one": "Delete {{count}} trip?",
+            "title_other": "Delete {{count}} trips?",
+            "body_one": "This will remove the trip from your list. Participants you invited will be notified, and the data is removed from your account.",
+            "body_other": "This will remove the trips from your list. Participants you invited will be notified, and the data is removed from your account.",
+            "cancel": "Cancel",
+            "deleting": "Deleting…",
+            "confirm": "Delete {{count}}"
+        },
+        "toast": {
+            "deleted_one": "Trip deleted.",
+            "deleted_other": "{{count}} trips deleted.",
+            "partialDelete": "Deleted {{ok}} of {{total}} trips. {{failed}} couldn't be removed — try again."
+        }
+    },
+    "visited": {
+        "title": "Visited Places",
+        "heading": "Where you've been",
+        "viewOnMap": "View on map",
+        "loading": "Loading…",
+        "error": "Could not load your visited list",
+        "empty": {
+            "heading": "No visited places yet.",
+            "hintBefore": "Complete a trip or mark a destination as visited to start building your travel history. Open a country or place and tap",
+            "hintEmphasis": "\"I've been here\"",
+            "hintAfter": ", or plan a trip and it lands here when it’s done.",
+            "cta": "Build your first trip"
+        },
+        "tabs": {
+            "countries": "Countries",
+            "cities": "Cities",
+            "places": "Places"
+        },
+        "emptyTab": {
+            "countries": "No countries marked yet.",
+            "cities": "No cities marked yet.",
+            "places": "No places marked yet."
+        },
+        "visitedOn": "Visited on {{date}}",
+        "source": {
+            "itinerary": "From itinerary",
+            "manual": "Marked manually"
+        },
+        "fromTripBefore": "From",
+        "moreCount": "+{{count}} more",
+        "viewTrip": "View trip",
+        "remove": {
+            "title": "Remove from visited",
+            "label": "Remove"
+        },
+        "categoriesAria": "Visited categories",
+        "paginationAria": "{{tab}} pagination"
+    },
+    "atlas": {
+        "title": "Travel Atlas",
+        "canvasAria": "World map of places you have visited",
+        "friendsCount_one": "{{count}} friend",
+        "friendsCount_other": "{{count}} friends",
+        "noCoordsCity": "No coordinates yet for this city",
+        "noCoordsPlace": "No coordinates for this place yet",
+        "setup": {
+            "title": "Map setup needed",
+            "bodyBefore": "Set",
+            "bodyAfter": "in your environment to enable the map. Grab a free token at"
+        },
+        "selection": {
+            "country": "Country",
+            "city": "City",
+            "place": "Place",
+            "countryCode": "Country · {{code}}",
+            "cityWithCountry": "{{country}} · City"
+        },
+        "controls": {
+            "projectionGroup": "Map projection",
+            "themeGroup": "Map theme",
+            "globe": "Globe",
+            "flat": "Flat",
+            "day": "Day",
+            "night": "Night",
+            "globeTitle": "Globe view",
+            "flatTitle": "Flat map",
+            "dayTitle": "Day map",
+            "nightTitle": "Night map",
+            "switchToFlat": "Switch to flat map",
+            "switchToGlobe": "Switch to globe view",
+            "switchToNight": "Switch to night map",
+            "switchToDay": "Switch to day map"
+        },
+        "stats": {
+            "countries": "countries",
+            "cities": "cities",
+            "places": "places",
+            "friends": "friends",
+            "summaryAria": "Your travel atlas summary",
+            "hide": "Hide stats",
+            "worldExplored": "{{pct}}% of the world explored",
+            "continentExplored": "{{pct}}% of {{continent}} explored",
+            "explorerLevel": "Explorer level",
+            "furthest": "Furthest destination",
+            "milesFromHome": "{{miles}} mi from home"
+        },
+        "level": {
+            "worldCitizen": "World Citizen",
+            "globeTrekker": "Globe Trekker",
+            "worldExplorer": "World Explorer",
+            "frequentTraveler": "Frequent Traveler",
+            "beginnerExplorer": "Beginner Explorer",
+            "newExplorer": "New Explorer"
+        },
+        "empty": {
+            "countries": "No visited countries yet.",
+            "cities": "No visited cities yet.",
+            "places": "No visited places yet.",
+            "friends": "No friends sharing visits yet."
+        },
+        "layerName": {
+            "countries": "Countries",
+            "cities": "Cities",
+            "places": "Places",
+            "friends": "Friends"
+        },
+        "intro": {
+            "hide": "Hide intro",
+            "title": "Your travel atlas",
+            "sub": "Every country, city, and place you’ve visited — on one living world map.",
+            "legendCountries": "<strong>Countries</strong> shaded green.",
+            "legendCities": "<strong>Cities</strong> as green rings.",
+            "legendPlaces": "<strong>Places</strong> as orange pins.",
+            "legendFriends": "<strong>Friends’</strong> visits in purple — tap to see who.",
+            "tip": "Tap a country, pin, or dropdown to fly anywhere on the globe."
+        },
+        "pills": {
+            "stats": "Stats",
+            "statsTitle": "Travel stats",
+            "about": "About",
+            "aboutTitle": "About Travel Atlas"
+        },
+        "trips": {
+            "close": "Close trips panel",
+            "count_one": "<strong>{{count}}</strong> trip",
+            "count_other": "<strong>{{count}}</strong> trips",
+            "untitled": "Untitled trip",
+            "more": "+ {{count}} more"
+        },
+        "paywall": {
+            "title": "Travel Atlas is a Pro feature",
+            "body": "Visualize every country and place you’ve visited, with shaded regions and pinpoints. Upgrade to unlock the full map.",
+            "upgrade": "Upgrade to Pro",
+            "seeVisited": "See visited list",
+            "modalTitle": "Unlock Travel Atlas",
+            "modalHeadline": "Take your travel history out of a list and onto a beautiful world map.",
+            "modalBody": "Travel Atlas shades every country you've visited and pins every place — a living record of your travels. Available on every Pro plan."
+        },
+        "dropdown": {
+            "nothingHere": "Nothing here yet.",
+            "hideOnMap": "Hide {{label}} on map",
+            "showOnMap": "Show {{label}} on map",
+            "tripsOnFile_one": "{{count}} trip on file",
+            "tripsOnFile_other": "{{count}} trips on file"
+        },
+        "layers": {
+            "title": "Layers",
+            "hide": "Hide {{label}}",
+            "show": "Show {{label}}",
+            "back": "Back to layers",
+            "nothingHere": "Nothing here yet."
+        },
+        "popup": {
+            "viewDetail": "View detail",
+            "viewTrip": "View trip",
+            "viewCity": "View city",
+            "fromTrip": "From a trip",
+            "markedVisited": "Marked visited",
+            "fromTripName": "From {{trip}}",
+            "visitedOnTrips": "Visited on {{count}} trips",
+            "visitedDate": "Visited {{date}}",
+            "visitedBy": "Visited by",
+            "you": "You"
+        }
     }
 }

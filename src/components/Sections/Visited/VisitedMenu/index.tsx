@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
@@ -25,14 +26,26 @@ const ICONS: Record<VisitedTabKey, React.ElementType> = {
 };
 
 const VisitedMenu = ({ active, onChange, counts }: VisitedMenuProps) => {
+    const { t } = useTranslation();
     const items: VisitedMenuItem[] = [
-        { key: 'countries', label: 'Countries', count: counts.countries },
-        { key: 'cities', label: 'Cities', count: counts.cities },
-        { key: 'places', label: 'Places', count: counts.places },
+        {
+            key: 'countries',
+            label: t('visited.tabs.countries'),
+            count: counts.countries,
+        },
+        { key: 'cities', label: t('visited.tabs.cities'), count: counts.cities },
+        {
+            key: 'places',
+            label: t('visited.tabs.places'),
+            count: counts.places,
+        },
     ];
 
     return (
-        <nav className="visited-menu" aria-label="Visited categories">
+        <nav
+            className="visited-menu"
+            aria-label={t('visited.categoriesAria')}
+        >
             {items.map((item) => {
                 const Icon = ICONS[item.key];
                 const isActive = active === item.key;

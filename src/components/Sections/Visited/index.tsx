@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
@@ -31,11 +32,15 @@ import {
 } from 'constants';
 import type { VisitedPlace } from 'types';
 
-const sourceLabel = (source: VisitedPlace['source']): string =>
-    source === VISITED_SOURCE.ITINERARY ? 'From itinerary' : 'Marked manually';
-
 const Visited = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
+
+    const sourceLabel = (source: VisitedPlace['source']): string =>
+        source === VISITED_SOURCE.ITINERARY
+            ? t('visited.source.itinerary')
+            : t('visited.source.manual');
+
     const { data, isLoading, isError, error } = useVisitedPlaces();
     const {
         data: countriesData,
@@ -92,26 +97,30 @@ const Visited = () => {
     const endIdx = startIdx + LIST_PAGE_SIZE;
 
     return (
-        <Layout title="Visited Places">
+        <Layout title={t('visited.title')}>
             <div className="visited-page">
                 <header className="visited-page-header">
                     <div className="visited-page-header-text">
-                        <h1 className="visited-page-title">Where you've been</h1>
+                        <h1 className="visited-page-title">
+                            {t('visited.heading')}
+                        </h1>
                     </div>
                     <Link to="/my-map" className="visited-page-map-link">
                         <MapRoundedIcon className="visited-page-map-link-icon" />
-                        <span>View on map</span>
+                        <span>{t('visited.viewOnMap')}</span>
                     </Link>
                 </header>
 
-                {anyLoading && <p className="visited-page-msg">Loading…</p>}
+                {anyLoading && (
+                    <p className="visited-page-msg">{t('visited.loading')}</p>
+                )}
 
                 {anyError && (
                     <p
                         className="visited-page-msg visited-page-error"
                         role="alert"
                     >
-                        Could not load your visited list
+                        {t('visited.error')}
                         {error instanceof Error ? ` — ${error.message}` : ''}.
                     </p>
                 )}
@@ -119,18 +128,17 @@ const Visited = () => {
                 {!anyLoading && !anyError && allEmpty && (
                     <div className="visited-page-empty">
                         <CheckCircleRoundedIcon className="visited-page-empty-icon" />
-                        <p>No visited places yet.</p>
+                        <p>{t('visited.empty.heading')}</p>
                         <p className="visited-page-empty-hint">
-                            Complete a trip or mark a destination as visited to
-                            start building your travel history. Open a country
-                            or place and tap <em>"I've been here"</em>, or plan
-                            a trip and it lands here when it&rsquo;s done.
+                            {t('visited.empty.hintBefore')}{' '}
+                            <em>{t('visited.empty.hintEmphasis')}</em>
+                            {t('visited.empty.hintAfter')}
                         </p>
                         <ButtonIcon
                             type={BUTTON_VARIANT.STANDARD}
                             Icon={FlightTakeoffRoundedIcon}
                             iconPosition="start"
-                            title="Build your first trip"
+                            title={t('visited.empty.cta')}
                             className="visited-empty-cta"
                             onClick={() => navigate('/single')}
                         />
@@ -151,7 +159,7 @@ const Visited = () => {
                             {activeTab === 'countries' && (
                                 countryTotal === 0 ? (
                                     <p className="visited-page-msg">
-                                        No countries marked yet.
+                                        {t('visited.emptyTab.countries')}
                                     </p>
                                 ) : (
                                     <ul className="visited-list">
@@ -179,18 +187,26 @@ const Visited = () => {
                                                                 {c.countryCode}
                                                             </span>
                                                             <span className="visited-card-meta">
-                                                                Visited on{' '}
-                                                                {formatDate(
-                                                                    c.visitedAt,
-                                                                    'MMM D, YYYY'
+                                                                {t(
+                                                                    'visited.visitedOn',
+                                                                    {
+                                                                        date: formatDate(
+                                                                            c.visitedAt,
+                                                                            'MMM D, YYYY'
+                                                                        ),
+                                                                    }
                                                                 )}
                                                             </span>
                                                         </div>
                                                     </Link>
                                                     <div className="visited-card-actions">
                                                         <DeleteBtn
-                                                            title="Remove from visited"
-                                                            label="Remove"
+                                                            title={t(
+                                                                'visited.remove.title'
+                                                            )}
+                                                            label={t(
+                                                                'visited.remove.label'
+                                                            )}
                                                             targetName={
                                                                 c.countryName
                                                             }
@@ -213,7 +229,7 @@ const Visited = () => {
                             {activeTab === 'cities' && (
                                 cityTotal === 0 ? (
                                     <p className="visited-page-msg">
-                                        No cities marked yet.
+                                        {t('visited.emptyTab.cities')}
                                     </p>
                                 ) : (
                                     <ul className="visited-list">
@@ -247,18 +263,26 @@ const Visited = () => {
                                                                 ({c.countryCode})
                                                             </span>
                                                             <span className="visited-card-meta">
-                                                                Visited on{' '}
-                                                                {formatDate(
-                                                                    c.visitedAt,
-                                                                    'MMM D, YYYY'
+                                                                {t(
+                                                                    'visited.visitedOn',
+                                                                    {
+                                                                        date: formatDate(
+                                                                            c.visitedAt,
+                                                                            'MMM D, YYYY'
+                                                                        ),
+                                                                    }
                                                                 )}
                                                             </span>
                                                         </div>
                                                     </Link>
                                                     <div className="visited-card-actions">
                                                         <DeleteBtn
-                                                            title="Remove from visited"
-                                                            label="Remove"
+                                                            title={t(
+                                                                'visited.remove.title'
+                                                            )}
+                                                            label={t(
+                                                                'visited.remove.label'
+                                                            )}
                                                             targetName={
                                                                 c.cityName
                                                             }
@@ -281,7 +305,7 @@ const Visited = () => {
                             {activeTab === 'places' && (
                                 total === 0 ? (
                                     <p className="visited-page-msg">
-                                        No places marked yet.
+                                        {t('visited.emptyTab.places')}
                                     </p>
                                 ) : (
                                     <ul className="visited-list">
@@ -314,10 +338,14 @@ const Visited = () => {
                                                                 {v.placeCountry}
                                                             </span>
                                                             <span className="visited-card-meta">
-                                                                Visited on{' '}
-                                                                {formatDate(
-                                                                    v.visitedAt,
-                                                                    'MMM D, YYYY'
+                                                                {t(
+                                                                    'visited.visitedOn',
+                                                                    {
+                                                                        date: formatDate(
+                                                                            v.visitedAt,
+                                                                            'MMM D, YYYY'
+                                                                        ),
+                                                                    }
                                                                 )}
                                                                 {' · '}
                                                                 {sourceLabel(
@@ -331,7 +359,9 @@ const Visited = () => {
                                                                     .tripName && (
                                                                     <span className="visited-card-trip">
                                                                         <LuggageRoundedIcon className="visited-card-trip-icon" />
-                                                                        From{' '}
+                                                                        {t(
+                                                                            'visited.fromTripBefore'
+                                                                        )}{' '}
                                                                         <strong>
                                                                             {
                                                                                 v
@@ -342,7 +372,16 @@ const Visited = () => {
                                                                         {v.trips
                                                                             .length >
                                                                         1
-                                                                            ? ` +${v.trips.length - 1} more`
+                                                                            ? ` ${t(
+                                                                                  'visited.moreCount',
+                                                                                  {
+                                                                                      count:
+                                                                                          v
+                                                                                              .trips
+                                                                                              .length -
+                                                                                          1,
+                                                                                  }
+                                                                              )}`
                                                                             : ''}
                                                                     </span>
                                                                 )}
@@ -359,12 +398,18 @@ const Visited = () => {
                                                                     )}`}
                                                                     className="visited-card-trip-link"
                                                                 >
-                                                                    View trip
+                                                                    {t(
+                                                                        'visited.viewTrip'
+                                                                    )}
                                                                 </Link>
                                                             )}
                                                         <DeleteBtn
-                                                            title="Remove from visited"
-                                                            label="Remove"
+                                                            title={t(
+                                                                'visited.remove.title'
+                                                            )}
+                                                            label={t(
+                                                                'visited.remove.label'
+                                                            )}
                                                             targetName={
                                                                 v.placeName
                                                             }
@@ -389,7 +434,9 @@ const Visited = () => {
                                     page={safePage}
                                     totalPages={totalPages}
                                     onPageChange={handlePageChange}
-                                    ariaLabel={`${activeTab} pagination`}
+                                    ariaLabel={t('visited.paginationAria', {
+                                        tab: t(`visited.tabs.${activeTab}`),
+                                    })}
                                 />
                             )}
                         </section>
