@@ -17,6 +17,7 @@
  */
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
@@ -62,6 +63,7 @@ const SeasonalBestPlaces = () => {
 };
 
 const SeasonalBestPlacesActive = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { data, isLoading, isError } = useSeasonalBestPlaces();
@@ -104,10 +106,10 @@ const SeasonalBestPlacesActive = () => {
                             className="seasonal-best-places-eyebrow-icon"
                             fontSize="small"
                         />
-                        <span>Best places this month</span>
+                        <span>{t('homeCards.seasonalBestPlaces.eyebrow')}</span>
                     </span>
                     <h2 className="seasonal-best-places-title">
-                        Curating this month&rsquo;s seasonal picks&hellip;
+                        {t('homeCards.seasonalBestPlaces.loadingTitle')}
                     </h2>
                 </header>
                 <div className="seasonal-best-places-grid">
@@ -127,14 +129,15 @@ const SeasonalBestPlacesActive = () => {
                         className="seasonal-best-places-eyebrow-icon"
                         fontSize="small"
                     />
-                    <span>Best places this month</span>
+                    <span>{t('homeCards.seasonalBestPlaces.eyebrow')}</span>
                 </span>
                 <h2 className="seasonal-best-places-title">
-                    Where the season is right in {monthLabel(localKey)}
+                    {t('homeCards.seasonalBestPlaces.title', {
+                        month: monthLabel(localKey),
+                    })}
                 </h2>
                 <p className="seasonal-best-places-subtitle">
-                    Six destinations whose weather, festivals, or natural
-                    moments make this month the time to go.
+                    {t('homeCards.seasonalBestPlaces.subtitle')}
                 </p>
             </header>
             <div className="seasonal-best-places-grid">

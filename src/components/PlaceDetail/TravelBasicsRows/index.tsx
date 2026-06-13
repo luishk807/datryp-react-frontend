@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import CreditCardRoundedIcon from "@mui/icons-material/CreditCardRounded";
@@ -11,10 +12,10 @@ import InfoRowList, {
 } from "components/PlaceDetail/InfoRowList";
 import type { TravelBasics } from "types";
 
-const PAYMENT_LABEL: Record<TravelBasics["paymentMethod"], string> = {
-  cash: "Mostly cash",
-  card: "Cards widely accepted",
-  mixed: "Mixed (card + cash)",
+const PAYMENT_LABEL_KEY: Record<TravelBasics["paymentMethod"], string> = {
+  cash: "detail.common.travelBasics.paymentCash",
+  card: "detail.common.travelBasics.paymentCard",
+  mixed: "detail.common.travelBasics.paymentMixed",
 };
 
 export interface TravelBasicsRowsProps {
@@ -22,45 +23,46 @@ export interface TravelBasicsRowsProps {
 }
 
 const TravelBasicsRows = ({ basics }: TravelBasicsRowsProps) => {
+  const { t } = useTranslation();
   const rows: InfoRow[] = [
     {
       icon: <LocalTaxiRoundedIcon />,
-      label: "Getting around",
+      label: t('detail.common.travelBasics.gettingAround'),
       value: basics.preferredTransport,
     },
     {
       icon: <DirectionsBusRoundedIcon />,
-      label: "Transit system",
+      label: t('detail.common.travelBasics.transitSystem'),
       value: basics.transportSystem,
     },
     {
       icon: <CreditCardRoundedIcon />,
-      label: "Payment",
+      label: t('detail.common.travelBasics.payment'),
       value: (
         <>
-          <strong>{PAYMENT_LABEL[basics.paymentMethod]}</strong>
+          <strong>{t(PAYMENT_LABEL_KEY[basics.paymentMethod])}</strong>
           <span className="info-rows-sub"> — {basics.paymentNote}</span>
         </>
       ),
     },
     {
       icon: <TranslateRoundedIcon />,
-      label: "Language",
+      label: t('detail.common.travelBasics.language'),
       value: basics.language,
     },
     {
       icon: <CelebrationRoundedIcon />,
-      label: "Vibe",
+      label: t('detail.common.travelBasics.vibe'),
       value: basics.vibe,
     },
     {
       icon: <GroupsRoundedIcon />,
-      label: "Good for",
+      label: t('detail.common.travelBasics.goodFor'),
       value: basics.audience,
     },
     {
       icon: <CakeRoundedIcon />,
-      label: "Age range",
+      label: t('detail.common.travelBasics.ageRange'),
       value: basics.ageRecommendation,
     },
   ];

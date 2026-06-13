@@ -1,4 +1,5 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import classnames from "classnames";
 import "./index.scss";
 import { Tooltip } from "@mui/material";
@@ -57,6 +58,7 @@ import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
 import type { Activity, Destination } from "types";
 
 const CountryDetail = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useTripDispatch();
@@ -253,9 +255,10 @@ const CountryDetail = () => {
   if (!code) {
     return (
       <ErrorPage
-        pageTitle="Country"
-        title="No country selected"
-        description="Pick a country from the search to see its details."
+        pageTitle={t('detail.country.pageTitle')}
+        title={t('detail.country.noneSelected')}
+        description={t('detail.country.noneSelectedDesc')}
+        primaryActionLabel={t('detail.common.goHome')}
       />
     );
   }
@@ -293,15 +296,17 @@ const CountryDetail = () => {
             className="country-detail-quick-main"
             role="status"
             aria-live="polite"
-            aria-label={`Loading ${loadingName} details`}
+            aria-label={t('detail.common.loadingDetails', {
+              name: loadingName,
+            })}
           >
             <ParagraphSection
-              title={`About ${loadingName}`}
+              title={t('detail.common.about', { name: loadingName })}
               description={undefined}
               isError={false}
             />
             <ParagraphSection
-              title="Budget"
+              title={t('detail.country.budget')}
               description={undefined}
               isError={false}
             />
@@ -314,14 +319,15 @@ const CountryDetail = () => {
   if (isError || !country) {
     return (
       <ErrorPage
-        pageTitle="Error"
-        title="Could not load this country"
+        pageTitle={t('detail.common.errorPageTitle')}
+        title={t('detail.country.errorTitle')}
         description={
           error instanceof Error
             ? error.message
-            : `No country with code "${code}".`
+            : t('detail.country.notFound', { code })
         }
-        secondaryAction={{ label: "Back to home", to: "/" }}
+        secondaryAction={{ label: t('detail.common.backToHome'), to: "/" }}
+        primaryActionLabel={t('detail.common.goHome')}
       />
     );
   }
@@ -350,7 +356,8 @@ const CountryDetail = () => {
             onClick={handleBack}
             className="country-detail-back-link"
           >
-            <ArrowBackRoundedIcon fontSize="small" /> Back
+            <ArrowBackRoundedIcon fontSize="small" />{' '}
+            {t('detail.common.back')}
           </button>
           <div className="country-detail-toolbar-actions">
             {/* Group Bookmark + Visited + Share so mobile CSS can lift
@@ -368,7 +375,7 @@ const CountryDetail = () => {
               <AddToBucketButton kind="country" name={country.name} />
               <ShareButton
                 title={country.name}
-                subtitle="Country"
+                subtitle={t('detail.country.shareSubtitle')}
                 imageUrl={country.image}
                 description={details.countryHighlight}
                 url={
@@ -395,10 +402,10 @@ const CountryDetail = () => {
               <span className="country-detail-plan-cta-text">
                 <span className="country-detail-plan-cta-label">
                   {seedMatchesThisCountry
-                    ? "Plan trip with these picks"
+                    ? t('detail.country.planWithPicks')
                     : tripType.id === TRIP_BASIC.MULTIPLE.id
-                      ? "Start multi-destination trip"
-                      : "Start planning"}
+                      ? t('detail.common.startMultiTrip')
+                      : t('detail.common.startPlanning')}
                 </span>
                 <span className="country-detail-plan-cta-target">
                   {country.name}
@@ -471,24 +478,26 @@ const CountryDetail = () => {
           <p className="country-detail-highlight">{details.countryHighlight}</p>
           <p className="country-detail-meta">
             <span>
-              <strong>Capital:</strong> {details.capitalCity}
+              <strong>{t('detail.country.capital')}</strong>{" "}
+              {details.capitalCity}
             </span>
             {/* `travelBasics` arrives with the facts slice — render the
                 Language line only once it lands so a cold first paint (prose
                 only) doesn't dereference an undefined object. */}
             {details.travelBasics?.language && (
               <span>
-                <strong>Language:</strong> {details.travelBasics.language}
+                <strong>{t('detail.country.language')}</strong>{" "}
+                {details.travelBasics.language}
               </span>
             )}
           </p>
           {(details.touristRating ?? 0) > 0 && (
             <div className="country-detail-rating">
-              <Tooltip title="Overall rating" arrow>
+              <Tooltip title={t('detail.common.overallRating')} arrow>
                 <span
                   className="country-detail-rating-icon"
                   role="img"
-                  aria-label="Overall rating"
+                  aria-label={t('detail.common.overallRating')}
                 >
                   <PublicRoundedIcon />
                 </span>
@@ -507,7 +516,7 @@ const CountryDetail = () => {
         <div className="country-detail-content">
           <div className="country-detail-content-main">
             <ParagraphSection
-              title={`About ${country.name}`}
+              title={t('detail.common.about', { name: country.name })}
               description={details.longDescription}
               isError={false}
             />
@@ -573,7 +582,7 @@ const CountryDetail = () => {
 
         <div className="country-detail-extras">
           <MainSection
-            title={`Top 5 cities in ${country.name}`}
+            title={t('detail.common.top5.cities', { name: country.name })}
             icon={<LocationCityRoundedIcon />}
           >
             <ul className="country-top-cities">
@@ -595,17 +604,17 @@ const CountryDetail = () => {
           </MainSection>
 
           <TipListSection
-            title="Top 5 foods to try"
+            title={t('detail.common.top5.foods')}
             icon={<RestaurantRoundedIcon />}
             items={details.foods}
           />
           <TipListSection
-            title="Top 5 things to do"
+            title={t('detail.common.top5.things')}
             icon={<HikingRoundedIcon />}
             items={details.thingsToDo}
           />
           <TipListSection
-            title="Top 5 photo spots"
+            title={t('detail.common.top5.photoSpots')}
             icon={<PhotoCameraRoundedIcon />}
             items={details.photoSpots}
           />

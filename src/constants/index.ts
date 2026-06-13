@@ -135,11 +135,6 @@ export const ADD_METHOD = {
   CUSTOM: "custom",
 } as const;
 
-export const AUTH_LABEL = {
-  LOGIN: "Login",
-  SIGNUP: "Sign Up",
-} as const;
-
 export const BUTTON_VARIANT = {
   PLAIN: "plain",
   TEXT: "text",

@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import classnames from "classnames";
 import "./index.scss";
 import { Tooltip } from "@mui/material";
@@ -60,6 +61,7 @@ import { getPlaceKey } from "utils/placeKey";
 import { formatDate } from "utils/date";
 
 const PlaceDetail = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const query = (searchParams.get("q") ?? "").trim();
   const index = Number(searchParams.get("i") ?? "0");
@@ -207,9 +209,10 @@ const PlaceDetail = () => {
   if (!query) {
     return (
       <ErrorPage
-        pageTitle="Place"
-        title="No place selected"
-        description="Open this page from a search result to see its details."
+        pageTitle={t('detail.place.pageTitle')}
+        title={t('detail.place.noneSelected')}
+        description={t('detail.place.noneSelectedDesc')}
+        primaryActionLabel={t('detail.common.goHome')}
       />
     );
   }
@@ -219,7 +222,7 @@ const PlaceDetail = () => {
     // query + fast image endpoint) so the page feels instant, with the
     // recommender-backed body filling in once the search resolves.
     return (
-      <Layout title={query ? `${query}…` : "Loading…"}>
+      <Layout title={query ? `${query}…` : t('detail.place.loading')}>
         <article className="place-detail place-detail--loading">
           {/* Same hero+side grid as the loaded page so the hero keeps its
               size across the transition (it used to be full-width here, then
@@ -247,7 +250,11 @@ const PlaceDetail = () => {
             className="place-detail-loading-body"
             role="status"
             aria-live="polite"
-            aria-label={query ? `Loading ${query} details` : "Loading details"}
+            aria-label={
+              query
+                ? t('detail.common.loadingDetails', { name: query })
+                : t('detail.place.loadingDetailsGeneric')
+            }
           >
             <ParagraphSkeleton lines={7} />
           </div>
@@ -259,12 +266,18 @@ const PlaceDetail = () => {
   if (isError) {
     return (
       <ErrorPage
-        pageTitle="Error"
-        title="Could not load this place"
+        pageTitle={t('detail.common.errorPageTitle')}
+        title={t('detail.place.errorTitle')}
         description={
-          error instanceof Error ? error.message : 'Something went wrong.'
+          error instanceof Error
+            ? error.message
+            : t('detail.place.somethingWrong')
         }
-        secondaryAction={{ label: `Back to "${query}"`, to: backUrl }}
+        secondaryAction={{
+          label: t('detail.place.backToQuery', { query }),
+          to: backUrl,
+        }}
+        primaryActionLabel={t('detail.common.goHome')}
       />
     );
   }
@@ -272,10 +285,17 @@ const PlaceDetail = () => {
   if (!place) {
     return (
       <ErrorPage
-        pageTitle="Not found"
-        title="Place not found"
-        description={`No place at position ${index + 1} for "${query}".`}
-        secondaryAction={{ label: 'Back to results', to: backUrl }}
+        pageTitle={t('detail.place.notFoundPageTitle')}
+        title={t('detail.place.notFoundTitle')}
+        description={t('detail.place.notFoundDesc', {
+          position: index + 1,
+          query,
+        })}
+        secondaryAction={{
+          label: t('detail.place.backToResults'),
+          to: backUrl,
+        }}
+        primaryActionLabel={t('detail.common.goHome')}
       />
     );
   }
@@ -290,8 +310,8 @@ const PlaceDetail = () => {
           })}
         >
           <Link to={backUrl} className="place-detail-back-link">
-            <ArrowBackRoundedIcon fontSize="small" /> Back to &ldquo;{query}
-            &rdquo;
+            <ArrowBackRoundedIcon fontSize="small" />{" "}
+            {t('detail.place.backToQueryQuoted', { query })}
           </Link>
           <div className="place-detail-toolbar-actions">
             {/* Bookmark + Visited + Share are grouped so the mobile
@@ -398,21 +418,23 @@ const PlaceDetail = () => {
             <p
               className="place-detail-visited-on"
               role="status"
-              aria-label="You have visited this place"
+              aria-label={t('detail.place.visitedAria')}
             >
               <CheckCircleRoundedIcon
                 className="place-detail-visited-on-icon"
                 fontSize="small"
               />
-              Visited on {formatDate(visitedRecord.visitedAt, "MMM D, YYYY")}
+              {t('detail.place.visitedOn', {
+                date: formatDate(visitedRecord.visitedAt, "MMM D, YYYY"),
+              })}
             </p>
           )}
           <div className="place-detail-meta">
-            <Tooltip title="Overall rating" arrow>
+            <Tooltip title={t('detail.common.overallRating')} arrow>
               <span
                 className="place-detail-meta-icon"
                 role="img"
-                aria-label="Overall rating"
+                aria-label={t('detail.common.overallRating')}
               >
                 <PublicRoundedIcon />
               </span>
@@ -420,18 +442,21 @@ const PlaceDetail = () => {
             <Stars rating={place.rating} />
           </div>
           {googleRating?.rating != null && (
-            <Tooltip title="View on Google Maps" arrow>
+            <Tooltip title={t('detail.place.viewOnGoogleMaps')} arrow>
               <a
                 className="place-detail-meta place-detail-google-rating"
                 href={googleRating.googleMapsUri ?? '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={
-                  `Google rating ${googleRating.rating.toFixed(1)} out of 5` +
-                  (googleRating.userRatingCount
-                    ? ` based on ${googleRating.userRatingCount.toLocaleString()} reviews`
-                    : '') +
-                  ' (opens Google Maps)'
+                  googleRating.userRatingCount
+                    ? t('detail.place.googleRatingAriaCount', {
+                        rating: googleRating.rating.toFixed(1),
+                        n: googleRating.userRatingCount.toLocaleString(),
+                      })
+                    : t('detail.place.googleRatingAria', {
+                        rating: googleRating.rating.toFixed(1),
+                      })
                 }
               >
                 <span className="place-detail-meta-icon place-detail-google-icon">
@@ -478,7 +503,7 @@ const PlaceDetail = () => {
             />
 
             <ParagraphSection
-              title={`About ${place.country}`}
+              title={t('detail.common.about', { name: place.country })}
               description={detailsQuery.data?.details.countryDescription}
               isError={proseError}
             />
@@ -561,30 +586,32 @@ const PlaceDetail = () => {
             block now; prose + facts sections above stay intact. */}
         {listsError ? (
           <p className="place-detail-error" role="alert">
-            Could not load extras:{" "}
-            {detailsProgressive.error instanceof Error
-              ? detailsProgressive.error.message
-              : "Unknown error"}
+            {t('detail.place.extrasError', {
+              message:
+                detailsProgressive.error instanceof Error
+                  ? detailsProgressive.error.message
+                  : t('detail.place.unknownError'),
+            })}
           </p>
         ) : (
           <div className="place-detail-extras">
             <TipListSection
-              title="Top 5 things to do"
+              title={t('detail.common.top5.things')}
               icon={<HikingRoundedIcon />}
               items={detailsQuery.data?.details.thingsToDo}
             />
             <TipListSection
-              title="Top 5 foods to try"
+              title={t('detail.common.top5.foods')}
               icon={<RestaurantRoundedIcon />}
               items={detailsQuery.data?.details.foods}
             />
             <TipListSection
-              title="Top 5 places to visit"
+              title={t('detail.common.top5.placesToVisit')}
               icon={<PlaceRoundedIcon />}
               items={detailsQuery.data?.details.placesToVisit}
             />
             <TipListSection
-              title="Top 5 photo spots"
+              title={t('detail.common.top5.photoSpots')}
               icon={<PhotoCameraRoundedIcon />}
               items={detailsQuery.data?.details.photoSpots}
             />

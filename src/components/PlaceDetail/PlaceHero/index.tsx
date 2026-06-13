@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import classNames from "classnames";
 import { usePhotoGallery } from "api/hooks/usePhotoSearch";
 import "./index.scss";
@@ -49,6 +50,7 @@ const PlaceHero = ({
   className,
   galleryQuery,
 }: PlaceHeroProps) => {
+  const { t } = useTranslation();
   const { data: galleryPhotos } = usePhotoGallery(galleryQuery ?? "", 4, {
     enabled: Boolean(galleryQuery?.trim()),
   });
@@ -105,7 +107,7 @@ const PlaceHero = ({
         <div
           className="place-hero-thumbs"
           role="tablist"
-          aria-label={`${name} photos`}
+          aria-label={t('detail.common.hero.photosAria', { name })}
         >
           {images.map((img, i) => (
             <button
@@ -113,7 +115,10 @@ const PlaceHero = ({
               type="button"
               role="tab"
               aria-selected={i === safeIdx}
-              aria-label={`Show photo ${i + 1} of ${images.length}`}
+              aria-label={t('detail.common.hero.showPhoto', {
+                i: i + 1,
+                total: images.length,
+              })}
               className={classNames("place-hero-thumb", {
                 "is-active": i === safeIdx,
               })}
@@ -127,26 +132,28 @@ const PlaceHero = ({
 
       {hasAttribution && (
         <span className="place-hero-attribution">
-          Photo by{" "}
-          {main.photographerUrl ? (
-            <a
-              href={main.photographerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {main.photographerName}
-            </a>
-          ) : (
-            main.photographerName
-          )}{" "}
-          on{" "}
-          <a
-            href="https://unsplash.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Unsplash
-          </a>
+          <Trans
+            i18nKey="home.attribution"
+            values={{ name: main.photographerName }}
+            components={{
+              author: main.photographerUrl ? (
+                <a
+                  href={main.photographerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              ) : (
+                <span />
+              ),
+              unsplash: (
+                <a
+                  href="https://unsplash.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              ),
+            }}
+          />
         </span>
       )}
     </div>

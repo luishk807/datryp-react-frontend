@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import SentimentVerySatisfiedRoundedIcon from "@mui/icons-material/SentimentVerySatisfiedRounded";
 import NightlifeRoundedIcon from "@mui/icons-material/NightlifeRounded";
 import LocalBarRoundedIcon from "@mui/icons-material/LocalBarRounded";
@@ -10,12 +11,12 @@ import MustDoList, {
 import type { LocalFlavor } from "types";
 import "./index.scss";
 
-const FUN_LEVEL_LABEL: Record<number, string> = {
-  1: "Very quiet",
-  2: "Relaxed",
-  3: "Balanced",
-  4: "Lively",
-  5: "High-energy",
+const FUN_LEVEL_LABEL_KEY: Record<number, string> = {
+  1: "detail.common.localFlavor.fun1",
+  2: "detail.common.localFlavor.fun2",
+  3: "detail.common.localFlavor.fun3",
+  4: "detail.common.localFlavor.fun4",
+  5: "detail.common.localFlavor.fun5",
 };
 
 export interface LocalFlavorBlockProps {
@@ -23,6 +24,7 @@ export interface LocalFlavorBlockProps {
 }
 
 const LocalFlavorBlock = ({ flavor }: LocalFlavorBlockProps) => {
+  const { t } = useTranslation();
   const level = Math.max(1, Math.min(5, Math.round(flavor.funLevel)));
   return (
     <div className="local-flavor">
@@ -32,7 +34,9 @@ const LocalFlavorBlock = ({ flavor }: LocalFlavorBlockProps) => {
           <span className="local-flavor-fun-icon" aria-hidden="true">
             <SentimentVerySatisfiedRoundedIcon />
           </span>
-          <span className="local-flavor-fun-label">Fun level</span>
+          <span className="local-flavor-fun-label">
+            {t('detail.common.localFlavor.funLevel')}
+          </span>
           <span className="local-flavor-fun-score">
             <strong>{level}</strong>
             <span className="local-flavor-fun-score-max">/5</span>
@@ -44,14 +48,18 @@ const LocalFlavorBlock = ({ flavor }: LocalFlavorBlockProps) => {
           aria-valuemin={1}
           aria-valuemax={5}
           aria-valuenow={level}
-          aria-label={`Fun level ${level} out of 5`}
+          aria-label={t('detail.common.localFlavor.funLevelAria', {
+            n: level,
+          })}
         >
           <div
             className="local-flavor-meter-fill"
             style={{ width: `${(level / 5) * 100}%` }}
           />
         </div>
-        <span className="local-flavor-fun-tag">{FUN_LEVEL_LABEL[level]}</span>
+        <span className="local-flavor-fun-tag">
+          {t(FUN_LEVEL_LABEL_KEY[level])}
+        </span>
       </div>
 
       {/* Three short labeled paragraphs. */}
@@ -59,21 +67,21 @@ const LocalFlavorBlock = ({ flavor }: LocalFlavorBlockProps) => {
         <div className="local-flavor-row">
           <span className="local-flavor-row-label">
             <NightlifeRoundedIcon className="local-flavor-row-icon" />
-            Nightlife
+            {t('detail.common.localFlavor.nightlife')}
           </span>
           <p className="local-flavor-row-text">{flavor.nightlife}</p>
         </div>
         <div className="local-flavor-row">
           <span className="local-flavor-row-label">
             <LocalBarRoundedIcon className="local-flavor-row-icon" />
-            Famous liquor
+            {t('detail.common.localFlavor.famousLiquor')}
           </span>
           <p className="local-flavor-row-text">{flavor.famousLiquor}</p>
         </div>
         <div className="local-flavor-row">
           <span className="local-flavor-row-label">
             <RedeemRoundedIcon className="local-flavor-row-icon" />
-            Souvenir
+            {t('detail.common.localFlavor.souvenir')}
           </span>
           <p className="local-flavor-row-text">{flavor.uniqueSouvenir}</p>
         </div>
@@ -83,7 +91,7 @@ const LocalFlavorBlock = ({ flavor }: LocalFlavorBlockProps) => {
       <div className="local-flavor-mustdo">
         <span className="local-flavor-mustdo-label">
           <StarsRoundedIcon className="local-flavor-row-icon" />
-          Don&rsquo;t leave without
+          {t('detail.common.localFlavor.dontLeaveWithout')}
         </span>
         <MustDoList items={flavor.mustDoBeforeLeaving} />
       </div>

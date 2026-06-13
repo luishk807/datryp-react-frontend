@@ -1,5 +1,7 @@
 import NewspaperRoundedIcon from '@mui/icons-material/NewspaperRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import DetailSection from 'components/PlaceDetail/DetailSection';
 import Skeleton from 'components/common/Skeleton';
 import { useLatestNews } from 'api/hooks/useLatestNews';
@@ -16,18 +18,18 @@ export interface LatestNewsSectionProps {
 /** Human-friendly "X hours ago" / "X days ago" style. Falls back to
  *  the raw date when too old to be relevant; returns empty string
  *  when the timestamp is missing. */
-const formatRelative = (iso: string | null): string => {
+const formatRelative = (iso: string | null, t: TFunction): string => {
     if (!iso) return '';
     const ts = Date.parse(iso);
     if (!Number.isFinite(ts)) return '';
     const diffMs = Date.now() - ts;
     const diffMin = Math.round(diffMs / 60_000);
-    if (diffMin < 1) return 'just now';
-    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffMin < 1) return t('detail.common.news.justNow');
+    if (diffMin < 60) return t('detail.common.news.minutesAgo', { n: diffMin });
     const diffHr = Math.round(diffMin / 60);
-    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffHr < 24) return t('detail.common.news.hoursAgo', { n: diffHr });
     const diffDay = Math.round(diffHr / 24);
-    if (diffDay <= 7) return `${diffDay}d ago`;
+    if (diffDay <= 7) return t('detail.common.news.daysAgo', { n: diffDay });
     try {
         return new Date(ts).toLocaleDateString(undefined, {
             month: 'short',
@@ -51,6 +53,7 @@ const formatRelative = (iso: string | null): string => {
  *   - 502 / no item → renders the "see more" link to the search page.
  */
 const LatestNewsSection = ({ country, placeName }: LatestNewsSectionProps) => {
+    const { t } = useTranslation();
     const region = (country ?? '').trim();
     const place = (placeName ?? '').trim();
     if (!region && !place) return null;
@@ -74,7 +77,10 @@ const LatestNewsSection = ({ country, placeName }: LatestNewsSectionProps) => {
     if (!isLoading && !item) return null;
 
     return (
-        <DetailSection title="Latest news" icon={<NewspaperRoundedIcon />}>
+        <DetailSection
+            title={t('detail.common.news.title')}
+            icon={<NewspaperRoundedIcon />}
+        >
             <div className="latest-news">
                 {isLoading && (
                     <>
@@ -108,7 +114,7 @@ const LatestNewsSection = ({ country, placeName }: LatestNewsSectionProps) => {
                                         </span>
                                     )}
                                     <span className="latest-news-time">
-                                        {formatRelative(item.publishedAt)}
+                                        {formatRelative(item.publishedAt, t)}
                                     </span>
                                 </>
                             )}
@@ -119,7 +125,7 @@ const LatestNewsSection = ({ country, placeName }: LatestNewsSectionProps) => {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <span>Go to source</span>
+                            <span>{t('detail.common.news.goToSource')}</span>
                             <OpenInNewRoundedIcon
                                 className="latest-news-cta-icon"
                                 fontSize="small"

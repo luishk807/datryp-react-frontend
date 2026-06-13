@@ -14,6 +14,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Dialog, Drawer, useMediaQuery } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -65,6 +66,7 @@ const FriendsVisitedBadge = ({
     placeKey,
     reviewKey,
 }: FriendsVisitedBadgeProps) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { data, isLoading } = useFriendsVisited(kind, placeKey, reviewKey);
     const [open, setOpen] = useState(false);
@@ -93,7 +95,9 @@ const FriendsVisitedBadge = ({
     // this page" — the chip stays out of the layout entirely.
     if (isLoading || !data || data.count === 0) return null;
 
-    const countLabel = `Visited by ${data.count}`;
+    const countLabel = t('detail.common.friends.visitedBy', {
+        n: data.count,
+    });
 
     const handleClose = () => {
         setOpen(false);
@@ -109,7 +113,9 @@ const FriendsVisitedBadge = ({
             <button
                 type="button"
                 className="friends-visited-badge-trigger"
-                aria-label={`${countLabel} — open friend list`}
+                aria-label={t('detail.common.friends.openAria', {
+                    label: countLabel,
+                })}
                 onClick={() => setOpen(true)}
             >
                 <AvatarStack
@@ -134,12 +140,12 @@ const FriendsVisitedBadge = ({
                     <div className="friends-visited-drawer">
                         <header className="friends-visited-drawer-head">
                             <h2 className="friends-visited-drawer-title">
-                                Friends who visited
+                                {t('detail.common.friends.title')}
                             </h2>
                             <button
                                 type="button"
                                 className="friends-visited-drawer-close"
-                                aria-label="Close"
+                                aria-label={t('detail.common.friends.close')}
                                 onClick={handleClose}
                             >
                                 <CloseRoundedIcon />
@@ -154,17 +160,23 @@ const FriendsVisitedBadge = ({
                             <input
                                 type="text"
                                 className="friends-visited-search-input"
-                                placeholder="Search friends..."
+                                placeholder={t(
+                                    'detail.common.friends.searchPlaceholder',
+                                )}
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                aria-label="Search friends"
+                                aria-label={t(
+                                    'detail.common.friends.searchAria',
+                                )}
                             />
                         </div>
 
                         <ul className="friends-visited-list">
                             {filteredFriends.length === 0 ? (
                                 <li className="friends-visited-empty">
-                                    No friends match &ldquo;{query}&rdquo;
+                                    {t('detail.common.friends.noMatch', {
+                                        query,
+                                    })}
                                 </li>
                             ) : (
                                 filteredFriends.map((friend) => (
@@ -216,8 +228,14 @@ const FriendsVisitedBadge = ({
                                                 </span>
                                             ) : null}
                                             <span className="friends-visited-row-date">
-                                                Visited{' '}
-                                                {formatVisitedAt(friend.visitedAt)}
+                                                {t(
+                                                    'detail.common.friends.visitedDate',
+                                                    {
+                                                        date: formatVisitedAt(
+                                                            friend.visitedAt,
+                                                        ),
+                                                    },
+                                                )}
                                             </span>
                                         </span>
                                     </li>

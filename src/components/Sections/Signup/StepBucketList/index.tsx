@@ -5,6 +5,7 @@
  * `onboarding_completed_at` and exits to `/`.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import { IconButton } from '@mui/material';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -22,6 +23,7 @@ export interface StepBucketListProps {
 }
 
 const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
+    const { t } = useTranslation();
     const { data: items = [] } = useBucketList();
     const add = useAddBucketListItem();
     const remove = useDeleteBucketListItem();
@@ -42,7 +44,7 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
                 setError(
                     err instanceof Error
                         ? err.message
-                        : 'Could not add that one.'
+                        : t('auth.signup.bucket.addError')
                 );
             }
         }
@@ -50,17 +52,16 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
 
     return (
         <>
-            <h1 className="signup-step-title">On your bucket list?</h1>
+            <h1 className="signup-step-title">{t('auth.signup.bucket.title')}</h1>
             <p className="signup-step-subtitle">
-                A few travel goals — phrase them like you'd tell a friend.
-                You can always add more later.
+                {t('auth.signup.bucket.subtitle')}
             </p>
 
             <div className="signup-bucket-add">
                 <input
                     className="signup-step-input"
                     type="text"
-                    placeholder="e.g. Watch an FC Barcelona game at Camp Nou"
+                    placeholder={t('auth.signup.bucket.placeholder')}
                     value={draft}
                     onChange={(e) => {
                         setDraft(e.target.value);
@@ -72,7 +73,11 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn signup-bucket-add-btn"
-                    label={add.isPending ? 'Saving…' : 'Add'}
+                    label={
+                        add.isPending
+                            ? t('common.saving')
+                            : t('auth.signup.bucket.add')
+                    }
                     onClick={handleAdd}
                     disabled={add.isPending || !draft.trim()}
                 />
@@ -85,7 +90,9 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
                             <span>{item.text}</span>
                             <IconButton
                                 size="small"
-                                aria-label={`Remove "${item.text}"`}
+                                aria-label={t('auth.signup.bucket.removeAria', {
+                                    text: item.text,
+                                })}
                                 onClick={() => void remove.mutateAsync(item.id)}
                             >
                                 <DeleteOutlineRoundedIcon fontSize="small" />
@@ -106,7 +113,7 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label="Finish"
+                    label={t('auth.signup.bucket.finish')}
                     onClick={onFinish}
                 />
                 <button
@@ -114,7 +121,7 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
                     className="signup-skip-link"
                     onClick={onSkip}
                 >
-                    Skip the rest
+                    {t('auth.signup.skipRest')}
                 </button>
             </div>
         </>

@@ -4,6 +4,7 @@
  * here so a user doesn't trip a backend validation a step later.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { IconButton } from '@mui/material';
@@ -19,6 +20,7 @@ export interface StepPasswordProps {
 const MIN_LEN = 8;
 
 const StepPassword = ({ value, onChange, onContinue }: StepPasswordProps) => {
+    const { t } = useTranslation();
     const [show, setShow] = useState(false);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -27,10 +29,9 @@ const StepPassword = ({ value, onChange, onContinue }: StepPasswordProps) => {
 
     return (
         <>
-            <h1 className="signup-step-title">Create a password</h1>
+            <h1 className="signup-step-title">{t('auth.signup.password.title')}</h1>
             <p className="signup-step-subtitle">
-                At least {MIN_LEN} characters. Use something you'll remember —
-                no mandatory weird-symbol nonsense.
+                {t('auth.signup.password.subtitle', { min: MIN_LEN })}
             </p>
             <div className="signup-password-wrap">
                 <input
@@ -47,7 +48,11 @@ const StepPassword = ({ value, onChange, onContinue }: StepPasswordProps) => {
                 <IconButton
                     className="signup-password-toggle"
                     size="small"
-                    aria-label={show ? 'Hide password' : 'Show password'}
+                    aria-label={
+                        show
+                            ? t('auth.common.hidePassword')
+                            : t('auth.common.showPassword')
+                    }
                     onClick={() => setShow((s) => !s)}
                 >
                     {show ? (
@@ -62,13 +67,15 @@ const StepPassword = ({ value, onChange, onContinue }: StepPasswordProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label="Continue"
+                    label={t('auth.common.continue')}
                     onClick={onContinue}
                     disabled={value.length < MIN_LEN}
                 />
                 {value.length > 0 && value.length < MIN_LEN && (
                     <span className="signup-password-hint">
-                        {MIN_LEN - value.length} more to go…
+                        {t('auth.signup.password.moreToGo', {
+                            n: MIN_LEN - value.length,
+                        })}
                     </span>
                 )}
             </div>

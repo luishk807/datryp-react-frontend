@@ -1,4 +1,5 @@
 import PsychologyAltRoundedIcon from "@mui/icons-material/PsychologyAltRounded";
+import { useTranslation } from "react-i18next";
 import "./index.scss";
 
 export interface CulturalShockCalloutProps {
@@ -28,12 +29,13 @@ const CulturalShockCallout = ({
   text,
   subjectLabel,
 }: CulturalShockCalloutProps) => {
+  const { t } = useTranslation();
   const trimmed = (text ?? "").trim();
   if (!trimmed) return null;
 
   const eyebrow = subjectLabel
-    ? `Heads up about ${subjectLabel}`
-    : "Heads up";
+    ? t('detail.common.culturalShock.headsUpAbout', { name: subjectLabel })
+    : t('detail.common.culturalShock.headsUp');
 
   return (
     <aside className="cultural-shock-callout" role="note">
@@ -42,7 +44,9 @@ const CulturalShockCallout = ({
       </div>
       <div className="cultural-shock-callout-body">
         <span className="cultural-shock-callout-eyebrow">{eyebrow}</span>
-        <h3 className="cultural-shock-callout-title">Cultural shock</h3>
+        <h3 className="cultural-shock-callout-title">
+          {t('detail.common.culturalShock.title')}
+        </h3>
         <p className="cultural-shock-callout-text">{trimmed}</p>
       </div>
     </aside>

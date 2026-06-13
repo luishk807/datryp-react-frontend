@@ -1,4 +1,5 @@
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
+import { useTranslation } from "react-i18next";
 import DetailSection from "components/PlaceDetail/DetailSection";
 import TravelBasicsRows, {
   TravelBasicsSkeleton,
@@ -25,9 +26,13 @@ const TravelBasicsSection = ({
   basics,
   isError = false,
 }: TravelBasicsSectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   return (
-    <DetailSection title="Travel basics" icon={<LuggageRoundedIcon />}>
+    <DetailSection
+      title={t('detail.common.travelBasics.title')}
+      icon={<LuggageRoundedIcon />}
+    >
       {basics ? <TravelBasicsRows basics={basics} /> : <TravelBasicsSkeleton />}
     </DetailSection>
   );

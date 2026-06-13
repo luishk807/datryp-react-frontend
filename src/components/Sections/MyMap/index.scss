@@ -148,6 +148,114 @@
   }
 }
 
+// Map controls — top-center on desktop (the labeled segmented Globe|Flat /
+// Day|Night toggles). On mobile they collapse to single icon chips placed
+// next to the "Layers" button (see the mobile media query below).
+.my-map-controls {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+// Small country flag shown next to country/city/place names in the stat
+// dropdowns and the mobile Layers menu. `img.` beats CountryFlag's own
+// 28px default so it sits inline at list-row scale.
+img.my-map-opt-flag {
+  width: 20px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+// Flag in the trips-panel header (replaces the round kind-icon badge when the
+// selection resolves to a country). Sized to the 32px badge footprint.
+img.my-map-trips-panel-flag {
+  flex-shrink: 0;
+  width: 32px;
+  height: 24px;
+  border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+// Desktop: segmented two-option toggles (Globe|Flat, Day|Night), shown inline
+// in the `.my-map-stats` row next to the Friends pill.
+.my-map-segctl {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(60, 181, 75, 0.22);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.my-map-segctl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: theme('colors.primary');
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  .MuiSvgIcon-root {
+    font-size: 1.05rem;
+    color: theme('colors.primaryGreen');
+  }
+
+  &.is-active {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+
+    .MuiSvgIcon-root {
+      color: #fff;
+    }
+  }
+
+  &:not(.is-active):hover {
+    background: rgba(60, 181, 75, 0.12);
+  }
+}
+
+// Mobile single-icon toggles — hidden on desktop (the segmented controls
+// show instead); they reuse `.my-map-atlas-pill` for the round-chip look.
+.my-map-ctl-toggle {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  // On mobile the controls move to the top-left row, just right of the
+  // "Layers" button (horizontal), and collapse to single icon chips — the
+  // segmented toggles are hidden here.
+  .my-map-controls {
+    top: 11px;
+    left: 154px;
+    transform: none;
+    gap: 6px;
+  }
+
+  .my-map-segctl {
+    display: none;
+  }
+
+  .my-map-ctl-toggle {
+    display: inline-flex;
+  }
+}
+
 .my-map-intro-headline {
   display: flex;
   align-items: flex-start;
@@ -482,6 +590,7 @@
   z-index: 6;
   display: flex;
   flex-wrap: nowrap;
+  align-items: center;
   gap: 6px;
   max-width: calc(100% - 28px);
 }
@@ -512,6 +621,12 @@
   // flashing green.
   background: #e8e8e3;
   isolation: isolate;
+
+  // Night mode — match the dark basemap so the pre-paint gap (and the
+  // brief flash during a style swap) reads dark instead of light.
+  &.is-night {
+    background: #1a1a1a;
+  }
 }
 
 // Mapbox writes the canvas dimensions in pixels from the container's
@@ -1330,5 +1445,150 @@
   .page-shell.is-full-bleed {
     min-height: 100dvh;
     padding-bottom: calc(70px + max(16px, env(safe-area-inset-bottom)));
+  }
+}
+
+// ───── Night mode ──────────────────────────────────────────────────────
+// When the dark basemap is active, the floating cards + Mapbox popups would
+// otherwise stay bright white over a dark map. Re-skin them dark so the
+// whole atlas reads as one night surface. Scoped to the canvas wrap (which
+// carries `.is-night`); popups live inside the map container, so they're
+// covered too.
+.my-map-canvas-wrap.is-night {
+  // Lighter than the near-black basemap, fully opaque, with a bright hairline
+  // border + strong drop shadow so the cards/popups clearly lift off the dark
+  // map instead of blending into it.
+  $card: #2b313d;
+  $line: rgba(255, 255, 255, 0.18);
+  $txt: #f1f3f5;
+  $txt-2: rgba(255, 255, 255, 0.68);
+  $card-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+
+  // ── Stats card ──
+  .my-map-atlas-stats {
+    background: $card;
+    border-color: $line;
+    box-shadow: $card-shadow;
+  }
+  .my-map-atlas-stats-counts {
+    color: $txt-2;
+
+    strong {
+      color: $txt;
+    }
+  }
+  .my-map-atlas-stats-progress-pct,
+  .my-map-atlas-stats-progress-frac,
+  .my-map-atlas-stats-row-label,
+  .my-map-atlas-stats-row-sub,
+  .my-map-atlas-stats-continent-sub {
+    color: $txt-2;
+  }
+  .my-map-atlas-stats-row-text strong {
+    color: $txt;
+  }
+  .my-map-atlas-stats-bar {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  // ── About / intro card ──
+  .my-map-intro {
+    background: $card;
+    border-color: $line;
+    box-shadow: $card-shadow;
+  }
+  .my-map-intro-title {
+    color: $txt;
+  }
+  .my-map-intro-sub,
+  .my-map-intro-tip,
+  .my-map-intro-legend-item {
+    color: $txt-2;
+
+    strong {
+      color: $txt;
+    }
+  }
+
+  // ── Card close buttons ──
+  .my-map-atlas-stats-close,
+  .my-map-intro-close {
+    background: rgba(255, 255, 255, 0.08);
+    color: $txt-2;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: $txt;
+    }
+  }
+
+  // ── Trips panel (floating cards) ──
+  .my-map-trips-panel-summary,
+  .my-map-trips-panel-trip {
+    background: $card;
+    border-color: $line;
+    box-shadow: $card-shadow;
+  }
+  .my-map-trips-panel-title,
+  .my-map-trips-panel-trip-name,
+  .my-map-trips-panel-stat strong {
+    color: $txt;
+  }
+  .my-map-trips-panel-sub,
+  .my-map-trips-panel-stat,
+  .my-map-trips-panel-trip-date,
+  .my-map-trips-panel-trip-place {
+    color: $txt-2;
+  }
+  .my-map-trips-panel-close {
+    color: $txt-2;
+
+    &:hover {
+      color: $txt;
+    }
+  }
+
+  // ── Mapbox pin / city / friends popups ──
+  .mapboxgl-popup.my-map-pin-popup .mapboxgl-popup-content {
+    background: $card;
+    color: $txt;
+    border: 1px solid $line;
+    box-shadow: $card-shadow;
+  }
+  .my-map-pin-popup-title {
+    color: $txt;
+  }
+  .my-map-pin-popup-loc,
+  .my-map-pin-popup-date,
+  .my-map-pin-popup-trip {
+    color: $txt-2;
+  }
+  .mapboxgl-popup.my-map-pin-popup .mapboxgl-popup-close-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: $txt-2;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.18);
+      color: $txt;
+    }
+  }
+  // Tip arrow — recolor whichever border side points at the content for
+  // each anchor variant (mirrors Mapbox's own per-anchor tip rules).
+  .mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
+  .mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
+  .mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip {
+    border-bottom-color: $card;
+  }
+  .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip,
+  .mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
+  .mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip {
+    border-top-color: $card;
+  }
+  .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+    border-right-color: $card;
+  }
+  .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+    border-left-color: $card;
   }
 }

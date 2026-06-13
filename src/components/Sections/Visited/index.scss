@@ -133,21 +133,6 @@
   gap: 10px;
 }
 
-.visited-card-thumb {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: #f4f4f4;
-
-  &.is-placeholder {
-    object-fit: contain;
-    padding: 6px;
-    opacity: 0.6;
-  }
-}
-
 .visited-card {
   display: flex;
   align-items: center;
@@ -176,10 +161,10 @@
   min-width: 0;
 }
 
-.visited-card-icon {
-  flex-shrink: 0;
-  color: theme('colors.primaryGreen');
-  font-size: 1.4rem !important;
+img.visited-card-flag {
+  width: 36px;
+  height: 27px;
+  border-radius: 4px;
 }
 
 .visited-card-text {

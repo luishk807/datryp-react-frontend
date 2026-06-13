@@ -1,5 +1,6 @@
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import { Trans, useTranslation } from 'react-i18next';
 import Layout from 'components/common/Layout/SubLayout';
 import PlanCards from 'components/PlanCards';
 import './index.scss';
@@ -12,308 +13,189 @@ import './index.scss';
  * The route is intentionally NOT gated. Logged-out visitors should be able
  * to read the pricing before signing up; the PlanCards CTA prompts login
  * when needed (Stripe Checkout requires an authenticated user via the API).
+ *
+ * All copy lives in src/i18n/locales/* under `membership.*` — this file only
+ * declares the structure (which rows exist, which cells are icons vs. text).
  */
 
-interface FeatureRow {
-    label: string;
-    free: string | boolean;
-    pro: string | boolean;
-    /** Optional one-line clarification shown beneath the label in lighter text. */
-    note?: string;
+interface FeatureRowDef {
+    /** Row id under `membership.rows.*` in the locale files (label/free/pro/note). */
+    key: string;
+    /** Booleans render the check/cross icon; 'text' renders the translated cell value. */
+    free: boolean | 'text';
+    pro: boolean | 'text';
+    /** Row has a one-line clarification under the label (`membership.rows.<key>.note`). */
+    hasNote?: boolean;
 }
 
-const FEATURE_ROWS: FeatureRow[] = [
-    {
-        label: 'Saved trips',
-        free: '1',
-        pro: 'Unlimited',
-        note: 'Past, present, and future — all in one place.',
-    },
-    {
-        label: 'Search depth',
-        free: '2 places per search',
-        pro: '5 places per search',
-    },
-    {
-        label: 'Search quality',
-        free: 'Standard',
-        pro: 'Advanced',
-        note: 'Richer recommendations, deeper detail for each place.',
-    },
-    {
-        label: 'Daily search limit',
-        free: '15 / day',
-        pro: 'Unlimited',
-    },
-    {
-        label: 'Bucket list',
-        free: '10 entries',
-        pro: 'Unlimited',
-        note: 'Save the places you dream about and come back when you’re ready.',
-    },
-    {
-        label: 'Turn a bucket-list goal into a trip',
-        free: false,
-        pro: true,
-        note: 'One click → datryp builds a full itinerary (country, days, activities) you can edit and save.',
-    },
-    {
-        label: 'Plan a trip for you',
-        free: false,
-        pro: true,
-        note: 'Tell us a budget + a few interests and datryp picks the destination, plans the days, and saves a draft trip for you to edit.',
-    },
-    {
-        // Bundles the personalized homepage surfaces (Places you might
-        // love + your monthly personal top pick) into one comparison
-        // row. Free gets the baseline; Pro adds the monthly
-        // personalized pick on top.
-        label: 'Personalized picks for you',
-        free: 'Standard',
-        pro: 'Enhanced',
-        note: 'Free: Places you might love, tied to your interests and travel style. Pro adds your monthly personalized top pick.',
-    },
-    {
-        label: 'Trip collaboration with friends',
-        free: true,
-        pro: true,
-    },
-    {
-        // Bundles country / city / place detail-page features into one
-        // row. Free gets the standard detail page plus cultural-shock
-        // heads-up; Pro adds the year-current popularity meter and the
-        // experience-highlight image strip.
-        label: 'Enhanced detail pages',
-        free: 'Standard',
-        pro: 'Enhanced',
-        note: 'Free: full country / city / place detail pages with cultural-shock heads-up. Pro adds the year-current popularity meter and experience-highlight image strip.',
-    },
-    {
-        label: 'Place ratings & reviews',
-        free: false,
-        pro: true,
-        note: 'Google ratings, review counts, and verified street addresses on every place — in suggestions, search, and your itinerary.',
-    },
-    {
-        label: 'Best places this month',
-        free: false,
-        pro: true,
-        note: 'Six seasonal homepage picks — where the weather, festivals, or natural moments line up right now.',
-    },
-    {
-        label: 'Saved & visited places',
-        free: true,
-        pro: true,
-    },
-    {
-        label: 'Mapper — your travel history on a world map',
-        free: false,
-        pro: true,
-        note: 'See every country you’ve visited shaded on a globe, with pins for every place — a living record of where you’ve been.',
-    },
-    {
-        label: 'Free trial',
-        free: '—',
-        pro: '30 days, cancel anytime',
-    },
+const FEATURE_ROWS: FeatureRowDef[] = [
+    { key: 'savedTrips', free: 'text', pro: 'text', hasNote: true },
+    { key: 'searchDepth', free: 'text', pro: 'text' },
+    { key: 'searchQuality', free: 'text', pro: 'text', hasNote: true },
+    { key: 'dailySearchLimit', free: 'text', pro: 'text' },
+    { key: 'bucketList', free: 'text', pro: 'text', hasNote: true },
+    { key: 'bucketToTrip', free: false, pro: true, hasNote: true },
+    { key: 'planForYou', free: false, pro: true, hasNote: true },
+    // Bundles the personalized homepage surfaces (Places you might love +
+    // your monthly personal top pick) into one comparison row. Free gets the
+    // baseline; Pro adds the monthly personalized pick on top.
+    { key: 'personalizedPicks', free: 'text', pro: 'text', hasNote: true },
+    { key: 'collaboration', free: true, pro: true },
+    // Bundles country / city / place detail-page features into one row.
+    // Free gets the standard detail page plus cultural-shock heads-up; Pro
+    // adds the year-current popularity meter and experience-highlight strip.
+    { key: 'detailPages', free: 'text', pro: 'text', hasNote: true },
+    { key: 'ratings', free: false, pro: true, hasNote: true },
+    { key: 'bestThisMonth', free: false, pro: true, hasNote: true },
+    { key: 'savedVisited', free: true, pro: true },
+    { key: 'mapper', free: false, pro: true, hasNote: true },
+    { key: 'freeTrial', free: 'text', pro: 'text' },
 ];
 
-const renderCell = (value: string | boolean) => {
-    if (value === true) {
-        return (
-            <CheckRoundedIcon
-                className="membership-icon membership-icon--check"
-                aria-label="Included"
-            />
-        );
-    }
-    if (value === false) {
-        return (
-            <CloseRoundedIcon
-                className="membership-icon membership-icon--cross"
-                aria-label="Not included"
-            />
-        );
-    }
-    return <span>{value}</span>;
-};
+/** Why-upgrade bullets: bold lead + body under `membership.why.<key>`. */
+const WHY_KEYS = [
+    'unlimitedTrips',
+    'advancedSearch',
+    'noDailyLimits',
+    'bucketList',
+    'detailPages',
+    'picks',
+    'mapper',
+    'trial',
+] as const;
 
-const Membership = () => (
-    <Layout title="Plans & Pricing">
-        <article className="membership-page">
-            <header className="membership-hero">
-                <h1 className="membership-hero-title">
-                    Plan smarter. Plan more.
-                </h1>
-                <p className="membership-hero-subtitle">
-                    Free works for casual trips. Pro is for travelers who want
-                    deeper recommendations, unlimited saved itineraries, and a
-                    bucket list that builds the trip for them. Try Pro free for
-                    30 days — no charge until day 31, cancel anytime.
-                </p>
-            </header>
+const FAQ_KEYS = ['cancel', 'downgrade', 'refunds', 'data', 'switch'] as const;
 
-            <section className="membership-plans">
-                <PlanCards />
-            </section>
+const Membership = () => {
+    const { t } = useTranslation();
 
-            <section className="membership-table-section">
-                <h2 className="membership-section-title">What&rsquo;s included</h2>
-                <div className="membership-table-scroll">
-                    <table className="membership-table">
-                        <thead>
-                            <tr>
-                                <th className="membership-table-feature">Feature</th>
-                                <th>Free</th>
-                                <th>
-                                    Pro
-                                    <span className="membership-table-pro-tag">
-                                        $3.99/mo or $29/yr
-                                    </span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {FEATURE_ROWS.map((row) => (
-                                <tr key={row.label}>
-                                    <td className="membership-table-feature">
-                                        <div className="membership-table-feature-label">
-                                            {row.label}
-                                        </div>
-                                        {row.note && (
-                                            <div className="membership-table-feature-note">
-                                                {row.note}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td>{renderCell(row.free)}</td>
-                                    <td className="membership-table-pro-cell">
-                                        {renderCell(row.pro)}
-                                    </td>
+    const renderCell = (
+        rowKey: string,
+        column: 'free' | 'pro',
+        value: boolean | 'text',
+    ) => {
+        if (value === true) {
+            return (
+                <CheckRoundedIcon
+                    className="membership-icon membership-icon--check"
+                    aria-label={t('membership.table.included')}
+                />
+            );
+        }
+        if (value === false) {
+            return (
+                <CloseRoundedIcon
+                    className="membership-icon membership-icon--cross"
+                    aria-label={t('membership.table.notIncluded')}
+                />
+            );
+        }
+        return <span>{t(`membership.rows.${rowKey}.${column}`)}</span>;
+    };
+
+    return (
+        <Layout title={t('membership.pageTitle')}>
+            <article className="membership-page">
+                <header className="membership-hero">
+                    <h1 className="membership-hero-title">
+                        {t('membership.hero.title')}
+                    </h1>
+                    <p className="membership-hero-subtitle">
+                        {t('membership.hero.subtitle')}
+                    </p>
+                </header>
+
+                <section className="membership-plans">
+                    <PlanCards />
+                </section>
+
+                <section className="membership-table-section">
+                    <h2 className="membership-section-title">
+                        {t('membership.table.title')}
+                    </h2>
+                    <div className="membership-table-scroll">
+                        <table className="membership-table">
+                            <thead>
+                                <tr>
+                                    <th className="membership-table-feature">
+                                        {t('membership.table.feature')}
+                                    </th>
+                                    <th>{t('membership.table.free')}</th>
+                                    <th>
+                                        {t('membership.table.pro')}
+                                        <span className="membership-table-pro-tag">
+                                            {t('membership.table.proTag')}
+                                        </span>
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                            </thead>
+                            <tbody>
+                                {FEATURE_ROWS.map((row) => (
+                                    <tr key={row.key}>
+                                        <td className="membership-table-feature">
+                                            <div className="membership-table-feature-label">
+                                                {t(`membership.rows.${row.key}.label`)}
+                                            </div>
+                                            {row.hasNote && (
+                                                <div className="membership-table-feature-note">
+                                                    {t(`membership.rows.${row.key}.note`)}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td>{renderCell(row.key, 'free', row.free)}</td>
+                                        <td className="membership-table-pro-cell">
+                                            {renderCell(row.key, 'pro', row.pro)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-            <section className="membership-why">
-                <h2 className="membership-section-title">Why upgrade?</h2>
-                <ul className="membership-why-list">
-                    <li>
-                        <strong>Unlimited saved trips.</strong> Free is capped
-                        at one — Pro lets you keep every itinerary you build,
-                        past and future.
-                    </li>
-                    <li>
-                        <strong>Advanced search.</strong> Pro digs
-                        deeper and returns 5 places per query with
-                        richer detail. Free is a taste; Pro is the full menu.
-                    </li>
-                    <li>
-                        <strong>No daily limits.</strong> Free is 15
-                        smart searches a day. Pro doesn&rsquo;t count.
-                    </li>
-                    <li>
-                        <strong>Bucket list, unlocked.</strong> Free keeps the
-                        first 10 entries; Pro is unlimited. Tap{' '}
-                        <em>Create trip</em> on any entry and Pro
-                        turns the goal into a planned itinerary, ready to
-                        edit and save.
-                    </li>
-                    <li>
-                        <strong>Enhanced detail pages.</strong> Pro adds a
-                        year-current popularity meter (rising / steady /
-                        cooling trend) and an experience-highlight image
-                        strip on every country, city, and place page —
-                        so you can tell at a glance whether a destination
-                        is having a moment.
-                    </li>
-                    <li>
-                        <strong>Picks made for you.</strong> Pro layers
-                        a personalized monthly top pick onto the homepage
-                        recommendations free already shows you.
-                    </li>
-                    <li>
-                        <strong>Mapper.</strong> Visualize every country
-                        and place you&rsquo;ve visited on an interactive
-                        world map — shaded regions, pins, and the satisfying
-                        proof of how far you&rsquo;ve gone.
-                    </li>
-                    <li>
-                        <strong>Try before you commit.</strong> 30-day free
-                        trial, card upfront so the rollover is automatic if
-                        you love it. Cancel any time in the billing portal —
-                        no charge until day 31.
-                    </li>
-                </ul>
-            </section>
+                <section className="membership-why">
+                    <h2 className="membership-section-title">
+                        {t('membership.why.title')}
+                    </h2>
+                    <ul className="membership-why-list">
+                        {WHY_KEYS.map((key) => (
+                            <li key={key}>
+                                <strong>{t(`membership.why.${key}.lead`)}</strong>{' '}
+                                <Trans
+                                    i18nKey={`membership.why.${key}.body`}
+                                    components={{ em: <em /> }}
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
 
-            <section className="membership-faq">
-                <h2 className="membership-section-title">Common questions</h2>
+                <section className="membership-faq">
+                    <h2 className="membership-section-title">
+                        {t('membership.faq.title')}
+                    </h2>
+                    {FAQ_KEYS.map((key) => (
+                        <div className="membership-faq-item" key={key}>
+                            <h3>{t(`membership.faq.${key}.q`)}</h3>
+                            <p>
+                                <Trans
+                                    i18nKey={`membership.faq.${key}.a`}
+                                    components={{ em: <em /> }}
+                                />
+                            </p>
+                        </div>
+                    ))}
+                </section>
 
-                <div className="membership-faq-item">
-                    <h3>Can I cancel anytime?</h3>
-                    <p>
-                        Yes. Open your Account page or the Stripe billing
-                        portal, click cancel, and that&rsquo;s it. If
-                        you&rsquo;re still in your trial, you won&rsquo;t be
-                        charged. If you&rsquo;re past the trial, you keep
-                        Pro until the end of your current billing period.
-                    </p>
-                </div>
-
-                <div className="membership-faq-item">
-                    <h3>What happens to my saved trips if I downgrade?</h3>
-                    <p>
-                        Your existing trips stay put — we never delete them.
-                        You won&rsquo;t be able to <em>save</em> new ones
-                        beyond the free limit until you upgrade again, but
-                        everything you&rsquo;ve already built is there
-                        waiting.
-                    </p>
-                </div>
-
-                <div className="membership-faq-item">
-                    <h3>Are there refunds?</h3>
-                    <p>
-                        We don&rsquo;t issue partial refunds for unused
-                        time — your subscription stays active until the end
-                        of the period you paid for. If something genuinely
-                        broken on our side stops you from using Pro, contact
-                        us and we&rsquo;ll make it right.
-                    </p>
-                </div>
-
-                <div className="membership-faq-item">
-                    <h3>Do you train on my data?</h3>
-                    <p>
-                        No. Your searches and trips are stored on DaTryp.com for
-                        you to use, not handed to anyone else to train on.
-                        Each search goes to the recommendation
-                        provider just to answer that single query, and
-                        nothing is retained on their side beyond standard
-                        request logs.
-                    </p>
-                </div>
-
-                <div className="membership-faq-item">
-                    <h3>Can I switch between monthly and yearly?</h3>
-                    <p>
-                        Yes. From your Account page, click{' '}
-                        <em>Manage billing</em>, and Stripe lets you change
-                        the cadence whenever you want. Switching to yearly
-                        is the same price as 2 months free.
-                    </p>
-                </div>
-            </section>
-
-            <section className="membership-plans membership-plans--bottom">
-                <h2 className="membership-section-title">Ready to upgrade?</h2>
-                <PlanCards />
-            </section>
-        </article>
-    </Layout>
-);
+                <section className="membership-plans membership-plans--bottom">
+                    <h2 className="membership-section-title">
+                        {t('membership.readyTitle')}
+                    </h2>
+                    <PlanCards />
+                </section>
+            </article>
+        </Layout>
+    );
+};
 
 export default Membership;

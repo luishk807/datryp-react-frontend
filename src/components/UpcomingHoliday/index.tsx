@@ -18,6 +18,7 @@
 import EventRoundedIcon from '@mui/icons-material/EventRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import Skeleton from 'components/common/Skeleton';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import PlaceCard from 'components/common/PlaceCard';
@@ -36,8 +37,8 @@ interface HolidayDateParts {
     month: string;
     /** Four-digit year — only rendered when not the current calendar year. */
     year: string;
-    /** Human-friendly "in 32 days" / "today" / "tomorrow" / null for past. */
-    countdown: string | null;
+    /** Day-precision distance from today; negative for past dates. */
+    diffDays: number;
 }
 
 const parseHolidayDate = (iso: string): HolidayDateParts | null => {
@@ -61,24 +62,7 @@ const parseHolidayDate = (iso: string): HolidayDateParts | null => {
         (target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
     );
 
-    let countdown: string | null;
-    if (diffDays < 0) {
-        countdown = null;
-    } else if (diffDays === 0) {
-        countdown = 'Today';
-    } else if (diffDays === 1) {
-        countdown = 'Tomorrow';
-    } else if (diffDays < 14) {
-        countdown = `in ${diffDays} days`;
-    } else if (diffDays < 60) {
-        const weeks = Math.round(diffDays / 7);
-        countdown = `in ${weeks} weeks`;
-    } else {
-        const months = Math.round(diffDays / 30);
-        countdown = `in ${months} months`;
-    }
-
-    return { weekday, day, month, year, countdown };
+    return { weekday, day, month, year, diffDays };
 };
 
 const UpcomingHoliday = () => {
@@ -97,8 +81,27 @@ const UpcomingHoliday = () => {
 // pattern doesn't violate the rules of hooks — `UpcomingHoliday`
 // returns early for free users before this is rendered.
 const UpcomingHolidayActive = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { data, isLoading, isError } = useHolidaySuggestions();
+
+    // Human-friendly "in 32 days" / "Today" / "Tomorrow" / null for past.
+    const countdownLabel = (diffDays: number): string | null => {
+        if (diffDays < 0) return null;
+        if (diffDays === 0) return t('homeCards.upcomingHoliday.today');
+        if (diffDays === 1) return t('homeCards.upcomingHoliday.tomorrow');
+        if (diffDays < 14) {
+            return t('homeCards.upcomingHoliday.inDays', { count: diffDays });
+        }
+        if (diffDays < 60) {
+            return t('homeCards.upcomingHoliday.inWeeks', {
+                count: Math.round(diffDays / 7),
+            });
+        }
+        return t('homeCards.upcomingHoliday.inMonths', {
+            count: Math.round(diffDays / 30),
+        });
+    };
 
     const cardKey = (place: HolidayPlace) =>
         `${place.name}--${place.countryCode}`;
@@ -127,7 +130,7 @@ const UpcomingHolidayActive = () => {
                             className="upcoming-holiday-eyebrow-icon"
                             fontSize="small"
                         />
-                        <span>Upcoming holiday</span>
+                        <span>{t('homeCards.upcomingHoliday.eyebrow')}</span>
                     </div>
 
                     <div className="upcoming-holiday-hero-grid">
@@ -151,7 +154,7 @@ const UpcomingHolidayActive = () => {
 
                 <div className="upcoming-holiday-activities">
                     <h3 className="upcoming-holiday-section-label">
-                        Things to do
+                        {t('homeCards.upcomingHoliday.thingsToDo')}
                     </h3>
                     <ul className="upcoming-holiday-activity-list">
                         {Array.from({ length: 4 }).map((_, i) => (
@@ -169,7 +172,7 @@ const UpcomingHolidayActive = () => {
 
                 <div className="upcoming-holiday-places">
                     <h3 className="upcoming-holiday-section-label">
-                        Places to celebrate it
+                        {t('homeCards.upcomingHoliday.placesToCelebrate')}
                     </h3>
                     <div className="upcoming-holiday-grid">
                         <PlaceCardSkeleton count={6} />
@@ -184,6 +187,7 @@ const UpcomingHolidayActive = () => {
     const { holiday, places, activities } = data;
 
     const dateParts = parseHolidayDate(holiday.date);
+    const countdown = dateParts ? countdownLabel(dateParts.diffDays) : null;
     const currentYear = new Date().getFullYear().toString();
     const showCountry =
         holiday.country &&
@@ -223,7 +227,7 @@ const UpcomingHolidayActive = () => {
                         className="upcoming-holiday-eyebrow-icon"
                         fontSize="small"
                     />
-                    <span>Upcoming holiday</span>
+                    <span>{t('homeCards.upcomingHoliday.eyebrow')}</span>
                 </div>
 
                 <div className="upcoming-holiday-hero-grid">
@@ -260,9 +264,9 @@ const UpcomingHolidayActive = () => {
                                         : ''}
                                 </span>
                             </div>
-                            {dateParts.countdown && (
+                            {countdown && (
                                 <span className="upcoming-holiday-countdown">
-                                    {dateParts.countdown}
+                                    {countdown}
                                 </span>
                             )}
                         </div>
@@ -271,26 +275,28 @@ const UpcomingHolidayActive = () => {
 
                 {holiday.imageUrl && holiday.photographerName && (
                     <span className="upcoming-holiday-attribution">
-                        Photo by{' '}
-                        {holiday.photographerUrl ? (
-                            <a
-                                href={holiday.photographerUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {holiday.photographerName}
-                            </a>
-                        ) : (
-                            holiday.photographerName
-                        )}{' '}
-                        on{' '}
-                        <a
-                            href="https://unsplash.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Unsplash
-                        </a>
+                        <Trans
+                            i18nKey="home.attribution"
+                            values={{ name: holiday.photographerName }}
+                            components={{
+                                author: holiday.photographerUrl ? (
+                                    <a
+                                        href={holiday.photographerUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    />
+                                ) : (
+                                    <span />
+                                ),
+                                unsplash: (
+                                    <a
+                                        href="https://unsplash.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    />
+                                ),
+                            }}
+                        />
                     </span>
                 )}
             </header>
@@ -298,7 +304,7 @@ const UpcomingHolidayActive = () => {
             {activities.length > 0 && (
                 <div className="upcoming-holiday-activities">
                     <h3 className="upcoming-holiday-section-label">
-                        Things to do
+                        {t('homeCards.upcomingHoliday.thingsToDo')}
                     </h3>
                     <ul className="upcoming-holiday-activity-list">
                         {activities.map((a) => (
@@ -321,7 +327,7 @@ const UpcomingHolidayActive = () => {
             {places.length > 0 && (
                 <div className="upcoming-holiday-places">
                     <h3 className="upcoming-holiday-section-label">
-                        Places to celebrate it
+                        {t('homeCards.upcomingHoliday.placesToCelebrate')}
                     </h3>
                     <div className="upcoming-holiday-grid">
                         {places.map((place) => (

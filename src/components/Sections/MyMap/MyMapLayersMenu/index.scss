@@ -204,6 +204,9 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: theme('colors.primary');
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .my-map-layers-option-sub {

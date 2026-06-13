@@ -1,4 +1,5 @@
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
+import { useTranslation } from "react-i18next";
 import WeatherWidget from "components/WeatherWidget";
 import AsyncDetailSection from "components/PlaceDetail/AsyncDetailSection";
 import { useWeather } from "api/hooks/useWeather";
@@ -33,6 +34,7 @@ interface WeatherPayload {
  * the sibling Currency / Safety widgets.
  */
 const WeatherSection = ({ weather, coordinates, isError }: WeatherSectionProps) => {
+  const { t } = useTranslation();
   const live = useWeather(coordinates?.lat, coordinates?.lng);
 
   // Ready once we have live conditions OR the climate prose. A failed live
@@ -46,12 +48,12 @@ const WeatherSection = ({ weather, coordinates, isError }: WeatherSectionProps) 
 
   return (
     <AsyncDetailSection
-      title="Weather"
+      title={t('detail.common.weather.title')}
       icon={<WbSunnyRoundedIcon />}
       data={payload}
       isError={isError}
-      errorMessage="Could not load weather."
-      loadingHint="Fetching the weather…"
+      errorMessage={t('detail.common.weather.error')}
+      loadingHint={t('detail.common.weather.loading')}
       skeletonLines={3}
     >
       {(p) => <WeatherWidget text={p.text} current={p.live} />}

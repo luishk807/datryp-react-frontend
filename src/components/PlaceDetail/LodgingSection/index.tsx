@@ -1,4 +1,5 @@
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
+import { useTranslation } from "react-i18next";
 import DetailSection from "components/PlaceDetail/DetailSection";
 import LodgingRows, {
   LodgingSkeleton,
@@ -25,9 +26,13 @@ const LodgingSection = ({
   lodging,
   isError = false,
 }: LodgingSectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   return (
-    <DetailSection title="Where to stay" icon={<HotelRoundedIcon />}>
+    <DetailSection
+      title={t('detail.common.lodging.title')}
+      icon={<HotelRoundedIcon />}
+    >
       {lodging ? <LodgingRows lodging={lodging} /> : <LodgingSkeleton />}
     </DetailSection>
   );

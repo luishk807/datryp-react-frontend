@@ -33,6 +33,17 @@
   }
 }
 
+// Language switcher + copyright share one balanced row so the EN/ES toggle
+// reads as intentional footer chrome instead of a lone control floating in
+// dead space (looked off on mobile). Wraps gracefully on very narrow widths.
+.menu-footer-links-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .menu-footer-links-copy {
   font-size: 0.72rem;
   color: rgba(0, 0, 0, 0.4);

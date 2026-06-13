@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import StarsRoundedIcon from '@mui/icons-material/StarsRounded';
 import Skeleton from 'components/common/Skeleton';
 import type { NamedTip } from 'types';
@@ -18,11 +19,12 @@ export interface MustDoListProps {
  * carousel.
  */
 const MustDoList = ({ items }: MustDoListProps) => {
+    const { t } = useTranslation();
     if (!items?.length) return null;
     return (
         <ul
             className="must-do-list"
-            aria-label="Things you shouldn't leave without doing"
+            aria-label={t('detail.common.localFlavor.mustDoAria')}
         >
             {items.map((item, idx) => (
                 <li key={`${item.name}-${idx}`} className="must-do-item">

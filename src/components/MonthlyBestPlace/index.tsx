@@ -14,6 +14,7 @@
  * — matches the silent-surprise pattern we use for Holiday).
  */
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import Skeleton from 'components/common/Skeleton';
@@ -65,6 +66,7 @@ interface MonthlyBestPlaceActiveProps {
 }
 
 const MonthlyBestPlaceActive = ({ userFirstName }: MonthlyBestPlaceActiveProps) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { data, isLoading, isError } = useMonthlyBestPlace();
 
@@ -81,7 +83,11 @@ const MonthlyBestPlaceActive = ({ userFirstName }: MonthlyBestPlaceActiveProps) 
                                 className="monthly-best-place-eyebrow-icon"
                                 fontSize="small"
                             />
-                            <span>{userFirstName}&rsquo;s top pick this month</span>
+                            <span>
+                                {t('homeCards.monthlyBestPlace.eyebrowLoading', {
+                                    name: userFirstName,
+                                })}
+                            </span>
                         </div>
                         <Skeleton width="80%" height={32} radius={8} />
                         <Skeleton width="55%" height={14} radius={4} />
@@ -113,7 +119,10 @@ const MonthlyBestPlaceActive = ({ userFirstName }: MonthlyBestPlaceActiveProps) 
                         goToCountryWithSeed(navigate, place);
                     }
                 }}
-                aria-label={`Open ${place.name}, ${place.country}`}
+                aria-label={t('homeCards.common.openPlaceAria', {
+                    name: place.name,
+                    country: place.country,
+                })}
             >
                 {/* LEFT — photo */}
                 <div className="monthly-best-place-photo-wrap">
@@ -133,28 +142,34 @@ const MonthlyBestPlaceActive = ({ userFirstName }: MonthlyBestPlaceActiveProps) 
                     />
                     {place.imageUrl && place.photographerName && (
                         <span className="monthly-best-place-attribution">
-                            Photo by{' '}
-                            {place.photographerUrl ? (
-                                <a
-                                    href={place.photographerUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {place.photographerName}
-                                </a>
-                            ) : (
-                                place.photographerName
-                            )}{' '}
-                            on{' '}
-                            <a
-                                href="https://unsplash.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                Unsplash
-                            </a>
+                            <Trans
+                                i18nKey="home.attribution"
+                                values={{ name: place.photographerName }}
+                                components={{
+                                    author: place.photographerUrl ? (
+                                        <a
+                                            href={place.photographerUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) =>
+                                                e.stopPropagation()
+                                            }
+                                        />
+                                    ) : (
+                                        <span />
+                                    ),
+                                    unsplash: (
+                                        <a
+                                            href="https://unsplash.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) =>
+                                                e.stopPropagation()
+                                            }
+                                        />
+                                    ),
+                                }}
+                            />
                         </span>
                     )}
                 </div>
@@ -167,7 +182,10 @@ const MonthlyBestPlaceActive = ({ userFirstName }: MonthlyBestPlaceActiveProps) 
                             fontSize="small"
                         />
                         <span>
-                            {userFirstName}&rsquo;s top pick{month ? ` · ${month}` : ''}
+                            {t('homeCards.monthlyBestPlace.eyebrow', {
+                                name: userFirstName,
+                            })}
+                            {month ? ` · ${month}` : ''}
                         </span>
                     </div>
 

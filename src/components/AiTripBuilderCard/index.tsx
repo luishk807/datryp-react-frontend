@@ -11,6 +11,7 @@
  * paywall path; the homepage stays free of upsell pressure.
  */
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
@@ -21,24 +22,13 @@ import { getUserFirstName } from 'utils/userName';
 import './index.scss';
 
 const STEPS = [
-    {
-        Icon: PaymentsRoundedIcon,
-        title: 'Set a budget',
-        body: 'A rough number, in USD.',
-    },
-    {
-        Icon: ExploreRoundedIcon,
-        title: 'Drop your interests',
-        body: 'Beach, hiking, ramen — whatever.',
-    },
-    {
-        Icon: EventRoundedIcon,
-        title: 'Let us plan the trip',
-        body: 'Day-by-day, saved as a draft.',
-    },
+    { Icon: PaymentsRoundedIcon, key: 'budget' },
+    { Icon: ExploreRoundedIcon, key: 'interests' },
+    { Icon: EventRoundedIcon, key: 'plan' },
 ];
 
 const AiTripBuilderCard = () => {
+    const { t } = useTranslation();
     const { user, isAdmin } = useUser();
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
     if (!user || !isPro) return null;
@@ -57,40 +47,52 @@ const AiTripBuilderCard = () => {
                     <article className="ai-trip-builder-card-preview is-back">
                         <div className="ai-trip-builder-card-preview-photo theme-mountain">
                             <span className="ai-trip-builder-card-preview-tag">
-                                🇮🇸 Iceland
+                                {t('homeCards.aiTripBuilderCard.previews.iceland.tag')}
                             </span>
                         </div>
                         <div className="ai-trip-builder-card-preview-body">
-                            <strong>Reykjavik</strong>
-                            <span>Northern lights + glaciers</span>
+                            <strong>
+                                {t('homeCards.aiTripBuilderCard.previews.iceland.city')}
+                            </strong>
+                            <span>
+                                {t('homeCards.aiTripBuilderCard.previews.iceland.line')}
+                            </span>
                         </div>
                     </article>
                     <article className="ai-trip-builder-card-preview is-mid">
                         <div className="ai-trip-builder-card-preview-photo theme-temple">
                             <span className="ai-trip-builder-card-preview-tag">
-                                🇯🇵 Japan
+                                {t('homeCards.aiTripBuilderCard.previews.japan.tag')}
                             </span>
                         </div>
                         <div className="ai-trip-builder-card-preview-body">
-                            <strong>Kyoto</strong>
-                            <span>Sakura + temples + ramen</span>
+                            <strong>
+                                {t('homeCards.aiTripBuilderCard.previews.japan.city')}
+                            </strong>
+                            <span>
+                                {t('homeCards.aiTripBuilderCard.previews.japan.line')}
+                            </span>
                         </div>
                     </article>
                     <article className="ai-trip-builder-card-preview is-front">
                         <div className="ai-trip-builder-card-preview-photo theme-beach">
                             <span className="ai-trip-builder-card-preview-tag">
-                                🇲🇽 Mexico
+                                {t('homeCards.aiTripBuilderCard.previews.mexico.tag')}
                             </span>
                         </div>
                         <div className="ai-trip-builder-card-preview-body">
-                            <strong>Tulum</strong>
-                            <span>Beach + cenotes + ruins</span>
+                            <strong>
+                                {t('homeCards.aiTripBuilderCard.previews.mexico.city')}
+                            </strong>
+                            <span>
+                                {t('homeCards.aiTripBuilderCard.previews.mexico.line')}
+                            </span>
                         </div>
                     </article>
                 </div>
                 <span className="ai-trip-builder-card-visual-badge">
                     <AutoAwesomeRoundedIcon className="ai-trip-builder-card-visual-badge-icon" />
-                    <span>4 options for you</span>
+                    <span>{t('homeCards.aiTripBuilderCard.optionsBadge')}</span>
                 </span>
             </div>
 
@@ -100,22 +102,21 @@ const AiTripBuilderCard = () => {
                         className="ai-trip-builder-card-eyebrow-icon"
                         fontSize="small"
                     />
-                    <span>Pro perk</span>
+                    <span>{t('homeCards.aiTripBuilderCard.eyebrow')}</span>
                 </span>
                 <h2 className="ai-trip-builder-card-title">
-                    Skip the planning, {firstName}. We&rsquo;ll build the
-                    trip for you.
+                    {t('homeCards.aiTripBuilderCard.title', {
+                        name: firstName,
+                    })}
                 </h2>
                 <p className="ai-trip-builder-card-lede">
-                    Tell us your budget and what you want to do. We
-                    pick the destination, plan every day, and save
-                    a draft you can edit before confirming.
+                    {t('homeCards.aiTripBuilderCard.lede')}
                 </p>
 
                 <ol className="ai-trip-builder-card-steps">
-                    {STEPS.map(({ Icon, title, body }, idx) => (
+                    {STEPS.map(({ Icon, key }, idx) => (
                         <li
-                            key={title}
+                            key={key}
                             className="ai-trip-builder-card-step"
                         >
                             <span className="ai-trip-builder-card-step-bullet">
@@ -128,8 +129,16 @@ const AiTripBuilderCard = () => {
                                 />
                             </span>
                             <span className="ai-trip-builder-card-step-text">
-                                <strong>{title}</strong>
-                                <span>{body}</span>
+                                <strong>
+                                    {t(
+                                        `homeCards.aiTripBuilderCard.steps.${key}.title`,
+                                    )}
+                                </strong>
+                                <span>
+                                    {t(
+                                        `homeCards.aiTripBuilderCard.steps.${key}.body`,
+                                    )}
+                                </span>
                             </span>
                         </li>
                     ))}
@@ -140,12 +149,12 @@ const AiTripBuilderCard = () => {
                     className="ai-trip-builder-card-cta"
                 >
                     <AutoAwesomeRoundedIcon className="ai-trip-builder-card-cta-sparkle" />
-                    <span>Plan my trip for me</span>
+                    <span>{t('heroSearch.aiCta')}</span>
                     <ArrowForwardRoundedIcon className="ai-trip-builder-card-cta-arrow" />
                 </Link>
 
                 <p className="ai-trip-builder-card-microcopy">
-                    Takes ~30 seconds. The plan is yours to edit.
+                    {t('homeCards.aiTripBuilderCard.microcopy')}
                 </p>
             </div>
         </section>

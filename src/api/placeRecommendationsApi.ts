@@ -11,6 +11,7 @@ import type {
 import { QueryBlockedError } from 'api/moderationError';
 import { SearchQuotaExceededError } from 'api/searchQuotaError';
 import { getAuthToken } from 'api/authStorage';
+import { activeLang } from 'i18n';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -160,7 +161,7 @@ export const fetchPlaceDirect = async (
     city: string,
     country: string
 ): Promise<PlaceRecommendationsResult> => {
-    const params = new URLSearchParams({ name });
+    const params = new URLSearchParams({ name, lang: activeLang() });
     if (city.trim()) params.set('city', city.trim());
     if (country.trim()) params.set('country', country.trim());
     const token = getAuthToken();
@@ -444,7 +445,7 @@ export const fetchPlaceDetails = async (
     query: string,
     index: number
 ): Promise<PlaceDetailsResult> => {
-    const params = new URLSearchParams({ q: query, i: String(index) });
+    const params = new URLSearchParams({ q: query, i: String(index), lang: activeLang() });
     // /place-details requires auth on the backend (`Depends(get_current_user)`);
     // forward the same bearer token used by /place-recommendations or the
     // request gets rejected as anonymous.
@@ -480,7 +481,7 @@ const fetchPlaceSlice = async <TBody, K extends keyof TBody>(
     key: K,
     map: (group: TBody[K]) => PlaceDetailsSlice
 ): Promise<PlaceDetailsSlice> => {
-    const params = new URLSearchParams({ q: query, i: String(index) });
+    const params = new URLSearchParams({ q: query, i: String(index), lang: activeLang() });
     const resp = await fetch(`${API_BASE}/place-details/${path}?${params}`, {
         headers: authHeaders(),
     });

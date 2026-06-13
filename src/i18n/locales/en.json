@@ -1,0 +1,1077 @@
+{
+    "language": {
+        "label": "Language",
+        "en": "English",
+        "es": "Español"
+    },
+    "footer": {
+        "about": "About",
+        "pricing": "Pricing",
+        "contact": "Contact",
+        "terms": "Terms",
+        "privacy": "Privacy",
+        "sms": "SMS"
+    },
+    "account": {
+        "notifications": {
+            "title": "Notifications",
+            "subtitle": "Choose how we reach you about trips and activities. In-app alerts are always on.",
+            "emailLabel": "Email notifications",
+            "emailDesc": "Trip invites, status changes, and activity alerts by email.",
+            "smsLabel": "SMS notifications (Pro)",
+            "smsDesc": "Text alerts for time-sensitive trip updates.",
+            "save": "Save notifications"
+        },
+        "privacy": {
+            "title": "Privacy",
+            "subtitle": "Control what your friends can see about where you've travelled.",
+            "shareVisitedLabel": "Share visited places with friends",
+            "shareVisitedDesc": "When on, friends see the places, cities, and countries you've visited — on destination pages (“Visited by…”) and your Travel Atlas. Off keeps your travel history private to you.",
+            "save": "Save privacy"
+        }
+    },
+    "nav": {
+        "home": "Home",
+        "search": "Search",
+        "myTrip": "My Trip",
+        "alerts": "Alerts",
+        "account": "Account",
+        "upgradeToPro": "Upgrade to Pro",
+        "subscription": "Subscription",
+        "myTrips": "My Trips",
+        "planATrip": "Plan a trip",
+        "visitedPlaces": "Visited Places",
+        "visited": "Visited",
+        "travelAtlas": "Travel Atlas",
+        "savedPlaces": "Saved Places",
+        "bucketList": "Bucket list",
+        "manageFriends": "Manage Friends",
+        "recentSearches": "Recent searches",
+        "notifications": "Notifications",
+        "adminDashboard": "Admin dashboard",
+        "logout": "Logout",
+        "signUp": "Sign Up",
+        "signIn": "Sign in",
+        "signInAria": "Sign in to your account",
+        "openMenu": "Open menu",
+        "closeMenu": "Close menu",
+        "openAccountMenu": "Open account menu",
+        "closeAccountMenu": "Close account menu",
+        "accountMenuFor": "Account menu for {{name}}",
+        "homeLink": "DaTryp.com home",
+        "moreLinks": "More links"
+    },
+    "heroSearch": {
+        "title": "Where to next?",
+        "modeAria": "Search mode",
+        "searchByPrefix": "Search by ",
+        "place": "Place",
+        "description": "Description",
+        "byPlaceAria": "Search by place",
+        "byDescriptionAria": "Search by description",
+        "or": "or",
+        "aiTagline": "Not sure where to go?",
+        "aiCta": "Plan my trip for me",
+        "aiCtaAria": "Let us plan a trip for you",
+        "pro": "Pro",
+        "close": "Close search"
+    },
+    "auth": {
+        "emailPasswordRequired": "Email and password are required.",
+        "common": {
+            "or": "or",
+            "back": "Back",
+            "continue": "Continue",
+            "email": "Email",
+            "emailPlaceholder": "you@example.com",
+            "password": "Password",
+            "signingIn": "Signing in…",
+            "createAccount": "Create account",
+            "creatingAccount": "Creating account…",
+            "signupFailed": "Signup failed.",
+            "googleSignInFailed": "Google sign-in failed.",
+            "alreadyHaveAccount": "Already have an account?",
+            "skipForNow": "Skip for now",
+            "couldNotSave": "Could not save that.",
+            "loading": "Loading…",
+            "loadingCountries": "Loading countries…",
+            "yearOfBirth": "Year of birth",
+            "selectYear": "Select a year",
+            "confirmAgeLabel": "I confirm I am at least {{age}} years old.",
+            "showPassword": "Show password",
+            "hidePassword": "Hide password",
+            "heroTitle": "Plan your next adventure"
+        },
+        "login": {
+            "title": "Login",
+            "continueWithEmail": "Continue with email",
+            "noAccount": "Don't have an account?",
+            "signUpLink": "Sign up",
+            "username": "Username",
+            "forgotPassword": "Forgot password?",
+            "loginFailed": "Login failed",
+            "continueTitle": "Sign in to continue",
+            "continueSubtitle": "You'll be taken back to where you were."
+        },
+        "routeGate": {
+            "planTrip": {
+                "title": "Sign in to plan your trip"
+            },
+            "account": {
+                "title": "Sign in to manage your account",
+                "subtitle": "Profile, preferences and password live here."
+            },
+            "trips": {
+                "title": "Sign in to see your trips",
+                "subtitle": "All your itineraries in one place."
+            },
+            "tripDetail": {
+                "title": "Sign in to see this trip",
+                "subtitle": "You need an account to view itinerary details."
+            },
+            "friends": {
+                "title": "Sign in to manage friends",
+                "subtitle": "Invite friends, accept requests, plan together."
+            },
+            "notifications": {
+                "title": "Sign in to see your notifications",
+                "subtitle": "Trip invites, status changes, and reminders show up here."
+            },
+            "search": {
+                "title": "Sign in to search",
+                "subtitle": "Free accounts get 5 searches per day. Pro members get Advanced Search."
+            },
+            "place": {
+                "title": "Sign in to view this place",
+                "subtitle": "Reviews, bookmarks, and travel info are all tied to your account."
+            },
+            "searchHistory": {
+                "title": "Sign in to see your search history",
+                "subtitle": "Your recent searches are tied to your account."
+            },
+            "visited": {
+                "title": "Sign in to see your visited places",
+                "subtitle": "Your visited list is tied to your account."
+            },
+            "map": {
+                "title": "Sign in to see your map",
+                "subtitle": "Mapper plots every country and place you have visited."
+            },
+            "saved": {
+                "title": "Sign in to see your saved places",
+                "subtitle": "Your bookmarks are tied to your account."
+            },
+            "bucketList": {
+                "title": "Sign in to see your bucket list",
+                "subtitle": "Travel goals you want to check off, in one place."
+            },
+            "aiBuilder": {
+                "title": "Sign in to plan a trip",
+                "subtitle": "Pro members get trips built for them. Free users land on the pricing page after signing in."
+            }
+        },
+        "gate": {
+            "heroSubtitle": "Sign in to save trips, invite friends and pick up where you left off.",
+            "highlights": [
+                "Personalized destinations from a single sentence",
+                "Plan day-by-day with friends",
+                "Track flights, activities, and budget in one place"
+            ],
+            "backToHome": "Back to home",
+            "welcomeBack": "Welcome back",
+            "createYourAccount": "Create your account",
+            "loginSubtitle": "Sign in with your email and password.",
+            "signupSubtitle": "Free to use. You must be at least {{age}} years old.",
+            "fullNameOptional": "Full name (optional)",
+            "phoneOptional": "Phone (optional)",
+            "selectBirthYear": "Please select your year of birth.",
+            "minAgeError": "You must be at least {{age}} years old to create an account.",
+            "confirmAgeError": "Please confirm you are at least {{age}} years old.",
+            "loginFailed": "Login failed.",
+            "forgotPassword": "Forgot your password?",
+            "newToDatryp": "New to DaTryp.com?",
+            "createAnAccount": "Create an account"
+        },
+        "signup": {
+            "pickBirthYear": "Pick your year of birth.",
+            "minAgeError": "You must be at least {{age}} to sign up.",
+            "confirmAgeError": "Please confirm you're at least {{age}}.",
+            "heroSubtitle": "A few quick steps and we'll start tailoring trips to you.",
+            "photoCredit": "Photo: <author>{{name}}</author> on Unsplash",
+            "stepLabel": "Step {{step}} of {{total}}",
+            "skipRest": "Skip the rest",
+            "googlePending": "Signing you in…",
+            "name": {
+                "title": "What should we call you?",
+                "subtitle": "Just a first name is fine — we'll use it to personalize the app.",
+                "placeholder": "e.g. Alex"
+            },
+            "email": {
+                "title": "What's your email?",
+                "subtitle": "We'll send your bookings and trip updates here."
+            },
+            "password": {
+                "title": "Create a password",
+                "subtitle": "At least {{min}} characters. Use something you'll remember — no mandatory weird-symbol nonsense.",
+                "moreToGo": "{{n}} more to go…"
+            },
+            "age": {
+                "title": "When were you born?",
+                "subtitle": "You must be at least {{age}} years old to use DaTryp.com. Year only — we don't ask for your full birthday."
+            },
+            "country": {
+                "title": "Where are you from?",
+                "subtitle": "Helps us tune recommendations to where you're starting from.",
+                "label": "Country",
+                "placeholder": "Select a country"
+            },
+            "gender": {
+                "title": "A bit about you",
+                "subtitle": "Helps us tailor recommendations. Optional — skip if you'd rather not say.",
+                "label": "Gender",
+                "placeholder": "Select an option"
+            },
+            "interests": {
+                "title": "Tell us about your travel style",
+                "subtitle": "Pick what feels right — we'll use these to surface trips and places you might love. You can change any of this later in your account.",
+                "interestsLabel": "Interests",
+                "loadingInterests": "Loading interests…",
+                "searchInterests": "Search interests…",
+                "stylesLabel": "What kind of traveler are you?",
+                "loadingStyles": "Loading styles…",
+                "searchStyles": "Search traveler styles…",
+                "destinationsLabel": "Places you'd like to visit",
+                "searchCountries": "Search countries…",
+                "pickUpTo": "Pick up to {{max}}.",
+                "pickUpToCountries": "Pick up to {{max}} countries.",
+                "saveError": "Could not save your preferences."
+            },
+            "favorites": {
+                "title": "Places you'd love to visit",
+                "subtitle": "Tap a few — we'll add them to your bookmarks so you can come back to them later.",
+                "loading": "Loading suggestions…",
+                "saveError": "Could not save {{name}}.",
+                "removeError": "Could not remove {{name}}."
+            },
+            "bucket": {
+                "title": "On your bucket list?",
+                "subtitle": "A few travel goals — phrase them like you'd tell a friend. You can always add more later.",
+                "placeholder": "e.g. Watch an FC Barcelona game at Camp Nou",
+                "add": "Add",
+                "removeAria": "Remove \"{{text}}\"",
+                "addError": "Could not add that one.",
+                "finish": "Finish"
+            }
+        },
+        "forgot": {
+            "pageTitle": "Forgot password",
+            "title": "Reset your password",
+            "subtitle": "Enter the email tied to your DaTryp.com account and we’ll send you a link to choose a new password.",
+            "invalidEmail": "Enter a valid email address.",
+            "sendError": "Could not send the reset link. Try again.",
+            "sending": "Sending…",
+            "sendLink": "Send reset link",
+            "confirmTitle": "Check your inbox",
+            "confirmBody": "If <strong>{{email}}</strong> is a registered DaTryp.com account, we’ve emailed you a link to reset your password. The link expires in 60 minutes.",
+            "resendHint": "Didn’t receive it? Check your spam folder, then <resend>try again</resend>.",
+            "remembered": "Remembered it?",
+            "backToHome": "Back to homepage"
+        },
+        "reset": {
+            "pageTitle": "Reset password",
+            "title": "Choose a new password",
+            "subtitle": "Pick something you’ll remember. At least 8 characters.",
+            "tooShort": "Password must be at least 8 characters.",
+            "mismatch": "Passwords don't match.",
+            "resetError": "Could not reset password. The link may have expired.",
+            "newPassword": "New password",
+            "confirmPassword": "Confirm new password",
+            "updating": "Updating…",
+            "update": "Update password",
+            "doneTitle": "Password updated",
+            "doneBody": "You’re now signed in. Taking you to your account…",
+            "needNewLink": "Need a new link?",
+            "requestAnother": "Request another email"
+        }
+    },
+    "home": {
+        "heroTitle": "Where to next?",
+        "heroTitleNamed": "Where to next, {{name}}?",
+        "heroSubtitle": "Search a place, describe your trip, or let us plan it all.",
+        "firstTime": "First time here?",
+        "learnHow": "Learn how Datryp works →",
+        "attribution": "Photo by <author>{{name}}</author> on <unsplash>Unsplash</unsplash>",
+        "placePlaceholders": [
+            "Search a city or country",
+            "Try: Tokyo, Japan",
+            "Try: Thailand",
+            "Try: Paris, France",
+            "Try: Bali, Indonesia",
+            "Try: New York City",
+            "Try: Banff, Canada"
+        ],
+        "describePlaceholders": [
+            "Describe your dream trip",
+            "Try: 7 day family trip in Japan",
+            "Try: Beach vacation under $2,000",
+            "Try: Romantic getaway in Europe",
+            "Try: Food and coffee trip in Italy",
+            "Try: Adventure trip in Patagonia"
+        ]
+    },
+    "homeCards": {
+        "common": {
+            "openPlaceAria": "Open {{name}}, {{country}}",
+            "bestTime": "Best time: {{time}}"
+        },
+        "worldEvent": {
+            "eyebrow": "Upcoming event",
+            "topSpots": "Top spots to be"
+        },
+        "countryOfBirthEvent": {
+            "eyebrow": "Coming up in {{country}}",
+            "yourCountry": "your country"
+        },
+        "nextMonthPicks": {
+            "loadingTitle": "Coming up next month",
+            "loadingSubtitle": "From your saved destinations",
+            "title": "Best for {{month}}",
+            "subtitle": "From your saved destinations — next month is a great time to visit these"
+        },
+        "similarToSaves": {
+            "title": "Similar to your saves",
+            "subtitle": "Picks tuned to what you’ve bookmarked",
+            "strongMatch": "Strong match to your taste",
+            "worthALook": "Worth a look"
+        },
+        "placesYouMightLove": {
+            "home": {
+                "title": "Places you might love",
+                "subtitle": "Picked for you"
+            },
+            "emptyTrips": {
+                "title": "No trips yet — try one of these",
+                "subtitle": "Tap any card to read more about the place. We picked these based on what you told us during signup."
+            }
+        },
+        "aiTripBuilderCard": {
+            "previews": {
+                "iceland": {
+                    "tag": "🇮🇸 Iceland",
+                    "city": "Reykjavik",
+                    "line": "Northern lights + glaciers"
+                },
+                "japan": {
+                    "tag": "🇯🇵 Japan",
+                    "city": "Kyoto",
+                    "line": "Sakura + temples + ramen"
+                },
+                "mexico": {
+                    "tag": "🇲🇽 Mexico",
+                    "city": "Tulum",
+                    "line": "Beach + cenotes + ruins"
+                }
+            },
+            "optionsBadge": "4 options for you",
+            "eyebrow": "Pro perk",
+            "title": "Skip the planning, {{name}}. We’ll build the trip for you.",
+            "lede": "Tell us your budget and what you want to do. We pick the destination, plan every day, and save a draft you can edit before confirming.",
+            "steps": {
+                "budget": {
+                    "title": "Set a budget",
+                    "body": "A rough number, in USD."
+                },
+                "interests": {
+                    "title": "Drop your interests",
+                    "body": "Beach, hiking, ramen — whatever."
+                },
+                "plan": {
+                    "title": "Let us plan the trip",
+                    "body": "Day-by-day, saved as a draft."
+                }
+            },
+            "microcopy": "Takes ~30 seconds. The plan is yours to edit."
+        },
+        "monthlyBestPlace": {
+            "eyebrowLoading": "{{name}}’s top pick this month",
+            "eyebrow": "{{name}}’s top pick"
+        },
+        "seasonalBestPlaces": {
+            "eyebrow": "Best places this month",
+            "loadingTitle": "Curating this month’s seasonal picks…",
+            "title": "Where the season is right in {{month}}",
+            "subtitle": "Six destinations whose weather, festivals, or natural moments make this month the time to go."
+        },
+        "upcomingHoliday": {
+            "eyebrow": "Upcoming holiday",
+            "thingsToDo": "Things to do",
+            "placesToCelebrate": "Places to celebrate it",
+            "today": "Today",
+            "tomorrow": "Tomorrow",
+            "inDays": "in {{count}} days",
+            "inWeeks": "in {{count}} weeks",
+            "inMonths": "in {{count}} months"
+        },
+        "topPlaces": {
+            "title": "Top 6 cities to travel",
+            "curatedFor": "Curated for {{month}}",
+            "getInspired": "Get inspired",
+            "loadError": "Couldn't load this month's picks.",
+            "retrying": "Retrying…",
+            "tryAgain": "Try again"
+        },
+        "homeTour": {
+            "steps": {
+                "intro": {
+                    "title": "Three ways to start",
+                    "content": "However you like to plan, there's a starting point here. Let's take a quick look — under a minute."
+                },
+                "place": {
+                    "title": "Search by Place",
+                    "content": "Know where you're headed? Pick <strong>Search by Place</strong>, then type a country or city. We'll open its guide so you can start a trip there."
+                },
+                "describe": {
+                    "title": "Search by Description",
+                    "content": "Not tied to one spot? Switch to <strong>Search by Description</strong> and describe the vibe — \"warm beaches in December,\" \"cheap food cities\" — and we'll suggest matching places."
+                },
+                "searchbar": {
+                    "title": "One search box",
+                    "content": "The box adapts to the mode you picked above — place names when searching by place, a free-text prompt when searching by description."
+                },
+                "ai": {
+                    "title": "Let us plan it for you",
+                    "content": "Totally undecided? Tap <strong>Plan my trip for me</strong> — we’ll ask a few quick questions, then draft a full itinerary you can tweak. (Pro feature.)"
+                }
+            },
+            "locale": {
+                "back": "Back",
+                "close": "Close",
+                "last": "Got it",
+                "next": "Next",
+                "skip": "Skip tour"
+            }
+        }
+    },
+    "search": {
+        "blocked": "DaTryp.com is a travel planner — try a search like “beach yoga retreat” or “ancient ruins.” <link>Learn more</link>.",
+        "bar": {
+            "countryPlaceholder": "Search Country for trip",
+            "countryPlaceholderSimple": "Search a country",
+            "placePlaceholder": "Search a city or country",
+            "describePlaceholder": "Try 'beach yoga retreat' or 'ancient ruins'",
+            "describeAria": "Describe what you're looking for",
+            "searching": "Searching…",
+            "countryError": "Could not reach the country service. Is the backend running?",
+            "placeError": "Could not reach the place search. Is the backend running?",
+            "recommendError": "Could not reach the recommender service{{detail}}. Is the backend running?",
+            "noCountries": "No countries match “{{query}}”.",
+            "noPlaces": "No places match “{{query}}”.",
+            "noMatches": "No matches for “{{query}}”. Try a different vibe.",
+            "kindCountry": "Country",
+            "kindCity": "City"
+        },
+        "results": {
+            "resultsFor": "Results for \"{{query}}\"",
+            "emptyStart": "Start a search from the homepage to see curated places here.",
+            "quotaHeadline": "You’ve used your <strong>{{used}}/{{limit}}</strong> free searches for today.",
+            "quotaBody": "Free searches reset at midnight UTC. Or upgrade to Pro for unlimited Advanced Search and unlimited saved trips. <link>See plan comparison</link>.",
+            "loadError": "Could not load recommendations: {{message}}",
+            "unknownError": "Unknown error",
+            "noMatches": "No matches for “{{query}}”. Try a different search."
+        },
+        "history": {
+            "title": "Your recent searches",
+            "subtitle": "Click any to rerun it.",
+            "uniqueOne": "{{n}} unique search.",
+            "uniqueOther": "{{n}} unique searches.",
+            "loadError": "Couldn’t load your history{{detail}}",
+            "empty": "No searches yet. Once you start searching, you’ll see your recent queries here.",
+            "paginationAria": "Recent searches pagination"
+        },
+        "card": {
+            "openAria": "Open {{name}}",
+            "ratingAria": "Rating {{rating}} out of 5",
+            "bestTime": "Best: {{time}}"
+        }
+    },
+    "detail": {
+        "common": {
+            "back": "Back",
+            "goHome": "Go to home",
+            "backToHome": "Back to home",
+            "errorPageTitle": "Error",
+            "startPlanning": "Start planning",
+            "startMultiTrip": "Start multi-destination trip",
+            "loadingDetails": "Loading {{name}} details",
+            "about": "About {{name}}",
+            "overallRating": "Overall rating",
+            "goodToKnow": "Good to know",
+            "weather": {
+                "title": "Weather",
+                "error": "Could not load weather.",
+                "loading": "Fetching the weather…"
+            },
+            "currency": {
+                "title": "Currency",
+                "error": "Could not load currency.",
+                "loading": "Looking up the local currency…"
+            },
+            "safety": {
+                "title": "Safety",
+                "error": "Could not load safety.",
+                "loading": "Checking safety reports…"
+            },
+            "popularity": {
+                "title": "Popularity this year",
+                "error": "Could not load popularity.",
+                "loading": "Gauging this year's traveler interest…"
+            },
+            "gettingThere": {
+                "title": "Getting there",
+                "error": "Could not load travel info.",
+                "loading": "Calculating distance from your home base…"
+            },
+            "visa": {
+                "title": "Visa"
+            },
+            "whenToVisit": {
+                "title": "When to visit",
+                "best": "Best",
+                "worst": "Worst"
+            },
+            "news": {
+                "title": "Latest news",
+                "goToSource": "Go to source",
+                "justNow": "just now",
+                "minutesAgo": "{{n}}m ago",
+                "hoursAgo": "{{n}}h ago",
+                "daysAgo": "{{n}}d ago"
+            },
+            "travelBasics": {
+                "title": "Travel basics",
+                "gettingAround": "Getting around",
+                "transitSystem": "Transit system",
+                "payment": "Payment",
+                "language": "Language",
+                "vibe": "Vibe",
+                "goodFor": "Good for",
+                "ageRange": "Age range",
+                "paymentCash": "Mostly cash",
+                "paymentCard": "Cards widely accepted",
+                "paymentMixed": "Mixed (card + cash)"
+            },
+            "lodging": {
+                "title": "Where to stay",
+                "recommended": "Recommended",
+                "hotels": "Hotels",
+                "priceRange": "Price range",
+                "bookingTip": "Booking tip",
+                "availabilityCommon": "Widely available",
+                "availabilityLimited": "Limited",
+                "availabilityNone": "Not available"
+            },
+            "budget": {
+                "title": "Expenses & budget"
+            },
+            "localFlavor": {
+                "title": "Local flavor",
+                "funLevel": "Fun level",
+                "funLevelAria": "Fun level {{n}} out of 5",
+                "fun1": "Very quiet",
+                "fun2": "Relaxed",
+                "fun3": "Balanced",
+                "fun4": "Lively",
+                "fun5": "High-energy",
+                "nightlife": "Nightlife",
+                "famousLiquor": "Famous liquor",
+                "souvenir": "Souvenir",
+                "dontLeaveWithout": "Don’t leave without",
+                "mustDoAria": "Things you shouldn't leave without doing"
+            },
+            "nearby": {
+                "title": "Nearby — worth a side trip"
+            },
+            "airports": {
+                "title": "Airports",
+                "unavailable": "Airport info unavailable.",
+                "international": "International",
+                "inCity": "in the city",
+                "kmAway": "{{km}} km away"
+            },
+            "highlights": {
+                "title": "Highlights"
+            },
+            "experience": {
+                "aria": "Experience highlights",
+                "eyebrow": "Don’t miss",
+                "title": "Signature things to do"
+            },
+            "culturalShock": {
+                "title": "Cultural shock",
+                "headsUp": "Heads up",
+                "headsUpAbout": "Heads up about {{name}}"
+            },
+            "top5": {
+                "places": "Top 5 places in {{name}}",
+                "cities": "Top 5 cities in {{name}}",
+                "foods": "Top 5 foods to try",
+                "things": "Top 5 things to do",
+                "photoSpots": "Top 5 photo spots",
+                "placesToVisit": "Top 5 places to visit"
+            },
+            "weatherFlavor": {
+                "tropical": "Tropical",
+                "cold": "Cold",
+                "rainy": "Rainy",
+                "cloudy": "Cloudy",
+                "mild": "Mild",
+                "sunny": "Sunny",
+                "high": "H {{temp}}",
+                "low": "L {{temp}}"
+            },
+            "currencyWidget": {
+                "home": "This is your home currency.",
+                "liveRate": "Live rate from the ECB — check before travel.",
+                "approx": "Approximate — check before travel."
+            },
+            "safetyWidget": {
+                "low": "Low risk",
+                "moderate": "Moderate risk",
+                "high": "High risk",
+                "scoreAria": "Safety score {{score}} out of 100",
+                "disclaimer": "Approximate — verify with official travel advisories before travel."
+            },
+            "popularityWidget": {
+                "rising": "Rising",
+                "steady": "Steady",
+                "falling": "Cooling",
+                "hot": "Trending",
+                "popular": "Popular",
+                "niche": "Off the radar",
+                "trendThisYear": "{{trend}} this year",
+                "scoreAria": "Popularity score {{score}} out of 100",
+                "disclaimer": "Approximate — based on broad travel-interest signals."
+            },
+            "travelWidget": {
+                "from": "From {{name}}",
+                "you": "You — {{name}}",
+                "yourLocation": "your location",
+                "onFoot": "on foot",
+                "byCar": "by car",
+                "byTrain": "by train",
+                "byFlight": "by flight",
+                "disclaimer": "Straight-line estimate — actual route + transport availability vary by region.",
+                "noLocation": "Couldn't detect your location — the map shows just the destination.",
+                "dragMap": "Drag the map to explore the area around the destination."
+            },
+            "visaWidget": {
+                "citizen": "You're a citizen",
+                "visaFree": "Visa-free entry",
+                "onArrival": "Visa on arrival",
+                "required": "Visa required",
+                "unknown": "Check visa requirements",
+                "detecting": "Detecting your location…",
+                "from": "From {{name}}",
+                "fromYourLocation": "From your location",
+                "disclaimer": "Verify with an official consulate before booking."
+            },
+            "cost": {
+                "aria": "Cost level {{n}} out of 5",
+                "l1": "Very cheap",
+                "l2": "Cheap",
+                "l3": "Mid-range",
+                "l4": "Expensive",
+                "l5": "Very expensive"
+            },
+            "hero": {
+                "photosAria": "{{name}} photos",
+                "showPhoto": "Show photo {{i}} of {{total}}"
+            },
+            "bookmark": {
+                "saveAria": "Save {{name}} to bookmarks",
+                "removeAria": "Remove {{name}} from bookmarks",
+                "saveTitle": "Save {{name}}",
+                "savedTitle": "{{name}} is saved — tap to remove",
+                "savedToast": "Saved {{name}} to your bookmarks",
+                "removedToast": "Removed {{name}} from bookmarks"
+            },
+            "visited": {
+                "mark": "Mark {{name}} as visited",
+                "unmark": "Unmark {{name}} as visited",
+                "beenTitle": "You've been to {{name}} — tap to unmark",
+                "markedToast": "Marked {{name}} as visited",
+                "removedToast": "Removed {{name}} from visited"
+            },
+            "bucket": {
+                "addAria": "Add {{name}} to your bucket list",
+                "alreadyAria": "Already on your bucket list: {{name}}",
+                "addTitle": "Add to bucket list",
+                "alreadyTitle": "Already in your bucket list",
+                "pill": "Bucket list",
+                "pillIn": "In bucket list",
+                "modalSub": "Saved to your bucket list — edit the goal text if you want before saving.",
+                "goalLabel": "Goal for this {{kind}}",
+                "kindPlace": "place",
+                "kindCity": "city",
+                "kindCountry": "country",
+                "defaultText": "Visiting {{name}}",
+                "error": "Couldn't add to bucket list. Try again.",
+                "added": "Added to your bucket list",
+                "adding": "Adding…"
+            },
+            "itinerary": {
+                "add": "Add to itinerary",
+                "startNew": "Start a new trip",
+                "adding": "Adding…",
+                "loading": "Loading…",
+                "addAria": "Add {{name}} to your trip",
+                "startAria": "Start a new trip with {{name}}",
+                "startedToast": "Started a new trip with {{name}}",
+                "tripMissing": "This trip isn't in your list — you may not have access, or it was deleted.",
+                "countryUnresolved": "Couldn't resolve \"{{name}}\" in our country catalog.",
+                "missingId": "Missing trip id — refresh the page and try again.",
+                "noAccess": "This trip isn't in your list — you may not have access.",
+                "lookupNotReady": "Trip-type lookup not ready — try again in a moment.",
+                "typeUnresolved": "Could not resolve trip type — try again shortly.",
+                "addedToast": "Added {{name}} to {{trip}}",
+                "yourTrip": "your trip",
+                "failed": "Failed to add place: {{message}}",
+                "failedGeneric": "Failed to add place — see console for details."
+            },
+            "friends": {
+                "visitedBy": "Visited by {{n}}",
+                "openAria": "{{label}} — open friend list",
+                "title": "Friends who visited",
+                "close": "Close",
+                "searchPlaceholder": "Search friends...",
+                "searchAria": "Search friends",
+                "noMatch": "No friends match “{{query}}”",
+                "visitedDate": "Visited {{date}}"
+            }
+        },
+        "city": {
+            "pageTitle": "City",
+            "missingTitle": "Missing city info",
+            "missingDesc": "Open this page from a city link to see its details.",
+            "errorTitle": "Could not load this city",
+            "notFound": "No city found for {{name}}, {{country}}."
+        },
+        "country": {
+            "pageTitle": "Country",
+            "noneSelected": "No country selected",
+            "noneSelectedDesc": "Pick a country from the search to see its details.",
+            "errorTitle": "Could not load this country",
+            "notFound": "No country with code \"{{code}}\".",
+            "budget": "Budget",
+            "shareSubtitle": "Country",
+            "planWithPicks": "Plan trip with these picks",
+            "capital": "Capital:",
+            "language": "Language:"
+        },
+        "place": {
+            "pageTitle": "Place",
+            "noneSelected": "No place selected",
+            "noneSelectedDesc": "Open this page from a search result to see its details.",
+            "loading": "Loading…",
+            "loadingDetailsGeneric": "Loading details",
+            "errorTitle": "Could not load this place",
+            "somethingWrong": "Something went wrong.",
+            "backToQuery": "Back to \"{{query}}\"",
+            "backToQueryQuoted": "Back to “{{query}}”",
+            "notFoundPageTitle": "Not found",
+            "notFoundTitle": "Place not found",
+            "notFoundDesc": "No place at position {{position}} for \"{{query}}\".",
+            "backToResults": "Back to results",
+            "visitedOn": "Visited on {{date}}",
+            "visitedAria": "You have visited this place",
+            "viewOnGoogleMaps": "View on Google Maps",
+            "googleRatingAria": "Google rating {{rating}} out of 5 (opens Google Maps)",
+            "googleRatingAriaCount": "Google rating {{rating}} out of 5 based on {{n}} reviews (opens Google Maps)",
+            "extrasError": "Could not load extras: {{message}}",
+            "unknownError": "Unknown error"
+        },
+        "reviews": {
+            "travelerReviews": "Traveler reviews",
+            "ratingsReviews": "Ratings & reviews",
+            "overall": "Overall",
+            "daTrypTravelers": "daTryp travelers",
+            "editYour": "Edit your review",
+            "leave": "Leave a review",
+            "postReview": "Post review",
+            "updateReview": "Update review",
+            "loadError": "Couldn’t load reviews.",
+            "empty": "No reviews yet — be the first to share your experience.",
+            "sortAria": "Sort reviews",
+            "sortRecent": "Most recent",
+            "sortHighest": "Highest rated",
+            "sortLowest": "Lowest rated",
+            "paginationAria": "Reviews pagination",
+            "anonymous": "Anonymous",
+            "edited": "edited",
+            "clickToLike": "Click to like",
+            "clickToUnlike": "Click to unlike",
+            "likeAria": "Like review",
+            "unlikeAria": "Unlike review",
+            "edit": "Edit",
+            "editAria": "Edit your review",
+            "delete": "Delete",
+            "deleteAria": "Delete your review",
+            "deleteConfirm": "Delete your review?",
+            "friendLikedOne": "{{name}} liked this",
+            "friendLikedTwo": "{{name}} and {{n}} other friend liked this",
+            "friendLikedOther": "{{name}} and {{n}} other friends liked this",
+            "yourRating": "Your rating",
+            "yourThoughts": "Your thoughts (optional)",
+            "thoughtsPlaceholder": "What stood out? Where would you stay? Anything to avoid?",
+            "pickRating": "Pick a 1-5 star rating.",
+            "viewAll": "View all",
+            "noReviewsYet": "No reviews yet",
+            "beTheFirst": "Be the first",
+            "countOne": "({{n}} review)",
+            "countOther": "({{n}} reviews)"
+        },
+        "tour": {
+            "nounCountry": "country",
+            "nounCity": "city",
+            "nounPlace": "place",
+            "welcomeTitle": "Welcome to the guide",
+            "welcomeBody": "This is the {{kind}} guide — weather, costs, safety, things to do, and more. First, a quick look at the icons up top.",
+            "actionsTitle": "Your quick actions",
+            "actionsIntro": "These icons let you keep track of places:",
+            "saveItem": "<strong>Save</strong> — bookmark it to your Saved list to come back to later.",
+            "visitedItem": "<strong>Visited</strong> — mark you've been here; it shows up on your travel map.",
+            "bucketItem": "<strong>Bucket list</strong> — add it to your someday-travel wishlist.",
+            "shareItem": "<strong>Share</strong> — send it via WhatsApp or email, or copy the link.",
+            "ctaPlaceTitle": "Add it to a trip",
+            "ctaPlaceBody": "Tap <strong>Add to itinerary</strong> to drop this place straight onto a day in one of your trips — no retyping.",
+            "ctaPlanTitle": "Start planning",
+            "ctaPlanBody": "When you're ready, hit <strong>Start planning</strong> — we'll turn this {{kind}} into a trip with the destination pre-filled so you can jump straight to the itinerary.",
+            "back": "Back",
+            "close": "Close",
+            "gotIt": "Got it",
+            "next": "Next",
+            "skip": "Skip tour"
+        }
+    },
+    "share": {
+        "buttonAria": "Share {{title}}",
+        "modalTitle": "Share",
+        "checkOut": "Check out {{name}} on DaTryp.com",
+        "facebookAria": "Share on Facebook",
+        "xAria": "Share on X",
+        "whatsappAria": "Share on WhatsApp",
+        "emailAria": "Share via email",
+        "emailLabel": "Email",
+        "copyLabel": "Copy link",
+        "moreAria": "More sharing options",
+        "moreLabel": "More",
+        "copied": "Link copied to clipboard",
+        "copyFailed": "Could not copy link",
+        "email": {
+            "title": "Email this place",
+            "recipients": "Recipient email(s)",
+            "note": "Personal note (optional)",
+            "notePlaceholder": "Thought you'd love this!",
+            "hint": "Separate multiple emails with commas or spaces.",
+            "validCount": "{{n}} valid",
+            "invalidCount": "{{n}} invalid",
+            "invalidError": "Not a valid email: {{emails}}.",
+            "emptyError": "Enter at least one email address.",
+            "sentOne": "Email sent to {{n}} recipient.",
+            "sentOther": "Email sent to {{n}} recipients.",
+            "sending": "Sending…",
+            "send": "Send"
+        }
+    },
+    "membership": {
+        "pageTitle": "Plans & Pricing",
+        "hero": {
+            "title": "Plan smarter. Plan more.",
+            "subtitle": "Free works for casual trips. Pro is for travelers who want deeper recommendations, unlimited saved itineraries, and a bucket list that builds the trip for them. Try Pro free for 30 days — no charge until day 31, cancel anytime."
+        },
+        "table": {
+            "title": "What’s included",
+            "feature": "Feature",
+            "free": "Free",
+            "pro": "Pro",
+            "proTag": "$3.99/mo or $29/yr",
+            "included": "Included",
+            "notIncluded": "Not included"
+        },
+        "rows": {
+            "savedTrips": {
+                "label": "Saved trips",
+                "free": "1",
+                "pro": "Unlimited",
+                "note": "Past, present, and future — all in one place."
+            },
+            "searchDepth": {
+                "label": "Search depth",
+                "free": "2 places per search",
+                "pro": "5 places per search"
+            },
+            "searchQuality": {
+                "label": "Search quality",
+                "free": "Standard",
+                "pro": "Advanced",
+                "note": "Richer recommendations, deeper detail for each place."
+            },
+            "dailySearchLimit": {
+                "label": "Daily search limit",
+                "free": "15 / day",
+                "pro": "Unlimited"
+            },
+            "bucketList": {
+                "label": "Bucket list",
+                "free": "10 entries",
+                "pro": "Unlimited",
+                "note": "Save the places you dream about and come back when you’re ready."
+            },
+            "bucketToTrip": {
+                "label": "Turn a bucket-list goal into a trip",
+                "note": "One click → datryp builds a full itinerary (country, days, activities) you can edit and save."
+            },
+            "planForYou": {
+                "label": "Plan a trip for you",
+                "note": "Tell us a budget + a few interests and datryp picks the destination, plans the days, and saves a draft trip for you to edit."
+            },
+            "personalizedPicks": {
+                "label": "Personalized picks for you",
+                "free": "Standard",
+                "pro": "Enhanced",
+                "note": "Free: Places you might love, tied to your interests and travel style. Pro adds your monthly personalized top pick."
+            },
+            "collaboration": {
+                "label": "Trip collaboration with friends"
+            },
+            "detailPages": {
+                "label": "Enhanced detail pages",
+                "free": "Standard",
+                "pro": "Enhanced",
+                "note": "Free: full country / city / place detail pages with cultural-shock heads-up. Pro adds the year-current popularity meter and experience-highlight image strip."
+            },
+            "ratings": {
+                "label": "Place ratings & reviews",
+                "note": "Google ratings, review counts, and verified street addresses on every place — in suggestions, search, and your itinerary."
+            },
+            "bestThisMonth": {
+                "label": "Best places this month",
+                "note": "Six seasonal homepage picks — where the weather, festivals, or natural moments line up right now."
+            },
+            "savedVisited": {
+                "label": "Saved & visited places"
+            },
+            "mapper": {
+                "label": "Mapper — your travel history on a world map",
+                "note": "See every country you’ve visited shaded on a globe, with pins for every place — a living record of where you’ve been."
+            },
+            "freeTrial": {
+                "label": "Free trial",
+                "free": "—",
+                "pro": "30 days, cancel anytime"
+            }
+        },
+        "why": {
+            "title": "Why upgrade?",
+            "unlimitedTrips": {
+                "lead": "Unlimited saved trips.",
+                "body": "Free is capped at one — Pro lets you keep every itinerary you build, past and future."
+            },
+            "advancedSearch": {
+                "lead": "Advanced search.",
+                "body": "Pro digs deeper and returns 5 places per query with richer detail. Free is a taste; Pro is the full menu."
+            },
+            "noDailyLimits": {
+                "lead": "No daily limits.",
+                "body": "Free is 15 smart searches a day. Pro doesn’t count."
+            },
+            "bucketList": {
+                "lead": "Bucket list, unlocked.",
+                "body": "Free keeps the first 10 entries; Pro is unlimited. Tap <em>Create trip</em> on any entry and Pro turns the goal into a planned itinerary, ready to edit and save."
+            },
+            "detailPages": {
+                "lead": "Enhanced detail pages.",
+                "body": "Pro adds a year-current popularity meter (rising / steady / cooling trend) and an experience-highlight image strip on every country, city, and place page — so you can tell at a glance whether a destination is having a moment."
+            },
+            "picks": {
+                "lead": "Picks made for you.",
+                "body": "Pro layers a personalized monthly top pick onto the homepage recommendations free already shows you."
+            },
+            "mapper": {
+                "lead": "Mapper.",
+                "body": "Visualize every country and place you’ve visited on an interactive world map — shaded regions, pins, and the satisfying proof of how far you’ve gone."
+            },
+            "trial": {
+                "lead": "Try before you commit.",
+                "body": "30-day free trial, card upfront so the rollover is automatic if you love it. Cancel any time in the billing portal — no charge until day 31."
+            }
+        },
+        "faq": {
+            "title": "Common questions",
+            "cancel": {
+                "q": "Can I cancel anytime?",
+                "a": "Yes. Open your Account page or the Stripe billing portal, click cancel, and that’s it. If you’re still in your trial, you won’t be charged. If you’re past the trial, you keep Pro until the end of your current billing period."
+            },
+            "downgrade": {
+                "q": "What happens to my saved trips if I downgrade?",
+                "a": "Your existing trips stay put — we never delete them. You won’t be able to <em>save</em> new ones beyond the free limit until you upgrade again, but everything you’ve already built is there waiting."
+            },
+            "refunds": {
+                "q": "Are there refunds?",
+                "a": "We don’t issue partial refunds for unused time — your subscription stays active until the end of the period you paid for. If something genuinely broken on our side stops you from using Pro, contact us and we’ll make it right."
+            },
+            "data": {
+                "q": "Do you train on my data?",
+                "a": "No. Your searches and trips are stored on DaTryp.com for you to use, not handed to anyone else to train on. Each search goes to the recommendation provider just to answer that single query, and nothing is retained on their side beyond standard request logs."
+            },
+            "switch": {
+                "q": "Can I switch between monthly and yearly?",
+                "a": "Yes. From your Account page, click <em>Manage billing</em>, and Stripe lets you change the cadence whenever you want. Switching to yearly is the same price as 2 months free."
+            }
+        },
+        "readyTitle": "Ready to upgrade?"
+    },
+    "planCards": {
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "perMonth": "/month",
+        "perYear": "/year",
+        "cancelAnytime": "Cancel anytime",
+        "saveBadge": "Save 39%",
+        "approxMonthly": "≈ $2.42/month",
+        "trialNote": "30-day free trial. No charge until day 31 — cancel anytime from your billing portal.",
+        "checkoutError": "Could not start checkout: {{message}}"
+    },
+    "welcome": {
+        "pageTitle": "Welcome to Pro",
+        "heroTitle": "You’re in. Welcome to DaTryp.com Pro.",
+        "heroSubtitle": "Your 30-day free trial has started. No charge until day 31 — cancel anytime from your Account page.",
+        "perksTitle": "What you can do now",
+        "perks": {
+            "savedTrips": {
+                "lead": "Save as many trips as you like.",
+                "body": "Past, present, and future — all in one place."
+            },
+            "search": {
+                "lead": "Advanced AI Search is unlocked.",
+                "body": "Searches return 5 places with deeper detail and richer recommendations."
+            },
+            "noLimits": {
+                "lead": "No daily limits.",
+                "body": "Search as much as you want."
+            },
+            "manage": {
+                "lead": "Manage anytime.",
+                "body": "Switch between monthly and yearly, update your card, or cancel from the Account page’s Subscription section."
+            }
+        },
+        "startPlanning": "Start planning",
+        "viewSubscription": "View subscription",
+        "fineprint": "A receipt for your subscription will be emailed to you by Stripe."
+    },
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "saving": "Saving…"
+    }
+}

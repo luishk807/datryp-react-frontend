@@ -12,6 +12,7 @@
  * embedded saves doesn't see a dead section.
  */
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PlaceCard from 'components/common/PlaceCard';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import type { SimilarPlaceItem } from 'api/similarToSavesApi';
@@ -28,6 +29,7 @@ const linkFor = (item: SimilarPlaceItem): string =>
     placeDetailUrl(item.name, item.city, item.country);
 
 const SimilarToSaves = () => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const navigate = useNavigate();
     const { data, isLoading, isError } = useSimilarToSaves();
@@ -38,9 +40,11 @@ const SimilarToSaves = () => {
         return (
             <section className="similar-to-saves" aria-live="polite">
                 <div className="sts-header">
-                    <h2 className="sts-title">Similar to your saves</h2>
+                    <h2 className="sts-title">
+                        {t('homeCards.similarToSaves.title')}
+                    </h2>
                     <span className="sts-subtitle">
-                        Picks tuned to what you&rsquo;ve bookmarked
+                        {t('homeCards.similarToSaves.subtitle')}
                     </span>
                 </div>
                 <div className="sts-grid">
@@ -55,9 +59,11 @@ const SimilarToSaves = () => {
     return (
         <section className="similar-to-saves">
             <div className="sts-header">
-                <h2 className="sts-title">Similar to your saves</h2>
+                <h2 className="sts-title">
+                    {t('homeCards.similarToSaves.title')}
+                </h2>
                 <span className="sts-subtitle">
-                    Picks tuned to what you&rsquo;ve bookmarked
+                    {t('homeCards.similarToSaves.subtitle')}
                 </span>
             </div>
             <div className="sts-grid">
@@ -77,10 +83,12 @@ const SimilarToSaves = () => {
                             // score is in [0, 1]; ≥ 0.7 is a strong
                             // match in cosine-distance land.
                             tagline: item.bestTimeToVisit
-                                ? `Best time: ${item.bestTimeToVisit}`
+                                ? t('homeCards.common.bestTime', {
+                                      time: item.bestTimeToVisit,
+                                  })
                                 : item.similarity >= 0.7
-                                  ? 'Strong match to your taste'
-                                  : 'Worth a look',
+                                  ? t('homeCards.similarToSaves.strongMatch')
+                                  : t('homeCards.similarToSaves.worthALook'),
                         }}
                         onClick={() => navigate(linkFor(item))}
                     />

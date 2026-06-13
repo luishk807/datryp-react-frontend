@@ -10,6 +10,7 @@
  */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
@@ -22,6 +23,7 @@ import { LIST_PAGE_SIZE } from 'constants';
 import './index.scss';
 
 const SearchHistoryPage = () => {
+    const { t } = useTranslation();
     const [page, setPage] = useState(1);
     const { data, isLoading, isError, error } = useSearchHistory({
         limit: LIST_PAGE_SIZE,
@@ -33,21 +35,24 @@ const SearchHistoryPage = () => {
     const totalPages = Math.max(1, Math.ceil(total / LIST_PAGE_SIZE));
 
     return (
-        <Layout title="Recent searches">
+        <Layout title={t('nav.recentSearches')}>
             <article className="search-history-page">
                 <header className="search-history-page-header">
                     <span className="search-history-page-icon" aria-hidden="true">
                         <HistoryRoundedIcon />
                     </span>
                     <div>
-                        <h1 className="search-history-page-title">Your recent searches</h1>
+                        <h1 className="search-history-page-title">
+                            {t('search.history.title')}
+                        </h1>
                         <p className="search-history-page-subtitle">
-                            Click any to rerun it.
+                            {t('search.history.subtitle')}
                             {total > 0 && (
                                 <>
                                     {' '}
-                                    {total} unique{' '}
-                                    {total === 1 ? 'search' : 'searches'}.
+                                    {total === 1
+                                        ? t('search.history.uniqueOne', { n: total })
+                                        : t('search.history.uniqueOther', { n: total })}
                                 </>
                             )}
                         </p>
@@ -67,15 +72,18 @@ const SearchHistoryPage = () => {
 
                 {isError && (
                     <p className="search-history-page-error" role="alert">
-                        Couldn&rsquo;t load your history
-                        {error instanceof Error ? `: ${error.message}` : '.'}
+                        {t('search.history.loadError', {
+                            detail:
+                                error instanceof Error
+                                    ? `: ${error.message}`
+                                    : '.',
+                        })}
                     </p>
                 )}
 
                 {!isLoading && !isError && items.length === 0 && (
                     <p className="search-history-page-empty">
-                        No searches yet. Once you start searching, you&rsquo;ll see your
-                        recent queries here.
+                        {t('search.history.empty')}
                     </p>
                 )}
 
@@ -113,7 +121,7 @@ const SearchHistoryPage = () => {
                                     behavior: 'smooth',
                                 });
                             }}
-                            ariaLabel="Recent searches pagination"
+                            ariaLabel={t('search.history.paginationAria')}
                         />
                     </>
                 )}

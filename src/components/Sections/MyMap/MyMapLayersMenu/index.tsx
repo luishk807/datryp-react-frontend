@@ -5,6 +5,7 @@ import CheckBoxRoundedIcon from '@mui/icons-material/CheckBoxRounded';
 import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import CountryFlag from 'components/common/CountryFlag';
 import type { MyMapStatDropdownOption } from '../MyMapStatDropdown';
 import './index.scss';
 
@@ -188,6 +189,12 @@ const MyMapLayersMenu = ({ layers }: MyMapLayersMenuProps) => {
                                                 }}
                                             >
                                                 <span className="my-map-layers-option-label">
+                                                    {opt.flagCode && (
+                                                        <CountryFlag
+                                                            code={opt.flagCode}
+                                                            className="my-map-opt-flag"
+                                                        />
+                                                    )}
                                                     {opt.label}
                                                 </span>
                                                 {opt.sublabel && (

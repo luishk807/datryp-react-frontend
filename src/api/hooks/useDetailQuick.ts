@@ -5,6 +5,7 @@ import {
     type DestinationProse,
 } from "api/quickDetailsApi";
 import { STATIC_DETAIL_CACHE } from "api/queryClient";
+import { useActiveLang } from "i18n/useActiveLang";
 
 /**
  * Fast narrative-only prose for the progressive loading phase. Fired in
@@ -22,8 +23,9 @@ export const useCityQuick = (
     const trimmedName = name.trim();
     const trimmedCountry = country.trim();
     const trimmedCode = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery<DestinationProse>({
-        queryKey: ["city-quick", trimmedName, trimmedCode],
+        queryKey: ["city-quick", trimmedName, trimmedCode, lang],
         queryFn: () =>
             fetchCityQuick(trimmedName, trimmedCountry, trimmedCode),
         enabled:
@@ -38,8 +40,9 @@ export const useCityQuick = (
 
 export const useCountryQuick = (code: string, enabled: boolean) => {
     const trimmedCode = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery<DestinationProse>({
-        queryKey: ["country-quick", trimmedCode],
+        queryKey: ["country-quick", trimmedCode, lang],
         queryFn: () => fetchCountryQuick(trimmedCode),
         enabled: enabled && trimmedCode.length >= 2,
         ...STATIC_DETAIL_CACHE,

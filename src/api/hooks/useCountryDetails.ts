@@ -8,6 +8,7 @@ import {
     type CountryDetailsSlice,
 } from 'api/countryDetailsApi';
 import { STATIC_DETAIL_CACHE } from 'api/queryClient';
+import { useActiveLang } from 'i18n/useActiveLang';
 import type {
     CountryDetails,
     CountryDetailsResult,
@@ -27,8 +28,9 @@ import type {
  */
 export const useCountryDetails = (code: string) => {
     const trimmed = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery<CountryDetailsResult>({
-        queryKey: ['country-details', trimmed],
+        queryKey: ['country-details', trimmed, lang],
         queryFn: () => fetchCountryDetails(trimmed),
         enabled: trimmed.length >= 2,
         ...STATIC_DETAIL_CACHE,
@@ -43,8 +45,9 @@ export const useCountryDetails = (code: string) => {
 
 export const useCountryProse = (code: string) => {
     const trimmed = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery({
-        queryKey: ['country-prose', trimmed],
+        queryKey: ['country-prose', trimmed, lang],
         queryFn: () => fetchCountryProse(trimmed),
         enabled: trimmed.length >= 2,
         ...STATIC_DETAIL_CACHE,
@@ -54,8 +57,9 @@ export const useCountryProse = (code: string) => {
 
 export const useCountryLists = (code: string) => {
     const trimmed = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery({
-        queryKey: ['country-lists', trimmed],
+        queryKey: ['country-lists', trimmed, lang],
         queryFn: () => fetchCountryLists(trimmed),
         enabled: trimmed.length >= 2,
         ...STATIC_DETAIL_CACHE,
@@ -65,8 +69,9 @@ export const useCountryLists = (code: string) => {
 
 export const useCountryFacts = (code: string) => {
     const trimmed = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery({
-        queryKey: ['country-facts', trimmed],
+        queryKey: ['country-facts', trimmed, lang],
         queryFn: () => fetchCountryFacts(trimmed),
         enabled: trimmed.length >= 2,
         ...STATIC_DETAIL_CACHE,

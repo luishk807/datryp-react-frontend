@@ -9,6 +9,7 @@
  * user has picked, and a separate "Skip for now" leaves everything as-is.
  */
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import SearchablePicker from 'components/common/FormFields/SearchablePicker';
 import {
@@ -29,6 +30,7 @@ const MAX_TRAVELER_STYLES = 4;
 const MAX_DREAM_DESTINATIONS = 8;
 
 const StepInterests = ({ onContinue, onSkip }: StepInterestsProps) => {
+    const { t } = useTranslation();
     const { data: interestCatalog = [], isLoading: interestsLoading } =
         useInterestsCatalog();
     const { data: styleCatalog = [], isLoading: stylesLoading } =
@@ -76,64 +78,68 @@ const StepInterests = ({ onContinue, onSkip }: StepInterestsProps) => {
             setError(
                 err instanceof Error
                     ? err.message
-                    : 'Could not save your preferences.'
+                    : t('auth.signup.interests.saveError')
             );
         }
     };
 
     return (
         <>
-            <h1 className="signup-step-title">Tell us about your travel style</h1>
+            <h1 className="signup-step-title">{t('auth.signup.interests.title')}</h1>
             <p className="signup-step-subtitle">
-                Pick what feels right — we'll use these to surface trips and
-                places you might love. You can change any of this later in your
-                account.
+                {t('auth.signup.interests.subtitle')}
             </p>
 
             <div className="signup-prefs-stack">
                 <SearchablePicker
-                    label="Interests"
+                    label={t('auth.signup.interests.interestsLabel')}
                     options={interestOptions}
                     value={interests}
                     onChange={setInterests}
                     placeholder={
                         interestsLoading
-                            ? 'Loading interests…'
-                            : 'Search interests…'
+                            ? t('auth.signup.interests.loadingInterests')
+                            : t('auth.signup.interests.searchInterests')
                     }
                     disabled={interestsLoading}
                     maxSelected={MAX_INTERESTS}
-                    helperText={`Pick up to ${MAX_INTERESTS}.`}
+                    helperText={t('auth.signup.interests.pickUpTo', {
+                        max: MAX_INTERESTS,
+                    })}
                 />
 
                 <SearchablePicker
-                    label="What kind of traveler are you?"
+                    label={t('auth.signup.interests.stylesLabel')}
                     options={styleOptions}
                     value={styles}
                     onChange={setStyles}
                     placeholder={
                         stylesLoading
-                            ? 'Loading styles…'
-                            : 'Search traveler styles…'
+                            ? t('auth.signup.interests.loadingStyles')
+                            : t('auth.signup.interests.searchStyles')
                     }
                     disabled={stylesLoading}
                     maxSelected={MAX_TRAVELER_STYLES}
-                    helperText={`Pick up to ${MAX_TRAVELER_STYLES}.`}
+                    helperText={t('auth.signup.interests.pickUpTo', {
+                        max: MAX_TRAVELER_STYLES,
+                    })}
                 />
 
                 <SearchablePicker
-                    label="Places you'd like to visit"
+                    label={t('auth.signup.interests.destinationsLabel')}
                     options={destinationOptions}
                     value={destinations}
                     onChange={setDestinations}
                     placeholder={
                         countriesLoading
-                            ? 'Loading countries…'
-                            : 'Search countries…'
+                            ? t('auth.common.loadingCountries')
+                            : t('auth.signup.interests.searchCountries')
                     }
                     disabled={countriesLoading}
                     maxSelected={MAX_DREAM_DESTINATIONS}
-                    helperText={`Pick up to ${MAX_DREAM_DESTINATIONS} countries.`}
+                    helperText={t('auth.signup.interests.pickUpToCountries', {
+                        max: MAX_DREAM_DESTINATIONS,
+                    })}
                 />
             </div>
 
@@ -148,7 +154,11 @@ const StepInterests = ({ onContinue, onSkip }: StepInterestsProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label={update.isPending ? 'Saving…' : 'Continue'}
+                    label={
+                        update.isPending
+                            ? t('common.saving')
+                            : t('auth.common.continue')
+                    }
                     onClick={handleContinue}
                     disabled={update.isPending}
                 />
@@ -157,7 +167,7 @@ const StepInterests = ({ onContinue, onSkip }: StepInterestsProps) => {
                     className="signup-skip-link"
                     onClick={onSkip}
                 >
-                    Skip for now
+                    {t('auth.common.skipForNow')}
                 </button>
             </div>
         </>

@@ -5,41 +5,42 @@
   gap: 4px;
 }
 
-// Eye toggle — shows/hides this layer on the map. Sits left of the
-// pill so the count stays the dominant element.
-.my-map-stat-dropdown-eye {
-  display: inline-flex;
+// Show/hide-on-map toggle — moved inside the dropdown panel (first row) so
+// the eye no longer eats horizontal space next to every pill. Full-width
+// menu-style row with a divider under it.
+.my-map-stat-dropdown-visrow {
+  width: 100%;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.92);
+  gap: 8px;
+  padding: 9px 10px;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  background: transparent;
   color: theme('colors.primaryGreen');
-  font-size: 1.05rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease;
+  text-align: left;
+
+  .MuiSvgIcon-root {
+    font-size: 1.1rem;
+  }
 
   &:hover {
-    border-color: theme('colors.primaryGreen');
-    background: #fff;
+    background: rgba(60, 181, 75, 0.06);
   }
 }
 
-// Dimmed pill + muted eye when the layer is toggled off, so the
-// off-state reads at a glance.
+// Dimmed pill when the layer is toggled off, so the off-state reads at a
+// glance even with the eye now tucked inside the panel.
 .my-map-stat-dropdown.is-hidden {
   .my-map-stat-dropdown-trigger {
     opacity: 0.5;
   }
 
-  .my-map-stat-dropdown-eye {
-    color: rgba(0, 0, 0, 0.4);
+  .my-map-stat-dropdown-visrow {
+    color: rgba(0, 0, 0, 0.45);
   }
 }
 
@@ -206,12 +207,6 @@
 
   .my-map-stat-dropdown {
     gap: 2px;
-  }
-
-  .my-map-stat-dropdown-eye {
-    width: 26px;
-    height: 26px;
-    font-size: 0.95rem;
   }
 
   // Right-hand pills (cities / places) open their panel anchored to the

@@ -5,6 +5,7 @@
  * a country was picked.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DropDown from 'components/common/FormFields/DropDown';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { useCountries } from 'api/hooks/useCountries';
@@ -16,6 +17,7 @@ export interface StepCountryProps {
 }
 
 const StepCountry = ({ onContinue, onSkip }: StepCountryProps) => {
+    const { t } = useTranslation();
     const { data: countries = [], isLoading } = useCountries('', { limit: 300 });
     const update = useUpdateMyPreferences();
     const [code, setCode] = useState<string>('');
@@ -32,23 +34,27 @@ const StepCountry = ({ onContinue, onSkip }: StepCountryProps) => {
             onContinue();
         } catch (err) {
             setError(
-                err instanceof Error ? err.message : 'Could not save that.'
+                err instanceof Error ? err.message : t('auth.common.couldNotSave')
             );
         }
     };
 
     return (
         <>
-            <h1 className="signup-step-title">Where are you from?</h1>
+            <h1 className="signup-step-title">{t('auth.signup.country.title')}</h1>
             <p className="signup-step-subtitle">
-                Helps us tune recommendations to where you're starting from.
+                {t('auth.signup.country.subtitle')}
             </p>
             <DropDown
-                label="Country"
+                label={t('auth.signup.country.label')}
                 options={countries}
                 valueKey="code"
                 value={code || null}
-                placeholder={isLoading ? 'Loading countries…' : 'Select a country'}
+                placeholder={
+                    isLoading
+                        ? t('auth.common.loadingCountries')
+                        : t('auth.signup.country.placeholder')
+                }
                 disabled={isLoading}
                 onChange={(opt) => {
                     setCode(opt?.code ?? '');
@@ -65,7 +71,11 @@ const StepCountry = ({ onContinue, onSkip }: StepCountryProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label={update.isPending ? 'Saving…' : 'Continue'}
+                    label={
+                        update.isPending
+                            ? t('common.saving')
+                            : t('auth.common.continue')
+                    }
                     onClick={handleContinue}
                     disabled={update.isPending}
                 />
@@ -74,7 +84,7 @@ const StepCountry = ({ onContinue, onSkip }: StepCountryProps) => {
                     className="signup-skip-link"
                     onClick={onSkip}
                 >
-                    Skip for now
+                    {t('auth.common.skipForNow')}
                 </button>
             </div>
         </>

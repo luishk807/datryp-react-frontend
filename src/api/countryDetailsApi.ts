@@ -7,6 +7,7 @@ import type {
     CountryDetailsResult,
     CountrySummary,
 } from "types";
+import { activeLang } from "i18n";
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? "http://localhost:8000";
@@ -305,7 +306,7 @@ const toDetails = (raw: CountryDetailsRaw): CountryDetails =>
 export const fetchCountryDetails = async (
     code: string
 ): Promise<CountryDetailsResult> => {
-    const params = new URLSearchParams({ code });
+    const params = new URLSearchParams({ code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/country-details?${params}`);
     if (!resp.ok) {
         throw new Error(
@@ -336,7 +337,7 @@ export interface CountryProseResult {
 export const fetchCountryProse = async (
     code: string
 ): Promise<CountryProseResult> => {
-    const params = new URLSearchParams({ code });
+    const params = new URLSearchParams({ code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/country-details/prose?${params}`);
     if (!resp.ok) {
         throw new Error(
@@ -358,7 +359,7 @@ export const fetchCountryProse = async (
 export const fetchCountryLists = async (
     code: string
 ): Promise<CountryDetailsSlice> => {
-    const params = new URLSearchParams({ code });
+    const params = new URLSearchParams({ code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/country-details/lists?${params}`);
     if (!resp.ok) {
         throw new Error(
@@ -375,7 +376,7 @@ export const fetchCountryLists = async (
 export const fetchCountryFacts = async (
     code: string
 ): Promise<CountryDetailsSlice> => {
-    const params = new URLSearchParams({ code });
+    const params = new URLSearchParams({ code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/country-details/facts?${params}`);
     if (!resp.ok) {
         throw new Error(

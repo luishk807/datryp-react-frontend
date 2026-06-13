@@ -13,6 +13,7 @@
  * rather than navigating away.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import RateReviewRoundedIcon from "@mui/icons-material/RateReviewRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
@@ -54,10 +55,10 @@ interface ReviewSectionProps {
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-const SORT_OPTIONS: { value: ReviewSort; label: string }[] = [
-  { value: "recent", label: "Most recent" },
-  { value: "highest", label: "Highest rated" },
-  { value: "lowest", label: "Lowest rated" },
+const SORT_OPTIONS: { value: ReviewSort; labelKey: string }[] = [
+  { value: "recent", labelKey: "detail.reviews.sortRecent" },
+  { value: "highest", labelKey: "detail.reviews.sortHighest" },
+  { value: "lowest", labelKey: "detail.reviews.sortLowest" },
 ];
 
 const REVIEW_FORM_MODE = {
@@ -76,6 +77,7 @@ const ReviewSection = ({
   googleRatingCount,
   openaiRating,
 }: ReviewSectionProps) => {
+  const { t } = useTranslation();
   const { user } = useUser();
   const placeKey = getPlaceKey(placeName, placeCity, placeCountry);
   // Only the activity-card entry point passes external ratings; the place
@@ -155,7 +157,9 @@ const ReviewSection = ({
       <header className="review-section-head">
         <h2 className="review-section-title">
           <RateReviewRoundedIcon className="review-section-title-icon" />
-          {showRatingBreakdown ? "Ratings & reviews" : "Traveler reviews"}
+          {showRatingBreakdown
+            ? t('detail.reviews.ratingsReviews')
+            : t('detail.reviews.travelerReviews')}
         </h2>
         {/* The breakdown box below carries the overall + per-source
             ratings, so the header stat is only for the place page. */}
@@ -172,7 +176,9 @@ const ReviewSection = ({
         <ul className="review-section-ratings">
           {blendedOverall && (
             <li className="rating-row rating-row-overall">
-              <span className="rating-row-source">Overall</span>
+              <span className="rating-row-source">
+                {t('detail.reviews.overall')}
+              </span>
               <span className="rating-row-value">
                 <Stars rating={blendedOverall.average} />
               </span>
@@ -209,7 +215,7 @@ const ReviewSection = ({
             <li className="rating-row">
               <span className="rating-row-source">
                 <GroupsRoundedIcon className="rating-row-icon" />
-                daTryp travelers
+                {t('detail.reviews.daTrypTravelers')}
               </span>
               <span className="rating-row-value">
                 <Stars rating={data.averageRating} />
@@ -227,7 +233,11 @@ const ReviewSection = ({
         <div className="review-section-cta">
           <ButtonCustom
             type={BUTTON_VARIANT.STANDARD}
-            label={hasOwnReview ? "Edit your review" : "Leave a review"}
+            label={
+              hasOwnReview
+                ? t('detail.reviews.editYour')
+                : t('detail.reviews.leave')
+            }
             onClick={() => {
               if (!hasOwnReview) {
                 setFormMode(REVIEW_FORM_MODE.CREATE);
@@ -249,7 +259,7 @@ const ReviewSection = ({
       {user && formMode === REVIEW_FORM_MODE.CREATE && (
         <ReviewForm
           submitting={createReview.isPending}
-          submitLabel="Post review"
+          submitLabel={t('detail.reviews.postReview')}
           onSubmit={submitCreate}
           onCancel={() => setFormMode(REVIEW_FORM_MODE.CLOSED)}
         />
@@ -260,7 +270,7 @@ const ReviewSection = ({
           initialRating={viewerReview.rating}
           initialText={viewerReview.text ?? ""}
           submitting={updateReview.isPending}
-          submitLabel="Update review"
+          submitLabel={t('detail.reviews.updateReview')}
           onSubmit={submitEdit}
           onCancel={() => setFormMode(REVIEW_FORM_MODE.CLOSED)}
         />
@@ -281,13 +291,13 @@ const ReviewSection = ({
 
       {isError && (
         <p className="review-section-error" role="alert">
-          Couldn&rsquo;t load reviews.
+          {t('detail.reviews.loadError')}
         </p>
       )}
 
       {data && data.items.length === 0 && (
         <p className="review-section-empty">
-          No reviews yet — be the first to share your experience.
+          {t('detail.reviews.empty')}
         </p>
       )}
 
@@ -296,7 +306,7 @@ const ReviewSection = ({
           <div
             className="review-section-sort"
             role="tablist"
-            aria-label="Sort reviews"
+            aria-label={t('detail.reviews.sortAria')}
           >
             {SORT_OPTIONS.map((opt) => (
               <ButtonCustom
@@ -308,7 +318,7 @@ const ReviewSection = ({
                 className={classNames("review-sort-tab", {
                   active: sort === opt.value,
                 })}
-                label={opt.label}
+                label={t(opt.labelKey)}
                 onClick={() => handleSortChange(opt.value)}
               />
             ))}
@@ -329,7 +339,7 @@ const ReviewSection = ({
             page={data.page}
             totalPages={data.totalPages}
             onPageChange={setPage}
-            ariaLabel="Reviews pagination"
+            ariaLabel={t('detail.reviews.paginationAria')}
           />
         </>
       )}

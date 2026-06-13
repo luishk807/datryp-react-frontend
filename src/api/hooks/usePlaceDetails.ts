@@ -8,6 +8,7 @@ import {
     type PlaceDetailsSlice,
 } from 'api/placeRecommendationsApi';
 import { STATIC_DETAIL_CACHE } from 'api/queryClient';
+import { useActiveLang } from 'i18n/useActiveLang';
 import type { PlaceDetails, PlaceDetailsResult } from 'types';
 
 /**
@@ -25,9 +26,10 @@ import type { PlaceDetails, PlaceDetailsResult } from 'types';
  * "fire as soon as you have a query" behavior when the caller is sure
  * the cache row already exists.
  */
-export const usePlaceDetails = (query: string, index: number, ready = true) =>
-    useQuery<PlaceDetailsResult>({
-        queryKey: ['place-details', query.trim().toLowerCase(), index],
+export const usePlaceDetails = (query: string, index: number, ready = true) => {
+    const lang = useActiveLang();
+    return useQuery<PlaceDetailsResult>({
+        queryKey: ['place-details', query.trim().toLowerCase(), index, lang],
         queryFn: () => fetchPlaceDetails(query, index),
         enabled:
             ready &&
@@ -37,6 +39,7 @@ export const usePlaceDetails = (query: string, index: number, ready = true) =>
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
 // --- Progressive "slice" hooks ---------------------------------------------
 // The place page slices the DETAIL enrichment (step 2 of the waterfall) into
@@ -51,32 +54,38 @@ const sliceEnabled = (query: string, index: number, ready: boolean) =>
     Number.isInteger(index) &&
     index >= 0;
 
-export const usePlaceProse = (query: string, index: number, ready = true) =>
-    useQuery<PlaceDetailsSlice>({
-        queryKey: ['place-prose', query.trim().toLowerCase(), index],
+export const usePlaceProse = (query: string, index: number, ready = true) => {
+    const lang = useActiveLang();
+    return useQuery<PlaceDetailsSlice>({
+        queryKey: ['place-prose', query.trim().toLowerCase(), index, lang],
         queryFn: () => fetchPlaceProse(query, index),
         enabled: sliceEnabled(query, index, ready),
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
-export const usePlaceLists = (query: string, index: number, ready = true) =>
-    useQuery<PlaceDetailsSlice>({
-        queryKey: ['place-lists', query.trim().toLowerCase(), index],
+export const usePlaceLists = (query: string, index: number, ready = true) => {
+    const lang = useActiveLang();
+    return useQuery<PlaceDetailsSlice>({
+        queryKey: ['place-lists', query.trim().toLowerCase(), index, lang],
         queryFn: () => fetchPlaceLists(query, index),
         enabled: sliceEnabled(query, index, ready),
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
-export const usePlaceFacts = (query: string, index: number, ready = true) =>
-    useQuery<PlaceDetailsSlice>({
-        queryKey: ['place-facts', query.trim().toLowerCase(), index],
+export const usePlaceFacts = (query: string, index: number, ready = true) => {
+    const lang = useActiveLang();
+    return useQuery<PlaceDetailsSlice>({
+        queryKey: ['place-facts', query.trim().toLowerCase(), index, lang],
         queryFn: () => fetchPlaceFacts(query, index),
         enabled: sliceEnabled(query, index, ready),
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
 export interface ProgressivePlaceDetails {
     /** Merged slice data — fields fill in as prose/lists/facts resolve. */

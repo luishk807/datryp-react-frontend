@@ -6,12 +6,16 @@ import {
 import classNames from 'classnames';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
+import CountryFlag from 'components/common/CountryFlag';
 import './index.scss';
 
 export interface MyMapStatDropdownOption {
     id: string;
     label: string;
     sublabel?: string;
+    /** ISO 3166-1 alpha-2 code for the row's country, used to show a flag
+     *  next to the label. Absent for rows with no resolvable country. */
+    flagCode?: string;
     disabled?: boolean;
     disabledReason?: string;
     /** Count of trips linked to this entry. When > 0 the dropdown
@@ -88,26 +92,6 @@ const MyMapStatDropdown = ({
                 'is-align-right': alignRight,
             })}
         >
-            {onToggleVisible && (
-                <button
-                    type="button"
-                    className="my-map-stat-dropdown-eye"
-                    onClick={onToggleVisible}
-                    aria-pressed={visible}
-                    aria-label={
-                        visible
-                            ? `Hide ${label} on map`
-                            : `Show ${label} on map`
-                    }
-                    title={visible ? `Hide ${label}` : `Show ${label}`}
-                >
-                    {visible ? (
-                        <VisibilityRoundedIcon fontSize="inherit" />
-                    ) : (
-                        <VisibilityOffRoundedIcon fontSize="inherit" />
-                    )}
-                </button>
-            )}
             <button
                 type="button"
                 className="my-map-stat-dropdown-trigger"
@@ -133,6 +117,25 @@ const MyMapStatDropdown = ({
                     role="listbox"
                     aria-label={label}
                 >
+                    {onToggleVisible && (
+                        <button
+                            type="button"
+                            className="my-map-stat-dropdown-visrow"
+                            onClick={onToggleVisible}
+                            aria-pressed={visible}
+                        >
+                            {visible ? (
+                                <VisibilityRoundedIcon fontSize="small" />
+                            ) : (
+                                <VisibilityOffRoundedIcon fontSize="small" />
+                            )}
+                            <span>
+                                {visible
+                                    ? `Hide ${label} on map`
+                                    : `Show ${label} on map`}
+                            </span>
+                        </button>
+                    )}
                     {options.length === 0 ? (
                         <p className="my-map-stat-dropdown-empty">
                             {emptyHint}
@@ -162,6 +165,12 @@ const MyMapStatDropdown = ({
                                         }}
                                     >
                                         <span className="my-map-stat-dropdown-item-label">
+                                            {opt.flagCode && (
+                                                <CountryFlag
+                                                    code={opt.flagCode}
+                                                    className="my-map-opt-flag"
+                                                />
+                                            )}
                                             {/* Guard with a strict > 0 ternary
                                               * because `opt.tripCount && …` renders
                                               * the literal `0` before the label

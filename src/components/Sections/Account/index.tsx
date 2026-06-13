@@ -27,7 +27,9 @@ import {
 import type { CitySelection } from 'components/common/FormFields/CityAutocomplete';
 import HomeBaseField from 'components/common/FormFields/HomeBaseField';
 import SubscriptionSection from './SubscriptionSection';
+import { useTranslation } from 'react-i18next';
 import { useUser } from 'context/UserContext';
+import { useSmsEnabled } from 'api/hooks/useFeatures';
 import { useDeleteAccount } from 'api/hooks/useDeleteAccount';
 import { useCountries } from 'api/hooks/useCountries';
 import {
@@ -49,6 +51,11 @@ import './index.scss';
 export const Account = () => {
     const { user, isAdmin, updateUser, logout } = useUser();
     const navigate = useNavigate();
+    const { t } = useTranslation();
+    // Whole-feature SMS gate (admin kill-switch + Twilio configured). When off,
+    // the SMS notification row is hidden entirely — no toggle, consent, or
+    // policy copy. The per-channel Pro gate below still applies when it's on.
+    const smsEnabled = useSmsEnabled();
     // SMS notifications are a Pro perk (they cost per message). Admins get
     // the same bypass they get on every other paywall.
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
@@ -1053,64 +1060,70 @@ export const Account = () => {
                     notifications. */}
                 <section className="account-card" id="notifications">
                     <div className="account-card-headings simple">
-                        <h2 className="account-card-title">Notifications</h2>
+                        <h2 className="account-card-title">
+                            {t('account.notifications.title')}
+                        </h2>
                         <p className="account-card-subtitle">
-                            Choose how we reach you about trips and activities.
-                            In-app alerts are always on.
+                            {t('account.notifications.subtitle')}
                         </p>
                     </div>
                     <div className="account-form account-notifications">
                         <div className="account-notify-row">
                             <Toggle
-                                label="Email notifications"
-                                description="Trip invites, status changes, and activity alerts by email."
+                                label={t('account.notifications.emailLabel')}
+                                description={t('account.notifications.emailDesc')}
                                 checked={notifyEmail}
                                 onChange={setNotifyEmail}
                                 disabled={updatePrefs.isPending}
                             />
                         </div>
-                        <div className="account-notify-row">
-                            <Toggle
-                                label="SMS notifications (Pro)"
-                                description="Text alerts for time-sensitive trip updates."
-                                checked={isPro && notifySms}
-                                onChange={handleSmsToggle}
-                                disabled={updatePrefs.isPending || !isPro}
-                            />
-                            {!isPro && (
-                                <p className="account-notify-helper">
-                                    SMS alerts are a Pro feature.{' '}
-                                    <Link to="/membership">Upgrade to Pro</Link>{' '}
-                                    to enable texts.
-                                </p>
-                            )}
-                            {isPro && !phone.trim() && (
-                                <p className="account-notify-helper">
-                                    Add a phone number in your Profile above to
-                                    receive texts.
-                                </p>
-                            )}
-                            {/* Explicit A2P 10DLC / Twilio opt-in consent.
-                                Required for SMS to be enabled — the toggle is
-                                gated on this box. The label carries the full
-                                mandated disclosure (program, frequency, rates,
-                                STOP/HELP). */}
-                            {isPro && (
-                                <div className="account-sms-consent">
-                                    <CheckBoxCustom
-                                        label="I agree to receive SMS text messages from DaTryp. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help."
-                                        defaultCheck={smsConsent}
-                                        onClick={handleSmsConsentToggle}
-                                    />
+                        {/* SMS notifications — hidden entirely while the SMS
+                            feature is off (admin kill-switch / Twilio not
+                            configured). Email + in-app are unaffected. */}
+                        {smsEnabled && (
+                            <div className="account-notify-row">
+                                <Toggle
+                                    label={t('account.notifications.smsLabel')}
+                                    description={t('account.notifications.smsDesc')}
+                                    checked={isPro && notifySms}
+                                    onChange={handleSmsToggle}
+                                    disabled={updatePrefs.isPending || !isPro}
+                                />
+                                {!isPro && (
                                     <p className="account-notify-helper">
-                                        See our{' '}
-                                        <Link to="/sms">SMS Messaging Policy</Link>,{' '}
-                                        <Link to="/terms">Terms</Link>, and{' '}
-                                        <Link to="/privacy">Privacy Policy</Link>.
+                                        SMS alerts are a Pro feature.{' '}
+                                        <Link to="/membership">Upgrade to Pro</Link>{' '}
+                                        to enable texts.
                                     </p>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                                {isPro && !phone.trim() && (
+                                    <p className="account-notify-helper">
+                                        Add a phone number in your Profile above to
+                                        receive texts.
+                                    </p>
+                                )}
+                                {/* Explicit A2P 10DLC / Twilio opt-in consent.
+                                    Required for SMS to be enabled — the toggle is
+                                    gated on this box. The label carries the full
+                                    mandated disclosure (program, frequency, rates,
+                                    STOP/HELP). */}
+                                {isPro && (
+                                    <div className="account-sms-consent">
+                                        <CheckBoxCustom
+                                            label="I agree to receive SMS text messages from DaTryp. Message frequency varies. Message and data rates may apply. Reply STOP to opt out and HELP for help."
+                                            defaultCheck={smsConsent}
+                                            onClick={handleSmsConsentToggle}
+                                        />
+                                        <p className="account-notify-helper">
+                                            See our{' '}
+                                            <Link to="/sms">SMS Messaging Policy</Link>,{' '}
+                                            <Link to="/terms">Terms</Link>, and{' '}
+                                            <Link to="/privacy">Privacy Policy</Link>.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         {notifyMessage && (
                             <div
                                 className={`account-message account-message-${notifyMessage.type}`}
@@ -1124,8 +1137,8 @@ export const Account = () => {
                                 capitalizeType="uppercase"
                                 label={
                                     updatePrefs.isPending
-                                        ? 'Saving…'
-                                        : 'Save notifications'
+                                        ? t('common.saving')
+                                        : t('account.notifications.save')
                                 }
                                 onClick={handleNotificationsSave}
                                 disabled={updatePrefs.isPending}
@@ -1139,17 +1152,20 @@ export const Account = () => {
                     pages and the Travel Atlas. */}
                 <section className="account-card" id="privacy">
                     <div className="account-card-headings simple">
-                        <h2 className="account-card-title">Privacy</h2>
+                        <h2 className="account-card-title">
+                            {t('account.privacy.title')}
+                        </h2>
                         <p className="account-card-subtitle">
-                            Control what your friends can see about where
-                            you&rsquo;ve travelled.
+                            {t('account.privacy.subtitle')}
                         </p>
                     </div>
                     <div className="account-form account-notifications">
                         <div className="account-notify-row">
                             <Toggle
-                                label="Share visited places with friends"
-                                description="When on, friends see the places, cities, and countries you've visited — on destination pages (“Visited by…”) and your Travel Atlas. Off keeps your travel history private to you."
+                                label={t('account.privacy.shareVisitedLabel')}
+                                description={t(
+                                    'account.privacy.shareVisitedDesc',
+                                )}
                                 checked={shareVisitedPlaces}
                                 onChange={setShareVisitedPlaces}
                                 disabled={updatePrefs.isPending}
@@ -1168,8 +1184,8 @@ export const Account = () => {
                                 capitalizeType="uppercase"
                                 label={
                                     updatePrefs.isPending
-                                        ? 'Saving…'
-                                        : 'Save privacy'
+                                        ? t('common.saving')
+                                        : t('account.privacy.save')
                                 }
                                 onClick={handlePrivacySave}
                                 disabled={updatePrefs.isPending}

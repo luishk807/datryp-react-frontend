@@ -1,4 +1,5 @@
 import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
+import { useTranslation } from "react-i18next";
 import ParagraphSkeleton from "components/common/ParagraphSkeleton";
 import DetailSection from "components/PlaceDetail/DetailSection";
 import VisaWidget from "components/PlaceDetail/VisaWidget";
@@ -20,9 +21,10 @@ export interface VisaSectionProps {
  * renders `VisaWidget` (or its loading skeleton) inside.
  */
 const VisaSection = ({ visa, isError = false }: VisaSectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   return (
-    <DetailSection title="Visa" icon={<BadgeRoundedIcon />}>
+    <DetailSection title={t('detail.common.visa.title')} icon={<BadgeRoundedIcon />}>
       {visa ? <VisaWidget visa={visa} /> : <ParagraphSkeleton lines={3} />}
     </DetailSection>
   );

@@ -1,4 +1,5 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import { useFxRates } from 'api/hooks/useFxRates';
 import { useUserCurrency } from 'api/hooks/useUserCurrency';
 import type { CurrencyInfo } from 'types';
@@ -27,6 +28,7 @@ const formatRate = (rate: number): string => {
  * live-rate badge or fallback disclaimer.
  */
 const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
+    const { t } = useTranslation();
     const { data: userCurrency } = useUserCurrency();
     const { data: fxRates } = useFxRates();
 
@@ -47,7 +49,7 @@ const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
         <div className="currency-widget">
             {isHomeCurrency ? (
                 <p className="currency-widget-home">
-                    This is your home currency.
+                    {t('detail.common.currencyWidget.home')}
                 </p>
             ) : (
                 <div className="currency-widget-rate">
@@ -65,8 +67,8 @@ const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
             {!isHomeCurrency && (
                 <p className="currency-widget-disclaimer">
                     {usingLiveRates
-                        ? 'Live rate from the ECB — check before travel.'
-                        : 'Approximate — check before travel.'}
+                        ? t('detail.common.currencyWidget.liveRate')
+                        : t('detail.common.currencyWidget.approx')}
                 </p>
             )}
         </div>

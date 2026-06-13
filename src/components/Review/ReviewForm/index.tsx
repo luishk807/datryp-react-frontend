@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import StarInput from 'components/common/FormFields/StarInput';
@@ -34,13 +35,14 @@ const ReviewForm = ({
     onSubmit,
     onCancel,
 }: ReviewFormProps) => {
+    const { t } = useTranslation();
     const [rating, setRating] = useState(initialRating);
     const [text, setText] = useState(initialText);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = () => {
         if (rating < 1 || rating > 5) {
-            setError('Pick a 1-5 star rating.');
+            setError(t('detail.reviews.pickRating'));
             return;
         }
         setError(null);
@@ -50,16 +52,20 @@ const ReviewForm = ({
     return (
         <div className="review-form">
             <label className="review-form-row">
-                <span className="review-form-label">Your rating</span>
+                <span className="review-form-label">
+                    {t('detail.reviews.yourRating')}
+                </span>
                 <StarInput value={rating} onChange={setRating} size="lg" />
             </label>
             <label className="review-form-row">
-                <span className="review-form-label">Your thoughts (optional)</span>
+                <span className="review-form-label">
+                    {t('detail.reviews.yourThoughts')}
+                </span>
                 <textarea
                     className="review-form-textarea"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="What stood out? Where would you stay? Anything to avoid?"
+                    placeholder={t('detail.reviews.thoughtsPlaceholder')}
                     maxLength={4000}
                     rows={4}
                 />
@@ -73,14 +79,14 @@ const ReviewForm = ({
                 {onCancel && (
                     <ButtonCustom
                         type={BUTTON_VARIANT.LINE}
-                        label="Cancel"
+                        label={t('common.cancel')}
                         onClick={onCancel}
                         disabled={submitting}
                     />
                 )}
                 <ButtonCustom
                     type={BUTTON_VARIANT.STANDARD}
-                    label={submitting ? 'Saving…' : submitLabel}
+                    label={submitting ? t('common.saving') : submitLabel}
                     onClick={handleSubmit}
                     disabled={submitting}
                 />

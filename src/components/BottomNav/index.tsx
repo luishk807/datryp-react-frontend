@@ -27,6 +27,7 @@
  */
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import { Drawer, Divider } from '@mui/material';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
@@ -61,6 +62,7 @@ import './index.scss';
 type BottomNavSearchMode = 'place' | 'describe';
 
 const BottomNav = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const { user, isAdmin, logout } = useUser();
@@ -136,20 +138,20 @@ const BottomNav = () => {
                     className={classNames('bottom-nav-item', {
                         'is-active': homeActive,
                     })}
-                    aria-label="Home"
+                    aria-label={t('nav.home')}
                 >
                     <HomeRoundedIcon className="bottom-nav-icon" />
-                    <span className="bottom-nav-label">Home</span>
+                    <span className="bottom-nav-label">{t('nav.home')}</span>
                 </Link>
                 <Link
                     to="/login"
                     className={classNames('bottom-nav-item', {
                         'is-active': loginActive,
                     })}
-                    aria-label="Sign in to your account"
+                    aria-label={t('nav.signInAria')}
                 >
                     <PersonOutlineRoundedIcon className="bottom-nav-icon" />
-                    <span className="bottom-nav-label">Sign in</span>
+                    <span className="bottom-nav-label">{t('nav.signIn')}</span>
                 </Link>
             </nav>
         );
@@ -220,10 +222,10 @@ const BottomNav = () => {
                         'is-active': isActive('/'),
                     })}
                     onClick={() => navigate('/')}
-                    aria-label="Home"
+                    aria-label={t('nav.home')}
                 >
                     <HomeRoundedIcon className="bottom-nav-icon" />
-                    <span>Home</span>
+                    <span>{t('nav.home')}</span>
                 </button>
 
                 <button
@@ -232,10 +234,10 @@ const BottomNav = () => {
                         'is-active': searchOpen,
                     })}
                     onClick={() => setSearchOpen(true)}
-                    aria-label="Search"
+                    aria-label={t('nav.search')}
                 >
                     <SearchRoundedIcon className="bottom-nav-icon" />
-                    <span>Search</span>
+                    <span>{t('nav.search')}</span>
                 </button>
 
                 <button
@@ -248,10 +250,10 @@ const BottomNav = () => {
                         },
                     )}
                     onClick={() => navigate('/trips')}
-                    aria-label="My trips"
+                    aria-label={t('nav.myTrips')}
                 >
                     <FlightTakeoffRoundedIcon className="bottom-nav-icon" />
-                    <span>My Trip</span>
+                    <span>{t('nav.myTrip')}</span>
                 </button>
 
                 <button
@@ -260,7 +262,7 @@ const BottomNav = () => {
                         'is-active': isActive('/notifications'),
                     })}
                     onClick={() => navigate('/notifications')}
-                    aria-label="Notifications"
+                    aria-label={t('nav.notifications')}
                 >
                     <span className="bottom-nav-icon-wrap">
                         <NotificationsNoneRoundedIcon className="bottom-nav-icon" />
@@ -270,7 +272,7 @@ const BottomNav = () => {
                             </span>
                         )}
                     </span>
-                    <span>Alerts</span>
+                    <span>{t('nav.alerts')}</span>
                 </button>
 
                 <button
@@ -279,10 +281,10 @@ const BottomNav = () => {
                         'is-active': accountOpen,
                     })}
                     onClick={() => setAccountOpen(true)}
-                    aria-label="Open account menu"
+                    aria-label={t('nav.openAccountMenu')}
                 >
                     <PersonOutlineRoundedIcon className="bottom-nav-icon" />
-                    <span>Account</span>
+                    <span>{t('nav.account')}</span>
                 </button>
             </nav>
 
@@ -320,7 +322,7 @@ const BottomNav = () => {
                         <button
                             type="button"
                             className="bottom-nav-account-close"
-                            aria-label="Close account menu"
+                            aria-label={t('nav.closeAccountMenu')}
                             onClick={() => setAccountOpen(false)}
                         >
                             <CloseRoundedIcon />
@@ -332,13 +334,13 @@ const BottomNav = () => {
                     <ul className="bottom-nav-account-list">
                         <AccountItem
                             icon={<PersonOutlineRoundedIcon />}
-                            label="Account"
+                            label={t('nav.account')}
                             onClick={() => handleNavigate('/account')}
                         />
                         {showUpgradeLink && (
                             <AccountItem
                                 icon={<StarRoundedIcon />}
-                                label="Upgrade to Pro"
+                                label={t('nav.upgradeToPro')}
                                 onClick={() =>
                                     handleNavigate('/membership')
                                 }
@@ -348,7 +350,7 @@ const BottomNav = () => {
                         {showSubscriptionLink && (
                             <AccountItem
                                 icon={<WorkspacePremiumRoundedIcon />}
-                                label="Subscription"
+                                label={t('nav.subscription')}
                                 onClick={() =>
                                     handleNavigate('/account#subscription')
                                 }
@@ -356,57 +358,57 @@ const BottomNav = () => {
                         )}
                         <AccountItem
                             icon={<FlightTakeoffRoundedIcon />}
-                            label="My Trips"
+                            label={t('nav.myTrips')}
                             onClick={() => handleNavigate('/trips')}
                         />
                         <AccountItem
                             icon={<AutoAwesomeRoundedIcon />}
-                            label="Plan a trip"
+                            label={t('nav.planATrip')}
                             onClick={() => handleNavigate('/discover')}
                         />
                         <AccountItem
                             icon={<CheckCircleRoundedIcon />}
-                            label="Visited Places"
+                            label={t('nav.visitedPlaces')}
                             onClick={() => handleNavigate('/visited')}
                         />
                         <AccountItem
                             icon={<PublicRoundedIcon />}
-                            label="Travel Atlas"
+                            label={t('nav.travelAtlas')}
                             onClick={() => handleNavigate('/my-map')}
                         />
                         <AccountItem
                             icon={<FavoriteRoundedIcon />}
-                            label="Saved Places"
+                            label={t('nav.savedPlaces')}
                             onClick={() => handleNavigate('/saved')}
                         />
                         <AccountItem
                             icon={<AutoAwesomeRoundedIcon />}
-                            label="Bucket list"
+                            label={t('nav.bucketList')}
                             onClick={() =>
                                 handleNavigate('/bucket-list')
                             }
                         />
                         <AccountItem
                             icon={<EventNoteRoundedIcon />}
-                            label="Notifications"
+                            label={t('nav.notifications')}
                             onClick={() =>
                                 handleNavigate('/notifications')
                             }
                         />
                         <AccountItem
                             icon={<PeopleOutlineRoundedIcon />}
-                            label="Manage Friends"
+                            label={t('nav.manageFriends')}
                             onClick={() => handleNavigate('/friends')}
                         />
                         <AccountItem
                             icon={<HistoryRoundedIcon />}
-                            label="Recent searches"
+                            label={t('nav.recentSearches')}
                             onClick={() => handleNavigate('/history')}
                         />
                         {isAdmin && (
                             <AccountItem
                                 icon={<AdminPanelSettingsRoundedIcon />}
-                                label="Admin dashboard"
+                                label={t('nav.adminDashboard')}
                                 onClick={() =>
                                     handleNavigate('/dashboard')
                                 }
@@ -417,7 +419,7 @@ const BottomNav = () => {
                         </li>
                         <AccountItem
                             icon={<LogoutRoundedIcon />}
-                            label="Logout"
+                            label={t('nav.logout')}
                             onClick={handleLogout}
                             tone="danger"
                         />
@@ -436,19 +438,19 @@ const BottomNav = () => {
                     className="bottom-nav-search-overlay"
                     role="dialog"
                     aria-modal="true"
-                    aria-label="Search"
+                    aria-label={t('nav.search')}
                 >
                     <button
                         type="button"
                         className="bottom-nav-search-close"
-                        aria-label="Close search"
+                        aria-label={t('heroSearch.close')}
                         onClick={() => setSearchOpen(false)}
                     >
                         <CloseRoundedIcon />
                     </button>
                     <div className="bottom-nav-search-content">
                         <h2 className="bottom-nav-search-title">
-                            Where to next?
+                            {t('heroSearch.title')}
                         </h2>
 
                         {/* Mode toggle — mirrors the homepage hero's
@@ -462,7 +464,7 @@ const BottomNav = () => {
                                 { 'is-describe': searchMode === 'describe' },
                             )}
                             role="tablist"
-                            aria-label="Search mode"
+                            aria-label={t('heroSearch.modeAria')}
                         >
                             <span
                                 className="bottom-nav-search-toggle-thumb"
@@ -472,7 +474,7 @@ const BottomNav = () => {
                                 type="button"
                                 role="tab"
                                 aria-selected={searchMode === 'place'}
-                                aria-label="Search by place"
+                                aria-label={t('heroSearch.byPlaceAria')}
                                 className={classNames(
                                     'bottom-nav-search-toggle-btn',
                                     {
@@ -487,16 +489,16 @@ const BottomNav = () => {
                                 />
                                 <span>
                                     <span className="bottom-nav-search-toggle-prefix">
-                                        Search by{' '}
+                                        {t('heroSearch.searchByPrefix')}
                                     </span>
-                                    Place
+                                    {t('heroSearch.place')}
                                 </span>
                             </button>
                             <button
                                 type="button"
                                 role="tab"
                                 aria-selected={searchMode === 'describe'}
-                                aria-label="Search by description"
+                                aria-label={t('heroSearch.byDescriptionAria')}
                                 className={classNames(
                                     'bottom-nav-search-toggle-btn',
                                     { selected: searchMode === 'describe' },
@@ -509,9 +511,9 @@ const BottomNav = () => {
                                 />
                                 <span>
                                     <span className="bottom-nav-search-toggle-prefix">
-                                        Search by{' '}
+                                        {t('heroSearch.searchByPrefix')}
                                     </span>
-                                    Description
+                                    {t('heroSearch.description')}
                                 </span>
                             </button>
                         </div>
@@ -540,25 +542,25 @@ const BottomNav = () => {
                             className="bottom-nav-search-or"
                             aria-hidden="true"
                         >
-                            <span>or</span>
+                            <span>{t('heroSearch.or')}</span>
                         </div>
                         <div className="bottom-nav-search-ai-callout">
                             <span className="bottom-nav-search-ai-callout-tagline">
-                                Not sure where to go?
+                                {t('heroSearch.aiTagline')}
                             </span>
                             <Link
                                 to="/discover"
                                 className="bottom-nav-search-ai-cta"
-                                aria-label="Let us plan a trip for you"
+                                aria-label={t('heroSearch.aiCtaAria')}
                                 onClick={() => setSearchOpen(false)}
                             >
                                 <AutoAwesomeRoundedIcon
                                     className="bottom-nav-search-ai-cta-icon"
                                     fontSize="small"
                                 />
-                                <span>Plan my trip for me</span>
+                                <span>{t('heroSearch.aiCta')}</span>
                                 <span className="bottom-nav-search-ai-cta-badge">
-                                    Pro
+                                    {t('heroSearch.pro')}
                                 </span>
                             </Link>
                         </div>
@@ -570,7 +572,7 @@ const BottomNav = () => {
                                 onClick={() => setSearchOpen(false)}
                             >
                                 <AutoAwesomeRoundedIcon fontSize="small" />
-                                <span>Bucket list</span>
+                                <span>{t('nav.bucketList')}</span>
                             </Link>
                             <Link
                                 to="/saved"
@@ -578,7 +580,7 @@ const BottomNav = () => {
                                 onClick={() => setSearchOpen(false)}
                             >
                                 <FavoriteRoundedIcon fontSize="small" />
-                                <span>Saved places</span>
+                                <span>{t('nav.savedPlaces')}</span>
                             </Link>
                             <Link
                                 to="/visited"
@@ -586,7 +588,7 @@ const BottomNav = () => {
                                 onClick={() => setSearchOpen(false)}
                             >
                                 <CheckCircleRoundedIcon fontSize="small" />
-                                <span>Visited</span>
+                                <span>{t('nav.visited')}</span>
                             </Link>
                         </div>
                     </div>

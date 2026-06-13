@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Snackbar } from '@mui/material';
 import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
@@ -27,6 +28,7 @@ const BookmarkCountryButton = ({
     countryCode,
     countryName,
 }: BookmarkCountryButtonProps) => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const navigate = useNavigate();
     const { data } = useSavedCountries();
@@ -49,13 +51,21 @@ const BookmarkCountryButton = ({
         if (saved) {
             unsaveCountry.mutate(normalizedCode, {
                 onSuccess: () =>
-                    setToast(`Removed ${countryName} from bookmarks`),
+                    setToast(
+                        t('detail.common.bookmark.removedToast', {
+                            name: countryName,
+                        })
+                    ),
                 onError: (err) => setToast(err.message),
             });
         } else {
             saveCountry.mutate(normalizedCode, {
                 onSuccess: () =>
-                    setToast(`Saved ${countryName} to your bookmarks`),
+                    setToast(
+                        t('detail.common.bookmark.savedToast', {
+                            name: countryName,
+                        })
+                    ),
                 onError: (err) => setToast(err.message),
             });
         }
@@ -70,13 +80,21 @@ const BookmarkCountryButton = ({
                 })}
                 aria-label={
                     saved
-                        ? `Remove ${countryName} from bookmarks`
-                        : `Save ${countryName} to bookmarks`
+                        ? t('detail.common.bookmark.removeAria', {
+                              name: countryName,
+                          })
+                        : t('detail.common.bookmark.saveAria', {
+                              name: countryName,
+                          })
                 }
                 title={
                     saved
-                        ? `${countryName} is saved — tap to remove`
-                        : `Save ${countryName}`
+                        ? t('detail.common.bookmark.savedTitle', {
+                              name: countryName,
+                          })
+                        : t('detail.common.bookmark.saveTitle', {
+                              name: countryName,
+                          })
                 }
                 aria-pressed={saved}
                 disabled={isPending}

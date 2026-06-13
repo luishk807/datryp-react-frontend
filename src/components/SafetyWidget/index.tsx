@@ -1,11 +1,12 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import type { SafetyInfo } from 'types';
 
-const SAFETY_LEVEL_LABEL: Record<SafetyInfo['level'], string> = {
-    low: 'Low risk',
-    moderate: 'Moderate risk',
-    high: 'High risk',
+const SAFETY_LEVEL_LABEL_KEY: Record<SafetyInfo['level'], string> = {
+    low: 'detail.common.safetyWidget.low',
+    moderate: 'detail.common.safetyWidget.moderate',
+    high: 'detail.common.safetyWidget.high',
 };
 
 export interface SafetyWidgetProps {
@@ -20,12 +21,13 @@ export interface SafetyWidgetProps {
  * Colour palette switches via the `level-<value>` modifier class.
  */
 const SafetyWidget = ({ info }: SafetyWidgetProps) => {
+    const { t } = useTranslation();
     const score = Math.max(0, Math.min(100, Math.round(info.score)));
     return (
         <div className={classNames('safety-widget', `level-${info.level}`)}>
             <div className="safety-widget-top">
                 <span className="safety-widget-level">
-                    {SAFETY_LEVEL_LABEL[info.level]}
+                    {t(SAFETY_LEVEL_LABEL_KEY[info.level])}
                 </span>
                 <span className="safety-widget-score">
                     <strong>{score}</strong>
@@ -38,7 +40,9 @@ const SafetyWidget = ({ info }: SafetyWidgetProps) => {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={score}
-                aria-label={`Safety score ${score} out of 100`}
+                aria-label={t('detail.common.safetyWidget.scoreAria', {
+                    score,
+                })}
             >
                 <div
                     className="safety-widget-meter-fill"
@@ -47,7 +51,7 @@ const SafetyWidget = ({ info }: SafetyWidgetProps) => {
             </div>
             <p className="safety-widget-summary">{info.summary}</p>
             <p className="safety-widget-disclaimer">
-                Approximate — verify with official travel advisories before travel.
+                {t('detail.common.safetyWidget.disclaimer')}
             </p>
         </div>
     );

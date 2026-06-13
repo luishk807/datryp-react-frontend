@@ -21,6 +21,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import IconLink from 'components/common/IconLink';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -53,6 +54,7 @@ interface DraftAccount {
 }
 
 const Signup = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { user } = useUser();
     const signupMutation = useSignup();
@@ -128,19 +130,19 @@ const Signup = () => {
     // surface inline on the age step (validation, dup email, etc.).
     const submitAccount = async () => {
         if (!draft.email.trim() || !draft.password) {
-            setError('Email and password are required.');
+            setError(t('auth.emailPasswordRequired'));
             return;
         }
         if (typeof draft.birthYear !== 'number') {
-            setError('Pick your year of birth.');
+            setError(t('auth.signup.pickBirthYear'));
             return;
         }
         if (yearsSinceBirthYear(draft.birthYear) < MIN_SIGNUP_AGE) {
-            setError(`You must be at least ${MIN_SIGNUP_AGE} to sign up.`);
+            setError(t('auth.signup.minAgeError', { age: MIN_SIGNUP_AGE }));
             return;
         }
         if (!draft.confirmAge) {
-            setError(`Please confirm you're at least ${MIN_SIGNUP_AGE}.`);
+            setError(t('auth.signup.confirmAgeError', { age: MIN_SIGNUP_AGE }));
             return;
         }
         try {
@@ -156,7 +158,7 @@ const Signup = () => {
             setError(
                 err instanceof AuthError || err instanceof Error
                     ? err.message
-                    : 'Signup failed.'
+                    : t('auth.common.signupFailed')
             );
         }
     };
@@ -183,7 +185,9 @@ const Signup = () => {
             },
             onError: (err) =>
                 setError(
-                    err instanceof Error ? err.message : 'Google sign-in failed.'
+                    err instanceof Error
+                        ? err.message
+                        : t('auth.common.googleSignInFailed')
                 ),
         });
     };
@@ -276,16 +280,15 @@ const Signup = () => {
                     <IconLink
                         to="/"
                         icon={<img src={logoUrl} alt="" />}
-                        ariaLabel="DaTryp.com home"
+                        ariaLabel={t('nav.homeLink')}
                         className="signup-hero-brand"
                     />
                     <div className="signup-hero-copy">
                         <h2 className="signup-hero-title">
-                            Plan your next adventure
+                            {t('auth.common.heroTitle')}
                         </h2>
                         <p className="signup-hero-subtitle">
-                            A few quick steps and we'll start tailoring trips to
-                            you.
+                            {t('auth.signup.heroSubtitle')}
                         </p>
                     </div>
                     {hero && (
@@ -295,19 +298,21 @@ const Signup = () => {
                             </span>
                             {hero.photographerName && (
                                 <span className="signup-hero-photographer">
-                                    Photo:{' '}
-                                    {hero.photographerUrl ? (
-                                        <a
-                                            href={hero.photographerUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {hero.photographerName}
-                                        </a>
-                                    ) : (
-                                        hero.photographerName
-                                    )}{' '}
-                                    on Unsplash
+                                    <Trans
+                                        i18nKey="auth.signup.photoCredit"
+                                        values={{ name: hero.photographerName }}
+                                        components={{
+                                            author: hero.photographerUrl ? (
+                                                <a
+                                                    href={hero.photographerUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                />
+                                            ) : (
+                                                <span />
+                                            ),
+                                        }}
+                                    />
                                 </span>
                             )}
                         </div>
@@ -325,16 +330,16 @@ const Signup = () => {
                             disabled={signupMutation.isPending}
                         >
                             <ArrowBackIcon fontSize="small" />
-                            <span>Back</span>
+                            <span>{t('auth.common.back')}</span>
                         </button>
                     ) : (
                         <Link to="/" className="signup-back">
                             <ArrowBackIcon fontSize="small" />
-                            <span>Home</span>
+                            <span>{t('nav.home')}</span>
                         </Link>
                     )}
                     <div className="signup-step-label">
-                        Step {step} of {TOTAL_STEPS}
+                        {t('auth.signup.stepLabel', { step, total: TOTAL_STEPS })}
                     </div>
                 </div>
 
@@ -368,14 +373,14 @@ const Signup = () => {
                         className="signup-skip-rest"
                         onClick={() => void finishOnboarding()}
                     >
-                        Skip the rest
+                        {t('auth.signup.skipRest')}
                     </button>
                 )}
 
                 <p className="signup-footer">
-                    Already have an account?{' '}
+                    {t('auth.common.alreadyHaveAccount')}{' '}
                     <Link to="/" className="signup-footer-link">
-                        Sign in
+                        {t('nav.signIn')}
                     </Link>
                 </p>
             </main>

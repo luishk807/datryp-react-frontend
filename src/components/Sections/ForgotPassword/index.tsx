@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
@@ -15,6 +16,7 @@ import './index.scss';
  * user is told to check their inbox, and the next step lives in the email.
  */
 const ForgotPassword = () => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ const ForgotPassword = () => {
         if (submitting) return;
         const trimmed = email.trim();
         if (!EMAIL_REGEX.test(trimmed)) {
-            setError('Enter a valid email address.');
+            setError(t('auth.forgot.invalidEmail'));
             return;
         }
         setError(null);
@@ -34,57 +36,59 @@ const ForgotPassword = () => {
             await requestPasswordReset(trimmed);
             setSent(true);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Could not send the reset link. Try again.');
+            setError(err instanceof Error ? err.message : t('auth.forgot.sendError'));
         } finally {
             setSubmitting(false);
         }
     };
 
     return (
-        <Layout title="Forgot password">
+        <Layout title={t('auth.forgot.pageTitle')}>
             <article className="forgot-password-page">
                 {sent ? (
                     <div className="forgot-password-confirm">
-                        <h2>Check your inbox</h2>
+                        <h2>{t('auth.forgot.confirmTitle')}</h2>
                         <p>
-                            If <strong>{email}</strong> is a registered DaTryp.com
-                            account, we&rsquo;ve emailed you a link to reset
-                            your password. The link expires in 60 minutes.
+                            <Trans
+                                i18nKey="auth.forgot.confirmBody"
+                                values={{ email }}
+                                components={{ strong: <strong /> }}
+                            />
                         </p>
                         <p className="forgot-password-fineprint">
-                            Didn&rsquo;t receive it? Check your spam folder,
-                            then{' '}
-                            <button
-                                type="button"
-                                className="forgot-password-resend"
-                                onClick={() => setSent(false)}
-                            >
-                                try again
-                            </button>
-                            .
+                            <Trans
+                                i18nKey="auth.forgot.resendHint"
+                                components={{
+                                    resend: (
+                                        <button
+                                            type="button"
+                                            className="forgot-password-resend"
+                                            onClick={() => setSent(false)}
+                                        />
+                                    ),
+                                }}
+                            />
                         </p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="forgot-password-form">
                         <h2 className="forgot-password-title">
-                            Reset your password
+                            {t('auth.forgot.title')}
                         </h2>
                         <p className="forgot-password-subtitle">
-                            Enter the email tied to your DaTryp.com account and
-                            we&rsquo;ll send you a link to choose a new
-                            password.
+                            {t('auth.forgot.subtitle')}
                         </p>
                         <div className="forgot-password-field">
                             <InputField
                                 variant="bare"
-                                label="Email"
+                                label={t('auth.common.email')}
                                 type="email"
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
                                     if (error) setError(null);
                                 }}
-                                placeholder="you@example.com"
+                                placeholder={t('auth.common.emailPlaceholder')}
                                 required
                             />
                         </div>
@@ -100,12 +104,14 @@ const ForgotPassword = () => {
                                 onClick={handleSubmit}
                                 disabled={submitting}
                             >
-                                {submitting ? 'Sending…' : 'Send reset link'}
+                                {submitting
+                                    ? t('auth.forgot.sending')
+                                    : t('auth.forgot.sendLink')}
                             </ButtonCustom>
                         </div>
                         <p className="forgot-password-back">
-                            Remembered it?{' '}
-                            <Link to="/">Back to homepage</Link>
+                            {t('auth.forgot.remembered')}{' '}
+                            <Link to="/">{t('auth.forgot.backToHome')}</Link>
                         </p>
                     </form>
                 )}

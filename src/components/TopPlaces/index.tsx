@@ -1,4 +1,5 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import CloudOffRoundedIcon from '@mui/icons-material/CloudOffRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import PlaceCard from 'components/common/PlaceCard';
@@ -28,24 +29,27 @@ const formatMonth = (monthKey: string): string => {
     });
 };
 
-const TopPlaces = ({
-    onPlaceClick,
-    title = 'Top 6 cities to travel',
-    subtitle,
-}: TopPlacesProps) => {
+const TopPlaces = ({ onPlaceClick, title, subtitle }: TopPlacesProps) => {
+    const { t } = useTranslation();
     const { data, isLoading, isError, isFetching, refetch } =
         useMonthlyTopCities();
+
+    const effectiveTitle = title ?? t('homeCards.topPlaces.title');
 
     // Subtitle defaults to the month label so the user understands the list
     // rotates monthly. Falls back to the caller's override if provided.
     const effectiveSubtitle =
         subtitle ??
-        (data ? `Curated for ${formatMonth(data.month)}` : 'Get inspired');
+        (data
+            ? t('homeCards.topPlaces.curatedFor', {
+                  month: formatMonth(data.month),
+              })
+            : t('homeCards.topPlaces.getInspired'));
 
     return (
         <section className="top-places">
             <div className="top-places-header">
-                <h2 className="top-places-title">{title}</h2>
+                <h2 className="top-places-title">{effectiveTitle}</h2>
                 {effectiveSubtitle && (
                     <span className="top-places-subtitle">
                         {effectiveSubtitle}
@@ -66,10 +70,14 @@ const TopPlaces = ({
                         aria-hidden="true"
                     />
                     <p className="top-places-error-text">
-                        Couldn't load this month's picks.
+                        {t('homeCards.topPlaces.loadError')}
                     </p>
                     <ButtonIcon
-                        title={isFetching ? 'Retrying…' : 'Try again'}
+                        title={
+                            isFetching
+                                ? t('homeCards.topPlaces.retrying')
+                                : t('homeCards.topPlaces.tryAgain')
+                        }
                         Icon={RefreshRoundedIcon}
                         iconPosition="start"
                         type={BUTTON_VARIANT.STANDARD}

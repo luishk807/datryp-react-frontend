@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useStartCheckout } from 'api/hooks/useBilling';
 import './index.scss';
 
@@ -27,6 +28,7 @@ const PlanCards = ({
     showTrialNote = true,
     className,
 }: PlanCardsProps) => {
+    const { t } = useTranslation();
     const startCheckout = useStartCheckout();
     const isPending = startCheckout.isPending;
     const error = startCheckout.error;
@@ -47,12 +49,12 @@ const PlanCards = ({
                     onClick={handlePlan('monthly')}
                     disabled={isPending}
                 >
-                    <span className="plan-card-name">Monthly</span>
+                    <span className="plan-card-name">{t('planCards.monthly')}</span>
                     <span className="plan-card-price">
                         <strong>$3.99</strong>
-                        <span className="plan-card-cadence">/month</span>
+                        <span className="plan-card-cadence">{t('planCards.perMonth')}</span>
                     </span>
-                    <span className="plan-card-fine">Cancel anytime</span>
+                    <span className="plan-card-fine">{t('planCards.cancelAnytime')}</span>
                 </button>
                 <button
                     type="button"
@@ -60,26 +62,25 @@ const PlanCards = ({
                     onClick={handlePlan('yearly')}
                     disabled={isPending}
                 >
-                    <span className="plan-card-badge">Save 39%</span>
-                    <span className="plan-card-name">Yearly</span>
+                    <span className="plan-card-badge">{t('planCards.saveBadge')}</span>
+                    <span className="plan-card-name">{t('planCards.yearly')}</span>
                     <span className="plan-card-price">
                         <strong>$29</strong>
-                        <span className="plan-card-cadence">/year</span>
+                        <span className="plan-card-cadence">{t('planCards.perYear')}</span>
                     </span>
-                    <span className="plan-card-fine">≈ $2.42/month</span>
+                    <span className="plan-card-fine">{t('planCards.approxMonthly')}</span>
                 </button>
             </div>
 
             {showTrialNote && (
                 <p className="plan-cards-trial-note">
-                    30-day free trial. No charge until day 31 — cancel anytime
-                    from your billing portal.
+                    {t('planCards.trialNote')}
                 </p>
             )}
 
             {error && (
                 <p className="plan-cards-error" role="alert">
-                    Could not start checkout: {error.message}
+                    {t('planCards.checkoutError', { message: error.message })}
                 </p>
             )}
         </div>

@@ -1,4 +1,5 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import StarInput, {
     type StarInputSize,
 } from 'components/common/FormFields/StarInput';
@@ -18,13 +19,16 @@ export interface RatingStatsProps {
  * so callers can drop it in unconditionally.
  */
 const RatingStats = ({ average, total, size = 'sm' }: RatingStatsProps) => {
+    const { t } = useTranslation();
     if (total === 0 || average === null) return null;
     return (
         <span className="rating-stats">
             <StarInput value={Math.round(average)} readonly size={size} />
             <span className="rating-stats-avg">{average.toFixed(1)}</span>
             <span className="rating-stats-count">
-                ({total} review{total === 1 ? '' : 's'})
+                {total === 1
+                    ? t('detail.reviews.countOne', { n: total })
+                    : t('detail.reviews.countOther', { n: total })}
             </span>
         </span>
     );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import classNames from 'classnames';
 import { Snackbar } from '@mui/material';
@@ -49,6 +50,7 @@ export interface AddToItineraryButtonProps {
  * that ambiguity entirely.
  */
 const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
@@ -97,10 +99,12 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
     const disabledReason = (() => {
         if (isLoading) return undefined;
         if (isTripMissing) {
-            return "This trip isn't in your list — you may not have access, or it was deleted.";
+            return t('detail.common.itinerary.tripMissing');
         }
         if (isCountryUnresolved) {
-            return `Couldn't resolve "${place.country}" in our country catalog.`;
+            return t('detail.common.itinerary.countryUnresolved', {
+                name: place.country,
+            });
         }
         return undefined;
     })();
@@ -139,29 +143,31 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
             }
         }
         dispatchStartFreshTrip(place, country, dispatch, airports);
-        setToast(`Started a new trip with ${place.name}`);
+        setToast(
+            t('detail.common.itinerary.startedToast', { name: place.name })
+        );
         navigate(TRIP_BASIC.SINGLE.route);
     };
 
     const addToTripFlow = async () => {
         if (!tripId) {
-            setToast('Missing trip id — refresh the page and try again.');
+            setToast(t('detail.common.itinerary.missingId'));
             return;
         }
         if (!country) {
             setToast(
-                `Couldn't resolve "${place.country}" in our country catalog.`
+                t('detail.common.itinerary.countryUnresolved', {
+                    name: place.country,
+                })
             );
             return;
         }
         if (!targetTrip) {
-            setToast(
-                "This trip isn't in your list — you may not have access."
-            );
+            setToast(t('detail.common.itinerary.noAccess'));
             return;
         }
         if (itineraryTypes.length === 0) {
-            setToast('Trip-type lookup not ready — try again in a moment.');
+            setToast(t('detail.common.itinerary.lookupNotReady'));
             return;
         }
 
@@ -179,7 +185,7 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
 
         const interaryTypeId = resolveInteraryTypeId(nextState, itineraryTypes);
         if (!interaryTypeId) {
-            setToast('Could not resolve trip type — try again shortly.');
+            setToast(t('detail.common.itinerary.typeUnresolved'));
             return;
         }
 
@@ -205,7 +211,14 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
 
         try {
             await saveItinerary.mutateAsync(input);
-            setToast(`Added ${place.name} to ${targetTrip.name ?? 'your trip'}`);
+            setToast(
+                t('detail.common.itinerary.addedToast', {
+                    name: place.name,
+                    trip:
+                        targetTrip.name ??
+                        t('detail.common.itinerary.yourTrip'),
+                })
+            );
             navigate(`/trip-detail?id=${tripId}`);
         } catch (err) {
             // Log the full error so the user (or whoever is debugging)
@@ -215,8 +228,10 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
             console.error('Failed to add place to itinerary', err);
             setToast(
                 err instanceof Error
-                    ? `Failed to add place: ${err.message}`
-                    : 'Failed to add place — see console for details.'
+                    ? t('detail.common.itinerary.failed', {
+                          message: err.message,
+                      })
+                    : t('detail.common.itinerary.failedGeneric')
             );
         }
     };
@@ -232,15 +247,15 @@ const AddToItineraryButton = ({ place }: AddToItineraryButtonProps) => {
 
     const buttonLabel = isLoading
         ? tripId
-            ? 'Adding…'
-            : 'Loading…'
+            ? t('detail.common.itinerary.adding')
+            : t('detail.common.itinerary.loading')
         : tripId
-            ? 'Add to itinerary'
-            : 'Start a new trip';
+            ? t('detail.common.itinerary.add')
+            : t('detail.common.itinerary.startNew');
 
     const ariaLabel = tripId
-        ? `Add ${place.name} to your trip`
-        : `Start a new trip with ${place.name}`;
+        ? t('detail.common.itinerary.addAria', { name: place.name })
+        : t('detail.common.itinerary.startAria', { name: place.name });
 
     return (
         <>

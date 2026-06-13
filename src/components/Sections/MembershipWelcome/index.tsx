@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -24,7 +25,11 @@ import './index.scss';
  * Pro state (the Stripe webhook will have updated the DB by the time the
  * redirect lands).
  */
+/** Perk bullets: bold lead + body under `welcome.perks.<key>`. */
+const PERK_KEYS = ['savedTrips', 'search', 'noLimits', 'manage'] as const;
+
 const MembershipWelcome = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const queryClient = useQueryClient();
     const sessionId = searchParams.get('session_id') ?? '';
@@ -45,7 +50,7 @@ const MembershipWelcome = () => {
     }
 
     return (
-        <Layout title="Welcome to Pro">
+        <Layout title={t('welcome.pageTitle')}>
             <article className="welcome-page">
                 <div className="welcome-hero">
                     <CheckCircleRoundedIcon
@@ -53,38 +58,24 @@ const MembershipWelcome = () => {
                         aria-hidden="true"
                     />
                     <h1 className="welcome-hero-title">
-                        You&rsquo;re in. Welcome to DaTryp.com Pro.
+                        {t('welcome.heroTitle')}
                     </h1>
                     <p className="welcome-hero-subtitle">
-                        Your 30-day free trial has started. No charge until
-                        day 31 — cancel anytime from your Account page.
+                        {t('welcome.heroSubtitle')}
                     </p>
                 </div>
 
                 <section className="welcome-perks">
                     <h2 className="welcome-section-title">
-                        What you can do now
+                        {t('welcome.perksTitle')}
                     </h2>
                     <ul className="welcome-perks-list">
-                        <li>
-                            <strong>Save as many trips as you like.</strong>{' '}
-                            Past, present, and future — all in one place.
-                        </li>
-                        <li>
-                            <strong>Advanced AI Search is unlocked.</strong>{' '}
-                            Searches return 5 places with deeper detail and
-                            richer recommendations.
-                        </li>
-                        <li>
-                            <strong>No daily limits.</strong> Search as much
-                            as you want.
-                        </li>
-                        <li>
-                            <strong>Manage anytime.</strong> Switch between
-                            monthly and yearly, update your card, or cancel
-                            from the Account page&rsquo;s Subscription
-                            section.
-                        </li>
+                        {PERK_KEYS.map((key) => (
+                            <li key={key}>
+                                <strong>{t(`welcome.perks.${key}.lead`)}</strong>{' '}
+                                {t(`welcome.perks.${key}.body`)}
+                            </li>
+                        ))}
                     </ul>
                 </section>
 
@@ -93,7 +84,7 @@ const MembershipWelcome = () => {
                         <ButtonCustom
                             type={BUTTON_VARIANT.STANDARD}
                             capitalizeType="uppercase"
-                            label="Start planning"
+                            label={t('welcome.startPlanning')}
                         />
                     </Link>
                     <Link
@@ -103,14 +94,13 @@ const MembershipWelcome = () => {
                         <ButtonCustom
                             type={BUTTON_VARIANT.LINE}
                             capitalizeType="uppercase"
-                            label="View subscription"
+                            label={t('welcome.viewSubscription')}
                         />
                     </Link>
                 </div>
 
                 <p className="welcome-fineprint">
-                    A receipt for your subscription will be emailed to you by
-                    Stripe.
+                    {t('welcome.fineprint')}
                 </p>
             </article>
         </Layout>

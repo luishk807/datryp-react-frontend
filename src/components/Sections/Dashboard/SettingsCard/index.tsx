@@ -1,6 +1,7 @@
 import './index.scss';
 import FreeEverythingCard from './FreeEverythingCard';
 import MaintenanceCard from './MaintenanceCard';
+import SmsCard from './SmsCard';
 
 /**
  * Admin → Settings. Container for the app-wide configuration cards. Each knob
@@ -12,6 +13,7 @@ const SettingsCard = () => (
     <>
         <FreeEverythingCard />
         <MaintenanceCard />
+        <SmsCard />
     </>
 );
 

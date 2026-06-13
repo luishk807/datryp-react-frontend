@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Layout from 'components/common/Layout/SubLayout';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
@@ -19,6 +20,7 @@ import './index.scss';
  * user is logged in immediately, then redirect to /account.
  */
 const ResetPassword = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -51,11 +53,11 @@ const ResetPassword = () => {
         e.preventDefault();
         if (submitting) return;
         if (password.length < 8) {
-            setError('Password must be at least 8 characters.');
+            setError(t('auth.reset.tooShort'));
             return;
         }
         if (password !== confirm) {
-            setError("Passwords don't match.");
+            setError(t('auth.reset.mismatch'));
             return;
         }
         setError(null);
@@ -72,7 +74,7 @@ const ResetPassword = () => {
             setError(
                 err instanceof Error
                     ? err.message
-                    : 'Could not reset password. The link may have expired.'
+                    : t('auth.reset.resetError')
             );
         } finally {
             setSubmitting(false);
@@ -80,30 +82,26 @@ const ResetPassword = () => {
     };
 
     return (
-        <Layout title="Reset password">
+        <Layout title={t('auth.reset.pageTitle')}>
             <article className="reset-password-page">
                 {done ? (
                     <div className="reset-password-confirm">
-                        <h2>Password updated</h2>
-                        <p>
-                            You&rsquo;re now signed in. Taking you to your
-                            account…
-                        </p>
+                        <h2>{t('auth.reset.doneTitle')}</h2>
+                        <p>{t('auth.reset.doneBody')}</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="reset-password-form">
                         <h2 className="reset-password-title">
-                            Choose a new password
+                            {t('auth.reset.title')}
                         </h2>
                         <p className="reset-password-subtitle">
-                            Pick something you&rsquo;ll remember. At least
-                            8 characters.
+                            {t('auth.reset.subtitle')}
                         </p>
 
                         <div className="reset-password-field">
                             <InputField
                                 variant="bare"
-                                label="New password"
+                                label={t('auth.reset.newPassword')}
                                 type="password"
                                 value={password}
                                 onChange={(e) => {
@@ -116,7 +114,7 @@ const ResetPassword = () => {
                         <div className="reset-password-field">
                             <InputField
                                 variant="bare"
-                                label="Confirm new password"
+                                label={t('auth.reset.confirmPassword')}
                                 type="password"
                                 value={confirm}
                                 onChange={(e) => {
@@ -140,14 +138,16 @@ const ResetPassword = () => {
                                 onClick={handleSubmit}
                                 disabled={submitting}
                             >
-                                {submitting ? 'Updating…' : 'Update password'}
+                                {submitting
+                                    ? t('auth.reset.updating')
+                                    : t('auth.reset.update')}
                             </ButtonCustom>
                         </div>
 
                         <p className="reset-password-back">
-                            Need a new link?{' '}
+                            {t('auth.reset.needNewLink')}{' '}
                             <Link to="/forgot-password">
-                                Request another email
+                                {t('auth.reset.requestAnother')}
                             </Link>
                         </p>
                     </form>

@@ -28,6 +28,7 @@
  *   - Quiet weeks where AI returns no major event (backend 204)
  */
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import Skeleton from 'components/common/Skeleton';
@@ -83,6 +84,7 @@ const WorldEvent = () => {
 // pattern doesn't violate the rules of hooks — WorldEvent returns
 // early for free users before this is rendered.
 const WorldEventActive = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { data, isLoading, isError } = useWorldEvent();
 
@@ -103,7 +105,7 @@ const WorldEventActive = () => {
                                 className="world-event-eyebrow-icon"
                                 fontSize="small"
                             />
-                            <span>Upcoming event</span>
+                            <span>{t('homeCards.worldEvent.eyebrow')}</span>
                         </div>
                         <Skeleton width="80%" height={32} radius={8} />
                         <div className="world-event-loading-meta">
@@ -178,26 +180,28 @@ const WorldEventActive = () => {
                     <div className="world-event-photo-scrim" aria-hidden="true" />
                     {event.imageUrl && event.photographerName && (
                         <span className="world-event-attribution">
-                            Photo by{' '}
-                            {event.photographerUrl ? (
-                                <a
-                                    href={event.photographerUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {event.photographerName}
-                                </a>
-                            ) : (
-                                event.photographerName
-                            )}{' '}
-                            on{' '}
-                            <a
-                                href="https://unsplash.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Unsplash
-                            </a>
+                            <Trans
+                                i18nKey="home.attribution"
+                                values={{ name: event.photographerName }}
+                                components={{
+                                    author: event.photographerUrl ? (
+                                        <a
+                                            href={event.photographerUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    ) : (
+                                        <span />
+                                    ),
+                                    unsplash: (
+                                        <a
+                                            href="https://unsplash.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    ),
+                                }}
+                            />
                         </span>
                     )}
                 </div>
@@ -209,7 +213,7 @@ const WorldEventActive = () => {
                             className="world-event-eyebrow-icon"
                             fontSize="small"
                         />
-                        <span>Upcoming event</span>
+                        <span>{t('homeCards.worldEvent.eyebrow')}</span>
                     </div>
 
                     <h2 className="world-event-name">{event.name}</h2>
@@ -236,7 +240,9 @@ const WorldEventActive = () => {
                         </p>
                     )}
 
-                    <h3 className="world-event-places-label">Top spots to be</h3>
+                    <h3 className="world-event-places-label">
+                        {t('homeCards.worldEvent.topSpots')}
+                    </h3>
                     <ul className="world-event-places">
                         {places.map((place) => (
                             <li
@@ -247,7 +253,13 @@ const WorldEventActive = () => {
                                     type="button"
                                     className="world-event-place-btn"
                                     onClick={() => goToCity(navigate, place)}
-                                    aria-label={`Open ${place.name}, ${place.country}`}
+                                    aria-label={t(
+                                        'homeCards.common.openPlaceAria',
+                                        {
+                                            name: place.name,
+                                            country: place.country,
+                                        },
+                                    )}
                                 >
                                     <img
                                         src={place.imageUrl ?? NO_IMAGE}

@@ -242,6 +242,11 @@ iframe[id*='__acroToolbar' i],
 // cleanup removes it on unmount (route change), so this never leaks to
 // other pages. Dims the page background, app header, and bottom nav so the
 // itinerary's dark theme isn't framed by white chrome.
+//
+// The Travel Atlas reuses the exact same chrome dimming via
+// `atlas-night-mode` (added by MyMap when its night basemap is active) so a
+// dark map isn't framed by a white header / bottom nav. Both classes share
+// these rules — they only target generic global chrome, nothing page-specific.
 // ============================================================
 $night-bg: #15171c;
 $night-chrome: #1a1d23;
@@ -249,7 +254,8 @@ $night-text: #e8eaed;
 $night-text-2: rgba(255, 255, 255, 0.62);
 $night-border: rgba(255, 255, 255, 0.08);
 
-body.trip-night-mode {
+body.trip-night-mode,
+body.atlas-night-mode {
   background: $night-bg;
 
   .page-shell,
@@ -303,5 +309,36 @@ body.trip-night-mode {
   // Keep the primary "My Trip" tab on-brand green.
   .bottom-nav-item--primary {
     color: theme("colors.primaryGreen");
+  }
+
+  // ---- Desktop page footer ----
+  // The standalone Footer shows on desktop (it hides itself inside the
+  // itinerary, so these rules are a no-op there but matter for the Atlas).
+  .footer {
+    background: $night-chrome !important;
+    color: $night-text-2 !important;
+    border-top-color: $night-border !important;
+  }
+  .footer-brand {
+    color: $night-text;
+  }
+  .footer-copy {
+    color: $night-text-2;
+  }
+  .footer-social a {
+    color: $night-text-2;
+
+    &:hover {
+      color: theme("colors.primaryGreen");
+    }
+  }
+  // EN/ES switcher in the footer — its light pill would vanish on the dark
+  // footer; recolor the track + inactive label (active stays brand-green).
+  .footer .language-switcher {
+    border-color: $night-border;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .footer .language-switcher-option:not(.is-active) {
+    color: $night-text-2;
   }
 }

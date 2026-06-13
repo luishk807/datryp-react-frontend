@@ -3,6 +3,7 @@ import React from 'react';
 import './App.scss';
 import { Suspense } from 'react';
 import { Navigate, Route, Routes, BrowserRouter as Router } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { lazyWithRetry as lazy } from 'utils';
 import AuthGate from 'components/AuthGate';
 import AdminGate from 'components/AdminGate';
@@ -54,23 +55,29 @@ const ErrorPage = lazy(() => import('components/common/ErrorPage'));
 
 import { TRIP_BASIC } from 'constants';
 
-const Gated = ({ children, title, subtitle }: {
+const Gated = ({ children, titleKey, subtitleKey }: {
     children: React.ReactNode;
-    title?: string;
-    subtitle?: string;
-}) => (
-    // RouteErrorBoundary wraps the gate so a render error during the
-    // auth-check OR the gated content falls back to a friendly error
-    // page with "Sign in" / "Go home" actions, instead of unmounting
-    // the tree and leaving a blank page. The boundary lives ABOVE
-    // AuthGate so a thrown error in AuthGate itself (e.g. a malformed
-    // /auth/me response) is still caught.
-    <RouteErrorBoundary>
-        <AuthGate title={title} subtitle={subtitle}>
-            <Suspense fallback={<PageLoader />}>{children}</Suspense>
-        </AuthGate>
-    </RouteErrorBoundary>
-);
+    titleKey?: string;
+    subtitleKey?: string;
+}) => {
+    const { t } = useTranslation();
+    return (
+        // RouteErrorBoundary wraps the gate so a render error during the
+        // auth-check OR the gated content falls back to a friendly error
+        // page with "Sign in" / "Go home" actions, instead of unmounting
+        // the tree and leaving a blank page. The boundary lives ABOVE
+        // AuthGate so a thrown error in AuthGate itself (e.g. a malformed
+        // /auth/me response) is still caught.
+        <RouteErrorBoundary>
+            <AuthGate
+                title={titleKey ? t(titleKey) : undefined}
+                subtitle={subtitleKey ? t(subtitleKey) : undefined}
+            >
+                <Suspense fallback={<PageLoader />}>{children}</Suspense>
+            </AuthGate>
+        </RouteErrorBoundary>
+    );
+};
 
 function App() {
     return (
@@ -86,67 +93,67 @@ function App() {
                     </Suspense>
                 } />
                 <Route path={TRIP_BASIC.SINGLE.route} element={
-                    <Gated title="Sign in to plan your trip">
+                    <Gated titleKey="auth.routeGate.planTrip.title">
                         <SingleTrip />
                     </Gated>
                 } />
                 <Route path={TRIP_BASIC.MULTIPLE.route} element={
-                    <Gated title="Sign in to plan your trip">
+                    <Gated titleKey="auth.routeGate.planTrip.title">
                         <MultipleTrip />
                     </Gated>
                 }/>
                 <Route path='/account' element={
                     <Gated
-                        title="Sign in to manage your account"
-                        subtitle="Profile, preferences and password live here."
+                        titleKey="auth.routeGate.account.title"
+                        subtitleKey="auth.routeGate.account.subtitle"
                     >
                         <Account />
                     </Gated>
                 }/>
                 <Route path='/trips' element={
                     <Gated
-                        title="Sign in to see your trips"
-                        subtitle="All your itineraries in one place."
+                        titleKey="auth.routeGate.trips.title"
+                        subtitleKey="auth.routeGate.trips.subtitle"
                     >
                         <Trips />
                     </Gated>
                 }/>
                 <Route path='/trip-detail' element={
                     <Gated
-                        title="Sign in to see this trip"
-                        subtitle="You need an account to view itinerary details."
+                        titleKey="auth.routeGate.tripDetail.title"
+                        subtitleKey="auth.routeGate.tripDetail.subtitle"
                     >
                         <TripDetail />
                     </Gated>
                 }/>
                 <Route path='/friends' element={
                     <Gated
-                        title="Sign in to manage friends"
-                        subtitle="Invite friends, accept requests, plan together."
+                        titleKey="auth.routeGate.friends.title"
+                        subtitleKey="auth.routeGate.friends.subtitle"
                     >
                         <Friends />
                     </Gated>
                 }/>
                 <Route path='/notifications' element={
                     <Gated
-                        title="Sign in to see your notifications"
-                        subtitle="Trip invites, status changes, and reminders show up here."
+                        titleKey="auth.routeGate.notifications.title"
+                        subtitleKey="auth.routeGate.notifications.subtitle"
                     >
                         <Notifications />
                     </Gated>
                 }/>
                 <Route path='/search' element={
                     <Gated
-                        title="Sign in to search"
-                        subtitle="Free accounts get 5 searches per day. Pro members get Advanced Search."
+                        titleKey="auth.routeGate.search.title"
+                        subtitleKey="auth.routeGate.search.subtitle"
                     >
                         <SearchResults />
                     </Gated>
                 }/>
                 <Route path='/place' element={
                     <Gated
-                        title="Sign in to view this place"
-                        subtitle="Reviews, bookmarks, and travel info are all tied to your account."
+                        titleKey="auth.routeGate.place.title"
+                        subtitleKey="auth.routeGate.place.subtitle"
                     >
                         <PlaceDetail />
                     </Gated>
@@ -157,7 +164,7 @@ function App() {
                     </Suspense>
                 }/>
                 <Route path='/preparing-trip' element={
-                    <Gated title="Sign in to plan your trip">
+                    <Gated titleKey="auth.routeGate.planTrip.title">
                         <PreparingTrip />
                     </Gated>
                 }/>
@@ -168,48 +175,48 @@ function App() {
                 }/>
                 <Route path='/history' element={
                     <Gated
-                        title="Sign in to see your search history"
-                        subtitle="Your recent searches are tied to your account."
+                        titleKey="auth.routeGate.searchHistory.title"
+                        subtitleKey="auth.routeGate.searchHistory.subtitle"
                     >
                         <SearchHistoryPage />
                     </Gated>
                 }/>
                 <Route path='/visited' element={
                     <Gated
-                        title="Sign in to see your visited places"
-                        subtitle="Your visited list is tied to your account."
+                        titleKey="auth.routeGate.visited.title"
+                        subtitleKey="auth.routeGate.visited.subtitle"
                     >
                         <Visited />
                     </Gated>
                 }/>
                 <Route path='/my-map' element={
                     <Gated
-                        title="Sign in to see your map"
-                        subtitle="Mapper plots every country and place you have visited."
+                        titleKey="auth.routeGate.map.title"
+                        subtitleKey="auth.routeGate.map.subtitle"
                     >
                         <MyMap />
                     </Gated>
                 }/>
                 <Route path='/saved' element={
                     <Gated
-                        title="Sign in to see your saved places"
-                        subtitle="Your bookmarks are tied to your account."
+                        titleKey="auth.routeGate.saved.title"
+                        subtitleKey="auth.routeGate.saved.subtitle"
                     >
                         <Saved />
                     </Gated>
                 }/>
                 <Route path='/bucket-list' element={
                     <Gated
-                        title="Sign in to see your bucket list"
-                        subtitle="Travel goals you want to check off, in one place."
+                        titleKey="auth.routeGate.bucketList.title"
+                        subtitleKey="auth.routeGate.bucketList.subtitle"
                     >
                         <BucketList />
                     </Gated>
                 }/>
                 <Route path='/discover' element={
                     <Gated
-                        title="Sign in to plan a trip"
-                        subtitle="Pro members get trips built for them. Free users land on the pricing page after signing in."
+                        titleKey="auth.routeGate.aiBuilder.title"
+                        subtitleKey="auth.routeGate.aiBuilder.subtitle"
                     >
                         <AiTripBuilderPage />
                     </Gated>

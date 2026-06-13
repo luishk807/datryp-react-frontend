@@ -103,17 +103,12 @@
   align-items: stretch;
 }
 
-// On mobile the itinerary defaults to text-only (images hidden via the
-// `.trip-detail-text-only` wrapper class, which the header "show images"
-// toggle controls) so users can scan more activities per screen. Edit mode
-// always keeps the image visible — the user is reviewing/changing content
-// and the visual context matters there — so re-show it even when images
-// are toggled off for the rest of the itinerary.
-@media (max-width: 720px) {
-  .trip-detail-text-only .activity-content-trip:not(.is-view-mode) .content-image {
-    display: flex !important;
-  }
-}
+// Note: the "Text only" toggle (`.trip-detail-text-only`, hidden-by-default
+// on mobile) is authoritative — it hides EVERY activity image, including on
+// editable trips. We intentionally don't re-show images for edit-mode cards
+// here: doing so via `:not(.is-view-mode)` matched the whole editable
+// itinerary, so the toggle couldn't hide anything on a trip you own. Users
+// who want the image back while editing flip the header "Show images" toggle.
 
 // Below MUI's md breakpoint (900px) the image column drops to full width
 // (xs=12), so the hero spans the entire card and grows too tall on tablet

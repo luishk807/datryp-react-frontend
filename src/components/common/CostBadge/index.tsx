@@ -1,12 +1,13 @@
+import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import "./index.scss";
 
-const COST_LABEL = [
-  "Very cheap",
-  "Cheap",
-  "Mid-range",
-  "Expensive",
-  "Very expensive",
+const COST_LABEL_KEY = [
+  "detail.common.cost.l1",
+  "detail.common.cost.l2",
+  "detail.common.cost.l3",
+  "detail.common.cost.l4",
+  "detail.common.cost.l5",
 ] as const;
 
 export interface CostBadgeProps {
@@ -27,13 +28,14 @@ export interface CostBadgeProps {
  * expensive", …) for hover.
  */
 const CostBadge = ({ level, className }: CostBadgeProps) => {
+  const { t } = useTranslation();
   if (level == null || !Number.isFinite(level)) return null;
   const clamped = Math.max(1, Math.min(5, Math.round(level)));
   return (
     <span
       className={classNames("cost-badge", className)}
-      aria-label={`Cost level ${clamped} out of 5`}
-      title={`${clamped}/5 — ${COST_LABEL[clamped - 1]}`}
+      aria-label={t('detail.common.cost.aria', { n: clamped })}
+      title={`${clamped}/5 — ${t(COST_LABEL_KEY[clamped - 1])}`}
     >
       {Array.from({ length: 5 }).map((_, i) => (
         <span

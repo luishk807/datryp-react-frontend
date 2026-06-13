@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import classnames from 'classnames';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -45,30 +46,6 @@ const KNOWN_BROKEN_HERO_HOSTS = ['d111x5lpaimz3o.cloudfront.net'];
 const isUsableHeroUrl = (url: string): boolean =>
     !KNOWN_BROKEN_HERO_HOSTS.some((host) => url.includes(host));
 
-/** Rotating hero placeholders, one list per search tab. First entry is
- *  the resting prompt; the rest are example searches the bar cycles
- *  through every few seconds. Module-level so each reference is stable
- *  across renders (SearchBar's rotation timer keys off identity, and
- *  swapping the list on a tab change restarts it from the first entry). */
-const PLACE_PLACEHOLDERS: string[] = [
-    'Search a city or country',
-    'Try: Tokyo, Japan',
-    'Try: Thailand',
-    'Try: Paris, France',
-    'Try: Bali, Indonesia',
-    'Try: New York City',
-    'Try: Banff, Canada',
-];
-
-const DESCRIBE_PLACEHOLDERS: string[] = [
-    'Describe your dream trip',
-    'Try: 7 day family trip in Japan',
-    'Try: Beach vacation under $2,000',
-    'Try: Romantic getaway in Europe',
-    'Try: Food and coffee trip in Italy',
-    'Try: Adventure trip in Patagonia',
-];
-
 const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
     const usable = (heroes ?? []).filter((h) => isUsableHeroUrl(h.imageUrl));
     if (usable.length > 0) {
@@ -84,9 +61,25 @@ const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
 };
 
 const Home = () => {
+    const { t } = useTranslation();
     const [homeMode, setHomeMode] = useState<HomeMode>('place');
     const navigate = useNavigate();
     const { user } = useUser();
+
+    /** Rotating hero placeholders, one list per search tab. First entry is
+     *  the resting prompt; the rest are example searches the bar cycles
+     *  through every few seconds. Memoized on `t` so each reference is
+     *  stable across renders within a language (SearchBar's rotation timer
+     *  keys off identity), and swaps — restarting from the first entry —
+     *  only on a tab or language change. */
+    const placePlaceholders = useMemo(
+        () => t('home.placePlaceholders', { returnObjects: true }) as string[],
+        [t],
+    );
+    const describePlaceholders = useMemo(
+        () => t('home.describePlaceholders', { returnObjects: true }) as string[],
+        [t],
+    );
 
     // Manual-only homepage tour, launched from the "How Datryp works"
     // help link under the search box (see the hero markup below).
@@ -102,8 +95,8 @@ const Home = () => {
     const firstName = user ? getUserFirstName(user, '') : '';
     const heroTitle =
         firstName && firstName.length <= 12
-            ? `Where to next, ${firstName}?`
-            : 'Where to next?';
+            ? t('home.heroTitleNamed', { name: firstName })
+            : t('home.heroTitle');
 
     /** SearchBar place-pick — route cities to /city and countries to
      *  /country. Single-destination by convention; the user can switch
@@ -172,34 +165,37 @@ const Home = () => {
                 <div className="home-hero-overlay" />
                 {heroImage.attribution && (
                     <span className="home-hero-attribution">
-                        Photo by{' '}
-                        <a
-                            href={heroImage.attribution.profileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            {heroImage.attribution.name}
-                        </a>{' '}
-                        on{' '}
-                        <a
-                            href="https://unsplash.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Unsplash
-                        </a>
+                        <Trans
+                            i18nKey="home.attribution"
+                            values={{ name: heroImage.attribution.name }}
+                            components={{
+                                author: (
+                                    <a
+                                        href={heroImage.attribution.profileUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    />
+                                ),
+                                unsplash: (
+                                    <a
+                                        href="https://unsplash.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    />
+                                ),
+                            }}
+                        />
                     </span>
                 )}
                 <div className="home-hero-content">
                     <h1 className="home-hero-title">{heroTitle}</h1>
                     <p className="home-hero-subtitle">
-                        Search a place, describe your trip, or let us plan
-                        it all.
+                        {t('home.heroSubtitle')}
                     </p>
 
                     <div
                         role="tablist"
-                        aria-label="Search mode"
+                        aria-label={t('heroSearch.modeAria')}
                         className={classnames('home-hero-options', `is-${homeMode}`)}
                     >
                         <span className="hero-option-thumb" aria-hidden="true" />
@@ -207,7 +203,7 @@ const Home = () => {
                             role="tab"
                             data-tour="home-search-place"
                             aria-selected={homeMode === 'place'}
-                            aria-label="Search by place"
+                            aria-label={t('heroSearch.byPlaceAria')}
                             className={classnames('hero-option', {
                                 selected: homeMode === 'place',
                             })}
@@ -215,15 +211,17 @@ const Home = () => {
                         >
                             <PublicRoundedIcon className="hero-option-icon" />
                             <span>
-                                <span className="hero-option-prefix">Search by </span>
-                                Place
+                                <span className="hero-option-prefix">
+                                    {t('heroSearch.searchByPrefix')}
+                                </span>
+                                {t('heroSearch.place')}
                             </span>
                         </button>
                         <button
                             role="tab"
                             data-tour="home-search-describe"
                             aria-selected={homeMode === 'describe'}
-                            aria-label="Search by description"
+                            aria-label={t('heroSearch.byDescriptionAria')}
                             className={classnames('hero-option', {
                                 selected: homeMode === 'describe',
                             })}
@@ -231,8 +229,10 @@ const Home = () => {
                         >
                             <SearchRoundedIcon className="hero-option-icon" />
                             <span>
-                                <span className="hero-option-prefix">Search by </span>
-                                Description
+                                <span className="hero-option-prefix">
+                                    {t('heroSearch.searchByPrefix')}
+                                </span>
+                                {t('heroSearch.description')}
                             </span>
                         </button>
                     </div>
@@ -243,8 +243,8 @@ const Home = () => {
                             mode={homeMode === 'describe' ? 'recommend' : 'place'}
                             placeholders={
                                 homeMode === 'describe'
-                                    ? DESCRIBE_PLACEHOLDERS
-                                    : PLACE_PLACEHOLDERS
+                                    ? describePlaceholders
+                                    : placePlaceholders
                             }
                             onAiSearchSubmit={(q) =>
                                 navigate(`/search?q=${encodeURIComponent(q)}`)
@@ -259,9 +259,9 @@ const Home = () => {
                         className="home-hero-help"
                         onClick={() => setTourRun(true)}
                     >
-                        First time here?{' '}
+                        {t('home.firstTime')}{' '}
                         <span className="home-hero-help-link">
-                            Learn how Datryp works →
+                            {t('home.learnHow')}
                         </span>
                     </button>
 
@@ -273,23 +273,25 @@ const Home = () => {
                         independent of whatever is in the search
                         input. */}
                     <div className="home-hero-or-divider" aria-hidden="true">
-                        <span>or</span>
+                        <span>{t('heroSearch.or')}</span>
                     </div>
                     <div className="home-hero-ai-callout">
                         <span className="home-hero-ai-callout-tagline">
-                            Not sure where to go?
+                            {t('heroSearch.aiTagline')}
                         </span>
                         <Link
                             to="/discover"
                             data-tour="home-ai-cta"
                             className="home-hero-ai-cta"
-                            aria-label="Let us plan a trip for you"
+                            aria-label={t('heroSearch.aiCtaAria')}
                         >
                             <AutoAwesomeIcon className="home-hero-ai-cta-icon" />
                             <span className="home-hero-ai-cta-label">
-                                Plan my trip for me
+                                {t('heroSearch.aiCta')}
                             </span>
-                            <span className="home-hero-ai-cta-badge">Pro</span>
+                            <span className="home-hero-ai-cta-badge">
+                                {t('heroSearch.pro')}
+                            </span>
                         </Link>
                     </div>
                 </div>

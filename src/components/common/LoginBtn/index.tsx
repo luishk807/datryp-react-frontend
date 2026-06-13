@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Grid } from '@mui/material';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
@@ -9,7 +10,6 @@ import ButtonCustom from '../FormFields/ButtonCustom';
 import InputField from '../FormFields/InputField';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import { useGoogleSignin } from 'api/hooks/useAuth';
-import { AUTH_LABEL } from 'constants';
 
 type LoginView = 'choose' | 'email';
 
@@ -34,6 +34,7 @@ export interface LoginBtnProps {
 }
 
 export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
+    const { t } = useTranslation();
     const modelRef = useRef<ModalButtonHandle>(null);
     const navigate = useNavigate();
     const googleSignin = useGoogleSignin();
@@ -41,7 +42,7 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
     const [form, setForm] = useState<LoginForm>({});
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
-    const label = AUTH_LABEL.LOGIN;
+    const label = t('auth.login.title');
 
     // Reset to the provider chooser whenever the modal closes (X, backdrop,
     // escape, or a successful login). Without this, re-opening the modal
@@ -65,11 +66,11 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
                     setError(
                         err instanceof Error
                             ? err.message
-                            : 'Google sign-in failed.'
+                            : t('auth.common.googleSignInFailed')
                     ),
             });
         },
-        [googleSignin]
+        [googleSignin, t]
     );
 
     const handleForgotPassword = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -100,7 +101,7 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
             await onClick?.(form);
             modelRef.current?.closeModal();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Login failed');
+            setError(err instanceof Error ? err.message : t('auth.login.loginFailed'));
         } finally {
             setSubmitting(false);
         }
@@ -148,17 +149,17 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
                             }}
                         >
                             <MailOutlineRoundedIcon fontSize="small" />
-                            <span>Continue with email</span>
+                            <span>{t('auth.login.continueWithEmail')}</span>
                         </ButtonCustom>
                     </Grid>
                     {onSwitchToSignup && (
                         <Grid item lg={12} xs={12} md={12} className="form-input login-switch">
-                            Don't have an account?{' '}
+                            {t('auth.login.noAccount')}{' '}
                             <ButtonCustom
                                 type="text"
                                 capitalizeType="none"
                                 className="login-switch-link"
-                                label="Sign up"
+                                label={t('auth.login.signUpLink')}
                                 onClick={handleSwitchToSignup}
                             />
                         </Grid>
@@ -179,18 +180,18 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
                                 }}
                             >
                                 <ArrowBackIcon fontSize="small" />
-                                <span>Back</span>
+                                <span>{t('auth.common.back')}</span>
                             </ButtonCustom>
                         </Grid>
                         <Grid item lg={12} xs={12} md={12} className="form-input">
-                            <InputField name="username" onChange={(e) => onChange('username', e)} />
+                            <InputField name="username" label={t('auth.login.username')} onChange={(e) => onChange('username', e)} />
                         </Grid>
                         <Grid item lg={12} xs={12} md={12} className="form-input">
-                            <InputField name="password" type="password" onChange={(e) => onChange('password', e)} />
+                            <InputField name="password" label={t('auth.common.password')} type="password" onChange={(e) => onChange('password', e)} />
                         </Grid>
                         <Grid item lg={12} xs={12} md={12} className="form-input">
                             <a href="/forgot-password" onClick={handleForgotPassword}>
-                                Forgot password?
+                                {t('auth.login.forgotPassword')}
                             </a>
                         </Grid>
                         {error && (
@@ -200,7 +201,7 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
                         )}
                         <Grid item lg={12} xs={12} md={12} className="form-input">
                             <ButtonCustom
-                                label={submitting ? 'Signing in…' : label}
+                                label={submitting ? t('auth.common.signingIn') : label}
                                 capitalizeType="uppercase"
                                 nativeType="submit"
                                 disabled={submitting}
@@ -208,12 +209,12 @@ export const LoginBtn = ({ onClick, onSwitchToSignup }: LoginBtnProps) => {
                         </Grid>
                         {onSwitchToSignup && (
                             <Grid item lg={12} xs={12} md={12} className="form-input login-switch">
-                                Don't have an account?{' '}
+                                {t('auth.login.noAccount')}{' '}
                                 <ButtonCustom
                                     type="text"
                                     capitalizeType="none"
                                     className="login-switch-link"
-                                    label="Sign up"
+                                    label={t('auth.login.signUpLink')}
                                     nativeType="button"
                                     onClick={handleSwitchToSignup}
                                 />

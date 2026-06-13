@@ -13,6 +13,7 @@
  * confirmation before closing.
  */
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextField, CircularProgress } from '@mui/material';
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -42,21 +43,21 @@ export interface AddToBucketButtonProps {
     triggerClassName?: string;
 }
 
-/** Default bucket-list text — friendly, hits-save-without-typing
- *  copy. Kept simple on purpose; user can tweak in the modal
- *  before submitting if they want. */
-const buildDefaultText = (name: string): string => {
-    const clean = name.trim();
-    if (!clean) return '';
-    return `Visiting ${clean}`;
-};
-
 const AddToBucketButton = ({
     kind,
     name,
     variant = 'icon',
     triggerClassName,
 }: AddToBucketButtonProps) => {
+    const { t } = useTranslation();
+    // Default bucket-list text — friendly, hits-save-without-typing
+    // copy. Kept simple on purpose; user can tweak in the modal
+    // before submitting if they want.
+    const buildDefaultText = (placeName: string): string => {
+        const clean = placeName.trim();
+        if (!clean) return '';
+        return t('detail.common.bucket.defaultText', { name: clean });
+    };
     const modalRef = useRef<ModalButtonHandle>(null);
     const [text, setText] = useState<string>(() => buildDefaultText(name));
     const [justAdded, setJustAdded] = useState(false);
@@ -108,7 +109,11 @@ const AddToBucketButton = ({
     };
 
     const kindLabel =
-        kind === 'country' ? 'country' : kind === 'city' ? 'city' : 'place';
+        kind === 'country'
+            ? t('detail.common.bucket.kindCountry')
+            : kind === 'city'
+              ? t('detail.common.bucket.kindCity')
+              : t('detail.common.bucket.kindPlace');
 
     return (
         <>
@@ -125,13 +130,13 @@ const AddToBucketButton = ({
                     } ${alreadyInList ? 'is-already-added' : ''}`.trim()}
                     aria-label={
                         alreadyInList
-                            ? `Already on your bucket list: ${name}`
-                            : `Add ${name} to your bucket list`
+                            ? t('detail.common.bucket.alreadyAria', { name })
+                            : t('detail.common.bucket.addAria', { name })
                     }
                     title={
                         alreadyInList
-                            ? 'Already in your bucket list'
-                            : 'Add to bucket list'
+                            ? t('detail.common.bucket.alreadyTitle')
+                            : t('detail.common.bucket.addTitle')
                     }
                     onClick={handleOpen}
                 >
@@ -146,31 +151,34 @@ const AddToBucketButton = ({
                     onClick={handleOpen}
                     aria-label={
                         alreadyInList
-                            ? `Already on your bucket list: ${name}`
-                            : `Add ${name} to your bucket list`
+                            ? t('detail.common.bucket.alreadyAria', { name })
+                            : t('detail.common.bucket.addAria', { name })
                     }
                 >
                     <ChecklistRoundedIcon fontSize="small" />
                     <span>
-                        {alreadyInList ? 'In bucket list' : 'Bucket list'}
+                        {alreadyInList
+                            ? t('detail.common.bucket.pillIn')
+                            : t('detail.common.bucket.pill')}
                     </span>
                 </button>
             )}
             <ModalButton
                 ref={modalRef}
-                title="Add to bucket list"
+                title={t('detail.common.bucket.addTitle')}
                 buttonProps={null}
             >
                 <div className="add-to-bucket-modal">
                     <p className="add-to-bucket-modal-sub">
-                        Saved to your bucket list — edit the goal
-                        text if you want before saving.
+                        {t('detail.common.bucket.modalSub')}
                     </p>
                     <TextField
                         fullWidth
                         autoFocus
                         variant="outlined"
-                        label={`Goal for this ${kindLabel}`}
+                        label={t('detail.common.bucket.goalLabel', {
+                            kind: kindLabel,
+                        })}
                         value={text}
                         onChange={(e) => {
                             setText(e.target.value);
@@ -185,14 +193,14 @@ const AddToBucketButton = ({
                         >
                             {addMutation.error instanceof Error
                                 ? addMutation.error.message
-                                : "Couldn't add to bucket list. Try again."}
+                                : t('detail.common.bucket.error')}
                         </p>
                     )}
                     <div className="add-to-bucket-modal-actions">
                         {justAdded ? (
                             <span className="add-to-bucket-modal-added">
                                 <CheckCircleRoundedIcon fontSize="small" />
-                                Added to your bucket list
+                                {t('detail.common.bucket.added')}
                             </span>
                         ) : (
                             <ButtonCustom
@@ -200,8 +208,8 @@ const AddToBucketButton = ({
                                 capitalizeType="none"
                                 label={
                                     addMutation.isPending
-                                        ? 'Adding…'
-                                        : 'Add to bucket list'
+                                        ? t('detail.common.bucket.adding')
+                                        : t('detail.common.bucket.addTitle')
                                 }
                                 disabled={
                                     addMutation.isPending || !text.trim()

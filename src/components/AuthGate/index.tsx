@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import './index.scss';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -32,22 +33,13 @@ interface AuthGateProps {
     subtitle?: string;
 }
 
-const DEFAULT_HIGHLIGHTS = [
-    'Personalized destinations from a single sentence',
-    'Plan day-by-day with friends',
-    'Track flights, activities, and budget in one place',
-];
-
 /**
  * Split-screen auth page. Renders children straight through when the user is
  * authenticated; otherwise shows a hero/form layout with login + signup
  * toggleable inline. Backed by `useUser().login` / `useUser().signup`.
  */
-const AuthGate = ({
-    children,
-    title = 'Plan your next adventure',
-    subtitle = 'Sign in to save trips, invite friends and pick up where you left off.',
-}: AuthGateProps) => {
+const AuthGate = ({ children, title, subtitle }: AuthGateProps) => {
+    const { t } = useTranslation();
     const { user, isLoading, login, signup } = useUser();
     const googleSignin = useGoogleSignin();
     const [mode, setMode] = useState<AuthMode>(AUTH_MODE.LOGIN);
@@ -112,11 +104,11 @@ const AuthGate = ({
                     setError(
                         err instanceof Error
                             ? err.message
-                            : 'Google sign-in failed.'
+                            : t('auth.common.googleSignInFailed')
                     ),
             });
         },
-        [googleSignin]
+        [googleSignin, t]
     );
 
     if (isLoading) return <PageLoader />;
@@ -127,7 +119,7 @@ const AuthGate = ({
     const handleLogin = async () => {
         const trimmed = email.trim();
         if (!trimmed || !password) {
-            setError('Email and password are required.');
+            setError(t('auth.emailPasswordRequired'));
             return;
         }
         setSubmitting(true);
@@ -139,7 +131,7 @@ const AuthGate = ({
             captureEvent('login', { method: 'email' });
             reloadAfterAuth();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Login failed.');
+            setError(err instanceof Error ? err.message : t('auth.gate.loginFailed'));
         } finally {
             setSubmitting(false);
         }
@@ -148,23 +140,19 @@ const AuthGate = ({
     const handleSignup = async () => {
         const trimmed = email.trim();
         if (!trimmed || !password) {
-            setError('Email and password are required.');
+            setError(t('auth.emailPasswordRequired'));
             return;
         }
         if (typeof birthYear !== 'number') {
-            setError('Please select your year of birth.');
+            setError(t('auth.gate.selectBirthYear'));
             return;
         }
         if (yearsSinceBirthYear(birthYear) < MIN_SIGNUP_AGE) {
-            setError(
-                `You must be at least ${MIN_SIGNUP_AGE} years old to create an account.`
-            );
+            setError(t('auth.gate.minAgeError', { age: MIN_SIGNUP_AGE }));
             return;
         }
         if (!confirmAge13Plus) {
-            setError(
-                `Please confirm you are at least ${MIN_SIGNUP_AGE} years old.`
-            );
+            setError(t('auth.gate.confirmAgeError', { age: MIN_SIGNUP_AGE }));
             return;
         }
         setSubmitting(true);
@@ -187,7 +175,7 @@ const AuthGate = ({
             captureEvent('signup_completed', { method: 'email' });
             reloadAfterAuth();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Signup failed.');
+            setError(err instanceof Error ? err.message : t('auth.common.signupFailed'));
         } finally {
             setSubmitting(false);
         }
@@ -211,6 +199,8 @@ const AuthGate = ({
     const { data: heroImages } = useHeroImages();
     const heroUrl = useMemo(() => pickMonthlyHeroUrl(heroImages), [heroImages]);
 
+    const highlights = t('auth.gate.highlights', { returnObjects: true }) as string[];
+
     return (
         <div className="authgate-page">
             <aside
@@ -221,13 +211,17 @@ const AuthGate = ({
                     <IconLink
                         to="/"
                         icon={<img src={logoUrl} alt="" />}
-                        ariaLabel="DaTryp.com home"
+                        ariaLabel={t('nav.homeLink')}
                         className="authgate-brand"
                     />
-                    <h1 className="authgate-hero-title">{title}</h1>
-                    <p className="authgate-hero-subtitle">{subtitle}</p>
+                    <h1 className="authgate-hero-title">
+                        {title ?? t('auth.common.heroTitle')}
+                    </h1>
+                    <p className="authgate-hero-subtitle">
+                        {subtitle ?? t('auth.gate.heroSubtitle')}
+                    </p>
                     <ul className="authgate-hero-list">
-                        {DEFAULT_HIGHLIGHTS.map((h) => (
+                        {highlights.map((h) => (
                             <li key={h}>
                                 <span aria-hidden="true">✓</span> {h}
                             </li>
@@ -237,7 +231,7 @@ const AuthGate = ({
                 <div className="authgate-hero-back">
                     <IconLink
                         to="/"
-                        label="Back to home"
+                        label={t('auth.gate.backToHome')}
                         icon={<ArrowBackIcon />}
                         className="authgate-back-link"
                     />
@@ -249,16 +243,18 @@ const AuthGate = ({
                     <IconLink
                         to="/"
                         icon={<img src={logoUrl} alt="" />}
-                        ariaLabel="DaTryp.com home"
+                        ariaLabel={t('nav.homeLink')}
                         className="authgate-brand authgate-brand-mobile"
                     />
                     <h2 className="authgate-form-title">
-                        {mode === AUTH_MODE.LOGIN ? 'Welcome back' : 'Create your account'}
+                        {mode === AUTH_MODE.LOGIN
+                            ? t('auth.gate.welcomeBack')
+                            : t('auth.gate.createYourAccount')}
                     </h2>
                     <p className="authgate-form-subtitle">
                         {mode === AUTH_MODE.LOGIN
-                            ? 'Sign in with your email and password.'
-                            : `Free to use. You must be at least ${MIN_SIGNUP_AGE} years old.`}
+                            ? t('auth.gate.loginSubtitle')
+                            : t('auth.gate.signupSubtitle', { age: MIN_SIGNUP_AGE })}
                     </p>
 
                     <div className="authgate-google">
@@ -277,14 +273,14 @@ const AuthGate = ({
                     </div>
 
                     <div className="authgate-divider">
-                        <span>or</span>
+                        <span>{t('auth.common.or')}</span>
                     </div>
 
                     <form className="authgate-form" onSubmit={handleSubmit}>
                         <div className="authgate-field">
                             <InputField
                                 name="email"
-                                label="Email"
+                                label={t('auth.common.email')}
                                 type="email"
                                 defaultValue={email}
                                 onChange={(e) => {
@@ -296,7 +292,7 @@ const AuthGate = ({
                         <div className="authgate-field">
                             <InputField
                                 name="password"
-                                label="Password"
+                                label={t('auth.common.password')}
                                 type="password"
                                 defaultValue={password}
                                 onChange={(e) => {
@@ -311,7 +307,7 @@ const AuthGate = ({
                                 <div className="authgate-field">
                                     <InputField
                                         name="name"
-                                        label="Full name (optional)"
+                                        label={t('auth.gate.fullNameOptional')}
                                         type="text"
                                         defaultValue={name}
                                         onChange={(e) => {
@@ -322,11 +318,11 @@ const AuthGate = ({
                                 </div>
                                 <div className="authgate-field">
                                     <DropDown
-                                        label="Year of birth"
+                                        label={t('auth.common.yearOfBirth')}
                                         options={yearOptions}
                                         valueKey="id"
                                         value={birthYear === '' ? null : birthYear}
-                                        placeholder="Select a year"
+                                        placeholder={t('auth.common.selectYear')}
                                         onChange={(opt) => {
                                             setBirthYear(
                                                 opt && typeof opt.id === 'number'
@@ -348,14 +344,15 @@ const AuthGate = ({
                                             }}
                                         />
                                         <span>
-                                            I confirm I am at least{' '}
-                                            {MIN_SIGNUP_AGE} years old.
+                                            {t('auth.common.confirmAgeLabel', {
+                                                age: MIN_SIGNUP_AGE,
+                                            })}
                                         </span>
                                     </label>
                                 </div>
                                 <div className="authgate-field">
                                     <PhoneInput
-                                        label="Phone (optional)"
+                                        label={t('auth.gate.phoneOptional')}
                                         value={phone}
                                         onChange={(next) => {
                                             setPhone(next);
@@ -369,7 +366,7 @@ const AuthGate = ({
                         {mode === AUTH_MODE.LOGIN && (
                             <p className="authgate-forgot">
                                 <Link to="/forgot-password">
-                                    Forgot your password?
+                                    {t('auth.gate.forgotPassword')}
                                 </Link>
                             </p>
                         )}
@@ -386,11 +383,11 @@ const AuthGate = ({
                             label={
                                 submitting
                                     ? mode === AUTH_MODE.LOGIN
-                                        ? 'Signing in…'
-                                        : 'Creating account…'
+                                        ? t('auth.common.signingIn')
+                                        : t('auth.common.creatingAccount')
                                     : mode === AUTH_MODE.LOGIN
-                                        ? 'Continue'
-                                        : 'Create account'
+                                        ? t('auth.common.continue')
+                                        : t('auth.common.createAccount')
                             }
                             onClick={
                                 handleSubmit as unknown as React.MouseEventHandler<HTMLButtonElement>
@@ -402,23 +399,23 @@ const AuthGate = ({
                     <p className="authgate-toggle">
                         {mode === AUTH_MODE.LOGIN ? (
                             <>
-                                New to DaTryp.com?{' '}
+                                {t('auth.gate.newToDatryp')}{' '}
                                 <ButtonCustom
                                     type="text"
                                     capitalizeType="none"
                                     className="authgate-link"
-                                    label="Create an account"
+                                    label={t('auth.gate.createAnAccount')}
                                     onClick={toggleMode}
                                 />
                             </>
                         ) : (
                             <>
-                                Already have an account?{' '}
+                                {t('auth.common.alreadyHaveAccount')}{' '}
                                 <ButtonCustom
                                     type="text"
                                     capitalizeType="none"
                                     className="authgate-link"
-                                    label="Sign in"
+                                    label={t('nav.signIn')}
                                     onClick={toggleMode}
                                 />
                             </>

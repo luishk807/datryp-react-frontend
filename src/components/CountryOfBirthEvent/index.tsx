@@ -16,6 +16,7 @@
  *     (backend 204)
  */
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import Skeleton from 'components/common/Skeleton';
@@ -58,6 +59,7 @@ const goToCity = (
 };
 
 const CountryOfBirthEvent = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { data, isLoading, isError } = useCountryOfBirthEvent();
 
@@ -79,7 +81,13 @@ const CountryOfBirthEvent = () => {
                                 className="world-event-eyebrow-icon"
                                 fontSize="small"
                             />
-                            <span>Coming up in your country</span>
+                            <span>
+                                {t('homeCards.countryOfBirthEvent.eyebrow', {
+                                    country: t(
+                                        'homeCards.countryOfBirthEvent.yourCountry',
+                                    ),
+                                })}
+                            </span>
                         </div>
                         <Skeleton width="80%" height={32} radius={8} />
                         <div className="world-event-loading-meta">
@@ -151,26 +159,28 @@ const CountryOfBirthEvent = () => {
                     />
                     {event.imageUrl && event.photographerName && (
                         <span className="world-event-attribution">
-                            Photo by{' '}
-                            {event.photographerUrl ? (
-                                <a
-                                    href={event.photographerUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {event.photographerName}
-                                </a>
-                            ) : (
-                                event.photographerName
-                            )}{' '}
-                            on{' '}
-                            <a
-                                href="https://unsplash.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Unsplash
-                            </a>
+                            <Trans
+                                i18nKey="home.attribution"
+                                values={{ name: event.photographerName }}
+                                components={{
+                                    author: event.photographerUrl ? (
+                                        <a
+                                            href={event.photographerUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    ) : (
+                                        <span />
+                                    ),
+                                    unsplash: (
+                                        <a
+                                            href="https://unsplash.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    ),
+                                }}
+                            />
                         </span>
                     )}
                 </div>
@@ -181,7 +191,13 @@ const CountryOfBirthEvent = () => {
                             fontSize="small"
                         />
                         <span>
-                            Coming up in {event.hostCountry || 'your country'}
+                            {t('homeCards.countryOfBirthEvent.eyebrow', {
+                                country:
+                                    event.hostCountry ||
+                                    t(
+                                        'homeCards.countryOfBirthEvent.yourCountry',
+                                    ),
+                            })}
                         </span>
                     </div>
                     <h2 className="world-event-name">{event.name}</h2>
@@ -205,7 +221,7 @@ const CountryOfBirthEvent = () => {
                         </p>
                     )}
                     <h3 className="world-event-places-label">
-                        Top spots to be
+                        {t('homeCards.worldEvent.topSpots')}
                     </h3>
                     <ul className="world-event-places">
                         {places.map((place) => (
@@ -217,7 +233,13 @@ const CountryOfBirthEvent = () => {
                                     type="button"
                                     className="world-event-place-btn"
                                     onClick={() => goToCity(navigate, place)}
-                                    aria-label={`Open ${place.name}, ${place.country}`}
+                                    aria-label={t(
+                                        'homeCards.common.openPlaceAria',
+                                        {
+                                            name: place.name,
+                                            country: place.country,
+                                        },
+                                    )}
                                 >
                                     <img
                                         src={place.imageUrl ?? NO_IMAGE}

@@ -1,0 +1,15 @@
+.country-flag {
+  flex-shrink: 0;
+  width: 28px;
+  height: 21px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  background: #f4f4f4;
+}
+
+.country-flag-fallback {
+  flex-shrink: 0;
+  color: theme('colors.primaryGreen');
+  font-size: 1.4rem !important;
+}

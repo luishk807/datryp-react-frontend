@@ -1,4 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import classnames from "classnames";
 import "./index.scss";
 import { Tooltip } from "@mui/material";
@@ -59,6 +60,7 @@ import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
 import type { Activity, Destination } from "types";
 
 const CityDetail = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const dispatch = useTripDispatch();
@@ -236,9 +238,10 @@ const CityDetail = () => {
     if (!name || !country || !code) {
         return (
             <ErrorPage
-                pageTitle="City"
-                title="Missing city info"
-                description="Open this page from a city link to see its details."
+                pageTitle={t('detail.city.pageTitle')}
+                title={t('detail.city.missingTitle')}
+                description={t('detail.city.missingDesc')}
+                primaryActionLabel={t('detail.common.goHome')}
             />
         );
     }
@@ -280,15 +283,19 @@ const CityDetail = () => {
                         className="city-detail-quick-main"
                         role="status"
                         aria-live="polite"
-                        aria-label={`Loading ${name} details`}
+                        aria-label={t('detail.common.loadingDetails', {
+                            name,
+                        })}
                     >
                         <ParagraphSection
-                            title={`About ${name}`}
+                            title={t('detail.common.about', { name })}
                             description={undefined}
                             isError={false}
                         />
                         <ParagraphSection
-                            title={`About ${country}`}
+                            title={t('detail.common.about', {
+                                name: country,
+                            })}
                             description={undefined}
                             isError={false}
                         />
@@ -301,14 +308,18 @@ const CityDetail = () => {
     if (isError || !city) {
         return (
             <ErrorPage
-                pageTitle="Error"
-                title="Could not load this city"
+                pageTitle={t('detail.common.errorPageTitle')}
+                title={t('detail.city.errorTitle')}
                 description={
                     error instanceof Error
                         ? error.message
-                        : `No city found for ${name}, ${country}.`
+                        : t('detail.city.notFound', { name, country })
                 }
-                secondaryAction={{ label: "Back to home", to: "/" }}
+                secondaryAction={{
+                    label: t('detail.common.backToHome'),
+                    to: "/",
+                }}
+                primaryActionLabel={t('detail.common.goHome')}
             />
         );
     }
@@ -356,7 +367,8 @@ const CityDetail = () => {
                         onClick={handleBack}
                         className="city-detail-back-link"
                     >
-                        <ArrowBackRoundedIcon fontSize="small" /> Back
+                        <ArrowBackRoundedIcon fontSize="small" />{' '}
+                        {t('detail.common.back')}
                     </button>
                     <div className="city-detail-toolbar-actions">
                         {/* Bookmark + Visited + Share grouped so mobile
@@ -423,8 +435,8 @@ const CityDetail = () => {
                             <span className="city-detail-plan-cta-text">
                                 <span className="city-detail-plan-cta-label">
                                     {tripType.id === TRIP_BASIC.MULTIPLE.id
-                                        ? "Start multi-destination trip"
-                                        : "Start planning"}
+                                        ? t('detail.common.startMultiTrip')
+                                        : t('detail.common.startPlanning')}
                                 </span>
                                 <span className="city-detail-plan-cta-target">
                                     {city.name}
@@ -510,11 +522,16 @@ const CityDetail = () => {
                     </p>
                     {(details.touristRating ?? 0) > 0 && (
                         <div className="city-detail-meta">
-                            <Tooltip title="Overall rating" arrow>
+                            <Tooltip
+                                title={t('detail.common.overallRating')}
+                                arrow
+                            >
                                 <span
                                     className="city-detail-meta-icon"
                                     role="img"
-                                    aria-label="Overall rating"
+                                    aria-label={t(
+                                        'detail.common.overallRating',
+                                    )}
                                 >
                                     <PublicRoundedIcon />
                                 </span>
@@ -533,7 +550,9 @@ const CityDetail = () => {
                 <div className="city-detail-content">
                     <div className="city-detail-content-main">
                         <ParagraphSection
-                            title={`About ${city.name}`}
+                            title={t('detail.common.about', {
+                                name: city.name,
+                            })}
                             description={details.longDescription}
                             isError={false}
                         />
@@ -549,7 +568,9 @@ const CityDetail = () => {
                         />
 
                         <ParagraphSection
-                            title={`About ${city.country}`}
+                            title={t('detail.common.about', {
+                                name: city.country,
+                            })}
                             description={details.countryDescription}
                             isError={false}
                         />
@@ -610,22 +631,24 @@ const CityDetail = () => {
 
                 <div className="city-detail-extras">
                     <TipListSection
-                        title={`Top 5 places in ${city.name}`}
+                        title={t('detail.common.top5.places', {
+                            name: city.name,
+                        })}
                         icon={<PlaceRoundedIcon />}
                         items={details.topPlaces}
                     />
                     <TipListSection
-                        title="Top 5 foods to try"
+                        title={t('detail.common.top5.foods')}
                         icon={<RestaurantRoundedIcon />}
                         items={details.foods}
                     />
                     <TipListSection
-                        title="Top 5 things to do"
+                        title={t('detail.common.top5.things')}
                         icon={<HikingRoundedIcon />}
                         items={details.thingsToDo}
                     />
                     <TipListSection
-                        title="Top 5 photo spots"
+                        title={t('detail.common.top5.photoSpots')}
                         icon={<PhotoCameraRoundedIcon />}
                         items={details.photoSpots}
                     />

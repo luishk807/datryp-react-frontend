@@ -1,4 +1,5 @@
 import WhatshotRoundedIcon from "@mui/icons-material/WhatshotRounded";
+import { useTranslation } from "react-i18next";
 import PopularityWidget from "components/PopularityWidget";
 import AsyncDetailSection from "components/PlaceDetail/AsyncDetailSection";
 import { useUser } from "context/UserContext";
@@ -26,6 +27,7 @@ export interface PopularitySectionProps {
  * the gate for free without having to thread `isPro` through.
  */
 const PopularitySection = ({ popularity, isError }: PopularitySectionProps) => {
+  const { t } = useTranslation();
   const { user, isAdmin } = useUser();
   const isPro = Boolean(user && (user.isPaidMember || isAdmin));
   if (!isPro) return null;
@@ -40,12 +42,12 @@ const PopularitySection = ({ popularity, isError }: PopularitySectionProps) => {
   if (!isError && popularity == null) return null;
   return (
     <AsyncDetailSection
-      title="Popularity this year"
+      title={t('detail.common.popularity.title')}
       icon={<WhatshotRoundedIcon />}
       data={popularity}
       isError={isError}
-      errorMessage="Could not load popularity."
-      loadingHint="Gauging this year's traveler interest…"
+      errorMessage={t('detail.common.popularity.error')}
+      loadingHint={t('detail.common.popularity.loading')}
       skeletonLines={3}
     >
       {(info) => <PopularityWidget info={info} />}

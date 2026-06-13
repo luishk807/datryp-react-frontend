@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './index.scss';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import LuggageRoundedIcon from '@mui/icons-material/LuggageRounded';
 import Layout from 'components/common/Layout/SubLayout';
+import CountryFlag from 'components/common/CountryFlag';
 import DeleteBtn from 'components/common/DeleteBtn';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
 import Pagination from 'components/common/Pagination';
@@ -27,7 +27,6 @@ import { placeDetailUrl } from 'utils/placeUrl';
 import {
     BUTTON_VARIANT,
     LIST_PAGE_SIZE,
-    NO_IMAGE,
     VISITED_SOURCE,
 } from 'constants';
 import type { VisitedPlace } from 'types';
@@ -167,18 +166,10 @@ const Visited = () => {
                                                         to={`/country?code=${encodeURIComponent(c.countryCode)}`}
                                                         className="visited-card-main"
                                                     >
-                                                        <img
-                                                            src={
-                                                                c.countryImage ??
-                                                                NO_IMAGE
-                                                            }
-                                                            alt=""
-                                                            loading="lazy"
-                                                            className={
-                                                                c.countryImage
-                                                                    ? 'visited-card-thumb'
-                                                                    : 'visited-card-thumb is-placeholder'
-                                                            }
+                                                        <CountryFlag
+                                                            code={c.countryCode}
+                                                            title={c.countryName}
+                                                            className="visited-card-flag"
                                                         />
                                                         <div className="visited-card-text">
                                                             <span className="visited-card-name">
@@ -242,7 +233,11 @@ const Visited = () => {
                                                         }
                                                         className="visited-card-main"
                                                     >
-                                                        <PublicRoundedIcon className="visited-card-icon" />
+                                                        <CountryFlag
+                                                            code={c.countryCode}
+                                                            title={c.countryName}
+                                                            className="visited-card-flag"
+                                                        />
                                                         <div className="visited-card-text">
                                                             <span className="visited-card-name">
                                                                 {c.cityName}
@@ -305,7 +300,11 @@ const Visited = () => {
                                                         )}
                                                         className="visited-card-main"
                                                     >
-                                                        <PublicRoundedIcon className="visited-card-icon" />
+                                                        <CountryFlag
+                                                            code={v.countryCode}
+                                                            title={v.placeCountry}
+                                                            className="visited-card-flag"
+                                                        />
                                                         <div className="visited-card-text">
                                                             <span className="visited-card-name">
                                                                 {v.placeName}

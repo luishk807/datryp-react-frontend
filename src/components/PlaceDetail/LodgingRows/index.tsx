@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import ApartmentRoundedIcon from "@mui/icons-material/ApartmentRounded";
@@ -11,33 +12,37 @@ import InfoRowList, {
 import type { LodgingInfo } from "types";
 import "./index.scss";
 
-const AVAILABILITY_LABEL: Record<LodgingInfo["airbnbAvailability"], string> = {
-  common: "Widely available",
-  limited: "Limited",
-  none: "Not available",
+const AVAILABILITY_LABEL_KEY: Record<LodgingInfo["airbnbAvailability"], string> = {
+  common: "detail.common.lodging.availabilityCommon",
+  limited: "detail.common.lodging.availabilityLimited",
+  none: "detail.common.lodging.availabilityNone",
 };
 
 interface AvailabilityBadgeProps {
   availability: LodgingInfo["airbnbAvailability"];
 }
 
-const AvailabilityBadge = ({ availability }: AvailabilityBadgeProps) => (
-  <span
-    className={classNames("lodging-rows-badge", `availability-${availability}`)}
-  >
-    {AVAILABILITY_LABEL[availability]}
-  </span>
-);
+const AvailabilityBadge = ({ availability }: AvailabilityBadgeProps) => {
+  const { t } = useTranslation();
+  return (
+    <span
+      className={classNames("lodging-rows-badge", `availability-${availability}`)}
+    >
+      {t(AVAILABILITY_LABEL_KEY[availability])}
+    </span>
+  );
+};
 
 export interface LodgingRowsProps {
   lodging: LodgingInfo;
 }
 
 const LodgingRows = ({ lodging }: LodgingRowsProps) => {
+  const { t } = useTranslation();
   const rows: InfoRow[] = [
     {
       icon: <StarBorderRoundedIcon />,
-      label: "Recommended",
+      label: t('detail.common.lodging.recommended'),
       value: lodging.recommendedType,
     },
     {
@@ -52,7 +57,7 @@ const LodgingRows = ({ lodging }: LodgingRowsProps) => {
     },
     {
       icon: <ApartmentRoundedIcon />,
-      label: "Hotels",
+      label: t('detail.common.lodging.hotels'),
       value: (
         <>
           <AvailabilityBadge availability={lodging.hotelAvailability} />
@@ -62,12 +67,12 @@ const LodgingRows = ({ lodging }: LodgingRowsProps) => {
     },
     {
       icon: <AttachMoneyRoundedIcon />,
-      label: "Price range",
+      label: t('detail.common.lodging.priceRange'),
       value: lodging.priceRange,
     },
     {
       icon: <EventAvailableRoundedIcon />,
-      label: "Booking tip",
+      label: t('detail.common.lodging.bookingTip'),
       value: lodging.bookingTip,
     },
   ];

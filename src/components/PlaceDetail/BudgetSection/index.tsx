@@ -1,4 +1,5 @@
 import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
+import { useTranslation } from "react-i18next";
 import CostBadge from "components/common/CostBadge";
 import ParagraphSection from "components/PlaceDetail/ParagraphSection";
 
@@ -24,20 +25,23 @@ const BudgetSection = ({
   description,
   costLevel,
   isError,
-}: BudgetSectionProps) => (
-  <ParagraphSection
-    title={
-      <>
-        Expenses &amp; budget
-        <CostBadge level={costLevel} />
-      </>
-    }
-    icon={<SavingsRoundedIcon />}
-    size="xs"
-    description={description}
-    skeletonLines={6}
-    isError={isError}
-  />
-);
+}: BudgetSectionProps) => {
+  const { t } = useTranslation();
+  return (
+    <ParagraphSection
+      title={
+        <>
+          {t('detail.common.budget.title')}
+          <CostBadge level={costLevel} />
+        </>
+      }
+      icon={<SavingsRoundedIcon />}
+      size="xs"
+      description={description}
+      skeletonLines={6}
+      isError={isError}
+    />
+  );
+};
 
 export default BudgetSection;

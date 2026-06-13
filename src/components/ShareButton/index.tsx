@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import './index.scss';
 import { IconButton, Snackbar } from '@mui/material';
 import IosShareIcon from '@mui/icons-material/IosShare';
@@ -50,13 +52,14 @@ const canNativeShare = (): boolean =>
  *  proper pitch — not just a bare URL. Same string we hand to the
  *  native share sheet for consistency across channels. */
 const buildShareText = (
+    t: TFunction,
     title: string,
     subtitle?: string,
     description?: string
 ): string => {
     const head = subtitle ? `${title} — ${subtitle}` : title;
     const body = description?.trim();
-    return body ? `${head}: ${body}` : `Check out ${head} on DaTryp.com`;
+    return body ? `${head}: ${body}` : t('share.checkOut', { name: head });
 };
 
 const openIntent = (intentUrl: string) => {
@@ -84,6 +87,7 @@ const ShareButton = ({
     variant = 'icon',
     emailPayload,
 }: ShareButtonProps) => {
+    const { t } = useTranslation();
     const modalRef = useRef<ModalButtonHandle>(null);
     const emailModalRef = useRef<EmailShareModalHandle>(null);
     const [toast, setToast] = useState<string | null>(null);
@@ -93,11 +97,11 @@ const ShareButton = ({
 
     // Long form for WhatsApp / Email / native share — they support
     // multi-line bodies so we can include the description.
-    const longShareText = buildShareText(title, subtitle, description);
+    const longShareText = buildShareText(t, title, subtitle, description);
     // Short headline for Twitter — strict char budget, skip the body.
     const shortShareText = subtitle
         ? `${title} — ${subtitle}`
-        : `Check out ${title} on DaTryp.com`;
+        : t('share.checkOut', { name: title });
     // The URL that gets crawled by social platforms for the rich
     // unfurl preview. Routes through the backend's /share/preview
     // endpoint which serves OG-tagged HTML + meta-refreshes humans
@@ -186,9 +190,9 @@ const ShareButton = ({
         closeShare();
         try {
             await navigator.clipboard.writeText(url);
-            setToast('Link copied to clipboard');
+            setToast(t('share.copied'));
         } catch {
-            setToast('Could not copy link');
+            setToast(t('share.copyFailed'));
         }
     };
 
@@ -211,8 +215,8 @@ const ShareButton = ({
                 <button
                     type="button"
                     className="share-button-pill is-icon-only"
-                    aria-label={`Share ${title}`}
-                    title={`Share ${title}`}
+                    aria-label={t('share.buttonAria', { title })}
+                    title={t('share.buttonAria', { title })}
                     onClick={openShare}
                 >
                     <IosShareIcon className="share-button-pill-icon" />
@@ -220,7 +224,7 @@ const ShareButton = ({
             ) : (
                 <IconButton
                     className="share-button-trigger"
-                    aria-label={`Share ${title}`}
+                    aria-label={t('share.buttonAria', { title })}
                     onClick={openShare}
                     size="small"
                 >
@@ -228,7 +232,7 @@ const ShareButton = ({
                 </IconButton>
             )}
 
-            <ModalButton ref={modalRef} title="Share">
+            <ModalButton ref={modalRef} title={t('share.modalTitle')}>
                 <div className="share-modal">
                     {/* Localhost-testing hint — when running against a
                         local backend, social crawlers (Twitter/FB/WhatsApp)
@@ -282,7 +286,7 @@ const ShareButton = ({
                             type="button"
                             className="share-channel is-facebook"
                             onClick={handleFacebook}
-                            aria-label="Share on Facebook"
+                            aria-label={t('share.facebookAria')}
                         >
                             <span className="share-channel-icon">
                                 <FacebookIcon />
@@ -293,7 +297,7 @@ const ShareButton = ({
                             type="button"
                             className="share-channel is-x"
                             onClick={handleTwitter}
-                            aria-label="Share on X"
+                            aria-label={t('share.xAria')}
                         >
                             <span className="share-channel-icon">
                                 <XIcon />
@@ -304,7 +308,7 @@ const ShareButton = ({
                             type="button"
                             className="share-channel is-whatsapp"
                             onClick={handleWhatsApp}
-                            aria-label="Share on WhatsApp"
+                            aria-label={t('share.whatsappAria')}
                         >
                             <span className="share-channel-icon">
                                 <WhatsAppIcon />
@@ -316,36 +320,36 @@ const ShareButton = ({
                                 type="button"
                                 className="share-channel is-email"
                                 onClick={handleEmail}
-                                aria-label="Share via email"
+                                aria-label={t('share.emailAria')}
                             >
                                 <span className="share-channel-icon">
                                     <EmailRoundedIcon />
                                 </span>
-                                <span>Email</span>
+                                <span>{t('share.emailLabel')}</span>
                             </button>
                         )}
                         <button
                             type="button"
                             className="share-channel is-copy"
                             onClick={handleCopy}
-                            aria-label="Copy link"
+                            aria-label={t('share.copyLabel')}
                         >
                             <span className="share-channel-icon">
                                 <ContentCopyRoundedIcon />
                             </span>
-                            <span>Copy link</span>
+                            <span>{t('share.copyLabel')}</span>
                         </button>
                         {canNativeShare() && (
                             <button
                                 type="button"
                                 className="share-channel is-more"
                                 onClick={handleNativeShare}
-                                aria-label="More sharing options"
+                                aria-label={t('share.moreAria')}
                             >
                                 <span className="share-channel-icon">
                                     <MoreHorizRoundedIcon />
                                 </span>
-                                <span>More</span>
+                                <span>{t('share.moreLabel')}</span>
                             </button>
                         )}
                     </div>

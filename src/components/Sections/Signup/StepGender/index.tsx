@@ -8,6 +8,7 @@
  * recommender — combined with age (birth_year) + country + interests.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DropDown from 'components/common/FormFields/DropDown';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import {
@@ -21,6 +22,7 @@ export interface StepGenderProps {
 }
 
 const StepGender = ({ onContinue, onSkip }: StepGenderProps) => {
+    const { t } = useTranslation();
     const { data: genders = [], isLoading } = useGendersCatalog();
     const update = useUpdateMyPreferences();
     const [genderId, setGenderId] = useState<string>('');
@@ -39,25 +41,26 @@ const StepGender = ({ onContinue, onSkip }: StepGenderProps) => {
             onContinue();
         } catch (err) {
             setError(
-                err instanceof Error ? err.message : 'Could not save that.'
+                err instanceof Error ? err.message : t('auth.common.couldNotSave')
             );
         }
     };
 
     return (
         <>
-            <h1 className="signup-step-title">A bit about you</h1>
+            <h1 className="signup-step-title">{t('auth.signup.gender.title')}</h1>
             <p className="signup-step-subtitle">
-                Helps us tailor recommendations. Optional — skip if you'd
-                rather not say.
+                {t('auth.signup.gender.subtitle')}
             </p>
             <DropDown
-                label="Gender"
+                label={t('auth.signup.gender.label')}
                 options={options}
                 valueKey="id"
                 value={genderId || null}
                 placeholder={
-                    isLoading ? 'Loading…' : 'Select an option'
+                    isLoading
+                        ? t('auth.common.loading')
+                        : t('auth.signup.gender.placeholder')
                 }
                 disabled={isLoading}
                 onChange={(opt) => {
@@ -77,7 +80,11 @@ const StepGender = ({ onContinue, onSkip }: StepGenderProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label={update.isPending ? 'Saving…' : 'Continue'}
+                    label={
+                        update.isPending
+                            ? t('common.saving')
+                            : t('auth.common.continue')
+                    }
                     onClick={handleContinue}
                     disabled={update.isPending}
                 />
@@ -86,7 +93,7 @@ const StepGender = ({ onContinue, onSkip }: StepGenderProps) => {
                     className="signup-skip-link"
                     onClick={onSkip}
                 >
-                    Skip for now
+                    {t('auth.common.skipForNow')}
                 </button>
             </div>
         </>

@@ -8,6 +8,8 @@
  * full details call (lists + facts + per-tip images) finishes. REST, snake_case
  * on the wire — reshaped to camelCase here.
  */
+import { activeLang } from "i18n";
+
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? "http://localhost:8000";
 
@@ -35,7 +37,7 @@ export const fetchCityQuick = async (
     country: string,
     code: string
 ): Promise<DestinationProse> => {
-    const params = new URLSearchParams({ name, country, code });
+    const params = new URLSearchParams({ name, country, code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/city-details/quick?${params}`);
     if (!resp.ok) {
         throw new Error(
@@ -48,7 +50,7 @@ export const fetchCityQuick = async (
 export const fetchCountryQuick = async (
     code: string
 ): Promise<DestinationProse> => {
-    const params = new URLSearchParams({ code });
+    const params = new URLSearchParams({ code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/country-details/quick?${params}`);
     if (!resp.ok) {
         throw new Error(

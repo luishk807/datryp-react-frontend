@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import BeachAccessRoundedIcon from '@mui/icons-material/BeachAccessRounded';
 import AcUnitRoundedIcon from '@mui/icons-material/AcUnitRounded';
@@ -22,7 +23,7 @@ type WeatherCondition = (typeof WEATHER_CONDITION)[keyof typeof WEATHER_CONDITIO
 
 interface WeatherFlavor {
     icon: ReactNode;
-    label: string;
+    labelKey: string;
     className: string;
 }
 
@@ -38,12 +39,13 @@ const detectCondition = (text: string): WeatherCondition => {
     return WEATHER_CONDITION.SUNNY;
 };
 
-/** Label = capitalized form of the condition value; className = `weather-flavor-<value>`.
- *  Keeping both derived means renaming a `WEATHER_CONDITION` value flows
- *  everywhere (including the user-facing pill and the SCSS hook). */
+/** Label key = `detail.common.weatherFlavor.<value>`; className =
+ *  `weather-flavor-<value>`. Keeping both derived means renaming a
+ *  `WEATHER_CONDITION` value flows everywhere (including the user-facing
+ *  pill and the SCSS hook). */
 const flavorFor = (c: WeatherCondition, icon: ReactNode): WeatherFlavor => ({
     icon,
-    label: c.charAt(0).toUpperCase() + c.slice(1),
+    labelKey: `detail.common.weatherFlavor.${c}`,
     className: `weather-flavor-${c}`,
 });
 
@@ -79,6 +81,7 @@ export interface WeatherWidgetProps {
  * regex is cheap, so no memoization is needed.
  */
 const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
+    const { t } = useTranslation();
     const flavor = current
         ? WEATHER_FLAVORS[current.flavor]
         : WEATHER_FLAVORS[detectCondition(text ?? '')];
@@ -100,12 +103,16 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
                             {(current.highC != null || current.lowC != null) && (
                                 <span className="weather-widget-range">
                                     {current.highC != null &&
-                                        `H ${roundTemp(current.highC)}`}
+                                        t('detail.common.weatherFlavor.high', {
+                                            temp: roundTemp(current.highC),
+                                        })}
                                     {current.highC != null &&
                                         current.lowC != null &&
                                         ' · '}
                                     {current.lowC != null &&
-                                        `L ${roundTemp(current.lowC)}`}
+                                        t('detail.common.weatherFlavor.low', {
+                                            temp: roundTemp(current.lowC),
+                                        })}
                                 </span>
                             )}
                         </div>
@@ -113,7 +120,9 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
                     </>
                 ) : (
                     <>
-                        <span className="weather-widget-tag">{flavor.label}</span>
+                        <span className="weather-widget-tag">
+                            {t(flavor.labelKey)}
+                        </span>
                         <p className="weather-widget-text">{text}</p>
                     </>
                 )}

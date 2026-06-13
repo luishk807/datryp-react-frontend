@@ -5,6 +5,7 @@ import {
     useRef,
     useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Grid } from '@mui/material';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
@@ -63,6 +64,7 @@ const parseRecipients = (
 
 const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
     ({ place, searchUrl }, ref) => {
+        const { t } = useTranslation();
         const modalRef = useRef<ModalButtonHandle>(null);
         const { user } = useUser();
         const [recipients, setRecipients] = useState('');
@@ -94,12 +96,14 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
             e.preventDefault();
             if (parsed.invalid.length > 0) {
                 setError(
-                    `Not a valid email: ${parsed.invalid.join(', ')}.`
+                    t('share.email.invalidError', {
+                        emails: parsed.invalid.join(', '),
+                    })
                 );
                 return;
             }
             if (parsed.valid.length === 0) {
-                setError('Enter at least one email address.');
+                setError(t('share.email.emptyError'));
                 return;
             }
             setError(null);
@@ -122,15 +126,17 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
 
         const recipientHint =
             parsed.valid.length > 0 || parsed.invalid.length > 0
-                ? `${parsed.valid.length} valid${
+                ? `${t('share.email.validCount', { n: parsed.valid.length })}${
                       parsed.invalid.length > 0
-                          ? `, ${parsed.invalid.length} invalid`
+                          ? `, ${t('share.email.invalidCount', {
+                                n: parsed.invalid.length,
+                            })}`
                           : ''
                   }`
-                : 'Separate multiple emails with commas or spaces.';
+                : t('share.email.hint');
 
         return (
-            <ModalButton ref={modalRef} title="Email this place">
+            <ModalButton ref={modalRef} title={t('share.email.title')}>
                 <Grid container>
                     <Grid item lg={12} xs={12} md={12} className="form-input">
                         <div className="email-share-context">
@@ -149,7 +155,7 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                     </Grid>
                     <Grid item lg={12} xs={12} md={12} className="form-input">
                         <InputField
-                            label="Recipient email(s)"
+                            label={t('share.email.recipients')}
                             type="text"
                             value={recipients}
                             onChange={(e) => setRecipients(e.target.value)}
@@ -160,11 +166,11 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                     </Grid>
                     <Grid item lg={12} xs={12} md={12} className="form-input">
                         <InputField
-                            label="Personal note (optional)"
+                            label={t('share.email.note')}
                             type="text"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Thought you'd love this!"
+                            placeholder={t('share.email.notePlaceholder')}
                             required={false}
                         />
                     </Grid>
@@ -189,16 +195,22 @@ const EmailShareModal = forwardRef<EmailShareModalHandle, EmailShareModalProps>(
                             className="form-input email-share-success"
                             role="status"
                         >
-                            Email sent to {parsed.valid.length}{' '}
                             {parsed.valid.length === 1
-                                ? 'recipient'
-                                : 'recipients'}
-                            .
+                                ? t('share.email.sentOne', {
+                                      n: parsed.valid.length,
+                                  })
+                                : t('share.email.sentOther', {
+                                      n: parsed.valid.length,
+                                  })}
                         </Grid>
                     )}
                     <Grid item lg={12} xs={12} md={12} className="form-input">
                         <ButtonCustom
-                            label={isPending ? 'Sending…' : 'Send'}
+                            label={
+                                isPending
+                                    ? t('share.email.sending')
+                                    : t('share.email.send')
+                            }
                             onClick={handleSubmit}
                             capitalizeType="uppercase"
                             disabled={

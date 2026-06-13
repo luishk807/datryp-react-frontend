@@ -1,4 +1,5 @@
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import { useTranslation } from "react-i18next";
 import AsyncText from "components/common/AsyncText";
 import DetailSection from "components/PlaceDetail/DetailSection";
 import "./index.scss";
@@ -26,15 +27,24 @@ const WhenToVisitSection = ({
   bestTime,
   worstTime,
   isError,
-}: WhenToVisitSectionProps) => (
-  <DetailSection title="When to visit" icon={<AccessTimeRoundedIcon />}>
+}: WhenToVisitSectionProps) => {
+  const { t } = useTranslation();
+  return (
+  <DetailSection
+    title={t('detail.common.whenToVisit.title')}
+    icon={<AccessTimeRoundedIcon />}
+  >
     <div className="when-to-visit">
       <div className="when-to-visit-row">
-        <span className="when-to-visit-label tone-best">Best</span>
+        <span className="when-to-visit-label tone-best">
+          {t('detail.common.whenToVisit.best')}
+        </span>
         <span className="when-to-visit-value">{bestTime}</span>
       </div>
       <div className="when-to-visit-row">
-        <span className="when-to-visit-label tone-worst">Worst</span>
+        <span className="when-to-visit-label tone-worst">
+          {t('detail.common.whenToVisit.worst')}
+        </span>
         <span className="when-to-visit-value">
           <AsyncText
             value={worstTime}
@@ -46,6 +56,7 @@ const WhenToVisitSection = ({
       </div>
     </div>
   </DetailSection>
-);
+  );
+};
 
 export default WhenToVisitSection;

@@ -1,6 +1,7 @@
 import './index.scss';
 import classNames from 'classnames';
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import StarHalfRoundedIcon from '@mui/icons-material/StarHalfRounded';
 import StarOutlineRoundedIcon from '@mui/icons-material/StarOutlineRounded';
@@ -22,13 +23,17 @@ const stopProp = (e: React.MouseEvent | React.KeyboardEvent) => {
 };
 
 const Stars = ({ rating }: { rating: number }) => {
+    const { t } = useTranslation();
     // Clamp + render 5 stars: filled / half / empty.
     const clamped = Math.max(0, Math.min(5, rating));
     const full = Math.floor(clamped);
     const hasHalf = clamped - full >= 0.5;
     const empty = 5 - full - (hasHalf ? 1 : 0);
     return (
-        <span className="place-result-card-stars" aria-label={`Rating ${clamped} out of 5`}>
+        <span
+            className="place-result-card-stars"
+            aria-label={t('search.card.ratingAria', { rating: clamped })}
+        >
             {Array.from({ length: full }).map((_, i) => (
                 <StarRoundedIcon key={`f-${i}`} className="place-result-card-star filled" />
             ))}
@@ -42,6 +47,7 @@ const Stars = ({ rating }: { rating: number }) => {
 };
 
 const PlaceResultCard = ({ place, query, index }: PlaceResultCardProps) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const isPlaceholder = !place.imageUrl;
     const hasAttribution = !isPlaceholder && place.photographerName;
@@ -66,7 +72,7 @@ const PlaceResultCard = ({ place, query, index }: PlaceResultCardProps) => {
             className="place-result-card"
             role="button"
             tabIndex={0}
-            aria-label={`Open ${place.name}`}
+            aria-label={t('search.card.openAria', { name: place.name })}
             onClick={handleCardClick}
             onKeyDown={handleCardKeyDown}
         >
@@ -85,28 +91,30 @@ const PlaceResultCard = ({ place, query, index }: PlaceResultCardProps) => {
                         className="place-result-card-attribution"
                         onClick={stopProp}
                     >
-                        Photo by{' '}
-                        {place.photographerUrl ? (
-                            <a
-                                href={place.photographerUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={stopProp}
-                            >
-                                {place.photographerName}
-                            </a>
-                        ) : (
-                            place.photographerName
-                        )}{' '}
-                        on{' '}
-                        <a
-                            href="https://unsplash.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={stopProp}
-                        >
-                            Unsplash
-                        </a>
+                        <Trans
+                            i18nKey="home.attribution"
+                            values={{ name: place.photographerName }}
+                            components={{
+                                author: place.photographerUrl ? (
+                                    <a
+                                        href={place.photographerUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={stopProp}
+                                    />
+                                ) : (
+                                    <span />
+                                ),
+                                unsplash: (
+                                    <a
+                                        href="https://unsplash.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={stopProp}
+                                    />
+                                ),
+                            }}
+                        />
                     </span>
                 )}
             </div>
@@ -118,7 +126,7 @@ const PlaceResultCard = ({ place, query, index }: PlaceResultCardProps) => {
                 <Stars rating={place.rating} />
                 <p className="place-result-card-best-time">
                     <AccessTimeRoundedIcon className="place-result-card-best-time-icon" />
-                    Best: {place.bestTimeToVisit}
+                    {t('search.card.bestTime', { time: place.bestTimeToVisit })}
                 </p>
                 <p className="place-result-card-description">{place.description}</p>
                 <div className="place-result-card-actions" onClick={stopProp}>

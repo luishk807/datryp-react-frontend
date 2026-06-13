@@ -5,6 +5,7 @@
  * who want the fast path don't have to type anything — clicking the
  * Google button skips Steps 1-4 entirely and lands them in onboarding.
  */
+import { useTranslation } from 'react-i18next';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 
@@ -23,21 +24,22 @@ const StepName = ({
     onGoogleCredential,
     googlePending,
 }: StepNameProps) => {
+    const { t } = useTranslation();
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') onContinue();
     };
 
     return (
         <>
-            <h1 className="signup-step-title">What should we call you?</h1>
+            <h1 className="signup-step-title">{t('auth.signup.name.title')}</h1>
             <p className="signup-step-subtitle">
-                Just a first name is fine — we'll use it to personalize the app.
+                {t('auth.signup.name.subtitle')}
             </p>
             <input
                 className="signup-step-input"
                 type="text"
                 autoFocus
-                placeholder="e.g. Alex"
+                placeholder={t('auth.signup.name.placeholder')}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -48,12 +50,12 @@ const StepName = ({
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label="Continue"
+                    label={t('auth.common.continue')}
                     onClick={onContinue}
                 />
             </div>
             <div className="signup-divider">
-                <span>or</span>
+                <span>{t('auth.common.or')}</span>
             </div>
             <div className="signup-google-row">
                 <GoogleSignInButton
@@ -63,7 +65,7 @@ const StepName = ({
                 />
                 {googlePending && (
                     <span className="signup-google-pending">
-                        Signing you in…
+                        {t('auth.signup.googlePending')}
                     </span>
                 )}
             </div>

@@ -13,6 +13,7 @@
  * Shares TripTour's tooltip polish (top accent stripe, hover states).
  */
 import { useMemo } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
     Joyride,
     EVENTS,
@@ -31,74 +32,76 @@ export interface HomeTourProps {
 }
 
 const HomeTour = ({ run, onClose }: HomeTourProps) => {
+    const { t } = useTranslation();
     const steps = useMemo<Step[]>(
         () => [
             {
                 target: 'body',
                 placement: 'center',
-                title: 'Three ways to start',
+                title: t('homeCards.homeTour.steps.intro.title'),
                 content: (
                     <p>
-                        However you like to plan, there's a starting
-                        point here. Let's take a quick look — under a
-                        minute.
+                        <Trans
+                            i18nKey="homeCards.homeTour.steps.intro.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '[data-tour="home-search-place"]',
                 placement: 'bottom',
-                title: 'Search by Place',
+                title: t('homeCards.homeTour.steps.place.title'),
                 content: (
                     <p>
-                        Know where you're headed? Pick{' '}
-                        <strong>Search by Place</strong>, then type a
-                        country or city. We'll open its guide so you can
-                        start a trip there.
+                        <Trans
+                            i18nKey="homeCards.homeTour.steps.place.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '[data-tour="home-search-describe"]',
                 placement: 'bottom',
-                title: 'Search by Description',
+                title: t('homeCards.homeTour.steps.describe.title'),
                 content: (
                     <p>
-                        Not tied to one spot? Switch to{' '}
-                        <strong>Search by Description</strong> and
-                        describe the vibe — "warm beaches in December,"
-                        "cheap food cities" — and we'll suggest matching
-                        places.
+                        <Trans
+                            i18nKey="homeCards.homeTour.steps.describe.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '[data-tour="home-searchbar"]',
                 placement: 'bottom',
-                title: 'One search box',
+                title: t('homeCards.homeTour.steps.searchbar.title'),
                 content: (
                     <p>
-                        The box adapts to the mode you picked above —
-                        place names when searching by place, a free-text
-                        prompt when searching by description.
+                        <Trans
+                            i18nKey="homeCards.homeTour.steps.searchbar.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '[data-tour="home-ai-cta"]',
                 placement: 'top',
-                title: 'Let us plan it for you',
+                title: t('homeCards.homeTour.steps.ai.title'),
                 content: (
                     <p>
-                        Totally undecided? Tap{' '}
-                        <strong>Plan my trip for me</strong> — we’ll ask a
-                        few quick questions, then draft a full itinerary you
-                        can tweak. (Pro feature.)
+                        <Trans
+                            i18nKey="homeCards.homeTour.steps.ai.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
         ],
-        []
+        [t]
     );
 
     const handleEvent = (data: EventData) => {
@@ -169,11 +172,11 @@ const HomeTour = ({ run, onClose }: HomeTourProps) => {
                 },
             }}
             locale={{
-                back: 'Back',
-                close: 'Close',
-                last: 'Got it',
-                next: 'Next',
-                skip: 'Skip tour',
+                back: t('homeCards.homeTour.locale.back'),
+                close: t('homeCards.homeTour.locale.close'),
+                last: t('homeCards.homeTour.locale.last'),
+                next: t('homeCards.homeTour.locale.next'),
+                skip: t('homeCards.homeTour.locale.skip'),
             }}
             onEvent={handleEvent}
         />

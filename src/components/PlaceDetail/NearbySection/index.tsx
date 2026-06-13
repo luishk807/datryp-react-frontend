@@ -1,4 +1,5 @@
 import ExploreRoundedIcon from "@mui/icons-material/ExploreRounded";
+import { useTranslation } from "react-i18next";
 import MainSection from "components/PlaceDetail/MainSection";
 import NearbyGrid, {
   NearbyGridSkeleton,
@@ -23,10 +24,11 @@ export interface NearbySectionProps {
  * "12 mi" badge on a country-scale entry felt arbitrary.
  */
 const NearbySection = ({ items, isError = false }: NearbySectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   return (
     <MainSection
-      title="Nearby — worth a side trip"
+      title={t('detail.common.nearby.title')}
       icon={<ExploreRoundedIcon />}
       size="md"
     >

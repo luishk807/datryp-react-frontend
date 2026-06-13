@@ -7,6 +7,7 @@ import {
     TileLayer,
     Tooltip,
 } from 'react-leaflet';
+import { useTranslation } from 'react-i18next';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
 import DirectionsRailwayRoundedIcon from '@mui/icons-material/DirectionsRailwayRounded';
@@ -42,11 +43,11 @@ const estimateTravel = (km: number): TravelEstimate => {
     return { mode: 'flight', hours: km / 800 + 3, km: rounded };
 };
 
-const MODE_LABEL: Record<TravelMode, string> = {
-    walk: 'on foot',
-    drive: 'by car',
-    train: 'by train',
-    flight: 'by flight',
+const MODE_LABEL_KEY: Record<TravelMode, string> = {
+    walk: 'detail.common.travelWidget.onFoot',
+    drive: 'detail.common.travelWidget.byCar',
+    train: 'detail.common.travelWidget.byTrain',
+    flight: 'detail.common.travelWidget.byFlight',
 };
 
 const ModeIcon = ({ mode }: { mode: TravelMode }) => {
@@ -106,6 +107,7 @@ export interface TravelWidgetProps {
 }
 
 const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
+    const { t } = useTranslation();
     const { data: user, isLoading, isError } = useUserLocation();
 
     // Memoize icons so each render doesn't allocate fresh Leaflet
@@ -168,7 +170,7 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
     const est = km !== null ? estimateTravel(km) : null;
     const fromLabel = user
         ? [user.city, user.country].filter(Boolean).join(', ') ||
-          'your location'
+          t('detail.common.travelWidget.yourLocation')
         : null;
 
     return (
@@ -209,7 +211,13 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                     {userPos && (
                         <Marker position={userPos} icon={userIcon}>
                             <Tooltip>
-                                You — {fromLabel ?? 'your location'}
+                                {t('detail.common.travelWidget.you', {
+                                    name:
+                                        fromLabel ??
+                                        t(
+                                            'detail.common.travelWidget.yourLocation',
+                                        ),
+                                })}
                             </Tooltip>
                         </Marker>
                     )}
@@ -241,7 +249,11 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
             {est && (
                 <>
                     {fromLabel && (
-                        <p className="travel-widget-from">From {fromLabel}</p>
+                        <p className="travel-widget-from">
+                            {t('detail.common.travelWidget.from', {
+                                name: fromLabel,
+                            })}
+                        </p>
                     )}
                     <div className="travel-widget-stats">
                         <span
@@ -257,12 +269,11 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                             ·
                         </span>
                         <span className="travel-widget-duration">
-                            {formatHours(est.hours)} {MODE_LABEL[est.mode]}
+                            {formatHours(est.hours)} {t(MODE_LABEL_KEY[est.mode])}
                         </span>
                     </div>
                     <p className="travel-widget-disclaimer">
-                        Straight-line estimate — actual route + transport
-                        availability vary by region.
+                        {t('detail.common.travelWidget.disclaimer')}
                     </p>
                 </>
             )}
@@ -270,8 +281,8 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
             {!est && (
                 <p className="travel-widget-fallback">
                     {isError
-                        ? "Couldn't detect your location — the map shows just the destination."
-                        : 'Drag the map to explore the area around the destination.'}
+                        ? t('detail.common.travelWidget.noLocation')
+                        : t('detail.common.travelWidget.dragMap')}
                 </p>
             )}
         </div>

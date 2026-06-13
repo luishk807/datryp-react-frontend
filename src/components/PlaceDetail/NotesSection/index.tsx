@@ -1,4 +1,5 @@
 import LightbulbRoundedIcon from "@mui/icons-material/LightbulbRounded";
+import { useTranslation } from "react-i18next";
 import MainSection from "components/PlaceDetail/MainSection";
 import TipList from "components/PlaceDetail/TipList";
 import TipListSkeleton from "components/PlaceDetail/TipListSkeleton";
@@ -21,10 +22,11 @@ export interface NotesSectionProps {
  * renders the compact `TipList` (size `sm`) inside.
  */
 const NotesSection = ({ items, isError = false }: NotesSectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   return (
     <MainSection
-      title="Good to know"
+      title={t('detail.common.goodToKnow')}
       icon={<LightbulbRoundedIcon />}
       size="sm"
     >

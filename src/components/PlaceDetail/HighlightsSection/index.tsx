@@ -1,4 +1,5 @@
 import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import AsyncText from "components/common/AsyncText";
 import DetailSection from "components/PlaceDetail/DetailSection";
@@ -31,13 +32,17 @@ const HighlightsSection = ({
   countryHighlight,
   isError = false,
 }: HighlightsSectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   const rows: { tier: HighlightTier; label: string; highlight: string | undefined }[] = [
     { tier: "city", label: city, highlight: cityHighlight },
     { tier: "country", label: country, highlight: countryHighlight },
   ];
   return (
-    <DetailSection title="Highlights" icon={<EmojiEventsRoundedIcon />}>
+    <DetailSection
+      title={t('detail.common.highlights.title')}
+      icon={<EmojiEventsRoundedIcon />}
+    >
       <div className="highlights-section">
         {rows.map((row) => (
           <div key={row.tier} className="highlights-section-row">

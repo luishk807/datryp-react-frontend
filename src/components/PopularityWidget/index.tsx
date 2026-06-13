@@ -1,14 +1,15 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import TrendingFlatRoundedIcon from '@mui/icons-material/TrendingFlatRounded';
 import TrendingDownRoundedIcon from '@mui/icons-material/TrendingDownRounded';
 import type { PopularityInfo, PopularityTrend } from 'types';
 
-const TREND_LABEL: Record<PopularityTrend, string> = {
-    rising: 'Rising',
-    steady: 'Steady',
-    falling: 'Cooling',
+const TREND_LABEL_KEY: Record<PopularityTrend, string> = {
+    rising: 'detail.common.popularityWidget.rising',
+    steady: 'detail.common.popularityWidget.steady',
+    falling: 'detail.common.popularityWidget.falling',
 };
 
 const TREND_ICON: Record<PopularityTrend, React.ReactNode> = {
@@ -28,10 +29,10 @@ const levelForScore = (score: number): PopularityLevel => {
     return 'niche';
 };
 
-const LEVEL_LABEL: Record<PopularityLevel, string> = {
-    hot: 'Trending',
-    popular: 'Popular',
-    niche: 'Off the radar',
+const LEVEL_LABEL_KEY: Record<PopularityLevel, string> = {
+    hot: 'detail.common.popularityWidget.hot',
+    popular: 'detail.common.popularityWidget.popular',
+    niche: 'detail.common.popularityWidget.niche',
 };
 
 export interface PopularityWidgetProps {
@@ -48,6 +49,7 @@ export interface PopularityWidgetProps {
  * "wake up and grow" entrance.
  */
 const PopularityWidget = ({ info }: PopularityWidgetProps) => {
+    const { t } = useTranslation();
     const score = Math.max(0, Math.min(100, Math.round(info.score)));
     const level = levelForScore(score);
     return (
@@ -60,7 +62,7 @@ const PopularityWidget = ({ info }: PopularityWidgetProps) => {
         >
             <div className="popularity-widget-top">
                 <span className="popularity-widget-level">
-                    {LEVEL_LABEL[level]}
+                    {t(LEVEL_LABEL_KEY[level])}
                 </span>
                 <span className="popularity-widget-score">
                     <strong>{score}</strong>
@@ -73,7 +75,9 @@ const PopularityWidget = ({ info }: PopularityWidgetProps) => {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={score}
-                aria-label={`Popularity score ${score} out of 100`}
+                aria-label={t('detail.common.popularityWidget.scoreAria', {
+                    score,
+                })}
             >
                 <div
                     className="popularity-widget-meter-fill"
@@ -85,12 +89,14 @@ const PopularityWidget = ({ info }: PopularityWidgetProps) => {
                     {TREND_ICON[info.trend]}
                 </span>
                 <span className="popularity-widget-trend-label">
-                    {TREND_LABEL[info.trend]} this year
+                    {t('detail.common.popularityWidget.trendThisYear', {
+                        trend: t(TREND_LABEL_KEY[info.trend]),
+                    })}
                 </span>
             </div>
             <p className="popularity-widget-summary">{info.summary}</p>
             <p className="popularity-widget-disclaimer">
-                Approximate — based on broad travel-interest signals.
+                {t('detail.common.popularityWidget.disclaimer')}
             </p>
         </div>
     );

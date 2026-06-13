@@ -1,4 +1,5 @@
 import CelebrationRoundedIcon from "@mui/icons-material/CelebrationRounded";
+import { useTranslation } from "react-i18next";
 import MainSection from "components/PlaceDetail/MainSection";
 import LocalFlavorBlock, {
   LocalFlavorSkeleton,
@@ -26,10 +27,11 @@ const LocalFlavorSection = ({
   flavor,
   isError = false,
 }: LocalFlavorSectionProps) => {
+  const { t } = useTranslation();
   if (isError) return null;
   return (
     <MainSection
-      title="Local flavor"
+      title={t('detail.common.localFlavor.title')}
       icon={<CelebrationRoundedIcon />}
       size="md"
     >

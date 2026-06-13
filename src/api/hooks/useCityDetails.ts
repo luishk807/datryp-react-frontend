@@ -8,6 +8,7 @@ import {
     type CityDetailsSlice,
 } from 'api/cityDetailsApi';
 import { STATIC_DETAIL_CACHE } from 'api/queryClient';
+import { useActiveLang } from 'i18n/useActiveLang';
 import type { CityDetails, CityDetailsResult, CitySummary } from 'types';
 
 /**
@@ -23,8 +24,9 @@ export const useCityDetails = (name: string, country: string, code: string) => {
     const trimmedName = name.trim();
     const trimmedCountry = country.trim();
     const trimmedCode = code.trim().toUpperCase();
+    const lang = useActiveLang();
     return useQuery<CityDetailsResult>({
-        queryKey: ['city-details', trimmedName, trimmedCode],
+        queryKey: ['city-details', trimmedName, trimmedCode, lang],
         queryFn: () =>
             fetchCityDetails(trimmedName, trimmedCountry, trimmedCode),
         enabled:
@@ -47,32 +49,38 @@ const sliceEnabled = (name: string, country: string, code: string) =>
     country.trim().length > 0 &&
     code.trim().length >= 2;
 
-export const useCityProse = (name: string, country: string, code: string) =>
-    useQuery({
-        queryKey: ['city-prose', name.trim(), code.trim().toUpperCase()],
+export const useCityProse = (name: string, country: string, code: string) => {
+    const lang = useActiveLang();
+    return useQuery({
+        queryKey: ['city-prose', name.trim(), code.trim().toUpperCase(), lang],
         queryFn: () => fetchCityProse(name.trim(), country.trim(), code.trim()),
         enabled: sliceEnabled(name, country, code),
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
-export const useCityLists = (name: string, country: string, code: string) =>
-    useQuery({
-        queryKey: ['city-lists', name.trim(), code.trim().toUpperCase()],
+export const useCityLists = (name: string, country: string, code: string) => {
+    const lang = useActiveLang();
+    return useQuery({
+        queryKey: ['city-lists', name.trim(), code.trim().toUpperCase(), lang],
         queryFn: () => fetchCityLists(name.trim(), country.trim(), code.trim()),
         enabled: sliceEnabled(name, country, code),
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
-export const useCityFacts = (name: string, country: string, code: string) =>
-    useQuery({
-        queryKey: ['city-facts', name.trim(), code.trim().toUpperCase()],
+export const useCityFacts = (name: string, country: string, code: string) => {
+    const lang = useActiveLang();
+    return useQuery({
+        queryKey: ['city-facts', name.trim(), code.trim().toUpperCase(), lang],
         queryFn: () => fetchCityFacts(name.trim(), country.trim(), code.trim()),
         enabled: sliceEnabled(name, country, code),
         ...STATIC_DETAIL_CACHE,
         retry: 1,
     });
+};
 
 export interface ProgressiveCityDetails {
     city: CitySummary | undefined;

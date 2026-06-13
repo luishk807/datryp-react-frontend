@@ -21,6 +21,7 @@
  * `useUser`).
  */
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import classnames from 'classnames';
 import PlaceCard from 'components/common/PlaceCard';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
@@ -38,18 +39,17 @@ export interface PlacesYouMightLoveProps {
     subtitle?: string;
 }
 
-const DEFAULTS: Record<
+const DEFAULT_KEYS: Record<
     PlacesYouMightLoveVariant,
     { title: string; subtitle: string }
 > = {
     home: {
-        title: 'Places you might love',
-        subtitle: 'Picked for you',
+        title: 'homeCards.placesYouMightLove.home.title',
+        subtitle: 'homeCards.placesYouMightLove.home.subtitle',
     },
     'empty-trips': {
-        title: 'No trips yet — try one of these',
-        subtitle:
-            "Tap any card to read more about the place. We picked these based on what you told us during signup.",
+        title: 'homeCards.placesYouMightLove.emptyTrips.title',
+        subtitle: 'homeCards.placesYouMightLove.emptyTrips.subtitle',
     },
 };
 
@@ -73,14 +73,15 @@ const PlacesYouMightLove = ({
     title,
     subtitle,
 }: PlacesYouMightLoveProps) => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const navigate = useNavigate();
     const { data, isLoading, isError } = usePlaceSuggestions();
 
     if (!user) return null;
 
-    const headerTitle = title ?? DEFAULTS[variant].title;
-    const headerSubtitle = subtitle ?? DEFAULTS[variant].subtitle;
+    const headerTitle = title ?? t(DEFAULT_KEYS[variant].title);
+    const headerSubtitle = subtitle ?? t(DEFAULT_KEYS[variant].subtitle);
 
     if (isLoading) {
         // Match the real layout's card count per variant so the grid
@@ -156,7 +157,10 @@ const PlacesYouMightLove = ({
                                 type="button"
                                 className="pyml-card"
                                 onClick={() => goToCity(navigate, place)}
-                                aria-label={`Open ${place.name}, ${place.country}`}
+                                aria-label={t('homeCards.common.openPlaceAria', {
+                                    name: place.name,
+                                    country: place.country,
+                                })}
                             >
                                 <img
                                     src={place.imageUrl ?? NO_IMAGE}

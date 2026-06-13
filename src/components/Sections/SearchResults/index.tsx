@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import './index.scss';
 import Layout from 'components/common/Layout/SubLayout';
 import PlaceResultCard from 'components/PlaceResultCard';
@@ -11,6 +12,7 @@ import { isSearchQuotaExceededError } from 'api/searchQuotaError';
 const SKELETON_COUNT = 4;
 
 const SearchResults = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const query = (searchParams.get('q') ?? '').trim();
     // Visit /search?debug=skeleton to preview the loading state without
@@ -37,7 +39,7 @@ const SearchResults = () => {
         if (!query) {
             return (
                 <p className="search-results-empty">
-                    Start a search from the homepage to see curated places here.
+                    {t('search.results.emptyStart')}
                 </p>
             );
         }
@@ -62,13 +64,17 @@ const SearchResults = () => {
             if (isQueryBlockedError(error)) {
                 return (
                     <p className="search-results-blocked">
-                        DaTryp.com is a travel planner — try a search like
-                        &ldquo;beach yoga retreat&rdquo; or
-                        &ldquo;ancient ruins.&rdquo;{' '}
-                        <Link to="/terms" className="search-results-blocked-link">
-                            Learn more
-                        </Link>
-                        .
+                        <Trans
+                            i18nKey="search.blocked"
+                            components={{
+                                link: (
+                                    <Link
+                                        to="/terms"
+                                        className="search-results-blocked-link"
+                                    />
+                                ),
+                            }}
+                        />
                     </p>
                 );
             }
@@ -76,23 +82,27 @@ const SearchResults = () => {
                 return (
                     <div className="search-results-quota">
                         <p className="search-results-quota-headline">
-                            You&rsquo;ve used your{' '}
-                            <strong>
-                                {error.used}/{error.limit}
-                            </strong>{' '}
-                            free searches for today.
+                            <Trans
+                                i18nKey="search.results.quotaHeadline"
+                                values={{
+                                    used: error.used,
+                                    limit: error.limit,
+                                }}
+                                components={{ strong: <strong /> }}
+                            />
                         </p>
                         <p className="search-results-quota-body">
-                            Free searches reset at midnight UTC. Or upgrade to
-                            Pro for unlimited Advanced Search and unlimited
-                            saved trips.{' '}
-                            <Link
-                                to="/membership"
-                                className="search-results-quota-link"
-                            >
-                                See plan comparison
-                            </Link>
-                            .
+                            <Trans
+                                i18nKey="search.results.quotaBody"
+                                components={{
+                                    link: (
+                                        <Link
+                                            to="/membership"
+                                            className="search-results-quota-link"
+                                        />
+                                    ),
+                                }}
+                            />
                         </p>
                         <div className="search-results-quota-plans">
                             <PlanCards
@@ -104,14 +114,19 @@ const SearchResults = () => {
             }
             return (
                 <p className="search-results-error" role="alert">
-                    Could not load recommendations: {error instanceof Error ? error.message : 'Unknown error'}
+                    {t('search.results.loadError', {
+                        message:
+                            error instanceof Error
+                                ? error.message
+                                : t('search.results.unknownError'),
+                    })}
                 </p>
             );
         }
         if (!data || data.items.length === 0) {
             return (
                 <p className="search-results-empty">
-                    No matches for &ldquo;{query}&rdquo;. Try a different search.
+                    {t('search.results.noMatches', { query })}
                 </p>
             );
         }
@@ -130,7 +145,13 @@ const SearchResults = () => {
     };
 
     return (
-        <Layout title={query ? `Results for "${query}"` : 'Search'}>
+        <Layout
+            title={
+                query
+                    ? t('search.results.resultsFor', { query })
+                    : t('nav.search')
+            }
+        >
             <div className="search-results-page">{renderBody()}</div>
         </Layout>
     );

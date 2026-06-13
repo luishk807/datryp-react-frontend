@@ -20,15 +20,20 @@ import {
     useState,
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import classNames from 'classnames';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Layout from 'components/common/Layout/SubLayout';
+import CountryFlag from 'components/common/CountryFlag';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import PaywallModal from 'components/PaywallModal';
 import type { ModalButtonHandle } from 'components/ModalButton';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import LocationCityRoundedIcon from '@mui/icons-material/LocationCityRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
+import MapRoundedIcon from '@mui/icons-material/MapRounded';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -75,9 +80,43 @@ const explorerLevel = (n: number): { emoji: string; label: string } => {
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
 
-/** Mapbox style URL — light minimal so the green country shading
- *  reads as the dominant signal. Streets / outdoors would compete. */
-const MAP_STYLE = 'mapbox://styles/mapbox/light-v11';
+/** Mapbox basemap styles. Light is the default minimal style so the green
+ *  country shading reads as the dominant signal; "night mode" swaps to the
+ *  dark basemap (same overlay colors read well on both). The choice persists
+ *  in localStorage, mirroring the itinerary's Night view. */
+type MapTheme = 'day' | 'night';
+const MAP_STYLES: Record<MapTheme, string> = {
+    day: 'mapbox://styles/mapbox/light-v11',
+    night: 'mapbox://styles/mapbox/dark-v11',
+};
+const MAP_THEME_STORAGE_KEY = 'datryp.atlas.theme';
+const readStoredTheme = (): MapTheme => {
+    try {
+        return localStorage.getItem(MAP_THEME_STORAGE_KEY) === 'night'
+            ? 'night'
+            : 'day';
+    } catch {
+        return 'day';
+    }
+};
+
+/** Map projection — the globe is the default (the atlas is meant to feel
+ *  like spinning your own world), but some users prefer a flat map for
+ *  reading the whole world at once without rotating. The choice persists
+ *  in localStorage so it survives reloads. */
+type MapProjection = 'globe' | 'mercator';
+const PROJECTION_STORAGE_KEY = 'datryp.atlas.projection';
+const readStoredProjection = (): MapProjection => {
+    // Default to the flat (mercator) map; only honor a stored 'globe' when the
+    // user explicitly switched to it.
+    try {
+        return localStorage.getItem(PROJECTION_STORAGE_KEY) === 'globe'
+            ? 'globe'
+            : 'mercator';
+    } catch {
+        return 'mercator';
+    }
+};
 
 /** Mapbox-vendored country boundaries tileset. Polygons keyed by ISO
  *  alpha-2 + alpha-3. Free + part of every Mapbox account, no extra
@@ -106,6 +145,204 @@ const FRIENDS_COUNTRY_LINE = 'friends-country-line';
 const FRIENDS_PINS_SOURCE = 'friends-visited-pins';
 const FRIENDS_PINS_LAYER = 'friends-visited-pins-layer';
 const FRIENDS_COLOR = '#7c4dff';
+
+/** Add the atlas's custom sources + layers (country shading, own pins,
+ *  friends overlay) to a loaded map. Idempotent — every block guards on
+ *  `getSource`/`getLayer` so it's safe to call on the initial `load` AND
+ *  again after a `setStyle` (night-mode swap), which wipes all non-style
+ *  layers. Filters start empty / sources start empty; the data-sync effects
+ *  in the component repopulate them (they re-run on the styleEpoch bump). */
+const addAtlasSourcesAndLayers = (map: mapboxgl.Map): void => {
+    // Insert shading beneath the basemap's country-label layer so names
+    // stay legible on top of the fill. Both light-v11 and dark-v11 expose
+    // a `country-label` layer; fall back to top-of-stack if a future style
+    // doesn't, so addLayer never throws on a missing beforeId.
+    const beforeLabel = map.getLayer('country-label')
+        ? 'country-label'
+        : undefined;
+
+    // Country boundaries source — Mapbox-hosted vector tiles with the
+    // ISO 3166-1 alpha-2/-3 codes as feature properties. We filter the
+    // fill layer by alpha-2 so only visited countries are shaded.
+    if (!map.getSource(COUNTRY_BOUNDARIES_SOURCE)) {
+        map.addSource(COUNTRY_BOUNDARIES_SOURCE, {
+            type: 'vector',
+            url: COUNTRY_BOUNDARIES_URL,
+        });
+    }
+    if (!map.getLayer('visited-country-fill')) {
+        map.addLayer(
+            {
+                id: 'visited-country-fill',
+                source: COUNTRY_BOUNDARIES_SOURCE,
+                'source-layer': 'country_boundaries',
+                type: 'fill',
+                paint: {
+                    'fill-color': '#3cb54b',
+                    // Brighten on hover via feature-state.
+                    // mapbox.country-boundaries-v1 provides a unique
+                    // numeric feature.id per polygon, so feature-state
+                    // lookups work without us promoting an id property.
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        0.65,
+                        0.45,
+                    ],
+                },
+                // Start with an impossible filter so nothing shows until
+                // the visited list resolves.
+                filter: ['in', 'iso_3166_1', ''],
+            },
+            beforeLabel
+        );
+    }
+    if (!map.getLayer('visited-country-line')) {
+        map.addLayer(
+            {
+                id: 'visited-country-line',
+                source: COUNTRY_BOUNDARIES_SOURCE,
+                'source-layer': 'country_boundaries',
+                type: 'line',
+                paint: {
+                    'line-color': '#2d8f37',
+                    'line-width': 1.5,
+                },
+                filter: ['in', 'iso_3166_1', ''],
+            },
+            beforeLabel
+        );
+    }
+    // Native pin sources / layers. GeoJSON sources start empty; the data
+    // sync effects repopulate them as the visited lists resolve.
+    // `promoteId: 'id'` makes feature-state lookups + queryRenderedFeatures
+    // keying by our own place / city id work without an extra map.
+    if (!map.getSource(CITY_PINS_SOURCE)) {
+        map.addSource(CITY_PINS_SOURCE, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] },
+            promoteId: 'id',
+        });
+    }
+    if (!map.getLayer(CITY_PINS_LAYER)) {
+        map.addLayer({
+            id: CITY_PINS_LAYER,
+            source: CITY_PINS_SOURCE,
+            type: 'circle',
+            paint: {
+                'circle-radius': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    10,
+                    8,
+                ],
+                'circle-color': '#ffffff',
+                'circle-stroke-color': '#3cb54b',
+                'circle-stroke-width': 2.5,
+                // Hard surface — soft fade-in around the dot would blur
+                // it against the tiles.
+                'circle-opacity': 1,
+            },
+        });
+    }
+    if (!map.getSource(PLACE_PINS_SOURCE)) {
+        map.addSource(PLACE_PINS_SOURCE, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] },
+            promoteId: 'id',
+        });
+    }
+    if (!map.getLayer(PLACE_PINS_LAYER)) {
+        map.addLayer({
+            id: PLACE_PINS_LAYER,
+            source: PLACE_PINS_SOURCE,
+            type: 'circle',
+            paint: {
+                'circle-radius': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    9,
+                    7,
+                ],
+                'circle-color': '#f6891f',
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 2.5,
+                'circle-opacity': 1,
+            },
+        });
+    }
+    // ── Friends overlay layers ──────────────────────────────────────
+    // Purple country shading + dashed outline (inserted below the labels,
+    // so it sits above the user's own green fill — a country both visited
+    // reads as blended green+purple and the friends popup wins the click).
+    // Filters start empty.
+    if (!map.getLayer(FRIENDS_COUNTRY_FILL)) {
+        map.addLayer(
+            {
+                id: FRIENDS_COUNTRY_FILL,
+                source: COUNTRY_BOUNDARIES_SOURCE,
+                'source-layer': 'country_boundaries',
+                type: 'fill',
+                paint: {
+                    'fill-color': FRIENDS_COLOR,
+                    // Higher than a typical overlay so the purple tint
+                    // reads even on a country the user has ALSO visited
+                    // (green underneath) — otherwise "a friend was here
+                    // too" vanishes into the green. The bold dashed border
+                    // below is the primary signal; this just tints the fill.
+                    'fill-opacity': 0.4,
+                },
+                filter: ['in', 'iso_3166_1', ''],
+            },
+            beforeLabel
+        );
+    }
+    if (!map.getLayer(FRIENDS_COUNTRY_LINE)) {
+        map.addLayer(
+            {
+                id: FRIENDS_COUNTRY_LINE,
+                source: COUNTRY_BOUNDARIES_SOURCE,
+                'source-layer': 'country_boundaries',
+                type: 'line',
+                paint: {
+                    'line-color': FRIENDS_COLOR,
+                    // Bold dashed purple ring — the load-bearing "a friend
+                    // visited here" cue. Reads clearly over the user's
+                    // solid-green own-visit border, so overlap countries
+                    // (you + a friend) are unmistakable.
+                    'line-width': 2.8,
+                    'line-dasharray': [1.6, 1.1],
+                },
+                filter: ['in', 'iso_3166_1', ''],
+            },
+            beforeLabel
+        );
+    }
+    // Friends' cities + places share one purple circle layer (no
+    // own-vs-friend hover-grow distinction needed — a flat purple dot
+    // reads as "a friend was here").
+    if (!map.getSource(FRIENDS_PINS_SOURCE)) {
+        map.addSource(FRIENDS_PINS_SOURCE, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] },
+            promoteId: 'id',
+        });
+    }
+    if (!map.getLayer(FRIENDS_PINS_LAYER)) {
+        map.addLayer({
+            id: FRIENDS_PINS_LAYER,
+            source: FRIENDS_PINS_SOURCE,
+            type: 'circle',
+            paint: {
+                'circle-radius': 6,
+                'circle-color': FRIENDS_COLOR,
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 2,
+                'circle-opacity': 0.95,
+            },
+        });
+    }
+};
 
 const MyMap = () => {
     const navigate = useNavigate();
@@ -143,6 +380,18 @@ const MyMap = () => {
     } | null>(null);
 
     const [mapReady, setMapReady] = useState(false);
+    const [projection, setProjection] = useState<MapProjection>(
+        readStoredProjection
+    );
+    const [mapTheme, setMapTheme] = useState<MapTheme>(readStoredTheme);
+    // Bumped every time a style swap (night-mode) finishes re-adding the
+    // custom layers. The data-sync effects depend on it so they repopulate
+    // filters + geojson into the freshly-rebuilt layers.
+    const [styleEpoch, setStyleEpoch] = useState(0);
+    // The theme currently applied to the map. Lets the theme effect skip
+    // the initial render (the map is built with the stored theme already)
+    // and only call setStyle on a genuine change.
+    const appliedThemeRef = useRef<MapTheme>(mapTheme);
     const [openDropdown, setOpenDropdown] = useState<StatDropdownKey | null>(
         null
     );
@@ -388,6 +637,7 @@ const MyMap = () => {
                     sublabel: `${c.friends.length} friend${
                         c.friends.length === 1 ? '' : 's'
                     }`,
+                    flagCode: c.countryCode.toUpperCase(),
                 })),
         [friendsAll]
     );
@@ -492,10 +742,14 @@ const MyMap = () => {
         mapboxgl.accessToken = MAPBOX_TOKEN;
         const map = new mapboxgl.Map({
             container,
-            style: MAP_STYLE,
+            // Initial basemap from the persisted theme; later changes flow
+            // through the night-mode effect below (setStyle + re-add layers).
+            style: MAP_STYLES[mapTheme],
             center: [0, 20],
             zoom: 1.4,
-            projection: 'globe',
+            // Initial projection from the persisted preference; later
+            // changes flow through the setProjection effect below.
+            projection,
             attributionControl: true,
         });
         map.addControl(
@@ -518,194 +772,7 @@ const MyMap = () => {
         observer.observe(container);
 
         map.on('load', () => {
-            // Country boundaries source — Mapbox-hosted vector tiles
-            // with the ISO 3166-1 alpha-2/-3 codes as feature
-            // properties. We filter the fill layer by alpha-2 so only
-            // visited countries are shaded.
-            if (!map.getSource(COUNTRY_BOUNDARIES_SOURCE)) {
-                map.addSource(COUNTRY_BOUNDARIES_SOURCE, {
-                    type: 'vector',
-                    url: COUNTRY_BOUNDARIES_URL,
-                });
-            }
-            if (!map.getLayer('visited-country-fill')) {
-                map.addLayer(
-                    {
-                        id: 'visited-country-fill',
-                        source: COUNTRY_BOUNDARIES_SOURCE,
-                        'source-layer': 'country_boundaries',
-                        type: 'fill',
-                        paint: {
-                            'fill-color': '#3cb54b',
-                            // Brighten on hover via feature-state.
-                            // mapbox.country-boundaries-v1 provides a
-                            // unique numeric feature.id per polygon, so
-                            // feature-state lookups work without us
-                            // promoting an id property.
-                            'fill-opacity': [
-                                'case',
-                                ['boolean', ['feature-state', 'hover'], false],
-                                0.65,
-                                0.45,
-                            ],
-                        },
-                        // Start with an impossible filter so nothing
-                        // shows until the visited list resolves.
-                        filter: ['in', 'iso_3166_1', ''],
-                    },
-                    // Insert below the country labels layer so the
-                    // country name still reads on top of the shading.
-                    'country-label'
-                );
-            }
-            if (!map.getLayer('visited-country-line')) {
-                map.addLayer(
-                    {
-                        id: 'visited-country-line',
-                        source: COUNTRY_BOUNDARIES_SOURCE,
-                        'source-layer': 'country_boundaries',
-                        type: 'line',
-                        paint: {
-                            'line-color': '#2d8f37',
-                            'line-width': 1.5,
-                        },
-                        filter: ['in', 'iso_3166_1', ''],
-                    },
-                    'country-label'
-                );
-            }
-            // Native pin sources / layers. GeoJSON sources start
-            // empty; the data sync effects below repopulate them as
-            // the visited lists resolve. `promoteId: 'id'` makes
-            // feature-state lookups + queryRenderedFeatures keying
-            // by our own place / city id work without an extra map.
-            if (!map.getSource(CITY_PINS_SOURCE)) {
-                map.addSource(CITY_PINS_SOURCE, {
-                    type: 'geojson',
-                    data: { type: 'FeatureCollection', features: [] },
-                    promoteId: 'id',
-                });
-            }
-            if (!map.getLayer(CITY_PINS_LAYER)) {
-                map.addLayer({
-                    id: CITY_PINS_LAYER,
-                    source: CITY_PINS_SOURCE,
-                    type: 'circle',
-                    paint: {
-                        'circle-radius': [
-                            'case',
-                            ['boolean', ['feature-state', 'hover'], false],
-                            10,
-                            8,
-                        ],
-                        'circle-color': '#ffffff',
-                        'circle-stroke-color': '#3cb54b',
-                        'circle-stroke-width': 2.5,
-                        // Hard surface — soft fade-in around the
-                        // dot would blur it against light tiles.
-                        'circle-opacity': 1,
-                    },
-                });
-            }
-            if (!map.getSource(PLACE_PINS_SOURCE)) {
-                map.addSource(PLACE_PINS_SOURCE, {
-                    type: 'geojson',
-                    data: { type: 'FeatureCollection', features: [] },
-                    promoteId: 'id',
-                });
-            }
-            if (!map.getLayer(PLACE_PINS_LAYER)) {
-                map.addLayer({
-                    id: PLACE_PINS_LAYER,
-                    source: PLACE_PINS_SOURCE,
-                    type: 'circle',
-                    paint: {
-                        'circle-radius': [
-                            'case',
-                            ['boolean', ['feature-state', 'hover'], false],
-                            9,
-                            7,
-                        ],
-                        'circle-color': '#f6891f',
-                        'circle-stroke-color': '#ffffff',
-                        'circle-stroke-width': 2.5,
-                        'circle-opacity': 1,
-                    },
-                });
-            }
-            // ── Friends overlay layers ──────────────────────────────
-            // Purple country shading + dashed outline (inserted below
-            // the labels, so it sits above the user's own green fill —
-            // a country both visited reads as blended green+purple and
-            // the friends popup wins the click). Filters start empty.
-            if (!map.getLayer(FRIENDS_COUNTRY_FILL)) {
-                map.addLayer(
-                    {
-                        id: FRIENDS_COUNTRY_FILL,
-                        source: COUNTRY_BOUNDARIES_SOURCE,
-                        'source-layer': 'country_boundaries',
-                        type: 'fill',
-                        paint: {
-                            'fill-color': FRIENDS_COLOR,
-                            // Higher than a typical overlay so the purple
-                            // tint reads even on a country the user has
-                            // ALSO visited (green underneath) — otherwise
-                            // "a friend was here too" vanishes into the
-                            // green. The bold dashed border below is the
-                            // primary signal; this just tints the fill.
-                            'fill-opacity': 0.4,
-                        },
-                        filter: ['in', 'iso_3166_1', ''],
-                    },
-                    'country-label'
-                );
-            }
-            if (!map.getLayer(FRIENDS_COUNTRY_LINE)) {
-                map.addLayer(
-                    {
-                        id: FRIENDS_COUNTRY_LINE,
-                        source: COUNTRY_BOUNDARIES_SOURCE,
-                        'source-layer': 'country_boundaries',
-                        type: 'line',
-                        paint: {
-                            'line-color': FRIENDS_COLOR,
-                            // Bold dashed purple ring — the load-bearing
-                            // "a friend visited here" cue. Reads clearly
-                            // over the user's solid-green own-visit border,
-                            // so overlap countries (you + a friend) are
-                            // unmistakable.
-                            'line-width': 2.8,
-                            'line-dasharray': [1.6, 1.1],
-                        },
-                        filter: ['in', 'iso_3166_1', ''],
-                    },
-                    'country-label'
-                );
-            }
-            // Friends' cities + places share one purple circle layer
-            // (no own-vs-friend hover-grow distinction needed — a flat
-            // purple dot reads as "a friend was here").
-            if (!map.getSource(FRIENDS_PINS_SOURCE)) {
-                map.addSource(FRIENDS_PINS_SOURCE, {
-                    type: 'geojson',
-                    data: { type: 'FeatureCollection', features: [] },
-                    promoteId: 'id',
-                });
-            }
-            if (!map.getLayer(FRIENDS_PINS_LAYER)) {
-                map.addLayer({
-                    id: FRIENDS_PINS_LAYER,
-                    source: FRIENDS_PINS_SOURCE,
-                    type: 'circle',
-                    paint: {
-                        'circle-radius': 6,
-                        'circle-color': FRIENDS_COLOR,
-                        'circle-stroke-color': '#ffffff',
-                        'circle-stroke-width': 2,
-                        'circle-opacity': 0.95,
-                    },
-                });
-            }
+            addAtlasSourcesAndLayers(map);
             setMapReady(true);
             // Trigger a resize once layout has settled (style + sources
             // applied), in case the container grew between construction
@@ -739,7 +806,7 @@ const MyMap = () => {
         if (map.getLayer('visited-country-line')) {
             map.setFilter('visited-country-line', filter as any);
         }
-    }, [countryCodes, mapReady]);
+    }, [countryCodes, mapReady, styleEpoch]);
 
     // Push the friends' visited-country filter into the purple overlay
     // layers whenever the aggregate resolves.
@@ -756,7 +823,7 @@ const MyMap = () => {
         if (map.getLayer(FRIENDS_COUNTRY_LINE)) {
             map.setFilter(FRIENDS_COUNTRY_LINE, filter as any);
         }
-    }, [friendsCountryCodes, mapReady]);
+    }, [friendsCountryCodes, mapReady, styleEpoch]);
 
     // Apply per-layer visibility toggles (eye on each stat pill). Country
     // shading is fill + outline, so both ride the `countries` toggle.
@@ -779,7 +846,60 @@ const MyMap = () => {
         set(FRIENDS_COUNTRY_FILL, friendsLayerOn);
         set(FRIENDS_COUNTRY_LINE, friendsLayerOn);
         set(FRIENDS_PINS_LAYER, friendsLayerOn);
-    }, [layerVisibility, friendsLayerOn, mapReady]);
+    }, [layerVisibility, friendsLayerOn, mapReady, styleEpoch]);
+
+    // Swap the map projection (globe ↔ flat) when the toggle changes, and
+    // remember the choice. Skips the initial render — the map is already
+    // built with the stored projection via the init effect above.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        map.setProjection(projection);
+        try {
+            localStorage.setItem(PROJECTION_STORAGE_KEY, projection);
+        } catch {
+            /* localStorage unavailable (private mode) — non-fatal. */
+        }
+    }, [projection, mapReady]);
+
+    // Night mode — swap the Mapbox basemap between light and dark. setStyle
+    // tears down every non-style source/layer, so we re-add the atlas layers
+    // once the new style loads, then bump styleEpoch to make the data-sync
+    // effects repopulate them. Skips the first render (map already built with
+    // the stored theme) by comparing against the applied-theme ref.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapReady) return;
+        if (appliedThemeRef.current === mapTheme) return;
+        appliedThemeRef.current = mapTheme;
+
+        const onStyleLoad = () => {
+            addAtlasSourcesAndLayers(map);
+            setStyleEpoch((n) => n + 1);
+        };
+        // `style.load` fires after the new basemap's sprite/glyphs/layers are
+        // in place — the safe point to re-add our own layers on top.
+        map.once('style.load', onStyleLoad);
+        map.setStyle(MAP_STYLES[mapTheme]);
+        try {
+            localStorage.setItem(MAP_THEME_STORAGE_KEY, mapTheme);
+        } catch {
+            /* localStorage unavailable (private mode) — non-fatal. */
+        }
+        return () => {
+            map.off('style.load', onStyleLoad);
+        };
+    }, [mapTheme, mapReady]);
+
+    // Mirror the itinerary's Night view: when the atlas basemap is dark, dim
+    // the global chrome (header + bottom nav + page background) via a body
+    // class so the dark map isn't framed by white chrome. Cleanup removes it
+    // on unmount / route change so it never leaks to other pages.
+    useEffect(() => {
+        const cls = 'atlas-night-mode';
+        document.body.classList.toggle(cls, mapTheme === 'night');
+        return () => document.body.classList.remove(cls);
+    }, [mapTheme]);
 
     // Sync place pins into the GeoJSON source backing the circle
     // layer. Replaces the old `mapboxgl.Marker` loop — features are
@@ -821,7 +941,7 @@ const MyMap = () => {
                 },
             })),
         });
-    }, [placePins, mapReady]);
+    }, [placePins, mapReady, styleEpoch]);
 
     // Sync city pins into the GeoJSON source — same pattern as
     // places above. Cities don't carry trip joins today, so the
@@ -852,7 +972,7 @@ const MyMap = () => {
                 },
             })),
         });
-    }, [cityPins, mapReady]);
+    }, [cityPins, mapReady, styleEpoch]);
 
     // Sync friends' pins (cities + places) into the purple circle layer.
     useEffect(() => {
@@ -879,7 +999,7 @@ const MyMap = () => {
                 },
             })),
         });
-    }, [friendsPins, mapReady]);
+    }, [friendsPins, mapReady, styleEpoch]);
 
     // Keep the Friends dropdown mutually exclusive with the three stat
     // dropdowns (they share the top-center row) — opening any stat
@@ -1157,6 +1277,7 @@ const MyMap = () => {
                 id: c.code,
                 label: c.name,
                 sublabel: c.code,
+                flagCode: c.code,
                 tripCount: tripCountByCountry.get(c.code) ?? 0,
             }));
     }, [visitedCountries, visitedCities, visitedPlaces, tripCountByCountry]);
@@ -1189,6 +1310,7 @@ const MyMap = () => {
                     id: c.citySlug,
                     label: c.cityName,
                     sublabel: `${c.countryName} (${c.countryCode})`,
+                    flagCode: c.countryCode,
                     disabled: !hasCoords,
                     disabledReason: hasCoords
                         ? undefined
@@ -1212,6 +1334,7 @@ const MyMap = () => {
                     sublabel: [p.placeCity, p.placeCountry]
                         .filter(Boolean)
                         .join(', '),
+                    flagCode: p.countryCode ?? undefined,
                     disabled: !hasCoords,
                     tripCount: tripCountByPlace.get(p.id) ?? 0,
                     disabledReason: hasCoords
@@ -1845,11 +1968,10 @@ const MyMap = () => {
         <Layout title="Travel Atlas" fullBleed>
             <div className="my-map-page">
                 <div
-                    className={
-                        isPro
-                            ? 'my-map-canvas-wrap'
-                            : 'my-map-canvas-wrap is-locked'
-                    }
+                    className={classNames('my-map-canvas-wrap', {
+                        'is-locked': !isPro,
+                        'is-night': mapTheme === 'night',
+                    })}
                 >
                     <div
                         ref={mapContainerRef}
@@ -1863,6 +1985,133 @@ const MyMap = () => {
                      *  by chrome that doesn't do anything yet. */}
                     {isPro && (
                     <>
+                    {/* Map controls — projection (globe/flat) + theme
+                        (day/night). Desktop shows the labeled segmented toggles
+                        centered at the top; mobile collapses each to a single
+                        icon chip next to the "Layers" button (CSS swaps which
+                        set is shown). Both choices persist. */}
+                    <div className="my-map-controls">
+                        {/* Desktop: segmented two-option toggles */}
+                        <div
+                            className="my-map-segctl"
+                            role="group"
+                            aria-label="Map projection"
+                        >
+                            <button
+                                type="button"
+                                className={classNames('my-map-segctl-btn', {
+                                    'is-active': projection === 'globe',
+                                })}
+                                onClick={() => setProjection('globe')}
+                                aria-pressed={projection === 'globe'}
+                                title="Globe view"
+                            >
+                                <PublicRoundedIcon fontSize="small" />
+                                <span>Globe</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={classNames('my-map-segctl-btn', {
+                                    'is-active': projection === 'mercator',
+                                })}
+                                onClick={() => setProjection('mercator')}
+                                aria-pressed={projection === 'mercator'}
+                                title="Flat map"
+                            >
+                                <MapRoundedIcon fontSize="small" />
+                                <span>Flat</span>
+                            </button>
+                        </div>
+                        <div
+                            className="my-map-segctl"
+                            role="group"
+                            aria-label="Map theme"
+                        >
+                            <button
+                                type="button"
+                                className={classNames('my-map-segctl-btn', {
+                                    'is-active': mapTheme === 'day',
+                                })}
+                                onClick={() => setMapTheme('day')}
+                                aria-pressed={mapTheme === 'day'}
+                                title="Day map"
+                            >
+                                <LightModeOutlinedIcon fontSize="small" />
+                                <span>Day</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={classNames('my-map-segctl-btn', {
+                                    'is-active': mapTheme === 'night',
+                                })}
+                                onClick={() => setMapTheme('night')}
+                                aria-pressed={mapTheme === 'night'}
+                                title="Night map"
+                            >
+                                <DarkModeOutlinedIcon fontSize="small" />
+                                <span>Night</span>
+                            </button>
+                        </div>
+
+                        {/* Mobile: single-icon toggles (flip to the other
+                            mode); icon shows the mode you'd switch TO. */}
+                        <button
+                            type="button"
+                            className="my-map-ctl-toggle my-map-atlas-pill"
+                            onClick={() =>
+                                setProjection(
+                                    projection === 'globe'
+                                        ? 'mercator'
+                                        : 'globe'
+                                )
+                            }
+                            aria-label={
+                                projection === 'globe'
+                                    ? 'Switch to flat map'
+                                    : 'Switch to globe view'
+                            }
+                            title={
+                                projection === 'globe'
+                                    ? 'Switch to flat map'
+                                    : 'Switch to globe view'
+                            }
+                        >
+                            {projection === 'globe' ? (
+                                <MapRoundedIcon fontSize="small" />
+                            ) : (
+                                <PublicRoundedIcon fontSize="small" />
+                            )}
+                            <span>
+                                {projection === 'globe' ? 'Flat' : 'Globe'}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            className="my-map-ctl-toggle my-map-atlas-pill"
+                            onClick={() =>
+                                setMapTheme(
+                                    mapTheme === 'day' ? 'night' : 'day'
+                                )
+                            }
+                            aria-label={
+                                mapTheme === 'day'
+                                    ? 'Switch to night map'
+                                    : 'Switch to day map'
+                            }
+                            title={
+                                mapTheme === 'day'
+                                    ? 'Switch to night map'
+                                    : 'Switch to day map'
+                            }
+                        >
+                            {mapTheme === 'day' ? (
+                                <DarkModeOutlinedIcon fontSize="small" />
+                            ) : (
+                                <LightModeOutlinedIcon fontSize="small" />
+                            )}
+                            <span>{mapTheme === 'day' ? 'Night' : 'Day'}</span>
+                        </button>
+                    </div>
                     <div className="my-map-stats">
                         <MyMapStatDropdown
                             icon={<PublicRoundedIcon fontSize="small" />}
@@ -2274,18 +2523,26 @@ const MyMap = () => {
                             <div className="my-map-trips-panel-summary">
                                 <header className="my-map-trips-panel-header">
                                     <div className="my-map-trips-panel-heading">
-                                        <span
-                                            className={`my-map-trips-panel-icon is-${selection.kind}`}
-                                            aria-hidden="true"
-                                        >
-                                            {selection.kind === 'country' ? (
-                                                <PublicRoundedIcon fontSize="small" />
-                                            ) : selection.kind === 'city' ? (
-                                                <LocationCityRoundedIcon fontSize="small" />
-                                            ) : (
-                                                <PlaceRoundedIcon fontSize="small" />
-                                            )}
-                                        </span>
+                                        {selectedCountryCode ? (
+                                            <CountryFlag
+                                                code={selectedCountryCode}
+                                                title={selection.label}
+                                                className="my-map-trips-panel-flag"
+                                            />
+                                        ) : (
+                                            <span
+                                                className={`my-map-trips-panel-icon is-${selection.kind}`}
+                                                aria-hidden="true"
+                                            >
+                                                {selection.kind === 'country' ? (
+                                                    <PublicRoundedIcon fontSize="small" />
+                                                ) : selection.kind === 'city' ? (
+                                                    <LocationCityRoundedIcon fontSize="small" />
+                                                ) : (
+                                                    <PlaceRoundedIcon fontSize="small" />
+                                                )}
+                                            </span>
+                                        )}
                                         <div className="my-map-trips-panel-heading-text">
                                             <h2
                                                 id="my-map-trips-panel-title"

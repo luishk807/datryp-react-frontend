@@ -1,4 +1,5 @@
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
+import { useTranslation } from "react-i18next";
 import AsyncDetailSection from "components/PlaceDetail/AsyncDetailSection";
 import TravelWidget from "components/PlaceDetail/TravelWidget";
 import type { Coordinates } from "types";
@@ -26,18 +27,21 @@ const GettingThereSection = ({
   placeName,
   coordinates,
   isError,
-}: GettingThereSectionProps) => (
-  <AsyncDetailSection
-    title="Getting there"
-    icon={<FlightTakeoffRoundedIcon />}
-    data={coordinates}
-    isError={isError}
-    errorMessage="Could not load travel info."
-    loadingHint="Calculating distance from your home base…"
-    skeletonLines={3}
-  >
-    {(coords) => <TravelWidget placeName={placeName} placeCoords={coords} />}
-  </AsyncDetailSection>
-);
+}: GettingThereSectionProps) => {
+  const { t } = useTranslation();
+  return (
+    <AsyncDetailSection
+      title={t('detail.common.gettingThere.title')}
+      icon={<FlightTakeoffRoundedIcon />}
+      data={coordinates}
+      isError={isError}
+      errorMessage={t('detail.common.gettingThere.error')}
+      loadingHint={t('detail.common.gettingThere.loading')}
+      skeletonLines={3}
+    >
+      {(coords) => <TravelWidget placeName={placeName} placeCoords={coords} />}
+    </AsyncDetailSection>
+  );
+};
 
 export default GettingThereSection;

@@ -7,6 +7,7 @@
  * browser handles validation/autofill; the parent shell does the
  * "must look like an email" check on Continue.
  */
+import { useTranslation } from 'react-i18next';
 import GoogleSignInButton from 'components/GoogleSignInButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import './index.scss';
@@ -26,15 +27,16 @@ const StepEmail = ({
     onGoogleCredential,
     googlePending,
 }: StepEmailProps) => {
+    const { t } = useTranslation();
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') onContinue();
     };
 
     return (
         <>
-            <h1 className="signup-step-title">What's your email?</h1>
+            <h1 className="signup-step-title">{t('auth.signup.email.title')}</h1>
             <p className="signup-step-subtitle">
-                We'll send your bookings and trip updates here.
+                {t('auth.signup.email.subtitle')}
             </p>
             <input
                 className="signup-step-input"
@@ -42,7 +44,7 @@ const StepEmail = ({
                 autoFocus
                 inputMode="email"
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t('auth.common.emailPlaceholder')}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -53,13 +55,13 @@ const StepEmail = ({
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label="Continue"
+                    label={t('auth.common.continue')}
                     onClick={onContinue}
                     disabled={!value.trim()}
                 />
             </div>
             <div className="signup-divider">
-                <span>or</span>
+                <span>{t('auth.common.or')}</span>
             </div>
             <div className="signup-google-row">
                 <GoogleSignInButton
@@ -69,7 +71,7 @@ const StepEmail = ({
                 />
                 {googlePending && (
                     <span className="signup-google-pending">
-                        Signing you in…
+                        {t('auth.signup.googlePending')}
                     </span>
                 )}
             </div>

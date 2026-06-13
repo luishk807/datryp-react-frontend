@@ -7,6 +7,7 @@ import type {
     CityDetailsResult,
     CitySummary,
 } from "types";
+import { activeLang } from "i18n";
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? "http://localhost:8000";
@@ -314,7 +315,7 @@ export const fetchCityDetails = async (
     country: string,
     code: string
 ): Promise<CityDetailsResult> => {
-    const params = new URLSearchParams({ name, country, code });
+    const params = new URLSearchParams({ name, country, code, lang: activeLang() });
     const resp = await fetch(`${API_BASE}/city-details?${params}`);
     if (!resp.ok) {
         throw new Error(
@@ -345,7 +346,7 @@ export interface CityProseResult {
 }
 
 const sliceParams = (name: string, country: string, code: string) =>
-    new URLSearchParams({ name, country, code });
+    new URLSearchParams({ name, country, code, lang: activeLang() });
 
 export const fetchCityProse = async (
     name: string,

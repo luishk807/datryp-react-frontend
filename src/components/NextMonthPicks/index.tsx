@@ -18,6 +18,7 @@
  * class) so the two homepage sections feel like a coherent set.
  */
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import PlaceCard from 'components/common/PlaceCard';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import type { NextMonthPickItem } from 'api/nextMonthPicksApi';
@@ -59,6 +60,7 @@ const linkFor = (item: NextMonthPickItem): string => {
 };
 
 const NextMonthPicks = () => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const navigate = useNavigate();
     const { data, isLoading, isError } = useNextMonthPicks();
@@ -73,9 +75,11 @@ const NextMonthPicks = () => {
         return (
             <section className="next-month-picks" aria-live="polite">
                 <div className="nmp-header">
-                    <h2 className="nmp-title">Coming up next month</h2>
+                    <h2 className="nmp-title">
+                        {t('homeCards.nextMonthPicks.loadingTitle')}
+                    </h2>
                     <span className="nmp-subtitle">
-                        From your saved destinations
+                        {t('homeCards.nextMonthPicks.loadingSubtitle')}
                     </span>
                 </div>
                 <div className="nmp-grid">
@@ -94,11 +98,12 @@ const NextMonthPicks = () => {
         <section className="next-month-picks">
             <div className="nmp-header">
                 <h2 className="nmp-title">
-                    Best for {data.monthLabel}
+                    {t('homeCards.nextMonthPicks.title', {
+                        month: data.monthLabel,
+                    })}
                 </h2>
                 <span className="nmp-subtitle">
-                    From your saved destinations — next month is a great
-                    time to visit these
+                    {t('homeCards.nextMonthPicks.subtitle')}
                 </span>
             </div>
             <div className="nmp-grid">
@@ -113,7 +118,9 @@ const NextMonthPicks = () => {
                             // Surface the original best-time string as
                             // the tagline so the user sees the "why
                             // now" rationale on the card itself.
-                            tagline: `Best time: ${item.bestTimeToVisit}`,
+                            tagline: t('homeCards.common.bestTime', {
+                                time: item.bestTimeToVisit,
+                            }),
                         }}
                         onClick={() => navigate(linkFor(item))}
                     />

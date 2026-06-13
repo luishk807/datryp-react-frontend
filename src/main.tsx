@@ -4,6 +4,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import './index.scss';
+// Initialise i18next (English + Spanish) before the app renders. Side-effect
+// import — resources are bundled, so init is synchronous and the first paint is
+// already in the user's persisted language.
+import 'i18n';
 import App from './App';
 import { TripProvider } from 'context/TripContext';
 import { UserProvider } from 'context/UserContext';

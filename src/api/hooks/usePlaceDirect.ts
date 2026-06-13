@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlaceDirect } from 'api/placeRecommendationsApi';
 import { STATIC_DETAIL_CACHE } from 'api/queryClient';
+import { useActiveLang } from 'i18n/useActiveLang';
 import type { PlaceRecommendationsResult } from 'types';
 
 /**
@@ -20,12 +21,14 @@ export const usePlaceDirect = (
     options: { enabled?: boolean } = {}
 ) => {
     const { enabled = true } = options;
+    const lang = useActiveLang();
     return useQuery<PlaceRecommendationsResult>({
         queryKey: [
             'place-direct',
             name.trim().toLowerCase(),
             city.trim().toLowerCase(),
             country.trim().toLowerCase(),
+            lang,
         ],
         queryFn: () => fetchPlaceDirect(name, city, country),
         enabled: enabled && name.trim().length > 0,

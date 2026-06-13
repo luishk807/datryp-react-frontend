@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Divider, Drawer, IconButton } from '@mui/material';
 import SearchBarIcon from '@mui/icons-material/SearchRounded';
 import Menu, { MenuActionItem } from 'components/common/Menu';
@@ -41,6 +42,7 @@ interface HeaderProps {
 }
 
 const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
+    const { t } = useTranslation();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
     const { user, isAdmin, login, logout } = useUser();
@@ -86,7 +88,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
         const email = form.username?.trim();
         const password = form.password ?? '';
         if (!email || !password) {
-            throw new Error('Email and password are required.');
+            throw new Error(t('auth.emailPasswordRequired'));
         }
         await login(email, password);
     };
@@ -154,7 +156,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 />
                             </>
                         }
-                        ariaLabel="DaTryp.com home"
+                        ariaLabel={t('nav.homeLink')}
                         className="app-header-logo"
                     />
                     {pageTitle && (
@@ -185,7 +187,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 type={BUTTON_VARIANT.NONE}
                                 capitalizeType="none"
                                 className="app-header-avatar"
-                                ariaLabel={`Account menu for ${user.name}`}
+                                ariaLabel={t('nav.accountMenuFor', { name: user.name })}
                                 onClick={(e) => setMenuAnchor(e.currentTarget)}
                             >
                                 {avatarContent}
@@ -211,20 +213,20 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 <Divider className="user-menu-divider" />
                                 <MenuActionItem
                                     icon={<PersonOutlineIcon />}
-                                    label="Account"
+                                    label={t('nav.account')}
                                     onClick={() => handleNavigate('/account')}
                                 />
                                 {showUpgradeLink && (
                                     <MenuActionItem
                                         icon={<StarRoundedIcon />}
-                                        label="Upgrade to Pro"
+                                        label={t('nav.upgradeToPro')}
                                         onClick={() => handleNavigate('/membership')}
                                     />
                                 )}
                                 {showSubscriptionLink && (
                                     <MenuActionItem
                                         icon={<WorkspacePremiumRoundedIcon />}
-                                        label="Subscription"
+                                        label={t('nav.subscription')}
                                         onClick={() =>
                                             handleNavigate('/account#subscription')
                                         }
@@ -232,53 +234,53 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 )}
                                 <MenuActionItem
                                     icon={<FlightTakeoffIcon />}
-                                    label="My Trips"
+                                    label={t('nav.myTrips')}
                                     onClick={() => handleNavigate('/trips')}
                                 />
                                 <MenuActionItem
                                     icon={<AutoAwesomeRoundedIcon />}
-                                    label="Plan a trip"
+                                    label={t('nav.planATrip')}
                                     onClick={() => handleNavigate('/discover')}
                                 />
                                 <MenuActionItem
                                     icon={<CheckCircleRoundedIcon />}
-                                    label="Visited Places"
+                                    label={t('nav.visitedPlaces')}
                                     onClick={() => handleNavigate('/visited')}
                                 />
                                 <MenuActionItem
                                     icon={<PublicRoundedIcon />}
-                                    label="Travel Atlas"
+                                    label={t('nav.travelAtlas')}
                                     onClick={() => handleNavigate('/my-map')}
                                 />
                                 <MenuActionItem
                                     icon={<FavoriteRoundedIcon />}
-                                    label="Saved Places"
+                                    label={t('nav.savedPlaces')}
                                     onClick={() => handleNavigate('/saved')}
                                 />
                                 <MenuActionItem
                                     icon={<AutoAwesomeRoundedIcon />}
-                                    label="Bucket list"
+                                    label={t('nav.bucketList')}
                                     onClick={() => handleNavigate('/bucket-list')}
                                 />
                                 <MenuActionItem
                                     icon={<PeopleOutlineIcon />}
-                                    label="Manage Friends"
+                                    label={t('nav.manageFriends')}
                                     onClick={() => handleNavigate('/friends')}
                                 />
                                 <MenuActionItem
                                     icon={<HistoryRoundedIcon />}
-                                    label="Recent searches"
+                                    label={t('nav.recentSearches')}
                                     onClick={() => handleNavigate('/history')}
                                 />
                                 <MenuActionItem
                                     icon={<NotificationsNoneRoundedIcon />}
-                                    label="Notifications"
+                                    label={t('nav.notifications')}
                                     onClick={() => handleNavigate('/notifications')}
                                 />
                                 {isAdmin && (
                                     <MenuActionItem
                                         icon={<AdminPanelSettingsRoundedIcon />}
-                                        label="Admin dashboard"
+                                        label={t('nav.adminDashboard')}
                                         onClick={() =>
                                             handleNavigate('/dashboard')
                                         }
@@ -287,7 +289,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 <Divider className="user-menu-divider" />
                                 <MenuActionItem
                                     icon={<LogoutRoundedIcon />}
-                                    label="Logout"
+                                    label={t('nav.logout')}
                                     onClick={handleLogout}
                                     tone="danger"
                                 />
@@ -300,7 +302,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                             </span>
                             <span className="auth-cta">
                                 <Link to="/signup" className="auth-cta-link">
-                                    Sign Up
+                                    {t('nav.signUp')}
                                 </Link>
                             </span>
                         </>
@@ -309,7 +311,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
 
                 <IconButton
                     className="app-header-burger"
-                    aria-label="Open menu"
+                    aria-label={t('nav.openMenu')}
                     onClick={() => setDrawerOpen(true)}
                 >
                     <MenuRoundedIcon />
@@ -324,7 +326,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                 <div className="app-header-drawer">
                     <div className="drawer-head">
                         <IconButton
-                            aria-label="Close menu"
+                            aria-label={t('nav.closeMenu')}
                             onClick={() => setDrawerOpen(false)}
                         >
                             <CloseRoundedIcon />
@@ -343,7 +345,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Account"
+                                    label={t('nav.account')}
                                     onClick={() => handleNavigate('/account')}
                                 />
                                 {showUpgradeLink && (
@@ -351,7 +353,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                         type={BUTTON_VARIANT.NONE}
                                         capitalizeType="none"
                                         className="drawer-link drawer-upgrade"
-                                        label="Upgrade to Pro"
+                                        label={t('nav.upgradeToPro')}
                                         onClick={() => handleNavigate('/membership')}
                                     />
                                 )}
@@ -360,7 +362,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                         type={BUTTON_VARIANT.NONE}
                                         capitalizeType="none"
                                         className="drawer-link"
-                                        label="Subscription"
+                                        label={t('nav.subscription')}
                                         onClick={() =>
                                             handleNavigate(
                                                 '/account#subscription'
@@ -372,56 +374,56 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="My Trips"
+                                    label={t('nav.myTrips')}
                                     onClick={() => handleNavigate('/trips')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Plan a trip"
+                                    label={t('nav.planATrip')}
                                     onClick={() => handleNavigate('/discover')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Visited Places"
+                                    label={t('nav.visitedPlaces')}
                                     onClick={() => handleNavigate('/visited')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Saved Places"
+                                    label={t('nav.savedPlaces')}
                                     onClick={() => handleNavigate('/saved')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Bucket list"
+                                    label={t('nav.bucketList')}
                                     onClick={() => handleNavigate('/bucket-list')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Manage Friends"
+                                    label={t('nav.manageFriends')}
                                     onClick={() => handleNavigate('/friends')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Recent searches"
+                                    label={t('nav.recentSearches')}
                                     onClick={() => handleNavigate('/history')}
                                 />
                                 <ButtonCustom
                                     type={BUTTON_VARIANT.NONE}
                                     capitalizeType="none"
                                     className="drawer-link"
-                                    label="Notifications"
+                                    label={t('nav.notifications')}
                                     onClick={() => handleNavigate('/notifications')}
                                 />
                                 {isAdmin && (
@@ -429,7 +431,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                         type={BUTTON_VARIANT.NONE}
                                         capitalizeType="none"
                                         className="drawer-link"
-                                        label="Admin dashboard"
+                                        label={t('nav.adminDashboard')}
                                         onClick={() =>
                                             handleNavigate('/dashboard')
                                         }
@@ -441,7 +443,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                     className="drawer-link drawer-logout"
                                     onClick={handleLogout}
                                 >
-                                    <LogoutRoundedIcon fontSize="small" /> Logout
+                                    <LogoutRoundedIcon fontSize="small" /> {t('nav.logout')}
                                 </ButtonCustom>
                             </>
                         ) : (
@@ -455,7 +457,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                         className="drawer-link auth-cta-link"
                                         onClick={() => setDrawerOpen(false)}
                                     >
-                                        Sign Up
+                                        {t('nav.signUp')}
                                     </Link>
                                 </div>
                             </>

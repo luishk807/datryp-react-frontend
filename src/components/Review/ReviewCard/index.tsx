@@ -1,4 +1,5 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@mui/material';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
@@ -28,6 +29,7 @@ export interface ReviewCardProps {
  * inline mutations — list invalidation is handled by the hooks themselves.
  */
 const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
+    const { t } = useTranslation();
     const toggleLike = useToggleReviewLike();
     const deleteReview = useDeleteReview();
 
@@ -40,7 +42,7 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
     };
 
     const handleDelete = () => {
-        if (!window.confirm('Delete your review?')) return;
+        if (!window.confirm(t('detail.reviews.deleteConfirm'))) return;
         deleteReview.mutate({ placeKey, reviewId: review.id });
     };
 
@@ -51,10 +53,16 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
     const friendLine =
         friendNames.length > 0
             ? friendNames.length === 1
-                ? `${friendNames[0]} liked this`
-                : `${friendNames[0]} and ${friendNames.length - 1} other friend${
-                      friendNames.length - 1 === 1 ? '' : 's'
-                  } liked this`
+                ? t('detail.reviews.friendLikedOne', { name: friendNames[0] })
+                : friendNames.length - 1 === 1
+                  ? t('detail.reviews.friendLikedTwo', {
+                        name: friendNames[0],
+                        n: friendNames.length - 1,
+                    })
+                  : t('detail.reviews.friendLikedOther', {
+                        name: friendNames[0],
+                        n: friendNames.length - 1,
+                    })
             : null;
 
     return (
@@ -66,11 +74,13 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
                     </span>
                     <div className="review-card-author-meta">
                         <span className="review-card-author-name">
-                            {review.author.name || 'Anonymous'}
+                            {review.author.name ||
+                                t('detail.reviews.anonymous')}
                         </span>
                         <span className="review-card-time">
                             {moment(review.createdAt).fromNow()}
-                            {review.updatedAt !== review.createdAt && ' · edited'}
+                            {review.updatedAt !== review.createdAt &&
+                                ` · ${t('detail.reviews.edited')}`}
                         </span>
                     </div>
                 </div>
@@ -85,8 +95,8 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
                         review.friendLikers.length > 0
                             ? friendNames.join(', ')
                             : review.viewerHasLiked
-                                ? 'Click to unlike'
-                                : 'Click to like'
+                                ? t('detail.reviews.clickToUnlike')
+                                : t('detail.reviews.clickToLike')
                     }
                     arrow
                 >
@@ -108,7 +118,9 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
                             iconProps={{ fontSize: 'small' }}
                             title={String(review.likeCount)}
                             ariaLabel={
-                                review.viewerHasLiked ? 'Unlike review' : 'Like review'
+                                review.viewerHasLiked
+                                    ? t('detail.reviews.unlikeAria')
+                                    : t('detail.reviews.likeAria')
                             }
                             onClick={handleLike}
                             disabled={toggleLike.isPending}
@@ -128,8 +140,8 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
                             Icon={EditRoundedIcon}
                             iconPosition="start"
                             iconProps={{ fontSize: 'small' }}
-                            title="Edit"
-                            ariaLabel="Edit your review"
+                            title={t('detail.reviews.edit')}
+                            ariaLabel={t('detail.reviews.editAria')}
                             onClick={onEditStart}
                         />
                         <ButtonIcon
@@ -138,8 +150,8 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
                             Icon={DeleteOutlineRoundedIcon}
                             iconPosition="start"
                             iconProps={{ fontSize: 'small' }}
-                            title="Delete"
-                            ariaLabel="Delete your review"
+                            title={t('detail.reviews.delete')}
+                            ariaLabel={t('detail.reviews.deleteAria')}
                             onClick={handleDelete}
                             disabled={deleteReview.isPending}
                         />

@@ -16,6 +16,7 @@
  * TripTour's tooltip polish (top accent stripe, hover states).
  */
 import { useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
     Joyride,
     EVENTS,
@@ -40,13 +41,14 @@ export interface DetailTourProps {
     kind: DetailTourKind;
 }
 
-const KIND_NOUN: Record<DetailTourKind, string> = {
-    country: 'country',
-    city: 'city',
-    place: 'place',
+const KIND_NOUN_KEY: Record<DetailTourKind, string> = {
+    country: 'detail.tour.nounCountry',
+    city: 'detail.tour.nounCity',
+    place: 'detail.tour.nounPlace',
 };
 
 const DetailTour = ({ kind }: DetailTourProps) => {
+    const { t } = useTranslation();
     const [run, setRun] = useState(false);
 
     // Auto-run once per browser. The 600ms delay lets the hero + action
@@ -68,7 +70,7 @@ const DetailTour = ({ kind }: DetailTourProps) => {
     };
 
     const steps = useMemo<Step[]>(() => {
-        const noun = KIND_NOUN[kind];
+        const noun = t(KIND_NOUN_KEY[kind]);
         // Country/city offer a "Start planning" CTA; place offers
         // "Add to itinerary" — different element, different copy.
         const ctaTarget =
@@ -80,26 +82,27 @@ const DetailTour = ({ kind }: DetailTourProps) => {
                 ? {
                       target: ctaTarget,
                       placement: 'bottom',
-                      title: 'Add it to a trip',
+                      title: t('detail.tour.ctaPlaceTitle'),
                       content: (
                           <p>
-                              Tap <strong>Add to itinerary</strong> to drop
-                              this place straight onto a day in one of your
-                              trips — no retyping.
+                              <Trans
+                                  i18nKey="detail.tour.ctaPlaceBody"
+                                  components={{ strong: <strong /> }}
+                              />
                           </p>
                       ),
                   }
                 : {
                       target: ctaTarget,
                       placement: 'bottom',
-                      title: 'Start planning',
+                      title: t('detail.tour.ctaPlanTitle'),
                       content: (
                           <p>
-                              When you're ready, hit{' '}
-                              <strong>Start planning</strong> — we'll turn
-                              this {noun} into a trip with the destination
-                              pre-filled so you can jump straight to the
-                              itinerary.
+                              <Trans
+                                  i18nKey="detail.tour.ctaPlanBody"
+                                  values={{ kind: noun }}
+                                  components={{ strong: <strong /> }}
+                              />
                           </p>
                       ),
                   };
@@ -108,50 +111,51 @@ const DetailTour = ({ kind }: DetailTourProps) => {
             {
                 target: 'body',
                 placement: 'center',
-                title: 'Welcome to the guide',
-                content: (
-                    <p>
-                        This is the {noun} guide — weather, costs, safety,
-                        things to do, and more. First, a quick look at the
-                        icons up top.
-                    </p>
-                ),
+                title: t('detail.tour.welcomeTitle'),
+                content: <p>{t('detail.tour.welcomeBody', { kind: noun })}</p>,
             },
             {
                 target: `.${kind}-detail-overlay-actions`,
                 placement: 'bottom',
-                title: 'Your quick actions',
+                title: t('detail.tour.actionsTitle'),
                 content: (
                     <>
-                        <p>These icons let you keep track of places:</p>
+                        <p>{t('detail.tour.actionsIntro')}</p>
                         <ul className="detail-tour-legend">
                             <li>
                                 <FavoriteBorderRoundedIcon className="detail-tour-legend-icon" />
                                 <span>
-                                    <strong>Save</strong> — bookmark it to
-                                    your Saved list to come back to later.
+                                    <Trans
+                                        i18nKey="detail.tour.saveItem"
+                                        components={{ strong: <strong /> }}
+                                    />
                                 </span>
                             </li>
                             <li>
                                 <CheckCircleOutlineRoundedIcon className="detail-tour-legend-icon" />
                                 <span>
-                                    <strong>Visited</strong> — mark you've
-                                    been here; it shows up on your travel
-                                    map.
+                                    <Trans
+                                        i18nKey="detail.tour.visitedItem"
+                                        components={{ strong: <strong /> }}
+                                    />
                                 </span>
                             </li>
                             <li>
                                 <ChecklistRoundedIcon className="detail-tour-legend-icon" />
                                 <span>
-                                    <strong>Bucket list</strong> — add it to
-                                    your someday-travel wishlist.
+                                    <Trans
+                                        i18nKey="detail.tour.bucketItem"
+                                        components={{ strong: <strong /> }}
+                                    />
                                 </span>
                             </li>
                             <li>
                                 <IosShareIcon className="detail-tour-legend-icon" />
                                 <span>
-                                    <strong>Share</strong> — send it via
-                                    WhatsApp or email, or copy the link.
+                                    <Trans
+                                        i18nKey="detail.tour.shareItem"
+                                        components={{ strong: <strong /> }}
+                                    />
                                 </span>
                             </li>
                         </ul>
@@ -160,7 +164,7 @@ const DetailTour = ({ kind }: DetailTourProps) => {
             },
             ctaStep,
         ];
-    }, [kind]);
+    }, [kind, t]);
 
     const handleEvent = (data: EventData) => {
         if (
@@ -230,11 +234,11 @@ const DetailTour = ({ kind }: DetailTourProps) => {
                 },
             }}
             locale={{
-                back: 'Back',
-                close: 'Close',
-                last: 'Got it',
-                next: 'Next',
-                skip: 'Skip tour',
+                back: t('detail.tour.back'),
+                close: t('detail.tour.close'),
+                last: t('detail.tour.gotIt'),
+                next: t('detail.tour.next'),
+                skip: t('detail.tour.skip'),
             }}
             onEvent={handleEvent}
         />

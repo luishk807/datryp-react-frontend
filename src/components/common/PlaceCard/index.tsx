@@ -1,3 +1,4 @@
+import { Trans } from 'react-i18next';
 import './index.scss';
 
 export interface PlaceCardData {
@@ -33,28 +34,30 @@ const PlaceCard = ({ place, onClick }: PlaceCardProps) => {
                 />
                 {hasAttribution && (
                     <span className="place-card-attribution">
-                        Photo by{' '}
-                        {place.photographerUrl ? (
-                            <a
-                                href={place.photographerUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={stopPropagation}
-                            >
-                                {place.photographerName}
-                            </a>
-                        ) : (
-                            place.photographerName
-                        )}{' '}
-                        on{' '}
-                        <a
-                            href="https://unsplash.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={stopPropagation}
-                        >
-                            Unsplash
-                        </a>
+                        <Trans
+                            i18nKey="home.attribution"
+                            values={{ name: place.photographerName }}
+                            components={{
+                                author: place.photographerUrl ? (
+                                    <a
+                                        href={place.photographerUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={stopPropagation}
+                                    />
+                                ) : (
+                                    <span />
+                                ),
+                                unsplash: (
+                                    <a
+                                        href="https://unsplash.com"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={stopPropagation}
+                                    />
+                                ),
+                            }}
+                        />
                     </span>
                 )}
             </div>

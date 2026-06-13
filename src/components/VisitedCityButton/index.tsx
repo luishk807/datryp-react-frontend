@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Snackbar } from '@mui/material';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -31,6 +32,7 @@ const VisitedCityButton = ({
     countryName,
     countryCode,
 }: VisitedCityButtonProps) => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const { data } = useVisitedCities();
     const markVisited = useMarkVisitedCity();
@@ -53,7 +55,11 @@ const VisitedCityButton = ({
         if (isVisited) {
             unmarkVisited.mutate(slug, {
                 onSuccess: () =>
-                    setToast(`Removed ${cityName} from visited`),
+                    setToast(
+                        t('detail.common.visited.removedToast', {
+                            name: cityName,
+                        })
+                    ),
                 onError: (err) => setToast(err.message),
             });
         } else {
@@ -61,7 +67,11 @@ const VisitedCityButton = ({
                 { name: cityName, country: countryName, code: countryCode },
                 {
                     onSuccess: () =>
-                        setToast(`Marked ${cityName} as visited`),
+                        setToast(
+                            t('detail.common.visited.markedToast', {
+                                name: cityName,
+                            })
+                        ),
                     onError: (err) => setToast(err.message),
                 }
             );
@@ -77,13 +87,15 @@ const VisitedCityButton = ({
                 })}
                 aria-label={
                     isVisited
-                        ? `Unmark ${cityName} as visited`
-                        : `Mark ${cityName} as visited`
+                        ? t('detail.common.visited.unmark', { name: cityName })
+                        : t('detail.common.visited.mark', { name: cityName })
                 }
                 title={
                     isVisited
-                        ? `You've been to ${cityName} — tap to unmark`
-                        : `Mark ${cityName} as visited`
+                        ? t('detail.common.visited.beenTitle', {
+                              name: cityName,
+                          })
+                        : t('detail.common.visited.mark', { name: cityName })
                 }
                 aria-pressed={isVisited}
                 disabled={isPending}

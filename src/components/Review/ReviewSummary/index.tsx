@@ -1,4 +1,5 @@
 import './index.scss';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@mui/material';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import Skeleton from 'components/common/Skeleton';
@@ -26,6 +27,7 @@ const ReviewSummary = ({
     placeCountry,
     targetId = 'reviews',
 }: ReviewSummaryProps) => {
+    const { t } = useTranslation();
     const placeKey = getPlaceKey(placeName, placeCity, placeCountry);
     const { data, isLoading } = usePlaceReviews(placeKey);
 
@@ -49,11 +51,11 @@ const ReviewSummary = ({
 
     return (
         <div className="review-summary">
-            <Tooltip title="Traveler reviews" arrow>
+            <Tooltip title={t('detail.reviews.travelerReviews')} arrow>
                 <span
                     className="review-summary-icon"
                     role="img"
-                    aria-label="Traveler reviews"
+                    aria-label={t('detail.reviews.travelerReviews')}
                 >
                     <GroupsRoundedIcon />
                 </span>
@@ -66,18 +68,20 @@ const ReviewSummary = ({
                         className="review-summary-link"
                         onClick={handleViewAll}
                     >
-                        View all
+                        {t('detail.reviews.viewAll')}
                     </button>
                 </>
             ) : (
                 <>
-                    <span className="review-summary-empty">No reviews yet</span>
+                    <span className="review-summary-empty">
+                        {t('detail.reviews.noReviewsYet')}
+                    </span>
                     <button
                         type="button"
                         className="review-summary-link"
                         onClick={handleViewAll}
                     >
-                        Be the first
+                        {t('detail.reviews.beTheFirst')}
                     </button>
                 </>
             )}

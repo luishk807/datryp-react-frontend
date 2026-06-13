@@ -1,5 +1,8 @@
 import classnames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import { FOOTER_QUICK_LINKS } from 'components/Footer';
+import { useSmsEnabled } from 'api/hooks/useFeatures';
+import LanguageSwitcher from 'components/common/LanguageSwitcher';
 import './index.scss';
 
 interface MenuFooterLinksProps {
@@ -16,23 +19,31 @@ interface MenuFooterLinksProps {
  */
 const MenuFooterLinks = ({ onNavigate, className }: MenuFooterLinksProps) => {
     const year = new Date().getFullYear();
+    const { t } = useTranslation();
+    const smsEnabled = useSmsEnabled();
+    const links = FOOTER_QUICK_LINKS.filter(
+        (link) => smsEnabled || link.href !== '/sms',
+    );
     return (
         <div className={classnames('menu-footer-links', className)}>
-            <nav className="menu-footer-links-nav" aria-label="More links">
-                {FOOTER_QUICK_LINKS.map((link) => (
+            <nav className="menu-footer-links-nav" aria-label={t('nav.moreLinks')}>
+                {links.map((link) => (
                     <button
-                        key={link.label}
+                        key={link.href}
                         type="button"
                         className="menu-footer-links-item"
                         onClick={() => onNavigate(link.href)}
                     >
-                        {link.label}
+                        {t(link.labelKey)}
                     </button>
                 ))}
             </nav>
-            <span className="menu-footer-links-copy">
-                &copy; {year} DaTryp.com
-            </span>
+            <div className="menu-footer-links-meta">
+                <LanguageSwitcher className="menu-footer-links-lang" />
+                <span className="menu-footer-links-copy">
+                    &copy; {year} DaTryp.com
+                </span>
+            </div>
         </div>
     );
 };

@@ -1,4 +1,5 @@
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import { Trans, useTranslation } from "react-i18next";
 import { useUser } from "context/UserContext";
 import type { NamedTip } from "types";
 import "./index.scss";
@@ -24,6 +25,7 @@ export interface ExperienceHighlightsProps {
  * from threading a "data ready" guard.
  */
 const ExperienceHighlights = ({ things }: ExperienceHighlightsProps) => {
+  const { t } = useTranslation();
   const { user, isAdmin } = useUser();
   const isPro = Boolean(user && (user.isPaidMember || isAdmin));
   if (!isPro) return null;
@@ -36,14 +38,17 @@ const ExperienceHighlights = ({ things }: ExperienceHighlightsProps) => {
   if (highlights.length === 0) return null;
 
   return (
-    <section className="experience-highlights" aria-label="Experience highlights">
+    <section
+      className="experience-highlights"
+      aria-label={t('detail.common.experience.aria')}
+    >
       <header className="experience-highlights-header">
         <span className="experience-highlights-eyebrow">
           <AutoAwesomeRoundedIcon className="experience-highlights-eyebrow-icon" />
-          <span>Don&rsquo;t miss</span>
+          <span>{t('detail.common.experience.eyebrow')}</span>
         </span>
         <h2 className="experience-highlights-title">
-          Signature things to do
+          {t('detail.common.experience.title')}
         </h2>
       </header>
       <ul className="experience-highlights-grid">
@@ -61,26 +66,28 @@ const ExperienceHighlights = ({ things }: ExperienceHighlightsProps) => {
               />
               {tip.photographerName && (
                 <span className="experience-highlights-card-attribution">
-                  Photo by{" "}
-                  {tip.photographerUrl ? (
-                    <a
-                      href={tip.photographerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {tip.photographerName}
-                    </a>
-                  ) : (
-                    tip.photographerName
-                  )}{" "}
-                  on{" "}
-                  <a
-                    href="https://unsplash.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Unsplash
-                  </a>
+                  <Trans
+                    i18nKey="home.attribution"
+                    values={{ name: tip.photographerName }}
+                    components={{
+                      author: tip.photographerUrl ? (
+                        <a
+                          href={tip.photographerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      ) : (
+                        <span />
+                      ),
+                      unsplash: (
+                        <a
+                          href="https://unsplash.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      ),
+                    }}
+                  />
                 </span>
               )}
             </div>

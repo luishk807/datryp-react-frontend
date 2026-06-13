@@ -1,0 +1,35 @@
+.language-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.02);
+
+    &-option {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.6;
+        letter-spacing: 0.04em;
+        color: rgba(0, 0, 0, 0.55);
+        background: transparent;
+        transition:
+            background 0.15s ease,
+            color 0.15s ease;
+
+        &:hover:not(.is-active) {
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        &.is-active {
+            color: #fff;
+            background: theme('colors.primaryGreen');
+        }
+    }
+}

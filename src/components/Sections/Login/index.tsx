@@ -12,9 +12,11 @@
  * place page redirects here with `returnTo=/place?q=…&i=…`.
  */
 import { Navigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AuthGate from 'components/AuthGate';
 
 const Login = () => {
+    const { t } = useTranslation();
     const [params] = useSearchParams();
     const raw = params.get('returnTo') ?? '/';
     // Only allow same-origin relative paths back, never an external URL.
@@ -22,8 +24,8 @@ const Login = () => {
 
     return (
         <AuthGate
-            title="Sign in to continue"
-            subtitle="You'll be taken back to where you were."
+            title={t('auth.login.continueTitle')}
+            subtitle={t('auth.login.continueSubtitle')}
         >
             <Navigate to={returnTo} replace />
         </AuthGate>

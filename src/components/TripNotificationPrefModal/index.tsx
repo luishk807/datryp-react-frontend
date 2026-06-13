@@ -13,6 +13,7 @@ import {
     useSetTripNotificationPref,
     useTripNotificationPref,
 } from 'api/hooks/useTripNotificationPref';
+import { useSmsEnabled } from 'api/hooks/useFeatures';
 import { NOTIFY_CHANNEL } from 'constants';
 import type { NotifyChannel } from 'types';
 import './index.scss';
@@ -60,6 +61,25 @@ const TripNotificationPrefModal = forwardRef<
     const setPref = useSetTripNotificationPref(tripId);
     const current = data?.channel ?? null;
 
+    // Hide the SMS / Email-&-SMS channels entirely when the SMS feature is off
+    // (admin kill-switch or Twilio not configured). The "None" hint also drops
+    // its SMS mention so the copy stays accurate.
+    const smsEnabled = useSmsEnabled();
+    const options = smsEnabled
+        ? OPTIONS
+        : OPTIONS.filter(
+              (o) =>
+                  o.value !== NOTIFY_CHANNEL.SMS &&
+                  o.value !== NOTIFY_CHANNEL.BOTH,
+          ).map((o) =>
+              o.value === NOTIFY_CHANNEL.NONE
+                  ? {
+                        ...o,
+                        hint: 'Silence email for this trip (in-app alerts still show).',
+                    }
+                  : o,
+          );
+
     return (
         <ModalButton
             ref={modalRef}
@@ -72,7 +92,7 @@ const TripNotificationPrefModal = forwardRef<
                     overrides your account notification settings.
                 </p>
                 <div className="trip-notif-pref-options">
-                    {OPTIONS.map((opt) => {
+                    {options.map((opt) => {
                         const locked = Boolean(opt.pro) && !isPro;
                         const selected = current === opt.value;
                         return (

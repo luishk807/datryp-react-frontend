@@ -1,0 +1,688 @@
+{
+    "language": {
+        "label": "Idioma",
+        "en": "English",
+        "es": "Español"
+    },
+    "footer": {
+        "about": "Acerca de",
+        "pricing": "Precios",
+        "contact": "Contacto",
+        "terms": "Términos",
+        "privacy": "Privacidad",
+        "sms": "SMS"
+    },
+    "account": {
+        "notifications": {
+            "title": "Notificaciones",
+            "subtitle": "Elige cómo te avisamos sobre tus viajes y actividades. Las alertas dentro de la app siempre están activas.",
+            "emailLabel": "Notificaciones por correo",
+            "emailDesc": "Invitaciones a viajes, cambios de estado y alertas de actividades por correo.",
+            "smsLabel": "Notificaciones por SMS (Pro)",
+            "smsDesc": "Alertas de texto para novedades urgentes del viaje.",
+            "save": "Guardar notificaciones"
+        },
+        "privacy": {
+            "title": "Privacidad",
+            "subtitle": "Controla lo que tus amigos pueden ver sobre los lugares que has visitado.",
+            "shareVisitedLabel": "Compartir lugares visitados con amigos",
+            "shareVisitedDesc": "Cuando está activo, tus amigos ven los lugares, ciudades y países que has visitado — en las páginas de destinos (“Visitado por…”) y en tu Atlas de Viajes. Si está desactivado, tu historial de viajes permanece privado.",
+            "save": "Guardar privacidad"
+        }
+    },
+    "nav": {
+        "home": "Inicio",
+        "search": "Buscar",
+        "myTrip": "Mi viaje",
+        "alerts": "Alertas",
+        "account": "Cuenta",
+        "upgradeToPro": "Mejora a Pro",
+        "subscription": "Suscripción",
+        "myTrips": "Mis viajes",
+        "planATrip": "Planificar un viaje",
+        "visitedPlaces": "Lugares visitados",
+        "visited": "Visitados",
+        "travelAtlas": "Atlas de Viajes",
+        "savedPlaces": "Lugares guardados",
+        "bucketList": "Lista de deseos",
+        "manageFriends": "Administrar amigos",
+        "recentSearches": "Búsquedas recientes",
+        "notifications": "Notificaciones",
+        "adminDashboard": "Panel de administración",
+        "logout": "Cerrar sesión",
+        "signUp": "Regístrate",
+        "signIn": "Inicia sesión",
+        "signInAria": "Inicia sesión en tu cuenta",
+        "openMenu": "Abrir menú",
+        "closeMenu": "Cerrar menú",
+        "openAccountMenu": "Abrir menú de cuenta",
+        "closeAccountMenu": "Cerrar menú de cuenta",
+        "accountMenuFor": "Menú de cuenta de {{name}}",
+        "homeLink": "Inicio de DaTryp.com",
+        "moreLinks": "Más enlaces"
+    },
+    "heroSearch": {
+        "title": "¿A dónde vamos ahora?",
+        "modeAria": "Modo de búsqueda",
+        "searchByPrefix": "Buscar por ",
+        "place": "Lugar",
+        "description": "Descripción",
+        "byPlaceAria": "Buscar por lugar",
+        "byDescriptionAria": "Buscar por descripción",
+        "or": "o",
+        "aiTagline": "¿No sabes a dónde ir?",
+        "aiCta": "Planifica mi viaje por mí",
+        "aiCtaAria": "Deja que planifiquemos un viaje por ti",
+        "pro": "Pro",
+        "close": "Cerrar búsqueda"
+    },
+    "auth": {
+        "emailPasswordRequired": "El correo y la contraseña son obligatorios.",
+        "common": {
+            "or": "o",
+            "back": "Atrás",
+            "continue": "Continuar",
+            "email": "Correo electrónico",
+            "emailPlaceholder": "tu@ejemplo.com",
+            "password": "Contraseña",
+            "signingIn": "Iniciando sesión…",
+            "createAccount": "Crear cuenta",
+            "creatingAccount": "Creando cuenta…",
+            "signupFailed": "No se pudo crear la cuenta.",
+            "googleSignInFailed": "Falló el inicio de sesión con Google.",
+            "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+            "skipForNow": "Omitir por ahora",
+            "couldNotSave": "No se pudo guardar.",
+            "loading": "Cargando…",
+            "loadingCountries": "Cargando países…",
+            "yearOfBirth": "Año de nacimiento",
+            "selectYear": "Selecciona un año",
+            "confirmAgeLabel": "Confirmo que tengo al menos {{age}} años.",
+            "showPassword": "Mostrar contraseña",
+            "hidePassword": "Ocultar contraseña",
+            "heroTitle": "Planifica tu próxima aventura"
+        },
+        "login": {
+            "title": "Iniciar sesión",
+            "continueWithEmail": "Continuar con correo",
+            "noAccount": "¿No tienes una cuenta?",
+            "signUpLink": "Regístrate",
+            "username": "Usuario",
+            "forgotPassword": "¿Olvidaste tu contraseña?",
+            "loginFailed": "No se pudo iniciar sesión",
+            "continueTitle": "Inicia sesión para continuar",
+            "continueSubtitle": "Volverás a donde estabas."
+        },
+        "routeGate": {
+            "planTrip": {
+                "title": "Inicia sesión para planificar tu viaje"
+            },
+            "account": {
+                "title": "Inicia sesión para administrar tu cuenta",
+                "subtitle": "Tu perfil, preferencias y contraseña viven aquí."
+            },
+            "trips": {
+                "title": "Inicia sesión para ver tus viajes",
+                "subtitle": "Todos tus itinerarios en un solo lugar."
+            },
+            "tripDetail": {
+                "title": "Inicia sesión para ver este viaje",
+                "subtitle": "Necesitas una cuenta para ver los detalles del itinerario."
+            },
+            "friends": {
+                "title": "Inicia sesión para administrar amigos",
+                "subtitle": "Invita amigos, acepta solicitudes y planifiquen juntos."
+            },
+            "notifications": {
+                "title": "Inicia sesión para ver tus notificaciones",
+                "subtitle": "Las invitaciones a viajes, cambios de estado y recordatorios aparecen aquí."
+            },
+            "search": {
+                "title": "Inicia sesión para buscar",
+                "subtitle": "Las cuentas gratuitas tienen 5 búsquedas al día. Los miembros Pro tienen Búsqueda Avanzada."
+            },
+            "place": {
+                "title": "Inicia sesión para ver este lugar",
+                "subtitle": "Las reseñas, guardados e información de viaje están ligados a tu cuenta."
+            },
+            "searchHistory": {
+                "title": "Inicia sesión para ver tu historial de búsqueda",
+                "subtitle": "Tus búsquedas recientes están ligadas a tu cuenta."
+            },
+            "visited": {
+                "title": "Inicia sesión para ver tus lugares visitados",
+                "subtitle": "Tu lista de visitados está ligada a tu cuenta."
+            },
+            "map": {
+                "title": "Inicia sesión para ver tu mapa",
+                "subtitle": "Mapper marca cada país y lugar que has visitado."
+            },
+            "saved": {
+                "title": "Inicia sesión para ver tus lugares guardados",
+                "subtitle": "Tus guardados están ligados a tu cuenta."
+            },
+            "bucketList": {
+                "title": "Inicia sesión para ver tu lista de deseos",
+                "subtitle": "Las metas de viaje que quieres cumplir, en un solo lugar."
+            },
+            "aiBuilder": {
+                "title": "Inicia sesión para planificar un viaje",
+                "subtitle": "Los miembros Pro reciben viajes armados para ellos. Los usuarios gratuitos llegan a la página de precios tras iniciar sesión."
+            }
+        },
+        "gate": {
+            "heroSubtitle": "Inicia sesión para guardar viajes, invitar amigos y retomar donde lo dejaste.",
+            "highlights": [
+                "Destinos personalizados a partir de una sola frase",
+                "Planifica día a día con tus amigos",
+                "Controla vuelos, actividades y presupuesto en un solo lugar"
+            ],
+            "backToHome": "Volver al inicio",
+            "welcomeBack": "Hola de nuevo",
+            "createYourAccount": "Crea tu cuenta",
+            "loginSubtitle": "Inicia sesión con tu correo y contraseña.",
+            "signupSubtitle": "Gratis. Debes tener al menos {{age}} años.",
+            "fullNameOptional": "Nombre completo (opcional)",
+            "phoneOptional": "Teléfono (opcional)",
+            "selectBirthYear": "Selecciona tu año de nacimiento.",
+            "minAgeError": "Debes tener al menos {{age}} años para crear una cuenta.",
+            "confirmAgeError": "Confirma que tienes al menos {{age}} años.",
+            "loginFailed": "No se pudo iniciar sesión.",
+            "forgotPassword": "¿Olvidaste tu contraseña?",
+            "newToDatryp": "¿Primera vez en DaTryp.com?",
+            "createAnAccount": "Crear una cuenta"
+        },
+        "signup": {
+            "pickBirthYear": "Elige tu año de nacimiento.",
+            "minAgeError": "Debes tener al menos {{age}} años para registrarte.",
+            "confirmAgeError": "Confirma que tienes al menos {{age}} años.",
+            "heroSubtitle": "Unos pocos pasos y empezaremos a personalizar viajes para ti.",
+            "photoCredit": "Foto: <author>{{name}}</author> en Unsplash",
+            "stepLabel": "Paso {{step}} de {{total}}",
+            "skipRest": "Omitir el resto",
+            "googlePending": "Iniciando tu sesión…",
+            "name": {
+                "title": "¿Cómo te llamamos?",
+                "subtitle": "Con tu primer nombre basta — lo usaremos para personalizar la app.",
+                "placeholder": "p. ej. Alex"
+            },
+            "email": {
+                "title": "¿Cuál es tu correo?",
+                "subtitle": "Te enviaremos aquí tus reservas y novedades de viaje."
+            },
+            "password": {
+                "title": "Crea una contraseña",
+                "subtitle": "Al menos {{min}} caracteres. Usa algo que recuerdes — sin símbolos raros obligatorios.",
+                "moreToGo": "Te faltan {{n}}…"
+            },
+            "age": {
+                "title": "¿Cuándo naciste?",
+                "subtitle": "Debes tener al menos {{age}} años para usar DaTryp.com. Solo el año — no te pedimos tu fecha de nacimiento completa."
+            },
+            "country": {
+                "title": "¿De dónde eres?",
+                "subtitle": "Nos ayuda a ajustar las recomendaciones según tu punto de partida.",
+                "label": "País",
+                "placeholder": "Selecciona un país"
+            },
+            "gender": {
+                "title": "Un poco sobre ti",
+                "subtitle": "Nos ayuda a personalizar las recomendaciones. Opcional — omítelo si prefieres no decirlo.",
+                "label": "Género",
+                "placeholder": "Selecciona una opción"
+            },
+            "interests": {
+                "title": "Cuéntanos tu estilo de viaje",
+                "subtitle": "Elige lo que te suene — lo usaremos para mostrarte viajes y lugares que podrían encantarte. Puedes cambiar todo esto después en tu cuenta.",
+                "interestsLabel": "Intereses",
+                "loadingInterests": "Cargando intereses…",
+                "searchInterests": "Buscar intereses…",
+                "stylesLabel": "¿Qué tipo de viajero eres?",
+                "loadingStyles": "Cargando estilos…",
+                "searchStyles": "Buscar estilos de viajero…",
+                "destinationsLabel": "Lugares que te gustaría visitar",
+                "searchCountries": "Buscar países…",
+                "pickUpTo": "Elige hasta {{max}}.",
+                "pickUpToCountries": "Elige hasta {{max}} países.",
+                "saveError": "No se pudieron guardar tus preferencias."
+            },
+            "favorites": {
+                "title": "Lugares que te encantaría visitar",
+                "subtitle": "Toca algunos — los añadiremos a tus guardados para que vuelvas a ellos después.",
+                "loading": "Cargando sugerencias…",
+                "saveError": "No se pudo guardar {{name}}.",
+                "removeError": "No se pudo quitar {{name}}."
+            },
+            "bucket": {
+                "title": "¿En tu lista de deseos?",
+                "subtitle": "Algunas metas de viaje — escríbelas como se las contarías a un amigo. Siempre puedes agregar más después.",
+                "placeholder": "p. ej. Ver un partido del FC Barcelona en el Camp Nou",
+                "add": "Agregar",
+                "removeAria": "Quitar \"{{text}}\"",
+                "addError": "No se pudo agregar esa.",
+                "finish": "Terminar"
+            }
+        },
+        "forgot": {
+            "pageTitle": "Olvidé mi contraseña",
+            "title": "Restablece tu contraseña",
+            "subtitle": "Escribe el correo de tu cuenta de DaTryp.com y te enviaremos un enlace para elegir una nueva contraseña.",
+            "invalidEmail": "Escribe un correo válido.",
+            "sendError": "No se pudo enviar el enlace. Inténtalo de nuevo.",
+            "sending": "Enviando…",
+            "sendLink": "Enviar enlace",
+            "confirmTitle": "Revisa tu correo",
+            "confirmBody": "Si <strong>{{email}}</strong> es una cuenta registrada de DaTryp.com, te enviamos un enlace para restablecer tu contraseña. El enlace vence en 60 minutos.",
+            "resendHint": "¿No te llegó? Revisa tu carpeta de spam y luego <resend>inténtalo de nuevo</resend>.",
+            "remembered": "¿La recordaste?",
+            "backToHome": "Volver al inicio"
+        },
+        "reset": {
+            "pageTitle": "Restablecer contraseña",
+            "title": "Elige una nueva contraseña",
+            "subtitle": "Elige algo que recuerdes. Al menos 8 caracteres.",
+            "tooShort": "La contraseña debe tener al menos 8 caracteres.",
+            "mismatch": "Las contraseñas no coinciden.",
+            "resetError": "No se pudo restablecer la contraseña. Puede que el enlace haya vencido.",
+            "newPassword": "Nueva contraseña",
+            "confirmPassword": "Confirma la nueva contraseña",
+            "updating": "Actualizando…",
+            "update": "Actualizar contraseña",
+            "doneTitle": "Contraseña actualizada",
+            "doneBody": "Ya iniciaste sesión. Te llevamos a tu cuenta…",
+            "needNewLink": "¿Necesitas un enlace nuevo?",
+            "requestAnother": "Solicitar otro correo"
+        }
+    },
+    "home": {
+        "heroTitle": "¿A dónde vamos ahora?",
+        "heroTitleNamed": "¿A dónde vamos ahora, {{name}}?",
+        "heroSubtitle": "Busca un lugar, describe tu viaje o deja que lo planifiquemos todo.",
+        "firstTime": "¿Primera vez aquí?",
+        "learnHow": "Descubre cómo funciona Datryp →",
+        "attribution": "Foto de <author>{{name}}</author> en <unsplash>Unsplash</unsplash>",
+        "placePlaceholders": [
+            "Busca una ciudad o país",
+            "Prueba: Tokio, Japón",
+            "Prueba: Tailandia",
+            "Prueba: París, Francia",
+            "Prueba: Bali, Indonesia",
+            "Prueba: Nueva York",
+            "Prueba: Banff, Canadá"
+        ],
+        "describePlaceholders": [
+            "Describe tu viaje soñado",
+            "Prueba: 7 días en familia por Japón",
+            "Prueba: Vacaciones de playa por menos de $2,000",
+            "Prueba: Escapada romántica por Europa",
+            "Prueba: Viaje gastronómico y de café por Italia",
+            "Prueba: Viaje de aventura por la Patagonia"
+        ]
+    },
+    "homeCards": {
+        "common": {
+            "openPlaceAria": "Abrir {{name}}, {{country}}",
+            "bestTime": "Mejor época: {{time}}"
+        },
+        "worldEvent": {
+            "eyebrow": "Próximo evento",
+            "topSpots": "Los mejores lugares para vivirlo"
+        },
+        "countryOfBirthEvent": {
+            "eyebrow": "Próximamente en {{country}}",
+            "yourCountry": "tu país"
+        },
+        "nextMonthPicks": {
+            "loadingTitle": "Lo que viene el próximo mes",
+            "loadingSubtitle": "De tus destinos guardados",
+            "title": "Lo mejor para {{month}}",
+            "subtitle": "De tus destinos guardados — el próximo mes es un gran momento para visitarlos"
+        },
+        "similarToSaves": {
+            "title": "Similares a tus guardados",
+            "subtitle": "Sugerencias afinadas a lo que has guardado",
+            "strongMatch": "Encaja mucho con tus gustos",
+            "worthALook": "Vale la pena echarle un vistazo"
+        },
+        "placesYouMightLove": {
+            "home": {
+                "title": "Lugares que podrían encantarte",
+                "subtitle": "Elegidos para ti"
+            },
+            "emptyTrips": {
+                "title": "Aún no tienes viajes — prueba uno de estos",
+                "subtitle": "Toca cualquier tarjeta para leer más sobre el lugar. Los elegimos según lo que nos contaste al registrarte."
+            }
+        },
+        "aiTripBuilderCard": {
+            "previews": {
+                "iceland": {
+                    "tag": "🇮🇸 Islandia",
+                    "city": "Reikiavik",
+                    "line": "Auroras boreales + glaciares"
+                },
+                "japan": {
+                    "tag": "🇯🇵 Japón",
+                    "city": "Kioto",
+                    "line": "Sakura + templos + ramen"
+                },
+                "mexico": {
+                    "tag": "🇲🇽 México",
+                    "city": "Tulum",
+                    "line": "Playa + cenotes + ruinas"
+                }
+            },
+            "optionsBadge": "4 opciones para ti",
+            "eyebrow": "Beneficio Pro",
+            "title": "Olvídate de planificar, {{name}}. Nosotros te armamos el viaje.",
+            "lede": "Dinos tu presupuesto y qué quieres hacer. Elegimos el destino, planificamos cada día y guardamos un borrador que puedes editar antes de confirmar.",
+            "steps": {
+                "budget": {
+                    "title": "Define un presupuesto",
+                    "body": "Un número aproximado, en USD."
+                },
+                "interests": {
+                    "title": "Cuéntanos tus intereses",
+                    "body": "Playa, senderismo, ramen — lo que sea."
+                },
+                "plan": {
+                    "title": "Deja que planifiquemos el viaje",
+                    "body": "Día por día, guardado como borrador."
+                }
+            },
+            "microcopy": "Toma ~30 segundos. El plan es tuyo para editarlo."
+        },
+        "monthlyBestPlace": {
+            "eyebrowLoading": "El destino top de {{name}} este mes",
+            "eyebrow": "El destino top de {{name}}"
+        },
+        "seasonalBestPlaces": {
+            "eyebrow": "Mejores lugares este mes",
+            "loadingTitle": "Preparando los destinos de temporada de este mes…",
+            "title": "Donde la temporada es perfecta en {{month}}",
+            "subtitle": "Seis destinos donde el clima, los festivales o los momentos naturales hacen de este mes el momento de ir."
+        },
+        "upcomingHoliday": {
+            "eyebrow": "Próximo día festivo",
+            "thingsToDo": "Qué hacer",
+            "placesToCelebrate": "Lugares para celebrarlo",
+            "today": "Hoy",
+            "tomorrow": "Mañana",
+            "inDays": "en {{count}} días",
+            "inWeeks": "en {{count}} semanas",
+            "inMonths": "en {{count}} meses"
+        },
+        "topPlaces": {
+            "title": "Top 6 ciudades para viajar",
+            "curatedFor": "Seleccionadas para {{month}}",
+            "getInspired": "Inspírate",
+            "loadError": "No pudimos cargar los destinos de este mes.",
+            "retrying": "Reintentando…",
+            "tryAgain": "Intentar de nuevo"
+        },
+        "homeTour": {
+            "steps": {
+                "intro": {
+                    "title": "Tres formas de empezar",
+                    "content": "Sea como sea que te guste planificar, aquí hay un punto de partida. Demos un vistazo rápido — menos de un minuto."
+                },
+                "place": {
+                    "title": "Buscar por lugar",
+                    "content": "¿Ya sabes a dónde vas? Elige <strong>Buscar por lugar</strong> y escribe un país o una ciudad. Abriremos su guía para que empieces un viaje ahí."
+                },
+                "describe": {
+                    "title": "Buscar por descripción",
+                    "content": "¿No te casas con un solo lugar? Cambia a <strong>Buscar por descripción</strong> y describe la vibra — \"playas cálidas en diciembre\", \"ciudades con comida barata\" — y te sugeriremos lugares que encajen."
+                },
+                "searchbar": {
+                    "title": "Una sola caja de búsqueda",
+                    "content": "La caja se adapta al modo que elegiste arriba — nombres de lugares cuando buscas por lugar, y texto libre cuando buscas por descripción."
+                },
+                "ai": {
+                    "title": "Deja que lo planifiquemos por ti",
+                    "content": "¿Totalmente indeciso? Toca <strong>Planifica mi viaje por mí</strong> — te haremos unas preguntas rápidas y luego armaremos un itinerario completo que puedes ajustar. (Función Pro.)"
+                }
+            },
+            "locale": {
+                "back": "Atrás",
+                "close": "Cerrar",
+                "last": "Entendido",
+                "next": "Siguiente",
+                "skip": "Saltar tour"
+            }
+        }
+    },
+    "search": {
+        "blocked": "DaTryp.com es un planificador de viajes — prueba una búsqueda como “retiro de yoga en la playa” o “ruinas antiguas”. <link>Más información</link>.",
+        "bar": {
+            "countryPlaceholder": "Busca un país para tu viaje",
+            "countryPlaceholderSimple": "Busca un país",
+            "placePlaceholder": "Busca una ciudad o país",
+            "describePlaceholder": "Prueba 'retiro de yoga en la playa' o 'ruinas antiguas'",
+            "describeAria": "Describe lo que estás buscando",
+            "searching": "Buscando…",
+            "countryError": "No se pudo conectar con el servicio de países. ¿Está corriendo el backend?",
+            "placeError": "No se pudo conectar con la búsqueda de lugares. ¿Está corriendo el backend?",
+            "recommendError": "No se pudo conectar con el servicio de recomendaciones{{detail}}. ¿Está corriendo el backend?",
+            "noCountries": "Ningún país coincide con “{{query}}”.",
+            "noPlaces": "Ningún lugar coincide con “{{query}}”.",
+            "noMatches": "No hay resultados para “{{query}}”. Prueba con otra vibra.",
+            "kindCountry": "País",
+            "kindCity": "Ciudad"
+        },
+        "results": {
+            "resultsFor": "Resultados para \"{{query}}\"",
+            "emptyStart": "Empieza una búsqueda desde la página de inicio para ver lugares seleccionados aquí.",
+            "quotaHeadline": "Ya usaste tus <strong>{{used}}/{{limit}}</strong> búsquedas gratis de hoy.",
+            "quotaBody": "Las búsquedas gratis se reinician a medianoche UTC. O mejora a Pro para tener Búsqueda Avanzada ilimitada y viajes guardados sin límite. <link>Ver comparación de planes</link>.",
+            "loadError": "No se pudieron cargar las recomendaciones: {{message}}",
+            "unknownError": "Error desconocido",
+            "noMatches": "No hay resultados para “{{query}}”. Prueba con otra búsqueda."
+        },
+        "history": {
+            "title": "Tus búsquedas recientes",
+            "subtitle": "Haz clic en cualquiera para repetirla.",
+            "uniqueOne": "{{n}} búsqueda única.",
+            "uniqueOther": "{{n}} búsquedas únicas.",
+            "loadError": "No se pudo cargar tu historial{{detail}}",
+            "empty": "Aún no tienes búsquedas. Cuando empieces a buscar, verás tus consultas recientes aquí.",
+            "paginationAria": "Paginación de búsquedas recientes"
+        },
+        "card": {
+            "openAria": "Abrir {{name}}",
+            "ratingAria": "Calificación {{rating}} de 5",
+            "bestTime": "Ideal: {{time}}"
+        }
+    },
+    "membership": {
+        "pageTitle": "Planes y precios",
+        "hero": {
+            "title": "Planifica mejor. Planifica más.",
+            "subtitle": "El plan Gratis funciona para viajes casuales. Pro es para viajeros que quieren recomendaciones más profundas, itinerarios guardados sin límite y una lista de deseos que les arma el viaje. Prueba Pro gratis por 30 días — sin cargo hasta el día 31, cancela cuando quieras."
+        },
+        "table": {
+            "title": "Qué incluye",
+            "feature": "Función",
+            "free": "Gratis",
+            "pro": "Pro",
+            "proTag": "$3.99/mes o $29/año",
+            "included": "Incluido",
+            "notIncluded": "No incluido"
+        },
+        "rows": {
+            "savedTrips": {
+                "label": "Viajes guardados",
+                "free": "1",
+                "pro": "Ilimitados",
+                "note": "Pasados, presentes y futuros — todo en un solo lugar."
+            },
+            "searchDepth": {
+                "label": "Profundidad de búsqueda",
+                "free": "2 lugares por búsqueda",
+                "pro": "5 lugares por búsqueda"
+            },
+            "searchQuality": {
+                "label": "Calidad de búsqueda",
+                "free": "Estándar",
+                "pro": "Avanzada",
+                "note": "Recomendaciones más ricas y mayor detalle de cada lugar."
+            },
+            "dailySearchLimit": {
+                "label": "Límite diario de búsquedas",
+                "free": "15 / día",
+                "pro": "Sin límite"
+            },
+            "bucketList": {
+                "label": "Lista de deseos",
+                "free": "10 entradas",
+                "pro": "Ilimitada",
+                "note": "Guarda los lugares con los que sueñas y vuelve cuando estés listo."
+            },
+            "bucketToTrip": {
+                "label": "Convierte una meta de tu lista de deseos en un viaje",
+                "note": "Un clic → datryp arma un itinerario completo (país, días, actividades) que puedes editar y guardar."
+            },
+            "planForYou": {
+                "label": "Planifica un viaje por ti",
+                "note": "Dinos un presupuesto y algunos intereses, y datryp elige el destino, planifica los días y guarda un borrador de viaje para que lo edites."
+            },
+            "personalizedPicks": {
+                "label": "Recomendaciones personalizadas para ti",
+                "free": "Estándar",
+                "pro": "Mejoradas",
+                "note": "Gratis: «Lugares que podrían encantarte», según tus intereses y estilo de viaje. Pro añade tu recomendación personalizada del mes."
+            },
+            "collaboration": {
+                "label": "Colaboración en viajes con amigos"
+            },
+            "detailPages": {
+                "label": "Páginas de detalle mejoradas",
+                "free": "Estándar",
+                "pro": "Mejoradas",
+                "note": "Gratis: páginas de detalle completas de país / ciudad / lugar con avisos de choque cultural. Pro añade el medidor de popularidad del año actual y la franja de imágenes de experiencias destacadas."
+            },
+            "ratings": {
+                "label": "Calificaciones y reseñas de lugares",
+                "note": "Calificaciones de Google, número de reseñas y direcciones verificadas en cada lugar — en sugerencias, búsquedas y tu itinerario."
+            },
+            "bestThisMonth": {
+                "label": "Mejores lugares este mes",
+                "note": "Seis destinos de temporada en la página de inicio — donde el clima, los festivales o los momentos naturales coinciden justo ahora."
+            },
+            "savedVisited": {
+                "label": "Lugares guardados y visitados"
+            },
+            "mapper": {
+                "label": "Mapper — tu historial de viajes en un mapa mundial",
+                "note": "Mira cada país que has visitado sombreado en un globo, con pines de cada lugar — un registro vivo de dónde has estado."
+            },
+            "freeTrial": {
+                "label": "Prueba gratis",
+                "free": "—",
+                "pro": "30 días, cancela cuando quieras"
+            }
+        },
+        "why": {
+            "title": "¿Por qué pasar a Pro?",
+            "unlimitedTrips": {
+                "lead": "Viajes guardados ilimitados.",
+                "body": "Gratis se limita a uno — con Pro conservas cada itinerario que creas, pasado y futuro."
+            },
+            "advancedSearch": {
+                "lead": "Búsqueda avanzada.",
+                "body": "Pro profundiza más y devuelve 5 lugares por consulta con mayor detalle. Gratis es una probadita; Pro es el menú completo."
+            },
+            "noDailyLimits": {
+                "lead": "Sin límites diarios.",
+                "body": "Gratis son 15 búsquedas inteligentes al día. Pro no las cuenta."
+            },
+            "bucketList": {
+                "lead": "Lista de deseos, sin límites.",
+                "body": "Gratis conserva las primeras 10 entradas; Pro es ilimitado. Toca <em>Crear viaje</em> en cualquier entrada y Pro convierte la meta en un itinerario planificado, listo para editar y guardar."
+            },
+            "detailPages": {
+                "lead": "Páginas de detalle mejoradas.",
+                "body": "Pro añade un medidor de popularidad del año actual (tendencia en alza / estable / a la baja) y una franja de imágenes de experiencias destacadas en cada página de país, ciudad y lugar — para que sepas de un vistazo si un destino está de moda."
+            },
+            "picks": {
+                "lead": "Recomendaciones hechas para ti.",
+                "body": "Pro suma una recomendación personalizada del mes a las sugerencias de la página de inicio que Gratis ya te muestra."
+            },
+            "mapper": {
+                "lead": "Mapper.",
+                "body": "Visualiza cada país y lugar que has visitado en un mapa mundial interactivo — regiones sombreadas, pines y la satisfactoria prueba de lo lejos que has llegado."
+            },
+            "trial": {
+                "lead": "Pruébalo antes de comprometerte.",
+                "body": "Prueba gratis de 30 días, con tarjeta por adelantado para que la renovación sea automática si te encanta. Cancela en cualquier momento desde el portal de facturación — sin cargo hasta el día 31."
+            }
+        },
+        "faq": {
+            "title": "Preguntas frecuentes",
+            "cancel": {
+                "q": "¿Puedo cancelar en cualquier momento?",
+                "a": "Sí. Abre tu página de Cuenta o el portal de facturación de Stripe, haz clic en cancelar y listo. Si todavía estás en tu período de prueba, no se te cobrará. Si ya pasó la prueba, conservas Pro hasta el final de tu período de facturación actual."
+            },
+            "downgrade": {
+                "q": "¿Qué pasa con mis viajes guardados si bajo de plan?",
+                "a": "Tus viajes existentes se quedan donde están — nunca los borramos. No podrás <em>guardar</em> viajes nuevos más allá del límite gratuito hasta que vuelvas a Pro, pero todo lo que ya construiste sigue ahí esperándote."
+            },
+            "refunds": {
+                "q": "¿Hay reembolsos?",
+                "a": "No emitimos reembolsos parciales por tiempo no usado — tu suscripción sigue activa hasta el final del período que pagaste. Si algo realmente dañado de nuestro lado te impide usar Pro, contáctanos y lo solucionaremos."
+            },
+            "data": {
+                "q": "¿Entrenan con mis datos?",
+                "a": "No. Tus búsquedas y viajes se guardan en DaTryp.com para que tú los uses, no se entregan a nadie más para entrenar. Cada búsqueda va al proveedor de recomendaciones solo para responder esa consulta, y de su lado no se retiene nada más allá de los registros estándar de solicitudes."
+            },
+            "switch": {
+                "q": "¿Puedo cambiar entre mensual y anual?",
+                "a": "Sí. Desde tu página de Cuenta, haz clic en <em>Administrar facturación</em> y Stripe te permite cambiar la frecuencia cuando quieras. Cambiar a anual equivale a 2 meses gratis."
+            }
+        },
+        "readyTitle": "¿Listo para pasarte a Pro?"
+    },
+    "planCards": {
+        "monthly": "Mensual",
+        "yearly": "Anual",
+        "perMonth": "/mes",
+        "perYear": "/año",
+        "cancelAnytime": "Cancela cuando quieras",
+        "saveBadge": "Ahorra 39%",
+        "approxMonthly": "≈ $2.42/mes",
+        "trialNote": "Prueba gratis de 30 días. Sin cargo hasta el día 31 — cancela cuando quieras desde tu portal de facturación.",
+        "checkoutError": "No se pudo iniciar el pago: {{message}}"
+    },
+    "welcome": {
+        "pageTitle": "Bienvenido a Pro",
+        "heroTitle": "Ya estás dentro. Bienvenido a DaTryp.com Pro.",
+        "heroSubtitle": "Tu prueba gratis de 30 días ha comenzado. Sin cargo hasta el día 31 — cancela cuando quieras desde tu página de Cuenta.",
+        "perksTitle": "Qué puedes hacer ahora",
+        "perks": {
+            "savedTrips": {
+                "lead": "Guarda todos los viajes que quieras.",
+                "body": "Pasados, presentes y futuros — todo en un solo lugar."
+            },
+            "search": {
+                "lead": "La búsqueda avanzada con IA está desbloqueada.",
+                "body": "Las búsquedas devuelven 5 lugares con mayor detalle y recomendaciones más ricas."
+            },
+            "noLimits": {
+                "lead": "Sin límites diarios.",
+                "body": "Busca todo lo que quieras."
+            },
+            "manage": {
+                "lead": "Administra cuando quieras.",
+                "body": "Cambia entre mensual y anual, actualiza tu tarjeta o cancela desde la sección Suscripción de tu página de Cuenta."
+            }
+        },
+        "startPlanning": "Empieza a planificar",
+        "viewSubscription": "Ver suscripción",
+        "fineprint": "Stripe te enviará por correo el recibo de tu suscripción."
+    },
+    "common": {
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "saving": "Guardando…"
+    }
+}

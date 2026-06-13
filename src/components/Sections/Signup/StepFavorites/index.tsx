@@ -7,6 +7,7 @@
  * Skippable. No-op continue if nothing was picked.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import classnames from 'classnames';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -25,6 +26,7 @@ const slugify = (s: string) =>
     s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 const StepFavorites = ({ cities, onContinue, onSkip }: StepFavoritesProps) => {
+    const { t } = useTranslation();
     const save = useSaveCity();
     const unsave = useUnsaveCity();
     const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
@@ -65,22 +67,26 @@ const StepFavorites = ({ cities, onContinue, onSkip }: StepFavoritesProps) => {
             setError(
                 err instanceof Error
                     ? err.message
-                    : `Could not ${isSaved ? 'remove' : 'save'} ${city.name}.`
+                    : t(
+                        isSaved
+                            ? 'auth.signup.favorites.removeError'
+                            : 'auth.signup.favorites.saveError',
+                        { name: city.name }
+                    )
             );
         }
     };
 
     return (
         <>
-            <h1 className="signup-step-title">Places you'd love to visit</h1>
+            <h1 className="signup-step-title">{t('auth.signup.favorites.title')}</h1>
             <p className="signup-step-subtitle">
-                Tap a few — we'll add them to your bookmarks so you can come
-                back to them later.
+                {t('auth.signup.favorites.subtitle')}
             </p>
             <div className="signup-fav-grid">
                 {cities.length === 0 && (
                     <p className="signup-fav-empty">
-                        Loading suggestions…
+                        {t('auth.signup.favorites.loading')}
                     </p>
                 )}
                 {cities.map((city) => {
@@ -125,7 +131,7 @@ const StepFavorites = ({ cities, onContinue, onSkip }: StepFavoritesProps) => {
                     type="none"
                     capitalizeType="none"
                     className="signup-primary-btn"
-                    label="Continue"
+                    label={t('auth.common.continue')}
                     onClick={onContinue}
                 />
                 <button
@@ -133,7 +139,7 @@ const StepFavorites = ({ cities, onContinue, onSkip }: StepFavoritesProps) => {
                     className="signup-skip-link"
                     onClick={onSkip}
                 >
-                    Skip for now
+                    {t('auth.common.skipForNow')}
                 </button>
             </div>
         </>

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { Link } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import './index.scss';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
@@ -79,6 +80,7 @@ const SearchBar = ({
     onAiSearchSubmit,
     placeholders,
 }: SearchBarProps) => {
+    const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [selectedDestination, setSelectedDestination] = useState('');
 
@@ -255,7 +257,7 @@ const SearchBar = ({
                             className="inputBar"
                             type="text"
                             onFocus={handleFocus}
-                            placeholder="Search Country for trip"
+                            placeholder={t('search.bar.countryPlaceholder')}
                         />
                         {isCountryFetching && (
                             <span className="searchbar-country-spinner" aria-hidden="true" />
@@ -266,7 +268,7 @@ const SearchBar = ({
                         <InputField
                             ref={inputRef}
                             defaultValue={selectedDestination}
-                            placeholder="Search a country"
+                            placeholder={t('search.bar.countryPlaceholderSimple')}
                             onChange={handleKeystroke}
                         />
                     </Grid>
@@ -281,15 +283,17 @@ const SearchBar = ({
                     >
                         {hasCountryError && (
                             <p className="searchbar-recommend-error">
-                                Could not reach the country service. Is the backend running?
+                                {t('search.bar.countryError')}
                             </p>
                         )}
                         {showLoading && (
-                            <p className="searchbar-recommend-loading">Searching…</p>
+                            <p className="searchbar-recommend-loading">
+                                {t('search.bar.searching')}
+                            </p>
                         )}
                         {showEmpty && (
                             <p className="searchbar-recommend-empty">
-                                No countries match &ldquo;{submittedQuery}&rdquo;.
+                                {t('search.bar.noCountries', { query: submittedQuery })}
                             </p>
                         )}
                         {!!items.length && (
@@ -359,7 +363,8 @@ const SearchBar = ({
                             onFocus={handleFocus}
                             onBlur={handleBlur}
                             placeholder={
-                                rotatingPlaceholder ?? 'Search a city or country'
+                                rotatingPlaceholder ??
+                                t('search.bar.placePlaceholder')
                             }
                         />
                         {isPlaceFetching && (
@@ -372,7 +377,8 @@ const SearchBar = ({
                             ref={inputRef}
                             defaultValue={selectedDestination}
                             placeholder={
-                                rotatingPlaceholder ?? 'Search a city or country'
+                                rotatingPlaceholder ??
+                                t('search.bar.placePlaceholder')
                             }
                             onChange={handleKeystroke}
                         />
@@ -388,16 +394,17 @@ const SearchBar = ({
                     >
                         {hasPlaceError && (
                             <p className="searchbar-recommend-error">
-                                Could not reach the place search. Is the
-                                backend running?
+                                {t('search.bar.placeError')}
                             </p>
                         )}
                         {showLoading && (
-                            <p className="searchbar-recommend-loading">Searching…</p>
+                            <p className="searchbar-recommend-loading">
+                                {t('search.bar.searching')}
+                            </p>
                         )}
                         {showEmpty && (
                             <p className="searchbar-recommend-empty">
-                                No places match &ldquo;{submittedQuery}&rdquo;.
+                                {t('search.bar.noPlaces', { query: submittedQuery })}
                             </p>
                         )}
                         {!!items.length && (
@@ -429,8 +436,8 @@ const SearchBar = ({
                                             </span>
                                             <span className="searchbar-place-kind">
                                                 {place.kind === 'country'
-                                                    ? 'Country'
-                                                    : 'City'}
+                                                    ? t('search.bar.kindCountry')
+                                                    : t('search.bar.kindCity')}
                                             </span>
                                         </span>
                                         <span className="searchbar-country-code">
@@ -482,14 +489,14 @@ const SearchBar = ({
                         })}
                         placeholder={
                             rotatingPlaceholder ??
-                            "Try 'beach yoga retreat' or 'ancient ruins'"
+                            t('search.bar.describePlaceholder')
                         }
                         value={rawQuery}
                         onChange={(e) => setRawQuery(e.target.value)}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                         onKeyDown={useNavigationFlow ? handleAiKeyDown : undefined}
-                        aria-label="Describe what you're looking for"
+                        aria-label={t('search.bar.describeAria')}
                     />
                     {isRecommending && !useNavigationFlow && (
                         <span className="searchbar-recommend-spinner" aria-hidden="true" />
@@ -505,11 +512,11 @@ const SearchBar = ({
                             className="searchbar-recommend-submit"
                             onClick={submitAiSearch}
                             disabled={!rawQuery.trim()}
-                            aria-label="Search"
+                            aria-label={t('nav.search')}
                         >
                             <SearchRoundedIcon className="searchbar-recommend-submit-icon" />
                             <span className="searchbar-recommend-submit-label">
-                                Search
+                                {t('nav.search')}
                             </span>
                         </button>
                     )}
@@ -523,33 +530,39 @@ const SearchBar = ({
                     >
                         {isBlocked && (
                             <p className="searchbar-recommend-blocked">
-                                DaTryp.com is a travel planner — try a search like
-                                &ldquo;beach yoga retreat&rdquo; or
-                                &ldquo;ancient ruins.&rdquo;{' '}
-                                <Link to="/terms" className="searchbar-recommend-blocked-link">
-                                    Learn more
-                                </Link>
-                                .
+                                <Trans
+                                    i18nKey="search.blocked"
+                                    components={{
+                                        link: (
+                                            <Link
+                                                to="/terms"
+                                                className="searchbar-recommend-blocked-link"
+                                            />
+                                        ),
+                                    }}
+                                />
                             </p>
                         )}
                         {hasRecommendError && !isBlocked && (
                             <p className="searchbar-recommend-error">
-                                Could not reach the recommender service
-                                {recommendError instanceof Error
-                                    ? `: ${recommendError.message}`
-                                    : ''}
-                                . Is the backend running?
+                                {t('search.bar.recommendError', {
+                                    detail:
+                                        recommendError instanceof Error
+                                            ? `: ${recommendError.message}`
+                                            : '',
+                                })}
                             </p>
                         )}
 
                         {showLoading && (
-                            <p className="searchbar-recommend-loading">Searching…</p>
+                            <p className="searchbar-recommend-loading">
+                                {t('search.bar.searching')}
+                            </p>
                         )}
 
                         {showEmpty && (
                             <p className="searchbar-recommend-empty">
-                                No matches for &ldquo;{submittedQuery}&rdquo;. Try a
-                                different vibe.
+                                {t('search.bar.noMatches', { query: submittedQuery })}
                             </p>
                         )}
 

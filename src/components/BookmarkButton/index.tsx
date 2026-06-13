@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Snackbar } from '@mui/material';
 import FavoriteBorderRoundedIcon from '@mui/icons-material/FavoriteBorderRounded';
@@ -24,6 +25,7 @@ export interface BookmarkButtonProps {
 }
 
 const BookmarkButton = ({ place, query, index }: BookmarkButtonProps) => {
+    const { t } = useTranslation();
     const { user } = useUser();
     const navigate = useNavigate();
     const { data } = useSavedPlaces();
@@ -50,7 +52,11 @@ const BookmarkButton = ({ place, query, index }: BookmarkButtonProps) => {
         if (saved) {
             unsavePlace.mutate(placeKey, {
                 onSuccess: () =>
-                    setToast(`Removed ${place.name} from bookmarks`),
+                    setToast(
+                        t('detail.common.bookmark.removedToast', {
+                            name: place.name,
+                        })
+                    ),
                 onError: (err) => setToast(err.message),
             });
         } else {
@@ -65,7 +71,11 @@ const BookmarkButton = ({ place, query, index }: BookmarkButtonProps) => {
                 },
                 {
                     onSuccess: () =>
-                        setToast(`Saved ${place.name} to your bookmarks`),
+                        setToast(
+                            t('detail.common.bookmark.savedToast', {
+                                name: place.name,
+                            })
+                        ),
                     onError: (err) => setToast(err.message),
                 }
             );
@@ -79,11 +89,23 @@ const BookmarkButton = ({ place, query, index }: BookmarkButtonProps) => {
                 className={classNames('bookmark-button-pill', 'is-icon-only', {
                     'is-saved': saved,
                 })}
-                aria-label={saved ? `Remove ${place.name} from bookmarks` : `Save ${place.name} to bookmarks`}
+                aria-label={
+                    saved
+                        ? t('detail.common.bookmark.removeAria', {
+                              name: place.name,
+                          })
+                        : t('detail.common.bookmark.saveAria', {
+                              name: place.name,
+                          })
+                }
                 title={
                     saved
-                        ? `${place.name} is saved — tap to remove`
-                        : `Save ${place.name}`
+                        ? t('detail.common.bookmark.savedTitle', {
+                              name: place.name,
+                          })
+                        : t('detail.common.bookmark.saveTitle', {
+                              name: place.name,
+                          })
                 }
                 aria-pressed={saved}
                 disabled={isPending}
