@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import classNames from 'classnames';
 import { IconButton, Tooltip } from '@mui/material';
@@ -46,6 +47,7 @@ const BudgetSummary = ({
     collapsed: controlledCollapsed,
     hideToggle = false,
 }: BudgetSummaryProps) => {
+    const { t } = useTranslation();
     const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
     const collapsed =
         controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
@@ -75,7 +77,7 @@ const BudgetSummary = ({
             <div className="budget-header">
                 <div className="budget-eyebrow-wrap">
                     <AccountBalanceWalletOutlinedIcon className="budget-eyebrow-icon" />
-                    <span className="budget-eyebrow">Trip expenses meter</span>
+                    <span className="budget-eyebrow">{t('tripDetail.budget.meter')}</span>
                     {budgetVerdict && (
                         <span
                             className={classNames(
@@ -136,7 +138,9 @@ const BudgetSummary = ({
                                 'is-collapsed': collapsed,
                             })}
                             aria-label={
-                                collapsed ? 'Show budget details' : 'Hide budget details'
+                                collapsed
+                                    ? t('tripDetail.budget.showDetails')
+                                    : t('tripDetail.budget.hideDetails')
                             }
                             aria-expanded={!collapsed}
                             onClick={() => setCollapsed(!collapsed)}
@@ -165,14 +169,16 @@ const BudgetSummary = ({
             <div className="budget-footer">
                 {status === BUDGET_STATUS.EMPTY && (
                     <span className="budget-message">
-                        Set a budget on the trip details to track spending.
+                        {t('tripDetail.budget.empty')}
                     </span>
                 )}
                 {status === BUDGET_STATUS.UNDER && (
                     <>
                         <CheckCircleOutlineIcon className="budget-icon" />
                         <span className="budget-message">
-                            On track · {convertMoney(remaining)} remaining
+                            {t('tripDetail.budget.onTrack', {
+                                amount: convertMoney(remaining),
+                            })}
                         </span>
                     </>
                 )}
@@ -180,7 +186,9 @@ const BudgetSummary = ({
                     <>
                         <WarningAmberIcon className="budget-icon" />
                         <span className="budget-message">
-                            Getting close · {convertMoney(remaining)} left
+                            {t('tripDetail.budget.gettingClose', {
+                                amount: convertMoney(remaining),
+                            })}
                         </span>
                     </>
                 )}
@@ -188,12 +196,18 @@ const BudgetSummary = ({
                     <>
                         <ReportProblemOutlinedIcon className="budget-icon" />
                         <span className="budget-message">
-                            Over budget by {convertMoney(Math.abs(remaining))}
+                            {t('tripDetail.budget.over', {
+                                amount: convertMoney(Math.abs(remaining)),
+                            })}
                         </span>
                     </>
                 )}
                 {status !== BUDGET_STATUS.EMPTY && (
-                    <span className="budget-percent">{percent.toFixed(0)}%</span>
+                    <span className="budget-percent">
+                        {t('tripDetail.budget.percent', {
+                            pct: percent.toFixed(0),
+                        })}
+                    </span>
                 )}
             </div>
             </div>

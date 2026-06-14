@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import PlanCards from 'components/PlanCards';
 import { useOpenBillingPortal } from 'api/hooks/useBilling';
@@ -35,6 +36,7 @@ const formatDate = (iso: string | null): string => {
  * view invoices. We don't reimplement that.
  */
 const SubscriptionSection = () => {
+    const { t } = useTranslation();
     const { user, isAdmin } = useUser();
     const openPortal = useOpenBillingPortal();
 
@@ -49,14 +51,15 @@ const SubscriptionSection = () => {
         return (
             <section className="account-card" id="subscription">
                 <div className="account-card-headings simple">
-                    <h2 className="account-card-title">Subscription</h2>
+                    <h2 className="account-card-title">
+                        {t('account.subscription.title')}
+                    </h2>
                     <p className="account-card-subtitle">
-                        You&rsquo;re an admin — paywalls don&rsquo;t apply to
-                        you, and there&rsquo;s nothing to bill.
+                        {t('account.subscription.adminNotice')}
                     </p>
                 </div>
                 <div className="subscription-badge subscription-badge--admin">
-                    Admin account
+                    {t('account.subscription.adminBadge')}
                 </div>
             </section>
         );
@@ -83,9 +86,11 @@ const SubscriptionSection = () => {
         return (
             <section className="account-card" id="subscription">
                 <div className="account-card-headings simple">
-                    <h2 className="account-card-title">Subscription</h2>
+                    <h2 className="account-card-title">
+                        {t('account.subscription.title')}
+                    </h2>
                     <p className="account-card-subtitle">
-                        Manage your plan, payment method, and billing history.
+                        {t('account.subscription.paidSubtitle')}
                     </p>
                 </div>
 
@@ -95,37 +100,44 @@ const SubscriptionSection = () => {
                             cancelling || isPastDue ? 'warning' : 'active'
                         }`}
                     >
-                        {cancelling ? 'DaTryp.com Pro — Cancelling' : 'DaTryp.com Pro'}
+                        {cancelling
+                            ? t('account.subscription.badgeProCancelling')
+                            : t('account.subscription.badgePro')}
                     </span>
                     {cancelling && accessEndsOn && (
                         <p className="subscription-status-line subscription-status-line--warning">
-                            {isTrial
-                                ? `Your trial is cancelled. Pro access ends `
-                                : `Your subscription is cancelled. Pro access ends `}
-                            <strong>{accessEndsOn}</strong>
-                            {isTrial
-                                ? '. No charge will be made.'
-                                : '. No further charges will be made.'}{' '}
-                            Change your mind? Use the billing portal to
-                            resume.
+                            <Trans
+                                i18nKey={
+                                    isTrial
+                                        ? 'account.subscription.cancelledTrial'
+                                        : 'account.subscription.cancelledSubscription'
+                                }
+                                values={{ date: accessEndsOn }}
+                                components={{ strong: <strong /> }}
+                            />
                         </p>
                     )}
                     {!cancelling && isTrial && trialEnds && (
                         <p className="subscription-status-line">
-                            Free trial ends <strong>{trialEnds}</strong>. Your
-                            card will be charged then unless you cancel.
+                            <Trans
+                                i18nKey="account.subscription.trialEnds"
+                                values={{ date: trialEnds }}
+                                components={{ strong: <strong /> }}
+                            />
                         </p>
                     )}
                     {!cancelling && !isTrial && !isPastDue && periodEnds && (
                         <p className="subscription-status-line">
-                            Renews <strong>{periodEnds}</strong>.
+                            <Trans
+                                i18nKey="account.subscription.renews"
+                                values={{ date: periodEnds }}
+                                components={{ strong: <strong /> }}
+                            />
                         </p>
                     )}
                     {!cancelling && isPastDue && (
                         <p className="subscription-status-line subscription-status-line--warning">
-                            Your last payment failed. Update your payment
-                            method in the billing portal to keep your Pro
-                            access.
+                            {t('account.subscription.pastDue')}
                         </p>
                     )}
                 </div>
@@ -138,18 +150,20 @@ const SubscriptionSection = () => {
                         disabled={portalPending}
                     >
                         {portalPending
-                            ? 'Opening…'
+                            ? t('account.subscription.opening')
                             : isPastDue
-                                ? 'Update payment method'
+                                ? t('account.subscription.updatePayment')
                                 : cancelling
-                                    ? 'Resume or update billing'
-                                    : 'Manage billing'}
+                                    ? t('account.subscription.resumeBilling')
+                                    : t('account.subscription.manageBilling')}
                     </ButtonCustom>
                 </div>
 
                 {portalError && (
                     <p className="subscription-error" role="alert">
-                        Could not open the billing portal: {portalError.message}
+                        {t('account.subscription.portalError', {
+                            error: portalError.message,
+                        })}
                     </p>
                 )}
             </section>
@@ -162,40 +176,55 @@ const SubscriptionSection = () => {
     return (
         <section className="account-card" id="subscription">
             <div className="account-card-headings simple">
-                <h2 className="account-card-title">Subscription</h2>
+                <h2 className="account-card-title">
+                    {t('account.subscription.title')}
+                </h2>
                 <p className="account-card-subtitle">
                     {isCanceled
-                        ? 'Your previous subscription has ended.'
-                        : 'Upgrade to Pro for unlimited trips and Advanced Search.'}
+                        ? t('account.subscription.canceledSubtitle')
+                        : t('account.subscription.freeSubtitle')}
                 </p>
             </div>
 
             <div className="subscription-status">
                 <span className="subscription-badge subscription-badge--free">
-                    Free plan
+                    {t('account.subscription.badgeFree')}
                 </span>
                 <p className="subscription-status-line">
-                    Save up to <strong>{user.effectiveTripCap}</strong> trip
-                    {user.effectiveTripCap === 1 ? '' : 's'} with standard
-                    search results.
+                    <Trans
+                        i18nKey="account.subscription.tripCap"
+                        count={user.effectiveTripCap}
+                        values={{ count: user.effectiveTripCap }}
+                        components={{ strong: <strong /> }}
+                    />
                 </p>
             </div>
 
             <PlanCards
-                headline={isCanceled ? 'Resubscribe to Pro' : 'Upgrade to Pro'}
+                headline={
+                    isCanceled
+                        ? t('account.subscription.resubscribeHeadline')
+                        : t('account.subscription.upgradeHeadline')
+                }
                 body={
                     isCanceled
-                        ? 'Pick up where you left off — your saved trips are still there.'
-                        : 'Unlimited saved trips, Advanced Search, richer recommendations.'
+                        ? t('account.subscription.resubscribeBody')
+                        : t('account.subscription.upgradeBody')
                 }
             />
 
             <p className="subscription-compare">
-                Want the full feature breakdown?{' '}
-                <Link to="/membership" className="subscription-compare-link">
-                    See plan comparison
-                </Link>
-                .
+                <Trans
+                    i18nKey="account.subscription.compare"
+                    components={{
+                        compareLink: (
+                            <Link
+                                to="/membership"
+                                className="subscription-compare-link"
+                            />
+                        ),
+                    }}
+                />
             </p>
         </section>
     );

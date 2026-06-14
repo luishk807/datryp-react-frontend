@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 import type { Friend, TripChangeEvent, TripState } from 'types';
@@ -11,6 +12,7 @@ interface OrganizerStepProps {
  *  is auto-seeded as an organizer (see TripSteps) so this always opens
  *  with at least one entry. */
 const OrganizerStep = ({ data, onChange }: OrganizerStepProps) => {
+    const { t } = useTranslation();
     const organizers: Friend[] = data?.organizer ?? [];
 
     const handleOrganizer = (
@@ -25,17 +27,18 @@ const OrganizerStep = ({ data, onChange }: OrganizerStepProps) => {
             className="trip-step-screen trip-organizer-step"
             data-tour="trip-organizers"
         >
-            <h2 className="trip-step-headline">Who's organizing?</h2>
+            <h2 className="trip-step-headline">
+                {t('createTrip.organizers.title')}
+            </h2>
             <p className="trip-step-sub">
-                Organizers can edit the trip — dates, places, budget. You're
-                added automatically; add a co-organizer if someone else can
-                make changes.
+                {t('createTrip.organizers.subtitle')}
             </p>
 
             <div className="trip-step-card">
                 <header className="trip-step-field">
                     <label className="trip-step-label">
-                        <PersonRoundedIcon /> Organizers
+                        <PersonRoundedIcon />{' '}
+                        {t('createTrip.organizers.label')}
                     </label>
                 </header>
                 {/* No floating field label — the section header above

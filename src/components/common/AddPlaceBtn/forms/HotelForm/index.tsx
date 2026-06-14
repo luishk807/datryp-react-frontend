@@ -8,6 +8,7 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import InputField from 'components/common/FormFields/InputField';
 import PlaceAutocomplete from 'components/common/PlaceAutocomplete';
 import PlaceSuggestions from 'components/common/PlaceSuggestions';
@@ -26,6 +27,7 @@ export interface HotelFormProps {
  *  (name, address, time, confirmation, cost, notes) sit behind a "Show
  *  details" collapse — identical behavior on edit and add. */
 const HotelForm = ({ controller, mode }: HotelFormProps) => {
+    const { t } = useTranslation();
     const {
         place,
         countryScope,
@@ -72,7 +74,7 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                             `is-${place.kind === ACTIVITY_KIND.HOTEL_CHECKOUT ? 'checkout' : 'checkin'}`,
                         )}
                         role="tablist"
-                        aria-label="Hotel event side"
+                        aria-label={t('addForms.activity.hotel.sideAria')}
                     >
                         <span
                             className="hotel-side-thumb"
@@ -81,12 +83,12 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                         {[
                             {
                                 value: ACTIVITY_KIND.HOTEL_CHECKIN,
-                                label: 'Check-in',
+                                label: t('addForms.activity.hotel.side.checkin'),
                                 Icon: LoginRoundedIcon,
                             },
                             {
                                 value: ACTIVITY_KIND.HOTEL_CHECKOUT,
-                                label: 'Check-out',
+                                label: t('addForms.activity.hotel.side.checkout'),
                                 Icon: LogoutRoundedIcon,
                             },
                         ].map(({ value, label, Icon }) => {
@@ -123,8 +125,10 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                     <PlaceSuggestions
                         country={countryScope}
                         city={cityScope}
-                        topic="top hotels"
-                        headingPrefix="Suggested hotels in"
+                        topic={t('addForms.activity.hotel.suggestionsTopic')}
+                        headingPrefix={t(
+                            'addForms.activity.hotel.suggestionsHeadingPrefix',
+                        )}
                         collapsible={false}
                         showShuffle={false}
                         limit={10}
@@ -145,8 +149,13 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                                 }
                                 placeholder={
                                     countryScope
-                                        ? `e.g. "Hilton Tokyo, check-in 3pm, $200" — searched in ${countryScope}`
-                                        : 'e.g. "Hilton Tokyo, check-in 3pm, $200", or paste a Google Maps link'
+                                        ? t(
+                                              'addForms.activity.hotel.smartPlaceholderScoped',
+                                              { country: countryScope },
+                                          )
+                                        : t(
+                                              'addForms.activity.hotel.smartPlaceholder',
+                                          )
                                 }
                                 InputProps={{
                                     startAdornment: (
@@ -167,10 +176,13 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                         <div className="flight-smart-entry-hint">
                             <span>
                                 {hotelSmartLoading
-                                    ? 'Looking up the hotel…'
+                                    ? t('addForms.activity.hotel.lookingUp')
                                     : countryScope
-                                      ? `Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search ${countryScope} and fill in the details below.`
-                                      : "Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search and fill in the details below."}
+                                      ? t(
+                                            'addForms.activity.hotel.hintScoped',
+                                            { country: countryScope },
+                                        )
+                                      : t('addForms.activity.hotel.hint')}
                             </span>
                         </div>
                         {hotelSmartWarning && (
@@ -193,11 +205,22 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                                 !extras?.formattedAddress?.trim();
                             if (isWrongCountry) {
                                 setHotelSmartWarning(
-                                    `Couldn't find “${item.name}” in ${countryScope}` +
-                                        (item.country
-                                            ? ` — closest match is in ${item.country}.`
-                                            : '.') +
-                                        ` Add it manually using the details form below, or prefix the search with # to keep this exact name.`,
+                                    item.country
+                                        ? t(
+                                              'addForms.activity.hotel.wrongCountryWithCountry',
+                                              {
+                                                  name: item.name,
+                                                  country: countryScope,
+                                                  itemCountry: item.country,
+                                              },
+                                          )
+                                        : t(
+                                              'addForms.activity.hotel.wrongCountry',
+                                              {
+                                                  name: item.name,
+                                                  country: countryScope,
+                                              },
+                                          ),
                                 );
                                 return;
                             }
@@ -209,7 +232,10 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                                 // told us the place via the link.
                                 setHotelSmartWarning(
                                     extras?.addressUpsell ??
-                                        `Couldn't find an exact match for “${item.name}”. Fill in the address / cost / time using the form below.`,
+                                        t(
+                                            'addForms.activity.hotel.bareMatch',
+                                            { name: item.name },
+                                        ),
                                 );
                                 handleOnChange('name', item.name);
                                 if (parsed.startTime) {
@@ -302,17 +328,21 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                             queryPrefix="hotel"
                             label={
                                 countryScope
-                                    ? `Hotel name (or search in ${countryScope})`
-                                    : 'Hotel name'
+                                    ? t('addForms.activity.hotel.nameScoped', {
+                                          country: countryScope,
+                                      })
+                                    : t('addForms.activity.hotel.name')
                             }
-                            placeholder="Type a hotel name — we'll suggest matches"
+                            placeholder={t(
+                                'addForms.activity.hotel.namePlaceholder',
+                            )}
                         />
                     </Grid>
                     <Grid item lg={12} xs={12} className="py-5">
                         <InputField
                             value={place.location ?? ''}
                             name="location"
-                            label="Address (optional)"
+                            label={t('addForms.activity.hotel.addressOptional')}
                             required={false}
                             onChange={(e) =>
                                 handleOnChange('location', e.target.value)
@@ -326,8 +356,8 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                             type="time"
                             label={
                                 place.kind === ACTIVITY_KIND.HOTEL_CHECKIN
-                                    ? 'Check-in time'
-                                    : 'Check-out time'
+                                    ? t('addForms.activity.hotel.checkinTime')
+                                    : t('addForms.activity.hotel.checkoutTime')
                             }
                             labelOnTop
                             onChange={(e) =>
@@ -339,7 +369,9 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                         <InputField
                             value={place.confirmationNumber ?? ''}
                             name="confirmationNumber"
-                            label="Confirmation # (optional)"
+                            label={t(
+                                'addForms.activity.hotel.confirmationOptional',
+                            )}
                             required={false}
                             onChange={(e) =>
                                 handleOnChange(
@@ -355,8 +387,8 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                             name="cost"
                             label={
                                 place.kind === ACTIVITY_KIND.HOTEL_CHECKIN
-                                    ? 'Cost (optional — total stay)'
-                                    : 'Cost (optional)'
+                                    ? t('addForms.activity.hotel.costStayOptional')
+                                    : t('addForms.activity.hotel.costOptional')
                             }
                             required={false}
                             onChange={(e) =>
@@ -368,7 +400,7 @@ const HotelForm = ({ controller, mode }: HotelFormProps) => {
                         <InputField
                             value={place.note ?? ''}
                             name="note"
-                            label="Notes (optional)"
+                            label={t('addForms.activity.hotel.notesOptional')}
                             required={false}
                             onChange={(e) =>
                                 handleOnChange('note', e.target.value)

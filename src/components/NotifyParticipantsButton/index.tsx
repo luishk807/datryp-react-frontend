@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Alert, Checkbox, FormControlLabel, Snackbar } from '@mui/material';
 import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded';
 import ButtonIcon from 'components/common/FormFields/ButtonIcon';
@@ -30,12 +32,12 @@ const MESSAGE_MAX = 280;
 /** Builds the success-toast copy from the reach summary. Always leads with
  *  the headcount; appends per-channel counts only when non-zero so the
  *  common "everyone's in-app" case stays short. */
-const reachSummary = (r: NotifyActivityResult): string => {
+const reachSummary = (r: NotifyActivityResult, t: TFunction): string => {
     const parts: string[] = [];
-    if (r.emails > 0) parts.push(`${r.emails} emails`);
-    if (r.sms > 0) parts.push(`${r.sms} texts`);
+    if (r.emails > 0) parts.push(t('activity.notify.emailsCount', { count: r.emails }));
+    if (r.sms > 0) parts.push(t('activity.notify.textsCount', { count: r.sms }));
     const tail = parts.length > 0 ? ` · ${parts.join(' · ')}` : '';
-    return `Alerted ${r.recipients} ${r.recipients === 1 ? 'person' : 'people'}${tail}`;
+    return t('activity.notify.alerted', { count: r.recipients }) + tail;
 };
 
 /**
@@ -50,6 +52,7 @@ const NotifyParticipantsButton = ({
     activityName,
     participants,
 }: NotifyParticipantsButtonProps) => {
+    const { t } = useTranslation();
     const modalRef = useRef<ModalButtonHandle>(null);
     const { user } = useUser();
     const [message, setMessage] = useState('');
@@ -95,7 +98,8 @@ const NotifyParticipantsButton = ({
             allSelected ? new Set() : new Set(candidates.map((c) => c.userId))
         );
 
-    const displayName = (c: Friend) => c.name || c.label || 'Participant';
+    const displayName = (c: Friend) =>
+        c.name || c.label || t('activity.notify.participantFallback');
 
     const handleConfirm = async () => {
         try {
@@ -107,7 +111,7 @@ const NotifyParticipantsButton = ({
                 // fan-out path (and still reaches any unlisted members).
                 recipientIds: allSelected ? undefined : Array.from(selected),
             });
-            setToast({ type: 'success', text: reachSummary(result) });
+            setToast({ type: 'success', text: reachSummary(result, t) });
             setMessage('');
             resetSelection();
             modalRef.current?.closeModal();
@@ -117,7 +121,7 @@ const NotifyParticipantsButton = ({
                 text:
                     err instanceof Error
                         ? err.message
-                        : 'Could not notify participants.',
+                        : t('activity.notify.error'),
             });
         }
     };
@@ -129,8 +133,8 @@ const NotifyParticipantsButton = ({
                 Icon={CampaignRoundedIcon}
                 iconPosition="start"
                 iconProps={{ fontSize: 'small' }}
-                title="Notify participants"
-                ariaLabel="Notify participants about this activity"
+                title={t('activity.notifyParticipants')}
+                ariaLabel={t('activity.notify.triggerAria')}
                 className="notify-participants-trigger"
                 onClick={() => {
                     resetSelection();
@@ -139,7 +143,7 @@ const NotifyParticipantsButton = ({
             />
             <ModalButton
                 ref={modalRef}
-                title="Notify participants"
+                title={t('activity.notifyParticipants')}
                 onClose={() => {
                     setMessage('');
                     resetSelection();
@@ -147,30 +151,30 @@ const NotifyParticipantsButton = ({
             >
                 <div className="notify-participants-modal">
                     <p className="notify-participants-intro">
-                        We&rsquo;ll alert the people you choose
                         {activityName ? (
-                            <>
-                                {' about '}
-                                <strong>{activityName}</strong>
-                            </>
+                            <Trans
+                                i18nKey="activity.notify.introNamed"
+                                values={{ name: activityName }}
+                                components={{ strong: <strong /> }}
+                            />
                         ) : (
-                            ' about this activity'
-                        )}{' '}
-                        across in-app, email and text — based on each
-                        person&rsquo;s notification settings.
+                            t('activity.notify.intro')
+                        )}
                     </p>
                     {candidates.length > 0 ? (
                         <div className="notify-participants-recipients">
                             <div className="notify-participants-recipients-head">
                                 <span className="notify-participants-label">
-                                    Who to notify
+                                    {t('activity.notify.whoToNotify')}
                                 </span>
                                 <button
                                     type="button"
                                     className="notify-participants-selectall"
                                     onClick={toggleAll}
                                 >
-                                    {allSelected ? 'Clear all' : 'Select all'}
+                                    {allSelected
+                                        ? t('activity.notify.clearAll')
+                                        : t('activity.notify.selectAll')}
                                 </button>
                             </div>
                             <div className="notify-participants-list">
@@ -194,19 +198,19 @@ const NotifyParticipantsButton = ({
                         </div>
                     ) : (
                         <p className="notify-participants-empty">
-                            No other participants to notify yet.
+                            {t('activity.notify.noOthers')}
                         </p>
                     )}
                     <label className="notify-participants-field">
                         <span className="notify-participants-label">
-                            Add a note (optional)
+                            {t('activity.notify.addNote')}
                         </span>
                         <textarea
                             className="notify-participants-textarea"
                             value={message}
                             maxLength={MESSAGE_MAX}
                             rows={3}
-                            placeholder="e.g. Meet at the lobby 15 min early"
+                            placeholder={t('activity.notify.notePlaceholder')}
                             onChange={(e) => setMessage(e.target.value)}
                         />
                         <span className="notify-participants-count">
@@ -216,14 +220,16 @@ const NotifyParticipantsButton = ({
                     <div className="notify-participants-actions">
                         <ButtonCustom
                             type={BUTTON_VARIANT.LINE}
-                            label="Cancel"
+                            label={t('common.cancel')}
                             onClick={() => modalRef.current?.closeModal()}
                             disabled={notify.isPending}
                         />
                         <ButtonCustom
                             type={BUTTON_VARIANT.STANDARD}
                             label={
-                                notify.isPending ? 'Sending…' : 'Send alert'
+                                notify.isPending
+                                    ? t('activity.notify.sending')
+                                    : t('activity.notify.sendAlert')
                             }
                             onClick={handleConfirm}
                             disabled={notify.isPending || selected.size === 0}

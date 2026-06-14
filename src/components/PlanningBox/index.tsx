@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import classnames from "classnames";
 import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
@@ -38,6 +39,7 @@ const PlanningBox = ({
     isSaving = false,
     onEditTripDates,
 }: PlanningBoxProps) => {
+    const { t } = useTranslation();
     // Expanded by default — the readiness checklist is the point. Collapsing
     // leaves just the header + Confirm button (which still shows "N% ready").
     const [collapsed, setCollapsed] = useState(false);
@@ -52,10 +54,11 @@ const PlanningBox = ({
                     fontSize="medium"
                 />
                 <div className="planning-box-text">
-                    <span className="planning-box-title">Trip in planning</span>
+                    <span className="planning-box-title">
+                        {t('tripDetail.planning.title')}
+                    </span>
                     <span className="planning-box-sub">
-                        The organizer is still arranging activities. Check back
-                        soon.
+                        {t('tripDetail.planning.readonlySub')}
                     </span>
                 </div>
             </div>
@@ -79,10 +82,11 @@ const PlanningBox = ({
                     fontSize="medium"
                 />
                 <div className="planning-box-text">
-                    <span className="planning-box-title">Trip in planning</span>
+                    <span className="planning-box-title">
+                        {t('tripDetail.planning.title')}
+                    </span>
                     <span className="planning-box-sub">
-                        Your itinerary is fully editable — add, edit, or remove
-                        activities and changes save as you go.
+                        {t('tripDetail.planning.sub')}
                     </span>
                 </div>
                 {canPromoteStatus && (
@@ -102,8 +106,8 @@ const PlanningBox = ({
                     aria-expanded={!collapsed}
                     aria-label={
                         collapsed
-                            ? "Show readiness checklist"
-                            : "Hide readiness checklist"
+                            ? t('tripDetail.planning.showChecklist')
+                            : t('tripDetail.planning.hideChecklist')
                     }
                 >
                     <ExpandMoreRoundedIcon />

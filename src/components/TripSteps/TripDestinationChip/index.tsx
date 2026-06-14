@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import type { TripState } from 'types';
 import './index.scss';
@@ -11,6 +12,7 @@ interface TripDestinationChipProps {
  *  of where the trip is headed as they move through type → dates → budget →
  *  people. Renders nothing until a country is set. */
 const TripDestinationChip = ({ data }: TripDestinationChipProps) => {
+    const { t } = useTranslation();
     const rootCountry = data?.destinations?.[0]?.country;
     if (!rootCountry?.name) return null;
 
@@ -38,12 +40,17 @@ const TripDestinationChip = ({ data }: TripDestinationChipProps) => {
             : rootCountry.name;
 
     return (
-        <div className="trip-destination-chip" aria-label="Trip destination">
+        <div
+            className="trip-destination-chip"
+            aria-label={t('createTrip.chip.aria')}
+        >
             <PlaceOutlinedIcon
                 className="trip-destination-chip-icon"
                 fontSize="small"
             />
-            <span className="trip-destination-chip-label">Going to</span>
+            <span className="trip-destination-chip-label">
+                {t('createTrip.chip.goingTo')}
+            </span>
             <span className="trip-destination-chip-value">{label}</span>
         </div>
     );

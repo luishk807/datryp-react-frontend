@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import ModalButton, {
     type ModalButtonButtonProps,
@@ -43,6 +44,7 @@ export const AddBudget = ({
     cost = 0,
     isViewMode = false,
 }: AddBudgetProps) => {
+    const { t } = useTranslation();
     const modalRef = useRef<ModalButtonHandle>(null);
 
     // Existing budget with exactly one entry → start in sole-payer mode
@@ -180,27 +182,27 @@ export const AddBudget = ({
               Icon: EditOutlinedIcon,
               type: 'text-plain',
               className: 'budget-edit-trigger',
-              ariaLabel: 'Edit budget',
+              ariaLabel: t('activity.budget.editAria'),
               iconProps: { fontSize: 'small' },
           }
         : {
-              title: 'Who is paying?',
+              title: t('activity.budget.whoIsPaying'),
               type: 'text',
               className: 'budget-add-trigger',
-              ariaLabel: 'Set who is paying for this',
+              ariaLabel: t('activity.budget.setPayerAria'),
           };
 
     return (
         <ModalButton
             ref={modalRef}
-            title="Travel Budget"
+            title={t('activity.budget.title')}
             buttonProps={triggerProps}
             containerClassName="travel-budget-modal-shell"
             onClose={handleModalClose}
         >
             <Grid container className="travel-budget">
                 <Grid item lg={12} xs={12} md={12} className="description">
-                    Who is paying for this?
+                    {t('activity.budget.whoIsPayingForThis')}
                 </Grid>
                 {/* Picker only renders when there's more than one
                     option. Solo trip → auto-pick the single
@@ -221,8 +223,8 @@ export const AddBudget = ({
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
-                                    label="Select a payer"
-                                    placeholder="Search a friend…"
+                                    label={t('activity.budget.selectPayer')}
+                                    placeholder={t('activity.budget.searchFriend')}
                                 />
                             )}
                         />
@@ -231,10 +233,11 @@ export const AddBudget = ({
                     <Grid item lg={12} xs={12} md={12} className="payer-search">
                         <div className="travel-budget-solo-payer">
                             <span className="travel-budget-solo-payer-label">
-                                Paid by
+                                {t('activity.budget.paidBy')}
                             </span>
                             <span className="travel-budget-solo-payer-name">
-                                {payerOptions[0]?.label ?? 'You'}
+                                {payerOptions[0]?.label ??
+                                    t('activity.budget.you')}
                             </span>
                         </div>
                     </Grid>
@@ -244,7 +247,7 @@ export const AddBudget = ({
                 {payerOptions.length > 1 && (
                     <Grid item lg={12} xs={12} md={12} className="split-toggle">
                         <Toggle
-                            label="Split payment"
+                            label={t('activity.budget.splitPayment')}
                             checked={isSplit}
                             onChange={handleToggleSplit}
                         />
@@ -300,7 +303,7 @@ export const AddBudget = ({
                     </Grid>
                 )}
                 <Grid item lg={12} xs={12} md={12} className="total">
-                    Total:{' '}
+                    {t('activity.budget.total')}{' '}
                     {total.toLocaleString('en-US', {
                         style: 'currency',
                         currency: 'USD',
@@ -310,7 +313,7 @@ export const AddBudget = ({
                     <ButtonCustom
                         onClick={handleSubmit}
                         nativeType="button"
-                        label="Save Budget"
+                        label={t('activity.budget.save')}
                         type="standard"
                         capitalizeType="uppercase"
                     />

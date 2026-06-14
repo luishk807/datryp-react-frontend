@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
@@ -51,6 +52,7 @@ const FlightFields = ({
     renderSegmentExtra,
     onArrivalAirportMeta,
 }: FlightFieldsProps) => {
+    const { t } = useTranslation();
     const [openSegments, setOpenSegments] = useState<Set<number>>(
         () => new Set(),
     );
@@ -110,7 +112,9 @@ const FlightFields = ({
                                 <span className="flight-segment-header">
                                     <span className="flight-segment-route">
                                         <span className="flight-segment-seg">
-                                            Segment {idx + 1}
+                                            {t('addForms.fields.segment', {
+                                                n: idx + 1,
+                                            })}
                                         </span>
                                         {route && (
                                             <span className="flight-segment-path">
@@ -149,7 +153,10 @@ const FlightFields = ({
                                 <button
                                     type="button"
                                     className="add-destination-segment-remove"
-                                    aria-label={`Remove segment ${idx + 1}`}
+                                    aria-label={t(
+                                        'addForms.fields.removeSegment',
+                                        { n: idx + 1 },
+                                    )}
                                     onClick={() => onRemoveLeg(idx)}
                                 >
                                     <CloseRoundedIcon fontSize="small" />
@@ -161,7 +168,7 @@ const FlightFields = ({
                                 {renderSegmentExtra?.(idx, open)}
                                 <div className="add-destination-field">
                                     <label className="add-destination-label">
-                                        Flight number
+                                        {t('addForms.fields.flightNumber')}
                                     </label>
                                     <InputField
                                         value={seg.flightNumber ?? ''}
@@ -179,7 +186,7 @@ const FlightFields = ({
                                 <div className="add-destination-row">
                                     <div className="add-destination-field">
                                         <label className="add-destination-label">
-                                            Depart airport
+                                            {t('addForms.fields.departAirport')}
                                         </label>
                                         <AirportAutocomplete
                                             value={seg.departAirport ?? ''}
@@ -190,12 +197,14 @@ const FlightFields = ({
                                                     code,
                                                 )
                                             }
-                                            placeholder="IATA code, city, or airport"
+                                            placeholder={t(
+                                                'addForms.fields.airportPlaceholder',
+                                            )}
                                         />
                                     </div>
                                     <div className="add-destination-field">
                                         <label className="add-destination-label">
-                                            Arrive airport
+                                            {t('addForms.fields.arriveAirport')}
                                         </label>
                                         <AirportAutocomplete
                                             value={seg.arrivalAirport ?? ''}
@@ -215,13 +224,15 @@ const FlightFields = ({
                                                           )
                                                     : undefined
                                             }
-                                            placeholder="IATA code, city, or airport"
+                                            placeholder={t(
+                                                'addForms.fields.airportPlaceholder',
+                                            )}
                                         />
                                     </div>
                                 </div>
                                 <div className="add-destination-row">
                                     <DateTimeField
-                                        label="Depart"
+                                        label={t('addForms.fields.depart')}
                                         value={toDateTime(
                                             seg.departDate,
                                             seg.departTime,
@@ -234,7 +245,7 @@ const FlightFields = ({
                                         }}
                                     />
                                     <DateTimeField
-                                        label="Arrive"
+                                        label={t('addForms.fields.arrive')}
                                         value={toDateTime(
                                             seg.arrivalDate,
                                             seg.arrivalTime,
@@ -253,7 +264,10 @@ const FlightFields = ({
                 );
             })}
             {pathStops.length > 1 && (
-                <ul className="flight-path" aria-label="Flight route">
+                <ul
+                    className="flight-path"
+                    aria-label={t('addForms.fields.flightRouteAria')}
+                >
                     {pathStops.map((stop, i) => (
                         <li key={`${stop}-${i}`} className="flight-path-stop">
                             {stop}
@@ -267,7 +281,7 @@ const FlightFields = ({
                 onClick={onAddLeg}
             >
                 <AddRoundedIcon fontSize="small" />
-                Add stopover
+                {t('addForms.fields.addStopover')}
             </button>
         </>
     );

@@ -4,6 +4,7 @@ import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import type { SvgIconComponent } from "@mui/icons-material";
+import { useTranslation } from "react-i18next";
 import { convertMoney, deriveTripStats } from "utils";
 import type { TripState } from "types";
 import "./index.scss";
@@ -20,6 +21,7 @@ const TripCompletionSummary = ({
     data,
     travelers,
 }: TripCompletionSummaryProps) => {
+    const { t } = useTranslation();
     const { days, activities, spent, countries } = deriveTripStats(data);
 
     const stats: {
@@ -32,40 +34,45 @@ const TripCompletionSummary = ({
             key: "days",
             Icon: CalendarMonthRoundedIcon,
             value: days,
-            label: days === 1 ? "Day" : "Days",
+            label: t("tripDetail.completion.days", { count: days }),
         },
         {
             key: "activities",
             Icon: LocalActivityRoundedIcon,
             value: activities,
-            label: activities === 1 ? "Activity" : "Activities",
+            label: t("tripDetail.completion.activities", { count: activities }),
         },
         {
             key: "countries",
             Icon: PublicRoundedIcon,
             value: countries,
-            label: countries === 1 ? "Country" : "Countries",
+            label: t("tripDetail.completion.countries", { count: countries }),
         },
         {
             key: "travelers",
             Icon: GroupRoundedIcon,
             value: travelers,
-            label: travelers === 1 ? "Traveler" : "Travelers",
+            label: t("tripDetail.completion.travelers", { count: travelers }),
         },
         {
             key: "spent",
             Icon: PaymentsRoundedIcon,
             value: convertMoney(spent),
-            label: "Spent",
+            label: t("tripDetail.completion.spent"),
         },
     ];
 
     return (
-        <section className="trip-completion-summary" aria-label="Trip recap">
+        <section
+            className="trip-completion-summary"
+            aria-label={t("tripDetail.completion.aria")}
+        >
             <header className="trip-completion-summary-head">
-                <h3 className="trip-completion-summary-title">Trip recap</h3>
+                <h3 className="trip-completion-summary-title">
+                    {t("tripDetail.completion.title")}
+                </h3>
                 <span className="trip-completion-summary-sub">
-                    A snapshot of where you went and what you did.
+                    {t("tripDetail.completion.sub")}
                 </span>
             </header>
             <div className="trip-completion-summary-grid">

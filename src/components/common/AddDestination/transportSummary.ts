@@ -5,17 +5,22 @@ import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
 import { ACTIVITY_KIND } from 'constants';
 import type { TransportDraft, TransportKind } from './types';
 
-/** User-facing label + icon for each transport kind. Single source for the
- *  chooser tiles, the collapsed "active mode" row, and the Confirm review. */
+/** i18n key (under `addForms.transport.mode.*`) + icon for each transport
+ *  kind. Single source for the chooser tiles, the collapsed "active mode" row,
+ *  and the Confirm review. Consumers resolve `labelKey` via `t()` so the label
+ *  stays localized (this module is framework-agnostic and can't call hooks). */
 export const TRANSPORT_MODE: Record<
     TransportKind,
-    { label: string; Icon: typeof FlightRoundedIcon }
+    { labelKey: string; Icon: typeof FlightRoundedIcon }
 > = {
-    [ACTIVITY_KIND.FLIGHT]: { label: 'Flight', Icon: FlightRoundedIcon },
-    [ACTIVITY_KIND.TRAIN]: { label: 'Train', Icon: DirectionsTransitRoundedIcon },
-    [ACTIVITY_KIND.BUS]: { label: 'Bus', Icon: DirectionsBusRoundedIcon },
+    [ACTIVITY_KIND.FLIGHT]: { labelKey: 'flight', Icon: FlightRoundedIcon },
+    [ACTIVITY_KIND.TRAIN]: {
+        labelKey: 'train',
+        Icon: DirectionsTransitRoundedIcon,
+    },
+    [ACTIVITY_KIND.BUS]: { labelKey: 'bus', Icon: DirectionsBusRoundedIcon },
     [ACTIVITY_KIND.RENTAL_CAR]: {
-        label: 'Rental Car',
+        labelKey: 'rentalCar',
         Icon: CarRentalRoundedIcon,
     },
 };

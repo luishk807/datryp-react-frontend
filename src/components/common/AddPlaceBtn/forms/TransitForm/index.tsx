@@ -6,6 +6,7 @@ import DirectionsBusRoundedIcon from '@mui/icons-material/DirectionsBusRounded';
 import CarRentalRoundedIcon from '@mui/icons-material/CarRentalRounded';
 import LocalTaxiRoundedIcon from '@mui/icons-material/LocalTaxiRounded';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import InputField from 'components/common/FormFields/InputField';
 import TransitFields from 'components/common/TransportFields/TransitFields';
 import TransitSegmentLookupWatcher from '../../TransitSegmentLookupWatcher';
@@ -25,22 +26,22 @@ export interface TransitFormProps {
 const TRANSIT_MODES = [
     {
         value: ACTIVITY_KIND.TRAIN,
-        label: 'Train',
+        modeKey: 'train',
         Icon: DirectionsTransitRoundedIcon,
     },
     {
         value: ACTIVITY_KIND.BUS,
-        label: 'Bus',
+        modeKey: 'bus',
         Icon: DirectionsBusRoundedIcon,
     },
     {
         value: ACTIVITY_KIND.RENTAL_CAR,
-        label: 'Rental car',
+        modeKey: 'rentalCar',
         Icon: CarRentalRoundedIcon,
     },
     {
         value: ACTIVITY_KIND.OTHER,
-        label: 'Other',
+        modeKey: 'other',
         Icon: LocalTaxiRoundedIcon,
     },
 ] as const;
@@ -49,6 +50,7 @@ const TRANSIT_MODES = [
  *  mode toggle + smart entry are ADD-only; the per-segment fields render via
  *  the shared `TransitFields` cards — identical to the destination editor. */
 const TransitForm = ({ controller, mode }: TransitFormProps) => {
+    const { t } = useTranslation();
     const {
         place,
         countryScope,
@@ -116,13 +118,13 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                             `is-pos-${thumbPos}`,
                         )}
                         role="tablist"
-                        aria-label="Ground transport mode"
+                        aria-label={t('addForms.activity.transit.modeAria')}
                     >
                         <span
                             className="hotel-side-thumb"
                             aria-hidden="true"
                         />
-                        {TRANSIT_MODES.map(({ value, label, Icon }) => {
+                        {TRANSIT_MODES.map(({ value, modeKey, Icon }) => {
                             const active = place.kind === value;
                             return (
                                 <button
@@ -144,7 +146,11 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                         className="hotel-side-icon"
                                         fontSize="small"
                                     />
-                                    <span>{label}</span>
+                                    <span>
+                                        {t(
+                                            `addForms.activity.transit.modes.${modeKey}`,
+                                        )}
+                                    </span>
                                 </button>
                             );
                         })}
@@ -164,10 +170,16 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                 }
                                 placeholder={
                                     isRental
-                                        ? 'e.g. "Hertz pickup JFK 10am $50"'
+                                        ? t(
+                                              'addForms.activity.transit.smartPlaceholderRental',
+                                          )
                                         : place.kind === ACTIVITY_KIND.OTHER
-                                          ? 'e.g. "Uber airport to hotel 10am $30"'
-                                          : 'e.g. "Tokyo to Kyoto 9am-12pm $100"'
+                                          ? t(
+                                                'addForms.activity.transit.smartPlaceholderOther',
+                                            )
+                                          : t(
+                                                'addForms.activity.transit.smartPlaceholder',
+                                            )
                                 }
                                 InputProps={{
                                     startAdornment: (
@@ -179,11 +191,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                             />
                         </div>
                         <div className="flight-smart-entry-hint">
-                            <span>
-                                Type stations, times, and cost — we&rsquo;ll
-                                fill the details and you can review them on the
-                                next step.
-                            </span>
+                            <span>{t('addForms.activity.transit.hint')}</span>
                         </div>
                         {transitSmartWarning && (
                             <div className="flight-smart-entry-warning">
@@ -235,7 +243,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                         <InputField
                             value={place.name ?? ''}
                             name="name"
-                            label="Trip name (optional — auto-fills from operator + number)"
+                            label={t('addForms.activity.transit.tripName')}
                             required={false}
                             onChange={(e) =>
                                 handleOnChange('name', e.target.value)
@@ -257,8 +265,8 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                             onRemoveLeg={handleRemoveTransitSegment}
                             addLegLabel={
                                 isRental
-                                    ? 'Add stopover'
-                                    : 'Add leg (transfer)'
+                                    ? t('addForms.activity.transit.addStopover')
+                                    : t('addForms.activity.transit.addLeg')
                             }
                             renderSegmentExtra={(segIdx, open) =>
                                 open && hasLookup ? (
@@ -326,12 +334,23 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                                                 {transitLookupLoading.has(
                                                     segIdx,
                                                 )
-                                                    ? 'Looking up schedule…'
+                                                    ? t(
+                                                          'addForms.activity.transit.lookingUp',
+                                                      )
                                                     : transitLookupNotFound[
                                                             segIdx
                                                         ]
-                                                      ? `Couldn't find ${transitLookupNotFound[segIdx]}. Fill in the stations, date, and time below manually.`
-                                                      : "Type the operator + number and we'll try to auto-fill the stations and times."}
+                                                      ? t(
+                                                            'addForms.activity.transit.lookupNotFound',
+                                                            {
+                                                                label: transitLookupNotFound[
+                                                                    segIdx
+                                                                ],
+                                                            },
+                                                        )
+                                                      : t(
+                                                            'addForms.activity.transit.lookupIdle',
+                                                        )}
                                             </span>
                                         </div>
                                     </>
@@ -343,7 +362,7 @@ const TransitForm = ({ controller, mode }: TransitFormProps) => {
                         <InputField
                             defaultValue={place.cost ? String(place.cost) : ''}
                             name="cost"
-                            label="Cost (optional)"
+                            label={t('addForms.common.costOptional')}
                             required={false}
                             onChange={(e) =>
                                 handleOnChange('cost', e.target.value)

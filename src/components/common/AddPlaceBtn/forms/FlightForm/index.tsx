@@ -1,6 +1,7 @@
 import { Grid, InputAdornment, TextField } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import { useTranslation } from 'react-i18next';
 import InputField from 'components/common/FormFields/InputField';
 import FlightFields from 'components/common/TransportFields/FlightFields';
 import FlightSegmentLookupWatcher from '../../FlightSegmentLookupWatcher';
@@ -18,6 +19,7 @@ export interface FlightFormProps {
  *  SMART method; the segment list (the "details") renders for custom + edit,
  *  where the user fills fields by hand. Both write into the same draft. */
 const FlightForm = ({ controller, mode }: FlightFormProps) => {
+    const { t } = useTranslation();
     const {
         place,
         smartEntry,
@@ -68,7 +70,9 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
                                 onChange={(e) =>
                                     handleSmartEntry(e.target.value)
                                 }
-                                placeholder='Try: "UA123 tomorrow" or "UA123 today stopover BA245"'
+                                placeholder={t(
+                                    'addForms.activity.flight.smartPlaceholder',
+                                )}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
@@ -79,11 +83,7 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
                             />
                         </div>
                         <div className="flight-smart-entry-hint">
-                            <span>
-                                Type your flight(s) here and we&rsquo;ll look up
-                                the airports, dates, and times — review or tweak
-                                everything on the next step.
-                            </span>
+                            <span>{t('addForms.activity.flight.hint')}</span>
                         </div>
                     </div>
                 </Grid>
@@ -187,10 +187,21 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
                                         )}
                                         <span className="flight-segment-hint-text">
                                             {lookupLoading.has(segIdx)
-                                                ? 'Looking up flight details…'
+                                                ? t(
+                                                      'addForms.activity.flight.lookingUp',
+                                                  )
                                                 : lookupNotFound[segIdx]
-                                                  ? `Couldn't find flight ${lookupNotFound[segIdx]}. Fill in the airport, date, and time below manually.`
-                                                  : "We'll auto-fill the airport, date, and time once you enter a flight number."}
+                                                  ? t(
+                                                        'addForms.activity.flight.lookupNotFound',
+                                                        {
+                                                            number: lookupNotFound[
+                                                                segIdx
+                                                            ],
+                                                        },
+                                                    )
+                                                  : t(
+                                                        'addForms.activity.flight.lookupIdle',
+                                                    )}
                                         </span>
                                     </div>
                                 </>
@@ -204,7 +215,7 @@ const FlightForm = ({ controller, mode }: FlightFormProps) => {
                     <InputField
                         defaultValue={place.cost ? String(place.cost) : ''}
                         name="cost"
-                        label="Cost (optional)"
+                        label={t('addForms.common.costOptional')}
                         required={false}
                         onChange={(e) => handleOnChange('cost', e.target.value)}
                     />

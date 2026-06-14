@@ -56,10 +56,15 @@ const toSuggestion = (r: PlaceSuggestionRaw): PlaceSuggestion => ({
     longitude: r.longitude ?? null,
 });
 
-export const fetchPlaceSuggestions = async (): Promise<PlaceSuggestion[]> => {
-    const resp = await fetch(`${API_BASE}/me/place-suggestions`, {
-        headers: authHeaders(),
-    });
+export const fetchPlaceSuggestions = async (
+    lang = 'en',
+): Promise<PlaceSuggestion[]> => {
+    const resp = await fetch(
+        `${API_BASE}/me/place-suggestions?lang=${encodeURIComponent(lang)}`,
+        {
+            headers: authHeaders(),
+        },
+    );
     if (!resp.ok) {
         let detail: string | undefined;
         try {

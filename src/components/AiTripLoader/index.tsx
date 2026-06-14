@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
@@ -33,36 +34,38 @@ interface AiTripLoaderProps {
     subtitle?: string;
 }
 
-type Step = { Icon: React.ElementType; label: string };
+// `labelKey` resolves against `aiTrip.loader.steps.*` at render time so the
+// rotating status copy is translatable. The Icon stays paired with its key.
+type Step = { Icon: React.ElementType; labelKey: string };
 
 const OPTIONS_STEPS: Step[] = [
-    { Icon: TuneRoundedIcon, label: 'Analyzing your budget and interests…' },
-    { Icon: PublicRoundedIcon, label: 'Scanning destinations worldwide…' },
-    { Icon: WbSunnyRoundedIcon, label: 'Comparing weather and seasonality…' },
-    { Icon: EventAvailableRoundedIcon, label: 'Checking what fits your duration…' },
-    { Icon: SavingsRoundedIcon, label: 'Looking for great-value destinations…' },
-    { Icon: MapRoundedIcon, label: 'Ranking the best matches…' },
-    { Icon: AutoAwesomeIcon, label: 'Almost there — preparing your picks…' },
+    { Icon: TuneRoundedIcon, labelKey: 'options.analyzing' },
+    { Icon: PublicRoundedIcon, labelKey: 'options.scanning' },
+    { Icon: WbSunnyRoundedIcon, labelKey: 'options.weather' },
+    { Icon: EventAvailableRoundedIcon, labelKey: 'options.duration' },
+    { Icon: SavingsRoundedIcon, labelKey: 'options.value' },
+    { Icon: MapRoundedIcon, labelKey: 'options.ranking' },
+    { Icon: AutoAwesomeIcon, labelKey: 'options.almost' },
 ];
 
 const BUILD_STEPS: Step[] = [
-    { Icon: AutoAwesomeIcon, label: 'Reading your bucket-list goal…' },
-    { Icon: MapRoundedIcon, label: 'Picking the right destination…' },
-    { Icon: EventAvailableRoundedIcon, label: 'Choosing the perfect duration…' },
-    { Icon: FlightTakeoffRoundedIcon, label: 'Drafting day-by-day activities…' },
-    { Icon: PaymentsOutlinedIcon, label: 'Setting a realistic budget…' },
-    { Icon: AutoAwesomeIcon, label: 'Finalizing your itinerary…' },
+    { Icon: AutoAwesomeIcon, labelKey: 'build.reading' },
+    { Icon: MapRoundedIcon, labelKey: 'build.destination' },
+    { Icon: EventAvailableRoundedIcon, labelKey: 'build.duration' },
+    { Icon: FlightTakeoffRoundedIcon, labelKey: 'build.activities' },
+    { Icon: PaymentsOutlinedIcon, labelKey: 'build.budget' },
+    { Icon: AutoAwesomeIcon, labelKey: 'build.finalizing' },
 ];
 
 // Bucket-list enrichment backfill — the one-time pass that turns a Pro
 // user's existing plain goals into titled cards. Messaging is about the
 // goals themselves, not trip planning, so it can't reuse BUILD_STEPS.
 const ENRICH_STEPS: Step[] = [
-    { Icon: AutoAwesomeIcon, label: 'Reading your saved goals…' },
-    { Icon: TuneRoundedIcon, label: 'Writing a title for each dream…' },
-    { Icon: PublicRoundedIcon, label: 'Detecting themes and vibes…' },
-    { Icon: WbSunnyRoundedIcon, label: 'Adding a splash of personality…' },
-    { Icon: AutoAwesomeIcon, label: 'Polishing the finishing touches…' },
+    { Icon: AutoAwesomeIcon, labelKey: 'enrich.reading' },
+    { Icon: TuneRoundedIcon, labelKey: 'enrich.title' },
+    { Icon: PublicRoundedIcon, labelKey: 'enrich.themes' },
+    { Icon: WbSunnyRoundedIcon, labelKey: 'enrich.personality' },
+    { Icon: AutoAwesomeIcon, labelKey: 'enrich.polishing' },
 ];
 
 const DEFAULT_TITLES: Record<LoaderPhase, string> = {
@@ -88,6 +91,7 @@ const AiTripLoader = ({
     phase = 'build',
     subtitle,
 }: AiTripLoaderProps) => {
+    const { t } = useTranslation();
     const [stepIdx, setStepIdx] = useState(0);
     const steps =
         phase === 'options'
@@ -128,7 +132,7 @@ const AiTripLoader = ({
                 <div className="ai-trip-loader-step" key={stepIdx}>
                     <StepIcon className="ai-trip-loader-step-icon" />
                     <span className="ai-trip-loader-step-text">
-                        {steps[stepIdx].label}
+                        {t(`aiTrip.loader.steps.${steps[stepIdx].labelKey}`)}
                     </span>
                 </div>
 

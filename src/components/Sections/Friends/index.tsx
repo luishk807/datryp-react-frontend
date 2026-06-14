@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dialog,
     DialogActions,
@@ -24,23 +25,26 @@ import {
 import { BUTTON_VARIANT, LIST_PAGE_SIZE } from 'constants';
 import './index.scss';
 
+type TFn = ReturnType<typeof useTranslation>['t'];
+
 /** Pretty-print "2 days ago" / "today" — keeps the row terse but informative. */
-const formatRelativeShort = (iso: string): string => {
+const formatRelativeShort = (iso: string, t: TFn, locale: string): string => {
     const then = new Date(iso);
     if (Number.isNaN(then.getTime())) return '';
     const diff = Date.now() - then.getTime();
     const day = 24 * 60 * 60 * 1000;
     const days = Math.floor(diff / day);
-    if (days < 1) return 'today';
-    if (days === 1) return 'yesterday';
-    if (days < 7) return `${days} days ago`;
-    return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (days < 1) return t('friends.relative.today');
+    if (days === 1) return t('friends.relative.yesterday');
+    if (days < 7) return t('friends.relative.daysAgo', { count: days });
+    return then.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 };
 
 const initial = (name: string | null | undefined, email: string): string =>
     (name?.charAt(0) || email.charAt(0) || '?').toUpperCase();
 
 export const Friends = () => {
+    const { t, i18n } = useTranslation();
     const { user } = useUser();
     const inviteRef = useRef<ModalButtonHandle>(null);
 
@@ -79,9 +83,9 @@ export const Friends = () => {
 
     if (!user) {
         return (
-            <Layout title="Friends">
+            <Layout title={t('friends.title')}>
                 <div className="friends-page friends-logged-out">
-                    <p>Log in to manage your friends.</p>
+                    <p>{t('friends.loggedOut')}</p>
                 </div>
             </Layout>
         );
@@ -105,9 +109,9 @@ export const Friends = () => {
             onSuccess: () =>
                 setResendFeedback({
                     kind: 'success',
-                    message: `Invite re-sent to ${
-                        req.otherUser.name ?? req.otherUser.email
-                    }.`,
+                    message: t('friends.toast.resent', {
+                        name: req.otherUser.name ?? req.otherUser.email,
+                    }),
                 }),
             onError: (err) =>
                 setResendFeedback({
@@ -139,7 +143,7 @@ export const Friends = () => {
     };
 
     return (
-        <Layout title="Friends">
+        <Layout title={t('friends.title')}>
             <div className="friends-page">
                 {/* ── Incoming pending requests ─────────────────────────── */}
                 {incoming.length > 0 && (
@@ -147,16 +151,16 @@ export const Friends = () => {
                         <div className="friends-card-header">
                             <div className="friends-card-headings">
                                 <h2 className="friends-card-title">
-                                    Friend requests
+                                    {t('friends.requests.title')}
                                 </h2>
                                 <p className="friends-card-subtitle">
-                                    Accept to connect and start planning trips
-                                    together.
+                                    {t('friends.requests.subtitle')}
                                 </p>
                             </div>
                             <span className="friends-count">
-                                {incoming.length}{' '}
-                                {incoming.length === 1 ? 'request' : 'requests'}
+                                {t('friends.requests.count', {
+                                    count: incoming.length,
+                                })}
                             </span>
                         </div>
                         <div className="friends-list">
@@ -178,7 +182,13 @@ export const Friends = () => {
                                                 {req.otherUser.email}
                                             </span>
                                             <span className="friend-meta-item">
-                                                Sent {formatRelativeShort(req.createdAt)}
+                                                {t('friends.sentAgo', {
+                                                    time: formatRelativeShort(
+                                                        req.createdAt,
+                                                        t,
+                                                        i18n.language
+                                                    ),
+                                                })}
                                             </span>
                                         </div>
                                     </div>
@@ -186,7 +196,7 @@ export const Friends = () => {
                                         <ButtonCustom
                                             type={BUTTON_VARIANT.STANDARD_MINI}
                                             capitalizeType="uppercase"
-                                            label="Accept"
+                                            label={t('friends.actions.accept')}
                                             onClick={() => handleAccept(req)}
                                             disabled={respondMutation.isPending}
                                         />
@@ -196,7 +206,7 @@ export const Friends = () => {
                                             onClick={() => handleReject(req)}
                                             disabled={respondMutation.isPending}
                                         >
-                                            Reject
+                                            {t('friends.actions.reject')}
                                         </button>
                                     </div>
                                 </div>
@@ -209,31 +219,35 @@ export const Friends = () => {
                 <section className="friends-card">
                     <div className="friends-card-header">
                         <div className="friends-card-headings">
-                            <h2 className="friends-card-title">Your friends</h2>
+                            <h2 className="friends-card-title">
+                                {t('friends.yourFriends.title')}
+                            </h2>
                             <p className="friends-card-subtitle">
-                                Friends can be added to trips to plan
-                                itineraries together and share travel plans.
+                                {t('friends.yourFriends.subtitle')}
                             </p>
                         </div>
                         <div className="friends-card-actions">
                             <span className="friends-count">
-                                {friends.length}{' '}
-                                {friends.length === 1 ? 'friend' : 'friends'}
+                                {t('friends.yourFriends.count', {
+                                    count: friends.length,
+                                })}
                             </span>
                             <ButtonCustom
                                 type={BUTTON_VARIANT.STANDARD_MINI}
                                 capitalizeType="uppercase"
-                                label="+ Invite friend"
+                                label={t('friends.actions.invite')}
                                 onClick={() => inviteRef.current?.openModel()}
                             />
                         </div>
                     </div>
                     <div className="friends-list">
                         {friendsLoading ? (
-                            <p className="friends-empty">Loading…</p>
+                            <p className="friends-empty">
+                                {t('friends.loading')}
+                            </p>
                         ) : friends.length === 0 ? (
                             <p className="friends-empty">
-                                No friends yet. Invite one to get started.
+                                {t('friends.yourFriends.empty')}
                             </p>
                         ) : (
                             pagedFriends.map((f) => (
@@ -245,7 +259,7 @@ export const Friends = () => {
                                         <span className="friend-name">
                                             {f.name ?? f.email}
                                             <span className="friend-status-badge is-friend">
-                                                Friend
+                                                {t('friends.badge.friend')}
                                             </span>
                                         </span>
                                         {f.email && (
@@ -262,9 +276,11 @@ export const Friends = () => {
                                             className="friend-remove"
                                             onClick={() => handleUnfriendClick(f)}
                                             disabled={unfriendMutation.isPending}
-                                            aria-label={`Remove ${f.name ?? f.email}`}
+                                            aria-label={t('friends.actions.removeName', {
+                                                name: f.name ?? f.email,
+                                            })}
                                         >
-                                            Remove
+                                            {t('friends.actions.remove')}
                                         </button>
                                     </div>
                                 </div>
@@ -282,7 +298,7 @@ export const Friends = () => {
                                     behavior: 'smooth',
                                 });
                             }}
-                            ariaLabel="Friends pagination"
+                            ariaLabel={t('friends.paginationAria')}
                         />
                     )}
                 </section>
@@ -293,15 +309,16 @@ export const Friends = () => {
                         <div className="friends-card-header">
                             <div className="friends-card-headings">
                                 <h2 className="friends-card-title">
-                                    Sent requests
+                                    {t('friends.sent.title')}
                                 </h2>
                                 <p className="friends-card-subtitle">
-                                    Waiting for them to accept. Resend the
-                                    email if they didn&rsquo;t see it.
+                                    {t('friends.sent.subtitle')}
                                 </p>
                             </div>
                             <span className="friends-count">
-                                {outgoing.length} pending
+                                {t('friends.sent.count', {
+                                    count: outgoing.length,
+                                })}
                             </span>
                         </div>
                         {resendFeedback && (
@@ -325,9 +342,9 @@ export const Friends = () => {
                                     <div className="friend-info">
                                         <span className="friend-name">
                                             {req.otherUser.name ??
-                                                'Invitation sent'}
+                                                t('friends.sent.invitationSent')}
                                             <span className="friend-pending-badge">
-                                                Pending
+                                                {t('friends.badge.pending')}
                                             </span>
                                         </span>
                                         <div className="friend-meta">
@@ -335,7 +352,13 @@ export const Friends = () => {
                                                 {req.otherUser.email}
                                             </span>
                                             <span className="friend-meta-item">
-                                                Sent {formatRelativeShort(req.createdAt)}
+                                                {t('friends.sentAgo', {
+                                                    time: formatRelativeShort(
+                                                        req.createdAt,
+                                                        t,
+                                                        i18n.language
+                                                    ),
+                                                })}
                                             </span>
                                         </div>
                                     </div>
@@ -347,8 +370,8 @@ export const Friends = () => {
                                             disabled={resendMutation.isPending}
                                         >
                                             {resendMutation.isPending
-                                                ? 'Resending…'
-                                                : 'Resend'}
+                                                ? t('friends.actions.resending')
+                                                : t('friends.actions.resend')}
                                         </button>
                                         <button
                                             type="button"
@@ -356,7 +379,7 @@ export const Friends = () => {
                                             onClick={() => handleCancel(req)}
                                             disabled={cancelMutation.isPending}
                                         >
-                                            Cancel
+                                            {t('friends.actions.cancel')}
                                         </button>
                                     </div>
                                 </div>
@@ -366,7 +389,9 @@ export const Friends = () => {
                 )}
 
                 {requestsLoading && requests.length === 0 && (
-                    <p className="friends-empty">Loading requests…</p>
+                    <p className="friends-empty">
+                        {t('friends.loadingRequests')}
+                    </p>
                 )}
 
                 <InviteFriendModal
@@ -380,22 +405,21 @@ export const Friends = () => {
                 fullWidth
             >
                 <DialogTitle>
-                    Remove{' '}
-                    {unfriendCandidate?.name ?? unfriendCandidate?.email}?
+                    {t('friends.removeDialog.title', {
+                        name:
+                            unfriendCandidate?.name ??
+                            unfriendCandidate?.email ??
+                            '',
+                    })}
                 </DialogTitle>
                 <DialogContent>
-                    <p>
-                        They&rsquo;ll be removed from your friends list and
-                        won&rsquo;t see your trips unless you&rsquo;re both
-                        organizers on one. To reconnect, either of you will
-                        need to send a fresh friend request.
-                    </p>
+                    <p>{t('friends.removeDialog.body')}</p>
                 </DialogContent>
                 <DialogActions>
                     <ButtonCustom
                         type={BUTTON_VARIANT.LINE}
                         capitalizeType="uppercase"
-                        label="Keep as friend"
+                        label={t('friends.removeDialog.keep')}
                         onClick={handleUnfriendCancel}
                         disabled={unfriendMutation.isPending}
                     />
@@ -404,8 +428,8 @@ export const Friends = () => {
                         capitalizeType="uppercase"
                         label={
                             unfriendMutation.isPending
-                                ? 'Removing…'
-                                : 'Remove friend'
+                                ? t('friends.removeDialog.removing')
+                                : t('friends.removeDialog.confirm')
                         }
                         onClick={handleUnfriendConfirm}
                         disabled={unfriendMutation.isPending}

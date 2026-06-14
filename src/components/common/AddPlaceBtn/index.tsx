@@ -6,6 +6,7 @@ import {
     type ComponentType,
 } from 'react';
 import { useSearchPlaces } from 'api/hooks/useSearchPlaces';
+import { useTranslation } from 'react-i18next';
 import { Alert, CircularProgress, Grid, Snackbar } from '@mui/material';
 import { formatDate, isValidDate, now } from 'utils';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -60,12 +61,6 @@ import type {
     Friend,
     TransitInfo,
 } from 'types';
-
-const PLACE_LABEL = {
-    ADD: 'Add Activity',
-    EDIT: 'Edit',
-    SAVE: 'Save Activity',
-} as const;
 
 /** Lifecycle of a SMART-method entry, used to drive the auto-advance to
  *  the review step and the not-found manual/suggestions fallback:
@@ -124,14 +119,18 @@ const emptySegment = (defaultDate?: string): FlightInfo => ({
  *  card); else a plain "Note" so the timeline never shows a blank
  *  title. A note that's only whitespace / blank leading lines previously
  *  produced an empty name — this guarantees a fallback. */
-const deriveNoteName = (name?: string, note?: string): string => {
+const deriveNoteName = (
+    name?: string,
+    note?: string,
+    fallback = 'Note',
+): string => {
     const typed = name?.trim();
     if (typed) return typed;
     const firstLine = (note ?? '')
         .split(/\r?\n/)
         .map((line) => line.trim())
         .find((line) => line.length > 0);
-    return firstLine ? firstLine.slice(0, 80) : 'Note';
+    return firstLine ? firstLine.slice(0, 80) : fallback;
 };
 
 const emptyTransitSegment = (defaultDate?: string): TransitInfo => ({
@@ -181,6 +180,7 @@ const AddPlaceBtn = ({
     isViewMode = false,
     defaultDate,
 }: AddPlaceBtnProps) => {
+    const { t } = useTranslation();
     const modelRef = useRef<ModalButtonHandle>(null);
     const queryClient = useQueryClient();
 
@@ -591,7 +591,9 @@ const AddPlaceBtn = ({
             const parsed = parseTransitEntry(transitSmartEntry);
             if (!parsed) {
                 setTransitSmartWarning(
-                    `Couldn't pick anything useful out of “${transitSmartEntry.trim()}”. Fill in operator / station / time using the form below.`,
+                    t('addForms.activity.transit.parseFailed', {
+                        text: transitSmartEntry.trim(),
+                    }),
                 );
                 setTransitDetailsExpanded(true);
                 return;
@@ -613,7 +615,9 @@ const AddPlaceBtn = ({
             );
             if (!hasContent) {
                 setTransitSmartWarning(
-                    `Couldn't pick anything useful out of “${transitSmartEntry.trim()}”. Fill in operator / station / time using the form below.`,
+                    t('addForms.activity.transit.parseFailed', {
+                        text: transitSmartEntry.trim(),
+                    }),
                 );
                 setTransitDetailsExpanded(true);
                 return;
@@ -629,16 +633,24 @@ const AddPlaceBtn = ({
                 if (!parsed.tripName) return undefined;
                 if (parsed.operator) {
                     if (kindAtFire === ACTIVITY_KIND.RENTAL_CAR) {
-                        return `Car reservation with ${parsed.operator}`;
+                        return t('addForms.activity.transit.wrapName.rentalCar', {
+                            operator: parsed.operator,
+                        });
                     }
                     if (kindAtFire === ACTIVITY_KIND.TRAIN) {
-                        return `Train with ${parsed.operator}`;
+                        return t('addForms.activity.transit.wrapName.train', {
+                            operator: parsed.operator,
+                        });
                     }
                     if (kindAtFire === ACTIVITY_KIND.BUS) {
-                        return `Bus with ${parsed.operator}`;
+                        return t('addForms.activity.transit.wrapName.bus', {
+                            operator: parsed.operator,
+                        });
                     }
                     if (kindAtFire === ACTIVITY_KIND.OTHER) {
-                        return `Ride with ${parsed.operator}`;
+                        return t('addForms.activity.transit.wrapName.other', {
+                            operator: parsed.operator,
+                        });
                     }
                 }
                 return parsed.tripName;
@@ -1551,7 +1563,7 @@ const AddPlaceBtn = ({
             // as the headline on the timeline card (see name-derivation
             // below in finalName).
             if (!place.note?.trim()) {
-                missing.push('a note');
+                missing.push(t('addForms.activity.validation.note'));
             }
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
             const segments = place.flightSegments ?? [];
@@ -1564,7 +1576,7 @@ const AddPlaceBtn = ({
                     s.arrivalAirport?.trim(),
             );
             if (!segments.length || !anyContent) {
-                missing.push('a flight number or airport');
+                missing.push(t('addForms.activity.validation.flight'));
             }
         } else if (
             kind === ACTIVITY_KIND.HOTEL_CHECKIN ||
@@ -1574,7 +1586,7 @@ const AddPlaceBtn = ({
             // identifies what hotel this is. Time / cost / confirmation
             // can all be added later.
             if (!place.name?.trim() && !place.location?.trim()) {
-                missing.push('a hotel name or address');
+                missing.push(t('addForms.activity.validation.hotel'));
             }
         } else if (
             kind === ACTIVITY_KIND.TRAIN ||
@@ -1596,18 +1608,23 @@ const AddPlaceBtn = ({
                 const isRental = kind === ACTIVITY_KIND.RENTAL_CAR;
                 missing.push(
                     isRental
-                        ? 'a rental company or pickup location'
-                        : 'an operator or station',
+                        ? t('addForms.activity.validation.rental')
+                        : t('addForms.activity.validation.transit'),
                 );
             }
         } else {
             // PLACE kind — just need a name. Time window, cost, note,
             // image are all optional.
-            if (!place.name?.trim()) missing.push('a name');
+            if (!place.name?.trim())
+                missing.push(t('addForms.activity.validation.name'));
         }
 
         if (missing.length) {
-            setError(`Please provide ${missing.join(', ')}.`);
+            setError(
+                t('addForms.activity.validation.message', {
+                    fields: missing.join(', '),
+                }),
+            );
             return false;
         }
         setError(null);
@@ -1629,7 +1646,11 @@ const AddPlaceBtn = ({
             // NOTE has no title field — derive the timeline headline
             // from the note's first non-empty line, falling back to
             // "Note" so the saved activity always has a title.
-            finalName = deriveNoteName(place.name, place.note);
+            finalName = deriveNoteName(
+                place.name,
+                place.note,
+                t('addForms.activity.name.noteFallback'),
+            );
         } else if (kind === ACTIVITY_KIND.FLIGHT) {
             // No user-facing flight-name field anymore — derive
             // entirely from the segments. Two strategies in priority
@@ -1669,12 +1690,12 @@ const AddPlaceBtn = ({
                     if (!seg) return '';
                     const prefix =
                         kind === ACTIVITY_KIND.TRAIN
-                            ? 'Train'
+                            ? t('addForms.activity.name.train')
                             : kind === ACTIVITY_KIND.BUS
-                              ? 'Bus'
+                              ? t('addForms.activity.name.bus')
                               : kind === ACTIVITY_KIND.OTHER
-                                ? 'Ride'
-                                : 'Rental car';
+                                ? t('addForms.activity.name.ride')
+                                : t('addForms.activity.name.rentalCar');
                     const bits = [
                         prefix,
                         seg.operator?.trim(),
@@ -1683,15 +1704,17 @@ const AddPlaceBtn = ({
                     return bits.join(' ');
                 })();
         } else if (kind === ACTIVITY_KIND.HOTEL_CHECKIN) {
-            finalName =
-                place.name?.trim()
-                    ? `Check in: ${place.name.trim()}`
-                    : 'Hotel check-in';
+            finalName = place.name?.trim()
+                ? t('addForms.activity.name.checkInPrefix', {
+                      name: place.name.trim(),
+                  })
+                : t('addForms.activity.name.hotelCheckin');
         } else if (kind === ACTIVITY_KIND.HOTEL_CHECKOUT) {
-            finalName =
-                place.name?.trim()
-                    ? `Check out: ${place.name.trim()}`
-                    : 'Hotel check-out';
+            finalName = place.name?.trim()
+                ? t('addForms.activity.name.checkOutPrefix', {
+                      name: place.name.trim(),
+                  })
+                : t('addForms.activity.name.hotelCheckout');
         }
 
         // For train + bus, the depart segment's date/time is the
@@ -1765,9 +1788,15 @@ const AddPlaceBtn = ({
             // headline.
             let editName = data.name;
             if (dataKind === ACTIVITY_KIND.HOTEL_CHECKIN) {
-                editName = data.name?.replace(/^Check in:\s*/i, '');
+                editName = data.name?.replace(
+                    /^(?:Check in|Entrada):\s*/i,
+                    '',
+                );
             } else if (dataKind === ACTIVITY_KIND.HOTEL_CHECKOUT) {
-                editName = data.name?.replace(/^Check out:\s*/i, '');
+                editName = data.name?.replace(
+                    /^(?:Check out|Salida):\s*/i,
+                    '',
+                );
             }
             setPlace({
                 id: data.id,
@@ -1967,7 +1996,11 @@ const AddPlaceBtn = ({
     const deriveActivityName = (): string => {
         const kind = currentKind;
         if (kind === ACTIVITY_KIND.NOTE) {
-            return deriveNoteName(place.name, place.note);
+            return deriveNoteName(
+                place.name,
+                place.note,
+                t('addForms.activity.name.noteFallback'),
+            );
         }
         if (kind === ACTIVITY_KIND.FLIGHT) {
             if (place.name?.trim()) return place.name.trim();
@@ -1994,25 +2027,29 @@ const AddPlaceBtn = ({
             if (!seg) return '';
             const prefix =
                 kind === ACTIVITY_KIND.TRAIN
-                    ? 'Train'
+                    ? t('addForms.activity.name.train')
                     : kind === ACTIVITY_KIND.BUS
-                      ? 'Bus'
+                      ? t('addForms.activity.name.bus')
                       : kind === ACTIVITY_KIND.OTHER
-                        ? 'Ride'
-                        : 'Rental car';
+                        ? t('addForms.activity.name.ride')
+                        : t('addForms.activity.name.rentalCar');
             return [prefix, seg.operator?.trim(), seg.number?.trim()]
                 .filter(Boolean)
                 .join(' ');
         }
         if (kind === ACTIVITY_KIND.HOTEL_CHECKIN) {
             return place.name?.trim()
-                ? `Check in: ${place.name.trim()}`
-                : 'Hotel check-in';
+                ? t('addForms.activity.name.checkInPrefix', {
+                      name: place.name.trim(),
+                  })
+                : t('addForms.activity.name.hotelCheckin');
         }
         if (kind === ACTIVITY_KIND.HOTEL_CHECKOUT) {
             return place.name?.trim()
-                ? `Check out: ${place.name.trim()}`
-                : 'Hotel check-out';
+                ? t('addForms.activity.name.checkOutPrefix', {
+                      name: place.name.trim(),
+                  })
+                : t('addForms.activity.name.hotelCheckout');
         }
         return place.name?.trim() ?? '';
     };
@@ -2304,7 +2341,15 @@ const AddPlaceBtn = ({
     const modalElement = (
         <ModalButton
             ref={modelRef}
-            title={isAdd ? PLACE_LABEL.ADD : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`}
+            title={
+                isAdd
+                    ? t('addForms.activity.trigger.add')
+                    : data?.name
+                      ? t('addForms.activity.trigger.editNamed', {
+                            name: data.name,
+                        })
+                      : t('addForms.activity.trigger.edit')
+            }
             onClose={handleModalClose}
             // Pre-warm the destination's place suggestions the moment the
             // Add-Activity modal opens, so the Suggestions strip is already
@@ -2335,11 +2380,17 @@ const AddPlaceBtn = ({
                           className: triggerClassName,
                           iconProps: { fontSize: 'small' },
                           ariaLabel: isAdd
-                              ? PLACE_LABEL.ADD
-                              : `${PLACE_LABEL.EDIT} ${data?.name ?? ''}`,
+                              ? t('addForms.activity.trigger.add')
+                              : data?.name
+                                ? t('addForms.activity.trigger.editNamed', {
+                                      name: data.name,
+                                  })
+                                : t('addForms.activity.trigger.edit'),
                       }
                     : {
-                          title: isAdd ? PLACE_LABEL.ADD : PLACE_LABEL.EDIT,
+                          title: isAdd
+                              ? t('addForms.activity.trigger.add')
+                              : t('addForms.activity.trigger.edit'),
                           Icon:
                               buttonType === BUTTON_VARIANT.STANDARD
                                   ? AddCircleIcon
@@ -2365,7 +2416,7 @@ const AddPlaceBtn = ({
                             <Grid item lg={12} md={12} xs={12}>
                                 <ButtonCustom
                                     onClick={handleSubmit}
-                                    label={PLACE_LABEL.SAVE}
+                                    label={t('addForms.activity.trigger.save')}
                                     type={BUTTON_VARIANT.STANDARD}
                                     capitalizeType="uppercase"
                                 />
@@ -2447,25 +2498,32 @@ const AddPlaceBtn = ({
                                                             size={16}
                                                             className="add-smart-pipeline-spinner"
                                                         />
-                                                        <span>Searching…</span>
+                                                        <span>
+                                                            {t(
+                                                                'addForms.common.searching',
+                                                            )}
+                                                        </span>
                                                     </div>
                                                 )}
                                             {isSmartMethodActive &&
                                                 smartStatus === 'notfound' && (
                                                     <div className="add-smart-pipeline add-smart-pipeline-notfound">
                                                         <span className="add-smart-pipeline-msg">
-                                                            Couldn&rsquo;t find a
-                                                            match. Add the
-                                                            details yourself
                                                             {availableMethods.includes(
                                                                 ADD_METHOD.SUGGESTIONS,
                                                             )
-                                                                ? ' or browse suggestions.'
-                                                                : '.'}
+                                                                ? t(
+                                                                      'addForms.activity.smartPipeline.notFoundWithSuggestions',
+                                                                  )
+                                                                : t(
+                                                                      'addForms.activity.smartPipeline.notFound',
+                                                                  )}
                                                         </span>
                                                         <div className="add-smart-pipeline-actions">
                                                             <ButtonCustom
-                                                                label="Add manually"
+                                                                label={t(
+                                                                    'addForms.activity.smartPipeline.addManually',
+                                                                )}
                                                                 type={
                                                                     BUTTON_VARIANT.LINE
                                                                 }
@@ -2479,7 +2537,9 @@ const AddPlaceBtn = ({
                                                                 ADD_METHOD.SUGGESTIONS,
                                                             ) && (
                                                                 <ButtonCustom
-                                                                    label="See suggestions"
+                                                                    label={t(
+                                                                        'addForms.activity.smartPipeline.seeSuggestions',
+                                                                    )}
                                                                     type={
                                                                         BUTTON_VARIANT.LINE
                                                                     }
@@ -2540,9 +2600,13 @@ const AddPlaceBtn = ({
                                             onBack={() =>
                                                 setReviewEditing(false)
                                             }
-                                            backLabel="Cancel"
+                                            backLabel={t(
+                                                'addForms.common.cancel',
+                                            )}
                                             onConfirm={handleReviewEditSave}
-                                            confirmLabel="Save"
+                                            confirmLabel={t(
+                                                'addForms.common.save',
+                                            )}
                                         />
                                     </>
                                 )}

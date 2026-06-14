@@ -136,6 +136,34 @@
             "typeToConfirm": "Type DELETE to confirm",
             "deleting": "Deleting…",
             "deleteFailed": "Could not delete your account. Please try again."
+        },
+        "subscription": {
+            "title": "Subscription",
+            "adminNotice": "You're an admin — paywalls don't apply to you, and there's nothing to bill.",
+            "adminBadge": "Admin account",
+            "paidSubtitle": "Manage your plan, payment method, and billing history.",
+            "badgePro": "DaTryp.com Pro",
+            "badgeProCancelling": "DaTryp.com Pro — Cancelling",
+            "cancelledTrial": "Your trial is cancelled. Pro access ends <strong>{{date}}</strong>. No charge will be made. Change your mind? Use the billing portal to resume.",
+            "cancelledSubscription": "Your subscription is cancelled. Pro access ends <strong>{{date}}</strong>. No further charges will be made. Change your mind? Use the billing portal to resume.",
+            "trialEnds": "Free trial ends <strong>{{date}}</strong>. Your card will be charged then unless you cancel.",
+            "renews": "Renews <strong>{{date}}</strong>.",
+            "pastDue": "Your last payment failed. Update your payment method in the billing portal to keep your Pro access.",
+            "opening": "Opening…",
+            "updatePayment": "Update payment method",
+            "resumeBilling": "Resume or update billing",
+            "manageBilling": "Manage billing",
+            "portalError": "Could not open the billing portal: {{error}}",
+            "freeSubtitle": "Upgrade to Pro for unlimited trips and Advanced Search.",
+            "canceledSubtitle": "Your previous subscription has ended.",
+            "badgeFree": "Free plan",
+            "tripCap_one": "Save up to <strong>{{count}}</strong> trip with standard search results.",
+            "tripCap_other": "Save up to <strong>{{count}}</strong> trips with standard search results.",
+            "upgradeHeadline": "Upgrade to Pro",
+            "resubscribeHeadline": "Resubscribe to Pro",
+            "upgradeBody": "Unlimited saved trips, Advanced Search, richer recommendations.",
+            "resubscribeBody": "Pick up where you left off — your saved trips are still there.",
+            "compare": "Want the full feature breakdown? <compareLink>See plan comparison</compareLink>."
         }
     },
     "nav": {
@@ -1401,6 +1429,1732 @@
             "visitedDate": "Visited {{date}}",
             "visitedBy": "Visited by",
             "you": "You"
+        }
+    },
+    "homeBase": {
+        "label": "Current place of residence",
+        "hint": "Current place of residence — we only store your city, not your street address. Drives the nearest-airport / train-station suggestion on new trips, the depart-origin on Google Maps directions, and the personalized homepage picks.",
+        "placeholder": "Search a city (e.g. Madrid, Tokyo)"
+    },
+    "saved": {
+        "title": "Saved",
+        "heading": "Your bookmarks",
+        "summary": "{{countries}} · {{cities}} · {{places}} bookmarked",
+        "summaryCountries_one": "{{count}} country",
+        "summaryCountries_other": "{{count}} countries",
+        "summaryCities_one": "{{count}} city",
+        "summaryCities_other": "{{count}} cities",
+        "summaryPlaces_one": "{{count}} place",
+        "summaryPlaces_other": "{{count}} places",
+        "savedOn": "Saved on {{date}}",
+        "sections": {
+            "countries": "Countries",
+            "cities": "Cities",
+            "places": "Places"
+        },
+        "empty": {
+            "heading": "You haven't saved anything yet.",
+            "hintBefore": "Open a country or place from the",
+            "homeLink": "home page",
+            "hintMiddle": "and tap",
+            "hintEmphasis": "Save",
+            "hintAfter": "on anything you want to come back to."
+        },
+        "remove": {
+            "title": "Remove from saved",
+            "label": "Remove"
+        }
+    },
+    "tripCard": {
+        "status": {
+            "planning": "Planning",
+            "confirmed": "Confirmed",
+            "completed": "Completed",
+            "cancelled": "Cancelled"
+        },
+        "multiDestination": "Multiple destinations",
+        "oneDestination": "One destination",
+        "moreCount_one": "+{{count}} more",
+        "moreCount_other": "+{{count}} more",
+        "startsToday": "Starts today",
+        "startsTomorrow": "Starts tomorrow",
+        "startsInDays_one": "Starts in {{count}} day",
+        "startsInDays_other": "Starts in {{count}} days",
+        "liveDay": "Live · Day {{current}} of {{total}}",
+        "planned": "{{pct}}% planned",
+        "plannedTitle": "How filled in the itinerary is",
+        "memoryDays_one": "{{count}} day",
+        "memoryDays_other": "{{count}} days",
+        "memoryPlaces_one": "{{count}} place",
+        "memoryPlaces_other": "{{count}} places",
+        "memoryFriends_one": "{{count}} friend",
+        "memoryFriends_other": "{{count}} friends",
+        "friendsOnTrip_one": "{{count}} friend on this trip",
+        "friendsOnTrip_other": "{{count}} friends on this trip",
+        "selectTrip": "Select trip {{name}}",
+        "unselectTrip": "Unselect trip {{name}}",
+        "confirmTrip": "Confirm trip",
+        "markComplete": "Mark complete",
+        "percentReady": "{{pct}}% ready",
+        "confirmDialogTitle": "Confirm this trip?",
+        "confirmDialogBody": "Confirming locks the itinerary — you won't be able to add or edit places afterward. Participants will be notified if the bell is on.",
+        "completeDialogTitle": "Complete this trip?",
+        "completeDialogBody": "Once completed the trip is read-only — it stays in your list as a record of where you've been. Completing it also:",
+        "completeBenefits": {
+            "atlas": "Adds your destinations to your Travel Atlas",
+            "visited": "Marks the places you visited",
+            "reviews": "Unlocks reviews so you can rate where you went"
+        },
+        "resolveStatusError": "Couldn't resolve the next trip status. Try again shortly.",
+        "editDatesHint": "Open Edit Trip to change the trip dates.",
+        "activityOnDate": "Activity on {{date}}",
+        "someUnconfirmedTitle": "Some activities aren't confirmed",
+        "someUnconfirmedIntro_one": "{{count}} activity is still in Planning:",
+        "someUnconfirmedIntro_other": "{{count}} activities are still in Planning:",
+        "someUnconfirmedNote": "Confirming marks them all Confirmed and locks the itinerary — you won't be able to edit afterward. Cancel to review first.",
+        "readinessHead": "Trip readiness · {{pct}}% ready",
+        "cancel": "Cancel",
+        "saving": "Saving…",
+        "confirmAll": "Confirm all"
+    },
+    "tripDetail": {
+        "loading": "Loading trip…",
+        "untitledTrip": "Untitled trip",
+        "endOfTrip": "End of trip",
+        "notFound": {
+            "title": "Trip not found",
+            "subtitle": "We couldn't find this trip. It may have been deleted, or the link points to a trip that's no longer in your list.",
+            "backToTrips": "Back to my trips"
+        },
+        "toolbar": {
+            "tripDetails": "Trip details",
+            "focus": "Focus",
+            "focusTitle": "Focus on the itinerary",
+            "focusTitleActive": "Show trip overview",
+            "showOverview": "Show overview",
+            "showOverviewAria": "Show trip overview",
+            "show": "Show",
+            "textOnly": "Text only",
+            "textOnlyTitle": "Hide activity images",
+            "showImages": "Show images",
+            "showImagesTitle": "Show activity images",
+            "night": "Night",
+            "nightTitle": "Switch to night view",
+            "day": "Day",
+            "dayTitle": "Switch to day view"
+        },
+        "completedBanner": {
+            "title": "Trip completed",
+            "subtitle": "Locked in as a record of where you've been. Activity edits, deletes, and budget changes are sealed."
+        },
+        "cancelledBanner": {
+            "title": "Trip cancelled",
+            "subtitle": "This trip is cancelled. The itinerary stays viewable as a record, but it's no longer active."
+        },
+        "markCompleteCta": {
+            "title": "Trip all wrapped up?",
+            "subtitle": "Mark it complete to archive it as a record of where you've been.",
+            "endedTitle_one": "Trip ended {{count}} day ago",
+            "endedTitle_other": "Trip ended {{count}} days ago",
+            "endedSubtitle": "Did you complete this trip? Mark it complete to archive it as a record of where you've been."
+        },
+        "export": {
+            "title": "Share or download trip",
+            "shareButton": "Share",
+            "shareSectionHead": "Share with people",
+            "downloadSectionHead": "Download a copy",
+            "whatsapp": {
+                "title": "WhatsApp",
+                "hint": "Send the trip summary + link to a participant or group chat."
+            },
+            "email": {
+                "title": "Email",
+                "hint": "Opens your mail app with the trip summary + link."
+            },
+            "copyLink": {
+                "title": "Copy link",
+                "hint": "Paste it anywhere — Messages, Slack, anywhere."
+            },
+            "pdf": {
+                "title": "Download PDF",
+                "hint": "Branded two-page report — itinerary + expense summary."
+            },
+            "print": {
+                "title": "Print",
+                "hint": "Opens your browser's print preview — save as PDF or send to a printer."
+            },
+            "excel": {
+                "title": "Download Excel",
+                "hint": "Day-by-day .xlsx with activities, times, and budget."
+            }
+        },
+        "menu": {
+            "moreActions": "More actions",
+            "takeTour": "Take the tour",
+            "shareDownload": "Share & download",
+            "tripNotifications": "Trip notifications",
+            "removeOffline": "Remove offline copy",
+            "savingOffline": "Saving offline…",
+            "saveOffline": "Save offline",
+            "saveOfflineConnect": "Save offline (connect first)",
+            "duplicateTrip": "Duplicate trip",
+            "cancelTrip": "Cancel trip",
+            "deleteTrip": "Delete trip"
+        },
+        "confirm": {
+            "cancelTitle": "Cancel this trip?",
+            "deleteTitle": "Delete this trip?",
+            "cancelBody": "The trip moves to Cancelled status. Participants will see it as cancelled but the itinerary stays viewable. This can be reversed later by an organizer.",
+            "deleteBody": "This permanently removes the trip and all its activities. Participants will no longer see it in their list. This cannot be undone.",
+            "keepTrip": "Keep trip",
+            "delete": "Delete",
+            "deleting": "Deleting…",
+            "saving": "Saving…",
+            "cancelTrip": "Cancel trip"
+        },
+        "share": {
+            "defaultTripTitle": "My trip",
+            "emailSubject": "Trip: {{title}}"
+        },
+        "reminders": {
+            "nextActivity": "Your next activity",
+            "activityStartsIn_one": "{{name}} starts in 1 minute",
+            "activityStartsIn_other": "{{name}} starts in {{count}} minutes",
+            "tripStartsToday": "{{name}} starts today — have a great trip!",
+            "freeDay": "a free day — nothing scheduled.",
+            "activitiesPlanned_one": "1 activity planned.",
+            "activitiesPlanned_other": "{{count}} activities planned.",
+            "daySummary": "Day {{dayIndex}} of {{totalDays}} — {{summary}}"
+        },
+        "toasts": {
+            "tripInfoSaved": "Trip info saved.",
+            "tripConfirmed": "Yay! Your trip is confirmed and ready to go!",
+            "itineraryEmailed_one": "Itinerary emailed to {{count}} person.",
+            "itineraryEmailed_other": "Itinerary emailed to {{count}} people.",
+            "emailFailed": "Couldn't email the itinerary — you can still share it from the ⋮ menu.",
+            "linkCopied": "Trip link copied to clipboard"
+        },
+        "errors": {
+            "stillSaving": "Still saving the previous change. Try again in a moment.",
+            "saveChange": "Failed to save the change.",
+            "saveTripInfo": "Failed to save trip info.",
+            "deleteTrip": "Failed to delete the trip.",
+            "updateStatus": "Failed to update trip status.",
+            "resolveCancelled": "Couldn't resolve the Cancelled status. Try again shortly.",
+            "cancelTrip": "Failed to cancel the trip."
+        },
+        "basicInfo": {
+            "organizer": "Organizer",
+            "where": "Where",
+            "when": "When",
+            "budget": "Budget",
+            "whosGoing": "Who's going"
+        },
+        "budget": {
+            "meter": "Trip expenses meter",
+            "showDetails": "Show budget details",
+            "hideDetails": "Hide budget details",
+            "empty": "Set a budget on the trip details to track spending.",
+            "onTrack": "On track · {{amount}} remaining",
+            "gettingClose": "Getting close · {{amount}} left",
+            "over": "Over budget by {{amount}}",
+            "percent": "{{pct}}%",
+            "verdict": {
+                "estimate": "We estimate about {{amount}}.",
+                "estimateFor": "We estimate about {{amount}} for {{destination}}.",
+                "tight": {
+                    "label": "Tight",
+                    "why": "Your budget is {{pct}}% under — you may need to economize on lodging or dining."
+                },
+                "comfortable": {
+                    "label": "Comfortable",
+                    "why": "You have {{pct}}% cushion — room for upgrades or memorable splurges."
+                },
+                "onTarget": {
+                    "label": "On target",
+                    "why": "Your budget lines up with typical spend for this trip."
+                }
+            }
+        },
+        "info": {
+            "tripName": "Trip: {{name}}",
+            "edit": "Edit",
+            "budget": "Budget:",
+            "total": "Total:",
+            "date": "Date:",
+            "people": "People:",
+            "completed": "Completed?"
+        },
+        "planning": {
+            "title": "Trip in planning",
+            "sub": "Your itinerary is fully editable — add, edit, or remove activities and changes save as you go.",
+            "readonlySub": "The organizer is still arranging activities. Check back soon.",
+            "showChecklist": "Show readiness checklist",
+            "hideChecklist": "Hide readiness checklist"
+        },
+        "readiness": {
+            "lodging": {
+                "ok": "Lodging added",
+                "no": "Lodging missing"
+            },
+            "activities": {
+                "ok": "Daily activities added",
+                "no": "No activities added yet"
+            },
+            "budget": {
+                "ok": "Budget set",
+                "no": "Budget not set"
+            },
+            "transport": {
+                "ok": "Transportation added",
+                "no": "Transportation missing"
+            },
+            "freeDay": "Day {{day}} has free time",
+            "moreFreeDays_one": "+{{count}} more day with free time",
+            "moreFreeDays_other": "+{{count}} more days with free time"
+        },
+        "review": {
+            "title": "Trip review",
+            "ariaCard": "Trip readiness checkup",
+            "expand": "Expand trip review",
+            "collapse": "Collapse trip review",
+            "expandTitle": "Expand",
+            "collapseTitle": "Collapse",
+            "analyzing": "Analyzing your plan…",
+            "scoreFailed": "Couldn't score the trip — try again.",
+            "scoreAria": "Score {{score}}",
+            "recheck": "Re-check",
+            "recheckAria": "Re-check trip",
+            "retry": "Retry",
+            "whatsWorking": "What's working",
+            "whatToAddress": "What to address",
+            "quotaLast": "That was your last review today — resets at UTC midnight.",
+            "quotaLeft_one": "{{count}} review left today (cap {{cap}}/day).",
+            "quotaLeft_other": "{{count}} reviews left today (cap {{cap}}/day).",
+            "verdict": {
+                "strong": "Strong",
+                "onTrack": "On track",
+                "needsWork": "Needs work",
+                "weak": "Weak"
+            },
+            "category": {
+                "budget": "Budget",
+                "time": "Time",
+                "activities": "Activities"
+            },
+            "error": {
+                "generic": "Couldn't run the checkup. Try again in a moment.",
+                "notPlanning": "Trip checkup is only available while the trip is in Planning.",
+                "quota": "You've used today's trip reviews. Resets at UTC midnight.",
+                "pro": "Trip Checkup is a Pro feature. Upgrade to score your trip."
+            }
+        },
+        "completion": {
+            "title": "Trip recap",
+            "sub": "A snapshot of where you went and what you did.",
+            "aria": "Trip recap",
+            "days_one": "Day",
+            "days_other": "Days",
+            "activities_one": "Activity",
+            "activities_other": "Activities",
+            "countries_one": "Country",
+            "countries_other": "Countries",
+            "travelers_one": "Traveler",
+            "travelers_other": "Travelers",
+            "spent": "Spent"
+        },
+        "rating": {
+            "ariaLabel": "Trip rating",
+            "title": "How was this trip?",
+            "count_one": "{{count}} rating",
+            "count_other": "{{count}} ratings",
+            "noneYet": "No ratings yet",
+            "yourRating": "Your rating",
+            "tapToRate": "Tap to rate",
+            "saveError": "Couldn't save — try again."
+        },
+        "companions": {
+            "title": "Friends who joined",
+            "traveler": "Traveler",
+            "notRatedYet": "Hasn't rated yet"
+        },
+        "note": {
+            "badge": "Trip recap",
+            "placeholder": "How did the trip go? Anything to remember for next time…",
+            "cancel": "Cancel",
+            "save": "Save note",
+            "saving": "Saving…",
+            "addCta": "Add a trip recap",
+            "editAria": "Edit trip recap",
+            "saveError": "Failed to save the note."
+        },
+        "atlas": {
+            "title": "Added to your Travel Atlas",
+            "subtitle": "You can now leave reviews and revisit your travel history anytime.",
+            "recorded": "{{stats}} recorded",
+            "statCountries_one": "{{count}} country",
+            "statCountries_other": "{{count}} countries",
+            "statCities_one": "{{count}} city",
+            "statCities_other": "{{count}} cities",
+            "statPlaces_one": "{{count}} place",
+            "statPlaces_other": "{{count}} places",
+            "viewAtlas": "View Atlas"
+        },
+        "suggestions": {
+            "trigger": "Get activity ideas",
+            "triggerMore": "More ideas",
+            "triggerLoading": "Conjuring ideas…",
+            "panelAria": "Lightbulb activity suggestions",
+            "hideAria": "Hide suggestions",
+            "loading": "Finding ideas that fit your trip…",
+            "retry": "Retry",
+            "addToTrip": "Add to trip",
+            "addToTripAria": "Add {{name}} to trip",
+            "dontForget": "Don't forget",
+            "dontForgetAria": "Don't forget tip",
+            "quotaLast": "That was your last run today — resets at UTC midnight.",
+            "quotaLeft_one": "{{count}} run left today (cap {{cap}}/day).",
+            "quotaLeft_other": "{{count}} runs left today (cap {{cap}}/day).",
+            "addedToast": "Added \"{{name}}\" to {{day}}",
+            "error": {
+                "generic": "Couldn't fetch suggestions. Try again in a moment.",
+                "notPlanning": "This trip is no longer in Planning. Move it back to Planning to get new ideas.",
+                "quota": "You've used today's lightbulb runs. Resets at UTC midnight.",
+                "pro": "Lightbulb suggestions are a Pro feature. Upgrade to unlock."
+            },
+            "picker": {
+                "title": "Add to which day?",
+                "closeAria": "Close day picker",
+                "sub": "Pick a day to drop <strong>{{name}}</strong> onto.",
+                "day": "Day {{n}}",
+                "empty": "Empty",
+                "activityCount_one": "{{count}} activity",
+                "activityCount_other": "{{count}} activities"
+            }
+        },
+        "notifPrefs": {
+            "title": "Notifications for this trip",
+            "intro": "Choose how you're notified about this trip. This overrides your account notification settings.",
+            "pro": "Pro",
+            "saveError": "Couldn't save — try again.",
+            "options": {
+                "defaultLabel": "Use account default",
+                "defaultHint": "Follow your account notification settings.",
+                "emailLabel": "Email only",
+                "smsLabel": "SMS only",
+                "bothLabel": "Email & SMS",
+                "noneLabel": "None",
+                "noneHint": "Silence email + SMS for this trip (in-app alerts still show).",
+                "noneHintEmailOnly": "Silence email for this trip (in-app alerts still show)."
+            }
+        },
+        "offline": {
+            "justNow": "just now",
+            "minutesAgo": "{{n}}m ago",
+            "hoursAgo": "{{n}}h ago",
+            "savingOffline": "Saving offline…",
+            "saved": "Saved",
+            "savedTitle": "Saved offline — tap to remove",
+            "savedAria": "Saved offline. Tap to remove the offline copy.",
+            "tapAgain": "Tap again to remove",
+            "tapAgainTitle": "Tap again to remove the offline copy",
+            "offline": "Offline",
+            "downloadAria": "Download itinerary for offline use",
+            "saveError": "Couldn't save — try again"
+        },
+        "tour": {
+            "saved": {
+                "title": "Your trip is saved",
+                "content": "Here's the read-only view of your trip. A few things to know before you head out — let's walk through them in under a minute."
+            },
+            "lifecycle": {
+                "title": "Trip lifecycle",
+                "content": "A trip moves through <strong>Planning</strong> → <strong>Confirmed</strong> → <strong>Completed</strong>. Click <strong>Confirm Trip</strong> when bookings are locked. After that, activities can be ticked off one by one."
+            },
+            "details": {
+                "title": "Trip details & editing",
+                "content": "Tap <strong>Trip details</strong> to expand the overview — dates, destination, budget, and who's going. While the trip is in Planning the organizer can edit any of it (and the day list) right here; changes save as you go."
+            },
+            "focus": {
+                "title": "Focus mode",
+                "content": "Tap <strong>Focus</strong> to hide every overview card — even the app's header and nav — so the page is just your dates and activities. A floating <strong>Show</strong> pill brings the chrome back. Great for reading the itinerary on the go."
+            },
+            "night": {
+                "title": "Night view",
+                "content": "Tap <strong>Night</strong> for a dark theme scoped to the itinerary — easier on the eyes on a plane or in a dim hotel room. It resets to day view when you leave the page."
+            },
+            "textOnly": {
+                "title": "Text-only view",
+                "content": "Tap <strong>Text only</strong> to hide every activity's photo for a dense, scannable list. Handy on a slow connection or when you just want the plan, not the pictures."
+            },
+            "offline": {
+                "title": "Take it offline",
+                "content": "Once a trip is <strong>Confirmed</strong>, tap <strong>Offline</strong> to save a copy to this device. It opens with no signal — perfect for reading your itinerary abroad without data. On mobile this lives in the <strong>⋮</strong> menu."
+            },
+            "share": {
+                "title": "Share & download PDF",
+                "content": "Tap <strong>Share</strong> to send the trip on WhatsApp or email, copy the link, or <strong>Download PDF</strong> — a branded report with the itinerary and expense summary. You can also grab an <strong>Excel</strong> sheet or <strong>Print</strong> a paper copy."
+            },
+            "quietEdits": {
+                "title": "Quiet edits",
+                "content": "Untick the bell to skip the email + in-app notification fan-out when you save a tiny edit. The trip still saves; the rest of the group just isn't pinged."
+            },
+            "timeline": {
+                "title": "Day-by-day timeline",
+                "content": "Every day in your trip range has its own row. Activities are sorted by start time. Past activities dim once their end time passes. Look for a green stripe along the top — that marks the activity <strong>happening right now</strong> and grows as time elapses."
+            },
+            "activityStatus": {
+                "title": "Per-activity status",
+                "content": "Once the trip is Confirmed, each activity gets a checkmark to mark it <strong>Completed</strong>. Past-due activities auto-tick if you don't get to them — you can always toggle them back. Tap a place name to open its full detail in a new tab."
+            },
+            "locale": {
+                "back": "Back",
+                "close": "Close",
+                "last": "Got it",
+                "next": "Next",
+                "skip": "Skip tour"
+            }
+        },
+        "tripTour": {
+            "mode": {
+                "intro": {
+                    "title": "Plan your first trip",
+                    "content": "We'll ask one quick thing per screen and you tap <strong>Next</strong> to move on. Hit <strong>Take the tour</strong> again on any screen if you want a refresher."
+                },
+                "singleOrMulti": {
+                    "title": "Single or multi-destination?",
+                    "content": "<strong>Single</strong> for one country, one window of dates. <strong>Multi</strong> for hopping across several. Switch later if your plans change."
+                },
+                "tapNext": {
+                    "title": "Tap Next",
+                    "content": "Once you've picked, tap <strong>Next</strong> to keep going."
+                }
+            },
+            "destination": {
+                "where": {
+                    "title": "Where are you going?",
+                    "content": "Start typing a country and pick from the suggestions. The trip name auto-fills — you can rename anytime."
+                }
+            },
+            "dates": {
+                "when": {
+                    "title": "When are you going?",
+                    "content": "Set your start and end dates. We'll work out the night count and pre-build an empty itinerary day for each date in the range."
+                }
+            },
+            "budget": {
+                "budget": {
+                    "title": "What's your budget?",
+                    "content": "A rough total works — you'll split it per activity later. Use <strong>0</strong> if you'd rather not track spend at all."
+                }
+            },
+            "organizers": {
+                "canEdit": {
+                    "title": "Organizers can edit",
+                    "content": "You're added automatically. Add co-organizers if someone else should be able to change the trip — dates, places, budget, etc."
+                }
+            },
+            "participants": {
+                "comeAlong": {
+                    "title": "Participants come along",
+                    "content": "Add the people you're traveling with. They can be tagged on activities and you can split budgets between them later in the Itinerary step. Going solo? Just hit Next."
+                }
+            },
+            "itinerary": {
+                "build": {
+                    "title": "Build your itinerary",
+                    "content": "Each day in your trip range becomes a slot you can fill with <strong>places</strong>, <strong>flights</strong>, <strong>hotel check-ins</strong>, or just <strong>notes</strong>. Don't try to fill everything — empty days are fine too."
+                },
+                "oneRow": {
+                    "title": "One row per day",
+                    "content": "Each date in your trip gets its own row. Activities added to a day are auto-sorted by start time so the day reads top-to-bottom in chronological order."
+                },
+                "addActivity": {
+                    "title": "Add an activity",
+                    "content": "Tap <strong>Add</strong> to insert a place, restaurant, flight, hotel check-in, or a free-form note. You can edit, reorder, or delete any activity later. Cancelling the form discards your changes — nothing is saved until you hit <strong>Finish</strong>."
+                },
+                "save": {
+                    "title": "Save your trip",
+                    "content": "When you're ready, click <strong>Finish</strong>. We'll save the trip and notify any participants you added on step 2. The trip page has its own quick tour covering <strong>PDF download</strong>, <strong>offline</strong>, <strong>night view</strong>, and marking activities <strong>Completed</strong>."
+                }
+            },
+            "locale": {
+                "back": "Back",
+                "close": "Close",
+                "last": "Got it",
+                "next": "Next",
+                "skip": "Skip tour"
+            }
+        }
+    },
+    "activity": {
+        "addNextDestination": "Add next destination",
+        "sameDayAfter": "Same day — after {{country}}",
+        "destinationNotSet": "Destination not set",
+        "flightLabel": "Flight {{number}}",
+        "friendFallback": "Friend",
+        "dropHint": "Drop a place here, or add one below.",
+        "currentlyHappening": "Currently happening",
+        "viewSource": "View source",
+        "openSourceTitle": "Open source: {{url}}",
+        "openDetailsTitle": "Open {{name}} details in a new tab",
+        "openOnMapsTitle": "Open {{name}} on Google Maps",
+        "notifyParticipants": "Notify participants",
+        "dnd": {
+            "thatDestination": "That destination",
+            "notCovered": "{{destination}} doesn't cover {{date}}."
+        },
+        "delete": {
+            "aria": "Delete {{name}}",
+            "title": "Delete this activity",
+            "confirm": "You are about to delete {{name}}. Are you sure?"
+        },
+        "deleteDestination": {
+            "title": "Delete this destination",
+            "button": "Delete",
+            "body": "You are about to delete {{country}}. Are you sure? This can't be undone."
+        },
+        "status": {
+            "planning": "Planning",
+            "confirmed": "Confirmed",
+            "saving": "Saving…",
+            "loadingOptions": "Loading status options…",
+            "toggleAria": "Status: {{status}}. Click to toggle.",
+            "markCompleted": "Mark as completed",
+            "markCompletedAria": "Mark {{name}} as completed",
+            "uncheckTitle": "Uncheck — reverts to Confirmed",
+            "uncheckAria": "Uncheck {{name}} (reverts to Confirmed)",
+            "pastLockedTitle": "This activity has already passed and is locked",
+            "lockedAria": "{{name}} is locked — its time has passed"
+        },
+        "directions": {
+            "getAria": "Get directions on Google Maps",
+            "openAria": "Open in Google Maps",
+            "fromTitle": "Directions from {{origin}}"
+        },
+        "paid": {
+            "paidBy": "Paid by {{name}}",
+            "markAsPaid": "Mark as paid",
+            "editAria": "Edit payment",
+            "unknown": "Unknown",
+            "twoPayers": "{{first}} & {{second}}",
+            "manyPayers": "{{first}} + {{count}} others"
+        },
+        "transport": {
+            "notSet": "Not set",
+            "flightCost": "Flight cost",
+            "transportCost": "Transport cost"
+        },
+        "budget": {
+            "title": "Travel Budget",
+            "whoIsPaying": "Who is paying?",
+            "whoIsPayingForThis": "Who is paying for this?",
+            "editAria": "Edit budget",
+            "setPayerAria": "Set who is paying for this",
+            "selectPayer": "Select a payer",
+            "searchFriend": "Search a friend…",
+            "paidBy": "Paid by",
+            "you": "You",
+            "splitPayment": "Split payment",
+            "total": "Total:",
+            "save": "Save Budget"
+        },
+        "basicInfo": {
+            "header": "Please enter basic info",
+            "headingTo": "You're heading to",
+            "nextStop": "Next stop",
+            "selectOrganizer": "Select Organizer",
+            "tripName": "Trip Name",
+            "budget": "Budget",
+            "status": "Status",
+            "statusOnCreate": "Status (always Planning on create)",
+            "startDate": "Start Date",
+            "endDate": "End Date"
+        },
+        "friendPicker": {
+            "defaultTitle": "friends",
+            "youSuffix": "{{name}} (you)",
+            "inviteFriend": "Invite a friend",
+            "sendEmailInvite": "Send an email invite",
+            "invited": "Invited",
+            "added": "Added"
+        },
+        "complete": {
+            "title": "Your trip is all set!",
+            "subtitle": "Pack your bags — we've saved every detail.",
+            "imageAlt": "Trip complete",
+            "viewTrip": "View Your Trip",
+            "planAnother": "Plan Another",
+            "returnHome": "Return Home"
+        },
+        "notify": {
+            "triggerAria": "Notify participants about this activity",
+            "intro": "We'll alert the people you choose about this activity across in-app, email and text — based on each person's notification settings.",
+            "introNamed": "We'll alert the people you choose about <strong>{{name}}</strong> across in-app, email and text — based on each person's notification settings.",
+            "whoToNotify": "Who to notify",
+            "selectAll": "Select all",
+            "clearAll": "Clear all",
+            "noOthers": "No other participants to notify yet.",
+            "addNote": "Add a note (optional)",
+            "notePlaceholder": "e.g. Meet at the lobby 15 min early",
+            "sending": "Sending…",
+            "sendAlert": "Send alert",
+            "participantFallback": "Participant",
+            "error": "Could not notify participants.",
+            "alerted_one": "Alerted {{count}} person",
+            "alerted_other": "Alerted {{count}} people",
+            "emailsCount_one": "{{count}} email",
+            "emailsCount_other": "{{count}} emails",
+            "textsCount_one": "{{count}} text",
+            "textsCount_other": "{{count}} texts"
+        },
+        "markPaid": {
+            "title": "Mark as paid",
+            "editTitle": "Edit payment",
+            "subhead": "Record who paid and the date so the trip stays settled.",
+            "subheadEdit": "Update who covered this expense and when.",
+            "addParticipant": "Add participant",
+            "pickParticipant": "Pick a participant",
+            "splitToggle": "Split this payment among multiple people",
+            "paidBy": "Paid by",
+            "paidOn": "Paid on",
+            "you": "You",
+            "splitHint": "Tick each participant once they've paid their share. The activity shows as paid when at least one row is checked.",
+            "splitEmpty": "Add participants below to split this payment.",
+            "amount": "Amount",
+            "date": "Date",
+            "confirmPaidAria": "Confirm {{name}} paid",
+            "removeAria": "Remove {{name}}",
+            "participantFallback": "participant",
+            "friendFallback": "Friend",
+            "markUnpaid": "Mark as unpaid",
+            "saveChanges": "Save changes"
+        }
+    },
+    "review": {
+        "rateThisPlace": "Rate this place",
+        "rateNamed": "Rate {{name}}",
+        "viewRatings": "View ratings & reviews",
+        "beTheFirst": "Be the first to review",
+        "starsAria": "{{rating}} out of 5 — open ratings & reviews",
+        "starsAriaWithCount_one": "{{rating}} out of 5 from {{count}} review — open ratings & reviews",
+        "starsAriaWithCount_other": "{{rating}} out of 5 from {{count}} reviews — open ratings & reviews"
+    },
+    "addForms": {
+        "common": {
+            "back": "Back",
+            "next": "Next",
+            "cancel": "Cancel",
+            "save": "Save",
+            "or": "OR",
+            "edit": "Edit",
+            "change": "change",
+            "searching": "Searching…",
+            "detectAndContinue": "Detect and continue",
+            "costOptional": "Cost (optional)",
+            "optional": "(optional)"
+        },
+        "activity": {
+            "trigger": {
+                "add": "Add Activity",
+                "edit": "Edit",
+                "save": "Save Activity",
+                "editNamed": "Edit {{name}}"
+            },
+            "wizard": {
+                "addActivity": "Add activity"
+            },
+            "type": {
+                "headline": "What would you like to add?",
+                "sub": "Type what you're adding and we'll figure out the rest — or pick a type below.",
+                "smartPlaceholder": "Type anything — a place, flight, hotel, or how you're getting around",
+                "detected": "Detected:",
+                "addAs": "Add as:",
+                "tiles": {
+                    "place": {
+                        "label": "Place",
+                        "sub": "A sight, meal, or activity."
+                    },
+                    "note": {
+                        "label": "Note",
+                        "sub": "A free-form reminder."
+                    },
+                    "flight": {
+                        "label": "Flight",
+                        "sub": "Depart & arrival legs."
+                    },
+                    "hotel": {
+                        "label": "Hotel",
+                        "sub": "Check-in / check-out."
+                    },
+                    "transport": {
+                        "label": "Transport",
+                        "sub": "Train, bus, or rental car."
+                    }
+                }
+            },
+            "method": {
+                "headline": "How would you like to add it?",
+                "sub": "Choose a way to fill in the details.",
+                "suggestions": {
+                    "label": "Suggestions",
+                    "sub": "Pick from ideas for your destination."
+                },
+                "smart": {
+                    "label": "Smart search",
+                    "sub": "Type or paste — we fill in the rest."
+                },
+                "search": {
+                    "label": "Find my flight",
+                    "sub": "Search your airport's departures."
+                },
+                "custom": {
+                    "label": "Custom",
+                    "sub": "Fill in the details yourself."
+                }
+            },
+            "review": {
+                "headline": "Ready to add?",
+                "sub": "Quick check — use Back to tweak anything.",
+                "resolving": "Still finishing up the details…",
+                "untitled": "Untitled activity",
+                "edit": "Edit",
+                "confirmationNumber": "Confirmation #",
+                "kind": {
+                    "place": "Place",
+                    "note": "Note",
+                    "flight": "Flight",
+                    "hotelCheckin": "Hotel check-in",
+                    "hotelCheckout": "Hotel check-out",
+                    "train": "Train",
+                    "bus": "Bus",
+                    "rentalCar": "Rental car",
+                    "ride": "Ride"
+                }
+            },
+            "smartPipeline": {
+                "notFoundWithSuggestions": "Couldn't find a match. Add the details yourself or browse suggestions.",
+                "notFound": "Couldn't find a match. Add the details yourself.",
+                "addManually": "Add manually",
+                "seeSuggestions": "See suggestions"
+            },
+            "place": {
+                "smartPlaceholderScoped": "e.g. \"Ankole Grill at 10am-12pm, around $50\" — searched in {{country}}",
+                "smartPlaceholder": "e.g. \"Ankole Grill at 10am-12pm, around $50\", or paste a Google Maps link",
+                "lookingUp": "Looking up the place…",
+                "hintScoped": "Type a place or paste a Maps / Yelp link — we'll search {{country}} and fill in the rest.",
+                "hint": "Type a place or paste a Maps / Yelp link — we'll fill in the rest.",
+                "wrongCountryWithCountry": "Couldn't find \"{{name}}\" in {{country}} — closest match is in {{itemCountry}}. Add it manually using the details form below, or prefix the search with # to keep this exact name.",
+                "wrongCountry": "Couldn't find \"{{name}}\" in {{country}}. Add it manually using the details form below, or prefix the search with # to keep this exact name.",
+                "bareMatch": "Couldn't find an exact match for \"{{name}}\". Fill in the location / cost / time using the form below.",
+                "nameScoped": "Activity name (or place in {{country}})",
+                "name": "Activity name",
+                "namePlaceholder": "Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')",
+                "locationOptional": "Location (optional)",
+                "startTime": "Start Time",
+                "endTime": "End Time",
+                "imageAlt": "Activity image",
+                "removeImage": "Remove image"
+            },
+            "note": {
+                "label": "Note",
+                "placeholder": "Jot down anything — reminders, ideas, links, packing checklist…"
+            },
+            "flight": {
+                "smartPlaceholder": "Try: \"UA123 tomorrow\" or \"UA123 today stopover BA245\"",
+                "hint": "Type your flight(s) here and we'll look up the airports, dates, and times — review or tweak everything on the next step.",
+                "lookingUp": "Looking up flight details…",
+                "lookupNotFound": "Couldn't find flight {{number}}. Fill in the airport, date, and time below manually.",
+                "lookupIdle": "We'll auto-fill the airport, date, and time once you enter a flight number.",
+                "costOptional": "Cost (optional)"
+            },
+            "hotel": {
+                "side": {
+                    "checkin": "Check-in",
+                    "checkout": "Check-out"
+                },
+                "sideAria": "Hotel event side",
+                "suggestionsTopic": "top hotels",
+                "suggestionsHeadingPrefix": "Suggested hotels in",
+                "smartPlaceholderScoped": "e.g. \"Hilton Tokyo, check-in 3pm, $200\" — searched in {{country}}",
+                "smartPlaceholder": "e.g. \"Hilton Tokyo, check-in 3pm, $200\", or paste a Google Maps link",
+                "lookingUp": "Looking up the hotel…",
+                "hintScoped": "Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search {{country}} and fill in the details below.",
+                "hint": "Type a hotel, sentence, or paste a Google Maps / Yelp link. We'll search and fill in the details below.",
+                "wrongCountryWithCountry": "Couldn't find \"{{name}}\" in {{country}} — closest match is in {{itemCountry}}. Add it manually using the details form below, or prefix the search with # to keep this exact name.",
+                "wrongCountry": "Couldn't find \"{{name}}\" in {{country}}. Add it manually using the details form below, or prefix the search with # to keep this exact name.",
+                "bareMatch": "Couldn't find an exact match for \"{{name}}\". Fill in the address / cost / time using the form below.",
+                "nameScoped": "Hotel name (or search in {{country}})",
+                "name": "Hotel name",
+                "namePlaceholder": "Type a hotel name — we'll suggest matches",
+                "addressOptional": "Address (optional)",
+                "checkinTime": "Check-in time",
+                "checkoutTime": "Check-out time",
+                "confirmationOptional": "Confirmation # (optional)",
+                "costStayOptional": "Cost (optional — total stay)",
+                "costOptional": "Cost (optional)",
+                "notesOptional": "Notes (optional)"
+            },
+            "transit": {
+                "modeAria": "Ground transport mode",
+                "modes": {
+                    "train": "Train",
+                    "bus": "Bus",
+                    "rentalCar": "Rental car",
+                    "other": "Other"
+                },
+                "smartPlaceholderRental": "e.g. \"Hertz pickup JFK 10am $50\"",
+                "smartPlaceholderOther": "e.g. \"Uber airport to hotel 10am $30\"",
+                "smartPlaceholder": "e.g. \"Tokyo to Kyoto 9am-12pm $100\"",
+                "hint": "Type stations, times, and cost — we'll fill the details and you can review them on the next step.",
+                "lookingUp": "Looking up schedule…",
+                "lookupNotFound": "Couldn't find {{label}}. Fill in the stations, date, and time below manually.",
+                "lookupIdle": "Type the operator + number and we'll try to auto-fill the stations and times.",
+                "tripName": "Trip name (optional — auto-fills from operator + number)",
+                "addStopover": "Add stopover",
+                "addLeg": "Add leg (transfer)",
+                "costOptional": "Cost (optional)",
+                "parseFailed": "Couldn't pick anything useful out of \"{{text}}\". Fill in operator / station / time using the form below.",
+                "wrapName": {
+                    "rentalCar": "Car reservation with {{operator}}",
+                    "train": "Train with {{operator}}",
+                    "bus": "Bus with {{operator}}",
+                    "other": "Ride with {{operator}}"
+                }
+            },
+            "name": {
+                "noteFallback": "Note",
+                "checkInPrefix": "Check in: {{name}}",
+                "hotelCheckin": "Hotel check-in",
+                "checkOutPrefix": "Check out: {{name}}",
+                "hotelCheckout": "Hotel check-out",
+                "train": "Train",
+                "bus": "Bus",
+                "ride": "Ride",
+                "rentalCar": "Rental car"
+            },
+            "validation": {
+                "note": "a note",
+                "flight": "a flight number or airport",
+                "hotel": "a hotel name or address",
+                "rental": "a rental company or pickup location",
+                "transit": "an operator or station",
+                "name": "a name",
+                "message": "Please provide {{fields}}."
+            }
+        },
+        "transport": {
+            "trigger": {
+                "add": "Add Destination",
+                "edit": "Edit",
+                "save": "Save Destination",
+                "continue": "Continue",
+                "back": "Back",
+                "editNamed": "Edit {{name}}"
+            },
+            "noCountryError": "We couldn't read a destination from your details yet — add an arrival airport or destination text.",
+            "type": {
+                "headline": "Where to?",
+                "sub": "Type what you're adding and we'll figure out the rest — or pick a type below.",
+                "smartPlaceholder": "EWR to Panama City June 6 on Copa for $450",
+                "tilesAria": "Transport type",
+                "tiles": {
+                    "flight": {
+                        "label": "Flight",
+                        "sub": "Fly to your destination."
+                    },
+                    "train": {
+                        "label": "Train",
+                        "sub": "Rail journey."
+                    },
+                    "bus": {
+                        "label": "Bus",
+                        "sub": "Coach or intercity."
+                    },
+                    "rentalCar": {
+                        "label": "Rental Car",
+                        "sub": "Pick up a car."
+                    },
+                    "later": {
+                        "label": "I'll add later",
+                        "sub": "Decide this later."
+                    }
+                }
+            },
+            "method": {
+                "headline": "How would you like to add it?",
+                "smart": {
+                    "label": "Smart search",
+                    "sub": "Type or paste — we fill in the rest."
+                },
+                "search": {
+                    "label": "Find my flight",
+                    "sub": "Search your airport's departures."
+                },
+                "custom": {
+                    "label": "Custom",
+                    "sub": "Fill in the details yourself."
+                }
+            },
+            "describe": {
+                "headingNoKind": "Where are you going?",
+                "headingKind": "Describe your {{mode}}",
+                "noTransport": "No transport",
+                "destinationLabel": "Where are you going?",
+                "destinationPlaceholder": "Panama",
+                "destinationNote": "We'll find the country from this.",
+                "smartPlaceholderFlight": "EWR to Panama City June 6 on Copa $450 — or \"Copa CM123 June 6\"",
+                "smartPlaceholderRental": "Hertz pickup PTY June 6 10am $50",
+                "smartPlaceholderTransit": "Renfe 3152 Madrid to Barcelona 9am $30",
+                "editDescription": "Edit description",
+                "editDetails": "Edit details",
+                "change": "Change",
+                "unresolvedAirportBase": "We couldn't find an airport for part of your route — some places (like Hoi An) have no airport of their own.",
+                "unresolvedAirportOpen": "Pick the nearest airport in the fields below (e.g. Da Nang).",
+                "unresolvedAirportClosed": "Open Edit details to pick the nearest airport (e.g. Da Nang).",
+                "lookupNotFound": "Couldn't find {{label}}. Open Edit details to fill it in manually.",
+                "cost": "Cost"
+            },
+            "confirm": {
+                "heading": "Confirm your destination",
+                "destination": "Destination",
+                "pickDestination": "Pick your destination city or country.",
+                "gettingThere": "Getting there",
+                "addLater": "You'll add this later",
+                "edit": "Edit"
+            },
+            "mode": {
+                "flight": "Flight",
+                "train": "Train",
+                "bus": "Bus",
+                "rentalCar": "Rental Car"
+            }
+        },
+        "flightSearch": {
+            "fromAirport": "From airport",
+            "toAirport": "To airport",
+            "swapAria": "Swap From and To airports",
+            "swapTitle": "Swap airports",
+            "airportPlaceholder": "IATA code, city, or airport",
+            "date": "Date",
+            "timeOfDay": "Time of day",
+            "timeOfDayAria": "Time of day",
+            "windowMorning": "Morning",
+            "windowAfternoon": "Afternoon",
+            "windowEvening": "Evening",
+            "airlineCodeOptional": "Airline code (optional)",
+            "airlinePlaceholder": "e.g. UA",
+            "searchingDepartures": "Searching departures…",
+            "noFlights": "No flights found — try a different time of day, clear the To-airport or airline filter, or switch to Custom to enter it by hand.",
+            "filterResults": "Filter results",
+            "filterPlaceholder": "Flight #, airport, city, or airline",
+            "showMore": "Show more ({{count}} left)",
+            "showingAll": "Showing all {{count}}",
+            "search": "Search",
+            "use": "Use",
+            "useFlightAria": "Use flight {{flight}} {{route}}",
+            "emptyNumber": "—"
+        },
+        "fields": {
+            "segment": "Segment {{n}}",
+            "removeSegment": "Remove segment {{n}}",
+            "flightNumber": "Flight number",
+            "departAirport": "Depart airport",
+            "arriveAirport": "Arrive airport",
+            "airportPlaceholder": "IATA code, city, or airport",
+            "depart": "Depart",
+            "arrive": "Arrive",
+            "flightRouteAria": "Flight route",
+            "addStopover": "Add stopover",
+            "addLeg": "Add leg",
+            "rental": {
+                "operator": "Rental company",
+                "number": "Confirmation number",
+                "departStation": "Pickup location",
+                "arrivalStation": "Dropoff location (optional)",
+                "departDateTime": "Pickup",
+                "arrivalDateTime": "Dropoff (optional)",
+                "classOrSeat": "Car class (optional)"
+            },
+            "transit": {
+                "operator": "Provider",
+                "number": "Vehicle number (optional)",
+                "departStation": "Departure location",
+                "arrivalStation": "Arrival location (optional)",
+                "departDateTime": "Depart",
+                "arrivalDateTime": "Arrival (optional)",
+                "classOrSeat": "Seat or class (optional)"
+            }
+        }
+    },
+    "aiTrip": {
+        "title": "Plan my trip",
+        "eyebrow": "Pro — Trip Builder",
+        "stepperAria": "Wizard steps",
+        "back": "Back",
+        "next": "Next",
+        "hero": {
+            "title": "Tell us what you love. We’ll find the best matches.",
+            "sub": "Answer a few quick questions and we’ll suggest personalized destinations — pick one and we’ll build the full itinerary.",
+            "optionsTitle": "Pick the one that calls to you.",
+            "optionsSub": "Each option is a real trip we can build for you. Pick one and we’ll generate the full day-by-day plan."
+        },
+        "steps": {
+            "budget": "Budget",
+            "interests": "Interests",
+            "destination": "Destination",
+            "duration": "Trip details"
+        },
+        "tier": {
+            "budget": "Budget",
+            "standard": "Standard",
+            "comfort": "Comfort",
+            "premium": "Premium"
+        },
+        "budget": {
+            "question": "Roughly, how much do you want to spend?",
+            "hint": "Per traveler, in USD. Covers lodging, food, transit, and activities (international flights aren’t included).",
+            "errorMin": "Set a budget of at least {{min}}.",
+            "errorMax": "Budget caps at {{max}}."
+        },
+        "interests": {
+            "question": "What do you want to do?",
+            "hint": "Pick 3–8 that sound fun — these drive what destinations show up. Choose anything that appeals to you.",
+            "placeholder": "Type and press Enter (e.g. fishing, beach, sunset)",
+            "orPick": "Or pick from these",
+            "errorEmpty": "Add at least one interest (try \"beach\" or \"hiking\")."
+        },
+        "interestOptions": {
+            "beach": "Beach",
+            "hiking": "Hiking",
+            "foodTour": "Food tour",
+            "snorkeling": "Snorkeling",
+            "ski": "Ski",
+            "ancientRuins": "Ancient ruins",
+            "nightlife": "Nightlife",
+            "spa": "Spa",
+            "wildlife": "Wildlife",
+            "wineCountry": "Wine country",
+            "surfing": "Surfing",
+            "photography": "Photography",
+            "familyFriendly": "Family-friendly",
+            "romantic": "Romantic"
+        },
+        "destination": {
+            "question": "Anywhere in mind?",
+            "hint": "Optional — name a country or region to focus on, or leave it blank and we’ll suggest destinations from your interests.",
+            "placeholder": "e.g. Japan, anywhere in SE Asia, the Mediterranean",
+            "orQuickPick": "Or start from a quick pick",
+            "quick": {
+                "anywhere": "Anywhere",
+                "europe": "Europe",
+                "asia": "Asia",
+                "latinAmerica": "Latin America",
+                "beach": "Beach",
+                "mountains": "Mountains",
+                "cities": "Cities"
+            }
+        },
+        "duration": {
+            "question": "How long should the trip be?",
+            "hint": "Optional — if you skip this we’ll pick a length that fits the budget.",
+            "daysSuffix": "days",
+            "dayUnit_one": "day",
+            "dayUnit_other": "days",
+            "auto": "Auto",
+            "smartPick": "Smart pick"
+        },
+        "party": {
+            "question": "How many people are going?",
+            "hint": "We use this to size lodging suggestions and split the budget per-person.",
+            "peopleSuffix_one": "person",
+            "peopleSuffix_other": "people",
+            "size": {
+                "solo": "solo",
+                "couple": "couple",
+                "family": "family",
+                "group": "group"
+            }
+        },
+        "submit": {
+            "idle": "Show me destination options",
+            "pending": "Finding your matches…"
+        },
+        "options": {
+            "editInputs": "Edit my inputs",
+            "photoBy": "Photo by",
+            "bestFit": "We think this is the best fit",
+            "whyMatches": "Why this matches you",
+            "fitsBudget": "Fits your {{amount}} budget",
+            "dayCount_one": "{{count}} day",
+            "dayCount_other": "{{count}} days",
+            "build": "Build this trip",
+            "building": "Building this trip…",
+            "surprise": "Not sure? We’ll pick the best fit for you"
+        },
+        "loader": {
+            "options": {
+                "title": "Finding your destination matches",
+                "subtitle": "Hold tight — we’re matching your preferences to the right spots."
+            },
+            "build": {
+                "title": "Crafting your trip",
+                "subtitle": "Hold tight — we’re shaping this into a real itinerary."
+            },
+            "steps": {
+                "options": {
+                    "analyzing": "Analyzing your budget and interests…",
+                    "scanning": "Scanning destinations worldwide…",
+                    "weather": "Comparing weather and seasonality…",
+                    "duration": "Checking what fits your duration…",
+                    "value": "Looking for great-value destinations…",
+                    "ranking": "Ranking the best matches…",
+                    "almost": "Almost there — preparing your picks…"
+                },
+                "build": {
+                    "reading": "Reading your bucket-list goal…",
+                    "destination": "Picking the right destination…",
+                    "duration": "Choosing the perfect duration…",
+                    "activities": "Drafting day-by-day activities…",
+                    "budget": "Setting a realistic budget…",
+                    "finalizing": "Finalizing your itinerary…"
+                },
+                "enrich": {
+                    "reading": "Reading your saved goals…",
+                    "title": "Writing a title for each dream…",
+                    "themes": "Detecting themes and vibes…",
+                    "personality": "Adding a splash of personality…",
+                    "polishing": "Polishing the finishing touches…"
+                }
+            }
+        },
+        "errors": {
+            "optionsFailed": "Could not find options right now. Try again.",
+            "buildFailed": "Could not build that trip right now. Try again."
+        }
+    },
+    "bucketList": {
+        "pageTitle": "Bucket list",
+        "travelGoals": "{{name}}'s travel goals",
+        "subtitle": "Your bucket list is the wishlist of things you want to experience while traveling — a concert, a stadium, a hike, a meal, a festival. Keep them here, and when you're ready, turn any goal into a full trip in one tap.",
+        "cap": {
+            "full": "You've filled all {{limit}} free slots — <upgrade>upgrade to Pro</upgrade> for unlimited entries.",
+            "used": "<strong>{{count}}</strong> of <strong>{{limit}}</strong> free slots used."
+        },
+        "paths": {
+            "regionAria": "Two ways to start a trip",
+            "matcher": {
+                "eyebrow": "Not sure where to go?",
+                "title": "Get AI destination ideas"
+            },
+            "bucket": {
+                "eyebrow": "Already have a dream in mind?",
+                "title": "Add it to your bucket list"
+            }
+        },
+        "howto": {
+            "regionAria": "How the bucket list works",
+            "step1": {
+                "title": "1. Capture the dream",
+                "body": "Jot down anything you want to experience — a stadium match, a hike, a tasting menu, a festival. Phrase it like you'd tell a friend."
+            },
+            "step2": {
+                "title": "2. We build the trip",
+                "body": "Tap <strong>Build trip</strong> on any goal. We pick the destination, plan days and activities around it, and save it as a draft Planning trip."
+            },
+            "step3": {
+                "title": "3. Tweak & go",
+                "body": "Review the draft, swap activities, invite friends, then confirm when you're ready. Nothing is locked in until you say so."
+            }
+        },
+        "add": {
+            "placeholder": "e.g. Watch an FC Barcelona game at Camp Nou",
+            "saving": "Saving…",
+            "add": "Add",
+            "error": "Could not add that one — try again."
+        },
+        "loading": "Loading your list…",
+        "empty": {
+            "title": "Your bucket list is empty.",
+            "hint": "Add a goal above — phrase it like you would tell a friend (\"watch the Barcelona game\", \"see the Northern Lights\")."
+        },
+        "building": "Building \"{{text}}\"…",
+        "generateError": "Sorry, we couldn't build your trip right now. Please try again in a moment.",
+        "card": {
+            "added": "Added {{date}}",
+            "proHint": "Pro polishes goals into titled cards",
+            "buildTrip": "Build trip",
+            "createTrip": "Create trip",
+            "proTag": "Pro",
+            "buildAria": "Create trip from \"{{text}}\"",
+            "buildLockedAria": "Pro only — upgrade to create a trip from \"{{text}}\"",
+            "removeAria": "Remove \"{{text}}\"",
+            "removeTitle": "Remove from bucket list"
+        },
+        "wizard": {
+            "stepOf": "Step {{step}} of 2",
+            "cancel": "Cancel",
+            "cancelAria": "Cancel",
+            "party": {
+                "question": "How many people are going?",
+                "hint": "Sizes lodging suggestions and splits the budget per person.",
+                "solo": "Solo",
+                "couple": "Couple",
+                "family": "Family",
+                "group": "Group",
+                "customLabel": "Or enter a number:"
+            },
+            "duration": {
+                "question": "How long should the trip be?",
+                "hint": "Pick a length, or let us decide based on the budget + activity mix.",
+                "day": "day",
+                "days": "days",
+                "auto": "Auto",
+                "autoNote": "Smart picks"
+            },
+            "summary": {
+                "title": "We'll build it using:",
+                "styleWith": "Your travel style ({{styles}})",
+                "styleSaved": "Your saved travel style",
+                "goal": "This bucket-list goal",
+                "budget": "Your budget preferences",
+                "trips": "Your previous trips"
+            },
+            "back": "Back",
+            "next": "Next",
+            "build": "Build trip"
+        },
+        "paywall": {
+            "cap": {
+                "title": "Bucket list full",
+                "headline": "You've added <strong>{{count}}</strong> of <strong>{{cap}}</strong> bucket-list entries on the free plan.",
+                "body": "DaTryp.com Pro removes the limit so you can keep dreaming. Pro also unlocks \"Create trip\" — turn any bucket-list goal into a real itinerary."
+            },
+            "generate": {
+                "title": "Pro feature",
+                "headline": "Turning a bucket-list goal into a real trip is a Pro feature.",
+                "body": "DaTryp.com Pro builds an itinerary from any of your bucket-list entries — picking a country, planning days, suggesting activities — saved as a draft trip ready for you to tweak."
+            }
+        },
+        "paginationAria": "Bucket list pagination"
+    },
+    "createTrip": {
+        "pageTitle": "Plan your trip",
+        "you": "{{name}} (you)",
+        "tourHelp": "Show me how to plan a trip",
+        "next": "Next",
+        "back": "Back",
+        "edit": {
+            "describe": "Describe Your Trip!",
+            "participants": "Participants",
+            "activities": "Activities"
+        },
+        "mode": {
+            "title": "What kind of trip?",
+            "subtitle": "Pick how you're traveling — you can switch later.",
+            "single": {
+                "title": "One destination",
+                "subtitle": "One country, one set of dates."
+            },
+            "multiple": {
+                "title": "Multiple destinations",
+                "subtitle": "Hop across countries on one itinerary."
+            }
+        },
+        "destination": {
+            "title": "Where are you going?",
+            "subtitle": "Pick your destination country — we'll name the trip after it.",
+            "label": "Destination"
+        },
+        "dates": {
+            "title": "When are you going?",
+            "subtitle": "Set your start and end dates — we'll build an empty day for each date in the range.",
+            "starts": "Starts",
+            "ends": "Ends",
+            "invalidRange": "End date can't be before the start date.",
+            "dayTrip": "Day trip.",
+            "nights_one": "{{count}} night on the road.",
+            "nights_other": "{{count}} nights on the road."
+        },
+        "budget": {
+            "title": "What's your budget?",
+            "subtitle": "A ballpark total is fine — you can split it per activity later.",
+            "label": "Total budget",
+            "placeholder": "e.g. 2000",
+            "loadingPlaceholder": "Asking datryp for an estimate…",
+            "hint": "Use 0 if you'd rather not track spend at all."
+        },
+        "organizers": {
+            "title": "Who's organizing?",
+            "subtitle": "Organizers can edit the trip — dates, places, budget. You're added automatically; add a co-organizer if someone else can make changes.",
+            "label": "Organizers"
+        },
+        "participants": {
+            "title": "Who's coming along?",
+            "subtitle": "Add the people you're traveling with — they can split budgets with you. You're added by default; remove yourself if you're planning for someone else.",
+            "label": "Participants"
+        },
+        "participantsEdit": {
+            "title": "Who's coming along?",
+            "subtitle": "Add the friends you're traveling with — they'll see the trip in their list and can split budgets with you. Going solo? Just hit Next.",
+            "label": "Participants"
+        },
+        "chip": {
+            "aria": "Trip destination",
+            "goingTo": "Going to"
+        },
+        "stepper": {
+            "savingTrip": "Saving your trip…",
+            "savingChanges": "Saving changes…",
+            "yourTrip": "Your trip",
+            "untitledTrip": "Untitled trip",
+            "saveChanges": "Save changes",
+            "finish": "Finish",
+            "done": "Done",
+            "editTripInfo": "Edit trip info",
+            "moreActions": "More actions",
+            "cancelTrip": "Cancel trip",
+            "deleteTrip": "Delete trip",
+            "keepTrip": "Keep trip",
+            "delete": "Delete",
+            "deleting": "Deleting…",
+            "addToContinue": "Add {{fields}} to continue.",
+            "missing": {
+                "tripType": "a trip type",
+                "destinationCountry": "a destination country",
+                "startDate": "a start date",
+                "endDate": "an end date",
+                "budget": "a budget (use 0 if flexible)",
+                "organizer": "at least one organizer",
+                "participant": "at least one participant",
+                "tripName": "trip name",
+                "startDateShort": "start date",
+                "endDateShort": "end date"
+            },
+            "invalid": {
+                "endBeforeStart": "End date can't be before the start date."
+            },
+            "error": {
+                "loginToSave": "Please log in to save your trip.",
+                "resolveTripType": "Could not resolve trip type. Try again in a moment.",
+                "resolveTripTypeSeed": "Could not resolve trip type. Lookup tables may not be seeded — try again in a moment.",
+                "resolveCancelledStatus": "Couldn't resolve the Cancelled status. Try again shortly.",
+                "provideBeforeSaving": "Please provide {{fields}} before saving.",
+                "saveFailed": "Failed to save trip.",
+                "deleteFailed": "Failed to delete the trip.",
+                "cancelFailed": "Failed to cancel the trip."
+            },
+            "cancelDialog": {
+                "title": "Cancel this trip?",
+                "body": "The trip moves to Cancelled status. Participants will see it as cancelled but the itinerary stays viewable. This can be reversed later by an organizer."
+            },
+            "deleteDialog": {
+                "title": "Delete this trip?",
+                "body": "This permanently removes the trip and all its activities. Participants will no longer see it in their list. This cannot be undone."
+            }
+        }
+    },
+    "friends": {
+        "title": "Friends",
+        "loggedOut": "Log in to manage your friends.",
+        "loading": "Loading…",
+        "loadingRequests": "Loading requests…",
+        "paginationAria": "Friends pagination",
+        "sentAgo": "Sent {{time}}",
+        "relative": {
+            "today": "today",
+            "yesterday": "yesterday",
+            "daysAgo_one": "{{count}} day ago",
+            "daysAgo_other": "{{count}} days ago"
+        },
+        "requests": {
+            "title": "Friend requests",
+            "subtitle": "Accept to connect and start planning trips together.",
+            "count_one": "{{count}} request",
+            "count_other": "{{count}} requests"
+        },
+        "yourFriends": {
+            "title": "Your friends",
+            "subtitle": "Friends can be added to trips to plan itineraries together and share travel plans.",
+            "count_one": "{{count}} friend",
+            "count_other": "{{count}} friends",
+            "empty": "No friends yet. Invite one to get started."
+        },
+        "sent": {
+            "title": "Sent requests",
+            "subtitle": "Waiting for them to accept. Resend the email if they didn’t see it.",
+            "count_one": "{{count}} pending",
+            "count_other": "{{count}} pending",
+            "invitationSent": "Invitation sent"
+        },
+        "badge": {
+            "friend": "Friend",
+            "pending": "Pending"
+        },
+        "actions": {
+            "accept": "Accept",
+            "reject": "Reject",
+            "invite": "+ Invite friend",
+            "remove": "Remove",
+            "removeName": "Remove {{name}}",
+            "resend": "Resend",
+            "resending": "Resending…",
+            "cancel": "Cancel"
+        },
+        "toast": {
+            "resent": "Invite re-sent to {{name}}."
+        },
+        "removeDialog": {
+            "title": "Remove {{name}}?",
+            "body": "They’ll be removed from your friends list and won’t see your trips unless you’re both organizers on one. To reconnect, either of you will need to send a fresh friend request.",
+            "keep": "Keep as friend",
+            "removing": "Removing…",
+            "confirm": "Remove friend"
+        },
+        "invite": {
+            "title": "Invite a friend",
+            "helper": "Enter an email address. If they're already on DaTryp we'll send a friend request — otherwise we'll send an invitation to join.",
+            "emailLabel": "Email",
+            "emailPlaceholder": "email@example.com",
+            "send": "Send invite",
+            "sending": "Sending…",
+            "invalidEmail": "Enter a valid email address.",
+            "sendFailed": "Could not send the invite."
+        }
+    },
+    "about": {
+        "pageTitle": "About DaTryp.com",
+        "hero": {
+            "eyebrow": "Our motto",
+            "motto": "Making More Trips Possible.",
+            "lede": "We love travel. DaTryp was born from the idea of having a very useful tool to make life easier — a place to record your memories and create your perfect trip."
+        },
+        "pillars": {
+            "loveTravel": "We love travel",
+            "forExplorers": "Built for explorers",
+            "smartRecs": "Smart recommendations"
+        },
+        "features": {
+            "plainLanguage": {
+                "title": "Travel that gets you",
+                "body": "Describe the trip in plain language — \"two weeks in Japan, mostly food\" — and let the recommender propose destinations and activities."
+            },
+            "itineraries": {
+                "title": "Itineraries that flow",
+                "body": "Drag, drop, and reorder days. Single-destination or multi-city, the tool keeps the timeline tidy and your budget in view."
+            },
+            "collaboration": {
+                "title": "Plan with friends",
+                "body": "Invite organizers and participants, split budgets per activity, and keep everyone in sync with in-app + email notifications."
+            },
+            "forever": {
+                "title": "Yours forever",
+                "body": "Completed trips stay in your list as a record of where you've been. Saved places and bucket lists travel with you."
+            }
+        },
+        "story": {
+            "heading": "Our story",
+            "body1": "DaTryp started with a frustration most travelers know: trip planning lives across a dozen tabs, group chats, and half-finished spreadsheets. We wanted one calm place — one that asks the right questions, suggests good answers, and gets out of the way once the trip is set.",
+            "body2": "We're a small team that loves maps, layovers, and the moment a tentative plan becomes a real ticket. We build DaTryp for travelers like us — and for the millions of trips that almost happen, but never quite do."
+        },
+        "next": {
+            "heading": "What's next",
+            "body": "Smarter suggestions, deeper collaboration, better mobile, and proper offline support. The roadmap is shaped by the people using the product — if there's something you'd love to see, the <contactLink>contact page</contactLink> is the fastest way to tell us."
+        },
+        "cta": {
+            "title": "Ready to make a trip possible?",
+            "button": "Start planning"
+        }
+    },
+    "contact": {
+        "pageTitle": "Contact us",
+        "hero": {
+            "title": "We're here to help.",
+            "lede": "Drop us a line and the team will get back to you within one or two business days. You can also email <emailLink>{{email}}</emailLink> directly."
+        },
+        "tips": {
+            "aria": "Before you write",
+            "humanInbox": "We reply from a real human inbox at <strong>{{email}}</strong>.",
+            "noPasswords": "Don't share passwords or payment details — we'll never ask for them.",
+            "screenshot": "A screenshot or steps to reproduce a bug helps us ship a fix faster."
+        },
+        "success": {
+            "title": "Message sent — thank you!",
+            "body": "We've routed it to <strong>{{email}}</strong>. Expect a reply at <strong>{{replyTo}}</strong> within one or two business days.",
+            "sendAnother": "Send another"
+        },
+        "form": {
+            "nameLabel": "Your name",
+            "namePlaceholder": "Jane Traveller",
+            "emailLabel": "Email",
+            "emailPlaceholder": "you@example.com",
+            "subjectLabel": "Subject",
+            "subjectPlaceholder": "What's on your mind?",
+            "messageLabel": "Message",
+            "messagePlaceholder": "Tell us what's up. Steps to reproduce, ideas, anything goes.",
+            "submit": "Send message",
+            "sending": "Sending…"
+        },
+        "validation": {
+            "name": "Please enter your name.",
+            "email": "Please enter your email.",
+            "emailInvalid": "That email doesn't look right.",
+            "subject": "Please add a subject.",
+            "message": "Please write a message."
+        },
+        "reasons": {
+            "account": {
+                "title": "Help with your account",
+                "body": "Trouble signing in, paying, or syncing trips? We'll get you back on the road."
+            },
+            "ideas": {
+                "title": "Feature ideas",
+                "body": "Something you wish DaTryp.com did? We read every suggestion and ship the good ones."
+            },
+            "bugs": {
+                "title": "Bugs & feedback",
+                "body": "Caught something broken or just off? Let us know what happened and what you expected."
+            }
+        },
+        "faq": {
+            "aria": "Frequently asked questions",
+            "title": "Common questions",
+            "items": {
+                "replyTime": {
+                    "q": "How long until I get a reply?",
+                    "a": "We aim for one or two business days. Account / billing issues get prioritized — if you write <em>billing</em> in the subject, we route it straight to that queue."
+                },
+                "freeVsPro": {
+                    "q": "What's free vs. Pro?",
+                    "a": "The core app — searching, viewing places, marking visited, planning one trip at a time — is free. Pro unlocks AI-built trips, your full visited-places map, unlimited saved trips, and the monthly best-place picks. See <membershipLink>Membership</membershipLink> for the current pricing."
+                },
+                "cancel": {
+                    "q": "How do I cancel my Pro subscription?",
+                    "a": "Open the <accountLink>Account</accountLink> page and look for the Subscription card. The “Manage subscription” button takes you to Stripe's Customer Portal where you can cancel, update payment, or change plans. Cancellation takes effect at the end of the current billing period — no proration, but you keep Pro features until then."
+                },
+                "delete": {
+                    "q": "How do I delete my account?",
+                    "a": "Account → scroll to the bottom → <strong>Delete account</strong>. Deletion removes your profile, trips, bookmarks, and visited-places lists. Anonymized usage telemetry may be retained for up to 30 days for security/audit, then purged."
+                },
+                "dataSharing": {
+                    "q": "What data do you share with third parties?",
+                    "a": "We don't sell or share your personal data with marketers. Names + emails go to SendGrid for transactional email, Stripe for payments, and our AI technology / Unsplash partners for the trip-builder and photo lookups (as request bodies, not for training). Full breakdown lives on the <privacyLink>Privacy</privacyLink> page."
+                }
+            }
+        }
+    },
+    "terms": {
+        "title": "Terms of Use",
+        "lastUpdated": "Last updated: {{date}}",
+        "sections": {
+            "about": {
+                "heading": "What DaTryp.com is",
+                "body": "DaTryp.com is a travel-planning tool. It helps you discover destinations, build itineraries, save the places you want to visit, and share trips with friends. Some features use AI to suggest places and activities based on what you type."
+            },
+            "aiSearch": {
+                "heading": "Using AI search",
+                "body1": "Our AI search is built to answer questions about trips, destinations, places, and activities. Searches that aren't about travel — for example, requests involving weapons, drugs, sexual content, or self-harm — may not return results. This isn't a punishment; it just isn't what DaTryp.com is for. Try a different search.",
+                "body2": "If you think a travel-related search was blocked by mistake, rephrase it (for example, “Amsterdam coffee culture” instead of a more loaded keyword) and try again."
+            },
+            "account": {
+                "heading": "Your account",
+                "body": "You must be at least 13 years old to use DaTryp.com. You're responsible for keeping your sign-in details safe and for the activity that happens under your account."
+            },
+            "content": {
+                "heading": "Content you create",
+                "body": "Trips, reviews, and notes you write stay yours. By posting them on DaTryp.com, you let us display them inside the product (for example, in your itinerary or in places you've marked as visited). Don't post content that's illegal, hateful, or that you don't have the right to share."
+            },
+            "availability": {
+                "heading": "Service availability",
+                "body": "DaTryp.com is offered as-is. We try hard to keep things working, but we can't guarantee the service will be uninterrupted, or that the recommendations are perfectly accurate. Confirm important details (visas, opening hours, prices, safety advisories) with an official source before you travel."
+            },
+            "changes": {
+                "heading": "Changes",
+                "body": "We may update these terms as the product evolves. When we do, we'll change the “Last updated” date at the top of this page. Continuing to use DaTryp.com after a change means you're fine with the updated terms."
+            },
+            "contact": {
+                "heading": "Contact",
+                "body": "Questions or feedback? Reach us through the contact link in the footer."
+            }
+        }
+    },
+    "privacy": {
+        "title": "Privacy Policy",
+        "lastUpdated": "Last updated: {{date}}",
+        "sections": {
+            "short": {
+                "heading": "The short version",
+                "body": "DaTryp.com keeps the data we need to run the product and nothing else. We don't sell your information. The sections below spell out what we collect, how we use it, and the choices you have."
+            },
+            "collect": {
+                "heading": "What we collect",
+                "account": "<strong>Account details</strong> you give us when you sign up: name, email, password (stored as a one-way hash), and optionally phone number, birth year, gender, country of birth, and travel interests. If you sign in with Google, we receive your name, email, and Google profile ID — never your Google password.",
+                "companions": "<strong>Optional travel-companion preferences</strong> you can set on the Account page: whether you usually travel solo, as a couple, with friends, or as a family with kids. If you indicate “family with kids,” you may also pick the age <em>ranges</em> of your kids (e.g. “3–5”, “6–9”). We deliberately collect <em>only</em> coarse age ranges — never exact ages, names, dates of birth, or marital status. These fields are opt-in, default empty, and editable or clearable at any time. We use them to bias trip recommendations (e.g. Disney + toddler-friendly picks for families with young kids; couple-style activities when you select “couple”).",
+                "travel": "<strong>Travel data</strong> you create inside DaTryp.com: trips, itineraries, activities, saved places, visited places, bucket list entries, reviews, and search history.",
+                "social": "<strong>Social data</strong> tied to the people you plan with: friend requests, accepted friendships, and the participants on shared trips.",
+                "billing": "<strong>Billing data</strong> if you subscribe to Pro: handled by Stripe. We store your Stripe customer ID and subscription status — we never see or store your card number.",
+                "technical": "<strong>Technical data</strong> we receive automatically: basic request logs, browser/device info, and (if you opt in) a push-notification subscription.",
+                "analytics": "<strong>Product analytics</strong> from your use of the site: which pages you visit, which features you click on, and a stable per-browser identifier so we can tell one user's session apart from another. When you sign in, we associate this identifier with your DaTryp.com account so we can answer questions like “does the AI trip builder convert better than the manual flow?” We do <em>not</em> record video of your sessions, and form inputs marked sensitive (phone number, password, payment fields) are masked in transit. We don't use this data for advertising."
+            },
+            "use": {
+                "heading": "How we use it",
+                "body": "To run the product — sign you in, save your itineraries, recommend places, show your friends, send notifications you've enabled, and process payments. We also use aggregated, non-identifying signals (like how many people searched a city this month) to improve recommendations."
+            },
+            "ai": {
+                "heading": "AI personalization & what we send to our AI provider",
+                "body1": "Some AI features (AI search, AI itinerary suggestions, bucket-list trip generation) only send the text of your query — nothing from your profile travels with it.",
+                "body2": "A few personalized features send a small set of profile fields to our AI technology partner so the recommendation can match your situation:",
+                "items": {
+                    "places": "<strong>Places you might love</strong> sends your chosen interests, traveler styles, and dream destinations (labels only, not your name or email).",
+                    "holiday": "<strong>Upcoming holiday</strong> sends the name of your country of birth so the holiday picks match what you celebrate.",
+                    "monthly": "<strong>Your monthly top pick (Pro)</strong> sends your approximate age (derived from your birth year), your country of birth, your gender (if you chose to share one), and your interests/traveler styles. We never send your name, email, friends list, payment info, or any other directly identifying field.",
+                    "trips": "<strong>Trip recommendations</strong> (when you ask the AI for trip ideas) may also send the opt-in travel-companion slugs and kids-age ranges you set on the Account page — so a Disney query knows whether to surface toddler-friendly attractions and a couples retreat knows to skip the kid-club. Like everything else in this list, these fields are slugs / coarse ranges only, never names or exact ages."
+                },
+                "body3": "Our AI technology processes these inputs only to generate that single response; per the provider's API terms, the data is not used to train models. You can clear or change any of these fields any time from the Account page — doing so wipes our cached recommendation and regenerates it next time you visit."
+            },
+            "processors": {
+                "heading": "Who else handles your data",
+                "body1": "A small set of trusted services help us run DaTryp.com:",
+                "items": {
+                    "stripe": "<strong>Stripe</strong> — processes subscription payments.",
+                    "sendgrid": "<strong>SendGrid</strong> — sends transactional and share-a-place emails.",
+                    "ai": "<strong>AI technology partners</strong> — generate AI search and itinerary recommendations from your query text.",
+                    "google": "<strong>Google</strong> — handles “Sign in with Google” if you use it.",
+                    "aws": "<strong>Amazon Web Services</strong> — hosts our backend, database, and image CDN.",
+                    "unsplash": "<strong>Unsplash</strong> — provides destination photos. Your browser fetches images directly from Unsplash's CDN, which means they see your IP address.",
+                    "posthog": "<strong>PostHog</strong> — collects the product analytics events described above (pageviews, clicks, and a per-browser identifier). PostHog sees your IP address and approximate location at the city level for the purpose of analytics; per their data processing terms, they don't use your data for any purpose other than serving us. We send only feature-usage events and an opaque user id; we never send sensitive fields like phone, password, or payment info."
+                },
+                "body2": "We don't sell your data, and we don't share it with advertisers."
+            },
+            "visibility": {
+                "heading": "What other users can see",
+                "body": "Your name and profile show up to people you add as friends and to participants on trips you share with them. Trips, activities, and notes inside a shared itinerary are visible to everyone on that trip. Your visited places, bucket list, and saved places are private to you by default. You can let friends see where you've travelled by turning on <em>Share visited places with friends</em> under <em>Account › Privacy</em>; until you do, your travel history stays private to you."
+            },
+            "choices": {
+                "heading": "Your choices",
+                "body1": "You can update your profile and preferences from <em>Account</em>. You can delete a trip, a saved place, a review, or any piece of content from inside the product. To delete your entire account, contact us through the link in the footer — we'll remove your personal data within 30 days, except for anything we're required to keep for legal or billing reasons.",
+                "body2": "You can opt out of non-essential emails from your account settings, and you can disable push notifications from your browser at any time."
+            },
+            "cookies": {
+                "heading": "Cookies and similar tech",
+                "body": "We use a small number of cookies and local storage entries to keep you signed in and to remember your preferences. We don't use third-party advertising or cross-site tracking cookies."
+            },
+            "security": {
+                "heading": "Security",
+                "body": "We use HTTPS everywhere, hash passwords with bcrypt, and restrict who on our side can see user data. No system is perfect — if you spot a security issue, please reach us through the contact link in the footer."
+            },
+            "children": {
+                "heading": "Children",
+                "body": "DaTryp.com isn't intended for children under 13. If we learn we've collected data from a child under 13, we'll delete it."
+            },
+            "changes": {
+                "heading": "Changes",
+                "body": "We may update this policy as the product evolves. When we do, we'll change the “Last updated” date at the top of this page. If the change is significant, we'll also let you know in-product or by email."
+            },
+            "contact": {
+                "heading": "Contact",
+                "body": "Questions, requests, or want a copy of your data? Reach us through the contact link in the footer."
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import {
     useRef,
     useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import InputField from 'components/common/FormFields/InputField';
@@ -43,6 +44,7 @@ const deriveNameFromEmail = (email: string): string => {
 const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
     ({ onInvited }, ref) => {
         const modalRef = useRef<ModalButtonHandle>(null);
+        const { t } = useTranslation();
         const { user, updateUser } = useUser();
         const [email, setEmail] = useState('');
         const [error, setError] = useState<string | null>(null);
@@ -66,7 +68,7 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
             if (submitting) return;
             const trimmed = email.trim().toLowerCase();
             if (!EMAIL_REGEX.test(trimmed)) {
-                setError('Enter a valid email address.');
+                setError(t('friends.invite.invalidEmail'));
                 return;
             }
             setError(null);
@@ -99,7 +101,7 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
                 setError(
                     err instanceof Error
                         ? err.message
-                        : 'Could not send the invite.'
+                        : t('friends.invite.sendFailed')
                 );
             } finally {
                 setSubmitting(false);
@@ -107,7 +109,7 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
         };
 
         return (
-            <ModalButton ref={modalRef} title="Invite a friend">
+            <ModalButton ref={modalRef} title={t('friends.invite.title')}>
                 <div className="invite-friend-content">
                     {confirm ? (
                         <p
@@ -120,15 +122,13 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
                     ) : (
                         <>
                             <p className="invite-friend-helper">
-                                Enter an email address. If they&rsquo;re already
-                                on DaTryp we&rsquo;ll send a friend request —
-                                otherwise we&rsquo;ll send an invitation to join.
+                                {t('friends.invite.helper')}
                             </p>
                             <InputField
                                 name="email"
                                 type="email"
-                                label="Email"
-                                placeholder="email@example.com"
+                                label={t('friends.invite.emailLabel')}
+                                placeholder={t('friends.invite.emailPlaceholder')}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={submitting}
@@ -147,7 +147,9 @@ const InviteFriendModal = forwardRef<ModalButtonHandle, InviteFriendModalProps>(
                                     type="standard"
                                     capitalizeType="uppercase"
                                     label={
-                                        submitting ? 'Sending…' : 'Send invite'
+                                        submitting
+                                            ? t('friends.invite.sending')
+                                            : t('friends.invite.send')
                                     }
                                     onClick={handleSend}
                                     disabled={submitting}

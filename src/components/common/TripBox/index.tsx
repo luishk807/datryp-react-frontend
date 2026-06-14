@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import classnames from 'classnames';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
@@ -36,12 +38,6 @@ interface TripBoxProps {
      *  card to be interactive in selection mode. */
     onToggleSelect?: () => void;
 }
-
-const TRIP_BOX_LABEL = {
-    MULTIPLE: 'Multiple destinations',
-    KIND_SINGLE: 'One destination',
-    KIND_MULTI: 'Multiple destinations',
-} as const;
 
 const formatDateRange = (start: string, end: string) => {
     if (!isValidDate(start) || !isValidDate(end)) return '';
@@ -80,7 +76,8 @@ type TripProgress = {
 const getTripProgress = (
     start: string,
     end: string,
-    statusName: string
+    statusName: string,
+    t: TFunction
 ): TripProgress | null => {
     if (statusName.toLowerCase() === 'completed') return null;
     const today = startOfDayMs(new Date());
@@ -90,10 +87,12 @@ const getTripProgress = (
 
     if (today < s) {
         const days = Math.round((s - today) / MS_PER_DAY);
-        if (days === 0) return { label: 'Starts today', tone: 'soon' };
-        if (days === 1) return { label: 'Starts tomorrow', tone: 'soon' };
+        if (days === 0)
+            return { label: t('tripCard.startsToday'), tone: 'soon' };
+        if (days === 1)
+            return { label: t('tripCard.startsTomorrow'), tone: 'soon' };
         return {
-            label: `Starts in ${days} days`,
+            label: t('tripCard.startsInDays', { count: days }),
             tone: days <= 14 ? 'soon' : 'upcoming',
         };
     }
@@ -102,7 +101,10 @@ const getTripProgress = (
         const dayNum = Math.round((today - s) / MS_PER_DAY) + 1;
         // "Live" prefix + a red pulsing dot makes a trip happening RIGHT NOW
         // read distinctly from an upcoming "Starts in N days" card.
-        return { label: `Live · Day ${dayNum} of ${total}`, tone: 'active' };
+        return {
+            label: t('tripCard.liveDay', { current: dayNum, total }),
+            tone: 'active',
+        };
     }
     return null;
 };
@@ -140,6 +142,7 @@ export const TripBox = ({
     onToggleSelect,
 }: TripBoxProps) => {
     const { user } = useUser();
+    const { t } = useTranslation();
     // Exclude the logged-in user from the trip's friend avatars — you
     // don't need to see yourself on your own trip. The trip `friends`
     // list includes the owner/participant rows, so filter on the backend
@@ -160,7 +163,7 @@ export const TripBox = ({
     // Full list for the image alt text (accessibility / SEO); the visible
     // line below truncates with "+N more".
     const destinationLabel =
-        destinations.join(' · ') || TRIP_BOX_LABEL.MULTIPLE;
+        destinations.join(' · ') || t('tripCard.multiDestination');
     const shownDestinations = destinations.slice(0, DESTINATIONS_SHOWN);
     const moreDestinations = destinations.length - shownDestinations.length;
     const tripImage = getTripImage(data);
@@ -168,7 +171,8 @@ export const TripBox = ({
     const progress = getTripProgress(
         data.startDate,
         data.endDate,
-        data.status.name
+        data.status.name,
+        t
     );
 
     // Lifecycle-specific card extras: a Completed trip reads as a "memory
@@ -210,7 +214,9 @@ export const TripBox = ({
                             `trip-box-status-${statusKey}`
                         )}
                     >
-                        {data.status.name}
+                        {t(`tripCard.status.${statusKey}`, {
+                            defaultValue: data.status.name,
+                        })}
                     </span>
                 )}
                 {selectable && (
@@ -228,11 +234,13 @@ export const TripBox = ({
                 <h3 className="trip-box-name">{data.name}</h3>
                 <p className="trip-box-destination" title={destinationLabel}>
                     {shownDestinations.join(' · ') ||
-                        TRIP_BOX_LABEL.MULTIPLE}
+                        t('tripCard.multiDestination')}
                     {moreDestinations > 0 && (
                         <span className="trip-box-destination-more">
                             {' '}
-                            +{moreDestinations} more
+                            {t('tripCard.moreCount', {
+                                count: moreDestinations,
+                            })}
                         </span>
                     )}
                 </p>
@@ -261,9 +269,11 @@ export const TripBox = ({
                             {isPlanning && plannedPercent > 0 && (
                                 <span
                                     className="trip-box-planned"
-                                    title="How filled in the itinerary is"
+                                    title={t('tripCard.plannedTitle')}
                                 >
-                                    {plannedPercent}% planned
+                                    {t('tripCard.planned', {
+                                        pct: plannedPercent,
+                                    })}
                                 </span>
                             )}
                         </div>
@@ -274,20 +284,22 @@ export const TripBox = ({
                     <div className="trip-box-memory">
                         <span className="trip-box-memory-stat">
                             <CalendarMonthRoundedIcon className="trip-box-memory-icon" />
-                            {memoryDays} day{memoryDays === 1 ? '' : 's'}
+                            {t('tripCard.memoryDays', { count: memoryDays })}
                         </span>
                         {memoryPlaces > 0 && (
                             <span className="trip-box-memory-stat">
                                 <PlaceRoundedIcon className="trip-box-memory-icon" />
-                                {memoryPlaces} place
-                                {memoryPlaces === 1 ? '' : 's'}
+                                {t('tripCard.memoryPlaces', {
+                                    count: memoryPlaces,
+                                })}
                             </span>
                         )}
                         {friendsCount > 0 && (
                             <span className="trip-box-memory-stat">
                                 <GroupRoundedIcon className="trip-box-memory-icon" />
-                                {friendsCount} friend
-                                {friendsCount === 1 ? '' : 's'}
+                                {t('tripCard.memoryFriends', {
+                                    count: friendsCount,
+                                })}
                             </span>
                         )}
                     </div>
@@ -306,17 +318,17 @@ export const TripBox = ({
                         <RouteRoundedIcon className="trip-box-kind-icon" />
                     )}
                     {single
-                        ? TRIP_BOX_LABEL.KIND_SINGLE
-                        : TRIP_BOX_LABEL.KIND_MULTI}
+                        ? t('tripCard.oneDestination')
+                        : t('tripCard.multiDestination')}
                 </span>
                 <div className="trip-box-meta">
                     <span>{formatDateRange(data.startDate, data.endDate)}</span>
                     {friendsCount > 0 && (
                         <span
                             className="trip-box-friends"
-                            title={`${friendsCount} friend${
-                                friendsCount === 1 ? '' : 's'
-                            } on this trip`}
+                            title={t('tripCard.friendsOnTrip', {
+                                count: friendsCount,
+                            })}
                         >
                             <AvatarStack
                                 people={friendPeople}
@@ -341,7 +353,11 @@ export const TripBox = ({
                 className="trip-box-link is-select-trigger"
                 onClick={onToggleSelect}
                 aria-pressed={selected}
-                aria-label={`${selected ? 'Unselect' : 'Select'} trip ${data.name}`}
+                aria-label={
+                    selected
+                        ? t('tripCard.unselectTrip', { name: data.name })
+                        : t('tripCard.selectTrip', { name: data.name })
+                }
             >
                 {inner}
             </button>

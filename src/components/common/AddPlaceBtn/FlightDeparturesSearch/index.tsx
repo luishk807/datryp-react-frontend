@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CircularProgress } from '@mui/material';
 import WbTwilightRoundedIcon from '@mui/icons-material/WbTwilightRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
@@ -19,9 +20,9 @@ import './index.scss';
  *  the rate limit while still covering the part of the day the user cares
  *  about. */
 const TIME_WINDOWS = [
-    { key: 'morning', label: 'Morning', fromTime: '00:00', Icon: WbTwilightRoundedIcon },
-    { key: 'afternoon', label: 'Afternoon', fromTime: '12:00', Icon: WbSunnyRoundedIcon },
-    { key: 'evening', label: 'Evening', fromTime: '18:00', Icon: NightsStayRoundedIcon },
+    { key: 'morning', labelKey: 'windowMorning', fromTime: '00:00', Icon: WbTwilightRoundedIcon },
+    { key: 'afternoon', labelKey: 'windowAfternoon', fromTime: '12:00', Icon: WbSunnyRoundedIcon },
+    { key: 'evening', labelKey: 'windowEvening', fromTime: '18:00', Icon: NightsStayRoundedIcon },
 ] as const;
 
 type TimeWindowKey = (typeof TIME_WINDOWS)[number]['key'];
@@ -53,6 +54,7 @@ const FlightDeparturesSearch = ({
     onPick,
     onBack,
 }: FlightDeparturesSearchProps) => {
+    const { t } = useTranslation();
     const [airport, setAirport] = useState(initialAirport);
     const [arrival, setArrival] = useState(initialArrival);
     const [date, setDate] = useState(initialDate);
@@ -126,7 +128,7 @@ const FlightDeparturesSearch = ({
             <div className="flight-departures-search-od">
                 <div className="flight-departures-search-field flight-departures-search-airport">
                     <span className="flight-departures-search-label">
-                        From airport
+                        {t('addForms.flightSearch.fromAirport')}
                     </span>
                     <AirportAutocomplete
                         value={airport}
@@ -134,15 +136,15 @@ const FlightDeparturesSearch = ({
                             setAirport(code);
                             setSearched(false);
                         }}
-                        placeholder="IATA code, city, or airport"
+                        placeholder={t('addForms.flightSearch.airportPlaceholder')}
                     />
                 </div>
                 <button
                     type="button"
                     className="flight-departures-search-swap"
                     onClick={handleSwap}
-                    aria-label="Swap From and To airports"
-                    title="Swap airports"
+                    aria-label={t('addForms.flightSearch.swapAria')}
+                    title={t('addForms.flightSearch.swapTitle')}
                 >
                     {/* Vertical arrows when the fields stack (mobile),
                         horizontal when they sit side-by-side (desktop). */}
@@ -157,7 +159,7 @@ const FlightDeparturesSearch = ({
                 </button>
                 <div className="flight-departures-search-field flight-departures-search-airport">
                     <span className="flight-departures-search-label">
-                        To airport
+                        {t('addForms.flightSearch.toAirport')}
                     </span>
                     <AirportAutocomplete
                         value={arrival}
@@ -165,12 +167,14 @@ const FlightDeparturesSearch = ({
                             setArrival(code);
                             setSearched(false);
                         }}
-                        placeholder="IATA code, city, or airport"
+                        placeholder={t('addForms.flightSearch.airportPlaceholder')}
                     />
                 </div>
             </div>
             <div className="flight-departures-search-field flight-departures-search-date">
-                <span className="flight-departures-search-label">Date</span>
+                <span className="flight-departures-search-label">
+                    {t('addForms.flightSearch.date')}
+                </span>
                 <InputField
                     value={date}
                     name="flight-departures-date"
@@ -185,7 +189,7 @@ const FlightDeparturesSearch = ({
 
             <div className="flight-departures-search-window">
                 <span className="flight-departures-search-label">
-                    Time of day
+                    {t('addForms.flightSearch.timeOfDay')}
                 </span>
                 {/* Reuses the shared sliding-thumb segmented control (the
                     same one the Ground transport form uses for Train /
@@ -198,7 +202,7 @@ const FlightDeparturesSearch = ({
                         'is-pos-3': windowKey === 'evening',
                     })}
                     role="tablist"
-                    aria-label="Time of day"
+                    aria-label={t('addForms.flightSearch.timeOfDayAria')}
                 >
                     <span className="hotel-side-thumb" aria-hidden="true" />
                     {TIME_WINDOWS.map((w) => {
@@ -222,7 +226,11 @@ const FlightDeparturesSearch = ({
                                     className="hotel-side-icon"
                                     fontSize="small"
                                 />
-                                <span>{w.label}</span>
+                                <span>
+                                    {t(
+                                        `addForms.flightSearch.${w.labelKey}`,
+                                    )}
+                                </span>
                             </button>
                         );
                     })}
@@ -231,12 +239,12 @@ const FlightDeparturesSearch = ({
 
             <div className="flight-departures-search-field flight-departures-search-airline">
                 <span className="flight-departures-search-label">
-                    Airline code (optional)
+                    {t('addForms.flightSearch.airlineCodeOptional')}
                 </span>
                 <InputField
                     value={airline}
                     label={null}
-                    placeholder="e.g. UA"
+                    placeholder={t('addForms.flightSearch.airlinePlaceholder')}
                     required={false}
                     onChange={(e) => {
                         setAirline(e.target.value);
@@ -248,15 +256,13 @@ const FlightDeparturesSearch = ({
             {isFetching && (
                 <div className="flight-departures-search-status">
                     <CircularProgress size={18} />
-                    <span>Searching departures…</span>
+                    <span>{t('addForms.flightSearch.searchingDepartures')}</span>
                 </div>
             )}
 
             {showResults && (isError || filtered.length === 0) && (
                 <div className="flight-departures-search-empty">
-                    No flights found — try a different time of day, clear the
-                    To-airport or airline filter, or switch to Custom to enter
-                    it by hand.
+                    {t('addForms.flightSearch.noFlights')}
                 </div>
             )}
 
@@ -266,8 +272,8 @@ const FlightDeparturesSearch = ({
                         <InputField
                             value={filter}
                             name="flight-departures-filter"
-                            label="Filter results"
-                            placeholder="Flight #, airport, city, or airline"
+                            label={t('addForms.flightSearch.filterResults')}
+                            placeholder={t('addForms.flightSearch.filterPlaceholder')}
                             required={false}
                             onChange={(e) => setFilter(e.target.value)}
                         />
@@ -289,12 +295,16 @@ const FlightDeparturesSearch = ({
                                 setVisibleCount((c) => c + PAGE_SIZE)
                             }
                         >
-                            Show more ({filtered.length - visibleCount} left)
+                            {t('addForms.flightSearch.showMore', {
+                                count: filtered.length - visibleCount,
+                            })}
                         </button>
                     ) : (
                         filtered.length > PAGE_SIZE && (
                             <p className="flight-departures-search-count">
-                                Showing all {filtered.length}
+                                {t('addForms.flightSearch.showingAll', {
+                                    count: filtered.length,
+                                })}
                             </p>
                         )
                     )}
@@ -304,7 +314,7 @@ const FlightDeparturesSearch = ({
             <WizardNav
                 onBack={onBack}
                 onNext={() => setSearched(true)}
-                nextLabel="Search"
+                nextLabel={t('addForms.flightSearch.search')}
                 nextDisabled={!canSearch}
             />
         </div>

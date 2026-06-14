@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Grid } from '@mui/material';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
@@ -27,6 +28,7 @@ interface BasicInfoProps {
 }
 
 const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
+    const { t } = useTranslation();
     const today = useMemo(() => now(), []);
     const dispatch = useTripDispatch();
     const { user, isLoading: isUserLoading } = useUser();
@@ -131,7 +133,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
             <form>
                 <Grid container className="step-section">
                     <Grid item lg={12} md={12} xs={12} className="header">
-                        Please enter basic info
+                        {t('activity.basicInfo.header')}
                     </Grid>
                     {isSingle ? (
                         <Grid item lg={12} md={12} xs={12} className="form-input">
@@ -148,8 +150,8 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                                 <div className="trip-destination-text">
                                     <span className="trip-destination-label">
                                         {selectedCountries.length > 1
-                                            ? "You're heading to"
-                                            : 'Next stop'}
+                                            ? t('activity.basicInfo.headingTo')
+                                            : t('activity.basicInfo.nextStop')}
                                     </span>
                                     <span className="trip-destination-name">
                                         {selectedCountries.join(' • ')}
@@ -160,7 +162,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                     )}
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <FriendPicker
-                            title="Select Organizer"
+                            title={t('activity.basicInfo.selectOrganizer')}
                             name="organizer"
                             selectedOptions={view.organizer}
                             onChange={handleOrganizerPicker}
@@ -170,7 +172,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                         <InputField
                             defaultValue={view.name}
                             name="name"
-                            label="Trip Name"
+                            label={t('activity.basicInfo.tripName')}
                             onChange={(e) => onChange('name', e)}
                         />
                     </Grid>
@@ -178,7 +180,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                         <InputField
                             defaultValue={String(view.budget)}
                             name="budget"
-                            label="Budget"
+                            label={t('activity.basicInfo.budget')}
                             onChange={(e) => onChange('budget', e)}
                         />
                         <BudgetSuggestionBadge
@@ -192,8 +194,8 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                         <DropDown
                             label={
                                 data?.apiId
-                                    ? 'Status'
-                                    : 'Status (always Planning on create)'
+                                    ? t('activity.basicInfo.status')
+                                    : t('activity.basicInfo.statusOnCreate')
                             }
                             value={resolvedStatus?.id ?? null}
                             options={tripStatuses}
@@ -208,7 +210,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField
-                            label="Start Date"
+                            label={t('activity.basicInfo.startDate')}
                             defaultValue={view.startDate}
                             name="startDate"
                             type="date"
@@ -217,7 +219,7 @@ const BasicInfo = ({ onChange, data = null }: BasicInfoProps) => {
                     </Grid>
                     <Grid item lg={12} md={12} xs={12} className="form-input">
                         <InputField
-                            label="End Date"
+                            label={t('activity.basicInfo.endDate')}
                             defaultValue={view.endDate}
                             name="endDate"
                             type="date"

@@ -34,7 +34,8 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import Skeleton from 'components/common/Skeleton';
 import type { WorldEventPlace } from 'api/worldEventApi';
 import { useWorldEvent } from 'api/hooks/useWorldEvent';
-import { NO_IMAGE } from 'constants';
+import { isUsableHeroUrl } from 'utils/heroImages';
+import PlaceThumb from 'components/common/PlaceThumb';
 import './index.scss';
 
 /** Format an ISO date as "Jun 11". Used inside the date-range chip. */
@@ -158,6 +159,19 @@ const WorldEventActive = () => {
     if (isError || !data) return null;
 
     const { event, places } = data;
+    // The event's own photo is preferred, but some events come back without
+    // one (the backend hasn't fetched an Unsplash hero) — rather than paint a
+    // blank gradient, fall back to the first usable photo from the event's
+    // "best places" list so the card always shows a relevant image.
+    const heroImage = isUsableHeroUrl(event.imageUrl)
+        ? event.imageUrl
+        : places.find((p) => isUsableHeroUrl(p.imageUrl))?.imageUrl ?? null;
+    // Last-resort hero: resolve a photo by the first place's name (handles
+    // the case where neither the event nor any place carries an image_url —
+    // e.g. Unsplash was rate-limited at generate time).
+    const heroFallbackPlace = !heroImage
+        ? places.find((p) => p.name)
+        : undefined;
     const showHost =
         event.hostCountry &&
         event.hostCountry.toLowerCase() !== 'international';
@@ -167,12 +181,18 @@ const WorldEventActive = () => {
             <article className="world-event-card">
                 {/* LEFT — big hero photo of the event */}
                 <div className="world-event-photo-wrap">
-                    {event.imageUrl ? (
+                    {heroImage ? (
                         <img
-                            src={event.imageUrl}
+                            src={heroImage}
                             alt=""
                             className="world-event-photo"
                             loading="lazy"
+                        />
+                    ) : heroFallbackPlace ? (
+                        <PlaceThumb
+                            name={heroFallbackPlace.name}
+                            country={heroFallbackPlace.country}
+                            className="world-event-photo"
                         />
                     ) : (
                         <div className="world-event-photo-fallback" />
@@ -261,10 +281,10 @@ const WorldEventActive = () => {
                                         },
                                     )}
                                 >
-                                    <img
-                                        src={place.imageUrl ?? NO_IMAGE}
-                                        alt=""
-                                        loading="lazy"
+                                    <PlaceThumb
+                                        name={place.name}
+                                        country={place.country}
+                                        imageUrl={place.imageUrl}
                                         className="world-event-place-img"
                                     />
                                     <div className="world-event-place-body">

@@ -26,6 +26,7 @@ import {
     type KeyboardEvent,
 } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useUser } from 'context/UserContext';
 import { Chip } from '@mui/material';
@@ -51,29 +52,32 @@ import { BucketListPaywallError } from 'api/bucketListApi';
 import { capture as captureEvent } from 'lib/posthog';
 import './index.scss';
 
-const SUGGESTED_INTERESTS = [
-    'Beach',
-    'Hiking',
-    'Food tour',
-    'Snorkeling',
-    'Ski',
-    'Ancient ruins',
-    'Nightlife',
-    'Spa',
-    'Wildlife',
-    'Wine country',
-    'Surfing',
-    'Photography',
-    'Family-friendly',
-    'Romantic',
+// `value` is the actual interest sent to the AI (data — kept in English so
+// the backend prompt stays stable); `key` only selects the translated chip
+// label shown to the user.
+const SUGGESTED_INTERESTS: { key: string; value: string }[] = [
+    { key: 'beach', value: 'Beach' },
+    { key: 'hiking', value: 'Hiking' },
+    { key: 'foodTour', value: 'Food tour' },
+    { key: 'snorkeling', value: 'Snorkeling' },
+    { key: 'ski', value: 'Ski' },
+    { key: 'ancientRuins', value: 'Ancient ruins' },
+    { key: 'nightlife', value: 'Nightlife' },
+    { key: 'spa', value: 'Spa' },
+    { key: 'wildlife', value: 'Wildlife' },
+    { key: 'wineCountry', value: 'Wine country' },
+    { key: 'surfing', value: 'Surfing' },
+    { key: 'photography', value: 'Photography' },
+    { key: 'familyFriendly', value: 'Family-friendly' },
+    { key: 'romantic', value: 'Romantic' },
 ];
 
 const BUDGET_PRESETS = [
-    { label: '$750', value: 750, note: 'Budget' },
-    { label: '$1,500', value: 1500, note: 'Standard' },
-    { label: '$3,500', value: 3500, note: 'Comfort' },
-    { label: '$7,500', value: 7500, note: 'Premium' },
-];
+    { label: '$750', value: 750, tier: 'budget' },
+    { label: '$1,500', value: 1500, tier: 'standard' },
+    { label: '$3,500', value: 3500, tier: 'comfort' },
+    { label: '$7,500', value: 7500, tier: 'premium' },
+] as const;
 
 const DURATION_PRESETS = [3, 5, 7, 10, 14];
 
@@ -84,23 +88,24 @@ const MAX_BUDGET = 50_000;
 // regions and vibes so a user who doesn't have a specific country in mind can
 // still steer the suggestions with one tap. `value` is dropped straight into
 // the `countryHint` the AI already honors; "Anywhere" clears it.
-const QUICK_DESTINATIONS: { label: string; value: string }[] = [
-    { label: 'Anywhere', value: '' },
-    { label: 'Europe', value: 'Europe' },
-    { label: 'Asia', value: 'Asia' },
-    { label: 'Latin America', value: 'Latin America' },
-    { label: 'Beach', value: 'somewhere with great beaches' },
-    { label: 'Mountains', value: 'somewhere in the mountains' },
-    { label: 'Cities', value: 'a vibrant city destination' },
+const QUICK_DESTINATIONS: { key: string; value: string }[] = [
+    { key: 'anywhere', value: '' },
+    { key: 'europe', value: 'Europe' },
+    { key: 'asia', value: 'Asia' },
+    { key: 'latinAmerica', value: 'Latin America' },
+    { key: 'beach', value: 'somewhere with great beaches' },
+    { key: 'mountains', value: 'somewhere in the mountains' },
+    { key: 'cities', value: 'a vibrant city destination' },
 ];
 
+// `key` doubles as the i18n key for the stepper label (`aiTrip.steps.<key>`).
+// The `duration` step holds duration + party size — two quick inputs — so its
+// label reads as "Trip details" rather than implying only one question.
 const WIZARD_STEPS = [
-    { key: 'budget', label: 'Budget', Icon: PaymentsRoundedIcon },
-    { key: 'interests', label: 'Interests', Icon: ExploreRoundedIcon },
-    { key: 'destination', label: 'Destination', Icon: LocationOnRoundedIcon },
-    // Holds duration + party size — two quick inputs, so the step reads as
-    // "Trip details" rather than implying only one question.
-    { key: 'duration', label: 'Trip details', Icon: EventRoundedIcon },
+    { key: 'budget', Icon: PaymentsRoundedIcon },
+    { key: 'interests', Icon: ExploreRoundedIcon },
+    { key: 'destination', Icon: LocationOnRoundedIcon },
+    { key: 'duration', Icon: EventRoundedIcon },
 ] as const;
 
 type WizardStepKey = (typeof WIZARD_STEPS)[number]['key'];
@@ -109,6 +114,7 @@ const formatCost = (n: number): string =>
     `$${Math.round(n).toLocaleString()}`;
 
 const AiTripBuilderPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { user, isAdmin } = useUser();
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
@@ -157,7 +163,7 @@ const AiTripBuilderPage = () => {
             setError(
                 err instanceof Error
                     ? err.message
-                    : 'Could not find options right now. Try again.',
+                    : t('aiTrip.errors.optionsFailed'),
             );
         },
     });
@@ -190,7 +196,7 @@ const AiTripBuilderPage = () => {
             setError(
                 err instanceof Error
                     ? err.message
-                    : 'Could not build that trip right now. Try again.',
+                    : t('aiTrip.errors.buildFailed'),
             );
         },
     });
@@ -227,14 +233,18 @@ const AiTripBuilderPage = () => {
     const validateStep = (key: WizardStepKey): string | null => {
         if (key === 'budget') {
             if (!Number.isFinite(budgetNum) || budgetNum < MIN_BUDGET) {
-                return `Set a budget of at least $${MIN_BUDGET}.`;
+                return t('aiTrip.budget.errorMin', {
+                    min: `$${MIN_BUDGET}`,
+                });
             }
             if (budgetNum > MAX_BUDGET) {
-                return `Budget caps at $${MAX_BUDGET.toLocaleString()}.`;
+                return t('aiTrip.budget.errorMax', {
+                    max: `$${MAX_BUDGET.toLocaleString()}`,
+                });
             }
         }
         if (key === 'interests' && interests.length === 0) {
-            return 'Add at least one interest (try "beach" or "hiking").';
+            return t('aiTrip.interests.errorEmpty');
         }
         return null;
     };
@@ -329,7 +339,7 @@ const AiTripBuilderPage = () => {
     };
 
     return (
-        <Layout title="Plan my trip">
+        <Layout title={t('aiTrip.title')}>
             <article className="ai-trip-builder-page">
                 <header className="ai-trip-builder-page-hero">
                     <span className="ai-trip-builder-page-eyebrow">
@@ -337,17 +347,17 @@ const AiTripBuilderPage = () => {
                             className="ai-trip-builder-page-eyebrow-icon"
                             fontSize="small"
                         />
-                        <span>Pro — Trip Builder</span>
+                        <span>{t('aiTrip.eyebrow')}</span>
                     </span>
                     <h1 className="ai-trip-builder-page-headline">
                         {inOptionsPhase
-                            ? 'Pick the one that calls to you.'
-                            : 'Tell us what you love. We’ll find the best matches.'}
+                            ? t('aiTrip.hero.optionsTitle')
+                            : t('aiTrip.hero.title')}
                     </h1>
                     <p className="ai-trip-builder-page-sub">
                         {inOptionsPhase
-                            ? 'Each option is a real trip we can build for you. Pick one and we’ll generate the full day-by-day plan.'
-                            : 'Answer a few quick questions and we’ll suggest personalized destinations — pick one and we’ll build the full itinerary.'}
+                            ? t('aiTrip.hero.optionsSub')
+                            : t('aiTrip.hero.sub')}
                     </p>
                 </header>
 
@@ -355,7 +365,7 @@ const AiTripBuilderPage = () => {
                     <>
                         <nav
                             className="ai-trip-builder-page-stepper"
-                            aria-label="Wizard steps"
+                            aria-label={t('aiTrip.stepperAria')}
                         >
                             {WIZARD_STEPS.map((step, idx) => {
                                 const Icon = step.Icon;
@@ -384,7 +394,7 @@ const AiTripBuilderPage = () => {
                                             )}
                                         </span>
                                         <span className="ai-trip-builder-page-step-label">
-                                            {step.label}
+                                            {t(`aiTrip.steps.${step.key}`)}
                                         </span>
                                     </button>
                                 );
@@ -395,13 +405,10 @@ const AiTripBuilderPage = () => {
                             {wizardStepKey === 'budget' && (
                                 <div className="ai-trip-builder-page-step-body">
                                     <h2 className="ai-trip-builder-page-step-title">
-                                        Roughly, how much do you want to spend?
+                                        {t('aiTrip.budget.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        Per traveler, in USD. Covers lodging,
-                                        food, transit, and activities
-                                        (international flights aren&rsquo;t
-                                        included).
+                                        {t('aiTrip.budget.hint')}
                                     </p>
                                     <div className="ai-trip-builder-page-budget-row">
                                         <div className="ai-trip-builder-page-budget-input">
@@ -444,7 +451,9 @@ const AiTripBuilderPage = () => {
                                                     {preset.label}
                                                 </span>
                                                 <span className="ai-trip-builder-page-preset-note">
-                                                    {preset.note}
+                                                    {t(
+                                                        `aiTrip.tier.${preset.tier}`,
+                                                    )}
                                                 </span>
                                             </button>
                                         ))}
@@ -455,18 +464,18 @@ const AiTripBuilderPage = () => {
                             {wizardStepKey === 'interests' && (
                                 <div className="ai-trip-builder-page-step-body">
                                     <h2 className="ai-trip-builder-page-step-title">
-                                        What do you want to do?
+                                        {t('aiTrip.interests.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        Pick 3–8 that sound fun — these drive
-                                        what destinations show up. Choose
-                                        anything that appeals to you.
+                                        {t('aiTrip.interests.hint')}
                                     </p>
                                     <input
                                         type="text"
                                         className="ai-trip-builder-page-text"
                                         value={interestDraft}
-                                        placeholder="Type and press Enter (e.g. fishing, beach, sunset)"
+                                        placeholder={t(
+                                            'aiTrip.interests.placeholder',
+                                        )}
                                         onChange={(e) =>
                                             setInterestDraft(e.target.value)
                                         }
@@ -487,7 +496,7 @@ const AiTripBuilderPage = () => {
                                         </div>
                                     )}
                                     <h3 className="ai-trip-builder-page-suggest-title">
-                                        Or pick from these
+                                        {t('aiTrip.interests.orPick')}
                                     </h3>
                                     <div className="ai-trip-builder-page-suggestions">
                                         {SUGGESTED_INTERESTS.filter(
@@ -495,13 +504,18 @@ const AiTripBuilderPage = () => {
                                                 !interests.some(
                                                     (i) =>
                                                         i.toLowerCase() ===
-                                                        s.toLowerCase(),
+                                                        s.value.toLowerCase(),
                                                 ),
-                                        ).map((label) => (
+                                        ).map((s) => (
                                             <Chip
-                                                key={label}
-                                                label={`+ ${label}`}
-                                                onClick={() => addInterest(label)}
+                                                key={s.key}
+                                                label={`+ ${t(
+                                                    `aiTrip.interestOptions.${s.key}`,
+                                                    { defaultValue: s.value },
+                                                )}`}
+                                                onClick={() =>
+                                                    addInterest(s.value)
+                                                }
                                                 className="ai-trip-builder-page-chip is-suggestion"
                                             />
                                         ))}
@@ -512,30 +526,32 @@ const AiTripBuilderPage = () => {
                             {wizardStepKey === 'destination' && (
                                 <div className="ai-trip-builder-page-step-body">
                                     <h2 className="ai-trip-builder-page-step-title">
-                                        Anywhere in mind?
+                                        {t('aiTrip.destination.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        Optional — name a country or region to
-                                        focus on, or leave it blank and we’ll
-                                        suggest destinations from your interests.
+                                        {t('aiTrip.destination.hint')}
                                     </p>
                                     <input
                                         type="text"
                                         className="ai-trip-builder-page-text"
                                         value={countryHint}
-                                        placeholder="e.g. Japan, anywhere in SE Asia, the Mediterranean"
+                                        placeholder={t(
+                                            'aiTrip.destination.placeholder',
+                                        )}
                                         onChange={(e) =>
                                             setCountryHint(e.target.value)
                                         }
                                     />
                                     <h3 className="ai-trip-builder-page-suggest-title">
-                                        Or start from a quick pick
+                                        {t('aiTrip.destination.orQuickPick')}
                                     </h3>
                                     <div className="ai-trip-builder-page-quickpicks">
                                         {QUICK_DESTINATIONS.map((q) => (
                                             <Chip
-                                                key={q.label}
-                                                label={q.label}
+                                                key={q.key}
+                                                label={t(
+                                                    `aiTrip.destination.quick.${q.key}`,
+                                                )}
                                                 onClick={() =>
                                                     setCountryHint(q.value)
                                                 }
@@ -555,11 +571,10 @@ const AiTripBuilderPage = () => {
                             {wizardStepKey === 'duration' && (
                                 <div className="ai-trip-builder-page-step-body">
                                     <h2 className="ai-trip-builder-page-step-title">
-                                        How long should the trip be?
+                                        {t('aiTrip.duration.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        Optional — if you skip this we’ll
-                                        pick a length that fits the budget.
+                                        {t('aiTrip.duration.hint')}
                                     </p>
                                     <div className="ai-trip-builder-page-budget-row">
                                         <div className="ai-trip-builder-page-budget-input">
@@ -576,7 +591,7 @@ const AiTripBuilderPage = () => {
                                                 }}
                                             />
                                             <span className="ai-trip-builder-page-budget-symbol is-suffix">
-                                                days
+                                                {t('aiTrip.duration.daysSuffix')}
                                             </span>
                                         </div>
                                     </div>
@@ -600,7 +615,9 @@ const AiTripBuilderPage = () => {
                                                     {d}
                                                 </span>
                                                 <span className="ai-trip-builder-page-preset-note">
-                                                    {d === 1 ? 'day' : 'days'}
+                                                    {t('aiTrip.duration.dayUnit', {
+                                                        count: d,
+                                                    })}
                                                 </span>
                                             </button>
                                         ))}
@@ -616,10 +633,10 @@ const AiTripBuilderPage = () => {
                                             }}
                                         >
                                             <span className="ai-trip-builder-page-preset-amount">
-                                                Auto
+                                                {t('aiTrip.duration.auto')}
                                             </span>
                                             <span className="ai-trip-builder-page-preset-note">
-                                                Smart pick
+                                                {t('aiTrip.duration.smartPick')}
                                             </span>
                                         </button>
                                     </div>
@@ -633,12 +650,10 @@ const AiTripBuilderPage = () => {
                                         className="ai-trip-builder-page-step-title"
                                         style={{ marginTop: 28 }}
                                     >
-                                        How many people are going?
+                                        {t('aiTrip.party.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
-                                        We use this to size lodging
-                                        suggestions and split the budget
-                                        per-person.
+                                        {t('aiTrip.party.hint')}
                                     </p>
                                     <div className="ai-trip-builder-page-budget-row">
                                         <div className="ai-trip-builder-page-budget-input">
@@ -655,9 +670,9 @@ const AiTripBuilderPage = () => {
                                                 }}
                                             />
                                             <span className="ai-trip-builder-page-budget-symbol is-suffix">
-                                                {Number(partySize) === 1
-                                                    ? 'person'
-                                                    : 'people'}
+                                                {t('aiTrip.party.peopleSuffix', {
+                                                    count: Number(partySize) || 0,
+                                                })}
                                             </span>
                                         </div>
                                     </div>
@@ -681,13 +696,17 @@ const AiTripBuilderPage = () => {
                                                     {n}
                                                 </span>
                                                 <span className="ai-trip-builder-page-preset-note">
-                                                    {n === 1
-                                                        ? 'solo'
-                                                        : n === 2
-                                                            ? 'couple'
-                                                            : n === 4
-                                                                ? 'family'
-                                                                : 'group'}
+                                                    {t(
+                                                        `aiTrip.party.size.${
+                                                            n === 1
+                                                                ? 'solo'
+                                                                : n === 2
+                                                                    ? 'couple'
+                                                                    : n === 4
+                                                                        ? 'family'
+                                                                        : 'group'
+                                                        }`,
+                                                    )}
                                                 </span>
                                             </button>
                                         ))}
@@ -715,7 +734,7 @@ const AiTripBuilderPage = () => {
                                     }
                                 >
                                     <ArrowBackRoundedIcon fontSize="small" />
-                                    <span>Back</span>
+                                    <span>{t('aiTrip.back')}</span>
                                 </button>
                                 {stepIndex === WIZARD_STEPS.length - 1 ? (
                                     <button
@@ -730,8 +749,8 @@ const AiTripBuilderPage = () => {
                                         />
                                         <span>
                                             {optionsMutation.isPending
-                                                ? 'Finding your matches…'
-                                                : 'Show me destination options'}
+                                                ? t('aiTrip.submit.pending')
+                                                : t('aiTrip.submit.idle')}
                                         </span>
                                     </button>
                                 ) : (
@@ -740,7 +759,7 @@ const AiTripBuilderPage = () => {
                                         className="ai-trip-builder-page-next"
                                         onClick={goNext}
                                     >
-                                        <span>Next</span>
+                                        <span>{t('aiTrip.next')}</span>
                                         <ArrowForwardRoundedIcon fontSize="small" />
                                     </button>
                                 )}
@@ -759,7 +778,7 @@ const AiTripBuilderPage = () => {
                                 disabled={buildMutation.isPending}
                             >
                                 <ArrowBackRoundedIcon fontSize="small" />
-                                <span>Edit my inputs</span>
+                                <span>{t('aiTrip.options.editInputs')}</span>
                             </button>
                         </div>
 
@@ -789,7 +808,11 @@ const AiTripBuilderPage = () => {
                                     ),
                                     ...(Number.isFinite(budgetNum) &&
                                     option.estimatedCostUsd <= budgetNum
-                                        ? [`Fits your ${formatCost(budgetNum)} budget`]
+                                        ? [
+                                              t('aiTrip.options.fitsBudget', {
+                                                  amount: formatCost(budgetNum),
+                                              }),
+                                          ]
                                         : []),
                                 ].slice(0, 5);
                                 return (
@@ -822,7 +845,7 @@ const AiTripBuilderPage = () => {
                                             </span>
                                             {option.photographerName && (
                                                 <span className="ai-trip-builder-page-option-attribution">
-                                                    Photo by{' '}
+                                                    {t('aiTrip.options.photoBy')}{' '}
                                                     {option.photographerUrl ? (
                                                         <a
                                                             href={
@@ -843,7 +866,7 @@ const AiTripBuilderPage = () => {
                                             {isTopPick && (
                                                 <span className="ai-trip-builder-page-option-bestfit">
                                                     <AutoAwesomeRoundedIcon fontSize="inherit" />
-                                                    We think this is the best fit
+                                                    {t('aiTrip.options.bestFit')}
                                                 </span>
                                             )}
                                             <h3 className="ai-trip-builder-page-option-headline">
@@ -855,7 +878,9 @@ const AiTripBuilderPage = () => {
                                             {matchReasons.length > 0 && (
                                                 <div className="ai-trip-builder-page-option-match">
                                                     <span className="ai-trip-builder-page-option-match-title">
-                                                        Why this matches you
+                                                        {t(
+                                                            'aiTrip.options.whyMatches',
+                                                        )}
                                                     </span>
                                                     <ul className="ai-trip-builder-page-option-match-list">
                                                         {matchReasons.map((r) => (
@@ -885,10 +910,9 @@ const AiTripBuilderPage = () => {
                                                 <span>
                                                     <AccessTimeRoundedIcon fontSize="inherit" />
                                                     {' '}
-                                                    {option.durationDays}{' '}
-                                                    {option.durationDays === 1
-                                                        ? 'day'
-                                                        : 'days'}
+                                                    {t('aiTrip.options.dayCount', {
+                                                        count: option.durationDays,
+                                                    })}
                                                 </span>
                                             </div>
                                             <button
@@ -911,14 +935,18 @@ const AiTripBuilderPage = () => {
                                                             }}
                                                         />
                                                         <span>
-                                                            Building this trip…
+                                                            {t(
+                                                                'aiTrip.options.building',
+                                                            )}
                                                         </span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <AutoAwesomeRoundedIcon className="ai-trip-builder-page-option-cta-icon" />
                                                         <span>
-                                                            Build this trip
+                                                            {t(
+                                                                'aiTrip.options.build',
+                                                            )}
                                                         </span>
                                                     </>
                                                 )}
@@ -939,7 +967,7 @@ const AiTripBuilderPage = () => {
                                     onClick={() => handlePickOption(options[0])}
                                     disabled={buildMutation.isPending}
                                 >
-                                    🎲 Not sure? We’ll pick the best fit for you
+                                    🎲 {t('aiTrip.options.surprise')}
                                 </button>
                             </div>
                         )}
@@ -964,8 +992,18 @@ const AiTripBuilderPage = () => {
                 Friend-testing showed the options call needed the same
                 overlay as the build — a label-only button change wasn't
                 obvious enough; users thought nothing was happening. */}
-            <AiTripLoader open={optionsMutation.isPending} phase="options" />
-            <AiTripLoader open={buildMutation.isPending} phase="build" />
+            <AiTripLoader
+                open={optionsMutation.isPending}
+                phase="options"
+                title={t('aiTrip.loader.options.title')}
+                subtitle={t('aiTrip.loader.options.subtitle')}
+            />
+            <AiTripLoader
+                open={buildMutation.isPending}
+                phase="build"
+                title={t('aiTrip.loader.build.title')}
+                subtitle={t('aiTrip.loader.build.subtitle')}
+            />
         </Layout>
     );
 };

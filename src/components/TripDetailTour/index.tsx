@@ -16,6 +16,7 @@
  * trips) safely no-op when absent rather than stalling the tour.
  */
 import { useMemo } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
     Joyride,
     EVENTS,
@@ -42,166 +43,154 @@ export interface TripDetailTourProps {
 }
 
 const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
+    const { t } = useTranslation();
     const steps = useMemo<Step[]>(
         () => [
             {
                 target: 'body',
                 placement: 'center',
-                title: 'Your trip is saved',
+                title: t('tripDetail.tour.saved.title'),
                 content: (
                     <p>
-                        Here's the read-only view of your trip. A few
-                        things to know before you head out — let's
-                        walk through them in under a minute.
+                        <Trans
+                            i18nKey="tripDetail.tour.saved.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-detail-header',
                 placement: 'bottom',
-                title: 'Trip lifecycle',
+                title: t('tripDetail.tour.lifecycle.title'),
                 content: (
                     <p>
-                        A trip moves through{' '}
-                        <strong>Planning</strong> →{' '}
-                        <strong>Confirmed</strong> →{' '}
-                        <strong>Completed</strong>. Click{' '}
-                        <strong>Confirm Trip</strong> when bookings
-                        are locked. After that, activities can be
-                        ticked off one by one.
+                        <Trans
+                            i18nKey="tripDetail.tour.lifecycle.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-detail-actions-left .trip-detail-basic-info-toggle',
                 placement: 'bottom',
-                title: 'Trip details & editing',
+                title: t('tripDetail.tour.details.title'),
                 content: (
                     <p>
-                        Tap <strong>Trip details</strong> to expand the
-                        overview — dates, destination, budget, and who's
-                        going. While the trip is in Planning the organizer
-                        can edit any of it (and the day list) right here;
-                        changes save as you go.
+                        <Trans
+                            i18nKey="tripDetail.tour.details.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-detail-focusmode-toggle',
                 placement: 'bottom',
-                title: 'Focus mode',
+                title: t('tripDetail.tour.focus.title'),
                 content: (
                     <p>
-                        Tap <strong>Focus</strong> to hide every overview
-                        card — even the app's header and nav — so the page
-                        is just your dates and activities. A floating{' '}
-                        <strong>Show</strong> pill brings the chrome back.
-                        Great for reading the itinerary on the go.
+                        <Trans
+                            i18nKey="tripDetail.tour.focus.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-detail-night-toggle',
                 placement: 'bottom',
-                title: 'Night view',
+                title: t('tripDetail.tour.night.title'),
                 content: (
                     <p>
-                        Tap <strong>Night</strong> for a dark theme scoped
-                        to the itinerary — easier on the eyes on a plane or
-                        in a dim hotel room. It resets to day view when you
-                        leave the page.
+                        <Trans
+                            i18nKey="tripDetail.tour.night.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-detail-textonly-toggle',
                 placement: 'bottom',
-                title: 'Text-only view',
+                title: t('tripDetail.tour.textOnly.title'),
                 content: (
                     <p>
-                        Tap <strong>Text only</strong> to hide every
-                        activity's photo for a dense, scannable list. Handy
-                        on a slow connection or when you just want the plan,
-                        not the pictures.
+                        <Trans
+                            i18nKey="tripDetail.tour.textOnly.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-offline-download-wrap',
                 placement: 'bottom',
-                title: 'Take it offline',
+                title: t('tripDetail.tour.offline.title'),
                 content: (
                     <p>
-                        Once a trip is <strong>Confirmed</strong>, tap{' '}
-                        <strong>Offline</strong> to save a copy to this
-                        device. It opens with no signal — perfect for
-                        reading your itinerary abroad without data. On
-                        mobile this lives in the <strong>⋮</strong> menu.
+                        <Trans
+                            i18nKey="tripDetail.tour.offline.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.trip-detail-download-btn',
                 placement: 'bottom',
-                title: 'Share & download PDF',
+                title: t('tripDetail.tour.share.title'),
                 content: (
                     <p>
-                        Tap <strong>Share</strong> to send the trip on
-                        WhatsApp or email, copy the link, or{' '}
-                        <strong>Download PDF</strong> — a branded report
-                        with the itinerary and expense summary. You can
-                        also grab an <strong>Excel</strong> sheet or{' '}
-                        <strong>Print</strong> a paper copy.
+                        <Trans
+                            i18nKey="tripDetail.tour.share.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.notify-participants-checkbox',
                 placement: 'bottom',
-                title: 'Quiet edits',
+                title: t('tripDetail.tour.quietEdits.title'),
                 content: (
                     <p>
-                        Untick the bell to skip the email + in-app
-                        notification fan-out when you save a tiny
-                        edit. The trip still saves; the rest of the
-                        group just isn't pinged.
+                        <Trans
+                            i18nKey="tripDetail.tour.quietEdits.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.date-block',
                 placement: 'bottom',
-                title: 'Day-by-day timeline',
+                title: t('tripDetail.tour.timeline.title'),
                 content: (
                     <p>
-                        Every day in your trip range has its own row.
-                        Activities are sorted by start time. Past
-                        activities dim once their end time passes.
-                        Look for a green stripe along the top — that
-                        marks the activity{' '}
-                        <strong>happening right now</strong> and
-                        grows as time elapses.
+                        <Trans
+                            i18nKey="tripDetail.tour.timeline.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
             {
                 target: '.activity-content-trip',
                 placement: 'top',
-                title: 'Per-activity status',
+                title: t('tripDetail.tour.activityStatus.title'),
                 content: (
                     <p>
-                        Once the trip is Confirmed, each activity
-                        gets a checkmark to mark it{' '}
-                        <strong>Completed</strong>. Past-due
-                        activities auto-tick if you don't get to them
-                        — you can always toggle them back. Tap a
-                        place name to open its full detail in a new
-                        tab.
+                        <Trans
+                            i18nKey="tripDetail.tour.activityStatus.content"
+                            components={{ strong: <strong /> }}
+                        />
                     </p>
                 ),
             },
         ],
-        []
+        [t]
     );
 
     const handleEvent = (data: EventData) => {
@@ -275,11 +264,11 @@ const TripDetailTour = ({ run, onClose }: TripDetailTourProps) => {
                 },
             }}
             locale={{
-                back: 'Back',
-                close: 'Close',
-                last: 'Got it',
-                next: 'Next',
-                skip: 'Skip tour',
+                back: t('tripDetail.tour.locale.back'),
+                close: t('tripDetail.tour.locale.close'),
+                last: t('tripDetail.tour.locale.last'),
+                next: t('tripDetail.tour.locale.next'),
+                skip: t('tripDetail.tour.locale.skip'),
             }}
             onEvent={handleEvent}
         />

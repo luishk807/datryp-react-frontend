@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import classnames from 'classnames';
 import { formatDate, isSameDay, isValidDate } from 'utils';
@@ -117,6 +118,7 @@ export const BasicTripInfo = ({
     hideHeader = false,
     onEditBasicInfo,
 }: BasicTripInfoProps) => {
+    const { t } = useTranslation();
     const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
     // Externally-controlled collapse wins when provided. Falls back to the
     // internal state machine for self-managed call sites.
@@ -415,7 +417,7 @@ export const BasicTripInfo = ({
                 <div className="trip-stat">
                     <PersonOutlineIcon className="stat-icon" />
                     <div className="stat-text">
-                        <span className="stat-label">Organizer</span>
+                        <span className="stat-label">{t('tripDetail.basicInfo.organizer')}</span>
                         <span className="stat-value">{organizer || '—'}</span>
                     </div>
                 </div>
@@ -423,7 +425,7 @@ export const BasicTripInfo = ({
                     <div className="trip-stat">
                         <PublicOutlinedIcon className="stat-icon" />
                         <div className="stat-text">
-                            <span className="stat-label">Where</span>
+                            <span className="stat-label">{t('tripDetail.basicInfo.where')}</span>
                             <span className="stat-value">
                                 {destinationCountries.map((c, idx) => (
                                     <span key={`${c.code ?? c.name}-${idx}`}>
@@ -452,14 +454,14 @@ export const BasicTripInfo = ({
                 <div className="trip-stat">
                     <EventOutlinedIcon className="stat-icon" />
                     <div className="stat-text">
-                        <span className="stat-label">When</span>
+                        <span className="stat-label">{t('tripDetail.basicInfo.when')}</span>
                         <span className="stat-value">{tripDate}</span>
                     </div>
                 </div>
                 <div className="trip-stat">
                     <PaymentsOutlinedIcon className="stat-icon" />
                     <div className="stat-text">
-                        <span className="stat-label">Budget</span>
+                        <span className="stat-label">{t('tripDetail.basicInfo.budget')}</span>
                         <span className="stat-value">{convertMoney(data.budget)}</span>
                     </div>
                 </div>
@@ -469,7 +471,7 @@ export const BasicTripInfo = ({
                 <div className="trip-friends">
                     <div className="trip-friends-header">
                         <GroupOutlinedIcon className="stat-icon" />
-                        <span className="stat-label">Who's going</span>
+                        <span className="stat-label">{t('tripDetail.basicInfo.whosGoing')}</span>
                     </div>
                     <div className="friend-chips">
                         {friends.map((f, idx) => (

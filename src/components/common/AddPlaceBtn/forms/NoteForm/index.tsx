@@ -1,4 +1,5 @@
 import { Grid, TextField } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import type { FormController } from '../../types';
 
 export interface NoteFormProps {
@@ -11,6 +12,7 @@ export interface NoteFormProps {
  *  is the only method, so the ADD wizard auto-skips the method chooser
  *  and renders this directly. */
 const NoteForm = ({ controller }: NoteFormProps) => {
+    const { t } = useTranslation();
     const { place, handleOnChange } = controller;
 
     return (
@@ -24,8 +26,8 @@ const NoteForm = ({ controller }: NoteFormProps) => {
                     variant="outlined"
                     value={place.note ?? ''}
                     name="note"
-                    label="Note"
-                    placeholder="Jot down anything — reminders, ideas, links, packing checklist…"
+                    label={t('addForms.activity.note.label')}
+                    placeholder={t('addForms.activity.note.placeholder')}
                     onChange={(e) => handleOnChange('note', e.target.value)}
                 />
             </Grid>

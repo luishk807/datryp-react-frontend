@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import { useTranslation } from 'react-i18next';
 import InputField from 'components/common/FormFields/InputField';
 import PlaceAutocomplete from 'components/common/PlaceAutocomplete';
 import PlaceSuggestions from 'components/common/PlaceSuggestions';
@@ -24,6 +25,7 @@ export interface PlaceFormProps {
  *  smart / custom), keeping the collapsible "details" affordance under
  *  suggestions/smart so a pick can still be refined in place. */
 const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
+    const { t } = useTranslation();
     const {
         place,
         countryScope,
@@ -87,8 +89,13 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 }
                                 placeholder={
                                     countryScope
-                                        ? `e.g. "Ankole Grill at 10am-12pm, around $50" — searched in ${countryScope}`
-                                        : 'e.g. "Ankole Grill at 10am-12pm, around $50", or paste a Google Maps link'
+                                        ? t(
+                                              'addForms.activity.place.smartPlaceholderScoped',
+                                              { country: countryScope },
+                                          )
+                                        : t(
+                                              'addForms.activity.place.smartPlaceholder',
+                                          )
                                 }
                                 InputProps={{
                                     startAdornment: (
@@ -109,10 +116,13 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                         <div className="flight-smart-entry-hint">
                             <span>
                                 {placeSmartLoading
-                                    ? 'Looking up the place…'
+                                    ? t('addForms.activity.place.lookingUp')
                                     : countryScope
-                                      ? `Type a place or paste a Maps / Yelp link — we'll search ${countryScope} and fill in the rest.`
-                                      : "Type a place or paste a Maps / Yelp link — we'll fill in the rest."}
+                                      ? t(
+                                            'addForms.activity.place.hintScoped',
+                                            { country: countryScope },
+                                        )
+                                      : t('addForms.activity.place.hint')}
                             </span>
                         </div>
                         {/* Hold the bare-match "couldn't find" warning until
@@ -150,11 +160,22 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 !extras?.formattedAddress?.trim();
                             if (isWrongCountry) {
                                 setPlaceSmartWarning(
-                                    `Couldn't find “${item.name}” in ${countryScope}` +
-                                        (item.country
-                                            ? ` — closest match is in ${item.country}.`
-                                            : '.') +
-                                        ` Add it manually using the details form below, or prefix the search with # to keep this exact name.`,
+                                    item.country
+                                        ? t(
+                                              'addForms.activity.place.wrongCountryWithCountry',
+                                              {
+                                                  name: item.name,
+                                                  country: countryScope,
+                                                  itemCountry: item.country,
+                                              },
+                                          )
+                                        : t(
+                                              'addForms.activity.place.wrongCountry',
+                                              {
+                                                  name: item.name,
+                                                  country: countryScope,
+                                              },
+                                          ),
                                 );
                                 return;
                             }
@@ -166,7 +187,10 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                 // place via the link.
                                 setPlaceSmartWarning(
                                     extras?.addressUpsell ??
-                                        `Couldn't find an exact match for “${item.name}”. Fill in the location / cost / time using the form below.`,
+                                        t(
+                                            'addForms.activity.place.bareMatch',
+                                            { name: item.name },
+                                        ),
                                 );
                                 handleOnChange('name', item.name);
                                 if (pastedUrl) {
@@ -257,17 +281,21 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                             country={countryScope}
                             label={
                                 countryScope
-                                    ? `Activity name (or place in ${countryScope})`
-                                    : 'Activity name'
+                                    ? t('addForms.activity.place.nameScoped', {
+                                          country: countryScope,
+                                      })
+                                    : t('addForms.activity.place.name')
                             }
-                            placeholder="Type a place to get AI suggestions, or any activity (e.g. 'Check out of hotel')"
+                            placeholder={t(
+                                'addForms.activity.place.namePlaceholder',
+                            )}
                         />
                     </Grid>
                     <Grid item lg={12} xs={12} className="py-5">
                         <InputField
                             value={place.location ?? ''}
                             name="location"
-                            label="Location (optional)"
+                            label={t('addForms.activity.place.locationOptional')}
                             required={false}
                             onChange={(e) =>
                                 handleOnChange('location', e.target.value)
@@ -278,6 +306,8 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                         <InputField
                             value={place.cost ? String(place.cost) : ''}
                             name="cost"
+                            label={t('addForms.common.costOptional')}
+                            required={false}
                             onChange={(e) =>
                                 handleOnChange('cost', e.target.value)
                             }
@@ -288,7 +318,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                             value={place.startTime ?? ''}
                             name="startTime"
                             type="time"
-                            label="Start Time"
+                            label={t('addForms.activity.place.startTime')}
                             onChange={(e) =>
                                 handleOnChange('startTime', e.target.value)
                             }
@@ -299,7 +329,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                             value={place.endTime ?? ''}
                             name="endTime"
                             type="time"
-                            label="End Time"
+                            label={t('addForms.activity.place.endTime')}
                             onChange={(e) =>
                                 handleOnChange('endTime', e.target.value)
                             }
@@ -309,6 +339,8 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                         <InputField
                             value={place.note ?? ''}
                             name="note"
+                            label={t('addForms.activity.note.label')}
+                            required={false}
                             onChange={(e) =>
                                 handleOnChange('note', e.target.value)
                             }
@@ -322,7 +354,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                     alt={
                                         place.image.name ??
                                         place.name ??
-                                        'Activity image'
+                                        t('addForms.activity.place.imageAlt')
                                     }
                                 />
                                 <button
@@ -334,7 +366,9 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                                             undefined as unknown as ImageRef,
                                         )
                                     }
-                                    aria-label="Remove image"
+                                    aria-label={t(
+                                        'addForms.activity.place.removeImage',
+                                    )}
                                 >
                                     <CloseRoundedIcon fontSize="small" />
                                 </button>
@@ -342,7 +376,7 @@ const PlaceForm = ({ controller, mode }: PlaceFormProps) => {
                         )}
                         <InputField
                             type="file"
-                            label="image"
+                            label={t('addForms.activity.place.imageAlt')}
                             name="image"
                             onChange={handleImageChange}
                         />

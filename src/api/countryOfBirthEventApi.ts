@@ -98,12 +98,15 @@ const toPlace = (r: PlaceRaw): CountryOfBirthEventPlace => ({
 
 /** Returns null when the backend returns 204 (no country of birth set,
  *  or no major event in that country's next ~120 days). */
-export const fetchCountryOfBirthEvent = async (): Promise<
-    CountryOfBirthEventResult | null
-> => {
-    const resp = await fetch(`${API_BASE}/me/country-of-birth-event`, {
-        headers: authHeaders(),
-    });
+export const fetchCountryOfBirthEvent = async (
+    lang = 'en',
+): Promise<CountryOfBirthEventResult | null> => {
+    const resp = await fetch(
+        `${API_BASE}/me/country-of-birth-event?lang=${encodeURIComponent(lang)}`,
+        {
+            headers: authHeaders(),
+        },
+    );
     if (resp.status === 204) return null;
     if (!resp.ok) {
         let detail: string | undefined;

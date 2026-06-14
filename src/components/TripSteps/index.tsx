@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Grid } from '@mui/material';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
@@ -81,6 +82,7 @@ const TripSteps = ({
     onChangeBudget,
     onChangeDestination,
 }: TripStepsProps) => {
+    const { t } = useTranslation();
     const tripInfo = useTripState();
     const dispatch = useTripDispatch();
     const { user } = useUser();
@@ -187,10 +189,11 @@ const TripSteps = ({
     useEffect(() => {
         if (!user || seededRef.current) return;
         seededRef.current = true;
+        const selfLabel = t('createTrip.you', { name: user.name });
         const selfAsFriend: Friend = {
             id: hashUuid(user.id),
-            label: `${user.name} (you)`,
-            name: `${user.name} (you)`,
+            label: selfLabel,
+            name: selfLabel,
             userId: user.id,
         };
         const currentOrganizers = tripInfo.organizer ?? [];
@@ -292,11 +295,11 @@ const TripSteps = ({
     const steps = isEditing
         ? [
               {
-                  label: 'Describe Your Trip!',
+                  label: t('createTrip.edit.describe'),
                   comp: <BasicInfo data={tripInfo} onChange={onBasicChange} />,
               },
               {
-                  label: 'Participants',
+                  label: t('createTrip.edit.participants'),
                   comp: (
                       <ParticipantsStep
                           data={tripInfo}
@@ -305,7 +308,7 @@ const TripSteps = ({
                   ),
               },
               {
-                  label: 'Activities',
+                  label: t('createTrip.edit.activities'),
                   comp: (
                       <DestinationDetail
                           type={tripInfo.type}
@@ -424,8 +427,8 @@ const TripSteps = ({
                         type="button"
                         className="trip-tour-help-btn"
                         onClick={handleTourStart}
-                        aria-label="Show me how to plan a trip"
-                        title="Show me how to plan a trip"
+                        aria-label={t('createTrip.tourHelp')}
+                        title={t('createTrip.tourHelp')}
                     >
                         <HelpOutlineRoundedIcon fontSize="small" />
                     </button>

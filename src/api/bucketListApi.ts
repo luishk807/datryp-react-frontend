@@ -6,6 +6,7 @@
  * category.
  */
 import { getAuthToken } from './authStorage';
+import { activeLang } from 'i18n';
 import type { BucketListBlocked, BucketListItem } from 'types';
 
 const API_BASE =
@@ -234,6 +235,7 @@ export const generateTripFromBucket = async (
                 party_size: input?.partySize ?? null,
                 duration_days: input?.durationDays ?? null,
                 traveler_styles: input?.travelerStyles ?? null,
+                lang: activeLang(),
             }),
         }
     );

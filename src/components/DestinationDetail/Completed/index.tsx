@@ -1,4 +1,5 @@
 import CelebrationIcon from '@mui/icons-material/Celebration';
+import { useTranslation } from 'react-i18next';
 import Confetti from 'components/Confetti';
 import { useNavigate } from 'react-router-dom';
 import './index.scss';
@@ -12,6 +13,7 @@ export interface CompleteProps {
 
 const Complete = ({ onReset }: CompleteProps) => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleClick = (target: CompleteNavTarget) => {
         if (target === 'home') navigate('/');
@@ -33,13 +35,18 @@ const Complete = ({ onReset }: CompleteProps) => {
                         <CelebrationIcon />
                     </div>
 
-                    <h1 className="trip-complete-title">Your trip is all set!</h1>
+                    <h1 className="trip-complete-title">
+                        {t('activity.complete.title')}
+                    </h1>
                     <p className="trip-complete-subtitle">
-                        Pack your bags — we've saved every detail.
+                        {t('activity.complete.subtitle')}
                     </p>
 
                     <div className="trip-complete-image">
-                        <img src="/images/complete.png" alt="Trip complete" />
+                        <img
+                            src="/images/complete.png"
+                            alt={t('activity.complete.imageAlt')}
+                        />
                     </div>
 
                     <div className="trip-complete-actions">
@@ -47,13 +54,17 @@ const Complete = ({ onReset }: CompleteProps) => {
                             type="standard"
                             capitalizeType="uppercase"
                             onClick={() => handleClick('trips')}
-                            label="View Your Trip"
+                            label={t('activity.complete.viewTrip')}
                         />
                         <Button
                             type="line"
                             capitalizeType="uppercase"
                             onClick={handleSecondary}
-                            label={onReset ? 'Plan Another' : 'Return Home'}
+                            label={
+                                onReset
+                                    ? t('activity.complete.planAnother')
+                                    : t('activity.complete.returnHome')
+                            }
                         />
                     </div>
                 </div>

@@ -10,6 +10,7 @@
  */
 import { getAuthToken } from 'api/authStorage';
 import { BucketListPaywallError } from 'api/bucketListApi';
+import { activeLang } from 'i18n';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -126,6 +127,7 @@ export const generateTripOptions = async (
             country_hint: input.countryHint ?? null,
             party_size: input.partySize ?? null,
             traveler_styles: input.travelerStyles ?? null,
+            lang: activeLang(),
         }),
     });
     if (resp.status === 402) {
@@ -180,6 +182,7 @@ export const planTripWithAi = async (
             hero_image_url: input.heroImageUrl ?? null,
             party_size: input.partySize ?? null,
             traveler_styles: input.travelerStyles ?? null,
+            lang: activeLang(),
         }),
     });
     if (resp.status === 402) {

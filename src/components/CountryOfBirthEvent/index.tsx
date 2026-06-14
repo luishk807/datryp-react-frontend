@@ -22,8 +22,9 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import Skeleton from 'components/common/Skeleton';
 import type { CountryOfBirthEventPlace } from 'api/countryOfBirthEventApi';
 import { useCountryOfBirthEvent } from 'api/hooks/useCountryOfBirthEvent';
+import { isUsableHeroUrl } from 'utils/heroImages';
+import PlaceThumb from 'components/common/PlaceThumb';
 import 'components/WorldEvent/index.scss';
-import { NO_IMAGE } from 'constants';
 
 const formatShort = (iso: string): string => {
     if (!iso) return '';
@@ -138,17 +139,34 @@ const CountryOfBirthEvent = () => {
 
     if (!data) return null;
     const { event, places } = data;
+    // Some events come back without their own photo — rather than paint a blank
+    // gradient, fall back to the first usable photo from the host-country's
+    // "best places" list so the card always shows a relevant image.
+    const heroImage = isUsableHeroUrl(event.imageUrl)
+        ? event.imageUrl
+        : places.find((p) => isUsableHeroUrl(p.imageUrl))?.imageUrl ?? null;
+    // Last-resort hero: resolve a photo by the first place's name when neither
+    // the event nor any place carries an image_url.
+    const heroFallbackPlace = !heroImage
+        ? places.find((p) => p.name)
+        : undefined;
 
     return (
         <section className="world-event">
             <article className="world-event-card">
                 <div className="world-event-photo-wrap">
-                    {event.imageUrl ? (
+                    {heroImage ? (
                         <img
-                            src={event.imageUrl}
+                            src={heroImage}
                             alt=""
                             className="world-event-photo"
                             loading="lazy"
+                        />
+                    ) : heroFallbackPlace ? (
+                        <PlaceThumb
+                            name={heroFallbackPlace.name}
+                            country={heroFallbackPlace.country}
+                            className="world-event-photo"
                         />
                     ) : (
                         <div className="world-event-photo-fallback" />
@@ -241,10 +259,10 @@ const CountryOfBirthEvent = () => {
                                         },
                                     )}
                                 >
-                                    <img
-                                        src={place.imageUrl ?? NO_IMAGE}
-                                        alt=""
-                                        loading="lazy"
+                                    <PlaceThumb
+                                        name={place.name}
+                                        country={place.country}
+                                        imageUrl={place.imageUrl}
                                         className="world-event-place-img"
                                     />
                                     <div className="world-event-place-body">

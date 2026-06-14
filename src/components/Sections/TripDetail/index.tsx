@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { produce } from "immer";
 import confetti from "canvas-confetti";
 import "./index.scss";
@@ -137,6 +138,7 @@ const fireConfettiBurst = () => {
 };
 
 export const TripDetail = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useTripDispatch();
@@ -305,9 +307,7 @@ export const TripDetail = () => {
     (next: TripState) => {
       if (!apiTrip?.interaryType?.id) return;
       if (saveItinerary.isPending) {
-        setSaveError(
-          "Still saving the previous change. Try again in a moment.",
-        );
+        setSaveError(t("tripDetail.errors.stillSaving"));
         return;
       }
       const input = tripStateToSaveInput(next, {
@@ -319,11 +319,11 @@ export const TripDetail = () => {
       });
       void saveItinerary.mutateAsync(input).catch((err: unknown) => {
         setSaveError(
-          err instanceof Error ? err.message : "Failed to save the change.",
+          err instanceof Error ? err.message : t("tripDetail.errors.saveChange"),
         );
       });
     },
-    [apiTrip, saveItinerary, notifyParticipants, activityStatusLookup],
+    [apiTrip, saveItinerary, notifyParticipants, activityStatusLookup, t],
   );
 
   const handleChangeBudget = useCallback(
@@ -604,16 +604,16 @@ export const TripDetail = () => {
         // edit — the modal closes itself, and hiding the card returns the
         // user to the clean itinerary view they edit from.
         setShowBasicInfo(false);
-        setSuccessToast("Trip info saved.");
+        setSuccessToast(t("tripDetail.toasts.tripInfoSaved"));
         return true;
       } catch (err) {
         setSaveError(
-          err instanceof Error ? err.message : "Failed to save trip info.",
+          err instanceof Error ? err.message : t("tripDetail.errors.saveTripInfo"),
         );
         return false;
       }
     },
-    [apiTrip, notifyParticipants, activityStatusLookup, saveItinerary],
+    [apiTrip, notifyParticipants, activityStatusLookup, saveItinerary, t],
   );
 
   // The "Trip details" overview is an independent toggle — the day list
@@ -635,10 +635,10 @@ export const TripDetail = () => {
       navigate("/trips");
     } catch (err) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to delete the trip.",
+        err instanceof Error ? err.message : t("tripDetail.errors.deleteTrip"),
       );
     }
-  }, [apiTrip, deleteItinerary, navigate, notifyParticipants]);
+  }, [apiTrip, deleteItinerary, navigate, notifyParticipants, t]);
 
   const isLocked = LOCKED_STATUS_NAMES.has(persistedStatusName);
 
@@ -717,9 +717,7 @@ export const TripDetail = () => {
           next.name === TRIP_STATUS.CONFIRMED
         ) {
           fireConfettiBurst();
-          setReminderToast(
-            "Yay! Your trip is confirmed and ready to go!"
-          );
+          setReminderToast(t("tripDetail.toasts.tripConfirmed"));
           // Auto-export: email the itinerary (PDF + Excel) to all members,
           // organizer included — that's how the organizer gets their own
           // confirmed copy (they're excluded from save notifications). Fire-
@@ -741,21 +739,19 @@ export const TripDetail = () => {
               });
               if (result.recipients > 0) {
                 setSuccessToast(
-                  `Itinerary emailed to ${result.recipients} ${
-                    result.recipients === 1 ? "person" : "people"
-                  }.`
+                  t("tripDetail.toasts.itineraryEmailed", {
+                    count: result.recipients,
+                  })
                 );
               }
             } catch {
-              setReminderToast(
-                "Couldn't email the itinerary — you can still share it from the ⋮ menu."
-              );
+              setReminderToast(t("tripDetail.toasts.emailFailed"));
             }
           })();
         }
       } catch (err) {
         setSaveError(
-          err instanceof Error ? err.message : "Failed to update trip status.",
+          err instanceof Error ? err.message : t("tripDetail.errors.updateStatus"),
         );
         // Re-throw so the modal's await catches and keeps itself open.
         throw err;
@@ -769,6 +765,7 @@ export const TripDetail = () => {
       persistedStatusName,
       activityStatusLookup,
       emailTripExport,
+      t,
     ],
   );
 
@@ -778,7 +775,7 @@ export const TripDetail = () => {
       (s) => s.name === TRIP_STATUS.CANCELLED,
     );
     if (!cancelled) {
-      setSaveError("Couldn't resolve the Cancelled status. Try again shortly.");
+      setSaveError(t("tripDetail.errors.resolveCancelled"));
       return;
     }
     setSaveError(null);
@@ -794,10 +791,10 @@ export const TripDetail = () => {
       setStatusOverride(null);
     } catch (err) {
       setSaveError(
-        err instanceof Error ? err.message : "Failed to cancel the trip.",
+        err instanceof Error ? err.message : t("tripDetail.errors.cancelTrip"),
       );
     }
-  }, [apiTrip, tripData, tripStatuses, saveItinerary, notifyParticipants]);
+  }, [apiTrip, tripData, tripStatuses, saveItinerary, notifyParticipants, t]);
 
   // Navigate into the full stepper editor for this existing trip — used
   // by the "Trip details" edit affordance and the status-badge "edit
@@ -836,12 +833,12 @@ export const TripDetail = () => {
             (t.status?.name === TRIP_STATUS.PLANNING ||
               t.status?.name === TRIP_STATUS.CONFIRMED),
         )
-        .map((t) => ({
-          name: t.name ?? "Untitled trip",
-          startDate: t.startDate as string,
-          endDate: t.endDate as string,
+        .map((trip) => ({
+          name: trip.name ?? t("tripDetail.untitledTrip"),
+          startDate: trip.startDate as string,
+          endDate: trip.endDate as string,
         })),
-    [apiItineraries, apiTrip?.id],
+    [apiItineraries, apiTrip?.id, t],
   );
 
   // Build a Planning copy shifted to the chosen start date, seed it into
@@ -905,11 +902,12 @@ export const TripDetail = () => {
   useActivityStartReminders(remindableActivities, {
     leadMinutes: 15,
     onReminder: (activity, minutesUntil) => {
-      const label = activity.name?.trim() || 'Your next activity';
+      const label = activity.name?.trim() || t("tripDetail.reminders.nextActivity");
       setReminderToast(
-        minutesUntil === 1
-          ? `${label} starts in 1 minute`
-          : `${label} starts in ${minutesUntil} minutes`
+        t("tripDetail.reminders.activityStartsIn", {
+          name: label,
+          count: minutesUntil,
+        })
       );
     },
   });
@@ -921,16 +919,22 @@ export const TripDetail = () => {
   // in localStorage keyed by trip id so a refresh doesn't re-fire.
   useTripDayReminders(tripData, {
     onTripStart: ({ name }) => {
-      setReminderToast(`${name} starts today — have a great trip!`);
+      setReminderToast(t("tripDetail.reminders.tripStartsToday", { name }));
     },
     onDayStart: (_trip, _dayDate, { activityCount, dayIndex, totalDays }) => {
-      const count =
+      const summary =
         activityCount === 0
-          ? 'a free day — nothing scheduled.'
-          : activityCount === 1
-            ? '1 activity planned.'
-            : `${activityCount} activities planned.`;
-      setReminderToast(`Day ${dayIndex} of ${totalDays} — ${count}`);
+          ? t("tripDetail.reminders.freeDay")
+          : t("tripDetail.reminders.activitiesPlanned", {
+              count: activityCount,
+            });
+      setReminderToast(
+        t("tripDetail.reminders.daySummary", {
+          dayIndex,
+          totalDays,
+          summary,
+        })
+      );
     },
   });
 
@@ -957,7 +961,7 @@ export const TripDetail = () => {
       <Layout>
         <div className="trip-detail-empty trip-detail-loading">
           <CircularProgress size={28} className="trip-detail-loading-spinner" />
-          <p>Loading trip…</p>
+          <p>{t("tripDetail.loading")}</p>
         </div>
       </Layout>
     );
@@ -968,15 +972,16 @@ export const TripDetail = () => {
       <Layout>
         <div className="trip-detail-notfound" role="alert">
           <WrongLocationRoundedIcon className="trip-detail-notfound-icon" />
-          <h2 className="trip-detail-notfound-title">Trip not found</h2>
+          <h2 className="trip-detail-notfound-title">
+            {t("tripDetail.notFound.title")}
+          </h2>
           <p className="trip-detail-notfound-sub">
-            We couldn&rsquo;t find this trip. It may have been deleted, or the
-            link points to a trip that&rsquo;s no longer in your list.
+            {t("tripDetail.notFound.subtitle")}
           </p>
           <ButtonCustom
             type="standard"
             capitalizeType="none"
-            label="Back to my trips"
+            label={t("tripDetail.notFound.backToTrips")}
             onClick={() => navigate("/trips")}
           />
         </div>
@@ -1197,11 +1202,10 @@ export const TripDetail = () => {
               />
               <div className="trip-detail-completed-text">
                 <span className="trip-detail-completed-title">
-                  Trip completed
+                  {t("tripDetail.completedBanner.title")}
                 </span>
                 <span className="trip-detail-completed-sub">
-                  Locked in as a record of where you&rsquo;ve been. Activity
-                  edits, deletes, and budget changes are sealed.
+                  {t("tripDetail.completedBanner.subtitle")}
                 </span>
               </div>
             </div>
@@ -1225,11 +1229,10 @@ export const TripDetail = () => {
               />
               <div className="trip-detail-cancelled-text">
                 <span className="trip-detail-cancelled-title">
-                  Trip cancelled
+                  {t("tripDetail.cancelledBanner.title")}
                 </span>
                 <span className="trip-detail-cancelled-sub">
-                  This trip is cancelled. The itinerary stays viewable as a
-                  record, but it&rsquo;s no longer active.
+                  {t("tripDetail.cancelledBanner.subtitle")}
                 </span>
               </div>
             </div>
@@ -1289,15 +1292,15 @@ export const TripDetail = () => {
               <div className="trip-detail-status-cta-text">
                 <span className="trip-detail-status-cta-title">
                   {tripEndedDaysAgo > 0
-                    ? `Trip ended ${tripEndedDaysAgo} day${
-                        tripEndedDaysAgo === 1 ? "" : "s"
-                      } ago`
-                    : "Trip all wrapped up?"}
+                    ? t("tripDetail.markCompleteCta.endedTitle", {
+                        count: tripEndedDaysAgo,
+                      })
+                    : t("tripDetail.markCompleteCta.title")}
                 </span>
                 <span className="trip-detail-status-cta-sub">
                   {tripEndedDaysAgo > 0
-                    ? "Did you complete this trip? Mark it complete to archive it as a record of where you’ve been."
-                    : "Mark it complete to archive it as a record of where you’ve been."}
+                    ? t("tripDetail.markCompleteCta.endedSubtitle")
+                    : t("tripDetail.markCompleteCta.subtitle")}
                 </span>
               </div>
               <TripStatusBadge
@@ -1357,7 +1360,9 @@ export const TripDetail = () => {
             <span className="trip-detail-end-dot">
               <FlagRoundedIcon fontSize="small" />
             </span>
-            <span className="trip-detail-end-label">End of trip</span>
+            <span className="trip-detail-end-label">
+              {t("tripDetail.endOfTrip")}
+            </span>
           </div>
         </Grid>
       </Grid>
@@ -1369,10 +1374,10 @@ export const TripDetail = () => {
           type="button"
           className="trip-detail-focus-fab"
           onClick={() => setFocusMode(false)}
-          aria-label="Show trip overview"
+          aria-label={t("tripDetail.toolbar.showOverviewAria")}
         >
           <FullscreenExitRoundedIcon fontSize="small" />
-          <span>Show</span>
+          <span>{t("tripDetail.toolbar.show")}</span>
         </button>
       )}
       <TripDetailTour
@@ -1466,6 +1471,7 @@ const TripDetailHeader = ({
   onDownloadOffline,
   onRemoveOffline,
 }: TripDetailHeaderProps) => {
+  const { t } = useTranslation();
   const exportModalRef = useRef<ModalButtonHandle>(null);
   const notifyPrefModalRef = useRef<ModalButtonHandle>(null);
   const duplicateModalRef = useRef<ModalButtonHandle>(null);
@@ -1511,7 +1517,7 @@ const TripDetailHeader = ({
   /** Plain-text body for share channels (WhatsApp / email / copy). */
   const buildShareBody = () => {
     const lines: string[] = [];
-    const tripTitle = tripData.name?.trim() || "My trip";
+    const tripTitle = tripData.name?.trim() || t("tripDetail.share.defaultTripTitle");
     lines.push(`📍 ${tripTitle}`);
     if (tripData.startDate && tripData.endDate) {
       lines.push(`🗓 ${tripData.startDate} → ${tripData.endDate}`);
@@ -1542,8 +1548,10 @@ const TripDetailHeader = ({
 
   const handleShareEmail = () => {
     exportModalRef.current?.closeModal();
-    const tripTitle = tripData.name?.trim() || "My trip";
-    const subject = encodeURIComponent(`Trip: ${tripTitle}`);
+    const tripTitle = tripData.name?.trim() || t("tripDetail.share.defaultTripTitle");
+    const subject = encodeURIComponent(
+      t("tripDetail.share.emailSubject", { title: tripTitle }),
+    );
     const body = encodeURIComponent(buildShareBody());
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
@@ -1592,7 +1600,9 @@ const TripDetailHeader = ({
           button on the right. */}
       <div className="trip-detail-header-title">
         {!focusMode && (
-          <h2 className="trip-detail-name">{tripName || "Untitled trip"}</h2>
+          <h2 className="trip-detail-name">
+            {tripName || t("tripDetail.untitledTrip")}
+          </h2>
         )}
         {/* Participant-notification bell sits right next to the trip name
             — it's tied to the trip identity (broadcast changes to the
@@ -1641,7 +1651,7 @@ const TripDetailHeader = ({
               aria-expanded={basicInfoOpen}
             >
               <InfoOutlinedIcon fontSize="small" />
-              <span>Trip details</span>
+              <span>{t("tripDetail.toolbar.tripDetails")}</span>
               <ExpandMoreRoundedIcon
                 className={classnames("chevron", { open: basicInfoOpen })}
               />
@@ -1661,7 +1671,11 @@ const TripDetailHeader = ({
           )}
           onClick={onToggleFocus}
           aria-pressed={focusMode}
-          title={focusMode ? "Show trip overview" : "Focus on the itinerary"}
+          title={
+            focusMode
+              ? t("tripDetail.toolbar.focusTitleActive")
+              : t("tripDetail.toolbar.focusTitle")
+          }
         >
           {focusMode ? (
             <FullscreenExitRoundedIcon fontSize="small" />
@@ -1669,7 +1683,9 @@ const TripDetailHeader = ({
             <FullscreenRoundedIcon fontSize="small" />
           )}
           <span className="trip-detail-focus-label">
-            {focusMode ? "Show overview" : "Focus"}
+            {focusMode
+              ? t("tripDetail.toolbar.showOverview")
+              : t("tripDetail.toolbar.focus")}
           </span>
         </button>
         {/* Text-only mode: hide activity hero images for a dense, scannable
@@ -1684,7 +1700,11 @@ const TripDetailHeader = ({
           )}
           onClick={onToggleHideImages}
           aria-pressed={hideImages}
-          title={hideImages ? "Show activity images" : "Hide activity images"}
+          title={
+            hideImages
+              ? t("tripDetail.toolbar.showImagesTitle")
+              : t("tripDetail.toolbar.textOnlyTitle")
+          }
         >
           {hideImages ? (
             <ImageOutlinedIcon fontSize="small" />
@@ -1692,7 +1712,9 @@ const TripDetailHeader = ({
             <HideImageOutlinedIcon fontSize="small" />
           )}
           <span className="trip-detail-focus-label">
-            {hideImages ? "Show images" : "Text only"}
+            {hideImages
+              ? t("tripDetail.toolbar.showImages")
+              : t("tripDetail.toolbar.textOnly")}
           </span>
         </button>
         {/* Night view: dark theme scoped to the itinerary page only. */}
@@ -1706,7 +1728,11 @@ const TripDetailHeader = ({
           )}
           onClick={onToggleNight}
           aria-pressed={nightMode}
-          title={nightMode ? "Switch to day view" : "Switch to night view"}
+          title={
+            nightMode
+              ? t("tripDetail.toolbar.dayTitle")
+              : t("tripDetail.toolbar.nightTitle")
+          }
         >
           {nightMode ? (
             <LightModeOutlinedIcon fontSize="small" />
@@ -1714,7 +1740,9 @@ const TripDetailHeader = ({
             <DarkModeOutlinedIcon fontSize="small" />
           )}
           <span className="trip-detail-focus-label">
-            {nightMode ? "Day" : "Night"}
+            {nightMode
+              ? t("tripDetail.toolbar.day")
+              : t("tripDetail.toolbar.night")}
           </span>
         </button>
         {/* Save the itinerary for offline use. Available to any viewer (not
@@ -1735,18 +1763,20 @@ const TripDetailHeader = ({
         {canExport && (
           <ModalButton
             ref={exportModalRef}
-            title="Share or download trip"
+            title={t("tripDetail.export.title")}
             buttonProps={{
               type: "standard",
               className: "trip-detail-download-btn",
               Icon: IosShareIcon,
               iconProps: { fontSize: "small" },
-              title: "Share",
-              ariaLabel: "Share or download trip",
+              title: t("tripDetail.export.shareButton"),
+              ariaLabel: t("tripDetail.export.title"),
             }}
           >
             <div className="trip-export-options">
-              <h4 className="trip-export-section-head">Share with people</h4>
+              <h4 className="trip-export-section-head">
+                {t("tripDetail.export.shareSectionHead")}
+              </h4>
               <button
                 type="button"
                 className="trip-export-option"
@@ -1754,10 +1784,11 @@ const TripDetailHeader = ({
               >
                 <WhatsAppIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
-                  <span className="trip-export-option-title">WhatsApp</span>
+                  <span className="trip-export-option-title">
+                    {t("tripDetail.export.whatsapp.title")}
+                  </span>
                   <span className="trip-export-option-hint">
-                    Send the trip summary + link to a participant or
-                    group chat.
+                    {t("tripDetail.export.whatsapp.hint")}
                   </span>
                 </span>
               </button>
@@ -1768,9 +1799,11 @@ const TripDetailHeader = ({
               >
                 <EmailRoundedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
-                  <span className="trip-export-option-title">Email</span>
+                  <span className="trip-export-option-title">
+                    {t("tripDetail.export.email.title")}
+                  </span>
                   <span className="trip-export-option-hint">
-                    Opens your mail app with the trip summary + link.
+                    {t("tripDetail.export.email.hint")}
                   </span>
                 </span>
               </button>
@@ -1781,14 +1814,18 @@ const TripDetailHeader = ({
               >
                 <ContentCopyRoundedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
-                  <span className="trip-export-option-title">Copy link</span>
+                  <span className="trip-export-option-title">
+                    {t("tripDetail.export.copyLink.title")}
+                  </span>
                   <span className="trip-export-option-hint">
-                    Paste it anywhere — Messages, Slack, anywhere.
+                    {t("tripDetail.export.copyLink.hint")}
                   </span>
                 </span>
               </button>
 
-              <h4 className="trip-export-section-head">Download a copy</h4>
+              <h4 className="trip-export-section-head">
+                {t("tripDetail.export.downloadSectionHead")}
+              </h4>
               <button
                 type="button"
                 className="trip-export-option"
@@ -1797,10 +1834,10 @@ const TripDetailHeader = ({
                 <PictureAsPdfOutlinedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
                   <span className="trip-export-option-title">
-                    Download PDF
+                    {t("tripDetail.export.pdf.title")}
                   </span>
                   <span className="trip-export-option-hint">
-                    Branded two-page report — itinerary + expense summary.
+                    {t("tripDetail.export.pdf.hint")}
                   </span>
                 </span>
               </button>
@@ -1812,11 +1849,10 @@ const TripDetailHeader = ({
                 <PrintOutlinedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
                   <span className="trip-export-option-title">
-                    Print
+                    {t("tripDetail.export.print.title")}
                   </span>
                   <span className="trip-export-option-hint">
-                    Opens your browser's print preview — save as PDF or send
-                    to a printer.
+                    {t("tripDetail.export.print.hint")}
                   </span>
                 </span>
               </button>
@@ -1828,10 +1864,10 @@ const TripDetailHeader = ({
                 <TableChartOutlinedIcon className="trip-export-option-icon" />
                 <span className="trip-export-option-text">
                   <span className="trip-export-option-title">
-                    Download Excel
+                    {t("tripDetail.export.excel.title")}
                   </span>
                   <span className="trip-export-option-hint">
-                    Day-by-day .xlsx with activities, times, and budget.
+                    {t("tripDetail.export.excel.hint")}
                   </span>
                 </span>
               </button>
@@ -1843,7 +1879,7 @@ const TripDetailHeader = ({
           autoHideDuration={2400}
           onClose={() => setCopyToast(false)}
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          message="Trip link copied to clipboard"
+          message={t("tripDetail.toasts.linkCopied")}
         />
         {/* Kebab renders for everyone — it carries "Take the tour" (which
             all viewers can use). Share + the destructive lifecycle actions
@@ -1852,7 +1888,7 @@ const TripDetailHeader = ({
         {!focusMode && (
           <IconButton
             className="trip-detail-menu-btn"
-            aria-label="More actions"
+            aria-label={t("tripDetail.menu.moreActions")}
             onClick={(e) => setMenuAnchor(e.currentTarget)}
             disabled={isSaving || isDeleting}
             size="small"
@@ -1866,7 +1902,7 @@ const TripDetailHeader = ({
           {statusName !== TRIP_STATUS.CANCELLED && (
             <MenuActionItem
               icon={<HelpOutlineRoundedIcon />}
-              label="Take the tour"
+              label={t("tripDetail.menu.takeTour")}
               onClick={() => {
                 closeMenu();
                 onStartTour();
@@ -1876,7 +1912,7 @@ const TripDetailHeader = ({
           {canExport && (
             <MenuActionItem
               icon={<IosShareIcon />}
-              label="Share & download"
+              label={t("tripDetail.menu.shareDownload")}
               onClick={() => {
                 closeMenu();
                 exportModalRef.current?.openModel();
@@ -1887,7 +1923,7 @@ const TripDetailHeader = ({
           {tripData.apiId && (
             <MenuActionItem
               icon={<NotificationsActiveRoundedIcon />}
-              label="Trip notifications"
+              label={t("tripDetail.menu.tripNotifications")}
               onClick={() => {
                 closeMenu();
                 notifyPrefModalRef.current?.openModel();
@@ -1901,7 +1937,7 @@ const TripDetailHeader = ({
             (offlineStatus === OFFLINE_STATUS.SAVED ? (
               <MenuActionItem
                 icon={<CloudDoneRoundedIcon />}
-                label="Remove offline copy"
+                label={t("tripDetail.menu.removeOffline")}
                 onClick={() => {
                   closeMenu();
                   onRemoveOffline();
@@ -1910,13 +1946,17 @@ const TripDetailHeader = ({
             ) : offlineStatus === OFFLINE_STATUS.SYNCING ? (
               <MenuActionItem
                 icon={<SyncRoundedIcon />}
-                label="Saving offline…"
+                label={t("tripDetail.menu.savingOffline")}
                 onClick={closeMenu}
               />
             ) : (
               <MenuActionItem
                 icon={<DownloadForOfflineOutlinedIcon />}
-                label={isOffline ? "Save offline (connect first)" : "Save offline"}
+                label={
+                  isOffline
+                    ? t("tripDetail.menu.saveOfflineConnect")
+                    : t("tripDetail.menu.saveOffline")
+                }
                 onClick={() => {
                   closeMenu();
                   if (!isOffline) onDownloadOffline();
@@ -1926,7 +1966,7 @@ const TripDetailHeader = ({
           {canDuplicate && (
             <MenuActionItem
               icon={<ContentCopyRoundedIcon />}
-              label="Duplicate trip"
+              label={t("tripDetail.menu.duplicateTrip")}
               onClick={() => {
                 closeMenu();
                 duplicateModalRef.current?.openModel();
@@ -1936,14 +1976,14 @@ const TripDetailHeader = ({
           {isOrganizer && canCancelTrip && (
             <MenuActionItem
               icon={<EventBusyRoundedIcon />}
-              label="Cancel trip"
+              label={t("tripDetail.menu.cancelTrip")}
               onClick={() => openConfirm("cancel")}
             />
           )}
           {isOrganizer && (
             <MenuActionItem
               icon={<DeleteOutlineRoundedIcon />}
-              label="Delete trip"
+              label={t("tripDetail.menu.deleteTrip")}
               onClick={() => openConfirm("delete")}
               tone="danger"
             />
@@ -1975,29 +2015,21 @@ const TripDetailHeader = ({
       >
         <DialogTitle>
           {confirmDialog === "cancel"
-            ? "Cancel this trip?"
-            : "Delete this trip?"}
+            ? t("tripDetail.confirm.cancelTitle")
+            : t("tripDetail.confirm.deleteTitle")}
         </DialogTitle>
         <DialogContent>
           {confirmDialog === "cancel" ? (
-            <p>
-              The trip moves to Cancelled status. Participants will see it as
-              cancelled but the itinerary stays viewable. This can be reversed
-              later by an organizer.
-            </p>
+            <p>{t("tripDetail.confirm.cancelBody")}</p>
           ) : (
-            <p>
-              This permanently removes the trip and all its activities.
-              Participants will no longer see it in their list. This cannot
-              be undone.
-            </p>
+            <p>{t("tripDetail.confirm.deleteBody")}</p>
           )}
         </DialogContent>
         <DialogActions>
           <ButtonCustom
             type="line"
             capitalizeType="uppercase"
-            label="Keep trip"
+            label={t("tripDetail.confirm.keepTrip")}
             onClick={closeConfirm}
             disabled={isSaving || isDeleting}
           />
@@ -2007,11 +2039,11 @@ const TripDetailHeader = ({
             label={
               confirmDialog === "delete"
                 ? isDeleting
-                  ? "Deleting…"
-                  : "Delete"
+                  ? t("tripDetail.confirm.deleting")
+                  : t("tripDetail.confirm.delete")
                 : isSaving
-                ? "Saving…"
-                : "Cancel trip"
+                ? t("tripDetail.confirm.saving")
+                : t("tripDetail.confirm.cancelTrip")
             }
             onClick={handleConfirm}
             disabled={isSaving || isDeleting}

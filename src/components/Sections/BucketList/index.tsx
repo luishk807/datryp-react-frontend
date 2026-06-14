@@ -13,6 +13,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import classNames from 'classnames';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
@@ -63,31 +65,32 @@ interface PaywallState {
 }
 
 const paywallCopy = (
-    state: PaywallState
+    state: PaywallState,
+    t: TFunction
 ): { title: string; headline: React.ReactNode; body: string } => {
     if (state.kind === 'bucket_list_cap') {
         return {
-            title: 'Bucket list full',
+            title: t('bucketList.paywall.cap.title'),
             headline: (
-                <>
-                    You&rsquo;ve added{' '}
-                    <strong>{state.currentCount}</strong> of{' '}
-                    <strong>{state.cap}</strong> bucket-list entries on the
-                    free plan.
-                </>
+                <Trans
+                    i18nKey="bucketList.paywall.cap.headline"
+                    values={{ count: state.currentCount, cap: state.cap }}
+                    components={{ strong: <strong /> }}
+                />
             ),
-            body: 'DaTryp.com Pro removes the limit so you can keep dreaming. Pro also unlocks "Create trip" — turn any bucket-list goal into a real itinerary.',
+            body: t('bucketList.paywall.cap.body'),
         };
     }
     return {
-        title: 'Pro feature',
-        headline: <>Turning a bucket-list goal into a real trip is a Pro feature.</>,
-        body: 'DaTryp.com Pro builds an itinerary from any of your bucket-list entries — picking a country, planning days, suggesting activities — saved as a draft trip ready for you to tweak.',
+        title: t('bucketList.paywall.generate.title'),
+        headline: t('bucketList.paywall.generate.headline'),
+        body: t('bucketList.paywall.generate.body'),
     };
 };
 
 const BucketList = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { user, isAdmin } = useUser();
     const { data: items = [], isLoading } = useBucketList();
     const add = useAddBucketListItem();
@@ -181,7 +184,7 @@ const BucketList = () => {
                 setError(
                     err instanceof Error
                         ? err.message
-                        : 'Could not add that one — try again.'
+                        : t('bucketList.add.error')
                 );
             }
         }
@@ -277,27 +280,23 @@ const BucketList = () => {
             // Log the dev-facing detail for debugging.
             // eslint-disable-next-line no-console
             console.error('[bucket-list] generate trip failed:', err);
-            setError(
-                "Sorry, we couldn't build your trip right now. Please try again in a moment."
-            );
+            setError(t('bucketList.generateError'));
         } finally {
             setGeneratingText(null);
         }
     };
 
     return (
-        <Layout title="Bucket list">
+        <Layout title={t('bucketList.pageTitle')}>
             <div className="bucket-page">
                 <header className="bucket-page-header">
                     <h1 className="bucket-page-title">
-                        {getUserFirstName(user)}&rsquo;s travel goals
+                        {t('bucketList.travelGoals', {
+                            name: getUserFirstName(user),
+                        })}
                     </h1>
                     <p className="bucket-page-subtitle">
-                        Your bucket list is the wishlist of things you want to
-                        experience while traveling — a concert, a stadium, a
-                        hike, a meal, a festival. Keep them here, and when
-                        you&rsquo;re ready, turn any goal into a full trip in
-                        one tap.
+                        {t('bucketList.subtitle')}
                     </p>
                     {!isPro && (
                         <p
@@ -313,31 +312,38 @@ const BucketList = () => {
                                         fontSize="inherit"
                                         className="bucket-cap-icon"
                                     />
-                                    You&rsquo;ve filled all{' '}
-                                    {FREE_TIER_BUCKET_LIST_LIMIT} free slots —{' '}
-                                    <button
-                                        type="button"
-                                        className="bucket-cap-upgrade"
-                                        onClick={() =>
-                                            openPaywall({
-                                                kind: 'bucket_list_cap',
-                                                currentCount: items.length,
-                                                cap: FREE_TIER_BUCKET_LIST_LIMIT,
-                                            })
-                                        }
-                                    >
-                                        upgrade to Pro
-                                    </button>{' '}
-                                    for unlimited entries.
+                                    <Trans
+                                        i18nKey="bucketList.cap.full"
+                                        values={{
+                                            limit: FREE_TIER_BUCKET_LIST_LIMIT,
+                                        }}
+                                        components={{
+                                            upgrade: (
+                                                <button
+                                                    type="button"
+                                                    className="bucket-cap-upgrade"
+                                                    onClick={() =>
+                                                        openPaywall({
+                                                            kind: 'bucket_list_cap',
+                                                            currentCount:
+                                                                items.length,
+                                                            cap: FREE_TIER_BUCKET_LIST_LIMIT,
+                                                        })
+                                                    }
+                                                />
+                                            ),
+                                        }}
+                                    />
                                 </>
                             ) : (
-                                <>
-                                    <strong>{items.length}</strong> of{' '}
-                                    <strong>
-                                        {FREE_TIER_BUCKET_LIST_LIMIT}
-                                    </strong>{' '}
-                                    free slots used.
-                                </>
+                                <Trans
+                                    i18nKey="bucketList.cap.used"
+                                    values={{
+                                        count: items.length,
+                                        limit: FREE_TIER_BUCKET_LIST_LIMIT,
+                                    }}
+                                    components={{ strong: <strong /> }}
+                                />
                             )}
                         </p>
                     )}
@@ -345,7 +351,7 @@ const BucketList = () => {
 
                 <section
                     className="bucket-paths"
-                    aria-label="Two ways to start a trip"
+                    aria-label={t('bucketList.paths.regionAria')}
                 >
                     <button
                         type="button"
@@ -357,10 +363,10 @@ const BucketList = () => {
                         </span>
                         <span className="bucket-path-body">
                             <span className="bucket-path-eyebrow">
-                                Not sure where to go?
+                                {t('bucketList.paths.matcher.eyebrow')}
                             </span>
                             <span className="bucket-path-title">
-                                Get AI destination ideas
+                                {t('bucketList.paths.matcher.title')}
                             </span>
                         </span>
                         <ArrowForwardRoundedIcon className="bucket-path-arrow" />
@@ -375,10 +381,10 @@ const BucketList = () => {
                         </span>
                         <span className="bucket-path-body">
                             <span className="bucket-path-eyebrow">
-                                Already have a dream in mind?
+                                {t('bucketList.paths.bucket.eyebrow')}
                             </span>
                             <span className="bucket-path-title">
-                                Add it to your bucket list
+                                {t('bucketList.paths.bucket.title')}
                             </span>
                         </span>
                         <ArrowForwardRoundedIcon className="bucket-path-arrow" />
@@ -387,20 +393,15 @@ const BucketList = () => {
 
                 <section
                     className="bucket-howto"
-                    aria-label="How the bucket list works"
+                    aria-label={t('bucketList.howto.regionAria')}
                 >
                     <div className="bucket-howto-step">
                         <span className="bucket-howto-icon">
                             <EditNoteRoundedIcon />
                         </span>
                         <div className="bucket-howto-content">
-                            <h3>1. Capture the dream</h3>
-                            <p>
-                                Jot down anything you want to experience — a
-                                stadium match, a hike, a tasting menu, a
-                                festival. Phrase it like you&rsquo;d tell a
-                                friend.
-                            </p>
+                            <h3>{t('bucketList.howto.step1.title')}</h3>
+                            <p>{t('bucketList.howto.step1.body')}</p>
                         </div>
                     </div>
                     <div className="bucket-howto-step">
@@ -408,12 +409,12 @@ const BucketList = () => {
                             <AutoAwesomeRoundedIcon />
                         </span>
                         <div className="bucket-howto-content">
-                            <h3>2. We build the trip</h3>
+                            <h3>{t('bucketList.howto.step2.title')}</h3>
                             <p>
-                                Tap <strong>Build trip</strong> on any
-                                goal. We pick the destination, plan days
-                                and activities around it, and save it as
-                                a draft Planning trip.
+                                <Trans
+                                    i18nKey="bucketList.howto.step2.body"
+                                    components={{ strong: <strong /> }}
+                                />
                             </p>
                         </div>
                     </div>
@@ -422,12 +423,8 @@ const BucketList = () => {
                             <FlightTakeoffRoundedIcon />
                         </span>
                         <div className="bucket-howto-content">
-                            <h3>3. Tweak &amp; go</h3>
-                            <p>
-                                Review the draft, swap activities, invite
-                                friends, then confirm when you&rsquo;re ready.
-                                Nothing is locked in until you say so.
-                            </p>
+                            <h3>{t('bucketList.howto.step3.title')}</h3>
+                            <p>{t('bucketList.howto.step3.body')}</p>
                         </div>
                     </div>
                 </section>
@@ -452,7 +449,7 @@ const BucketList = () => {
                         required={false}
                         type="text"
                         value={draft}
-                        placeholder="e.g. Watch an FC Barcelona game at Camp Nou"
+                        placeholder={t('bucketList.add.placeholder')}
                         onChange={(e) => {
                             setDraft(e.target.value);
                             if (error) setError(null);
@@ -463,7 +460,11 @@ const BucketList = () => {
                         nativeType="submit"
                         capitalizeType="none"
                         className="bucket-add-btn"
-                        label={add.isPending ? 'Saving…' : 'Add'}
+                        label={
+                            add.isPending
+                                ? t('bucketList.add.saving')
+                                : t('bucketList.add.add')
+                        }
                         disabled={add.isPending || !draft.trim()}
                     />
                 </form>
@@ -475,17 +476,15 @@ const BucketList = () => {
                 )}
 
                 {isLoading && items.length === 0 && (
-                    <p className="bucket-loading">Loading your list…</p>
+                    <p className="bucket-loading">{t('bucketList.loading')}</p>
                 )}
 
                 {!isLoading && items.length === 0 && (
                     <div className="bucket-empty">
                         <AutoAwesomeRoundedIcon className="bucket-empty-icon" />
-                        <p>Your bucket list is empty.</p>
+                        <p>{t('bucketList.empty.title')}</p>
                         <p className="bucket-empty-hint">
-                            Add a goal above — phrase it like you would tell a
-                            friend ("watch the Barcelona game", "see the Northern
-                            Lights").
+                            {t('bucketList.empty.hint')}
                         </p>
                     </div>
                 )}
@@ -494,7 +493,9 @@ const BucketList = () => {
                     open={generate.isPending}
                     title={
                         generatingText
-                            ? `Building "${generatingText}"…`
+                            ? t('bucketList.building', {
+                                  text: generatingText,
+                              })
                             : undefined
                     }
                 />
@@ -509,11 +510,11 @@ const BucketList = () => {
                     ref={paywallRef}
                     currentCount={paywall?.currentCount ?? items.length}
                     cap={paywall?.cap ?? FREE_TIER_BUCKET_LIST_LIMIT}
-                    title={paywall ? paywallCopy(paywall).title : undefined}
+                    title={paywall ? paywallCopy(paywall, t).title : undefined}
                     headline={
-                        paywall ? paywallCopy(paywall).headline : undefined
+                        paywall ? paywallCopy(paywall, t).headline : undefined
                     }
-                    body={paywall ? paywallCopy(paywall).body : undefined}
+                    body={paywall ? paywallCopy(paywall, t).body : undefined}
                     onDismiss={() => setPaywall(null)}
                 />
 
@@ -571,16 +572,18 @@ const BucketList = () => {
                                                 </span>
                                             )}
                                             <span className="bucket-card-meta">
-                                                Added{' '}
-                                                {formatDate(
-                                                    item.createdAt,
-                                                    'MMM D, YYYY'
-                                                )}
+                                                {t('bucketList.card.added', {
+                                                    date: formatDate(
+                                                        item.createdAt,
+                                                        'MMM D, YYYY'
+                                                    ),
+                                                })}
                                                 {!isPro && (
                                                     <span className="bucket-card-pro-hint">
                                                         <AutoAwesomeRoundedIcon fontSize="inherit" />
-                                                        Pro polishes goals into
-                                                        titled cards
+                                                        {t(
+                                                            'bucketList.card.proHint'
+                                                        )}
                                                     </span>
                                                 )}
                                             </span>
@@ -600,8 +603,14 @@ const BucketList = () => {
                                                 disabled={generate.isPending}
                                                 aria-label={
                                                     isPro
-                                                        ? `Create trip from "${item.text}"`
-                                                        : `Pro only — upgrade to create a trip from "${item.text}"`
+                                                        ? t(
+                                                              'bucketList.card.buildAria',
+                                                              { text: item.text }
+                                                          )
+                                                        : t(
+                                                              'bucketList.card.buildLockedAria',
+                                                              { text: item.text }
+                                                          )
                                                 }
                                             >
                                                 {isPro ? (
@@ -614,20 +623,31 @@ const BucketList = () => {
                                                 )}
                                                 <span>
                                                     {isPro
-                                                        ? 'Build trip'
-                                                        : 'Create trip'}
+                                                        ? t(
+                                                              'bucketList.card.buildTrip'
+                                                          )
+                                                        : t(
+                                                              'bucketList.card.createTrip'
+                                                          )}
                                                 </span>
                                                 {!isPro && (
                                                     <span className="bucket-card-pro-tag">
-                                                        Pro
+                                                        {t(
+                                                            'bucketList.card.proTag'
+                                                        )}
                                                     </span>
                                                 )}
                                             </ButtonCustom>
                                             <IconButton
                                                 size="small"
                                                 className="bucket-card-delete"
-                                                aria-label={`Remove "${item.text}"`}
-                                                title="Remove from bucket list"
+                                                aria-label={t(
+                                                    'bucketList.card.removeAria',
+                                                    { text: item.text }
+                                                )}
+                                                title={t(
+                                                    'bucketList.card.removeTitle'
+                                                )}
                                                 onClick={() =>
                                                     void remove.mutateAsync(
                                                         item.id
@@ -666,49 +686,66 @@ const BucketList = () => {
                                                     />
                                                 </div>
                                                 <span className="bucket-wizard-step-label">
-                                                    Step {wizardStep} of 2
+                                                    {t(
+                                                        'bucketList.wizard.stepOf',
+                                                        { step: wizardStep }
+                                                    )}
                                                 </span>
                                                 <button
                                                     type="button"
                                                     className="bucket-wizard-cancel"
                                                     onClick={closeBuildWizard}
-                                                    aria-label="Cancel"
+                                                    aria-label={t(
+                                                        'bucketList.wizard.cancelAria'
+                                                    )}
                                                 >
-                                                    Cancel
+                                                    {t(
+                                                        'bucketList.wizard.cancel'
+                                                    )}
                                                 </button>
                                             </div>
 
                                             {wizardStep === 1 && (
                                                 <>
                                                     <h4 className="bucket-wizard-question">
-                                                        How many people are going?
+                                                        {t(
+                                                            'bucketList.wizard.party.question'
+                                                        )}
                                                     </h4>
                                                     <p className="bucket-wizard-hint">
-                                                        Sizes lodging
-                                                        suggestions and splits
-                                                        the budget per person.
+                                                        {t(
+                                                            'bucketList.wizard.party.hint'
+                                                        )}
                                                     </p>
                                                     <div className="bucket-wizard-chips">
                                                         {[
                                                             {
                                                                 value: 1,
                                                                 label: '1',
-                                                                note: 'Solo',
+                                                                note: t(
+                                                                    'bucketList.wizard.party.solo'
+                                                                ),
                                                             },
                                                             {
                                                                 value: 2,
                                                                 label: '2',
-                                                                note: 'Couple',
+                                                                note: t(
+                                                                    'bucketList.wizard.party.couple'
+                                                                ),
                                                             },
                                                             {
                                                                 value: 4,
                                                                 label: '4',
-                                                                note: 'Family',
+                                                                note: t(
+                                                                    'bucketList.wizard.party.family'
+                                                                ),
                                                             },
                                                             {
                                                                 value: 6,
                                                                 label: '6',
-                                                                note: 'Group',
+                                                                note: t(
+                                                                    'bucketList.wizard.party.group'
+                                                                ),
                                                             },
                                                         ].map((opt) => (
                                                             <button
@@ -746,7 +783,9 @@ const BucketList = () => {
                                                             htmlFor={`party-custom-${item.id}`}
                                                             className="bucket-wizard-custom-label"
                                                         >
-                                                            Or enter a number:
+                                                            {t(
+                                                                'bucketList.wizard.party.customLabel'
+                                                            )}
                                                         </label>
                                                         <input
                                                             id={`party-custom-${item.id}`}
@@ -768,12 +807,14 @@ const BucketList = () => {
                                             {wizardStep === 2 && (
                                                 <>
                                                     <h4 className="bucket-wizard-question">
-                                                        How long should the trip be?
+                                                        {t(
+                                                            'bucketList.wizard.duration.question'
+                                                        )}
                                                     </h4>
                                                     <p className="bucket-wizard-hint">
-                                                        Pick a length, or let us
-                                                        decide based on the
-                                                        budget + activity mix.
+                                                        {t(
+                                                            'bucketList.wizard.duration.hint'
+                                                        )}
                                                     </p>
                                                     <div className="bucket-wizard-chips">
                                                         {[3, 5, 7, 10, 14].map(
@@ -802,8 +843,12 @@ const BucketList = () => {
                                                                     </span>
                                                                     <span className="bucket-wizard-chip-note">
                                                                         {d === 1
-                                                                            ? 'day'
-                                                                            : 'days'}
+                                                                            ? t(
+                                                                                  'bucketList.wizard.duration.day'
+                                                                              )
+                                                                            : t(
+                                                                                  'bucketList.wizard.duration.days'
+                                                                              )}
                                                                     </span>
                                                                 </button>
                                                             )
@@ -824,10 +869,14 @@ const BucketList = () => {
                                                             }
                                                         >
                                                             <span className="bucket-wizard-chip-amount">
-                                                                Auto
+                                                                {t(
+                                                                    'bucketList.wizard.duration.auto'
+                                                                )}
                                                             </span>
                                                             <span className="bucket-wizard-chip-note">
-                                                                Smart picks
+                                                                {t(
+                                                                    'bucketList.wizard.duration.autoNote'
+                                                                )}
                                                             </span>
                                                         </button>
                                                     </div>
@@ -841,30 +890,47 @@ const BucketList = () => {
                                                 about them. */}
                                             <div className="bucket-wizard-summary">
                                                 <span className="bucket-wizard-summary-title">
-                                                    We&rsquo;ll build it using:
+                                                    {t(
+                                                        'bucketList.wizard.summary.title'
+                                                    )}
                                                 </span>
                                                 <ul className="bucket-wizard-summary-list">
                                                     <li>
                                                         <CheckCircleRoundedIcon fontSize="inherit" />
                                                         {(user?.travelerStyles
                                                             ?.length ?? 0) > 0
-                                                            ? `Your travel style (${(
-                                                                  user?.travelerStyles ??
-                                                                  []
-                                                              ).join(', ')})`
-                                                            : 'Your saved travel style'}
+                                                            ? t(
+                                                                  'bucketList.wizard.summary.styleWith',
+                                                                  {
+                                                                      styles: (
+                                                                          user?.travelerStyles ??
+                                                                          []
+                                                                      ).join(
+                                                                          ', '
+                                                                      ),
+                                                                  }
+                                                              )
+                                                            : t(
+                                                                  'bucketList.wizard.summary.styleSaved'
+                                                              )}
                                                     </li>
                                                     <li>
                                                         <CheckCircleRoundedIcon fontSize="inherit" />
-                                                        This bucket-list goal
+                                                        {t(
+                                                            'bucketList.wizard.summary.goal'
+                                                        )}
                                                     </li>
                                                     <li>
                                                         <CheckCircleRoundedIcon fontSize="inherit" />
-                                                        Your budget preferences
+                                                        {t(
+                                                            'bucketList.wizard.summary.budget'
+                                                        )}
                                                     </li>
                                                     <li>
                                                         <CheckCircleRoundedIcon fontSize="inherit" />
-                                                        Your previous trips
+                                                        {t(
+                                                            'bucketList.wizard.summary.trips'
+                                                        )}
                                                     </li>
                                                 </ul>
                                             </div>
@@ -879,14 +945,20 @@ const BucketList = () => {
                                                         }
                                                     >
                                                         <ArrowBackRoundedIcon fontSize="small" />
-                                                        <span>Back</span>
+                                                        <span>
+                                                            {t(
+                                                                'bucketList.wizard.back'
+                                                            )}
+                                                        </span>
                                                     </button>
                                                 )}
                                                 {wizardStep === 1 ? (
                                                     <ButtonCustom
                                                         type="standard"
                                                         capitalizeType="none"
-                                                        label="Next"
+                                                        label={t(
+                                                            'bucketList.wizard.next'
+                                                        )}
                                                         onClick={() =>
                                                             setWizardStep(2)
                                                         }
@@ -895,7 +967,9 @@ const BucketList = () => {
                                                     <ButtonCustom
                                                         type="standard"
                                                         capitalizeType="none"
-                                                        label="Build trip"
+                                                        label={t(
+                                                            'bucketList.wizard.build'
+                                                        )}
                                                         onClick={() =>
                                                             void handleCreateTrip(
                                                                 item.id,
@@ -921,7 +995,7 @@ const BucketList = () => {
                             setPage(p);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        ariaLabel="Bucket list pagination"
+                        ariaLabel={t('bucketList.paginationAria')}
                     />
                 )}
             </div>

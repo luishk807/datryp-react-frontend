@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import moment from 'moment'; // computeDatesRange iterates moment objects directly (clone/add/isAfter/isBefore); kept on raw moment
 import { Grid, Snackbar } from '@mui/material';
 import _ from 'lodash';
@@ -193,6 +194,7 @@ const DestinationDetail = ({
     isAutoSaving = false,
     tripStatusName,
 }: DestinationDetailProps) => {
+    const { t } = useTranslation();
     const [dndError, setDndError] = useState<string | null>(null);
     const dispatch = useTripDispatch();
 
@@ -331,7 +333,12 @@ const DestinationDetail = ({
                 !isAfter(toDate, end);
             if (!inRange) {
                 setDndError(
-                    `${toDest?.country?.name ?? 'That destination'} doesn't cover ${formatDate(toDate, 'MMM D')}.`
+                    t('activity.dnd.notCovered', {
+                        destination:
+                            toDest?.country?.name ??
+                            t('activity.dnd.thatDestination'),
+                        date: formatDate(toDate, 'MMM D'),
+                    })
                 );
                 return;
             }
@@ -487,7 +494,7 @@ const DestinationDetail = ({
             {!isViewMode && !isSingleTrip(type?.id) && (
                 <div className="destination-detail-add-next">
                     <AddDestinationBtn
-                        addButtonLabel="Add next destination"
+                        addButtonLabel={t('activity.addNextDestination')}
                         tripMaxDate={endDate}
                         defaultDate={addNextDefaultDate}
                         onChange={(value) => {

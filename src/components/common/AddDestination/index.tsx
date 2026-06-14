@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { formatDate, isValidDate, now } from 'utils';
 import AddLocationAltRoundedIcon from '@mui/icons-material/AddLocationAltRounded';
@@ -42,14 +43,6 @@ const detectTransportKind = (text: string): TransportKind => {
     if (RENTAL_RE.test(text)) return ACTIVITY_KIND.RENTAL_CAR;
     return ACTIVITY_KIND.FLIGHT;
 };
-
-const DESTINATION_LABEL = {
-    ADD: 'Add Destination',
-    EDIT: 'Edit',
-    SAVE: 'Save Destination',
-    CONTINUE: 'Continue',
-    BACK: 'Back',
-} as const;
 
 export interface DestinationDraft {
     id?: number;
@@ -129,13 +122,14 @@ const AddDestinationBtn = ({
     isViewMode = false,
     addButtonLabel,
 }: AddDestinationBtnProps) => {
+    const { t } = useTranslation();
     const isAdd = type === ACTION.ADD;
     const title = useMemo(
         () =>
             isAdd
-                ? addButtonLabel ?? DESTINATION_LABEL.ADD
-                : DESTINATION_LABEL.EDIT,
-        [isAdd, addButtonLabel],
+                ? addButtonLabel ?? t('addForms.transport.trigger.add')
+                : t('addForms.transport.trigger.edit'),
+        [isAdd, addButtonLabel, t],
     );
 
     const modelRef = useRef<ModalButtonHandle>(null);
@@ -307,9 +301,7 @@ const AddDestinationBtn = ({
 
     const handleSubmit = () => {
         if (!country) {
-            setError(
-                "We couldn't read a destination from your details yet — add an arrival airport or destination text.",
-            );
+            setError(t('addForms.transport.noCountryError'));
             return;
         }
         setError(null);
@@ -548,8 +540,12 @@ const AddDestinationBtn = ({
             <ModalButton
                 title={
                     isAdd
-                        ? DESTINATION_LABEL.ADD
-                        : `${DESTINATION_LABEL.EDIT} ${data?.country?.name ?? ''}`
+                        ? t('addForms.transport.trigger.add')
+                        : data?.country?.name
+                          ? t('addForms.transport.trigger.editNamed', {
+                                name: data.country.name,
+                            })
+                          : t('addForms.transport.trigger.edit')
                 }
                 ref={modelRef}
                 onClose={handleModalClose}
@@ -695,7 +691,7 @@ const AddDestinationBtn = ({
                                 {isAdd && (
                                     <ButtonCustom
                                         onClick={() => setStep(describeBackTo)}
-                                        label={DESTINATION_LABEL.BACK}
+                                        label={t('addForms.transport.trigger.back')}
                                         type={BUTTON_VARIANT.LINE}
                                         capitalizeType="capitalize"
                                     />
@@ -706,7 +702,7 @@ const AddDestinationBtn = ({
                                         onClick={() =>
                                             setStep(WIZARD_STEP.CONFIRM)
                                         }
-                                        label={DESTINATION_LABEL.CONTINUE}
+                                        label={t('addForms.transport.trigger.continue')}
                                         type={BUTTON_VARIANT.STANDARD}
                                         capitalizeType="uppercase"
                                     />
@@ -715,8 +711,8 @@ const AddDestinationBtn = ({
                                         onClick={handleSubmit}
                                         label={
                                             isAdd
-                                                ? DESTINATION_LABEL.ADD
-                                                : DESTINATION_LABEL.SAVE
+                                                ? t('addForms.transport.trigger.add')
+                                                : t('addForms.transport.trigger.save')
                                         }
                                         type={BUTTON_VARIANT.STANDARD}
                                         capitalizeType="uppercase"

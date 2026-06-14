@@ -11,6 +11,7 @@ import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { ACTIVITY_KIND } from 'constants';
 import type { ActivityKind } from 'types';
 import type { PlaceDraft } from '../../types';
@@ -33,30 +34,30 @@ export interface ReviewStepProps {
 
 const KIND_META: Record<
     ActivityKind,
-    { label: string; Icon: typeof PlaceRoundedIcon }
+    { labelKey: string; Icon: typeof PlaceRoundedIcon }
 > = {
-    [ACTIVITY_KIND.PLACE]: { label: 'Place', Icon: PlaceRoundedIcon },
-    [ACTIVITY_KIND.NOTE]: { label: 'Note', Icon: StickyNote2RoundedIcon },
-    [ACTIVITY_KIND.FLIGHT]: { label: 'Flight', Icon: FlightRoundedIcon },
+    [ACTIVITY_KIND.PLACE]: { labelKey: 'place', Icon: PlaceRoundedIcon },
+    [ACTIVITY_KIND.NOTE]: { labelKey: 'note', Icon: StickyNote2RoundedIcon },
+    [ACTIVITY_KIND.FLIGHT]: { labelKey: 'flight', Icon: FlightRoundedIcon },
     [ACTIVITY_KIND.HOTEL_CHECKIN]: {
-        label: 'Hotel check-in',
+        labelKey: 'hotelCheckin',
         Icon: HotelRoundedIcon,
     },
     [ACTIVITY_KIND.HOTEL_CHECKOUT]: {
-        label: 'Hotel check-out',
+        labelKey: 'hotelCheckout',
         Icon: HotelRoundedIcon,
     },
     [ACTIVITY_KIND.TRAIN]: {
-        label: 'Train',
+        labelKey: 'train',
         Icon: DirectionsTransitRoundedIcon,
     },
-    [ACTIVITY_KIND.BUS]: { label: 'Bus', Icon: DirectionsBusRoundedIcon },
+    [ACTIVITY_KIND.BUS]: { labelKey: 'bus', Icon: DirectionsBusRoundedIcon },
     [ACTIVITY_KIND.RENTAL_CAR]: {
-        label: 'Rental car',
+        labelKey: 'rentalCar',
         Icon: CarRentalRoundedIcon,
     },
     [ACTIVITY_KIND.OTHER]: {
-        label: 'Ride',
+        labelKey: 'ride',
         Icon: LocalTaxiRoundedIcon,
     },
 };
@@ -74,8 +75,11 @@ const ReviewStep = ({
     resolving = false,
     onEdit,
 }: ReviewStepProps) => {
+    const { t } = useTranslation();
     const kind = place.kind ?? ACTIVITY_KIND.PLACE;
-    const { label, Icon } = KIND_META[kind] ?? KIND_META[ACTIVITY_KIND.PLACE];
+    const { labelKey, Icon } =
+        KIND_META[kind] ?? KIND_META[ACTIVITY_KIND.PLACE];
+    const label = t(`addForms.activity.review.kind.${labelKey}`);
 
     const isFlight = kind === ACTIVITY_KIND.FLIGHT;
     const isTransit =
@@ -125,9 +129,11 @@ const ReviewStep = ({
 
     return (
         <div className="add-wizard-step add-review-step">
-            <h2 className="add-wizard-headline">Ready to add?</h2>
+            <h2 className="add-wizard-headline">
+                {t('addForms.activity.review.headline')}
+            </h2>
             <p className="add-wizard-sub">
-                Quick check — use Back to tweak anything.
+                {t('addForms.activity.review.sub')}
             </p>
             {resolving && (
                 <div className="add-review-resolving">
@@ -135,7 +141,7 @@ const ReviewStep = ({
                         size={16}
                         className="add-review-resolving-spinner"
                     />
-                    <span>Still finishing up the details…</span>
+                    <span>{t('addForms.activity.review.resolving')}</span>
                 </div>
             )}
             <div className="add-review-card">
@@ -153,7 +159,8 @@ const ReviewStep = ({
                     )}
                     <div className="add-review-card-titles">
                         <span className="add-review-card-name">
-                            {derivedName || 'Untitled activity'}
+                            {derivedName ||
+                                t('addForms.activity.review.untitled')}
                         </span>
                         <span className="add-review-card-kind">{label}</span>
                     </div>
@@ -164,7 +171,7 @@ const ReviewStep = ({
                             onClick={onEdit}
                         >
                             <EditRoundedIcon fontSize="small" />
-                            <span>Edit</span>
+                            <span>{t('addForms.activity.review.edit')}</span>
                         </button>
                     )}
                 </div>
@@ -196,7 +203,7 @@ const ReviewStep = ({
                     {place.confirmationNumber?.trim() && (
                         <div className="add-review-row">
                             <span className="add-review-row-label">
-                                Confirmation #
+                                {t('addForms.activity.review.confirmationNumber')}
                             </span>
                             <span>{place.confirmationNumber.trim()}</span>
                         </div>

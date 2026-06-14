@@ -87,6 +87,9 @@ export const fetchPlaceRecommendations = async (
     if (kind === 'suggestion') {
         params.set('kind', 'suggestion');
     }
+    // Generate + cache the result cards (descriptions, best-time, country
+    // names) in the active UI language.
+    params.set('lang', activeLang());
     // /place-recommendations now requires auth — attach the bearer token.
     // Anonymous calls get 401 from the route and surface here as a thrown
     // Error; the SearchResults page lifts the user into the login flow.

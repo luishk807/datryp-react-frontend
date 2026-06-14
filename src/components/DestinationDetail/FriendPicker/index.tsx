@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { Grid } from '@mui/material';
 import PersonAddAlt1OutlinedIcon from '@mui/icons-material/PersonAddAlt1Outlined';
@@ -57,12 +58,14 @@ const apiToUserFriend = (f: ApiFriend): UserFriend => ({
 
 const FriendPicker = ({
     onChange,
-    title = 'friends',
+    title,
     name,
     isMultiple = true,
     selectedOptions = [],
 }: FriendPickerProps) => {
+    const { t } = useTranslation();
     const { user } = useUser();
+    const resolvedTitle = title ?? t('activity.friendPicker.defaultTitle');
     const { data: apiFriends = [] } = useFriends();
     const userFriends = useMemo<UserFriend[]>(() => {
         const list = apiFriends.map(apiToUserFriend);
@@ -72,12 +75,12 @@ const FriendPicker = ({
         if (user) {
             list.unshift({
                 id: user.id,
-                name: `${user.name} (you)`,
+                name: t('activity.friendPicker.youSuffix', { name: user.name }),
                 email: user.email,
             });
         }
         return list;
-    }, [apiFriends, user]);
+    }, [apiFriends, user, t]);
 
     const inviteRef = useRef<ModalButtonHandle>(null);
     const [selectedFriendList, setSelectedFriendList] =
@@ -92,9 +95,12 @@ const FriendPicker = ({
         const list: FriendOption[] = userFriends
             .map(toOption)
             .filter((o) => !selectedIds.has(o.id));
-        list.push({ id: ADD_FRIEND_OPTION_ID, label: 'Invite a friend' });
+        list.push({
+            id: ADD_FRIEND_OPTION_ID,
+            label: t('activity.friendPicker.inviteFriend'),
+        });
         return list;
-    }, [userFriends, selectedFriendList]);
+    }, [userFriends, selectedFriendList, t]);
 
     const selectFriend = (option: FriendOption) => {
         if (selectedFriendList.some((f) => f.id === option.id)) return;
@@ -139,7 +145,7 @@ const FriendPicker = ({
                         isMultiple={isMultiple}
                         options={optionList}
                         name={name}
-                        label={title}
+                        label={resolvedTitle}
                         onRemove={handleOnRemove}
                         onSelect={handleOnSelect}
                         renderOption={(option, isSelected) => {
@@ -151,10 +157,14 @@ const FriendPicker = ({
                                         </span>
                                         <span className="friend-option-main">
                                             <span className="friend-option-name">
-                                                Invite a friend
+                                                {t(
+                                                    'activity.friendPicker.inviteFriend'
+                                                )}
                                             </span>
                                             <span className="friend-option-sub">
-                                                Send an email invite
+                                                {t(
+                                                    'activity.friendPicker.sendEmailInvite'
+                                                )}
                                             </span>
                                         </span>
                                     </div>
@@ -177,7 +187,9 @@ const FriendPicker = ({
                                             {option.label}
                                             {option.pending && (
                                                 <span className="friend-option-pending">
-                                                    Invited
+                                                    {t(
+                                                        'activity.friendPicker.invited'
+                                                    )}
                                                 </span>
                                             )}
                                         </span>
@@ -188,7 +200,9 @@ const FriendPicker = ({
                                         )}
                                     </span>
                                     {isSelected && (
-                                        <span className="friend-option-tag">Added</span>
+                                        <span className="friend-option-tag">
+                                            {t('activity.friendPicker.added')}
+                                        </span>
                                     )}
                                 </div>
                             );

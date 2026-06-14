@@ -1,5 +1,6 @@
 import "./index.scss";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import { useSearchParams } from "react-router-dom";
@@ -182,6 +183,7 @@ const PaidByRow = ({
   allowPaidEdits,
   onChangePlace,
 }: PaidByRowProps) => {
+  const { t } = useTranslation();
   const markPaidRef = useRef<MarkPaidModalHandle>(null);
   const isPaid = Boolean(activity.paidAt);
   // Effective edit permission: caller can override the isViewMode
@@ -270,7 +272,7 @@ const PaidByRow = ({
     const backendName = activity.paidBy?.name?.trim() ?? "";
     if (names.length === 0) {
       return {
-        payerLabel: backendName || "Unknown",
+        payerLabel: backendName || t("activity.paid.unknown"),
         hasAssignedPayer: backendName.length > 0,
       };
     }
@@ -279,12 +281,18 @@ const PaidByRow = ({
     }
     if (names.length === 2) {
       return {
-        payerLabel: `${names[0]} & ${names[1]}`,
+        payerLabel: t("activity.paid.twoPayers", {
+          first: names[0],
+          second: names[1],
+        }),
         hasAssignedPayer: true,
       };
     }
     return {
-      payerLabel: `${names[0]} + ${names.length - 1} others`,
+      payerLabel: t("activity.paid.manyPayers", {
+        first: names[0],
+        count: names.length - 1,
+      }),
       hasAssignedPayer: true,
     };
   })();
@@ -303,7 +311,7 @@ const PaidByRow = ({
       {showChip ? (
         <span className="paid-by-chip">
           <span className="paid-by-chip-text">
-            Paid by {payerLabel}
+            {t("activity.paid.paidBy", { name: payerLabel })}
             {dateLabel && (
               <span className="paid-by-chip-date">
                 {" · "}
@@ -315,7 +323,7 @@ const PaidByRow = ({
             <IconButton
               size="small"
               className="paid-by-edit-trigger"
-              aria-label="Edit payment"
+              aria-label={t("activity.paid.editAria")}
               onClick={() => markPaidRef.current?.open()}
             >
               <EditRoundedIcon fontSize="small" />
@@ -327,7 +335,7 @@ const PaidByRow = ({
           type={BUTTON_VARIANT.NONE}
           capitalizeType="capitalize"
           className="mark-paid-pill"
-          label="Mark as paid"
+          label={t("activity.paid.markAsPaid")}
           onClick={() => markPaidRef.current?.open()}
         />
       )}
@@ -389,6 +397,7 @@ const Activities = ({
   tripStatusName,
   isAutoSaving = false,
 }: ActivitiesProps) => {
+  const { t } = useTranslation();
   // Default-derive the status-pill interactivity from view mode so
   // existing callers (stepper editor, new-trip creation) keep their
   // current behaviour. /trip-detail passes `allowStatusToggle={true}`
@@ -621,7 +630,7 @@ const Activities = ({
     >
       {dndEnabled && isEmpty && (
         <p className="activities-empty-hint">
-          Drop a place here, or add one below.
+          {t("activity.dropHint")}
         </p>
       )}
       <SortableContext
@@ -778,7 +787,7 @@ const Activities = ({
                     "is-indeterminate": activityProgress === null,
                   })}
                   role="progressbar"
-                  aria-label="Currently happening"
+                  aria-label={t("activity.currentlyHappening")}
                   aria-valuenow={
                     activityProgress !== null
                       ? Math.round(activityProgress * 100)
@@ -837,15 +846,19 @@ const Activities = ({
                         )}
                         aria-label={
                           isPastLocked
-                            ? `${activity.name} is locked — its time has passed`
-                            : `Uncheck ${activity.name} (reverts to Confirmed)`
+                            ? t("activity.status.lockedAria", {
+                                name: activity.name,
+                              })
+                            : t("activity.status.uncheckAria", {
+                                name: activity.name,
+                              })
                         }
                         title={
                           isPastLocked
-                            ? "This activity has already passed and is locked"
+                            ? t("activity.status.pastLockedTitle")
                             : confirmedStatus.id === 0
-                              ? "Loading status options…"
-                              : "Uncheck — reverts to Confirmed"
+                              ? t("activity.status.loadingOptions")
+                              : t("activity.status.uncheckTitle")
                         }
                         disabled={isPastLocked || confirmedStatus.id === 0}
                         onClick={() =>
@@ -866,11 +879,13 @@ const Activities = ({
                   <IconButton
                     size="small"
                     className="activity-card-complete-btn"
-                    aria-label={`Mark ${activity.name} as completed`}
+                    aria-label={t("activity.status.markCompletedAria", {
+                      name: activity.name,
+                    })}
                     title={
                       completedStatus.id === 0
-                        ? "Loading status options…"
-                        : "Mark as completed"
+                        ? t("activity.status.loadingOptions")
+                        : t("activity.status.markCompleted")
                     }
                     disabled={completedStatus.id === 0}
                     onClick={() =>
@@ -889,13 +904,15 @@ const Activities = ({
               ) : (
                 <IconConfirmButton
                   icon={<CloseRoundedIcon fontSize="small" />}
-                  ariaLabel={`Delete ${activity.name}`}
-                  title="Delete this activity"
+                  ariaLabel={t("activity.delete.aria", {
+                    name: activity.name,
+                  })}
+                  title={t("activity.delete.title")}
                   onConfirm={() => onChangePlace("delete", activity.id)}
                   className="activity-card-close-btn"
                   isViewMode={isViewMode || isActivityCompleted}
                 >
-                  You are about to delete {activity.name}. Are you sure?
+                  {t("activity.delete.confirm", { name: activity.name })}
                 </IconConfirmButton>
               )}
               <Grid container>
@@ -940,7 +957,9 @@ const Activities = ({
                             )}&i=0&id=${tripId}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title={`Open ${activity.name} details in a new tab`}
+                            title={t("activity.openDetailsTitle", {
+                              name: activity.name,
+                            })}
                           >
                             <span className="title-link-text">
                               {activity.name}
@@ -980,7 +999,9 @@ const Activities = ({
                             })()}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title={`Open ${activity.name} on Google Maps`}
+                            title={t("activity.openOnMapsTitle", {
+                              name: activity.name,
+                            })}
                           >
                             <span className="title-link-text">
                               {activity.name}
@@ -1045,7 +1066,11 @@ const Activities = ({
                                   isSavingThisPill
                                 }
                                 aria-busy={isSavingThisPill}
-                                aria-label={`Status: ${confirmed ? "Confirmed" : "Planning"}. Click to toggle.`}
+                                aria-label={t("activity.status.toggleAria", {
+                                  status: confirmed
+                                    ? t("activity.status.confirmed")
+                                    : t("activity.status.planning"),
+                                })}
                                 onClick={() => {
                                   // Mark THIS pill as saving so its label
                                   // flips to "Saving…"; every other pill
@@ -1063,10 +1088,10 @@ const Activities = ({
                                 }}
                               >
                                 {isSavingThisPill
-                                  ? "Saving…"
+                                  ? t("activity.status.saving")
                                   : confirmed
-                                    ? "Confirmed"
-                                    : "Planning"}
+                                    ? t("activity.status.confirmed")
+                                    : t("activity.status.planning")}
                               </button>
                             );
                           })()}
@@ -1176,13 +1201,15 @@ const Activities = ({
                                     rel="noopener noreferrer"
                                     aria-label={
                                       origin
-                                        ? "Get directions on Google Maps"
-                                        : "Open in Google Maps"
+                                        ? t("activity.directions.getAria")
+                                        : t("activity.directions.openAria")
                                     }
                                     title={
                                       origin
-                                        ? `Directions from ${origin}`
-                                        : "Open in Google Maps"
+                                        ? t("activity.directions.fromTitle", {
+                                            origin,
+                                          })
+                                        : t("activity.directions.openAria")
                                     }
                                     onClick={(e) => e.stopPropagation()}
                                   >
@@ -1224,10 +1251,12 @@ const Activities = ({
                                 href={activity.sourceUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                title={`Open source: ${activity.sourceUrl}`}
+                                title={t("activity.openSourceTitle", {
+                                  url: activity.sourceUrl,
+                                })}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                View source
+                                {t("activity.viewSource")}
                               </a>
                             </div>
                           )}
@@ -1242,7 +1271,9 @@ const Activities = ({
                               <div key={segIdx} className="meta-row">
                                 <NotesOutlinedIcon className="meta-icon" />
                                 <span className="meta-text flight-number">
-                                  {`Flight ${seg.flightNumber}`}
+                                  {t("activity.flightLabel", {
+                                    number: seg.flightNumber,
+                                  })}
                                   {route && (
                                     <span className="flight-segment-route">
                                       {` · ${route}`}

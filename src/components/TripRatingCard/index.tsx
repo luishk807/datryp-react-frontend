@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import StarInput from "components/common/FormFields/StarInput";
 import Stars from "components/common/Stars";
 import { useTripRating } from "api/hooks/useTripRating";
@@ -12,6 +13,7 @@ export interface TripRatingCardProps {
 }
 
 const TripRatingCard = ({ tripId, canRate }: TripRatingCardProps) => {
+    const { t } = useTranslation();
     const { data } = useTripRating(tripId);
     const save = useSaveTripRating();
 
@@ -26,19 +28,24 @@ const TripRatingCard = ({ tripId, canRate }: TripRatingCardProps) => {
     };
 
     return (
-        <section className="trip-rating-card" aria-label="Trip rating">
+        <section
+            className="trip-rating-card"
+            aria-label={t("tripDetail.rating.ariaLabel")}
+        >
             <div className="trip-rating-card-head">
-                <h3 className="trip-rating-card-title">How was this trip?</h3>
+                <h3 className="trip-rating-card-title">
+                    {t("tripDetail.rating.title")}
+                </h3>
                 {count > 0 ? (
                     <span className="trip-rating-card-avg">
                         <Stars rating={average ?? 0} />
                         <span className="trip-rating-card-count">
-                            {count} rating{count === 1 ? "" : "s"}
+                            {t("tripDetail.rating.count", { count })}
                         </span>
                     </span>
                 ) : (
                     <span className="trip-rating-card-count">
-                        No ratings yet
+                        {t("tripDetail.rating.noneYet")}
                     </span>
                 )}
             </div>
@@ -46,12 +53,14 @@ const TripRatingCard = ({ tripId, canRate }: TripRatingCardProps) => {
             {canRate && (
                 <div className="trip-rating-card-mine">
                     <span className="trip-rating-card-mine-label">
-                        {myRating > 0 ? "Your rating" : "Tap to rate"}
+                        {myRating > 0
+                            ? t("tripDetail.rating.yourRating")
+                            : t("tripDetail.rating.tapToRate")}
                     </span>
                     <StarInput value={myRating} onChange={pick} size="lg" />
                     {save.isError && (
                         <span className="trip-rating-card-error">
-                            Couldn&rsquo;t save — try again.
+                            {t("tripDetail.rating.saveError")}
                         </span>
                     )}
                 </div>

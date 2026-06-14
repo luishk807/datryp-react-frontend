@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import AvatarStack from "components/common/AvatarStack";
 import StarInput from "components/common/FormFields/StarInput";
@@ -9,6 +10,7 @@ export interface TripCompanionsCardProps {
 }
 
 const TripCompanionsCard = ({ tripId }: TripCompanionsCardProps) => {
+    const { t } = useTranslation();
     const { data } = useTripCompanions(tripId);
     const companions = data ?? [];
 
@@ -16,11 +18,16 @@ const TripCompanionsCard = ({ tripId }: TripCompanionsCardProps) => {
     if (companions.length === 0) return null;
 
     return (
-        <section className="trip-companions-card" aria-label="Friends who joined">
-            <h3 className="trip-companions-title">Friends who joined</h3>
+        <section
+            className="trip-companions-card"
+            aria-label={t("tripDetail.companions.title")}
+        >
+            <h3 className="trip-companions-title">
+                {t("tripDetail.companions.title")}
+            </h3>
             <ul className="trip-companions-list">
                 {companions.map((c) => {
-                    const name = c.name || "Traveler";
+                    const name = c.name || t("tripDetail.companions.traveler");
                     return (
                         <li className="trip-companion" key={c.userId}>
                             <AvatarStack
@@ -50,7 +57,7 @@ const TripCompanionsCard = ({ tripId }: TripCompanionsCardProps) => {
                                         </span>
                                     ) : (
                                         <span className="trip-companion-muted">
-                                            Hasn&rsquo;t rated yet
+                                            {t("tripDetail.companions.notRatedYet")}
                                         </span>
                                     )}
                                     {c.favoritePlace && (

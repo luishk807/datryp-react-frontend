@@ -1,4 +1,5 @@
 import { CircularProgress } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { BUTTON_VARIANT } from 'constants';
 import './index.scss';
@@ -34,14 +35,19 @@ const WizardNav = ({
     nextDisabled = false,
     onConfirm,
     confirmDisabled = false,
-    backLabel = 'Back',
-    nextLabel = 'Next',
-    confirmLabel = 'Add activity',
-}: WizardNavProps) => (
+    backLabel,
+    nextLabel,
+    confirmLabel,
+}: WizardNavProps) => {
+    const { t } = useTranslation();
+    const backText = backLabel ?? t('addForms.common.back');
+    const nextText = nextLabel ?? t('addForms.common.next');
+    const confirmText = confirmLabel ?? t('addForms.activity.wizard.addActivity');
+    return (
     <div className="add-wizard-nav">
         {onBack ? (
             <ButtonCustom
-                label={backLabel}
+                label={backText}
                 type={BUTTON_VARIANT.LINE}
                 onClick={onBack}
             />
@@ -61,15 +67,15 @@ const WizardNav = ({
                             size={18}
                             className="add-wizard-confirm-spinner"
                         />
-                        {confirmLabel}
+                        {confirmText}
                     </span>
                 ) : (
-                    confirmLabel
+                    confirmText
                 )}
             </ButtonCustom>
         ) : onNext ? (
             <ButtonCustom
-                label={nextLabel}
+                label={nextText}
                 type={BUTTON_VARIANT.STANDARD}
                 disabled={nextDisabled}
                 onClick={onNext}
@@ -78,6 +84,7 @@ const WizardNav = ({
             <span />
         )}
     </div>
-);
+    );
+};
 
 export default WizardNav;

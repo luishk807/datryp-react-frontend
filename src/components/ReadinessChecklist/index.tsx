@@ -1,4 +1,5 @@
 import classnames from "classnames";
+import { useTranslation } from "react-i18next";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import type { ReadinessCheck } from "utils";
@@ -23,8 +24,19 @@ const ReadinessChecklist = ({
     freeDays,
     className,
 }: ReadinessChecklistProps) => {
+    const { t } = useTranslation();
     const shownFreeDays = freeDays.slice(0, FREE_DAYS_SHOWN);
     const moreFreeDays = freeDays.length - shownFreeDays.length;
+
+    // The source labels are produced deterministically in utils/tripReadiness
+    // (one of two strings per check key, gated by `ok`). Re-map them here to
+    // the i18n catalog so the chrome label localizes; unknown keys fall back
+    // to the raw label rather than rendering an empty string.
+    const labelFor = (c: ReadinessCheck): string => {
+        const key = `tripDetail.readiness.${c.key}.${c.ok ? "ok" : "no"}`;
+        const translated = t(key);
+        return translated === key ? c.label : translated;
+    };
 
     return (
         <ul className={classnames("readiness-checklist", className)}>
@@ -41,14 +53,14 @@ const ReadinessChecklist = ({
                     ) : (
                         <WarningAmberRoundedIcon className="readiness-item-icon" />
                     )}
-                    <span className="readiness-item-label">{c.label}</span>
+                    <span className="readiness-item-label">{labelFor(c)}</span>
                 </li>
             ))}
             {shownFreeDays.map((d) => (
                 <li key={`free-${d}`} className="readiness-item is-warn">
                     <WarningAmberRoundedIcon className="readiness-item-icon" />
                     <span className="readiness-item-label">
-                        Day {d} has free time
+                        {t("tripDetail.readiness.freeDay", { day: d })}
                     </span>
                 </li>
             ))}
@@ -56,8 +68,9 @@ const ReadinessChecklist = ({
                 <li className="readiness-item is-warn">
                     <WarningAmberRoundedIcon className="readiness-item-icon" />
                     <span className="readiness-item-label">
-                        +{moreFreeDays} more day
-                        {moreFreeDays === 1 ? "" : "s"} with free time
+                        {t("tripDetail.readiness.moreFreeDays", {
+                            count: moreFreeDays,
+                        })}
                     </span>
                 </li>
             )}

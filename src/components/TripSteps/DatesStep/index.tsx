@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import InputField from 'components/common/FormFields/InputField';
 import type { TripChangeEvent, TripState } from 'types';
@@ -13,6 +14,7 @@ interface DatesStepProps {
  *  custom end-date handler anymore (we used to relocate a seeded return
  *  leg here, but return flights are no longer auto-seeded). */
 const DatesStep = ({ data, onChange }: DatesStepProps) => {
+    const { t } = useTranslation();
     const start = data?.startDate ?? '';
     const end = data?.endDate ?? '';
 
@@ -38,17 +40,17 @@ const DatesStep = ({ data, onChange }: DatesStepProps) => {
             className="trip-step-screen trip-dates-step"
             data-tour="trip-dates"
         >
-            <h2 className="trip-step-headline">When are you going?</h2>
-            <p className="trip-step-sub">
-                Set your start and end dates — we'll build an empty day for
-                each date in the range.
-            </p>
+            <h2 className="trip-step-headline">
+                {t('createTrip.dates.title')}
+            </h2>
+            <p className="trip-step-sub">{t('createTrip.dates.subtitle')}</p>
 
             <div className="trip-step-card">
                 <div className="trip-dates-grid">
                     <div className="trip-step-field">
                         <label className="trip-step-label">
-                            <EventOutlinedIcon /> Starts
+                            <EventOutlinedIcon />{' '}
+                            {t('createTrip.dates.starts')}
                         </label>
                         <InputField
                             value={start}
@@ -59,7 +61,7 @@ const DatesStep = ({ data, onChange }: DatesStepProps) => {
                     </div>
                     <div className="trip-step-field">
                         <label className="trip-step-label">
-                            <EventOutlinedIcon /> Ends
+                            <EventOutlinedIcon /> {t('createTrip.dates.ends')}
                         </label>
                         <InputField
                             value={end}
@@ -71,14 +73,16 @@ const DatesStep = ({ data, onChange }: DatesStepProps) => {
                 </div>
                 {isInvalidRange ? (
                     <p className="trip-dates-error" role="alert">
-                        End date can&rsquo;t be before the start date.
+                        {t('createTrip.dates.invalidRange')}
                     </p>
                 ) : (
                     nights !== null && (
                         <p className="trip-dates-summary">
                             {nights === 0
-                                ? 'Day trip.'
-                                : `${nights} night${nights === 1 ? '' : 's'} on the road.`}
+                                ? t('createTrip.dates.dayTrip')
+                                : t('createTrip.dates.nights', {
+                                      count: nights,
+                                  })}
                         </p>
                     )
                 )}

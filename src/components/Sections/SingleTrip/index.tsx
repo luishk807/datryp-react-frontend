@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import TripSteps from 'components/TripSteps';
 import {
@@ -18,6 +19,7 @@ import type {
 } from 'types';
 
 const SingleTrip = () => {
+    const { t } = useTranslation();
     const dispatch = useTripDispatch();
 
     const handleBasicOnChange = (id: string, e: TripChangeEvent) => {
@@ -107,7 +109,7 @@ const SingleTrip = () => {
 
     return (
         <TripSteps
-            title="Plan your trip"
+            title={t('createTrip.pageTitle')}
             containerClassName="singleTrip"
             currentType="single"
             onBasicChange={handleBasicOnChange}

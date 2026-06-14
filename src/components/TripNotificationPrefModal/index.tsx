@@ -6,6 +6,7 @@
  * "None" only silences email + SMS.
  */
 import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import classnames from 'classnames';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import ModalButton, { type ModalButtonHandle } from 'components/ModalButton';
@@ -26,24 +27,26 @@ export interface TripNotificationPrefModalProps {
 
 interface ChannelOption {
     value: NotifyChannel | null;
-    label: string;
-    hint?: string;
+    /** i18n key under `tripDetail.notifPrefs.options` for the label. */
+    labelKey: string;
+    /** i18n key under `tripDetail.notifPrefs.options` for the hint. */
+    hintKey?: string;
     pro?: boolean;
 }
 
 const OPTIONS: ChannelOption[] = [
     {
         value: null,
-        label: 'Use account default',
-        hint: 'Follow your account notification settings.',
+        labelKey: 'defaultLabel',
+        hintKey: 'defaultHint',
     },
-    { value: NOTIFY_CHANNEL.EMAIL, label: 'Email only' },
-    { value: NOTIFY_CHANNEL.SMS, label: 'SMS only', pro: true },
-    { value: NOTIFY_CHANNEL.BOTH, label: 'Email & SMS', pro: true },
+    { value: NOTIFY_CHANNEL.EMAIL, labelKey: 'emailLabel' },
+    { value: NOTIFY_CHANNEL.SMS, labelKey: 'smsLabel', pro: true },
+    { value: NOTIFY_CHANNEL.BOTH, labelKey: 'bothLabel', pro: true },
     {
         value: NOTIFY_CHANNEL.NONE,
-        label: 'None',
-        hint: 'Silence email + SMS for this trip (in-app alerts still show).',
+        labelKey: 'noneLabel',
+        hintKey: 'noneHint',
     },
 ];
 
@@ -51,6 +54,7 @@ const TripNotificationPrefModal = forwardRef<
     ModalButtonHandle,
     TripNotificationPrefModalProps
 >(({ tripId, isPro }, ref) => {
+    const { t } = useTranslation();
     const modalRef = useRef<ModalButtonHandle>(null);
     useImperativeHandle(ref, () => ({
         openModel: () => modalRef.current?.openModel(),
@@ -75,7 +79,7 @@ const TripNotificationPrefModal = forwardRef<
               o.value === NOTIFY_CHANNEL.NONE
                   ? {
                         ...o,
-                        hint: 'Silence email for this trip (in-app alerts still show).',
+                        hintKey: 'noneHintEmailOnly',
                     }
                   : o,
           );
@@ -83,13 +87,12 @@ const TripNotificationPrefModal = forwardRef<
     return (
         <ModalButton
             ref={modalRef}
-            title="Notifications for this trip"
+            title={t('tripDetail.notifPrefs.title')}
             buttonProps={null}
         >
             <div className="trip-notif-pref">
                 <p className="trip-notif-pref-intro">
-                    Choose how you&rsquo;re notified about this trip. This
-                    overrides your account notification settings.
+                    {t('tripDetail.notifPrefs.intro')}
                 </p>
                 <div className="trip-notif-pref-options">
                     {options.map((opt) => {
@@ -109,16 +112,20 @@ const TripNotificationPrefModal = forwardRef<
                             >
                                 <span className="trip-notif-pref-option-text">
                                     <span className="trip-notif-pref-option-label">
-                                        {opt.label}
+                                        {t(
+                                            `tripDetail.notifPrefs.options.${opt.labelKey}`,
+                                        )}
                                         {locked && (
                                             <span className="trip-notif-pref-pro">
-                                                Pro
+                                                {t('tripDetail.notifPrefs.pro')}
                                             </span>
                                         )}
                                     </span>
-                                    {opt.hint && (
+                                    {opt.hintKey && (
                                         <span className="trip-notif-pref-option-hint">
-                                            {opt.hint}
+                                            {t(
+                                                `tripDetail.notifPrefs.options.${opt.hintKey}`,
+                                            )}
                                         </span>
                                     )}
                                 </span>
@@ -134,7 +141,7 @@ const TripNotificationPrefModal = forwardRef<
                 </div>
                 {setPref.isError && (
                     <p className="trip-notif-pref-error" role="alert">
-                        Couldn&rsquo;t save — try again.
+                        {t('tripDetail.notifPrefs.saveError')}
                     </p>
                 )}
             </div>

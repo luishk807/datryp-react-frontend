@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import ModalButton, { type ModalButtonHandle } from "components/ModalButton";
 import ReviewSection from "components/Review/ReviewSection";
 import Stars from "components/common/Stars";
@@ -36,6 +37,7 @@ const ActivityReviewStars = ({
     googleRatingCount,
     openaiRating,
 }: ActivityReviewStarsProps) => {
+    const { t } = useTranslation();
     const key = placeKey || getPlaceKey(placeName, placeCity, placeCountry);
     const modalRef = useRef<ModalButtonHandle>(null);
     const { data } = usePlaceReviews(key);
@@ -59,16 +61,19 @@ const ActivityReviewStars = ({
                 onClick={() => modalRef.current?.openModel()}
                 aria-label={
                     blended
-                        ? `${blended.average.toFixed(1)} out of 5` +
-                          (blended.totalCount > 0
-                              ? ` from ${blended.totalCount} review${
-                                    blended.totalCount === 1 ? "" : "s"
-                                }`
-                              : "") +
-                          " — open ratings & reviews"
-                        : `Rate ${placeName}`
+                        ? blended.totalCount > 0
+                            ? t("review.starsAriaWithCount", {
+                                  rating: blended.average.toFixed(1),
+                                  count: blended.totalCount,
+                              })
+                            : t("review.starsAria", {
+                                  rating: blended.average.toFixed(1),
+                              })
+                        : t("review.rateNamed", { name: placeName })
                 }
-                title={blended ? "View ratings & reviews" : "Be the first to review"}
+                title={
+                    blended ? t("review.viewRatings") : t("review.beTheFirst")
+                }
             >
                 {blended ? (
                     <>
@@ -83,7 +88,7 @@ const ActivityReviewStars = ({
                     <>
                         <Stars rating={0} showValue={false} />
                         <span className="activity-review-rate">
-                            Rate this place
+                            {t("review.rateThisPlace")}
                         </span>
                     </>
                 )}

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import InputField from 'components/common/FormFields/InputField';
 import BudgetSuggestionBadge from 'components/BudgetSuggestionBadge';
@@ -16,6 +17,7 @@ interface BudgetStepProps {
  *  a country + valid date range are known (both set on earlier steps), and
  *  only when the user hasn't typed their own number. */
 const BudgetStep = ({ data, onChange }: BudgetStepProps) => {
+    const { t } = useTranslation();
     const { user, isLoading: isUserLoading } = useUser();
     const rootCountry = data?.destinations?.[0]?.country;
     const start = data?.startDate ?? '';
@@ -87,23 +89,24 @@ const BudgetStep = ({ data, onChange }: BudgetStepProps) => {
             className="trip-step-screen trip-budget-step"
             data-tour="trip-budget"
         >
-            <h2 className="trip-step-headline">What's your budget?</h2>
-            <p className="trip-step-sub">
-                A ballpark total is fine — you can split it per activity later.
-            </p>
+            <h2 className="trip-step-headline">
+                {t('createTrip.budget.title')}
+            </h2>
+            <p className="trip-step-sub">{t('createTrip.budget.subtitle')}</p>
 
             <div className="trip-step-card">
                 <div className="trip-step-field trip-budget-field">
                     <label className="trip-step-label">
-                        <PaymentsOutlinedIcon /> Total budget
+                        <PaymentsOutlinedIcon />{' '}
+                        {t('createTrip.budget.label')}
                     </label>
                     <InputField
                         value={budget}
                         name="budget"
                         placeholder={
                             isLoadingSuggestion
-                                ? 'Asking datryp for an estimate…'
-                                : 'e.g. 2000'
+                                ? t('createTrip.budget.loadingPlaceholder')
+                                : t('createTrip.budget.placeholder')
                         }
                         onChange={(e) => onChange('budget', e)}
                     />
@@ -114,7 +117,7 @@ const BudgetStep = ({ data, onChange }: BudgetStepProps) => {
                         inputMatchesAi={inputMatchesAi}
                     />
                     <p className="trip-budget-hint">
-                        Use 0 if you'd rather not track spend at all.
+                        {t('createTrip.budget.hint')}
                     </p>
                 </div>
             </div>

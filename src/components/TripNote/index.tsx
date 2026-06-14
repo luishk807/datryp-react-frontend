@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import StickyNote2OutlinedIcon from '@mui/icons-material/StickyNote2Outlined';
@@ -23,6 +24,7 @@ const NOTE_MAX_LEN = 2000;
  * can't edit, nothing renders.
  */
 const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
+    const { t } = useTranslation();
     const saveNote = useSaveTripNote();
     const [editing, setEditing] = useState(false);
     // Local display copy so a save reflects immediately, before the
@@ -55,7 +57,9 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
             setEditing(false);
         } catch (err) {
             setError(
-                err instanceof Error ? err.message : 'Failed to save the note.'
+                err instanceof Error
+                    ? err.message
+                    : t('tripDetail.note.saveError')
             );
         }
     };
@@ -69,7 +73,7 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
     const badge = (
         <span className="trip-note-badge">
             <StickyNote2OutlinedIcon className="trip-note-badge-icon" />
-            Trip recap
+            {t('tripDetail.note.badge')}
         </span>
     );
 
@@ -82,7 +86,7 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
                     className="trip-note-input"
                     value={draft}
                     maxLength={NOTE_MAX_LEN}
-                    placeholder="How did the trip go? Anything to remember for next time…"
+                    placeholder={t('tripDetail.note.placeholder')}
                     onChange={(e) => setDraft(e.target.value)}
                 />
                 {error && (
@@ -94,13 +98,17 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
                     </span>
                     <ButtonCustom
                         type="line"
-                        label="Cancel"
+                        label={t('tripDetail.note.cancel')}
                         onClick={handleCancel}
                         disabled={saveNote.isPending}
                     />
                     <ButtonCustom
                         type="standard"
-                        label={saveNote.isPending ? 'Saving…' : 'Save note'}
+                        label={
+                            saveNote.isPending
+                                ? t('tripDetail.note.saving')
+                                : t('tripDetail.note.save')
+                        }
                         onClick={handleSave}
                         disabled={saveNote.isPending}
                     />
@@ -118,7 +126,7 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
                 onClick={openEditor}
             >
                 <StickyNote2OutlinedIcon className="trip-note-add-icon" />
-                <span>Add a trip recap</span>
+                <span>{t('tripDetail.note.addCta')}</span>
             </button>
         );
     }
@@ -132,7 +140,7 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
                 <button
                     type="button"
                     className="trip-note-edit"
-                    aria-label="Edit trip recap"
+                    aria-label={t('tripDetail.note.editAria')}
                     onClick={openEditor}
                 >
                     <EditOutlinedIcon fontSize="small" />

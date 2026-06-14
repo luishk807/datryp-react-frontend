@@ -8,6 +8,7 @@ import {
     type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import classnames from 'classnames';
 import moment from 'moment'; // iteration loop in buildExpectedDates uses moment object mutation directly
 import { formatDate, isValidDate } from 'utils';
@@ -138,6 +139,7 @@ const StepperComp = ({
 }: StepperCompProps) => {
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { user } = useUser();
     const { data: itineraryTypes = [] } = useItineraryTypes();
     const { data: tripStatuses = [] } = useTripStatuses();
@@ -162,7 +164,7 @@ const StepperComp = ({
             navigate('/trips');
         } catch (err) {
             setSaveError(
-                err instanceof Error ? err.message : 'Failed to delete the trip.'
+                err instanceof Error ? err.message : t('createTrip.stepper.error.deleteFailed')
             );
         }
     };
@@ -181,18 +183,14 @@ const StepperComp = ({
         if (!data?.apiId) return;
         const interaryTypeId = resolveInteraryTypeId(data, itineraryTypes);
         if (!interaryTypeId) {
-            setSaveError(
-                'Could not resolve trip type. Try again in a moment.'
-            );
+            setSaveError(t('createTrip.stepper.error.resolveTripType'));
             return;
         }
         const cancelledRow = tripStatuses.find(
             (s) => s.name === TRIP_STATUS.CANCELLED
         );
         if (!cancelledRow) {
-            setSaveError(
-                "Couldn't resolve the Cancelled status. Try again shortly."
-            );
+            setSaveError(t('createTrip.stepper.error.resolveCancelledStatus'));
             return;
         }
         try {
@@ -209,7 +207,7 @@ const StepperComp = ({
             navigate(`/trip-detail?id=${data.apiId}`);
         } catch (err) {
             setSaveError(
-                err instanceof Error ? err.message : 'Failed to cancel the trip.'
+                err instanceof Error ? err.message : t('createTrip.stepper.error.cancelFailed')
             );
         }
     };
@@ -306,7 +304,7 @@ const StepperComp = ({
         moment(data.endDate).isBefore(moment(data.startDate), 'day');
     if (data) {
         if (!isEditing && activeLabel === 'Trip type') {
-            if (!data.type?.id) stepMissing.push('a trip type');
+            if (!data.type?.id) stepMissing.push(t('createTrip.stepper.missing.tripType'));
         }
         if (!isEditing && activeLabel === 'Destination') {
             const countryAlreadyPicked = Boolean(
@@ -314,16 +312,14 @@ const StepperComp = ({
                     data.destinations?.[0]?.country?.name
             );
             if (!countryAlreadyPicked) {
-                stepMissing.push('a destination country');
+                stepMissing.push(t('createTrip.stepper.missing.destinationCountry'));
             }
         }
         if (!isEditing && activeLabel === 'Dates') {
-            if (!data.startDate) stepMissing.push('a start date');
-            if (!data.endDate) stepMissing.push('an end date');
+            if (!data.startDate) stepMissing.push(t('createTrip.stepper.missing.startDate'));
+            if (!data.endDate) stepMissing.push(t('createTrip.stepper.missing.endDate'));
             if (endBeforeStart) {
-                stepInvalid.push(
-                    "End date can't be before the start date."
-                );
+                stepInvalid.push(t('createTrip.stepper.invalid.endBeforeStart'));
             }
         }
         if (!isEditing && activeLabel === 'Budget') {
@@ -341,12 +337,12 @@ const StepperComp = ({
                 String(budgetVal).trim() === '' ||
                 !Number.isFinite(budgetNumeric)
             ) {
-                stepMissing.push('a budget (use 0 if flexible)');
+                stepMissing.push(t('createTrip.stepper.missing.budget'));
             }
         }
         if (!isEditing && activeLabel === 'Organizers') {
             if (!(data.organizer ?? []).some((o) => o.userId)) {
-                stepMissing.push('at least one organizer');
+                stepMissing.push(t('createTrip.stepper.missing.organizer'));
             }
         }
         if (!isEditing && activeLabel === 'Participants') {
@@ -355,23 +351,21 @@ const StepperComp = ({
             // means the user actively deselected everyone. Block advance
             // until at least one participant is back.
             if (!(data.friends ?? []).length) {
-                stepMissing.push('at least one participant');
+                stepMissing.push(t('createTrip.stepper.missing.participant'));
             }
         }
         if (isEditing || isLastStep) {
-            if (!data.name?.trim()) stepMissing.push('trip name');
-            if (!data.startDate) stepMissing.push('start date');
-            if (!data.endDate) stepMissing.push('end date');
+            if (!data.name?.trim()) stepMissing.push(t('createTrip.stepper.missing.tripName'));
+            if (!data.startDate) stepMissing.push(t('createTrip.stepper.missing.startDateShort'));
+            if (!data.endDate) stepMissing.push(t('createTrip.stepper.missing.endDateShort'));
             if (endBeforeStart) {
-                stepInvalid.push(
-                    "End date can't be before the start date."
-                );
+                stepInvalid.push(t('createTrip.stepper.invalid.endBeforeStart'));
             }
             if (!(data.organizer ?? []).some((o) => o.userId)) {
-                stepMissing.push('at least one organizer');
+                stepMissing.push(t('createTrip.stepper.missing.organizer'));
             }
             if (!(data.friends ?? []).length) {
-                stepMissing.push('at least one participant');
+                stepMissing.push(t('createTrip.stepper.missing.participant'));
             }
             // No per-day place requirement: empty days are allowed
             // through the whole Planning phase. The Confirm step warns
@@ -392,28 +386,26 @@ const StepperComp = ({
             return;
         }
         if (!user) {
-            setSaveError('Please log in to save your trip.');
+            setSaveError(t('createTrip.stepper.error.loginToSave'));
             return;
         }
         const interaryTypeId = resolveInteraryTypeId(data, itineraryTypes);
         if (!interaryTypeId) {
-            setSaveError(
-                'Could not resolve trip type. Lookup tables may not be seeded — try again in a moment.'
-            );
+            setSaveError(t('createTrip.stepper.error.resolveTripTypeSeed'));
             return;
         }
 
         const missing: string[] = [];
-        if (!data.name?.trim()) missing.push('trip name');
-        if (!data.startDate) missing.push('start date');
-        if (!data.endDate) missing.push('end date');
+        if (!data.name?.trim()) missing.push(t('createTrip.stepper.missing.tripName'));
+        if (!data.startDate) missing.push(t('createTrip.stepper.missing.startDateShort'));
+        if (!data.endDate) missing.push(t('createTrip.stepper.missing.endDateShort'));
         if (!(data.organizer ?? []).some((o) => o.userId)) {
-            missing.push('at least one organizer');
+            missing.push(t('createTrip.stepper.missing.organizer'));
         }
         // Participants are required — current user is auto-seeded into
         // `friends`, so an empty list means the user deselected everyone.
         if (!(data.friends ?? []).length) {
-            missing.push('at least one participant');
+            missing.push(t('createTrip.stepper.missing.participant'));
         }
         // No per-day place requirement on save. Empty days are allowed
         // through Planning — they're filtered out automatically after
@@ -421,7 +413,9 @@ const StepperComp = ({
         // status-change moment).
         if (missing.length) {
             setSaveError(
-                `Please provide ${missing.join(', ')} before saving.`
+                t('createTrip.stepper.error.provideBeforeSaving', {
+                    fields: missing.join(', '),
+                })
             );
             return;
         }
@@ -430,7 +424,7 @@ const StepperComp = ({
             data.endDate &&
             moment(data.endDate).isBefore(moment(data.startDate), 'day')
         ) {
-            setSaveError("End date can't be before the start date.");
+            setSaveError(t('createTrip.stepper.invalid.endBeforeStart'));
             return;
         }
 
@@ -486,7 +480,7 @@ const StepperComp = ({
                 return;
             }
             const message =
-                err instanceof Error ? err.message : 'Failed to save trip.';
+                err instanceof Error ? err.message : t('createTrip.stepper.error.saveFailed');
             setSaveError(message);
         }
     };
@@ -578,7 +572,7 @@ const StepperComp = ({
                             aria-hidden="true"
                         />
                         <span style={{ fontSize: '1rem', fontWeight: 500 }}>
-                            Saving changes…
+                            {t('createTrip.stepper.savingChanges')}
                         </span>
                     </div>
                 ) : (
@@ -595,7 +589,7 @@ const StepperComp = ({
                                     <div className="edit-trip-header">
                                         <div className="edit-trip-header-title">
                                             <h2 className="edit-trip-name">
-                                                {data.name || 'Untitled trip'}
+                                                {data.name || t('createTrip.stepper.untitledTrip')}
                                             </h2>
                                             {/* Bell sits BETWEEN title and the
                                                 status/action so the broadcast
@@ -637,7 +631,7 @@ const StepperComp = ({
                                                 type="line"
                                                 capitalizeType="uppercase"
                                                 className="edit-trip-cancel-btn"
-                                                label="Cancel"
+                                                label={t('common.cancel')}
                                                 onClick={handleCancelEdit}
                                                 disabled={saveItinerary.isPending}
                                             />
@@ -647,8 +641,8 @@ const StepperComp = ({
                                                 className="edit-trip-save-btn"
                                                 label={
                                                     saveItinerary.isPending
-                                                        ? 'Saving…'
-                                                        : 'Save Changes'
+                                                        ? t('common.saving')
+                                                        : t('createTrip.stepper.saveChanges')
                                                 }
                                                 onClick={() =>
                                                     void handleSaveAndAdvance()
@@ -660,7 +654,7 @@ const StepperComp = ({
                                             />
                                             <IconButton
                                                 className="edit-trip-menu-btn"
-                                                aria-label="More actions"
+                                                aria-label={t('createTrip.stepper.moreActions')}
                                                 onClick={(e) =>
                                                     setEditMenuAnchor(
                                                         e.currentTarget
@@ -682,7 +676,7 @@ const StepperComp = ({
                                             >
                                                 <MenuActionItem
                                                     icon={<EventBusyRoundedIcon />}
-                                                    label="Cancel trip"
+                                                    label={t('createTrip.stepper.cancelTrip')}
                                                     onClick={() => {
                                                         setEditMenuAnchor(null);
                                                         setEditConfirm('cancel');
@@ -690,7 +684,7 @@ const StepperComp = ({
                                                 />
                                                 <MenuActionItem
                                                     icon={<DeleteOutlineRoundedIcon />}
-                                                    label="Delete trip"
+                                                    label={t('createTrip.stepper.deleteTrip')}
                                                     onClick={() => {
                                                         setEditMenuAnchor(null);
                                                         setEditConfirm('delete');
@@ -708,7 +702,9 @@ const StepperComp = ({
                                         </ErrorAlert>
                                     ) : hasMissingFields ? (
                                         <ErrorAlert>
-                                            Add {stepMissing.join(', ')} to continue.
+                                            {t('createTrip.stepper.addToContinue', {
+                                                fields: stepMissing.join(', '),
+                                            })}
                                         </ErrorAlert>
                                     ) : null}
                                 </Grid>
@@ -756,7 +752,7 @@ const StepperComp = ({
                         ))}
                         <ModalButton
                             ref={basicInfoModalRef}
-                            title="Edit trip info"
+                            title={t('createTrip.stepper.editTripInfo')}
                             containerClassName="edit-trip-info-modal"
                         >
                             {steps[0] && (
@@ -779,7 +775,7 @@ const StepperComp = ({
                                 <Button
                                     type="standard"
                                     capitalizeType="uppercase"
-                                    label="Done"
+                                    label={t('createTrip.stepper.done')}
                                     onClick={() =>
                                         basicInfoModalRef.current?.closeModal()
                                     }
@@ -808,30 +804,21 @@ const StepperComp = ({
                 >
                     <DialogTitle>
                         {editConfirm === 'cancel'
-                            ? 'Cancel this trip?'
-                            : 'Delete this trip?'}
+                            ? t('createTrip.stepper.cancelDialog.title')
+                            : t('createTrip.stepper.deleteDialog.title')}
                     </DialogTitle>
                     <DialogContent>
                         {editConfirm === 'cancel' ? (
-                            <p>
-                                The trip moves to Cancelled status.
-                                Participants will see it as cancelled but the
-                                itinerary stays viewable. This can be reversed
-                                later by an organizer.
-                            </p>
+                            <p>{t('createTrip.stepper.cancelDialog.body')}</p>
                         ) : (
-                            <p>
-                                This permanently removes the trip and all its
-                                activities. Participants will no longer see it
-                                in their list. This cannot be undone.
-                            </p>
+                            <p>{t('createTrip.stepper.deleteDialog.body')}</p>
                         )}
                     </DialogContent>
                     <DialogActions>
                         <Button
                             type="line"
                             capitalizeType="uppercase"
-                            label="Keep trip"
+                            label={t('createTrip.stepper.keepTrip')}
                             onClick={() => setEditConfirm(null)}
                             disabled={
                                 saveItinerary.isPending ||
@@ -844,11 +831,11 @@ const StepperComp = ({
                             label={
                                 editConfirm === 'delete'
                                     ? deleteItinerary.isPending
-                                        ? 'Deleting…'
-                                        : 'Delete'
+                                        ? t('createTrip.stepper.deleting')
+                                        : t('createTrip.stepper.delete')
                                     : saveItinerary.isPending
-                                    ? 'Saving…'
-                                    : 'Cancel trip'
+                                    ? t('common.saving')
+                                    : t('createTrip.stepper.cancelTrip')
                             }
                             onClick={handleEditConfirm}
                             disabled={
@@ -898,7 +885,7 @@ const StepperComp = ({
                         aria-hidden="true"
                     />
                     <span style={{ fontSize: '1rem', fontWeight: 500 }}>
-                        Saving your trip…
+                        {t('createTrip.stepper.savingTrip')}
                     </span>
                 </div>
             ) : (
@@ -910,7 +897,7 @@ const StepperComp = ({
                              *  budget summary lived here before but read as
                              *  clutter above the day-by-day planner. */}
                             <h2 className="step-trip-name">
-                                {data.name?.trim() || 'Your trip'}
+                                {data.name?.trim() || t('createTrip.stepper.yourTrip')}
                             </h2>
                         </Grid>
                     )}
@@ -952,7 +939,9 @@ const StepperComp = ({
                     {!saveError && !hasInvalidFields && hasMissingFields && (
                         <Grid item lg={12} md={12} xs={12}>
                             <ErrorAlert>
-                                Add {stepMissing.join(', ')} to continue.
+                                {t('createTrip.stepper.addToContinue', {
+                                    fields: stepMissing.join(', '),
+                                })}
                             </ErrorAlert>
                         </Grid>
                     )}
@@ -984,7 +973,7 @@ const StepperComp = ({
                                 <Button
                                     type="line"
                                     onClick={handleBack}
-                                    label="Back"
+                                    label={t('createTrip.back')}
                                 />
                             )}
                             <Button
@@ -993,9 +982,9 @@ const StepperComp = ({
                                 label={
                                     isLastStep
                                         ? saveItinerary.isPending
-                                            ? 'Saving…'
-                                            : 'Finish'
-                                        : 'Next'
+                                            ? t('common.saving')
+                                            : t('createTrip.stepper.finish')
+                                        : t('createTrip.next')
                                 }
                                 disabled={
                                     blockAdvance ||

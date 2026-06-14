@@ -1,5 +1,7 @@
 import _ from 'lodash';
 import moment from 'moment';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { formatDate, isSameDay, isValidDate, reformatDate } from 'utils';
 import { Grid } from '@mui/material';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
@@ -30,9 +32,13 @@ const formatLegDate = (value?: string) =>
 const formatLegTime = (value?: string) =>
     value && isValidDate(value, 'HH:mm') ? reformatDate(value, 'HH:mm', 'LT') : '';
 
-const formatLegMeta = (date?: string, time?: string) => {
+const formatLegMeta = (
+    t: TFunction,
+    date?: string,
+    time?: string,
+) => {
     const parts = [formatLegDate(date), formatLegTime(time)].filter(Boolean);
-    return parts.length ? parts.join(' · ') : 'Not set';
+    return parts.length ? parts.join(' · ') : t('activity.transport.notSet');
 };
 
 interface DestinationDay {
@@ -170,6 +176,7 @@ const Multiple = ({
     tripStatusName,
     isAutoSaving = false,
 }: MultipleProps) => {
+    const { t } = useTranslation();
     return (
         <>
             {(trips ?? []).map((trip, indx) => {
@@ -245,11 +252,13 @@ const Multiple = ({
                         (seg) => ({
                             departPlace: seg.departAirport ?? '',
                             departMeta: formatLegMeta(
+                                t,
                                 seg.departDate,
                                 seg.departTime,
                             ),
                             arrivalPlace: seg.arrivalAirport ?? '',
                             arrivalMeta: formatLegMeta(
+                                t,
                                 seg.arrivalDate,
                                 seg.arrivalTime,
                             ),
@@ -263,9 +272,9 @@ const Multiple = ({
                             : [
                                   {
                                       departPlace: '',
-                                      departMeta: 'Not set',
+                                      departMeta: t('activity.transport.notSet'),
                                       arrivalPlace: '',
-                                      arrivalMeta: 'Not set',
+                                      arrivalMeta: t('activity.transport.notSet'),
                                   },
                               ];
 
@@ -320,14 +329,16 @@ const Multiple = ({
                                     >
                                         <FlightLandIcon className="destination-sameday-icon" />
                                         <span>
-                                            Same day — after{' '}
-                                            {sameDayFromCountry}
+                                            {t('activity.sameDayAfter', {
+                                                country: sameDayFromCountry,
+                                            })}
                                         </span>
                                     </Grid>
                                 )}
                                 <Grid item lg={6} md={6} xs={12} className="content-header">
                                     <span className="country-name">
-                                        {country || 'Destination not set'}
+                                        {country ||
+                                            t('activity.destinationNotSet')}
                                     </span>
                                     {/* The destination owns the date — shown as
                                         its span here (destination-first), so the
@@ -361,7 +372,9 @@ const Multiple = ({
                                                 <AirlineLogo
                                                     className="flight-no-logo"
                                                     flightNumber={headerFlightNumber}
-                                                    label={`Flight ${headerFlightNumber}`}
+                                                    label={t('activity.flightLabel', {
+                                                        number: headerFlightNumber,
+                                                    })}
                                                 />
                                                 {headerFlightNumber}
                                             </span>
@@ -401,12 +414,16 @@ const Multiple = ({
                                             <span className="destination-action destination-action-delete">
                                                 <DialogBox
                                                     isViewMode={isViewMode}
-                                                    title="Delete this destination"
-                                                    buttonLabel="Delete"
+                                                    title={t('activity.deleteDestination.title')}
+                                                    buttonLabel={t('activity.deleteDestination.button')}
                                                     buttonType="text"
                                                     onConfirm={() => onChangeDestination('delete', trip.id)}
                                                 >
-                                                    You are about to delete {country}. Are you sure? This can&rsquo;t be undone.
+                                                    {t('activity.deleteDestination.body', {
+                                                        country:
+                                                            country ??
+                                                            t('activity.destinationNotSet'),
+                                                    })}
                                                 </DialogBox>
                                             </span>
                                         </div>
@@ -418,8 +435,8 @@ const Multiple = ({
                                         legs={transportHeaderLegs}
                                         costLabel={
                                             isFlightArrival
-                                                ? 'Flight cost'
-                                                : 'Transport cost'
+                                                ? t('activity.transport.flightCost')
+                                                : t('activity.transport.transportCost')
                                         }
                                         cost={headerCost}
                                         budgets={headerBudgets}
@@ -458,7 +475,7 @@ const Multiple = ({
                                                                   .name ??
                                                               budgets[0].user
                                                                   .label ??
-                                                              'Friend',
+                                                              t('activity.friendFallback'),
                                                       }
                                                     : null;
                                             onChangeDestination('edit', {

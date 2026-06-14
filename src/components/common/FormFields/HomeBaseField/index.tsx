@@ -14,6 +14,7 @@
  *         disabled={updatePrefs.isPending}
  *     />
  */
+import { useTranslation } from 'react-i18next';
 import CityAutocomplete, {
     type CitySelection,
 } from 'components/common/FormFields/CityAutocomplete';
@@ -36,21 +37,16 @@ const HomeBaseField = ({
     value,
     onChange,
     disabled,
-    label = 'Current place of residence',
+    label,
 }: HomeBaseFieldProps) => {
+    const { t } = useTranslation();
     return (
         <div className="home-base-field">
-            <p className="home-base-field-hint">
-                Current place of residence — we only store your city, not
-                your street address. Drives the nearest-airport / train-
-                station suggestion on new trips, the depart-origin on
-                Google Maps directions, and the personalized homepage
-                picks.
-            </p>
+            <p className="home-base-field-hint">{t('homeBase.hint')}</p>
             <CityAutocomplete
                 variant="bare"
-                label={label}
-                placeholder="Search a city (e.g. Madrid, Tokyo)"
+                label={label ?? t('homeBase.label')}
+                placeholder={t('homeBase.placeholder')}
                 value={value}
                 onChange={onChange}
                 disabled={disabled}

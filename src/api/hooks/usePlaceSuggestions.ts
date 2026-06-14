@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
     fetchPlaceSuggestions,
     type PlaceSuggestion,
 } from 'api/placeSuggestionsApi';
+import { activeLang } from 'i18n';
 import { useUser } from 'context/UserContext';
 
 /**
@@ -16,9 +18,11 @@ import { useUser } from 'context/UserContext';
  */
 export const usePlaceSuggestions = () => {
     const { user } = useUser();
+    useTranslation();
+    const lang = activeLang();
     return useQuery<PlaceSuggestion[]>({
-        queryKey: ['me', 'place-suggestions'],
-        queryFn: fetchPlaceSuggestions,
+        queryKey: ['me', 'place-suggestions', lang],
+        queryFn: () => fetchPlaceSuggestions(lang),
         enabled: Boolean(user),
         staleTime: 30 * 60 * 1000,
         // OpenAI calls can be slow / occasionally hiccup — one retry is

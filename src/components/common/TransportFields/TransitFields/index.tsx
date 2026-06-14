@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
@@ -60,9 +61,11 @@ const TransitFields = ({
     onAddLeg,
     onRemoveLeg,
     renderSegmentExtra,
-    addLegLabel = 'Add leg',
+    addLegLabel,
     showAddLeg = true,
 }: TransitFieldsProps) => {
+    const { t } = useTranslation();
+    const addLegText = addLegLabel ?? t('addForms.fields.addLeg');
     const [openSegments, setOpenSegments] = useState<Set<number>>(
         () => new Set(),
     );
@@ -84,22 +87,22 @@ const TransitFields = ({
 
     const labels = isRental
         ? {
-              operator: 'Rental company',
-              number: 'Confirmation number',
-              departStation: 'Pickup location',
-              arrivalStation: 'Dropoff location (optional)',
-              departDateTime: 'Pickup',
-              arrivalDateTime: 'Dropoff (optional)',
-              classOrSeat: 'Car class (optional)',
+              operator: t('addForms.fields.rental.operator'),
+              number: t('addForms.fields.rental.number'),
+              departStation: t('addForms.fields.rental.departStation'),
+              arrivalStation: t('addForms.fields.rental.arrivalStation'),
+              departDateTime: t('addForms.fields.rental.departDateTime'),
+              arrivalDateTime: t('addForms.fields.rental.arrivalDateTime'),
+              classOrSeat: t('addForms.fields.rental.classOrSeat'),
           }
         : {
-              operator: 'Provider',
-              number: 'Vehicle number (optional)',
-              departStation: 'Departure location',
-              arrivalStation: 'Arrival location (optional)',
-              departDateTime: 'Depart',
-              arrivalDateTime: 'Arrival (optional)',
-              classOrSeat: 'Seat or class (optional)',
+              operator: t('addForms.fields.transit.operator'),
+              number: t('addForms.fields.transit.number'),
+              departStation: t('addForms.fields.transit.departStation'),
+              arrivalStation: t('addForms.fields.transit.arrivalStation'),
+              departDateTime: t('addForms.fields.transit.departDateTime'),
+              arrivalDateTime: t('addForms.fields.transit.arrivalDateTime'),
+              classOrSeat: t('addForms.fields.transit.classOrSeat'),
           };
 
     return (
@@ -126,7 +129,9 @@ const TransitFields = ({
                                 <span className="flight-segment-header">
                                     <span className="flight-segment-route">
                                         <span className="flight-segment-seg">
-                                            Segment {idx + 1}
+                                            {t('addForms.fields.segment', {
+                                                n: idx + 1,
+                                            })}
                                         </span>
                                         {route && (
                                             <span className="flight-segment-path">
@@ -157,7 +162,10 @@ const TransitFields = ({
                                 <button
                                     type="button"
                                     className="add-destination-segment-remove"
-                                    aria-label={`Remove segment ${idx + 1}`}
+                                    aria-label={t(
+                                        'addForms.fields.removeSegment',
+                                        { n: idx + 1 },
+                                    )}
                                     onClick={() => onRemoveLeg(idx)}
                                 >
                                     <CloseRoundedIcon fontSize="small" />
@@ -296,7 +304,7 @@ const TransitFields = ({
                     onClick={onAddLeg}
                 >
                     <AddRoundedIcon fontSize="small" />
-                    {addLegLabel}
+                    {addLegText}
                 </button>
             )}
         </>

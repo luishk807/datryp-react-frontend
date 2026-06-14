@@ -1,4 +1,5 @@
 import classnames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import { basicInfo, useTripDispatch } from 'context/TripContext';
@@ -14,6 +15,7 @@ interface TripModeStepProps {
  *  "Going to <place>" context chip is rendered globally by StepperComp
  *  (TripDestinationChip) so it persists across every step, not just here. */
 const TripModeStep = ({ data }: TripModeStepProps) => {
+    const { t } = useTranslation();
     const dispatch = useTripDispatch();
     const selectedId = data?.type?.id;
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
@@ -29,10 +31,10 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
 
     return (
         <div className="trip-step-screen trip-mode-step">
-            <h2 className="trip-step-headline">What kind of trip?</h2>
-            <p className="trip-step-sub">
-                Pick how you're traveling — you can switch later.
-            </p>
+            <h2 className="trip-step-headline">
+                {t('createTrip.mode.title')}
+            </h2>
+            <p className="trip-step-sub">{t('createTrip.mode.subtitle')}</p>
 
             <div className="trip-mode-cards">
                 <button
@@ -44,10 +46,10 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
                 >
                     <FlightTakeoffRoundedIcon className="trip-mode-card-icon" />
                     <span className="trip-mode-card-title">
-                        One destination
+                        {t('createTrip.mode.single.title')}
                     </span>
                     <span className="trip-mode-card-sub">
-                        One country, one set of dates.
+                        {t('createTrip.mode.single.subtitle')}
                     </span>
                 </button>
                 <button
@@ -59,10 +61,10 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
                 >
                     <PublicRoundedIcon className="trip-mode-card-icon" />
                     <span className="trip-mode-card-title">
-                        Multiple destinations
+                        {t('createTrip.mode.multiple.title')}
                     </span>
                     <span className="trip-mode-card-sub">
-                        Hop across countries on one itinerary.
+                        {t('createTrip.mode.multiple.subtitle')}
                     </span>
                 </button>
             </div>

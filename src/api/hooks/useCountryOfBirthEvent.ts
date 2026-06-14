@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
     fetchCountryOfBirthEvent,
     type CountryOfBirthEventResult,
 } from 'api/countryOfBirthEventApi';
+import { activeLang } from 'i18n';
 import { useUser } from 'context/UserContext';
 
 /**
@@ -18,13 +20,16 @@ import { useUser } from 'context/UserContext';
  */
 export const useCountryOfBirthEvent = () => {
     const { user } = useUser();
+    useTranslation();
+    const lang = activeLang();
     return useQuery<CountryOfBirthEventResult | null>({
         queryKey: [
             'me',
             'country-of-birth-event',
             user?.countryOfBirthCode ?? null,
+            lang,
         ],
-        queryFn: fetchCountryOfBirthEvent,
+        queryFn: () => fetchCountryOfBirthEvent(lang),
         enabled: Boolean(user?.countryOfBirthCode),
         staleTime: 30 * 60 * 1000,
         retry: 1,

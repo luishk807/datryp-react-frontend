@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import { IconButton } from '@mui/material';
 import FlightRoundedIcon from '@mui/icons-material/FlightRounded';
 import DirectionsTransitRoundedIcon from '@mui/icons-material/DirectionsTransitRounded';
@@ -12,8 +13,6 @@ import InputField from 'components/common/FormFields/InputField';
 import { ACTIVITY_KIND } from 'constants';
 import type { TransportKind } from '../types';
 import './index.scss';
-
-const SMART_PLACEHOLDER = 'EWR to Panama City June 6 on Copa for $450';
 
 /** Sentinel for the "I'll add later" tile — selects no transport (kind=null)
  *  and the Describe step collects a destination-only entry instead. */
@@ -38,38 +37,32 @@ export interface TypeStepProps {
 
 export const TYPE_CHIPS: {
     value: TypePick;
-    label: string;
-    sub: string;
+    tileKey: string;
     Icon: typeof FlightRoundedIcon;
 }[] = [
     {
         value: ACTIVITY_KIND.FLIGHT,
-        label: 'Flight',
-        sub: 'Fly to your destination.',
+        tileKey: 'flight',
         Icon: FlightRoundedIcon,
     },
     {
         value: ACTIVITY_KIND.TRAIN,
-        label: 'Train',
-        sub: 'Rail journey.',
+        tileKey: 'train',
         Icon: DirectionsTransitRoundedIcon,
     },
     {
         value: ACTIVITY_KIND.BUS,
-        label: 'Bus',
-        sub: 'Coach or intercity.',
+        tileKey: 'bus',
         Icon: DirectionsBusRoundedIcon,
     },
     {
         value: ACTIVITY_KIND.RENTAL_CAR,
-        label: 'Rental Car',
-        sub: 'Pick up a car.',
+        tileKey: 'rentalCar',
         Icon: CarRentalRoundedIcon,
     },
     {
         value: LATER,
-        label: "I'll add later",
-        sub: 'Decide this later.',
+        tileKey: 'later',
         Icon: BlockRoundedIcon,
     },
 ];
@@ -84,19 +77,21 @@ const TypeStep = ({
     onPick,
     onSmartSubmit,
 }: TypeStepProps) => {
+    const { t } = useTranslation();
     const [smartText, setSmartText] = useState('');
 
     return (
         <section className="add-destination-group">
             <header className="add-destination-group-head">
-                <h4 className="add-destination-group-title">Where to?</h4>
+                <h4 className="add-destination-group-title">
+                    {t('addForms.transport.type.headline')}
+                </h4>
             </header>
 
             {onSmartSubmit && (
                 <>
                     <p className="type-step-sub">
-                        Type what you&rsquo;re adding and we&rsquo;ll figure out
-                        the rest — or pick a type below.
+                        {t('addForms.transport.type.sub')}
                     </p>
                     <form
                         className="type-smart"
@@ -112,13 +107,15 @@ const TypeStep = ({
                             name="dest-smart"
                             value={smartText}
                             required={false}
-                            placeholder={SMART_PLACEHOLDER}
+                            placeholder={t(
+                                'addForms.transport.type.smartPlaceholder',
+                            )}
                             onChange={(e) => setSmartText(e.target.value)}
                         />
                         <IconButton
                             type="submit"
                             className="type-smart-go"
-                            aria-label="Detect and continue"
+                            aria-label={t('addForms.common.detectAndContinue')}
                             disabled={!smartText.trim()}
                         >
                             <ArrowForwardRoundedIcon fontSize="small" />
@@ -126,7 +123,7 @@ const TypeStep = ({
                     </form>
 
                     <div className="type-or" role="separator">
-                        <span>OR</span>
+                        <span>{t('addForms.common.or')}</span>
                     </div>
                 </>
             )}
@@ -134,9 +131,9 @@ const TypeStep = ({
             <div
                 className="transport-tiles"
                 role="tablist"
-                aria-label="Transport type"
+                aria-label={t('addForms.transport.type.tilesAria')}
             >
-                {TYPE_CHIPS.map(({ value, label, sub, Icon }) => {
+                {TYPE_CHIPS.map(({ value, tileKey, Icon }) => {
                     const active =
                         value === LATER ? laterActive : currentKind === value;
                     return (
@@ -151,8 +148,16 @@ const TypeStep = ({
                             onClick={() => onPick(value)}
                         >
                             <Icon className="transport-tile-icon" />
-                            <span className="transport-tile-title">{label}</span>
-                            <span className="transport-tile-sub">{sub}</span>
+                            <span className="transport-tile-title">
+                                {t(
+                                    `addForms.transport.type.tiles.${tileKey}.label`,
+                                )}
+                            </span>
+                            <span className="transport-tile-sub">
+                                {t(
+                                    `addForms.transport.type.tiles.${tileKey}.sub`,
+                                )}
+                            </span>
                         </button>
                     );
                 })}

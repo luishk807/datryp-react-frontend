@@ -10,6 +10,8 @@
  * after a few seconds so it can't get stuck in the warning state.
  */
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useMediaQuery } from '@mui/material';
 import classNames from 'classnames';
 import DownloadForOfflineOutlinedIcon from '@mui/icons-material/DownloadForOfflineOutlined';
@@ -36,13 +38,13 @@ export interface TripOfflineButtonProps {
 const REMOVE_CONFIRM_TIMEOUT = 3500;
 
 /** Short, human "saved 5m ago" / "saved on Jun 4" label. */
-const formatSavedAt = (savedAt: number): string => {
+const formatSavedAt = (savedAt: number, t: TFunction): string => {
     const diffMs = Date.now() - savedAt;
     const min = Math.floor(diffMs / 60000);
-    if (min < 1) return 'just now';
-    if (min < 60) return `${min}m ago`;
+    if (min < 1) return t('tripDetail.offline.justNow');
+    if (min < 60) return t('tripDetail.offline.minutesAgo', { n: min });
     const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr}h ago`;
+    if (hr < 24) return t('tripDetail.offline.hoursAgo', { n: hr });
     return new Date(savedAt).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
@@ -56,6 +58,7 @@ const TripOfflineButton = ({
     onDownload,
     onRemove,
 }: TripOfflineButtonProps) => {
+    const { t } = useTranslation();
     // Two-tap remove: first tap arms the warning, second tap removes.
     const [confirmingRemove, setConfirmingRemove] = useState(false);
     // On mobile the download button is icon-only (drop the "Offline" label
@@ -84,7 +87,9 @@ const TripOfflineButton = ({
                     className="trip-offline-chip-icon trip-offline-spin"
                     fontSize="small"
                 />
-                <span className="trip-offline-chip-text">Saving offline…</span>
+                <span className="trip-offline-chip-text">
+                    {t('tripDetail.offline.savingOffline')}
+                </span>
             </span>
         );
     }
@@ -98,13 +103,13 @@ const TripOfflineButton = ({
                 })}
                 title={
                     confirmingRemove
-                        ? 'Tap again to remove the offline copy'
-                        : 'Saved offline — tap to remove'
+                        ? t('tripDetail.offline.tapAgainTitle')
+                        : t('tripDetail.offline.savedTitle')
                 }
                 aria-label={
                     confirmingRemove
-                        ? 'Tap again to remove the offline copy'
-                        : 'Saved offline. Tap to remove the offline copy.'
+                        ? t('tripDetail.offline.tapAgainTitle')
+                        : t('tripDetail.offline.savedAria')
                 }
                 onClick={() => {
                     if (confirmingRemove) onRemove();
@@ -118,7 +123,7 @@ const TripOfflineButton = ({
                             fontSize="small"
                         />
                         <span className="trip-offline-chip-text">
-                            Tap again to remove
+                            {t('tripDetail.offline.tapAgain')}
                         </span>
                     </>
                 ) : (
@@ -128,10 +133,10 @@ const TripOfflineButton = ({
                             fontSize="small"
                         />
                         <span className="trip-offline-chip-text">
-                            Saved
+                            {t('tripDetail.offline.saved')}
                             {savedAt != null && (
                                 <span className="trip-offline-when">
-                                    {formatSavedAt(savedAt)}
+                                    {formatSavedAt(savedAt, t)}
                                 </span>
                             )}
                         </span>
@@ -151,17 +156,19 @@ const TripOfflineButton = ({
                 className="trip-detail-basic-info-toggle trip-detail-focus-toggle trip-offline-download"
                 onClick={onDownload}
                 disabled={isOffline}
-                aria-label="Download itinerary for offline use"
-                title="Offline"
+                aria-label={t('tripDetail.offline.downloadAria')}
+                title={t('tripDetail.offline.offline')}
             >
                 <DownloadForOfflineOutlinedIcon fontSize="small" />
                 {!isMobile && (
-                    <span className="trip-detail-focus-label">Offline</span>
+                    <span className="trip-detail-focus-label">
+                        {t('tripDetail.offline.offline')}
+                    </span>
                 )}
             </button>
             {status === OFFLINE_STATUS.ERROR && (
                 <span className="trip-offline-error" role="alert">
-                    Couldn&rsquo;t save — try again
+                    {t('tripDetail.offline.saveError')}
                 </span>
             )}
         </span>

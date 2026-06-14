@@ -8,6 +8,7 @@ import {
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import { useTranslation } from 'react-i18next';
 import InputField from 'components/common/FormFields/InputField';
 import FlightFields from 'components/common/TransportFields/FlightFields';
 import TransitFields from 'components/common/TransportFields/TransitFields';
@@ -47,14 +48,6 @@ const isRentalKind = (kind: TransportKind | null) =>
 const isFlightKind = (kind: TransportKind | null) =>
     kind === ACTIVITY_KIND.FLIGHT;
 
-/** Smart-box placeholder per transport kind. */
-const smartPlaceholder = (kind: TransportKind): string =>
-    isFlightKind(kind)
-        ? 'EWR to Panama City June 6 on Copa $450 — or "Copa CM123 June 6"'
-        : isRentalKind(kind)
-          ? 'Hertz pickup PTY June 6 10am $50'
-          : 'Renfe 3152 Madrid to Barcelona 9am $30';
-
 /** Describe the chosen transport. A smart box (parsed via
  *  parseFlightInfo / parseTransitEntry into the first segment) → "Edit
  *  details" reveals the full per-segment fields + cost. For "I'll add
@@ -74,8 +67,21 @@ const DescribeStep = ({
     method,
     lookupNotFound,
 }: DescribeStepProps) => {
+    const { t } = useTranslation();
     const isEdit = mode === 'edit';
     const { kind } = transport;
+
+    /** Smart-box placeholder per transport kind. */
+    const smartPlaceholder = (k: TransportKind): string =>
+        isFlightKind(k)
+            ? t('addForms.transport.describe.smartPlaceholderFlight')
+            : isRentalKind(k)
+              ? t('addForms.transport.describe.smartPlaceholderRental')
+              : t('addForms.transport.describe.smartPlaceholderTransit');
+
+    /** Localized label for the active transport mode. */
+    const activeModeLabel = (): string =>
+        activeMode ? t(`addForms.transport.mode.${activeMode.labelKey}`) : '';
     // Edit mode — and the CUSTOM add-method — open straight into the editable
     // segment fields. The collapsed smart-box summary + "Edit details" toggle
     // is an ADD affordance (describe a flight from scratch); when the user taps
@@ -246,17 +252,20 @@ const DescribeStep = ({
             <section className="add-destination-group">
                 <header className="add-destination-group-head">
                     <h4 className="add-destination-group-title">
-                        Where are you going?
+                        {t('addForms.transport.describe.headingNoKind')}
                     </h4>
                 </header>
 
                 {!isEdit && onChangeType && (
-                    <ChangeTypeRow label="No transport" onChange={onChangeType} />
+                    <ChangeTypeRow
+                        label={t('addForms.transport.describe.noTransport')}
+                        onChange={onChangeType}
+                    />
                 )}
 
                 <div className="add-destination-field">
                     <label className="add-destination-label">
-                        Where are you going?
+                        {t('addForms.transport.describe.destinationLabel')}
                     </label>
                     <div className="transport-smart">
                         <AutoAwesomeRoundedIcon className="transport-smart-spark" />
@@ -265,7 +274,9 @@ const DescribeStep = ({
                             name="destination-smart"
                             value={transport.smartText}
                             required={false}
-                            placeholder="Panama"
+                            placeholder={t(
+                                'addForms.transport.describe.destinationPlaceholder',
+                            )}
                             onChange={(e) =>
                                 setTransport((prev) => ({
                                     ...prev,
@@ -275,7 +286,7 @@ const DescribeStep = ({
                         />
                     </div>
                     <p className="describe-step-note">
-                        We&rsquo;ll find the country from this.
+                        {t('addForms.transport.describe.destinationNote')}
                     </p>
                 </div>
             </section>
@@ -286,13 +297,15 @@ const DescribeStep = ({
         <section className="add-destination-group">
             <header className="add-destination-group-head">
                 <h4 className="add-destination-group-title">
-                    Describe your {activeMode?.label}
+                    {t('addForms.transport.describe.headingKind', {
+                        mode: activeModeLabel(),
+                    })}
                 </h4>
             </header>
 
             {!isEdit && activeMode && onChangeType && (
                 <ChangeTypeRow
-                    label={activeMode.label}
+                    label={activeModeLabel()}
                     Icon={activeMode.Icon}
                     onChange={onChangeType}
                 />
@@ -311,14 +324,16 @@ const DescribeStep = ({
                                 className="transport-smart-chip-edit"
                                 onClick={() => setEditingSmart(true)}
                             >
-                                Edit description
+                                {t('addForms.transport.describe.editDescription')}
                             </button>
                         </div>
                     </div>
                 ) : (
                     <div className="add-destination-field">
                         <label className="add-destination-label">
-                            Describe your {activeMode?.label}
+                            {t('addForms.transport.describe.headingKind', {
+                                mode: activeModeLabel(),
+                            })}
                         </label>
                         <div className="transport-smart">
                             <AutoAwesomeRoundedIcon className="transport-smart-spark" />
@@ -337,11 +352,12 @@ const DescribeStep = ({
             {hasUnresolvedAirport && (
                 <p className="describe-step-airport-warn" role="alert">
                     <WarningAmberRoundedIcon className="describe-step-warn-icon" />
-                    We couldn&rsquo;t find an airport for part of your route —
-                    some places (like Hoi An) have no airport of their own.
+                    {t('addForms.transport.describe.unresolvedAirportBase')}{' '}
                     {showDetails
-                        ? ' Pick the nearest airport in the fields below (e.g. Da Nang).'
-                        : ' Open Edit details to pick the nearest airport (e.g. Da Nang).'}
+                        ? t('addForms.transport.describe.unresolvedAirportOpen')
+                        : t(
+                              'addForms.transport.describe.unresolvedAirportClosed',
+                          )}
                 </p>
             )}
 
@@ -359,8 +375,9 @@ const DescribeStep = ({
                     )}
                     {lookupNotFound[0] && (
                         <span className="transport-edit-toggle-warn">
-                            Couldn&rsquo;t find {lookupNotFound[0]}. Open Edit
-                            details to fill it in manually.
+                            {t('addForms.transport.describe.lookupNotFound', {
+                                label: lookupNotFound[0],
+                            })}
                         </span>
                     )}
                     <button
@@ -369,7 +386,7 @@ const DescribeStep = ({
                         onClick={() => setShowDetails(true)}
                     >
                         <EditRoundedIcon fontSize="small" />
-                        Edit details
+                        {t('addForms.transport.describe.editDetails')}
                     </button>
                 </div>
             )}
@@ -410,9 +427,9 @@ const DescribeStep = ({
             {showDetails && (
                 <div className="add-destination-field add-destination-flight-cost">
                     <label className="add-destination-label">
-                        Cost{' '}
+                        {t('addForms.transport.describe.cost')}{' '}
                         <span className="add-destination-optional">
-                            (optional)
+                            {t('addForms.common.optional')}
                         </span>
                     </label>
                     <InputField
@@ -441,20 +458,23 @@ interface ChangeTypeRowProps {
 }
 
 /** Shows the active transport choice with a "Change" link back to step 1. */
-const ChangeTypeRow = ({ label, Icon, onChange }: ChangeTypeRowProps) => (
-    <div className="transport-active-mode">
-        <span className="transport-active-mode-label">
-            {Icon && <Icon className="transport-active-mode-icon" />}
-            {label}
-        </span>
-        <button
-            type="button"
-            className="transport-active-mode-change"
-            onClick={onChange}
-        >
-            Change
-        </button>
-    </div>
-);
+const ChangeTypeRow = ({ label, Icon, onChange }: ChangeTypeRowProps) => {
+    const { t } = useTranslation();
+    return (
+        <div className="transport-active-mode">
+            <span className="transport-active-mode-label">
+                {Icon && <Icon className="transport-active-mode-icon" />}
+                {label}
+            </span>
+            <button
+                type="button"
+                className="transport-active-mode-change"
+                onClick={onChange}
+            >
+                {t('addForms.transport.describe.change')}
+            </button>
+        </div>
+    );
+};
 
 export default DescribeStep;

@@ -9,6 +9,7 @@
  * user's saved budget is the source of truth; this only surfaces
  * whether it's tight / right-sized / cushioned for the destination.
  */
+import { useTranslation } from 'react-i18next';
 import { useBudgetSuggestion } from 'hooks/useBudgetSuggestion';
 import { useUser } from 'context/UserContext';
 import { isValidDate } from 'utils';
@@ -23,6 +24,7 @@ export interface BudgetVerdict {
 }
 
 export const useBudgetVerdict = (data: TripState): BudgetVerdict | null => {
+    const { t } = useTranslation();
     const { user: currentUser, isLoading: isUserLoading } = useUser();
 
     const tripDays = (() => {
@@ -62,36 +64,43 @@ export const useBudgetVerdict = (data: TripState): BudgetVerdict | null => {
 
     const ratio = budgetNum / suggestedTotal;
     const suggestedLabel = `$${suggestedTotal.toLocaleString()}`;
-    const destination = budgetCountryName ? ` for ${budgetCountryName}` : '';
+    // Estimate sentence — with or without a named destination. Both
+    // variants interpolate the formatted amount.
+    const estimate = budgetCountryName
+        ? t('tripDetail.budget.verdict.estimateFor', {
+              amount: suggestedLabel,
+              destination: budgetCountryName,
+          })
+        : t('tripDetail.budget.verdict.estimate', { amount: suggestedLabel });
+    const noteSuffix = aiNote ? ` ${aiNote}` : '';
 
     if (ratio < 0.7) {
         return {
             tone: 'low',
-            label: 'Tight',
+            label: t('tripDetail.budget.verdict.tight.label'),
             why:
-                `We estimate about ${suggestedLabel}${destination}. ` +
-                `Your budget is ${Math.round((1 - ratio) * 100)}% under — ` +
-                `you may need to economize on lodging or dining.` +
-                (aiNote ? ` ${aiNote}` : ''),
+                `${estimate} ` +
+                t('tripDetail.budget.verdict.tight.why', {
+                    pct: Math.round((1 - ratio) * 100),
+                }) +
+                noteSuffix,
         };
     }
     if (ratio > 1.3) {
         return {
             tone: 'high',
-            label: 'Comfortable',
+            label: t('tripDetail.budget.verdict.comfortable.label'),
             why:
-                `We estimate about ${suggestedLabel}${destination}. ` +
-                `You have ${Math.round((ratio - 1) * 100)}% cushion — ` +
-                `room for upgrades or memorable splurges.` +
-                (aiNote ? ` ${aiNote}` : ''),
+                `${estimate} ` +
+                t('tripDetail.budget.verdict.comfortable.why', {
+                    pct: Math.round((ratio - 1) * 100),
+                }) +
+                noteSuffix,
         };
     }
     return {
         tone: 'on',
-        label: 'On target',
-        why:
-            `We estimate about ${suggestedLabel}${destination}. ` +
-            `Your budget lines up with typical spend for this trip.` +
-            (aiNote ? ` ${aiNote}` : ''),
+        label: t('tripDetail.budget.verdict.onTarget.label'),
+        why: `${estimate} ` + t('tripDetail.budget.verdict.onTarget.why') + noteSuffix,
     };
 };

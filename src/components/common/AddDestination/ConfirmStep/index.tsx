@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Country } from 'types';
 import { useCountries } from 'api/hooks/useCountries';
 import SearchBar from 'components/SearchBar';
@@ -29,6 +30,7 @@ const ConfirmStep = ({
     onEditTransport,
     onSetCountry,
 }: ConfirmStepProps) => {
+    const { t } = useTranslation();
     const mode = transport.kind ? TRANSPORT_MODE[transport.kind] : null;
     const summary = buildTransportSummary(transport);
 
@@ -71,19 +73,21 @@ const ConfirmStep = ({
         <section className="add-destination-group confirm-step">
             <header className="add-destination-group-head">
                 <h4 className="add-destination-group-title">
-                    Confirm your destination
+                    {t('addForms.transport.confirm.heading')}
                 </h4>
             </header>
 
             <div className="confirm-row">
-                <span className="confirm-row-label">Destination</span>
+                <span className="confirm-row-label">
+                    {t('addForms.transport.confirm.destination')}
+                </span>
                 <div className="confirm-row-body">
                     {country ? (
                         <span className="confirm-row-value">{country.name}</span>
                     ) : (
                         <div className="confirm-destination-picker">
                             <p className="confirm-destination-hint">
-                                Pick your destination city or country.
+                                {t('addForms.transport.confirm.pickDestination')}
                             </p>
                             <SearchBar
                                 mode="place"
@@ -96,13 +100,17 @@ const ConfirmStep = ({
             </div>
 
             <div className="confirm-row">
-                <span className="confirm-row-label">Getting there</span>
+                <span className="confirm-row-label">
+                    {t('addForms.transport.confirm.gettingThere')}
+                </span>
                 <div className="confirm-row-body">
                     {mode ? (
                         <span className="confirm-row-value confirm-transport">
                             <span className="confirm-transport-mode">
                                 <mode.Icon className="confirm-transport-icon" />
-                                {mode.label}
+                                {t(
+                                    `addForms.transport.mode.${mode.labelKey}`,
+                                )}
                             </span>
                             {summary && (
                                 <span className="confirm-transport-summary">
@@ -112,7 +120,7 @@ const ConfirmStep = ({
                         </span>
                     ) : (
                         <span className="confirm-row-value confirm-row-muted">
-                            You&rsquo;ll add this later
+                            {t('addForms.transport.confirm.addLater')}
                         </span>
                     )}
                     <button
@@ -120,7 +128,7 @@ const ConfirmStep = ({
                         className="confirm-row-edit"
                         onClick={onEditTransport}
                     >
-                        Edit
+                        {t('addForms.transport.confirm.edit')}
                     </button>
                 </div>
             </div>

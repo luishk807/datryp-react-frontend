@@ -94,11 +94,17 @@ const toPlace = (r: WorldEventPlaceRaw): WorldEventPlace => ({
     photographerUrl: r.photographer_url,
 });
 
-/** Returns null when the backend returns 204 (no major event). */
-export const fetchWorldEvent = async (): Promise<WorldEventResult | null> => {
-    const resp = await fetch(`${API_BASE}/me/world-event`, {
-        headers: authHeaders(),
-    });
+/** Returns null when the backend returns 204 (no major event). The event is
+ *  generated + cached per language, so pass the active UI language. */
+export const fetchWorldEvent = async (
+    lang = 'en',
+): Promise<WorldEventResult | null> => {
+    const resp = await fetch(
+        `${API_BASE}/me/world-event?lang=${encodeURIComponent(lang)}`,
+        {
+            headers: authHeaders(),
+        },
+    );
     if (resp.status === 204) return null;
     if (!resp.ok) {
         let detail: string | undefined;

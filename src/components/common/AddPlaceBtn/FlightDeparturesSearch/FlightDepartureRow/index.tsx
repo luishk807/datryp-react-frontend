@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { FlightDepartureOption } from 'api/flightDeparturesApi';
 import AirlineLogo from 'components/common/AirlineLogo';
 import './index.scss';
@@ -12,6 +13,7 @@ export interface FlightDepartureRowProps {
  *  is just the affordance, not a separate control). Kept as its own
  *  component so the list map in FlightDeparturesSearch stays readable. */
 const FlightDepartureRow = ({ item, onPick }: FlightDepartureRowProps) => {
+    const { t } = useTranslation();
     const arrival = [item.arrivalAirport, item.arrivalAirportName]
         .filter(Boolean)
         .join(' ');
@@ -24,7 +26,10 @@ const FlightDepartureRow = ({ item, onPick }: FlightDepartureRowProps) => {
                 type="button"
                 className="flight-departure-row-btn"
                 onClick={() => onPick(item)}
-                aria-label={`Use flight ${item.flightNumber ?? ''} ${route}`.trim()}
+                aria-label={t('addForms.flightSearch.useFlightAria', {
+                    flight: item.flightNumber ?? '',
+                    route,
+                }).trim()}
             >
                 <AirlineLogo
                     iata={item.airlineIata}
@@ -34,7 +39,8 @@ const FlightDepartureRow = ({ item, onPick }: FlightDepartureRowProps) => {
                 <span className="flight-departure-row-info">
                     <span className="flight-departure-row-head">
                         <span className="flight-departure-row-number">
-                            {item.flightNumber ?? '—'}
+                            {item.flightNumber ??
+                                t('addForms.flightSearch.emptyNumber')}
                         </span>
                         {item.airline && (
                             <span className="flight-departure-row-airline">
@@ -58,7 +64,9 @@ const FlightDepartureRow = ({ item, onPick }: FlightDepartureRowProps) => {
                         )}
                     </span>
                 </span>
-                <span className="flight-departure-row-cta">Use</span>
+                <span className="flight-departure-row-cta">
+                    {t('addForms.flightSearch.use')}
+                </span>
             </button>
         </li>
     );

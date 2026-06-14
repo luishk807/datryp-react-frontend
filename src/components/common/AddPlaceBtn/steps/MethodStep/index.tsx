@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import LightbulbRoundedIcon from '@mui/icons-material/LightbulbRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
@@ -17,55 +18,64 @@ export interface MethodStepProps {
 
 const META: Record<
     AddMethod,
-    { label: string; sub: string; Icon: typeof AutoAwesomeRoundedIcon }
+    { metaKey: string; Icon: typeof AutoAwesomeRoundedIcon }
 > = {
     [ADD_METHOD.SUGGESTIONS]: {
-        label: 'Suggestions',
-        sub: 'Pick from ideas for your destination.',
+        metaKey: 'suggestions',
         Icon: LightbulbRoundedIcon,
     },
     [ADD_METHOD.SMART]: {
-        label: 'Smart search',
-        sub: 'Type or paste — we fill in the rest.',
+        metaKey: 'smart',
         Icon: AutoAwesomeRoundedIcon,
     },
     [ADD_METHOD.SEARCH]: {
-        label: 'Find my flight',
-        sub: "Search your airport's departures.",
+        metaKey: 'search',
         Icon: FlightTakeoffRoundedIcon,
     },
     [ADD_METHOD.CUSTOM]: {
-        label: 'Custom',
-        sub: 'Fill in the details yourself.',
+        metaKey: 'custom',
         Icon: EditNoteRoundedIcon,
     },
 };
 
 /** Step 2 of the Add-Activity wizard — how to add it. Renders only the
  *  methods that apply to the chosen kind. */
-const MethodStep = ({ methods, onPick }: MethodStepProps) => (
-    <div className="add-wizard-step add-method-step">
-        <h2 className="add-wizard-headline">How would you like to add it?</h2>
-        <p className="add-wizard-sub">Choose a way to fill in the details.</p>
-        <div className="add-method-tiles" role="list">
-            {methods.map((method) => {
-                const { label, sub, Icon } = META[method];
-                return (
-                    <button
-                        key={method}
-                        type="button"
-                        role="listitem"
-                        className={classNames('add-method-tile')}
-                        onClick={() => onPick(method)}
-                    >
-                        <Icon className="add-method-tile-icon" />
-                        <span className="add-method-tile-title">{label}</span>
-                        <span className="add-method-tile-sub">{sub}</span>
-                    </button>
-                );
-            })}
+const MethodStep = ({ methods, onPick }: MethodStepProps) => {
+    const { t } = useTranslation();
+    return (
+        <div className="add-wizard-step add-method-step">
+            <h2 className="add-wizard-headline">
+                {t('addForms.activity.method.headline')}
+            </h2>
+            <p className="add-wizard-sub">
+                {t('addForms.activity.method.sub')}
+            </p>
+            <div className="add-method-tiles" role="list">
+                {methods.map((method) => {
+                    const { metaKey, Icon } = META[method];
+                    return (
+                        <button
+                            key={method}
+                            type="button"
+                            role="listitem"
+                            className={classNames('add-method-tile')}
+                            onClick={() => onPick(method)}
+                        >
+                            <Icon className="add-method-tile-icon" />
+                            <span className="add-method-tile-title">
+                                {t(
+                                    `addForms.activity.method.${metaKey}.label`,
+                                )}
+                            </span>
+                            <span className="add-method-tile-sub">
+                                {t(`addForms.activity.method.${metaKey}.sub`)}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default MethodStep;

@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { fetchPlaceRecommendations } from 'api/placeRecommendationsApi';
+import { activeLang } from 'i18n';
 import { STATIC_DETAIL_CACHE } from 'api/queryClient';
 import { isQueryBlockedError } from 'api/moderationError';
 import { isSearchQuotaExceededError } from 'api/searchQuotaError';
@@ -27,6 +29,10 @@ export const useSearchPlaces = (
     options: { enabled?: boolean } = {}
 ) => {
     const { enabled = true } = options;
+    // Subscribe to language changes so the key updates on switch; results are
+    // generated + cached per language by the backend.
+    useTranslation();
+    const lang = activeLang();
     const trimmedCountry = country?.trim() ?? '';
     return useQuery<PlaceRecommendationsResult>({
         queryKey: [
@@ -35,6 +41,7 @@ export const useSearchPlaces = (
             limit,
             trimmedCountry.toLowerCase(),
             kind,
+            lang,
         ],
         queryFn: () =>
             fetchPlaceRecommendations(

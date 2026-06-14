@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Dialog,
@@ -20,6 +21,7 @@ import ReadinessChecklist from 'components/ReadinessChecklist';
 import { useTripStatuses } from 'api/hooks/useLookups';
 import { TRIP_STATUS } from 'constants';
 import { findEmptyDays } from 'utils/emptyDays';
+import type { TFunction } from 'i18next';
 import type { TripReadiness } from 'utils';
 import type { Activity, ActivityStatus, TripState, TripStatus } from 'types';
 
@@ -67,13 +69,19 @@ const isActivityConfirmed = (status: Activity['status']): boolean => {
     return false;
 };
 
-const findUnconfirmedActivities = (state: TripState): string[] => {
+const findUnconfirmedActivities = (
+    state: TripState,
+    t: TFunction
+): string[] => {
     const names: string[] = [];
     for (const dest of state.destinations ?? []) {
         for (const day of dest.itinerary ?? []) {
             for (const a of day.activities ?? []) {
                 if (!isActivityConfirmed(a.status)) {
-                    names.push(a.name?.trim() || `Activity on ${day.date}`);
+                    names.push(
+                        a.name?.trim() ||
+                            t('tripCard.activityOnDate', { date: day.date })
+                    );
                 }
             }
         }
@@ -107,6 +115,7 @@ export const TripStatusBadge = ({
     onEditTripDates,
     readiness,
 }: TripStatusBadgeProps) => {
+    const { t } = useTranslation();
     const { data: tripStatuses = [] } = useTripStatuses();
     const [error, setError] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
@@ -131,34 +140,32 @@ export const TripStatusBadge = ({
         if (statusName === TRIP_STATUS.PLANNING) {
             return {
                 next: tripStatuses.find((s) => s.name === TRIP_STATUS.CONFIRMED),
-                label: 'Confirm trip',
+                label: t('tripCard.confirmTrip'),
                 Icon: CheckCircleOutlineRoundedIcon,
                 requiresActivitiesConfirmed: true,
-                dialogTitle: 'Confirm this trip?',
-                dialogBody:
-                    "Confirming locks the itinerary — you won't be able to add or edit places afterward. Participants will be notified if the bell is on.",
-                confirmLabel: 'Confirm trip',
+                dialogTitle: t('tripCard.confirmDialogTitle'),
+                dialogBody: t('tripCard.confirmDialogBody'),
+                confirmLabel: t('tripCard.confirmTrip'),
             };
         }
         if (statusName === TRIP_STATUS.CONFIRMED) {
             return {
                 next: tripStatuses.find((s) => s.name === TRIP_STATUS.COMPLETED),
-                label: 'Mark complete',
+                label: t('tripCard.markComplete'),
                 Icon: CheckCircleRoundedIcon,
                 requiresActivitiesConfirmed: false,
-                dialogTitle: 'Complete this trip?',
-                dialogBody:
-                    "Once completed the trip is read-only — it stays in your list as a record of where you've been. Completing it also:",
+                dialogTitle: t('tripCard.completeDialogTitle'),
+                dialogBody: t('tripCard.completeDialogBody'),
                 benefits: [
-                    'Adds your destinations to your Travel Atlas',
-                    'Marks the places you visited',
-                    'Unlocks reviews so you can rate where you went',
+                    t('tripCard.completeBenefits.atlas'),
+                    t('tripCard.completeBenefits.visited'),
+                    t('tripCard.completeBenefits.reviews'),
                 ],
-                confirmLabel: 'Mark complete',
+                confirmLabel: t('tripCard.markComplete'),
             };
         }
         return null;
-    }, [statusName, tripStatuses]);
+    }, [statusName, tripStatuses, t]);
 
     if (disabled || !target) return null;
 
@@ -199,13 +206,11 @@ export const TripStatusBadge = ({
 
     const handleClick = () => {
         if (!target.next) {
-            setError(
-                "Couldn't resolve the next trip status. Try again shortly."
-            );
+            setError(t('tripCard.resolveStatusError'));
             return;
         }
         if (target.requiresActivitiesConfirmed) {
-            const unconfirmed = findUnconfirmedActivities(data);
+            const unconfirmed = findUnconfirmedActivities(data, t);
             if (unconfirmed.length) {
                 // Don't block — offer to confirm them all as part of
                 // confirming the trip (this button only renders for
@@ -251,7 +256,7 @@ export const TripStatusBadge = ({
         }
         // No handoff wired by the parent — point the user at the Edit
         // Trip button so they can shorten the date range manually.
-        setHint('Open Edit Trip to change the trip dates.');
+        setHint(t('tripCard.editDatesHint'));
     };
 
     const handleConfirm = async () => {
@@ -300,7 +305,9 @@ export const TripStatusBadge = ({
                     <span className="trip-status-badge-label">{label}</span>
                     {showReady && (
                         <span className="trip-status-badge-ready">
-                            {readiness.percent}% ready
+                            {t('tripCard.percentReady', {
+                                pct: readiness.percent,
+                            })}
                         </span>
                     )}
                 </span>
@@ -356,15 +363,13 @@ export const TripStatusBadge = ({
             >
                 <DialogTitle className="confirm-all-title">
                     <WarningAmberRoundedIcon className="confirm-all-title-icon" />
-                    Some activities aren&rsquo;t confirmed
+                    {t('tripCard.someUnconfirmedTitle')}
                 </DialogTitle>
                 <DialogContent>
                     <p className="confirm-all-intro">
-                        {unconfirmedNames.length}{' '}
-                        {unconfirmedNames.length === 1
-                            ? 'activity is'
-                            : 'activities are'}{' '}
-                        still in Planning:
+                        {t('tripCard.someUnconfirmedIntro', {
+                            count: unconfirmedNames.length,
+                        })}
                     </p>
                     <ul className="confirm-all-list">
                         {unconfirmedNames
@@ -374,22 +379,23 @@ export const TripStatusBadge = ({
                             ))}
                         {unconfirmedNames.length > UNCONFIRMED_PREVIEW_CAP && (
                             <li className="confirm-all-list-more">
-                                +
-                                {unconfirmedNames.length -
-                                    UNCONFIRMED_PREVIEW_CAP}{' '}
-                                more
+                                {t('tripCard.moreCount', {
+                                    count:
+                                        unconfirmedNames.length -
+                                        UNCONFIRMED_PREVIEW_CAP,
+                                })}
                             </li>
                         )}
                     </ul>
                     <p className="confirm-all-note">
-                        Confirming marks them all Confirmed and locks the
-                        itinerary — you won&rsquo;t be able to edit afterward.
-                        Cancel to review first.
+                        {t('tripCard.someUnconfirmedNote')}
                     </p>
                     {readiness && (
                         <div className="confirm-all-readiness">
                             <p className="confirm-all-readiness-head">
-                                Trip readiness · {readiness.percent}% ready
+                                {t('tripCard.readinessHead', {
+                                    pct: readiness.percent,
+                                })}
                             </p>
                             <ReadinessChecklist
                                 checks={readiness.checks}
@@ -402,14 +408,18 @@ export const TripStatusBadge = ({
                     <ButtonCustom
                         type="line"
                         capitalizeType="uppercase"
-                        label="Cancel"
+                        label={t('tripCard.cancel')}
                         onClick={handleConfirmAllClose}
                         disabled={isSaving}
                     />
                     <ButtonCustom
                         type="standard"
                         capitalizeType="uppercase"
-                        label={isSaving ? 'Saving…' : 'Confirm all'}
+                        label={
+                            isSaving
+                                ? t('tripCard.saving')
+                                : t('tripCard.confirmAll')
+                        }
                         onClick={handleConfirmAll}
                         disabled={isSaving}
                     />
@@ -437,14 +447,14 @@ export const TripStatusBadge = ({
                     <ButtonCustom
                         type="line"
                         capitalizeType="uppercase"
-                        label="Cancel"
+                        label={t('tripCard.cancel')}
                         onClick={handleClose}
                         disabled={isSaving}
                     />
                     <ButtonCustom
                         type="standard"
                         capitalizeType="uppercase"
-                        label={isSaving ? 'Saving…' : confirmLabel}
+                        label={isSaving ? t('tripCard.saving') : confirmLabel}
                         onClick={handleConfirm}
                         disabled={isSaving}
                     />

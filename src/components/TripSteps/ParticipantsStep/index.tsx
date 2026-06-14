@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import FriendPicker from 'components/DestinationDetail/FriendPicker';
 import type { Friend, TripChangeEvent, TripState } from 'types';
 import './index.scss';
@@ -11,6 +12,7 @@ interface ParticipantsStepProps {
  *  triggers invite emails + in-app notifications on Finish (gated by the
  *  Notify-participants checkbox the user sees on the last step). */
 const ParticipantsStep = ({ data, onChange }: ParticipantsStepProps) => {
+    const { t } = useTranslation();
     const selected: Friend[] = data?.friends ?? [];
 
     const handlePicker = (
@@ -22,15 +24,15 @@ const ParticipantsStep = ({ data, onChange }: ParticipantsStepProps) => {
 
     return (
         <div className="trip-participants-step">
-            <h2 className="trip-step-headline">Who's coming along?</h2>
+            <h2 className="trip-step-headline">
+                {t('createTrip.participantsEdit.title')}
+            </h2>
             <p className="trip-step-sub">
-                Add the friends you're traveling with — they'll see the trip in
-                their list and can split budgets with you. Going solo? Just
-                hit Next.
+                {t('createTrip.participantsEdit.subtitle')}
             </p>
 
             <FriendPicker
-                title="Participants"
+                title={t('createTrip.participantsEdit.label')}
                 name="friends"
                 selectedOptions={selected}
                 onChange={handlePicker}

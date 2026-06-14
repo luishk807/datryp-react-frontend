@@ -8,6 +8,7 @@ import CommuteRoundedIcon from '@mui/icons-material/CommuteRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import { IconButton } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import InputField from 'components/common/FormFields/InputField';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import { ACTIVITY_KIND, BUTTON_VARIANT } from 'constants';
@@ -31,36 +32,31 @@ export interface TypeStepProps {
 
 const TILES: {
     value: ActivityKind;
-    label: string;
-    sub: string;
+    tileKey: string;
     Icon: typeof PlaceRoundedIcon;
     activeKinds: ActivityKind[];
 }[] = [
     {
         value: ACTIVITY_KIND.PLACE,
-        label: 'Place',
-        sub: 'A sight, meal, or activity.',
+        tileKey: 'place',
         Icon: PlaceRoundedIcon,
         activeKinds: [ACTIVITY_KIND.PLACE],
     },
     {
         value: ACTIVITY_KIND.NOTE,
-        label: 'Note',
-        sub: 'A free-form reminder.',
+        tileKey: 'note',
         Icon: StickyNote2RoundedIcon,
         activeKinds: [ACTIVITY_KIND.NOTE],
     },
     {
         value: ACTIVITY_KIND.FLIGHT,
-        label: 'Flight',
-        sub: 'Depart & arrival legs.',
+        tileKey: 'flight',
         Icon: FlightRoundedIcon,
         activeKinds: [ACTIVITY_KIND.FLIGHT],
     },
     {
         value: ACTIVITY_KIND.HOTEL_CHECKIN,
-        label: 'Hotel',
-        sub: 'Check-in / check-out.',
+        tileKey: 'hotel',
         Icon: HotelRoundedIcon,
         activeKinds: [
             ACTIVITY_KIND.HOTEL_CHECKIN,
@@ -69,8 +65,7 @@ const TILES: {
     },
     {
         value: ACTIVITY_KIND.TRAIN,
-        label: 'Transport',
-        sub: 'Train, bus, or rental car.',
+        tileKey: 'transport',
         Icon: CommuteRoundedIcon,
         activeKinds: [
             ACTIVITY_KIND.TRAIN,
@@ -85,6 +80,7 @@ const TILES: {
  *  smart box (we detect the kind), OR pick a type tile to fill it the
  *  classic way. */
 const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
+    const { t } = useTranslation();
     const [smartText, setSmartText] = useState('');
     const [debounced, setDebounced] = useState('');
     // When set, the user clicked "change" — they pick a kind for the
@@ -103,6 +99,28 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
         [debounced],
     );
 
+    // Translated label for the "Detected: …" chip, mapped from the guessed
+    // kind so we don't surface the classifier's English `label` directly.
+    const detectedLabel = (kind: ActivityKind): string => {
+        switch (kind) {
+            case ACTIVITY_KIND.FLIGHT:
+                return t('addForms.activity.review.kind.flight');
+            case ACTIVITY_KIND.TRAIN:
+                return t('addForms.activity.review.kind.train');
+            case ACTIVITY_KIND.BUS:
+                return t('addForms.activity.review.kind.bus');
+            case ACTIVITY_KIND.RENTAL_CAR:
+                return t('addForms.activity.review.kind.rentalCar');
+            case ACTIVITY_KIND.OTHER:
+                return t('addForms.activity.review.kind.ride');
+            case ACTIVITY_KIND.HOTEL_CHECKIN:
+            case ACTIVITY_KIND.HOTEL_CHECKOUT:
+                return t('addForms.activity.type.tiles.hotel.label');
+            default:
+                return t('addForms.activity.review.kind.place');
+        }
+    };
+
     const submit = (kind: ActivityKind) => {
         const text = smartText.trim();
         if (!text) return;
@@ -116,10 +134,11 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
 
     return (
         <div className="add-wizard-step add-type-step">
-            <h2 className="add-wizard-headline">What would you like to add?</h2>
+            <h2 className="add-wizard-headline">
+                {t('addForms.activity.type.headline')}
+            </h2>
             <p className="add-wizard-sub">
-                Type what you&rsquo;re adding and we&rsquo;ll figure out the
-                rest — or pick a type below.
+                {t('addForms.activity.type.sub')}
             </p>
 
             <div className="add-smart-box">
@@ -138,7 +157,7 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
                         name="add-smart-box"
                         value={smartText}
                         required={false}
-                        placeholder="Type anything — a place, flight, hotel, or how you're getting around"
+                        placeholder={t('addForms.activity.type.smartPlaceholder')}
                         onChange={(e) => {
                             setSmartText(e.target.value);
                             setOverriding(false);
@@ -147,7 +166,7 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
                     <IconButton
                         type="submit"
                         className="add-smart-box-go"
-                        aria-label="Detect and continue"
+                        aria-label={t('addForms.common.detectAndContinue')}
                         disabled={!detected}
                     >
                         <ArrowForwardRoundedIcon fontSize="small" />
@@ -157,14 +176,15 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
                 {detected && !overriding && (
                     <div className="add-smart-box-detected">
                         <span className="add-smart-box-detected-label">
-                            Detected: <strong>{detected.label}</strong>
+                            {t('addForms.activity.type.detected')}{' '}
+                            <strong>{detectedLabel(detected.kind)}</strong>
                         </span>
                         <button
                             type="button"
                             className="add-smart-box-change"
                             onClick={() => setOverriding(true)}
                         >
-                            change
+                            {t('addForms.common.change')}
                         </button>
                     </div>
                 )}
@@ -172,15 +192,17 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
                 {detected && overriding && (
                     <div className="add-smart-box-override">
                         <span className="add-smart-box-override-label">
-                            Add as:
+                            {t('addForms.activity.type.addAs')}
                         </span>
                         <div className="add-smart-box-override-options">
                             {TILES.filter(
-                                (t) => t.value !== ACTIVITY_KIND.NOTE,
-                            ).map(({ value, label }) => (
+                                (tile) => tile.value !== ACTIVITY_KIND.NOTE,
+                            ).map(({ value, tileKey }) => (
                                 <ButtonCustom
                                     key={value}
-                                    label={label}
+                                    label={t(
+                                        `addForms.activity.type.tiles.${tileKey}.label`,
+                                    )}
                                     type={BUTTON_VARIANT.LINE}
                                     onClick={() => submit(value)}
                                 />
@@ -191,11 +213,11 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
             </div>
 
             <div className="add-type-or" role="separator">
-                <span>OR</span>
+                <span>{t('addForms.common.or')}</span>
             </div>
 
             <div className="add-type-tiles" role="list">
-                {TILES.map(({ value, label, sub, Icon, activeKinds }) => {
+                {TILES.map(({ value, tileKey, Icon, activeKinds }) => {
                     const active = activeKinds.includes(currentKind);
                     return (
                         <button
@@ -208,8 +230,16 @@ const TypeStep = ({ currentKind, onPick, onSmartSubmit }: TypeStepProps) => {
                             onClick={() => onPick(value)}
                         >
                             <Icon className="add-type-tile-icon" />
-                            <span className="add-type-tile-title">{label}</span>
-                            <span className="add-type-tile-sub">{sub}</span>
+                            <span className="add-type-tile-title">
+                                {t(
+                                    `addForms.activity.type.tiles.${tileKey}.label`,
+                                )}
+                            </span>
+                            <span className="add-type-tile-sub">
+                                {t(
+                                    `addForms.activity.type.tiles.${tileKey}.sub`,
+                                )}
+                            </span>
                         </button>
                     );
                 })}

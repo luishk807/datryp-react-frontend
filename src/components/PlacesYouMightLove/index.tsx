@@ -27,6 +27,7 @@ import PlaceCard from 'components/common/PlaceCard';
 import PlaceCardSkeleton from 'components/common/PlaceCard/PlaceCardSkeleton';
 import type { PlaceSuggestion } from 'api/placeSuggestionsApi';
 import { usePlaceSuggestions } from 'api/hooks/usePlaceSuggestions';
+import { usePlaceImage } from 'api/hooks/usePlaceImage';
 import { useUser } from 'context/UserContext';
 import { NO_IMAGE } from 'constants';
 import './index.scss';
@@ -65,6 +66,71 @@ const goToCity = (
             `&country=${encodeURIComponent(place.country)}` +
             `&code=${encodeURIComponent(place.countryCode)}` +
             `&mode=single`
+    );
+};
+
+/** One suggestion card. Pulled into its own component so it can resolve an
+ *  image fallback per place: the AI suggestion sometimes lands without an
+ *  `imageUrl` (e.g. the Unsplash enrichment was rate-limited at generate
+ *  time, especially on a freshly-generated non-English set), which would
+ *  otherwise paint the NO_IMAGE placeholder. `usePlaceImage` resolves a
+ *  photo by name through the backend's multi-provider, server-cached
+ *  `/places/image`, gated so it only fires when the suggestion has none. */
+const PymlCard = ({
+    place,
+    variant,
+    onClick,
+}: {
+    place: PlaceSuggestion;
+    variant: PlacesYouMightLoveVariant;
+    onClick: () => void;
+}) => {
+    const { t } = useTranslation();
+    const { data: fallback } = usePlaceImage(place.name, null, place.country, {
+        enabled: !place.imageUrl,
+    });
+    const image = place.imageUrl ?? fallback?.imageUrl ?? NO_IMAGE;
+
+    if (variant === 'home') {
+        return (
+            <PlaceCard
+                place={{
+                    id: cardKey(place),
+                    name: place.name,
+                    country: place.country,
+                    image,
+                    tagline: place.why,
+                    photographerName: place.photographerName,
+                    photographerUrl: place.photographerUrl,
+                }}
+                onClick={onClick}
+            />
+        );
+    }
+    return (
+        <li>
+            <button
+                type="button"
+                className="pyml-card"
+                onClick={onClick}
+                aria-label={t('homeCards.common.openPlaceAria', {
+                    name: place.name,
+                    country: place.country,
+                })}
+            >
+                <img
+                    src={image}
+                    alt=""
+                    loading="lazy"
+                    className="pyml-card-img"
+                />
+                <div className="pyml-card-body">
+                    <span className="pyml-card-name">{place.name}</span>
+                    <span className="pyml-card-country">{place.country}</span>
+                    <p className="pyml-card-why">{place.why}</p>
+                </div>
+            </button>
+        </li>
     );
 };
 
@@ -134,17 +200,10 @@ const PlacesYouMightLove = ({
             {variant === 'home' ? (
                 <div className="pyml-grid-home">
                     {visible.map((place) => (
-                        <PlaceCard
+                        <PymlCard
                             key={cardKey(place)}
-                            place={{
-                                id: cardKey(place),
-                                name: place.name,
-                                country: place.country,
-                                image: place.imageUrl ?? NO_IMAGE,
-                                tagline: place.why,
-                                photographerName: place.photographerName,
-                                photographerUrl: place.photographerUrl,
-                            }}
+                            place={place}
+                            variant={variant}
                             onClick={() => goToCity(navigate, place)}
                         />
                     ))}
@@ -152,33 +211,12 @@ const PlacesYouMightLove = ({
             ) : (
                 <ul className="pyml-grid">
                     {visible.map((place) => (
-                        <li key={cardKey(place)}>
-                            <button
-                                type="button"
-                                className="pyml-card"
-                                onClick={() => goToCity(navigate, place)}
-                                aria-label={t('homeCards.common.openPlaceAria', {
-                                    name: place.name,
-                                    country: place.country,
-                                })}
-                            >
-                                <img
-                                    src={place.imageUrl ?? NO_IMAGE}
-                                    alt=""
-                                    loading="lazy"
-                                    className="pyml-card-img"
-                                />
-                                <div className="pyml-card-body">
-                                    <span className="pyml-card-name">
-                                        {place.name}
-                                    </span>
-                                    <span className="pyml-card-country">
-                                        {place.country}
-                                    </span>
-                                    <p className="pyml-card-why">{place.why}</p>
-                                </div>
-                            </button>
-                        </li>
+                        <PymlCard
+                            key={cardKey(place)}
+                            place={place}
+                            variant={variant}
+                            onClick={() => goToCity(navigate, place)}
+                        />
                     ))}
                 </ul>
             )}

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import BookmarkRoundedIcon from '@mui/icons-material/BookmarkRounded';
 import Layout from 'components/common/Layout/SubLayout';
@@ -15,6 +16,7 @@ import { placeDetailUrl } from 'utils/placeUrl';
 import { BUTTON_VARIANT, NO_IMAGE } from 'constants';
 
 const Saved = () => {
+    const { t } = useTranslation();
     const { data: placesData } = useSavedPlaces();
     const { data: citiesData } = useSavedCities();
     const { data: countriesData } = useSavedCountries();
@@ -33,17 +35,25 @@ const Saved = () => {
         countryTotal === 0 && cityTotal === 0 && placeTotal === 0;
 
     return (
-        <Layout title="Saved">
+        <Layout title={t('saved.title')}>
             <div className="saved-page">
                 <header className="saved-page-header">
-                    <h1 className="saved-page-title">Your bookmarks</h1>
+                    <h1 className="saved-page-title">
+                        {t('saved.heading')}
+                    </h1>
                     {!allEmpty && (
                         <p className="saved-page-summary">
-                            {countryTotal}{' '}
-                            countr{countryTotal === 1 ? 'y' : 'ies'} ·{' '}
-                            {cityTotal} cit{cityTotal === 1 ? 'y' : 'ies'} ·{' '}
-                            {placeTotal} place{placeTotal === 1 ? '' : 's'}{' '}
-                            bookmarked
+                            {t('saved.summary', {
+                                countries: t('saved.summaryCountries', {
+                                    count: countryTotal,
+                                }),
+                                cities: t('saved.summaryCities', {
+                                    count: cityTotal,
+                                }),
+                                places: t('saved.summaryPlaces', {
+                                    count: placeTotal,
+                                }),
+                            })}
                         </p>
                     )}
                 </header>
@@ -51,11 +61,13 @@ const Saved = () => {
                 {allEmpty && (
                     <div className="saved-page-empty">
                         <BookmarkRoundedIcon className="saved-page-empty-icon" />
-                        <p>You haven't saved anything yet.</p>
+                        <p>{t('saved.empty.heading')}</p>
                         <p className="saved-page-empty-hint">
-                            Open a country or place from the{' '}
-                            <Link to="/">home page</Link> and tap{' '}
-                            <em>Save</em> on anything you want to come back to.
+                            {t('saved.empty.hintBefore')}{' '}
+                            <Link to="/">{t('saved.empty.homeLink')}</Link>{' '}
+                            {t('saved.empty.hintMiddle')}{' '}
+                            <em>{t('saved.empty.hintEmphasis')}</em>{' '}
+                            {t('saved.empty.hintAfter')}
                         </p>
                     </div>
                 )}
@@ -63,7 +75,7 @@ const Saved = () => {
                 {countryTotal > 0 && (
                     <section className="saved-section">
                         <h2 className="saved-section-title">
-                            Countries
+                            {t('saved.sections.countries')}
                             <span className="saved-section-count">
                                 {countryTotal}
                             </span>
@@ -94,11 +106,12 @@ const Saved = () => {
                                                     {b.countryCode}
                                                 </span>
                                                 <span className="saved-card-meta">
-                                                    Saved on{' '}
-                                                    {formatDate(
-                                                        b.savedAt,
-                                                        'MMM D, YYYY'
-                                                    )}
+                                                    {t('saved.savedOn', {
+                                                        date: formatDate(
+                                                            b.savedAt,
+                                                            'MMM D, YYYY'
+                                                        ),
+                                                    })}
                                                 </span>
                                             </div>
                                         </Link>
@@ -109,8 +122,8 @@ const Saved = () => {
                                                 triggerClassName="saved-card-bucket-icon"
                                             />
                                             <DeleteBtn
-                                                title="Remove from saved"
-                                                label="Remove"
+                                                title={t('saved.remove.title')}
+                                                label={t('saved.remove.label')}
                                                 targetName={b.countryName}
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>
@@ -130,7 +143,7 @@ const Saved = () => {
                 {cityTotal > 0 && (
                     <section className="saved-section">
                         <h2 className="saved-section-title">
-                            Cities
+                            {t('saved.sections.cities')}
                             <span className="saved-section-count">
                                 {cityTotal}
                             </span>
@@ -165,11 +178,12 @@ const Saved = () => {
                                                     {b.countryName} ({b.countryCode})
                                                 </span>
                                                 <span className="saved-card-meta">
-                                                    Saved on{' '}
-                                                    {formatDate(
-                                                        b.savedAt,
-                                                        'MMM D, YYYY'
-                                                    )}
+                                                    {t('saved.savedOn', {
+                                                        date: formatDate(
+                                                            b.savedAt,
+                                                            'MMM D, YYYY'
+                                                        ),
+                                                    })}
                                                 </span>
                                             </div>
                                         </Link>
@@ -181,8 +195,8 @@ const Saved = () => {
                                                 triggerClassName="saved-card-bucket-icon"
                                             />
                                             <DeleteBtn
-                                                title="Remove from saved"
-                                                label="Remove"
+                                                title={t('saved.remove.title')}
+                                                label={t('saved.remove.label')}
                                                 targetName={b.cityName}
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>
@@ -202,7 +216,7 @@ const Saved = () => {
                 {placeTotal > 0 && (
                     <section className="saved-section">
                         <h2 className="saved-section-title">
-                            Places
+                            {t('saved.sections.places')}
                             <span className="saved-section-count">
                                 {placeTotal}
                             </span>
@@ -241,11 +255,12 @@ const Saved = () => {
                                                     {b.placeCity} · {b.placeCountry}
                                                 </span>
                                                 <span className="saved-card-meta">
-                                                    Saved on{' '}
-                                                    {formatDate(
-                                                        b.savedAt,
-                                                        'MMM D, YYYY'
-                                                    )}
+                                                    {t('saved.savedOn', {
+                                                        date: formatDate(
+                                                            b.savedAt,
+                                                            'MMM D, YYYY'
+                                                        ),
+                                                    })}
                                                 </span>
                                             </div>
                                         </Link>
@@ -262,8 +277,8 @@ const Saved = () => {
                                                 variant="pill"
                                             />
                                             <DeleteBtn
-                                                title="Remove from saved"
-                                                label="Remove"
+                                                title={t('saved.remove.title')}
+                                                label={t('saved.remove.label')}
                                                 targetName={b.placeName}
                                                 buttonType={BUTTON_VARIANT.TEXT}
                                                 onConfirm={() =>

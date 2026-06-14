@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import {
     Alert,
     CircularProgress,
@@ -121,6 +122,7 @@ const TripSuggestionsCard = ({
     destinations,
     onAddPlace,
 }: TripSuggestionsCardProps) => {
+    const { t } = useTranslation();
     const mutation = useTripSuggestions();
     const [pickerSuggestion, setPickerSuggestion] =
         useState<TripSuggestionItem | null>(null);
@@ -172,27 +174,27 @@ const TripSuggestionsCard = ({
         });
         setPickerSuggestion(null);
         setAddedToast(
-            `Added "${suggestion.name}" to ${formatDayLabel(day.date)}`,
+            t("tripDetail.suggestions.addedToast", {
+                name: suggestion.name,
+                day: formatDayLabel(day.date),
+            }),
         );
     };
 
     const renderError = () => {
         const err = mutation.error;
-        let message = "Couldn't fetch suggestions. Try again in a moment.";
+        let message = t("tripDetail.suggestions.error.generic");
         if (err instanceof TripSuggestionsBackendError) {
             // 409 means the trip moved past Planning between the page
             // load and the click. Quietly hide on next render — the
             // outer guard will short-circuit on the parent's next
             // `isPlanning` value.
             if (err.kind === "trip_suggestions_not_planning") {
-                message =
-                    "This trip is no longer in Planning. Move it back to Planning to get new ideas.";
+                message = t("tripDetail.suggestions.error.notPlanning");
             } else if (err.kind === "trip_suggestions_quota") {
-                message =
-                    "You've used today's lightbulb runs. Resets at UTC midnight.";
+                message = t("tripDetail.suggestions.error.quota");
             } else if (err.status === 402) {
-                message =
-                    "Lightbulb suggestions are a Pro feature. Upgrade to unlock.";
+                message = t("tripDetail.suggestions.error.pro");
             } else if (err.message) {
                 message = err.message;
             }
@@ -207,7 +209,7 @@ const TripSuggestionsCard = ({
                 action={
                     <ButtonCustom
                         type="text"
-                        label="Retry"
+                        label={t("tripDetail.suggestions.retry")}
                         onClick={handleGenerate}
                     />
                 }
@@ -227,10 +229,10 @@ const TripSuggestionsCard = ({
         mutation.isPending || mutation.isError || hasResults;
     const showPanel = hasPanelContent && !isHidden;
     const triggerLabel = mutation.isPending
-        ? "Conjuring ideas…"
+        ? t("tripDetail.suggestions.triggerLoading")
         : hasResults
-          ? "More ideas"
-          : "Get activity ideas";
+          ? t("tripDetail.suggestions.triggerMore")
+          : t("tripDetail.suggestions.trigger");
 
     return (
         <>
@@ -253,13 +255,13 @@ const TripSuggestionsCard = ({
             {showPanel && (
                 <section
                     className="trip-suggestions-card"
-                    aria-label="Lightbulb activity suggestions"
+                    aria-label={t("tripDetail.suggestions.panelAria")}
                 >
                     <button
                         type="button"
                         className="trip-suggestions-close"
                         onClick={handleClosePanel}
-                        aria-label="Hide suggestions"
+                        aria-label={t("tripDetail.suggestions.hideAria")}
                     >
                         <CloseRoundedIcon fontSize="small" />
                     </button>
@@ -267,7 +269,7 @@ const TripSuggestionsCard = ({
                         <div className="trip-suggestions-loading">
                             <CircularProgress size={20} />
                             <span>
-                                Finding ideas that fit your trip…
+                                {t("tripDetail.suggestions.loading")}
                             </span>
                         </div>
                     )}
@@ -280,12 +282,11 @@ const TripSuggestionsCard = ({
                         mutation.data.quota.remaining <= 10 && (
                             <p className="trip-suggestions-quota">
                                 {mutation.data.quota.remaining === 0
-                                    ? `That was your last run today — resets at UTC midnight.`
-                                    : `${mutation.data.quota.remaining} run${
-                                          mutation.data.quota.remaining === 1
-                                              ? ''
-                                              : 's'
-                                      } left today (cap ${mutation.data.quota.cap}/day).`}
+                                    ? t("tripDetail.suggestions.quotaLast")
+                                    : t("tripDetail.suggestions.quotaLeft", {
+                                          count: mutation.data.quota.remaining,
+                                          cap: mutation.data.quota.cap,
+                                      })}
                             </p>
                         )}
 
@@ -361,10 +362,17 @@ const TripSuggestionsCard = ({
                                                     setPickerSuggestion(s)
                                                 }
                                                 disabled={!isOrganizer}
-                                                aria-label={`Add ${s.name} to trip`}
+                                                aria-label={t(
+                                                    "tripDetail.suggestions.addToTripAria",
+                                                    { name: s.name },
+                                                )}
                                             >
                                                 <AddRoundedIcon fontSize="small" />
-                                                <span>Add to trip</span>
+                                                <span>
+                                                    {t(
+                                                        "tripDetail.suggestions.addToTrip",
+                                                    )}
+                                                </span>
                                             </button>
                                         </div>
                                     </article>
@@ -372,12 +380,16 @@ const TripSuggestionsCard = ({
                             </div>
                             <aside
                                 className="trip-suggestions-dont-forget"
-                                aria-label="Don't forget tip"
+                                aria-label={t(
+                                    "tripDetail.suggestions.dontForgetAria",
+                                )}
                             >
                                 <LightbulbOutlinedIcon className="trip-suggestions-dont-forget-icon" />
                                 <div>
                                     <span className="trip-suggestions-dont-forget-label">
-                                        Don&rsquo;t forget
+                                        {t(
+                                            "tripDetail.suggestions.dontForget",
+                                        )}
                                     </span>
                                     <span className="trip-suggestions-dont-forget-text">
                                         {mutation.data!.dontForget}
@@ -396,12 +408,12 @@ const TripSuggestionsCard = ({
                 fullWidth
             >
                 <DialogTitle className="trip-suggestions-picker-title">
-                    Add to which day?
+                    {t("tripDetail.suggestions.picker.title")}
                     <button
                         type="button"
                         className="trip-suggestions-picker-close"
                         onClick={() => setPickerSuggestion(null)}
-                        aria-label="Close day picker"
+                        aria-label={t("tripDetail.suggestions.picker.closeAria")}
                     >
                         <CloseRoundedIcon fontSize="small" />
                     </button>
@@ -409,8 +421,11 @@ const TripSuggestionsCard = ({
                 <DialogContent>
                     {pickerSuggestion && (
                         <p className="trip-suggestions-picker-sub">
-                            Pick a day to drop&nbsp;
-                            <strong>{pickerSuggestion.name}</strong> onto.
+                            <Trans
+                                i18nKey="tripDetail.suggestions.picker.sub"
+                                values={{ name: pickerSuggestion.name }}
+                                components={{ strong: <strong /> }}
+                            />
                         </p>
                     )}
                     <div className="trip-suggestions-picker-list">
@@ -425,7 +440,9 @@ const TripSuggestionsCard = ({
                                 }
                             >
                                 <span className="trip-suggestions-picker-day-num">
-                                    Day {d.dayNumber}
+                                    {t("tripDetail.suggestions.picker.day", {
+                                        n: d.dayNumber,
+                                    })}
                                 </span>
                                 <span className="trip-suggestions-picker-day-date">
                                     {formatDayLabel(d.date)}
@@ -437,10 +454,13 @@ const TripSuggestionsCard = ({
                                 )}
                                 <span className="trip-suggestions-picker-day-count">
                                     {d.activityCount === 0
-                                        ? "Empty"
-                                        : d.activityCount === 1
-                                          ? "1 activity"
-                                          : `${d.activityCount} activities`}
+                                        ? t(
+                                              "tripDetail.suggestions.picker.empty",
+                                          )
+                                        : t(
+                                              "tripDetail.suggestions.picker.activityCount",
+                                              { count: d.activityCount },
+                                          )}
                                 </span>
                             </button>
                         ))}

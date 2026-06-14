@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, CircularProgress } from "@mui/material";
 import HealthAndSafetyRoundedIcon from "@mui/icons-material/HealthAndSafetyRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
@@ -50,21 +51,23 @@ const dimensionTone = (verdict: string): ToneKey => {
 
 const DimensionChip = ({
     label,
+    verdictLabel,
     data,
     isOpen,
     onToggle,
 }: {
     label: string;
+    verdictLabel: string;
     data: TripCheckupDimension;
     isOpen: boolean;
     onToggle: () => void;
 }) => {
-    const t = dimensionTone(data.verdict);
+    const tone = dimensionTone(data.verdict);
     return (
         <div
             className={classnames(
                 "trip-checkup-dim",
-                `trip-checkup-tone-${t}`,
+                `trip-checkup-tone-${tone}`,
                 isOpen && "is-open",
             )}
         >
@@ -77,7 +80,7 @@ const DimensionChip = ({
                 <div className="trip-checkup-dim-head-text">
                     <span className="trip-checkup-dim-label">{label}</span>
                     <span className="trip-checkup-dim-verdict">
-                        {data.verdict}
+                        {verdictLabel}
                     </span>
                 </div>
                 <ExpandMoreRoundedIcon
@@ -103,6 +106,22 @@ const TripCheckupCard = ({
     isPro,
     isPlanning,
 }: TripCheckupCardProps) => {
+    const { t } = useTranslation();
+    // Backend returns one of a fixed set of verdict strings ("Strong" /
+    // "On track" / "Needs work" / "Weak"). Map those known chrome values to
+    // the i18n catalog; anything unexpected falls back to the raw verdict.
+    const verdictLabel = (verdict: string): string => {
+        const map: Record<string, string> = {
+            Strong: "tripDetail.review.verdict.strong",
+            "On track": "tripDetail.review.verdict.onTrack",
+            "Needs work": "tripDetail.review.verdict.needsWork",
+            Weak: "tripDetail.review.verdict.weak",
+        };
+        const key = map[verdict];
+        if (!key) return verdict;
+        const translated = t(key);
+        return translated === key ? verdict : translated;
+    };
     const enabled = isPro && isPlanning;
     const query = useTripCheckup({ tripId, enabled });
     // Collapsed by default on page load — the review is a glanceable
@@ -134,17 +153,14 @@ const TripCheckupCard = ({
 
     const renderError = () => {
         const err = query.error;
-        let message = "Couldn't run the checkup. Try again in a moment.";
+        let message = t("tripDetail.review.error.generic");
         if (err instanceof TripCheckupBackendError) {
             if (err.kind === "trip_checkup_not_planning") {
-                message =
-                    "Trip checkup is only available while the trip is in Planning.";
+                message = t("tripDetail.review.error.notPlanning");
             } else if (err.kind === "trip_checkup_quota") {
-                message =
-                    "You've used today's trip reviews. Resets at UTC midnight.";
+                message = t("tripDetail.review.error.quota");
             } else if (err.status === 402) {
-                message =
-                    "Trip Checkup is a Pro feature. Upgrade to score your trip.";
+                message = t("tripDetail.review.error.pro");
             } else if (err.message) {
                 message = err.message;
             }
@@ -159,7 +175,7 @@ const TripCheckupCard = ({
                 action={
                     <ButtonCustom
                         type="text"
-                        label="Retry"
+                        label={t("tripDetail.review.retry")}
                         onClick={handleRefresh}
                     />
                 }
@@ -185,15 +201,23 @@ const TripCheckupCard = ({
                 !data && "is-pending",
                 isCollapsed && "is-collapsed",
             )}
-            aria-label="Trip readiness checkup"
+            aria-label={t("tripDetail.review.ariaCard")}
         >
             <button
                 type="button"
                 className="trip-checkup-collapse"
                 onClick={handleToggleCollapse}
                 aria-expanded={!isCollapsed}
-                aria-label={isCollapsed ? "Expand trip review" : "Collapse trip review"}
-                title={isCollapsed ? "Expand" : "Collapse"}
+                aria-label={
+                    isCollapsed
+                        ? t("tripDetail.review.expand")
+                        : t("tripDetail.review.collapse")
+                }
+                title={
+                    isCollapsed
+                        ? t("tripDetail.review.expandTitle")
+                        : t("tripDetail.review.collapseTitle")
+                }
             >
                 <ExpandMoreRoundedIcon fontSize="small" />
             </button>
@@ -203,16 +227,18 @@ const TripCheckupCard = ({
                     <HealthAndSafetyRoundedIcon />
                 </span>
                 <div className="trip-checkup-head-text">
-                    <h3 className="trip-checkup-title">Trip review</h3>
+                    <h3 className="trip-checkup-title">
+                        {t("tripDetail.review.title")}
+                    </h3>
                     {!isCollapsed && query.isLoading && (
                         <span className="trip-checkup-sub">
-                            <CircularProgress size={12} /> Analyzing your
-                            plan…
+                            <CircularProgress size={12} />{" "}
+                            {t("tripDetail.review.analyzing")}
                         </span>
                     )}
                     {!query.isLoading && data && (
                         <span className="trip-checkup-sub">
-                            <strong>{data.verdict}</strong>
+                            <strong>{verdictLabel(data.verdict)}</strong>
                             {!isCollapsed && (
                                 <>
                                     {' · '}
@@ -223,7 +249,7 @@ const TripCheckupCard = ({
                     )}
                     {!isCollapsed && !query.isLoading && !data && query.isError && (
                         <span className="trip-checkup-sub">
-                            Couldn&rsquo;t score the trip — try again.
+                            {t("tripDetail.review.scoreFailed")}
                         </span>
                     )}
                 </div>
@@ -233,8 +259,8 @@ const TripCheckupCard = ({
                         className="trip-checkup-refresh"
                         onClick={handleRefresh}
                         disabled={query.isFetching}
-                        aria-label="Re-check trip"
-                        title="Re-check"
+                        aria-label={t("tripDetail.review.recheckAria")}
+                        title={t("tripDetail.review.recheck")}
                     >
                         <RefreshRoundedIcon
                             fontSize="small"
@@ -264,7 +290,9 @@ const TripCheckupCard = ({
                             <div
                                 className="trip-checkup-meter-marker"
                                 style={{ left: `${markerLeft}%` }}
-                                aria-label={`Score ${score}`}
+                                aria-label={t("tripDetail.review.scoreAria", {
+                                    score,
+                                })}
                             >
                                 <span className="trip-checkup-meter-marker-pin" />
                                 <span className="trip-checkup-meter-marker-num">
@@ -287,10 +315,11 @@ const TripCheckupCard = ({
                 data.quota.remaining <= 10 && (
                     <p className="trip-checkup-quota">
                         {data.quota.remaining === 0
-                            ? `That was your last review today — resets at UTC midnight.`
-                            : `${data.quota.remaining} review${
-                                  data.quota.remaining === 1 ? '' : 's'
-                              } left today (cap ${data.quota.cap}/day).`}
+                            ? t("tripDetail.review.quotaLast")
+                            : t("tripDetail.review.quotaLeft", {
+                                  count: data.quota.remaining,
+                                  cap: data.quota.cap,
+                              })}
                     </p>
                 )}
 
@@ -298,19 +327,28 @@ const TripCheckupCard = ({
                 <>
                     <div className="trip-checkup-dims">
                         <DimensionChip
-                            label="Budget"
+                            label={t("tripDetail.review.category.budget")}
+                            verdictLabel={verdictLabel(
+                                data.budgetAssessment.verdict,
+                            )}
                             data={data.budgetAssessment}
                             isOpen={openDim === "budget"}
                             onToggle={() => toggleDim("budget")}
                         />
                         <DimensionChip
-                            label="Time"
+                            label={t("tripDetail.review.category.time")}
+                            verdictLabel={verdictLabel(
+                                data.timeAssessment.verdict,
+                            )}
                             data={data.timeAssessment}
                             isOpen={openDim === "time"}
                             onToggle={() => toggleDim("time")}
                         />
                         <DimensionChip
-                            label="Activities"
+                            label={t("tripDetail.review.category.activities")}
+                            verdictLabel={verdictLabel(
+                                data.activityAssessment.verdict,
+                            )}
                             data={data.activityAssessment}
                             isOpen={openDim === "activities"}
                             onToggle={() => toggleDim("activities")}
@@ -323,7 +361,7 @@ const TripCheckupCard = ({
                                 <div className="trip-checkup-list trip-checkup-list-strengths">
                                     <h4>
                                         <CheckCircleRoundedIcon fontSize="small" />
-                                        What&rsquo;s working
+                                        {t("tripDetail.review.whatsWorking")}
                                     </h4>
                                     <ul>
                                         {data.strengths.map((s, i) => (
@@ -336,7 +374,7 @@ const TripCheckupCard = ({
                                 <div className="trip-checkup-list trip-checkup-list-gaps">
                                     <h4>
                                         <ErrorOutlineRoundedIcon fontSize="small" />
-                                        What to address
+                                        {t("tripDetail.review.whatToAddress")}
                                     </h4>
                                     <ul>
                                         {data.gaps.map((g, i) => (

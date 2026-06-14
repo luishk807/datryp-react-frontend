@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import moment from "moment";
+import { useTranslation } from "react-i18next";
 import "./index.scss";
 import {
   Autocomplete,
@@ -139,6 +140,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
     ref,
   ) => {
     const modalRef = useRef<ModalButtonHandle>(null);
+    const { t } = useTranslation();
     const { user } = useUser();
 
     const payerOptions = useMemo(
@@ -408,7 +410,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
     return (
       <ModalButton
         ref={modalRef}
-        title={isEdit ? "Edit payment" : "Mark as paid"}
+        title={isEdit ? t("activity.markPaid.editTitle") : t("activity.markPaid.title")}
         buttonProps={null}
         containerClassName="mark-paid-modal-shell"
       >
@@ -424,8 +426,8 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
             />
             <span>
               {isEdit
-                ? "Update who covered this expense and when."
-                : "Record who paid and the date so the trip stays settled."}
+                ? t("activity.markPaid.subheadEdit")
+                : t("activity.markPaid.subhead")}
             </span>
           </Grid>
           {/* Add participant — sits at the TOP of the split
@@ -447,8 +449,8 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Add participant"
-                    placeholder="Pick a participant"
+                    label={t("activity.markPaid.addParticipant")}
+                    placeholder={t("activity.markPaid.pickParticipant")}
                   />
                 )}
                 className="mark-paid-split-add"
@@ -507,7 +509,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                     }}
                   />
                 }
-                label="Split this payment among multiple people"
+                label={t("activity.markPaid.splitToggle")}
               />
             </Grid>
           )}
@@ -524,8 +526,8 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label="Paid by"
-                        placeholder="Pick a participant"
+                        label={t("activity.markPaid.paidBy")}
+                        placeholder={t("activity.markPaid.pickParticipant")}
                       />
                     )}
                   />
@@ -539,10 +541,10 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                 <Grid item lg={12} md={12} xs={12} className="field-row">
                   <div className="mark-paid-solo-payer">
                     <span className="mark-paid-solo-payer-label">
-                      Paid by
+                      {t("activity.markPaid.paidBy")}
                     </span>
                     <span className="mark-paid-solo-payer-name">
-                      {payerOptions[0]?.label ?? 'You'}
+                      {payerOptions[0]?.label ?? t("activity.markPaid.you")}
                     </span>
                   </div>
                 </Grid>
@@ -550,7 +552,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
               <Grid item lg={12} md={12} xs={12} className="field-row">
                 <InputField
                   type="date"
-                  label="Paid on"
+                  label={t("activity.markPaid.paidOn")}
                   value={paidAt}
                   onChange={(e) => setPaidAt(e.target.value)}
                 />
@@ -565,8 +567,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
           {isSplit && (
             <Grid item lg={12} xs={12} className="field-row">
               <p className="mark-paid-split-hint mark-paid-split-hint-top">
-                Tick each participant once they&rsquo;ve paid their share. The
-                activity shows as paid when at least one row is checked.
+                {t("activity.markPaid.splitHint")}
               </p>
             </Grid>
           )}
@@ -580,7 +581,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
             >
               {splitEntries.length === 0 && (
                 <p className="mark-paid-split-empty">
-                  Add participants below to split this payment.
+                  {t("activity.markPaid.splitEmpty")}
                 </p>
               )}
               {splitEntries.map((entry, idx) => (
@@ -593,15 +594,17 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                     onChange={(_e, checked) =>
                       updateEntry(idx, { confirmed: checked })
                     }
-                    aria-label={`Confirm ${entry.name ?? "participant"} paid`}
+                    aria-label={t("activity.markPaid.confirmPaidAria", {
+                      name: entry.name ?? t("activity.markPaid.participantFallback"),
+                    })}
                   />
                   <span className="mark-paid-split-name">
-                    {entry.name ?? "Friend"}
+                    {entry.name ?? t("activity.markPaid.friendFallback")}
                   </span>
                   <TextField
                     type="number"
                     size="small"
-                    label="Amount"
+                    label={t("activity.markPaid.amount")}
                     value={entry.amount === 0 ? "" : String(entry.amount)}
                     onChange={(e) => {
                       const v = parseFloat(e.target.value);
@@ -615,7 +618,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                   <TextField
                     type="date"
                     size="small"
-                    label="Date"
+                    label={t("activity.markPaid.date")}
                     value={entry.paidAt}
                     onChange={(e) =>
                       updateEntry(idx, { paidAt: e.target.value })
@@ -626,7 +629,9 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
                   <IconButton
                     size="small"
                     onClick={() => removeEntry(idx)}
-                    aria-label={`Remove ${entry.name ?? "participant"}`}
+                    aria-label={t("activity.markPaid.removeAria", {
+                      name: entry.name ?? t("activity.markPaid.participantFallback"),
+                    })}
                     className="mark-paid-split-remove"
                   >
                     <CloseRoundedIcon fontSize="small" />
@@ -638,14 +643,14 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
           <Grid item lg={12} md={12} xs={12} className="mark-paid-actions">
             <ButtonCustom
               onClick={() => modalRef.current?.closeModal()}
-              label="Cancel"
+              label={t("common.cancel")}
               type="line"
               capitalizeType="capitalize"
             />
             {showClear && (
               <ButtonCustom
                 onClick={handleClear}
-                label="Mark as unpaid"
+                label={t("activity.markPaid.markUnpaid")}
                 type="line"
                 capitalizeType="capitalize"
                 className="mark-paid-unpaid-btn"
@@ -653,7 +658,7 @@ const MarkPaidModal = forwardRef<MarkPaidModalHandle, MarkPaidModalProps>(
             )}
             <ButtonCustom
               onClick={handleSave}
-              label={isEdit ? "Save changes" : "Mark as paid"}
+              label={isEdit ? t("activity.markPaid.saveChanges") : t("activity.markPaid.title")}
               type="standard-small"
               capitalizeType="capitalize"
               disabled={!canSave}

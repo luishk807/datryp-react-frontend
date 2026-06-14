@@ -18,6 +18,7 @@
  * (`.trip-mode-cards`, `.step-actions`).
  */
 import { useMemo } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
     Joyride,
     EVENTS,
@@ -56,181 +57,59 @@ export interface TripTourProps {
     onClose: () => void;
 }
 
-const MODE_STEPS: Step[] = [
-    {
-        target: 'body',
-        placement: 'center',
-        title: 'Plan your first trip',
-        content: (
-            <p>
-                We'll ask one quick thing per screen and you tap{' '}
-                <strong>Next</strong> to move on. Hit{' '}
-                <strong>Take the tour</strong> again on any screen if
-                you want a refresher.
-            </p>
-        ),
-    },
-    {
-        target: '.trip-mode-cards',
-        title: 'Single or multi-destination?',
-        content: (
-            <p>
-                <strong>Single</strong> for one country, one window of
-                dates. <strong>Multi</strong> for hopping across
-                several. Switch later if your plans change.
-            </p>
-        ),
-    },
-    {
-        target: '[data-tour="trip-next-btn"]',
-        title: 'Tap Next',
-        content: (
-            <p>
-                Once you've picked, tap <strong>Next</strong> to keep
-                going.
-            </p>
-        ),
-    },
-];
-
-const DESTINATION_STEPS: Step[] = [
-    {
-        target: '[data-tour="trip-destination"]',
-        title: 'Where are you going?',
-        content: (
-            <p>
-                Start typing a country and pick from the suggestions.
-                The trip name auto-fills — you can rename anytime.
-            </p>
-        ),
-    },
-];
-
-const DATES_STEPS: Step[] = [
-    {
-        target: '[data-tour="trip-dates"]',
-        title: 'When are you going?',
-        content: (
-            <p>
-                Set your start and end dates. We'll work out the night
-                count and pre-build an empty itinerary day for each
-                date in the range.
-            </p>
-        ),
-    },
-];
-
-const BUDGET_STEPS: Step[] = [
-    {
-        target: '[data-tour="trip-budget"]',
-        title: "What's your budget?",
-        content: (
-            <p>
-                A rough total works — you'll split it per activity
-                later. Use <strong>0</strong> if you'd rather not
-                track spend at all.
-            </p>
-        ),
-    },
-];
-
-const ORGANIZER_STEPS: Step[] = [
-    {
-        target: '[data-tour="trip-organizers"]',
-        title: 'Organizers can edit',
-        content: (
-            <p>
-                You're added automatically. Add co-organizers if
-                someone else should be able to change the trip — dates,
-                places, budget, etc.
-            </p>
-        ),
-    },
-];
-
-const PARTICIPANT_STEPS: Step[] = [
-    {
-        target: '[data-tour="trip-participants"]',
-        title: 'Participants come along',
-        content: (
-            <p>
-                Add the people you're traveling with. They can be
-                tagged on activities and you can split budgets between
-                them later in the Itinerary step. Going solo? Just hit
-                Next.
-            </p>
-        ),
-    },
-];
-
-const ITINERARY_STEPS: Step[] = [
-    {
-        target: 'body',
-        placement: 'center',
-        title: 'Build your itinerary',
-        content: (
-            <p>
-                Each day in your trip range becomes a slot you can
-                fill with <strong>places</strong>, <strong>flights</strong>
-                , <strong>hotel check-ins</strong>, or just{' '}
-                <strong>notes</strong>. Don't try to fill everything
-                — empty days are fine too.
-            </p>
-        ),
-    },
-    {
-        target: '[data-tour="trip-day-header"]',
-        title: 'One row per day',
-        content: (
-            <p>
-                Each date in your trip gets its own row. Activities
-                added to a day are auto-sorted by start time so the
-                day reads top-to-bottom in chronological order.
-            </p>
-        ),
-    },
-    {
-        target: '[data-tour="trip-add-activity"]',
-        title: 'Add an activity',
-        content: (
-            <p>
-                Tap <strong>Add</strong> to insert a place,
-                restaurant, flight, hotel check-in, or a free-form
-                note. You can edit, reorder, or delete any activity
-                later. Cancelling the form discards your changes —
-                nothing is saved until you hit <strong>Finish</strong>
-                .
-            </p>
-        ),
-    },
-    {
-        target: '[data-tour="trip-next-btn"]',
-        title: 'Save your trip',
-        content: (
-            <p>
-                When you're ready, click <strong>Finish</strong>.
-                We'll save the trip and notify any participants you
-                added on step 2. The trip page has its own quick tour
-                covering <strong>PDF download</strong>,{' '}
-                <strong>offline</strong>, <strong>night view</strong>,
-                and marking activities <strong>Completed</strong>.
-            </p>
-        ),
-    },
-];
-
-const STEPS_BY_KEY: Record<TripTourKey, Step[]> = {
-    mode: MODE_STEPS,
-    destination: DESTINATION_STEPS,
-    dates: DATES_STEPS,
-    budget: BUDGET_STEPS,
-    organizers: ORGANIZER_STEPS,
-    participants: PARTICIPANT_STEPS,
-    itinerary: ITINERARY_STEPS,
+/** Targets per screen, paired with the `tripDetail.tripTour` subkey that
+ *  holds each step's `title` + `content`. Steps that carry `<strong>` markup
+ *  render their content via <Trans>; the few plain-text ones use t() directly. */
+const STEP_TARGETS: Record<
+    TripTourKey,
+    { target: string; key: string; placement?: Step['placement'] }[]
+> = {
+    mode: [
+        { target: 'body', placement: 'center', key: 'mode.intro' },
+        { target: '.trip-mode-cards', key: 'mode.singleOrMulti' },
+        { target: '[data-tour="trip-next-btn"]', key: 'mode.tapNext' },
+    ],
+    destination: [
+        { target: '[data-tour="trip-destination"]', key: 'destination.where' },
+    ],
+    dates: [{ target: '[data-tour="trip-dates"]', key: 'dates.when' }],
+    budget: [{ target: '[data-tour="trip-budget"]', key: 'budget.budget' }],
+    organizers: [
+        { target: '[data-tour="trip-organizers"]', key: 'organizers.canEdit' },
+    ],
+    participants: [
+        {
+            target: '[data-tour="trip-participants"]',
+            key: 'participants.comeAlong',
+        },
+    ],
+    itinerary: [
+        { target: 'body', placement: 'center', key: 'itinerary.build' },
+        { target: '[data-tour="trip-day-header"]', key: 'itinerary.oneRow' },
+        { target: '[data-tour="trip-add-activity"]', key: 'itinerary.addActivity' },
+        { target: '[data-tour="trip-next-btn"]', key: 'itinerary.save' },
+    ],
 };
 
 const TripTour = ({ run, tourKey, onClose }: TripTourProps) => {
-    const steps = useMemo(() => STEPS_BY_KEY[tourKey] ?? [], [tourKey]);
+    const { t } = useTranslation();
+    const steps = useMemo<Step[]>(
+        () =>
+            (STEP_TARGETS[tourKey] ?? []).map((s) => ({
+                target: s.target,
+                ...(s.placement ? { placement: s.placement } : {}),
+                title: t(`tripDetail.tripTour.${s.key}.title`),
+                content: (
+                    <p>
+                        <Trans
+                            i18nKey={`tripDetail.tripTour.${s.key}.content`}
+                            components={{ strong: <strong /> }}
+                        />
+                    </p>
+                ),
+            })),
+        [tourKey, t]
+    );
 
     const handleEvent = (data: EventData) => {
         if (
@@ -311,11 +190,11 @@ const TripTour = ({ run, tourKey, onClose }: TripTourProps) => {
                 },
             }}
             locale={{
-                back: 'Back',
-                close: 'Close',
-                last: 'Got it',
-                next: 'Next',
-                skip: 'Skip tour',
+                back: t('tripDetail.tripTour.locale.back'),
+                close: t('tripDetail.tripTour.locale.close'),
+                last: t('tripDetail.tripTour.locale.last'),
+                next: t('tripDetail.tripTour.locale.next'),
+                skip: t('tripDetail.tripTour.locale.skip'),
             }}
             onEvent={handleEvent}
         />
