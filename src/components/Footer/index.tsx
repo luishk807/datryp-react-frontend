@@ -2,6 +2,7 @@ import './index.scss';
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { SvgIconComponent } from '@mui/icons-material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -29,6 +30,33 @@ export const FOOTER_QUICK_LINKS: QuickLink[] = [
     { labelKey: 'footer.sms', href: '/sms', internal: true },
 ];
 
+interface SocialLink {
+    label: string;
+    Icon: SvgIconComponent;
+    /** URL pulled from a build-time env var; the icon is dropped when empty. */
+    href?: string;
+}
+
+/** Social icons, each gated on its own env var — an unset (or blank) URL hides
+ *  that icon, and an empty list hides the whole social block. */
+const SOCIAL_LINKS: SocialLink[] = [
+    {
+        label: 'Instagram',
+        Icon: InstagramIcon,
+        href: import.meta.env.VITE_SOCIAL_INSTAGRAM,
+    },
+    {
+        label: 'Facebook',
+        Icon: FacebookIcon,
+        href: import.meta.env.VITE_SOCIAL_FACEBOOK,
+    },
+    {
+        label: 'Twitter',
+        Icon: TwitterIcon,
+        href: import.meta.env.VITE_SOCIAL_TWITTER,
+    },
+];
+
 interface FooterProps {
     /** When true the footer stays visible on mobile, pinned to the bottom
      *  of its container. Used only by the auth/login splash — every other
@@ -53,6 +81,9 @@ const Footer = ({ showOnMobile = false }: FooterProps) => {
     const quickLinks = FOOTER_QUICK_LINKS.filter(
         (link) => smsEnabled || link.href !== '/sms',
     );
+    // Only show social icons that have a configured URL; if none are set, the
+    // whole social block is dropped below.
+    const socialLinks = SOCIAL_LINKS.filter((link) => Boolean(link.href));
     // The footer always renders on DESKTOP — there's no bottom nav there, so a
     // real page footer is expected. On mobile the bottom nav replaces it, so
     // the standalone page footer is hidden below the desktop breakpoint (see
@@ -82,18 +113,28 @@ const Footer = ({ showOnMobile = false }: FooterProps) => {
                     )}
                 </nav>
                 <LanguageSwitcher className="footer-lang" />
-                <div className="footer-social" aria-label="Social links">
-                    <a href="#" aria-label="Instagram">
-                        <InstagramIcon fontSize="small" />
-                    </a>
-                    <a href="#" aria-label="Facebook">
-                        <FacebookIcon fontSize="small" />
-                    </a>
-                    <a href="#" aria-label="Twitter">
-                        <TwitterIcon fontSize="small" />
-                    </a>
-                </div>
-                <span className="footer-copy">
+                {socialLinks.length > 0 && (
+                    <div className="footer-social" aria-label="Social links">
+                        {socialLinks.map(({ label, Icon, href }) => (
+                            <a
+                                key={label}
+                                href={href}
+                                aria-label={label}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <Icon fontSize="small" />
+                            </a>
+                        ))}
+                    </div>
+                )}
+                <span
+                    className={classNames('footer-copy', {
+                        // Absorb the right-push the social block normally owns
+                        // when it isn't rendered, so copy stays right-aligned.
+                        'footer-copy--solo': socialLinks.length === 0,
+                    })}
+                >
                     &copy; {year} DaTryp.com
                 </span>
             </div>

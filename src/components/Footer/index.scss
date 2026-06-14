@@ -80,6 +80,12 @@
 .footer-copy {
   color: rgb(148, 163, 184); // slate-400 — quietest item in the row
   white-space: nowrap;
+
+  // When no social links are configured, copy becomes the trailing right item
+  // and takes over the auto-margin push the social block otherwise provides.
+  &--solo {
+    margin-left: auto;
+  }
 }
 
 @media (max-width: 640px) {
@@ -89,6 +95,9 @@
     justify-content: center;
   }
   .footer-social {
+    margin-left: 0;
+  }
+  .footer-copy--solo {
     margin-left: 0;
   }
   .footer-nav {
