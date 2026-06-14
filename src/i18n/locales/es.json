@@ -2140,6 +2140,19 @@
         "starsAriaWithCount_one": "{{rating}} de 5 a partir de {{count}} reseña — abrir calificaciones y reseñas",
         "starsAriaWithCount_other": "{{rating}} de 5 a partir de {{count}} reseñas — abrir calificaciones y reseñas"
     },
+    "placeSuggestions": {
+        "headingPrefix": "Sugerencias para",
+        "regionAria": "Lugares sugeridos en {{scope}}",
+        "error": "No se pudieron cargar las sugerencias: escribe un lugar arriba.",
+        "refresh": "Actualizar sugerencias",
+        "show": "Mostrar sugerencias",
+        "hide": "Ocultar sugerencias",
+        "showScope": "Mostrar sugerencias de {{scope}}",
+        "openDetails": "Abrir detalles de {{name}} en una pestaña nueva",
+        "use": "Usar {{name}}",
+        "add": "Agregar",
+        "added": "Agregado"
+    },
     "addForms": {
         "common": {
             "back": "Atrás",

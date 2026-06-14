@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import classNames from 'classnames';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
@@ -69,12 +70,17 @@ const PlaceSuggestions = ({
     city,
     bias,
     topic = 'top things to do',
-    headingPrefix = 'Suggested for',
+    headingPrefix,
     collapsible = true,
     limit = DEFAULT_LIMIT,
     showShuffle = true,
     onPick,
 }: PlaceSuggestionsProps) => {
+    const { t } = useTranslation();
+    // Default heading flows through i18n (can't live in a param default since
+    // it needs the hook); a caller-supplied prefix still wins.
+    const resolvedHeadingPrefix =
+        headingPrefix ?? t('placeSuggestions.headingPrefix');
     const trimmedCountry = country?.trim();
     const trimmedCity = city?.trim();
     // Picker is rendered inside the trip editor — read the trip id off
@@ -174,12 +180,14 @@ const PlaceSuggestions = ({
             className={classNames('place-suggestions', {
                 'is-hidden': isHidden,
             })}
-            aria-label={`Suggested places in ${headingScope}`}
+            aria-label={t('placeSuggestions.regionAria', {
+                scope: headingScope,
+            })}
         >
             <header className="place-suggestions-head">
                 <div className="place-suggestions-head-left">
                     <h4 className="place-suggestions-title">
-                        {headingPrefix} {headingScope}
+                        {resolvedHeadingPrefix} {headingScope}
                     </h4>
                     {/* Scope toggle — jump between the narrowed city and the
                         whole country. Label/icon show the OTHER scope (where
@@ -195,9 +203,12 @@ const PlaceSuggestions = ({
                                 );
                                 setPicked(null);
                             }}
-                            title={`Show suggestions for ${
-                                scope === 'city' ? trimmedCountry : trimmedCity
-                            }`}
+                            title={t('placeSuggestions.showScope', {
+                                scope:
+                                    scope === 'city'
+                                        ? trimmedCountry
+                                        : trimmedCity,
+                            })}
                         >
                             {scope === 'city' ? (
                                 <PublicRoundedIcon fontSize="small" />
@@ -221,7 +232,7 @@ const PlaceSuggestions = ({
                                 setShuffleNonce((n) => n + 1);
                                 setPicked(null);
                             }}
-                            aria-label="Refresh suggestions"
+                            aria-label={t('placeSuggestions.refresh')}
                             disabled={isFetching}
                         >
                             <RefreshRoundedIcon fontSize="small" />
@@ -233,7 +244,9 @@ const PlaceSuggestions = ({
                             className="place-suggestions-toggle"
                             onClick={() => setHidden((h) => !h)}
                             aria-label={
-                                hidden ? 'Show suggestions' : 'Hide suggestions'
+                                hidden
+                                    ? t('placeSuggestions.show')
+                                    : t('placeSuggestions.hide')
                             }
                             aria-expanded={!hidden}
                         >
@@ -249,7 +262,7 @@ const PlaceSuggestions = ({
 
             {!isHidden && isError && (
                 <p className="place-suggestions-error">
-                    Couldn't load suggestions — type a place above instead.
+                    {t('placeSuggestions.error')}
                 </p>
             )}
 
@@ -297,7 +310,10 @@ const PlaceSuggestions = ({
                                               href={buildDetailHref(item)}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              aria-label={`Open ${item.name} details in a new tab`}
+                                              aria-label={t(
+                                                  'placeSuggestions.openDetails',
+                                                  { name: item.name },
+                                              )}
                                               title={item.name}
                                           >
                                               {item.name}
@@ -316,15 +332,22 @@ const PlaceSuggestions = ({
                                               type="button"
                                               className="place-suggestions-add"
                                               onClick={() => handlePick(item)}
-                                              aria-label={`Use ${item.name}`}
+                                              aria-label={t(
+                                                  'placeSuggestions.use',
+                                                  { name: item.name },
+                                              )}
                                               disabled={isPicked}
                                           >
                                               {isPicked ? (
-                                                  'Added'
+                                                  t('placeSuggestions.added')
                                               ) : (
                                                   <>
                                                       <AddCircleOutlineRoundedIcon fontSize="small" />
-                                                      <span>Add</span>
+                                                      <span>
+                                                          {t(
+                                                              'placeSuggestions.add',
+                                                          )}
+                                                      </span>
                                                   </>
                                               )}
                                           </button>

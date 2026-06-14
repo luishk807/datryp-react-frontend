@@ -53,9 +53,15 @@ export const useSearchPlaces = (
         enabled: enabled && query.trim().length > 0,
         ...STATIC_DETAIL_CACHE,
         // Don't retry our gated errors — same input will fail the same way
-        // and just wastes another network round-trip.
+        // and just wastes another network round-trip. The auto-fired suggestion
+        // strip also skips retries: it's a browsing aid with a tight backend
+        // timeout, so a retry just doubles the time a user stares at skeletons
+        // before the "type a place instead" fallback shows.
         retry: (failureCount, error) => {
             if (isQueryBlockedError(error) || isSearchQuotaExceededError(error)) {
+                return false;
+            }
+            if (kind === 'suggestion') {
                 return false;
             }
             return failureCount < 1;

@@ -2140,6 +2140,19 @@
         "starsAriaWithCount_one": "{{rating}} out of 5 from {{count}} review — open ratings & reviews",
         "starsAriaWithCount_other": "{{rating}} out of 5 from {{count}} reviews — open ratings & reviews"
     },
+    "placeSuggestions": {
+        "headingPrefix": "Suggested for",
+        "regionAria": "Suggested places in {{scope}}",
+        "error": "Couldn't load suggestions — type a place above instead.",
+        "refresh": "Refresh suggestions",
+        "show": "Show suggestions",
+        "hide": "Hide suggestions",
+        "showScope": "Show suggestions for {{scope}}",
+        "openDetails": "Open {{name}} details in a new tab",
+        "use": "Use {{name}}",
+        "add": "Add",
+        "added": "Added"
+    },
     "addForms": {
         "common": {
             "back": "Back",
