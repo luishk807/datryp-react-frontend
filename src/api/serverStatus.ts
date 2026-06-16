@@ -27,6 +27,14 @@ const API_BASE =
 // within a few hundred ms if the server is actually down.
 let status: ServerStatus = 'reachable';
 
+// Require a few consecutive failures before blacking out the whole app. A
+// single transient blip — one slow endpoint, a brief task restart during a
+// rolling deploy — must not flash the full-page "Site Currently Unavailable"
+// wall. Any success resets the count, so the gate only trips when the backend
+// is genuinely unreachable across multiple requests.
+const FAILURE_THRESHOLD = 2;
+let consecutiveFailures = 0;
+
 const listeners = new Set<() => void>();
 
 const emit = (): void => {
@@ -39,8 +47,15 @@ const setStatus = (next: ServerStatus): void => {
     emit();
 };
 
-export const markServerReachable = (): void => setStatus('reachable');
-export const markServerUnreachable = (): void => setStatus('unreachable');
+export const markServerReachable = (): void => {
+    consecutiveFailures = 0;
+    setStatus('reachable');
+};
+
+export const markServerUnreachable = (): void => {
+    consecutiveFailures += 1;
+    if (consecutiveFailures >= FAILURE_THRESHOLD) setStatus('unreachable');
+};
 
 export const getServerStatus = (): ServerStatus => status;
 
@@ -83,13 +98,15 @@ export const isNetworkError = (err: unknown): boolean => {
 
 /**
  * One-shot reachability probe against the cheap `/health` route. Updates the
- * store and resolves to the result. Used by `ServerGate` on boot and on the
- * user's "Try again" click. Times out after 6s so a hung socket doesn't leave
- * the probe pending forever.
+ * store and resolves to the result. Used by `ServerGate` on boot, on the
+ * user's "Try again" click, and by the auto-poll while the gate is shown.
+ * Times out after 12s — long enough that a cold backend boot (container
+ * restart, serverless DB waking) isn't mistaken for a hard outage, but short
+ * enough that a hung socket doesn't leave the probe pending forever.
  */
 export const checkServerHealth = async (): Promise<boolean> => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
+    const timer = setTimeout(() => controller.abort(), 12000);
     try {
         const resp = await fetch(`${API_BASE}/health`, {
             signal: controller.signal,

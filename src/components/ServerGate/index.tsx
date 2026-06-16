@@ -59,6 +59,21 @@ const ServerGate = ({ children }: ServerGateProps) => {
         if (!isOffline) void checkServerHealth();
     }, [isOffline]);
 
+    // While the wall is up, quietly re-probe every few seconds so a short
+    // backend blip (a task restart, a cold boot) recovers on its own — the
+    // user shouldn't have to sit on the downtime page tapping "Try again".
+    // The probe flips the store back to "reachable" on the first success,
+    // which unmounts the wall and tears this interval down via cleanup.
+    useEffect(() => {
+        if (status !== 'unreachable' || isOffline) return;
+        const id = setInterval(() => {
+            void checkServerHealth().then((ok) => {
+                if (ok) void queryClient.invalidateQueries();
+            });
+        }, 5000);
+        return () => clearInterval(id);
+    }, [status, isOffline, queryClient]);
+
     const handleRetry = useCallback(async () => {
         setIsRetrying(true);
         const ok = await checkServerHealth();
