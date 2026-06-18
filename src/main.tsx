@@ -8,6 +8,7 @@ import './index.scss';
 // import — resources are bundled, so init is synchronous and the first paint is
 // already in the user's persisted language.
 import 'i18n';
+import { bootstrapGeoLanguage } from 'i18n/geoBootstrap';
 import App from './App';
 import { TripProvider } from 'context/TripContext';
 import { UserProvider } from 'context/UserContext';
@@ -33,6 +34,12 @@ installSWUpdateReload();
 // profiles + identify happen later from UserContext once the user
 // signs in.
 initPosthog();
+
+// First-visit only: default the UI language from the visitor's IP country
+// (Spanish-speaking → ES, else EN). Fire-and-forget so it never blocks the
+// first paint; it no-ops when the visitor already has a language. See
+// `i18n/geoBootstrap`.
+void bootstrapGeoLanguage();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

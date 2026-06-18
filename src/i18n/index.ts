@@ -25,6 +25,26 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 /** Persisted-choice key — also the value the dynamic-content `?lang=` reads. */
 export const LANGUAGE_STORAGE_KEY = 'datryp_lang';
 
+/**
+ * Whether a language was already stored BEFORE i18next initialised — i.e. the
+ * visitor has used the EN|ES switcher before, or a previous visit already
+ * resolved + cached one. Snapshotted here, before `init`, because the detector
+ * caches the navigator-detected language into localStorage during init; reading
+ * after init would always look "stored". The GeoIP bootstrap consults this so
+ * it ONLY runs for a genuinely first-time visitor and never overrides a choice
+ * the user already has. */
+const readStoredLanguage = (): string | null => {
+    try {
+        return window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    } catch {
+        return null;
+    }
+};
+export const hadStoredLanguage = (() => {
+    const stored = (readStoredLanguage() || '').toLowerCase().split('-')[0];
+    return (SUPPORTED_LANGUAGES as readonly string[]).includes(stored);
+})();
+
 /** The active content language as a supported base code ('en' | 'es'),
  *  collapsing regional variants and falling back to English. Read by the
  *  dynamic-content API wrappers to tag `?lang=` on detail requests, and by the
