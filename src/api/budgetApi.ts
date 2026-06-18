@@ -6,6 +6,7 @@
  * rather than show an error.
  */
 import { getAuthToken } from './authStorage';
+import { activeLang } from 'i18n';
 
 const API_BASE =
     import.meta.env.VITE_PYTHON_API_URL ?? 'http://localhost:8000';
@@ -75,6 +76,9 @@ export const suggestBudget = async (
         start_date: payload.startDate ?? null,
         home_country_code: payload.homeCountryCode ?? null,
         home_city: payload.homeCity ?? null,
+        // Localize the human-readable `note` to the active UI language so the
+        // Spanish wizard doesn't show an English budget rationale.
+        lang: activeLang(),
     };
     const resp = await fetch(`${API_BASE}/budgets/suggest`, {
         method: 'POST',

@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// "Let us plan it for you" nudge — an AI-accented banner that mirrors the
+// PlanningBox footprint (same margins) so it sits naturally above the day
+// list. Horizontal on desktop: icon · copy · CTA.
+.ai-fill-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 4px 8px 20px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: linear-gradient(
+        120deg,
+        rgba(60, 181, 75, 0.1) 0%,
+        rgba(247, 159, 38, 0.1) 100%
+    );
+    border: 1px solid rgba(60, 181, 75, 0.32);
+}
+
+.ai-fill-box-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    color: theme('colors.primaryGreen');
+    box-shadow: 0 2px 8px rgba(60, 181, 75, 0.28);
+
+    svg {
+        font-size: 1.35rem;
+    }
+}
+
+.ai-fill-box-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-fill-box-badge {
+    align-self: flex-start;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+    background: theme('colors.primaryGreen');
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-bottom: 2px;
+}
+
+.ai-fill-box-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+    letter-spacing: -0.005em;
+}
+
+.ai-fill-box-sub {
+    font-size: 0.86rem;
+    color: rgba(0, 0, 0, 0.62);
+    line-height: 1.45;
+}
+
+.ai-fill-box-cta.button-icon {
+    flex: 0 0 auto;
+    gap: 6px;
+    white-space: nowrap;
+    background: theme('colors.primaryGreen');
+    color: #fff;
+
+    &:hover {
+        background: #2e9a3d;
+    }
+}
+
+// App mobile chrome is ≤1024px — stack the banner and let the CTA span the
+// full width so it's an obvious tap target.
+@media (max-width: 1024px) {
+    .ai-fill-box {
+        flex-wrap: wrap;
+    }
+
+    .ai-fill-box-cta.button-icon {
+        flex-basis: 100%;
+        justify-content: center;
+    }
+}
+
+// ── Confirm popup ────────────────────────────────────────────────────────
+// The modal shell (.modalCustom) already handles mobile full-width sizing —
+// only the inner content is styled here.
+.ai-fill-modal-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-fill-modal-lede {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgba(0, 0, 0, 0.78);
+}
+
+.ai-fill-modal-points {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+        position: relative;
+        padding-left: 24px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        color: rgba(0, 0, 0, 0.72);
+
+        &::before {
+            content: '\2713';
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-weight: 700;
+            color: theme('colors.primaryGreen');
+        }
+    }
+}
+
+.ai-fill-modal-error {
+    margin: 6px 0 0;
+    font-size: 0.88rem;
+    color: #e2574c;
+}
+
+.ai-fill-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+
+    .main-button,
+    .main-line {
+        flex: 1;
+    }
+}
+
+.ai-fill-modal-confirm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.ai-fill-modal-confirm-icon {
+    font-size: 1.1rem !important;
+}
+
+.ai-fill-modal-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 20px 8px 12px;
+
+    .MuiCircularProgress-root {
+        color: theme('colors.primaryGreen');
+    }
+}
+
+.ai-fill-modal-loading-text {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+}
+
+.ai-fill-modal-loading-note {
+    margin: 0;
+    font-size: 0.86rem;
+    color: rgba(0, 0, 0, 0.55);
+    line-height: 1.45;
+}

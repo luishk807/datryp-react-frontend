@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import classnames from 'classnames';
 import moment from 'moment'; // iteration loop in buildExpectedDates uses moment object mutation directly
-import { formatDate, isValidDate } from 'utils';
+import { formatDate, isValidDate, tripHasRealActivities } from 'utils';
 import './index.scss';
 import {
     Dialog,
@@ -26,6 +26,7 @@ import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import Button from 'components/common/FormFields/ButtonCustom';
 import ErrorAlert from 'components/common/ErrorAlert';
 import Menu, { MenuActionItem } from 'components/common/Menu';
@@ -43,7 +44,11 @@ import { useDeleteItinerary, useSaveItinerary } from 'api/hooks/useItineraries';
 import { isTripCapReachedError } from 'api/paywallError';
 import { useUser } from 'context/UserContext';
 import { resolveInteraryTypeId, tripStateToSaveInput } from 'utils/tripMapper';
+import { completeTripWithAi } from 'api/aiFillItineraryApi';
+import { BucketListPaywallError } from 'api/bucketListApi';
+import { activeLang } from 'i18n';
 import { TRIP_STATUS } from 'constants';
+import type { SaveItineraryInput } from 'api/hooks/useItineraries';
 import type { TripState, TripStatus } from 'types';
 
 interface DayCoverage {
@@ -140,7 +145,8 @@ const StepperComp = ({
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const { user } = useUser();
+    const { user, isAdmin } = useUser();
+    const isPro = Boolean(user && (user.isPaidMember || isAdmin));
     const { data: itineraryTypes = [] } = useItineraryTypes();
     const { data: tripStatuses = [] } = useTripStatuses();
     const saveItinerary = useSaveItinerary();
@@ -245,6 +251,10 @@ const StepperComp = ({
     }, [saveItinerary.isPending, onSavingChange]);
     const [skipped, setSkipped] = useState<Set<number>>(new Set<number>());
     const [saveError, setSaveError] = useState<string | null>(null);
+    // True for the whole "let us plan it for you" round-trip (save the draft →
+    // AI-fill its itinerary → route to the trip). Keeps the busy spinner up
+    // past the save step, which resolves before the fill does.
+    const [aiPlanning, setAiPlanning] = useState(false);
     // Per-save opt-out for participant notifications. Defaults ON;
     // displayed only when there's actually someone else to notify.
     const [notifyParticipants, setNotifyParticipants] = useState(true);
@@ -287,6 +297,9 @@ const StepperComp = ({
 
     const isStepSkipped = (step: number) => skipped.has(step);
     const isLastStep = activeStep === steps.length - 1;
+    // Destination name for the "plan it for me" nudge copy (single trips set it
+    // on the first destination; multi-trips fall back to generic copy).
+    const planPlace = data?.destinations?.[0]?.country?.name?.trim();
 
     // Required-field check for the current step. Matched by step *label*
     // because the one-question-per-screen create flow conditionally renders
@@ -380,19 +393,19 @@ const StepperComp = ({
     // failed constraint (e.g. backwards date range).
     const blockAdvance = hasMissingFields || hasInvalidFields;
 
-    const handleSaveAndAdvance = async () => {
-        if (!data) {
-            setActiveStep((prev) => prev + 1);
-            return;
-        }
+    /** Validate the draft + build the save payload, or set an inline error and
+     *  return null. Shared by the normal Finish save and the "plan it for me"
+     *  flow so both enforce the same required-field + date checks. */
+    const prepareSaveInput = (): SaveItineraryInput | null => {
+        if (!data) return null;
         if (!user) {
             setSaveError(t('createTrip.stepper.error.loginToSave'));
-            return;
+            return null;
         }
         const interaryTypeId = resolveInteraryTypeId(data, itineraryTypes);
         if (!interaryTypeId) {
             setSaveError(t('createTrip.stepper.error.resolveTripTypeSeed'));
-            return;
+            return null;
         }
 
         const missing: string[] = [];
@@ -417,7 +430,7 @@ const StepperComp = ({
                     fields: missing.join(', '),
                 })
             );
-            return;
+            return null;
         }
         if (
             data.startDate &&
@@ -425,7 +438,7 @@ const StepperComp = ({
             moment(data.endDate).isBefore(moment(data.startDate), 'day')
         ) {
             setSaveError(t('createTrip.stepper.invalid.endBeforeStart'));
-            return;
+            return null;
         }
 
         // Resolve the trip-status name (frontend uses the sample list) to the
@@ -439,7 +452,7 @@ const StepperComp = ({
         const tripStatusId =
             tripStatuses.find((s) => s.name === desiredStatusName)?.id ?? null;
 
-        const input = tripStateToSaveInput(data, {
+        return tripStateToSaveInput(data, {
             id: data.apiId,
             interaryTypeId,
             tripStatusId,
@@ -454,6 +467,15 @@ const StepperComp = ({
                 tripStatuses.map((s) => [s.name, s.id])
             ),
         });
+    };
+
+    const handleSaveAndAdvance = async () => {
+        if (!data) {
+            setActiveStep((prev) => prev + 1);
+            return;
+        }
+        const input = prepareSaveInput();
+        if (!input) return;
         // Note: the creator is always implicitly the owner (`user_id`) and can
         // edit regardless of organizer status, so we respect their choice to
         // de-select themselves from the organizer list.
@@ -482,6 +504,42 @@ const StepperComp = ({
             const message =
                 err instanceof Error ? err.message : t('createTrip.stepper.error.saveFailed');
             setSaveError(message);
+        }
+    };
+
+    /** "Can't decide? Let us plan it for you" — save the draft, then have the
+     *  AI fill its empty days (keeping the flight) and land on the finished
+     *  trip. Pro-only; non-Pro users are routed to the membership upsell
+     *  before anything is saved. */
+    const handlePlanForMe = async () => {
+        if (!isPro) {
+            navigate('/membership');
+            return;
+        }
+        const input = prepareSaveInput();
+        if (!input) return;
+        setAiPlanning(true);
+        setSaveError(null);
+        try {
+            const saved = await saveItinerary.mutateAsync(input);
+            await completeTripWithAi(saved.id, activeLang());
+            navigate(`/trip-detail?id=${saved.id}`);
+        } catch (err) {
+            if (isTripCapReachedError(err)) {
+                setPaywallInfo({ currentCount: err.currentCount, cap: err.cap });
+                return;
+            }
+            if (err instanceof BucketListPaywallError) {
+                navigate('/membership');
+                return;
+            }
+            setSaveError(
+                err instanceof Error
+                    ? err.message
+                    : t('createTrip.stepper.error.saveFailed')
+            );
+        } finally {
+            setAiPlanning(false);
         }
     };
 
@@ -858,7 +916,7 @@ const StepperComp = ({
              *  Back/Next buttons. */}
             {activeStep === steps.length ? (
                 <TripComplete onReset={handleReset} />
-            ) : saveItinerary.isPending ? (
+            ) : saveItinerary.isPending || aiPlanning ? (
                 <div
                     style={{
                         display: 'flex',
@@ -885,7 +943,9 @@ const StepperComp = ({
                         aria-hidden="true"
                     />
                     <span style={{ fontSize: '1rem', fontWeight: 500 }}>
-                        {t('createTrip.stepper.savingTrip')}
+                        {aiPlanning
+                            ? t('createTrip.stepper.aiPlanning')
+                            : t('createTrip.stepper.savingTrip')}
                     </span>
                 </div>
             ) : (
@@ -899,6 +959,54 @@ const StepperComp = ({
                             <h2 className="step-trip-name">
                                 {data.name?.trim() || t('createTrip.stepper.yourTrip')}
                             </h2>
+                        </Grid>
+                    )}
+
+                    {/* "Can't decide?" — only on the (manual) itinerary step
+                     *  while it's still empty (just the flight). Users who
+                     *  asked AI to plan from the start never reach this step. */}
+                    {isLastStep &&
+                        data &&
+                        !tripHasRealActivities(data.destinations) && (
+                        <Grid item lg={12} md={12} xs={12}>
+                            <div className="step-ai-plan">
+                                <span
+                                    className="step-ai-plan-icon"
+                                    aria-hidden="true"
+                                >
+                                    <AutoAwesomeRoundedIcon />
+                                </span>
+                                <div className="step-ai-plan-text">
+                                    <span className="step-ai-plan-badge">
+                                        {t('createTrip.stepper.aiPlan.badge')}
+                                    </span>
+                                    <span className="step-ai-plan-title">
+                                        {t('createTrip.stepper.aiPlan.title')}
+                                    </span>
+                                    <span className="step-ai-plan-sub">
+                                        {planPlace
+                                            ? t(
+                                                  'createTrip.stepper.aiPlan.subWithPlace',
+                                                  { place: planPlace }
+                                              )
+                                            : t('createTrip.stepper.aiPlan.sub')}
+                                    </span>
+                                </div>
+                                <Button
+                                    type="standard"
+                                    capitalizeType="none"
+                                    className="step-ai-plan-btn"
+                                    onClick={() => void handlePlanForMe()}
+                                    disabled={
+                                        saveItinerary.isPending || aiPlanning
+                                    }
+                                >
+                                    <AutoAwesomeRoundedIcon className="step-ai-plan-btn-icon" />
+                                    <span>
+                                        {t('createTrip.stepper.aiPlan.cta')}
+                                    </span>
+                                </Button>
+                            </div>
                         </Grid>
                     )}
 

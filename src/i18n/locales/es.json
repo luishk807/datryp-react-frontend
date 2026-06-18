@@ -1169,6 +1169,26 @@
             "endedTitle_other": "El viaje terminó hace {{count}} días",
             "endedSubtitle": "¿Completaste este viaje? Márcalo como completado para archivarlo como un registro de los lugares donde has estado."
         },
+        "aiFill": {
+            "badge": "Pro",
+            "needHelp": "¿Necesitas ayuda para planear?",
+            "sub": "Deja que terminemos tu itinerario con las mejores actividades.",
+            "subWithPlace": "Deja que terminemos tu itinerario con las mejores actividades para {{place}}.",
+            "cta": "Plánealo por mí",
+            "modalTitle": "Planear mi itinerario",
+            "modalBody": "Llenaremos tus días vacíos con actividades estupendas y bien valoradas, y dejaremos tu vuelo tal como está. Puedes editar o eliminar lo que quieras después.",
+            "modalBodyWithPlace": "Llenaremos tus días vacíos con las mejores actividades para {{place}} y dejaremos tu vuelo tal como está. Puedes editar o eliminar lo que quieras después.",
+            "point1": "Actividades día por día durante las fechas de tu viaje",
+            "point2": "Tu vuelo y lo que ya agregaste se mantienen",
+            "point3": "Totalmente editable: ajusta o elimina lo que quieras",
+            "confirm": "Planear mi itinerario",
+            "retry": "Intentar de nuevo",
+            "cancel": "Cancelar",
+            "building": "Planeando tu itinerario…",
+            "buildingWithPlace": "Planeando las mejores actividades para {{place}}…",
+            "buildingNote": "Esto puede tardar hasta un minuto, espera un momento.",
+            "error": "No pudimos planear tu itinerario. Inténtalo de nuevo."
+        },
         "export": {
             "title": "Compartir o descargar el viaje",
             "shareButton": "Compartir",
@@ -1536,6 +1556,10 @@
                     "title": "¿Un destino o varios?",
                     "content": "<strong>Único</strong> para un país y una sola ventana de fechas. <strong>Múltiple</strong> para saltar entre varios. Puedes cambiarlo después si tus planes cambian."
                 },
+                "aiPlan": {
+                    "title": "O deja que lo planeemos por ti",
+                    "content": "¿Sin tiempo? Toca <strong>Deja que lo planeemos por ti</strong> y nuestra IA crea un itinerario completo para tu destino. Es una función <strong>Pro</strong> — y puedes ajustar todo después."
+                },
                 "tapNext": {
                     "title": "Toca Siguiente",
                     "content": "Una vez que hayas elegido, toca <strong>Siguiente</strong> para continuar."
@@ -1732,6 +1756,32 @@
                 "sunny": "Soleado",
                 "high": "Máx {{temp}}",
                 "low": "Mín {{temp}}"
+            },
+            "weatherCode": {
+                "clear": "Despejado",
+                "mainlyClear": "Mayormente despejado",
+                "partlyCloudy": "Parcialmente nublado",
+                "overcast": "Nublado",
+                "fog": "Niebla",
+                "lightDrizzle": "Llovizna ligera",
+                "drizzle": "Llovizna",
+                "denseDrizzle": "Llovizna densa",
+                "freezingDrizzle": "Llovizna helada",
+                "slightRain": "Lluvia ligera",
+                "rain": "Lluvia",
+                "heavyRain": "Lluvia fuerte",
+                "freezingRain": "Lluvia helada",
+                "slightSnow": "Nieve ligera",
+                "snow": "Nieve",
+                "heavySnow": "Nieve intensa",
+                "snowGrains": "Granos de nieve",
+                "slightShowers": "Chubascos ligeros",
+                "showers": "Chubascos",
+                "violentShowers": "Chubascos violentos",
+                "snowShowers": "Chubascos de nieve",
+                "heavySnowShowers": "Chubascos de nieve intensos",
+                "thunderstorm": "Tormenta eléctrica",
+                "thunderstormHail": "Tormenta con granizo"
             },
             "currencyWidget": {
                 "home": "Esta es la moneda de tu país.",
@@ -2591,7 +2641,8 @@
         },
         "submit": {
             "idle": "Muéstrame opciones de destino",
-            "pending": "Buscando tus opciones…"
+            "pending": "Buscando tus opciones…",
+            "build": "Planear mi viaje"
         },
         "options": {
             "editInputs": "Editar mis respuestas",
@@ -2772,6 +2823,12 @@
             "multiple": {
                 "title": "Varios destinos",
                 "subtitle": "Recorre varios países en un solo itinerario."
+            },
+            "ai": {
+                "badge": "Pro",
+                "title": "Deja que lo planeemos por ti",
+                "titleWithPlace": "Deja que planeemos tu viaje a {{place}} por ti",
+                "subtitle": "Haremos nuestro mejor esfuerzo para planear el mejor viaje."
             }
         },
         "destination": {
@@ -2819,6 +2876,14 @@
         "stepper": {
             "savingTrip": "Guardando tu viaje…",
             "savingChanges": "Guardando cambios…",
+            "aiPlanning": "Planeando tu itinerario…",
+            "aiPlan": {
+                "badge": "Pro",
+                "title": "¿No te decides? Deja que lo planeemos por ti",
+                "sub": "Llenaremos tu itinerario con las mejores actividades — tu vuelo se mantiene.",
+                "subWithPlace": "Llenaremos tu itinerario con las mejores actividades para {{place}} — tu vuelo se mantiene.",
+                "cta": "Plánealo por mí"
+            },
             "yourTrip": "Tu viaje",
             "untitledTrip": "Viaje sin título",
             "saveChanges": "Guardar cambios",

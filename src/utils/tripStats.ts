@@ -1,5 +1,37 @@
+import { ACTIVITY_KIND } from "constants";
 import { diffDays, isValidDate } from "./date";
 import type { Destination, TripState } from "types";
+
+// Structural timeline entries (flights, ground transport, hotel bookends) —
+// these are the trip's skeleton, not "things to do". A real activity is
+// anything else (place / note / other, or a null kind, which the API
+// back-fills to 'place').
+const STRUCTURAL_ACTIVITY_KINDS = new Set<string>([
+    ACTIVITY_KIND.FLIGHT,
+    ACTIVITY_KIND.TRAIN,
+    ACTIVITY_KIND.BUS,
+    ACTIVITY_KIND.RENTAL_CAR,
+    ACTIVITY_KIND.HOTEL_CHECKIN,
+    ACTIVITY_KIND.HOTEL_CHECKOUT,
+]);
+
+/** Whether a trip has any *real* itinerary activity yet, or is still just its
+ *  flight/transport skeleton. Drives the "let us plan it for you" nudges on
+ *  the create wizard + trip detail (we only offer the AI fill when there's
+ *  nothing to overwrite). */
+export const tripHasRealActivities = (
+    destinations: Destination[] = [],
+): boolean =>
+    destinations.some((dest) =>
+        (dest.itinerary ?? []).some((day) =>
+            (day.activities ?? []).some(
+                (a) =>
+                    !STRUCTURAL_ACTIVITY_KINDS.has(
+                        a.kind ?? ACTIVITY_KIND.PLACE,
+                    ),
+            ),
+        ),
+    );
 
 const toNumber = (v?: string | number): number => {
     if (v == null) return 0;

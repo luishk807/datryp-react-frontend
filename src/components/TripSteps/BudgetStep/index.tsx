@@ -103,6 +103,11 @@ const BudgetStep = ({ data, onChange }: BudgetStepProps) => {
                     <InputField
                         value={budget}
                         name="budget"
+                        // The visible label is the external trip-step-label
+                        // above ("Presupuesto total"); pass an explicit empty
+                        // string so InputField doesn't leak the raw field name
+                        // ("Budget") as a second, untranslated floating label.
+                        label=""
                         placeholder={
                             isLoadingSuggestion
                                 ? t('createTrip.budget.loadingPlaceholder')

@@ -58,6 +58,41 @@ const WEATHER_FLAVORS: Record<WeatherCondition, WeatherFlavor> = {
     [WEATHER_CONDITION.SUNNY]:    flavorFor(WEATHER_CONDITION.SUNNY,    <WbSunnyRoundedIcon />),
 };
 
+/** WMO weather codes (Open-Meteo) → i18n key under `detail.common.weatherCode`.
+ *  Lets the live condition badge render in the active language instead of the
+ *  backend's English `condition` string. Unmapped codes fall back to that raw
+ *  string so we never show a blank tag. */
+const WEATHER_CODE_KEY: Record<number, string> = {
+    0: 'clear',
+    1: 'mainlyClear',
+    2: 'partlyCloudy',
+    3: 'overcast',
+    45: 'fog',
+    48: 'fog',
+    51: 'lightDrizzle',
+    53: 'drizzle',
+    55: 'denseDrizzle',
+    56: 'freezingDrizzle',
+    57: 'freezingDrizzle',
+    61: 'slightRain',
+    63: 'rain',
+    65: 'heavyRain',
+    66: 'freezingRain',
+    67: 'freezingRain',
+    71: 'slightSnow',
+    73: 'snow',
+    75: 'heavySnow',
+    77: 'snowGrains',
+    80: 'slightShowers',
+    81: 'showers',
+    82: 'violentShowers',
+    85: 'snowShowers',
+    86: 'heavySnowShowers',
+    95: 'thunderstorm',
+    96: 'thunderstormHail',
+    99: 'thunderstormHail',
+};
+
 const roundTemp = (c: number) => `${Math.round(c)}°`;
 
 export interface WeatherWidgetProps {
@@ -85,6 +120,13 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
     const flavor = current
         ? WEATHER_FLAVORS[current.flavor]
         : WEATHER_FLAVORS[detectCondition(text ?? '')];
+    // Localize the live condition via its WMO code; fall back to the backend's
+    // (English) condition string for any code we don't have a label for.
+    const conditionLabel = current
+        ? WEATHER_CODE_KEY[current.weatherCode]
+            ? t(`detail.common.weatherCode.${WEATHER_CODE_KEY[current.weatherCode]}`)
+            : current.condition
+        : '';
     return (
         <div className={classNames('weather-widget', flavor.className)}>
             <div className="weather-widget-icon" aria-hidden="true">
@@ -94,7 +136,7 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
                 {current ? (
                     <>
                         <span className="weather-widget-tag">
-                            {current.condition}
+                            {conditionLabel}
                         </span>
                         <div className="weather-widget-now">
                             <span className="weather-widget-temp">

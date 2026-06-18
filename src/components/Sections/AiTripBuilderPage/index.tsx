@@ -25,7 +25,7 @@ import {
     useState,
     type KeyboardEvent,
 } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useUser } from 'context/UserContext';
@@ -116,8 +116,25 @@ const formatCost = (n: number): string =>
 const AiTripBuilderPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, isAdmin } = useUser();
     const isPro = Boolean(user && (user.isPaidMember || isAdmin));
+
+    // The create-flow "Let us plan it for you" card forwards the country the
+    // user had already pinned (if any) so the wizard opens pre-aimed at it.
+    const navCountryHint =
+        location.state &&
+        typeof (location.state as { countryHint?: unknown }).countryHint ===
+            'string'
+            ? (location.state as { countryHint: string }).countryHint
+            : '';
+    // …and `lockDestination` means we already KNOW where they're going, so we
+    // keep collecting budget/interests/dates but skip the "where to?" step and
+    // the destination-options grid — submit builds that country's itinerary
+    // directly and drops the user on the finished trip.
+    const lockedDestination =
+        (location.state as { lockDestination?: unknown } | null)
+            ?.lockDestination === true && navCountryHint.length > 0;
 
     const [stepIndex, setStepIndex] = useState(0);
     const [budget, setBudget] = useState<string>('1500');
@@ -129,7 +146,7 @@ const AiTripBuilderPage = () => {
         () => user?.interests ?? []
     );
     const [interestDraft, setInterestDraft] = useState('');
-    const [countryHint, setCountryHint] = useState('');
+    const [countryHint, setCountryHint] = useState(navCountryHint);
     const [duration, setDuration] = useState<string>('');
     const [partySize, setPartySize] = useState<string>('2');
     const [error, setError] = useState<string | null>(null);
@@ -141,7 +158,15 @@ const AiTripBuilderPage = () => {
     // blocking the other cards visually.
     const [buildingCode, setBuildingCode] = useState<string | null>(null);
 
-    const wizardStepKey: WizardStepKey = WIZARD_STEPS[stepIndex].key;
+    // Drop the "destination" step entirely when the destination is locked.
+    const wizardSteps = useMemo(
+        () =>
+            lockedDestination
+                ? WIZARD_STEPS.filter((s) => s.key !== 'destination')
+                : WIZARD_STEPS,
+        [lockedDestination]
+    );
+    const wizardStepKey: WizardStepKey = wizardSteps[stepIndex].key;
     const inOptionsPhase = options !== null;
 
     const budgetNum = useMemo(() => {
@@ -256,7 +281,7 @@ const AiTripBuilderPage = () => {
             return;
         }
         setError(null);
-        setStepIndex((i) => Math.min(WIZARD_STEPS.length - 1, i + 1));
+        setStepIndex((i) => Math.min(wizardSteps.length - 1, i + 1));
     };
 
     const goBack = () => {
@@ -296,6 +321,34 @@ const AiTripBuilderPage = () => {
             // personalizes even when the per-trip interests list is
             // empty. The backend treats these as low-priority bias
             // signals alongside the explicit `interests` list.
+            travelerStyles: user?.travelerStyles?.length
+                ? user.travelerStyles
+                : undefined,
+        });
+    };
+
+    // Locked-destination submit: we already know the country, so skip the
+    // options grid and build its itinerary straight away (lands on the saved
+    // trip via buildMutation's onSuccess).
+    const handleBuildLockedDestination = () => {
+        const budgetErr = validateStep('budget');
+        const interestsErr = validateStep('interests');
+        if (budgetErr || interestsErr) {
+            setStepIndex(budgetErr ? 0 : 1);
+            setError(budgetErr ?? interestsErr);
+            return;
+        }
+        const durationNum = duration.trim()
+            ? Math.max(1, Math.min(21, Number(duration)))
+            : undefined;
+        const partySizeNum = Math.max(1, Math.min(20, Number(partySize) || 2));
+        setError(null);
+        buildMutation.mutate({
+            budgetUsd: Math.round(budgetNum),
+            interests,
+            durationDays: durationNum,
+            countryHint: navCountryHint,
+            partySize: partySizeNum,
             travelerStyles: user?.travelerStyles?.length
                 ? user.travelerStyles
                 : undefined,
@@ -367,7 +420,7 @@ const AiTripBuilderPage = () => {
                             className="ai-trip-builder-page-stepper"
                             aria-label={t('aiTrip.stepperAria')}
                         >
-                            {WIZARD_STEPS.map((step, idx) => {
+                            {wizardSteps.map((step, idx) => {
                                 const Icon = step.Icon;
                                 const isActive = idx === stepIndex;
                                 const isComplete = idx < stepIndex;
@@ -736,11 +789,18 @@ const AiTripBuilderPage = () => {
                                     <ArrowBackRoundedIcon fontSize="small" />
                                     <span>{t('aiTrip.back')}</span>
                                 </button>
-                                {stepIndex === WIZARD_STEPS.length - 1 ? (
+                                {stepIndex === wizardSteps.length - 1 ? (
                                     <button
                                         type="button"
-                                        onClick={handleGenerateOptions}
-                                        disabled={optionsMutation.isPending}
+                                        onClick={
+                                            lockedDestination
+                                                ? handleBuildLockedDestination
+                                                : handleGenerateOptions
+                                        }
+                                        disabled={
+                                            optionsMutation.isPending ||
+                                            buildMutation.isPending
+                                        }
                                         className="ai-trip-builder-page-submit"
                                     >
                                         <AutoAwesomeRoundedIcon
@@ -748,9 +808,13 @@ const AiTripBuilderPage = () => {
                                             className="ai-trip-builder-page-submit-sparkle"
                                         />
                                         <span>
-                                            {optionsMutation.isPending
-                                                ? t('aiTrip.submit.pending')
-                                                : t('aiTrip.submit.idle')}
+                                            {lockedDestination
+                                                ? buildMutation.isPending
+                                                    ? t('aiTrip.options.building')
+                                                    : t('aiTrip.submit.build')
+                                                : optionsMutation.isPending
+                                                    ? t('aiTrip.submit.pending')
+                                                    : t('aiTrip.submit.idle')}
                                         </span>
                                     </button>
                                 ) : (

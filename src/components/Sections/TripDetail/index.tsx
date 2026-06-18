@@ -62,6 +62,7 @@ import TripAtlasConfirmation from "components/TripAtlasConfirmation";
 import TripRatingCard from "components/TripRatingCard";
 import TripCompanionsCard from "components/TripCompanionsCard";
 import PlanningBox from "components/PlanningBox";
+import AiFillItineraryBox from "components/AiFillItineraryBox";
 import { useUser } from "context/UserContext";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
 import {
@@ -76,7 +77,7 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
-import { isSameDay, isValidDate, diffDays } from "utils";
+import { isSameDay, isValidDate, diffDays, tripHasRealActivities } from "utils";
 import { duplicateTripState, type DuplicateTripRange } from "utils";
 import DuplicateTripModal from "components/DuplicateTripModal";
 import TripNote from "components/TripNote";
@@ -1006,6 +1007,14 @@ export const TripDetail = () => {
   })();
   const destinations = tripData.destinations ?? [];
 
+  // Still just the flight/transport skeleton? Drives the "let us plan it for
+  // you" nudge — we only offer the AI fill when there's nothing to overwrite.
+  // Plain const, NOT useMemo: this sits below the loading / not-found early
+  // returns above, so a hook here would change the hook count between the
+  // loading and loaded renders ("rendered more hooks" crash). The check is a
+  // cheap short-circuiting scan, so memoizing buys nothing.
+  const tripIsEmpty = !tripHasRealActivities(destinations);
+
   // For the Confirmed "Mark Complete" nudge: how many whole days ago the
   // trip's end date passed (0 / negative = not over yet). Lets the CTA
   // gently prompt users who travelled but forgot to mark the trip done.
@@ -1273,6 +1282,23 @@ export const TripDetail = () => {
               onStatusChange={handleStatusChange}
               isSaving={saveItinerary.isPending}
               onEditTripDates={handleChangeStep}
+            />
+          </Grid>
+        )}
+        {/* "Let us plan it for you" — only while Planning, organizer-only, and
+            only when the trip is still empty (just its flight). Needs the
+            network for the AI call, so it's hidden offline. */}
+        {!focusMode &&
+          persistedStatusName === TRIP_STATUS.PLANNING &&
+          isOrganizer &&
+          !isOffline &&
+          apiTrip &&
+          tripIsEmpty && (
+          <Grid item lg={12} md={12} xs={12}>
+            <AiFillItineraryBox
+              tripId={apiTrip.id}
+              place={destinations[0]?.country?.name?.trim() || undefined}
+              isPro={Boolean(currentUser?.isPaidMember || isAdmin)}
             />
           </Grid>
         )}

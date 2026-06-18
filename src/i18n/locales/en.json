@@ -765,6 +765,32 @@
                 "high": "H {{temp}}",
                 "low": "L {{temp}}"
             },
+            "weatherCode": {
+                "clear": "Clear sky",
+                "mainlyClear": "Mainly clear",
+                "partlyCloudy": "Partly cloudy",
+                "overcast": "Overcast",
+                "fog": "Fog",
+                "lightDrizzle": "Light drizzle",
+                "drizzle": "Drizzle",
+                "denseDrizzle": "Dense drizzle",
+                "freezingDrizzle": "Freezing drizzle",
+                "slightRain": "Slight rain",
+                "rain": "Rain",
+                "heavyRain": "Heavy rain",
+                "freezingRain": "Freezing rain",
+                "slightSnow": "Slight snow",
+                "snow": "Snow",
+                "heavySnow": "Heavy snow",
+                "snowGrains": "Snow grains",
+                "slightShowers": "Slight showers",
+                "showers": "Rain showers",
+                "violentShowers": "Violent showers",
+                "snowShowers": "Snow showers",
+                "heavySnowShowers": "Heavy snow showers",
+                "thunderstorm": "Thunderstorm",
+                "thunderstormHail": "Thunderstorm with hail"
+            },
             "currencyWidget": {
                 "home": "This is your home currency.",
                 "liveRate": "Live rate from the ECB — check before travel.",
@@ -1558,6 +1584,26 @@
             "endedTitle_other": "Trip ended {{count}} days ago",
             "endedSubtitle": "Did you complete this trip? Mark it complete to archive it as a record of where you've been."
         },
+        "aiFill": {
+            "badge": "Pro",
+            "needHelp": "Need help planning?",
+            "sub": "Let us finish your itinerary with the best activities.",
+            "subWithPlace": "Let us finish your itinerary with the best activities for {{place}}.",
+            "cta": "Plan it for me",
+            "modalTitle": "Plan my itinerary",
+            "modalBody": "We'll fill your empty days with great, well-rated activities and keep your flight exactly as is. You can edit or remove anything afterward.",
+            "modalBodyWithPlace": "We'll fill your empty days with the best activities for {{place}} and keep your flight exactly as is. You can edit or remove anything afterward.",
+            "point1": "Day-by-day activities across your trip dates",
+            "point2": "Your flight and anything you've added stay put",
+            "point3": "Fully editable — tweak or remove anything",
+            "confirm": "Plan my itinerary",
+            "retry": "Try again",
+            "cancel": "Cancel",
+            "building": "Planning your itinerary…",
+            "buildingWithPlace": "Planning the best activities for {{place}}…",
+            "buildingNote": "This can take up to a minute — hang tight.",
+            "error": "We couldn't plan your itinerary. Please try again."
+        },
         "export": {
             "title": "Share or download trip",
             "shareButton": "Share",
@@ -1924,6 +1970,10 @@
                 "singleOrMulti": {
                     "title": "Single or multi-destination?",
                     "content": "<strong>Single</strong> for one country, one window of dates. <strong>Multi</strong> for hopping across several. Switch later if your plans change."
+                },
+                "aiPlan": {
+                    "title": "Or let us plan it for you",
+                    "content": "Short on time? Tap <strong>Let us plan it for you</strong> and our AI builds a full itinerary for your destination. It's a <strong>Pro</strong> feature — and you can tweak everything afterward."
                 },
                 "tapNext": {
                     "title": "Tap Next",
@@ -2591,7 +2641,8 @@
         },
         "submit": {
             "idle": "Show me destination options",
-            "pending": "Finding your matches…"
+            "pending": "Finding your matches…",
+            "build": "Plan my trip"
         },
         "options": {
             "editInputs": "Edit my inputs",
@@ -2772,6 +2823,12 @@
             "multiple": {
                 "title": "Multiple destinations",
                 "subtitle": "Hop across countries on one itinerary."
+            },
+            "ai": {
+                "badge": "Pro",
+                "title": "Let us plan it for you",
+                "titleWithPlace": "Let us plan your trip to {{place}} for you",
+                "subtitle": "We'll do our best to plan the best trip."
             }
         },
         "destination": {
@@ -2819,6 +2876,14 @@
         "stepper": {
             "savingTrip": "Saving your trip…",
             "savingChanges": "Saving changes…",
+            "aiPlanning": "Planning your itinerary…",
+            "aiPlan": {
+                "badge": "Pro",
+                "title": "Can't decide? Let us plan it for you",
+                "sub": "We'll fill your itinerary with the best activities — your flight stays put.",
+                "subWithPlace": "We'll fill your itinerary with the best activities for {{place}} — your flight stays put.",
+                "cta": "Plan it for me"
+            },
             "yourTrip": "Your trip",
             "untitledTrip": "Untitled trip",
             "saveChanges": "Save changes",

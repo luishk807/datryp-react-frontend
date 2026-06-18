@@ -515,11 +515,12 @@
   }
 }
 
-@media (max-width: 720px) {
-  // The Confirmed "mark-complete" CTA stacks on mobile: icon + copy, then
-  // the button on its own line. The button stays content-width (the
-  // .trip-status-badge is width:auto) so it sits bottom-left, not a chunky
-  // full-width block. (PlanningBox handles its own mobile stacking.)
+// The app's mobile chrome is ≤1024px, so stack the Confirmed "mark-complete"
+// CTA across that whole range (phones + tablets), not just narrow phones —
+// otherwise the long "Marcar como completado" label gets squeezed and clipped
+// in the horizontal row. Icon + copy, then the button full-width on its own
+// line so the label always shows in full.
+@media (max-width: 1024px) {
   .trip-detail-status-cta {
     flex-direction: column;
     align-items: stretch;
@@ -527,7 +528,9 @@
   }
 
   .trip-detail-status-cta-btn .trip-status-badge {
-    white-space: nowrap;
+    width: 100% !important;
+    justify-content: center;
+    white-space: normal;
   }
 }
 

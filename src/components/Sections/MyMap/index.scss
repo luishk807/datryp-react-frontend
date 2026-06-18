@@ -1582,8 +1582,20 @@ img.my-map-trips-panel-flag {
   }
   .my-map-pin-popup-loc,
   .my-map-pin-popup-date,
-  .my-map-pin-popup-trip {
+  .my-map-pin-popup-trip,
+  // "Visited by" heading on the friends popup — its day color is a dark
+  // rgba(0,0,0,0.45) that vanishes on the dark night popup. Lift it to the
+  // muted-light token so it reads like the rest of the popup's secondary text.
+  .my-map-friends-popup-label {
     color: $txt-2;
+  }
+  // Friend chips ("Tú", "Alfredo") — the day style is dark-purple text on a
+  // faint purple tint, near-invisible on the dark night popup. Use a light
+  // lavender on a stronger purple fill so they're clearly legible (and pass
+  // contrast for low-vision users).
+  .my-map-friends-popup-chip {
+    background: rgba(139, 92, 246, 0.32);
+    color: #d6c8ff;
   }
   .mapboxgl-popup.my-map-pin-popup .mapboxgl-popup-close-button {
     background: rgba(255, 255, 255, 0.1);

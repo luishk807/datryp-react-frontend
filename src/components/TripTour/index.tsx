@@ -67,6 +67,7 @@ const STEP_TARGETS: Record<
     mode: [
         { target: 'body', placement: 'center', key: 'mode.intro' },
         { target: '.trip-mode-cards', key: 'mode.singleOrMulti' },
+        { target: '.trip-mode-card--ai', key: 'mode.aiPlan' },
         { target: '[data-tour="trip-next-btn"]', key: 'mode.tapNext' },
     ],
     destination: [

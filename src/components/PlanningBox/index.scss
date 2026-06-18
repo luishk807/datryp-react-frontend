@@ -128,11 +128,14 @@
     transition: width 0.35s ease;
 }
 
-// On mobile the Confirm button drops to its own full-width row beneath the
-// copy (the chevron stays up top-right with the title). DOM order is
-// icon → text → confirm → chevron, so re-order the chevron ahead of the
-// confirm and let the confirm wrap to a new line.
-@media (max-width: 720px) {
+// The app's mobile chrome is ≤1024px (BottomNav, iPad portrait/landscape), so
+// reflow the header across that whole range — not just narrow phones.
+// Otherwise the long Spanish label ("Confirmar viaje") gets squeezed in the
+// horizontal row and clips. The Confirm button drops to its own row beneath
+// the copy (the chevron stays up top-right with the title) and becomes a
+// full-width, centered solid CTA so it's unmissable. DOM order is
+// icon → text → confirm → chevron, so re-order the chevron ahead of confirm.
+@media (max-width: 1024px) {
     .planning-box-head {
         flex-wrap: wrap;
     }
@@ -143,5 +146,21 @@
         order: 3;
         flex-basis: 100%;
         margin-top: 12px;
+        align-items: stretch;
+
+        .trip-status-badge {
+            width: 100% !important;
+            justify-content: center;
+            padding: 10px 14px !important;
+            font-size: 0.9rem !important;
+        }
+
+        .trip-status-badge-text {
+            align-items: center;
+        }
+
+        .trip-status-badge-label {
+            white-space: normal;
+        }
     }
 }

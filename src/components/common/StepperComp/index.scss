@@ -348,3 +348,104 @@
     transform: rotate(360deg);
   }
 }
+
+/* "Can't decide? Let us plan it for you" — AI nudge on the create wizard's
+   itinerary step (mirrors the trip-detail fill box). */
+.step-ai-plan {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 18px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(
+    120deg,
+    rgba(60, 181, 75, 0.1) 0%,
+    rgba(247, 159, 38, 0.1) 100%
+  );
+  border: 1px solid rgba(60, 181, 75, 0.32);
+}
+
+.step-ai-plan-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: #3cb54b;
+  box-shadow: 0 2px 8px rgba(60, 181, 75, 0.28);
+}
+
+.step-ai-plan-icon svg {
+  font-size: 1.35rem;
+}
+
+.step-ai-plan-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.step-ai-plan-badge {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #3cb54b;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-bottom: 2px;
+}
+
+.step-ai-plan-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.step-ai-plan-sub {
+  font-size: 0.86rem;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.45;
+}
+
+.step-ai-plan-btn.main-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+  padding: 10px 18px;
+  white-space: nowrap;
+  background: #3cb54b;
+  color: #fff;
+}
+
+.step-ai-plan-btn.main-button:hover {
+  background: #2e9a3d;
+  color: #fff;
+  outline: none;
+}
+
+.step-ai-plan-btn-icon {
+  font-size: 1.1rem !important;
+}
+
+@media (max-width: 1024px) {
+  .step-ai-plan {
+    flex-wrap: wrap;
+  }
+
+  .step-ai-plan-btn.main-button {
+    flex-basis: 100%;
+    width: 100%;
+  }
+}

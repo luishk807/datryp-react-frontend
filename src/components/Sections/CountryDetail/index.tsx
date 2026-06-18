@@ -47,6 +47,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import { useCountryDetailsProgressive } from "api/hooks/useCountryDetails";
 import { useCountries } from "api/hooks/useCountries";
+import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useMonthlyBestPlace } from "api/hooks/useMonthlyBestPlace";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
 import { useDestinationAirport } from "api/hooks/useDestinationAirport";
@@ -115,6 +116,29 @@ const CountryDetail = () => {
     limit: 300,
   });
   const loadingCountry = countryCatalog?.find((c) => c.code === code);
+
+  // Country catalog photos are sparse (Russia, for one, has none). Backfill the
+  // hero from the cache-aware /places/image resolver (Unsplash → Pexels →
+  // Pixabay), exactly like the city/place pages, so every country shows a real
+  // photo instead of the placeholder logo. Only fired when the catalog has no
+  // image of its own.
+  const heroCountryName = country?.name ?? loadingCountry?.name ?? "";
+  const catalogHeroImage = country?.image ?? loadingCountry?.image ?? null;
+  const { data: countryHeroPhoto } = usePlaceImage(
+    heroCountryName,
+    null,
+    heroCountryName,
+    { enabled: heroCountryName.length > 0 && !catalogHeroImage },
+  );
+  const heroImageUrl = catalogHeroImage ?? countryHeroPhoto?.imageUrl ?? undefined;
+  const usingBackfillHero =
+    !catalogHeroImage && Boolean(countryHeroPhoto?.imageUrl);
+  const heroPhotographerName = usingBackfillHero
+    ? countryHeroPhoto?.photographerName
+    : country?.photographerName;
+  const heroPhotographerUrl = usingBackfillHero
+    ? countryHeroPhoto?.photographerUrl
+    : country?.photographerUrl;
 
   // Only fetch the monthly pick when we're actually arriving via the
   // seed flow — keeps the country page from hitting an extra endpoint
@@ -277,7 +301,7 @@ const CountryDetail = () => {
           <div className="country-detail-top">
             <PlaceHero
               name={loadingName}
-              imageUrl={loadingCountry?.image}
+              imageUrl={heroImageUrl}
               className="country-detail-hero"
             />
             <aside className="country-detail-side">
@@ -419,9 +443,9 @@ const CountryDetail = () => {
         <div className="country-detail-top">
           <PlaceHero
             name={country.name}
-            imageUrl={country.image}
-            photographerName={country.photographerName}
-            photographerUrl={country.photographerUrl}
+            imageUrl={heroImageUrl}
+            photographerName={heroPhotographerName}
+            photographerUrl={heroPhotographerUrl}
             galleryQuery={country.name}
             className="country-detail-hero"
           />

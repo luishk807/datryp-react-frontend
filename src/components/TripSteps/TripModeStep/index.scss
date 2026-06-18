@@ -55,6 +55,70 @@
   line-height: 1.4;
 }
 
+// "Let us plan it for you" — the AI hand-off. Spans both columns below the
+// two manual options and reads as a horizontal hero row (sparkle · copy ·
+// arrow) so it feels like a distinct, premium third path rather than a peer
+// of the manual choices.
+.trip-mode-step .trip-mode-card--ai {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 16px;
+  min-height: 0;
+  padding: 18px 20px;
+  background: linear-gradient(
+    120deg,
+    rgba(60, 181, 75, 0.08),
+    rgba(255, 145, 77, 0.08)
+  );
+  border-color: rgba(60, 181, 75, 0.35);
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(60, 181, 75, 0.18);
+  }
+
+  .trip-mode-card-icon {
+    flex: 0 0 auto;
+  }
+
+  .trip-mode-card-title,
+  .trip-mode-card-sub {
+    text-align: left;
+  }
+
+  .trip-mode-card-arrow {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: theme('colors.primaryGreen');
+    transition: transform 0.18s ease;
+  }
+
+  &:hover .trip-mode-card-arrow {
+    transform: translateX(3px);
+  }
+}
+
+.trip-mode-step .trip-mode-card-ai-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.trip-mode-step .trip-mode-card-badge {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: theme('colors.primaryGreen');
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
 @media (max-width: 640px) {
   .trip-mode-step .trip-mode-cards {
     grid-template-columns: 1fr;
@@ -63,5 +127,9 @@
   .trip-mode-step .trip-mode-card {
     padding: 18px 14px;
     min-height: 110px;
+  }
+
+  .trip-mode-step .trip-mode-card--ai {
+    min-height: 0;
   }
 }
