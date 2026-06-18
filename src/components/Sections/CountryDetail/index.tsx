@@ -54,7 +54,7 @@ import { useDestinationAirport } from "api/hooks/useDestinationAirport";
 import { useUser } from "context/UserContext";
 import { useIsStuck } from "hooks/useIsStuck";
 import { basicInfo, resetTrip, useTripDispatch } from "context/TripContext";
-import { now } from "utils";
+import { tomorrow } from "utils";
 import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
 import type { Activity, Destination } from "types";
 
@@ -158,7 +158,11 @@ const CountryDetail = () => {
     country: { id: string; name: string; code: string; local: string | null; image: string | null },
     arrivalAirportCode: string | null,
   ) => {
-    const today = now();
+    // Default the trip to start TOMORROW. Seeding "today" meant a trip
+    // created late in the evening defaulted to a same-day trip, which is
+    // rarely what the user wants; they can still pick any date in the
+    // wizard's date step.
+    const tripStart = tomorrow();
 
     // Same-country country trip (e.g. user in USA planning "USA"
     // trip) — skip the auto-seed entirely. No specific destination
@@ -191,9 +195,9 @@ const CountryDetail = () => {
           {
             departAirport: nearestAirport.iataCode,
             arrivalAirport: arrivalAirportCode,
-            departDate: today,
+            departDate: tripStart,
             departTime: "00:00",
-            arrivalDate: today,
+            arrivalDate: tripStart,
             arrivalTime: "00:00",
           },
         ],
@@ -214,8 +218,8 @@ const CountryDetail = () => {
         // date block in the multi-destination itinerary (DateBlock keys
         // multi destinations by `startDate`). The reducer re-anchors this to
         // the new start if the user later picks real dates in the wizard.
-        startDate: today,
-        endDate: today,
+        startDate: tripStart,
+        endDate: tripStart,
         ...(arrivalAirportCode
           ? { flightInfo: { arrivalAirport: arrivalAirportCode } }
           : {}),
@@ -224,7 +228,7 @@ const CountryDetail = () => {
               itinerary: [
                 {
                   id: 0,
-                  date: today,
+                  date: tripStart,
                   activities: seededActivities,
                 },
               ],
@@ -237,8 +241,8 @@ const CountryDetail = () => {
       basicInfo({
         type: tripType,
         destinations,
-        startDate: today,
-        endDate: today,
+        startDate: tripStart,
+        endDate: tripStart,
         image: country.image ?? undefined,
       }),
     );
@@ -258,7 +262,7 @@ const CountryDetail = () => {
       navigate('/preparing-trip', {
         state: {
           targetRoute: tripType.route,
-          today,
+          today: tripStart,
           country: {
             id: country.id,
             name: country.name,

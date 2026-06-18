@@ -55,7 +55,7 @@ import {
     resetTrip,
     useTripDispatch,
 } from "context/TripContext";
-import { now } from "utils";
+import { tomorrow } from "utils";
 import { ACTIVITY_KIND, TRIP_BASIC } from "constants";
 import type { Activity, Destination } from "types";
 
@@ -137,7 +137,11 @@ const CityDetail = () => {
         // can be filled in independently; the activity is skipped when
         // no home airport is available so we never ship a half-empty
         // segment with a placeholder depart.
-        const today = now();
+        // Default the trip to start TOMORROW. Seeding "today" meant a trip
+        // created late in the evening defaulted to a same-day trip, which is
+        // rarely what the user wants; they can still pick any date in the
+        // wizard's date step.
+        const tripStart = tomorrow();
         // Day-1 outbound flight auto-seed. Unlike the country-level seed
         // (which skips for same-country because there's no specific city
         // anchor), city-level seeding goes ahead even for same-country
@@ -170,9 +174,9 @@ const CityDetail = () => {
                         ...(args.arrivalAirportCode
                             ? { arrivalAirport: args.arrivalAirportCode }
                             : {}),
-                        departDate: today,
+                        departDate: tripStart,
                         departTime: '00:00',
-                        arrivalDate: today,
+                        arrivalDate: tripStart,
                         arrivalTime: '00:00',
                     },
                 ],
@@ -197,8 +201,8 @@ const CityDetail = () => {
                 // block in the multi-destination itinerary (DateBlock keys
                 // multi destinations by `startDate`). The reducer re-anchors
                 // this if the user later picks real dates in the wizard.
-                startDate: today,
-                endDate: today,
+                startDate: tripStart,
+                endDate: tripStart,
                 ...(args.arrivalAirportCode
                     ? {
                           flightInfo: {
@@ -211,7 +215,7 @@ const CityDetail = () => {
                           itinerary: [
                               {
                                   id: 0,
-                                  date: today,
+                                  date: tripStart,
                                   activities: seededActivities,
                               },
                           ],
@@ -227,8 +231,8 @@ const CityDetail = () => {
             basicInfo({
                 type: tripType,
                 destinations,
-                startDate: today,
-                endDate: today,
+                startDate: tripStart,
+                endDate: tripStart,
                 image: args.cityImage ?? undefined,
             })
         );

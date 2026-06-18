@@ -2852,7 +2852,15 @@
             "label": "Presupuesto total",
             "placeholder": "p. ej. 2000",
             "loadingPlaceholder": "Pidiéndole una estimación a datryp…",
-            "hint": "Usa 0 si prefieres no llevar control de los gastos."
+            "hint": "Usa 0 si prefieres no llevar control de los gastos.",
+            "badge": {
+                "loading": "Actualizando estimación…",
+                "loadingFor": "Actualizando estimación para {{destination}}…",
+                "suggested": "Presupuesto sugerido",
+                "suggestedFor": "Presupuesto sugerido para {{destination}}",
+                "average": "Promedio sugerido",
+                "averageFor": "Promedio sugerido para {{destination}}"
+            }
         },
         "organizers": {
             "title": "¿Quién organiza?",

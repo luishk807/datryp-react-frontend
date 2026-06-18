@@ -18,6 +18,12 @@ export const formatDate = (value: DateInput, format: string = DEFAULT_FORMAT): s
 /** Current date/time, formatted. Defaults to YYYY-MM-DD. */
 export const now = (format: string = DEFAULT_FORMAT): string => moment().format(format);
 
+/** Tomorrow's date, formatted. The default trip start: planning a trip for
+ *  the same day you create it rarely makes sense — and never when it's late
+ *  evening — so seeded trips start one day out and the user adjusts from there. */
+export const tomorrow = (format: string = DEFAULT_FORMAT): string =>
+    moment().add(1, 'day').format(format);
+
 /** Whether two values fall on the same calendar day. */
 export const isSameDay = (a: DateInput, b: DateInput): boolean =>
     moment(a ?? undefined).isSame(moment(b ?? undefined), 'day');

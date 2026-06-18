@@ -1,4 +1,5 @@
 import classnames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import type { BudgetSuggestResult } from 'api/budgetApi';
 import './index.scss';
@@ -28,6 +29,8 @@ const BudgetSuggestionBadge = ({
     destinationLabel = null,
     inputMatchesAi,
 }: BudgetSuggestionBadgeProps) => {
+    const { t } = useTranslation();
+
     if (isLoading) {
         return (
             <p className="trip-basics-budget-ai-badge is-loading">
@@ -36,8 +39,11 @@ const BudgetSuggestionBadge = ({
                     fontSize="small"
                 />
                 <span>
-                    Updating estimate
-                    {destinationLabel ? ` for ${destinationLabel}` : ''}…
+                    {destinationLabel
+                        ? t('createTrip.budget.badge.loadingFor', {
+                              destination: destinationLabel,
+                          })
+                        : t('createTrip.budget.badge.loading')}
                 </span>
             </p>
         );
@@ -47,6 +53,24 @@ const BudgetSuggestionBadge = ({
 
     const formatted = `$${suggestion.suggestedTotal.toLocaleString()}`;
     const note = suggestion.note ?? null;
+
+    // Prefix reads as the active AI value ("Suggested budget") when the input
+    // matches the AI, or a muted reference ("Average suggested") when the user
+    // typed their own. Each has a "for {destination}" variant so the whole
+    // localized phrase (incl. the word order around the destination) lives in
+    // the locale file, not concatenated here.
+    const prefix = destinationLabel
+        ? t(
+              inputMatchesAi
+                  ? 'createTrip.budget.badge.suggestedFor'
+                  : 'createTrip.budget.badge.averageFor',
+              { destination: destinationLabel },
+          )
+        : t(
+              inputMatchesAi
+                  ? 'createTrip.budget.badge.suggested'
+                  : 'createTrip.budget.badge.average',
+          );
 
     return (
         <p
@@ -59,9 +83,7 @@ const BudgetSuggestionBadge = ({
                 fontSize="small"
             />
             <span>
-                {inputMatchesAi ? 'Suggested budget' : 'Average suggested'}
-                {destinationLabel ? ` for ${destinationLabel}` : ''}:{' '}
-                {formatted}
+                {prefix}: {formatted}
                 {note ? ` — ${note}` : ''}
             </span>
         </p>

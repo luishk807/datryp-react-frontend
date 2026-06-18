@@ -51,7 +51,21 @@ const BudgetStep = ({ data, onChange }: BudgetStepProps) => {
                 typeof a.name === 'string'
                     ? /^(?:Flight|Train) to (.+)$/.exec(a.name)
                     : null;
-            if (m && m[1]) return m[1];
+            if (m && m[1]) {
+                const city = m[1].trim();
+                // The auto-seeded leg can read "Flight to {country}" (no
+                // specific city yet), which would make the label read
+                // "France, France" and tell the estimator the country name
+                // is a city. Treat a city that just echoes the country as
+                // "no city".
+                if (
+                    rootCountry?.name &&
+                    city.toLowerCase() === rootCountry.name.toLowerCase()
+                ) {
+                    return null;
+                }
+                return city;
+            }
         }
         return null;
     })();

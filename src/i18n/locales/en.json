@@ -2852,7 +2852,15 @@
             "label": "Total budget",
             "placeholder": "e.g. 2000",
             "loadingPlaceholder": "Asking datryp for an estimate…",
-            "hint": "Use 0 if you'd rather not track spend at all."
+            "hint": "Use 0 if you'd rather not track spend at all.",
+            "badge": {
+                "loading": "Updating estimate…",
+                "loadingFor": "Updating estimate for {{destination}}…",
+                "suggested": "Suggested budget",
+                "suggestedFor": "Suggested budget for {{destination}}",
+                "average": "Average suggested",
+                "averageFor": "Average suggested for {{destination}}"
+            }
         },
         "organizers": {
             "title": "Who's organizing?",
