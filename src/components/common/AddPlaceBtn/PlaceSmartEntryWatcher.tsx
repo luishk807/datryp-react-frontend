@@ -450,10 +450,18 @@ const PlaceSmartEntryWatcher = ({
         // rating result was trustworthy (see above). Without this
         // gate the bare-synthetic path inherits the wrong place's
         // lat/lng.
-        if (ratingTrustworthy && ratingData?.latitude != null && !merged.latitude) {
+        if (
+            ratingTrustworthy &&
+            ratingData?.latitude != null &&
+            merged.latitude == null
+        ) {
             merged = { ...merged, latitude: ratingData.latitude };
         }
-        if (ratingTrustworthy && ratingData?.longitude != null && !merged.longitude) {
+        if (
+            ratingTrustworthy &&
+            ratingData?.longitude != null &&
+            merged.longitude == null
+        ) {
             merged = { ...merged, longitude: ratingData.longitude };
         }
         // Pasted Google Maps links carry the place pin right in the URL.
