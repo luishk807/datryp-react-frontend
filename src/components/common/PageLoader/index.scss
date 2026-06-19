@@ -14,12 +14,44 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  background: #fff;
+  /* Smooth on-brand wash — soft green → cream → peach, derived from
+   * primaryGreen / primaryOrange. Visible but light enough to keep the
+   * logo animation readable. */
+  background: linear-gradient(160deg, #e4f4ec 0%, #fcf8f3 54%, #ffeede 100%);
   z-index: 50;
 }
 
-.page-loader-spinner.MuiCircularProgress-root {
-  color: theme('colors.primaryGreen');
+/* Gentle breathing pulse layered over the dotLottie's own motion — just
+ * enough to feel alive without competing with the logo animation. */
+@keyframes page-loader-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.page-loader-lottie {
+  /* ~1.5× the old 160px, capped to the viewport so it never overflows
+   * on small phones. */
+  width: min(240px, 55vw);
+  height: min(240px, 55vw);
+  animation: page-loader-pulse 1.8s ease-in-out infinite;
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* Respect users who opt out of motion — drop the pulse (the dotLottie
+ * itself can still play; the extra scaling is what we suppress here). */
+@media (prefers-reduced-motion: reduce) {
+  .page-loader-lottie {
+    animation: none;
+  }
 }
 
 .page-loader-label {
