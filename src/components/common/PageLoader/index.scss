@@ -46,6 +46,14 @@
   }
 }
 
+/* Smaller on phones — 240px dominates a narrow viewport. */
+@media (max-width: 640px) {
+  .page-loader-lottie {
+    width: 150px;
+    height: 150px;
+  }
+}
+
 /* Respect users who opt out of motion — drop the pulse (the dotLottie
  * itself can still play; the extra scaling is what we suppress here). */
 @media (prefers-reduced-motion: reduce) {
