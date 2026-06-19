@@ -42,18 +42,29 @@ export interface SmartEntryExtras {
 }
 
 /** Pull the country name out of a Google Places `formattedAddress`.
- *  Google formats addresses as "<street>, <city>, <state> <zip>,
- *  <country>" — the country is the last comma-separated segment. The
- *  watcher uses this so a foreign-country match (Mount Fuji in Japan
- *  while the trip is in Panama) reaches the parent with its real
- *  country instead of inheriting the trip's bias country. */
+ *  Google puts the country in the LAST comma segment for most locales
+ *  ("…, 75007 Paris, France") but FIRST for some — e.g. Japanese
+ *  addresses come back as "Japan, 〒100-0005 Tokyo, …, 内", where the
+ *  last segment is a stray particle and a naive last-segment grab leaks
+ *  an address fragment (or, worse, the whole address) into the country
+ *  field. So we pick the last PLAUSIBLE segment — a real word with no
+ *  digits (postal codes / street numbers have them) and ≥3 letters
+ *  (drops "内"-style fragments) — then fall back to the first. Returns
+ *  null when nothing qualifies, so the caller falls back to the trip's
+ *  bias country rather than persisting garbage. */
 const countryFromAddress = (
     address: string | null | undefined,
 ): string | null => {
     if (!address) return null;
     const parts = address.split(',').map((p) => p.trim()).filter(Boolean);
     if (!parts.length) return null;
-    return parts[parts.length - 1];
+    const isCountryLike = (s: string): boolean =>
+        !/\d/.test(s) && /\p{L}{3,}/u.test(s);
+    const last = parts[parts.length - 1];
+    if (isCountryLike(last)) return last;
+    const first = parts[0];
+    if (isCountryLike(first)) return first;
+    return null;
 };
 
 interface PlaceSmartEntryWatcherProps {
