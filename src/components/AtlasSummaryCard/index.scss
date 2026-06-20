@@ -1,0 +1,115 @@
+.atlas-summary-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(60, 181, 75, 0.28);
+    background: linear-gradient(
+        135deg,
+        rgba(60, 181, 75, 0.1),
+        rgba(60, 181, 75, 0.02)
+    );
+}
+
+.atlas-summary-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.atlas-summary-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.atlas-summary-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.atlas-summary-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+}
+
+.atlas-summary-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.atlas-summary-stat {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.atlas-summary-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: theme('colors.primaryGreen');
+}
+
+.atlas-summary-stat-label {
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+// Quiet green text link with a nudging arrow — secondary to the page's
+// primary "Plan new trip" CTA, so it doesn't compete inside the card.
+// Scoped under the card so it beats ButtonIcon's `.button-no-style` base
+// (which resets color/weight to `inherit` at equal specificity).
+.atlas-summary-card .atlas-summary-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    padding: 4px 2px;
+    color: theme('colors.primaryGreen');
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    .MuiSvgIcon-root {
+        font-size: 18px !important;
+        transition: transform 0.16s ease;
+    }
+
+    &:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-weight: 700;
+
+        .MuiSvgIcon-root {
+            transform: translateX(3px);
+        }
+    }
+}
+
+@media (max-width: 640px) {
+    .atlas-summary-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    // Equal-width stat cells so the four numbers line up in a tidy grid
+    // instead of bunching on one side.
+    .atlas-summary-stats {
+        gap: 12px;
+    }
+
+    .atlas-summary-stat {
+        flex: 1 0 40%;
+    }
+}

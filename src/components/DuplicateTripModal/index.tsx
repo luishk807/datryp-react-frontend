@@ -70,7 +70,7 @@ const DuplicateTripModal = forwardRef<ModalButtonHandle, DuplicateTripModalProps
                 ref={modalRef}
                 title="Duplicate this trip"
                 buttonProps={null}
-                containerClassName="duplicate-trip-modal"
+                containerClassName="duplicate-trip-modal modal-full-mobile"
             >
                 <div className="duplicate-trip-form">
                     <p className="duplicate-trip-intro">

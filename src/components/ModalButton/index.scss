@@ -104,4 +104,24 @@
   .modalCustom-title {
     font-size: 1.05rem;
   }
+
+  // Opt-in FULL-SCREEN sheet on mobile (full width AND height, edge-to-edge) —
+  // used by the trip-detail kebab modals (share & download / notifications /
+  // duplicate) so they take the whole page on phones instead of floating as a
+  // card. Mirrors the AddPlaceBtn full-sheet treatment.
+  .modalCustom.modal-full-mobile {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  // Let the content area fill the sheet (and scroll) so the last option isn't
+  // stranded at the top with empty space below it.
+  .modalCustom.modal-full-mobile .modalCustom-content {
+    flex: 1;
+  }
 }

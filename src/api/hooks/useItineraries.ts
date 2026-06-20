@@ -109,7 +109,7 @@ export interface ApiActivity {
     /** Structured place data set when the user added the activity via
      *  PlaceAutocomplete / PlaceSuggestions. Null on free-text
      *  activities ("dinner with mom"). Drives the Mapper trip-link
-     *  cascade — a visited-place pin on /my-map gets a "View trip"
+     *  cascade — a visited-place pin on /atlas-map gets a "View trip"
      *  CTA when a matching itinerary activity exists. */
     placeKey: string | null;
     placeCity: string | null;

@@ -7,28 +7,14 @@
   padding: 8px;
 }
 
-/* ---------- Header row ---------- */
-.trips-header {
+/* ---------- Toolbar row: filter tabs (left) + actions (right) ---------- */
+.trips-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   flex-wrap: wrap;
-}
-
-.trips-summary {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 0.95rem;
-}
-
-.trips-summary .trips-count {
-  color: theme('colors.primary');
-  font-weight: 700;
-}
-
-.trips-summary-item {
-  margin-left: 2px;
 }
 
 .trips-cta {
@@ -38,9 +24,31 @@
 }
 
 .trips-cta button.main-button {
-  padding: 10px 22px !important;
+  // Compact, content-width pill (no fixed min-width) — short "New Trip"
+  // label keeps the header light and lets the trip cards carry the page.
+  padding: 9px 20px !important;
   width: auto !important;
-  min-width: 180px;
+  // Softer, more premium primary CTA: full pill + a subtle green glow that
+  // lifts on hover, instead of a flat hard-edged block.
+  border-radius: 999px !important;
+  // `capitalizeType="none"` pulls in the `.none` class which resets color to
+  // `inherit` (→ black on the green pill); force white back.
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 16px rgba(60, 181, 75, 0.28);
+  transition: box-shadow 0.18s ease, transform 0.12s ease,
+    background 0.18s ease;
+
+  // Keep the green fill on hover (the base button inverts to a white
+  // background) — just lift + deepen the glow so it reads as one solid pill.
+  &:hover {
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    outline: none;
+    box-shadow: 0 9px 22px rgba(60, 181, 75, 0.38);
+    transform: translateY(-1px);
+  }
 }
 
 // "Select" button — secondary action that puts the page into
@@ -244,7 +252,7 @@
 // Hidden by default; the mobile breakpoint below flips it into a
 // fixed-position pill above the bottom nav (mirroring `.add-itinerary-pill`
 // on /place and /country detail). On desktop the same action lives
-// inline in the trips-header row as `.trips-plan-cta`.
+// inline in the trips-toolbar row as `.trips-plan-cta`.
 .trips-plan-cta-mobile {
   display: none;
 }
@@ -254,7 +262,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 22px;
+  // Fill the left side of the toolbar row so the actions sit at the right
+  // edge; the toolbar owns the bottom spacing.
+  flex: 1 1 auto;
 }
 
 .trips-filter {
@@ -345,25 +355,23 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
-  .trips-header {
+  .trips-toolbar {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  // Keep the `.trips-cta` row visible on mobile so the "Select"
-  // multi-select toggle still renders. The inline "Plan new trip"
-  // pill inside the same row is hidden below — the floating pill
+  // Keep the actions row above the filter strip on mobile so the "Select"
+  // multi-select toggle still renders at the top-right. The inline "Plan new
+  // trip" pill inside the same row is hidden below — the floating pill
   // (`.trips-plan-cta-mobile`) takes its place.
-  .trips-cta {
+  .trips-toolbar .trips-cta {
+    order: -1;
     justify-content: flex-end;
   }
   // Hide ONLY the inline "Plan new trip" pill on phones — Select
   // stays.
   .trips-cta .trips-plan-cta {
     display: none !important;
-  }
-  .trips-summary {
-    font-size: 0.9rem;
   }
 
   // Filters: horizontal scrolling chip strip, same affordance as
@@ -376,7 +384,9 @@
     overflow-y: hidden;
     gap: 8px;
     padding: 4px 8px;
-    margin: 0 -8px 18px;
+    // Bleed edge-to-edge (cancel the page padding); the toolbar owns the
+    // bottom spacing now that the strip sits inside it.
+    margin: 0 -8px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 

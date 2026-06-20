@@ -105,7 +105,7 @@ const Visited = () => {
                             {t('visited.heading')}
                         </h1>
                     </div>
-                    <Link to="/my-map" className="visited-page-map-link">
+                    <Link to="/atlas-map" className="visited-page-map-link">
                         <MapRoundedIcon className="visited-page-map-link-icon" />
                         <span>{t('visited.viewOnMap')}</span>
                     </Link>

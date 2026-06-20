@@ -54,6 +54,7 @@ import MyMapStatDropdown, {
 import MyMapLayersMenu from './MyMapLayersMenu';
 import { placeDetailUrl } from 'utils/placeUrl';
 import { haversineKm, KM_TO_MI } from 'utils/geo';
+import { WORLD_COUNTRY_COUNT } from 'constants';
 import {
     CONTINENT_LABEL,
     CONTINENT_TOTAL,
@@ -63,10 +64,6 @@ import {
 import './index.scss';
 
 type StatDropdownKey = 'countries' | 'cities' | 'places';
-
-/** Rough count of sovereign countries — the denominator for the
- *  "% of the world explored" stat. 195 = UN members + observers. */
-const WORLD_COUNTRY_COUNT = 195;
 
 /** Map a visited-country count to a playful, *honest* explorer tier.
  *  Deliberately NOT a "you've traveled more than X% of people" claim —
@@ -771,7 +768,7 @@ const MyMap = () => {
         );
 
         // Container size can grow AFTER init when the surrounding
-        // flex layout settles (e.g. hero-image-less /my-map page
+        // flex layout settles (e.g. hero-image-less /atlas-map page
         // expanding to fill remaining viewport). Mapbox locks the
         // canvas dimensions at construction time, so a post-init
         // resize leaves the canvas smaller than its wrap and the

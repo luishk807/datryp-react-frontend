@@ -1175,5 +1175,78 @@ $night-border: rgba(255, 255, 255, 0.1);
   .trip-checkup-list li {
     color: $night-text-2;
   }
+
+  // ---- Travel Atlas confirmation (TripAtlasConfirmation) ----
+  // The card keeps its green-tinted surface (reads on dark); only the title +
+  // subtitle ship light-mode dark text and would otherwise vanish.
+  .trip-atlas-confirmation-title {
+    color: $night-text;
+  }
+  .trip-atlas-confirmation-sub {
+    color: $night-text-2;
+  }
+
+  // ---- Trip recap note (TripNote) ----
+  // Saved view is just the text + a quiet edit button, both light-mode dark.
+  .trip-note-text {
+    color: $night-text;
+  }
+  .trip-note-edit {
+    color: $night-text-3;
+  }
+  // "Add a trip recap" dashed affordance.
+  .trip-note-add {
+    border-color: $night-border;
+    color: $night-text-2;
+  }
+  // The editor ships a near-white card — swap to a dark surface so it doesn't
+  // flash a bright slab over the dark itinerary. Keep the orange accent
+  // stripe (box-shadow) and badge — both read on dark.
+  .trip-note-card {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+  }
+  .trip-note-input {
+    background: $night-surface-2;
+    border-color: $night-border;
+    color: $night-text;
+
+    &::placeholder {
+      color: $night-text-3;
+    }
+  }
+  .trip-note-count {
+    color: $night-text-3;
+  }
+
+  // ---- Star rating input (StarInput, e.g. "Tap to rate") ----
+  // Empty stars are rgba(0,0,0,.2) — invisible on dark. Lighten just the
+  // outline; filled stars keep their gold (#f5a623), which reads on dark.
+  .star-input-star:not(.filled) {
+    color: rgba(255, 255, 255, 0.32);
+  }
+
+  // ---- Flight "Paid by" panel + chips ----
+  // The chip base is solid white and the panel / label / value use light-mode
+  // dark text. These overrides are intentionally NOT scoped to
+  // `.multrip-content-item` so they apply whichever path renders the flight
+  // header — the chips were reading as bright white pills otherwise.
+  .content-flight-paidby {
+    background: $night-surface !important;
+    border-color: $night-border !important;
+  }
+  .flight-paidby-label {
+    color: $night-text-2;
+  }
+  .flight-paidby-value {
+    color: $night-text;
+  }
+  .flight-paidby-chip {
+    background: $night-surface-2 !important;
+    border-color: $night-border !important;
+  }
+  .flight-paidby-chip-name {
+    color: $night-text;
+  }
 }
 

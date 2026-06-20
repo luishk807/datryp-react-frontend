@@ -1790,6 +1790,7 @@ const TripDetailHeader = ({
           <ModalButton
             ref={exportModalRef}
             title={t("tripDetail.export.title")}
+            containerClassName="modal-full-mobile"
             buttonProps={{
               type: "standard",
               className: "trip-detail-download-btn",

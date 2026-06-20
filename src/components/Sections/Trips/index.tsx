@@ -17,6 +17,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import classnames from 'classnames';
 import Layout from 'components/common/Layout/SubLayout';
 import TripBox, { type TripBoxData } from 'components/common/TripBox';
+import AtlasSummaryCard from 'components/AtlasSummaryCard';
 import ButtonCustom from 'components/common/FormFields/ButtonCustom';
 import Pagination from 'components/common/Pagination';
 import PlacesYouMightLove from 'components/PlacesYouMightLove';
@@ -221,34 +222,29 @@ export const Trips = () => {
     return (
         <Layout title={t('trips.title')}>
             <div className="trips-page">
-                <div className="trips-header">
-                    <div className="trips-summary">
-                        <span className="trips-count">
-                            {t('trips.summary.count', {
-                                count: allTrips.length,
-                            })}
-                        </span>
-                        {counts.planning > 0 && (
-                            <span className="trips-summary-item">
-                                · {t('trips.summary.planning', {
-                                    count: counts.planning,
+                {/* Travel Atlas summary — visited countries/cities/places +
+                    "% explored" with a jump into the full /atlas-map. Self-
+                    hides until the user has visited something. */}
+                <AtlasSummaryCard />
+                {/* Filter tabs (left) + actions (right) share one row on
+                    desktop and stack on mobile. The per-status counts live on
+                    the tabs, so there's no separate summary line. */}
+                <div className="trips-toolbar">
+                    <div className="trips-filters">
+                        {FILTERS.map((f) => (
+                            <button
+                                key={f.value}
+                                className={classnames('trips-filter', {
+                                    active: filter === f.value,
                                 })}
-                            </span>
-                        )}
-                        {counts.confirmed > 0 && (
-                            <span className="trips-summary-item">
-                                · {t('trips.summary.confirmed', {
-                                    count: counts.confirmed,
-                                })}
-                            </span>
-                        )}
-                        {counts.completed > 0 && (
-                            <span className="trips-summary-item">
-                                · {t('trips.summary.completed', {
-                                    count: counts.completed,
-                                })}
-                            </span>
-                        )}
+                                onClick={() => setFilter(f.value)}
+                            >
+                                {t(f.labelKey)}
+                                <span className="trips-filter-count">
+                                    {counts[f.value]}
+                                </span>
+                            </button>
+                        ))}
                     </div>
                     <div className="trips-cta">
                         {!selectMode && allTrips.length > 0 && (
@@ -263,7 +259,7 @@ export const Trips = () => {
                         )}
                         <ButtonCustom
                             type="standard"
-                            capitalizeType="uppercase"
+                            capitalizeType="none"
                             className="trips-plan-cta"
                             label={t('trips.actions.planNew')}
                             onClick={() => navigate('/')}
@@ -331,7 +327,7 @@ export const Trips = () => {
                     fixed-position above the bottom nav, mirroring the
                     `.add-itinerary-pill` style on /place and /country
                     detail. Hidden ≥641px via CSS; the same action
-                    lives inline in the trips-header on desktop. */}
+                    lives inline in the trips-toolbar on desktop. */}
                 <button
                     type="button"
                     className="trips-plan-cta-mobile"
@@ -340,23 +336,6 @@ export const Trips = () => {
                 >
                     {t('trips.actions.planNew')}
                 </button>
-
-                <div className="trips-filters">
-                    {FILTERS.map((f) => (
-                        <button
-                            key={f.value}
-                            className={classnames('trips-filter', {
-                                active: filter === f.value,
-                            })}
-                            onClick={() => setFilter(f.value)}
-                        >
-                            {t(f.labelKey)}
-                            <span className="trips-filter-count">
-                                {counts[f.value]}
-                            </span>
-                        </button>
-                    ))}
-                </div>
 
                 {isLoading ? (
                     <div className="trips-empty">

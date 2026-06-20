@@ -17,6 +17,12 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  *  keeps the UX consistent and makes a future bump a one-line change. */
 export const LIST_PAGE_SIZE = 20;
 
+/** Rough count of sovereign countries — the denominator for the Travel
+ *  Atlas "% of the world explored" stat. 195 = UN members + observers.
+ *  Shared by the Atlas page and the My Trips Atlas summary card so both
+ *  report the same percentage. */
+export const WORLD_COUNTRY_COUNT = 195;
+
 /** Hero images shown on the homepage when `/hero-images` is empty or
  *  unreachable. Self-hosted under `public/images/heroes/` so they're
  *  served by the SPA directly — no CDN dependency, no risk of the

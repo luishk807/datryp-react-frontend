@@ -36,7 +36,7 @@ interface HeaderProps {
     withSearch?: boolean;
     /** Optional page-title slot rendered immediately after the logo,
      *  separated by a vertical divider. Used by full-bleed pages
-     *  (e.g. /my-map) to surface the page name without spending a
+     *  (e.g. /atlas-map) to surface the page name without spending a
      *  whole row of vertical space on a page-header. */
     pageTitle?: ReactNode;
 }
@@ -250,7 +250,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 <MenuActionItem
                                     icon={<PublicRoundedIcon />}
                                     label={t('nav.travelAtlas')}
-                                    onClick={() => handleNavigate('/my-map')}
+                                    onClick={() => handleNavigate('/atlas-map')}
                                 />
                                 <MenuActionItem
                                     icon={<FavoriteRoundedIcon />}

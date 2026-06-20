@@ -825,16 +825,9 @@
         "title": "Mis viajes",
         "loading": "Cargando viajes…",
         "paginationAria": "Paginación de viajes",
-        "summary": {
-            "count_one": "{{count}} viaje",
-            "count_other": "{{count}} viajes",
-            "planning": "{{count}} en planificación",
-            "confirmed": "{{count}} confirmados",
-            "completed": "{{count}} completados"
-        },
         "actions": {
             "select": "Seleccionar",
-            "planNew": "+ Planificar un viaje",
+            "planNew": "Nuevo viaje",
             "planNewAria": "Planificar un viaje"
         },
         "filters": {
@@ -876,6 +869,17 @@
             "deleted_other": "{{count}} viajes eliminados.",
             "partialDelete": "Se eliminaron {{ok}} de {{total}} viajes. No se pudieron eliminar {{failed}}: inténtalo de nuevo."
         }
+    },
+    "atlasSummary": {
+        "title": "Atlas de viajes",
+        "countries_one": "país",
+        "countries_other": "países",
+        "cities_one": "ciudad",
+        "cities_other": "ciudades",
+        "places_one": "lugar",
+        "places_other": "lugares",
+        "explored": "explorado",
+        "open": "Abrir Atlas"
     },
     "visited": {
         "title": "Lugares visitados",

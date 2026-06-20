@@ -374,7 +374,7 @@ const BottomNav = () => {
                         <AccountItem
                             icon={<PublicRoundedIcon />}
                             label={t('nav.travelAtlas')}
-                            onClick={() => handleNavigate('/my-map')}
+                            onClick={() => handleNavigate('/atlas-map')}
                         />
                         <AccountItem
                             icon={<FavoriteRoundedIcon />}

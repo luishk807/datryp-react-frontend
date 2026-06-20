@@ -10,7 +10,7 @@ interface SubLayoutProps {
     title?: string;
     titleAction?: ReactNode;
     /** When true, skip the constrained grid + title bar and render
-     *  children directly in `<main>`. Used by the /my-map page so the
+     *  children directly in `<main>`. Used by the /atlas-map page so the
      *  Mapbox canvas can span the full viewport width. The footer is
      *  the same minimal one-line strip every other route uses; it's
      *  hidden on phones for full-bleed pages so the map gets every
@@ -30,7 +30,7 @@ const Layout = ({
                 {/* `title` doubles as the in-header page-title slot on
                     full-bleed pages so the chrome row stays a single
                     line and the page-body can claim 100% vertical
-                    space (e.g. the /my-map globe). */}
+                    space (e.g. the /atlas-map globe). */}
                 <Header
                     withSearch
                     pageTitle={

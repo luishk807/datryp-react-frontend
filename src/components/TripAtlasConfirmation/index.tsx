@@ -54,7 +54,7 @@ const TripAtlasConfirmation = ({ data }: TripAtlasConfirmationProps) => {
                 type={BUTTON_VARIANT.STANDARD_SMALL}
                 capitalizeType="none"
                 label={t("tripDetail.atlas.viewAtlas")}
-                onClick={() => navigate("/my-map")}
+                onClick={() => navigate("/atlas-map")}
                 className="trip-atlas-confirmation-cta"
             />
         </div>

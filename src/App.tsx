@@ -189,7 +189,7 @@ function App() {
                         <Visited />
                     </Gated>
                 }/>
-                <Route path='/my-map' element={
+                <Route path='/atlas-map' element={
                     <Gated
                         titleKey="auth.routeGate.map.title"
                         subtitleKey="auth.routeGate.map.subtitle"
@@ -197,6 +197,9 @@ function App() {
                         <MyMap />
                     </Gated>
                 }/>
+                {/* Back-compat: the Atlas used to live at /my-map. Redirect
+                    so old bookmarks / shared links keep working. */}
+                <Route path='/my-map' element={<Navigate to='/atlas-map' replace />} />
                 <Route path='/saved' element={
                     <Gated
                         titleKey="auth.routeGate.saved.title"

@@ -1240,16 +1240,9 @@
         "title": "My Trips",
         "loading": "Loading trips…",
         "paginationAria": "Trips pagination",
-        "summary": {
-            "count_one": "{{count}} trip",
-            "count_other": "{{count}} trips",
-            "planning": "{{count}} planning",
-            "confirmed": "{{count}} confirmed",
-            "completed": "{{count}} completed"
-        },
         "actions": {
             "select": "Select",
-            "planNew": "+ Plan new trip",
+            "planNew": "New Trip",
             "planNewAria": "Plan new trip"
         },
         "filters": {
@@ -1291,6 +1284,17 @@
             "deleted_other": "{{count}} trips deleted.",
             "partialDelete": "Deleted {{ok}} of {{total}} trips. {{failed}} couldn't be removed — try again."
         }
+    },
+    "atlasSummary": {
+        "title": "Travel Atlas",
+        "countries_one": "country",
+        "countries_other": "countries",
+        "cities_one": "city",
+        "cities_other": "cities",
+        "places_one": "place",
+        "places_other": "places",
+        "explored": "explored",
+        "open": "Open Atlas"
     },
     "visited": {
         "title": "Visited Places",

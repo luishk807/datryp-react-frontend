@@ -89,6 +89,7 @@ const TripNotificationPrefModal = forwardRef<
             ref={modalRef}
             title={t('tripDetail.notifPrefs.title')}
             buttonProps={null}
+            containerClassName="modal-full-mobile"
         >
             <div className="trip-notif-pref">
                 <p className="trip-notif-pref-intro">
