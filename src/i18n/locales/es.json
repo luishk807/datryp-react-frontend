@@ -872,13 +872,12 @@
     },
     "atlasSummary": {
         "title": "Atlas de viajes",
-        "countries_one": "país",
-        "countries_other": "países",
-        "cities_one": "ciudad",
-        "cities_other": "ciudades",
-        "places_one": "lugar",
-        "places_other": "lugares",
-        "explored": "explorado",
+        "countCountries_one": "{{count}} país",
+        "countCountries_other": "{{count}} países",
+        "countCities_one": "{{count}} ciudad",
+        "countCities_other": "{{count}} ciudades",
+        "countPlaces_one": "{{count}} lugar",
+        "countPlaces_other": "{{count}} lugares",
         "open": "Abrir Atlas"
     },
     "visited": {

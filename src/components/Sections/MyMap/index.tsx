@@ -54,6 +54,7 @@ import MyMapStatDropdown, {
 import MyMapLayersMenu from './MyMapLayersMenu';
 import { placeDetailUrl } from 'utils/placeUrl';
 import { haversineKm, KM_TO_MI } from 'utils/geo';
+import { explorerLevel } from 'utils/explorerLevel';
 import { WORLD_COUNTRY_COUNT } from 'constants';
 import {
     CONTINENT_LABEL,
@@ -64,28 +65,6 @@ import {
 import './index.scss';
 
 type StatDropdownKey = 'countries' | 'cities' | 'places';
-
-/** Map a visited-country count to a playful, *honest* explorer tier.
- *  Deliberately NOT a "you've traveled more than X% of people" claim —
- *  we have no real population distribution to back that up. Levels are
- *  self-referential (your own count), so they motivate without lying. */
-type ExplorerLevelKey =
-    | 'worldCitizen'
-    | 'globeTrekker'
-    | 'worldExplorer'
-    | 'frequentTraveler'
-    | 'beginnerExplorer'
-    | 'newExplorer';
-const explorerLevel = (
-    n: number
-): { emoji: string; levelKey: ExplorerLevelKey } => {
-    if (n >= 61) return { emoji: '🏆', levelKey: 'worldCitizen' };
-    if (n >= 31) return { emoji: '✈️', levelKey: 'globeTrekker' };
-    if (n >= 16) return { emoji: '🌍', levelKey: 'worldExplorer' };
-    if (n >= 6) return { emoji: '🧳', levelKey: 'frequentTraveler' };
-    if (n >= 1) return { emoji: '🌱', levelKey: 'beginnerExplorer' };
-    return { emoji: '🧭', levelKey: 'newExplorer' };
-};
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
 

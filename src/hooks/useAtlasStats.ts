@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useVisitedCountries } from 'api/hooks/useVisitedCountries';
 import { useVisitedCities } from 'api/hooks/useVisitedCities';
 import { useVisitedPlaces } from 'api/hooks/useVisitedPlaces';
+import { explorerLevel, type ExplorerLevel } from 'utils/explorerLevel';
 import { WORLD_COUNTRY_COUNT } from 'constants';
 
 export interface AtlasStats {
@@ -11,6 +12,8 @@ export interface AtlasStats {
     places: number;
     /** Share of the world's sovereign countries visited, 0–100. */
     worldPct: number;
+    /** Playful explorer tier derived from the country count. */
+    level: ExplorerLevel;
     isLoading: boolean;
 }
 
@@ -46,6 +49,7 @@ export const useAtlasStats = (): AtlasStats => {
             cities: cities.length,
             places: places.length,
             worldPct: (codes.size / WORLD_COUNTRY_COUNT) * 100,
+            level: explorerLevel(codes.size),
             isLoading: loadingCountries || loadingCities || loadingPlaces,
         };
     }, [
