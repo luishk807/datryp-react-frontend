@@ -6,6 +6,7 @@ import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import StarHalfRoundedIcon from '@mui/icons-material/StarHalfRounded';
 import StarOutlineRoundedIcon from '@mui/icons-material/StarOutlineRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import ShareButton from 'components/ShareButton';
 import type { PlaceRecommendation } from 'types';
 
@@ -129,19 +130,30 @@ const PlaceResultCard = ({ place, query, index }: PlaceResultCardProps) => {
                     {t('search.card.bestTime', { time: place.bestTimeToVisit })}
                 </p>
                 <p className="place-result-card-description">{place.description}</p>
-                <div className="place-result-card-actions" onClick={stopProp}>
-                    <ShareButton
-                        title={place.name}
-                        subtitle={`${place.city} · ${place.country}`}
-                        url={sharePlaceUrl}
-                        emailPayload={{
-                            name: place.name,
-                            city: place.city,
-                            country: place.country,
-                            description: place.description,
-                            image_url: place.imageUrl,
-                        }}
-                    />
+                {/* Footer pins to the bottom of the flex body. The CTA is a
+                    decorative cue (the whole card is already the button) — it
+                    tells the user the card opens a destination page, the next
+                    step in the discovery funnel. Share keeps its own
+                    stop-propagation wrapper so it doesn't trigger navigation. */}
+                <div className="place-result-card-footer">
+                    <span className="place-result-card-cta" aria-hidden="true">
+                        {t('search.card.view')}
+                        <ArrowForwardRoundedIcon className="place-result-card-cta-icon" />
+                    </span>
+                    <div className="place-result-card-actions" onClick={stopProp}>
+                        <ShareButton
+                            title={place.name}
+                            subtitle={`${place.city} · ${place.country}`}
+                            url={sharePlaceUrl}
+                            emailPayload={{
+                                name: place.name,
+                                city: place.city,
+                                country: place.country,
+                                description: place.description,
+                                image_url: place.imageUrl,
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
         </article>

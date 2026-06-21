@@ -54,6 +54,10 @@ interface PlaceRecommendationsResponseRaw {
     query: string;
     cached: boolean;
     items: PlaceItemRaw[];
+    // Results-page extras — only present on the discovery search path (and on
+    // cache rows written after the field shipped). See PlaceRecommendationsResult.
+    summary?: string | null;
+    related_searches?: string[] | null;
 }
 
 const toPlace = (raw: PlaceItemRaw): PlaceRecommendation => ({
@@ -146,6 +150,8 @@ export const fetchPlaceRecommendations = async (
         query: body.query,
         cached: body.cached,
         items: body.items.map(toPlace),
+        summary: body.summary ?? undefined,
+        relatedSearches: body.related_searches ?? undefined,
     };
 };
 

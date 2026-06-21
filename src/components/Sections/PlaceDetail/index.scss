@@ -61,6 +61,27 @@
   margin: 0;
 }
 
+/* "Matches your search: …" — only shown when the user arrived from an
+ * interest/description search. Understated chip so it reminds without
+ * competing with the title. */
+.place-detail-search-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(246, 137, 31, 0.1);
+  color: theme('colors.primaryOrange');
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.place-detail-search-match-icon {
+  font-size: 1rem !important;
+}
+
 .place-detail-visited-on {
   display: inline-flex;
   align-items: center;

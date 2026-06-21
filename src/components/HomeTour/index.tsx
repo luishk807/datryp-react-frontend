@@ -1,6 +1,6 @@
 /**
  * Manual-only walkthrough of the homepage's three ways to start a
- * trip: Search by Place, Search by Description, and the "Plan my trip
+ * trip: Search by Place, Search by Interest, and the "Plan my trip
  * for me" AI builder. Unlike the create-trip and trip-detail tours,
  * this one never auto-runs — it's launched on demand from the
  * "How Datryp works" help link under the hero search box, which flips

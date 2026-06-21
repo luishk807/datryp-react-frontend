@@ -151,12 +151,40 @@
   text-overflow: ellipsis;
 }
 
-.place-result-card-actions {
+.place-result-card-footer {
   display: flex;
-  justify-content: flex-end;
-  /* `auto` pushes this row to the bottom of the flex-column body, so the
-   * share button is always bottom-right no matter how short/long the
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  /* `auto` pushes the footer to the bottom of the flex-column body, so the
+   * CTA + share row sits at the bottom no matter how short/long the
    * description above it is. */
   margin-top: auto;
   padding-top: 10px;
+}
+
+.place-result-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Decorative "next step" cue — the whole card is the button, so this is
+ * aria-hidden and just signals that clicking opens the destination page.
+ * The arrow nudges right on card hover to reinforce the affordance. */
+.place-result-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+}
+
+.place-result-card-cta-icon {
+  font-size: 1rem !important;
+  transition: transform 0.18s ease;
+}
+
+.place-result-card:hover .place-result-card-cta-icon {
+  transform: translateX(3px);
 }

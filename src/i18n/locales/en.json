@@ -202,9 +202,9 @@
         "modeAria": "Search mode",
         "searchByPrefix": "Search by ",
         "place": "Place",
-        "description": "Description",
+        "description": "Interest",
         "byPlaceAria": "Search by place",
-        "byDescriptionAria": "Search by description",
+        "byDescriptionAria": "Search by interest",
         "or": "or",
         "aiTagline": "Not sure where to go?",
         "aiCta": "Plan my trip for me",
@@ -567,8 +567,8 @@
                     "content": "Know where you're headed? Pick <strong>Search by Place</strong>, then type a country or city. We'll open its guide so you can start a trip there."
                 },
                 "describe": {
-                    "title": "Search by Description",
-                    "content": "Not tied to one spot? Switch to <strong>Search by Description</strong> and describe the vibe — \"warm beaches in December,\" \"cheap food cities\" — and we'll suggest matching places."
+                    "title": "Search by Interest",
+                    "content": "Not tied to one spot? Switch to <strong>Search by Interest</strong> and describe the vibe — \"warm beaches in December,\" \"cheap food cities\" — and we'll suggest matching places."
                 },
                 "searchbar": {
                     "title": "One search box",
@@ -613,7 +613,9 @@
             "quotaBody": "Free searches reset at midnight UTC. Or upgrade to Pro for unlimited Advanced Search and unlimited saved trips. <link>See plan comparison</link>.",
             "loadError": "Could not load recommendations: {{message}}",
             "unknownError": "Unknown error",
-            "noMatches": "No matches for “{{query}}”. Try a different search."
+            "noMatches": "No matches for “{{query}}”. Try a different search.",
+            "related": "Related searches",
+            "relatedAria": "Related searches you might try"
         },
         "history": {
             "title": "Your recent searches",
@@ -627,7 +629,8 @@
         "card": {
             "openAria": "Open {{name}}",
             "ratingAria": "Rating {{rating}} out of 5",
-            "bestTime": "Best: {{time}}"
+            "bestTime": "Best: {{time}}",
+            "view": "View Destination"
         }
     },
     "detail": {
@@ -883,11 +886,11 @@
             },
             "itinerary": {
                 "add": "Add to itinerary",
-                "startNew": "Start a new trip",
+                "startNew": "Plan a Trip Here",
                 "adding": "Adding…",
                 "loading": "Loading…",
                 "addAria": "Add {{name}} to your trip",
-                "startAria": "Start a new trip with {{name}}",
+                "startAria": "Plan a trip to {{name}}",
                 "startedToast": "Started a new trip with {{name}}",
                 "tripMissing": "This trip isn't in your list — you may not have access, or it was deleted.",
                 "countryUnresolved": "Couldn't resolve \"{{name}}\" in our country catalog.",
@@ -944,6 +947,7 @@
             "notFoundTitle": "Place not found",
             "notFoundDesc": "No place at position {{position}} for \"{{query}}\".",
             "backToResults": "Back to results",
+            "matchesSearch": "Matches your search: {{query}}",
             "visitedOn": "Visited on {{date}}",
             "visitedAria": "You have visited this place",
             "viewOnGoogleMaps": "View on Google Maps",

@@ -131,16 +131,50 @@ const SearchResults = () => {
             );
         }
         return (
-            <div className="search-results-grid">
-                {data.items.map((place, idx) => (
-                    <PlaceResultCard
-                        key={`${place.name}-${idx}`}
-                        place={place}
-                        query={query}
-                        index={idx}
-                    />
-                ))}
-            </div>
+            <>
+                {/* AI overview of the matches — frames the result set ("ancient
+                    ruins span South America, the Mediterranean…") so the page
+                    reads as intelligent discovery, not just a card dump. Only
+                    present on the interest-search path. */}
+                {data.summary && (
+                    <p className="search-results-summary">{data.summary}</p>
+                )}
+                <div className="search-results-grid">
+                    {data.items.map((place, idx) => (
+                        <PlaceResultCard
+                            key={`${place.name}-${idx}`}
+                            place={place}
+                            query={query}
+                            index={idx}
+                        />
+                    ))}
+                </div>
+                {/* Related searches keep the page from being a dead end — each
+                    chip re-runs the discovery search for an adjacent interest.
+                    Self-hides when the backend didn't return any. */}
+                {data.relatedSearches && data.relatedSearches.length > 0 && (
+                    <nav
+                        className="search-results-related"
+                        aria-label={t('search.results.relatedAria')}
+                    >
+                        <h2 className="search-results-related-heading">
+                            {t('search.results.related')}
+                        </h2>
+                        <ul className="search-results-related-list">
+                            {data.relatedSearches.map((term) => (
+                                <li key={term}>
+                                    <Link
+                                        to={`/search?q=${encodeURIComponent(term)}`}
+                                        className="search-results-related-chip"
+                                    >
+                                        {term}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                )}
+            </>
         );
     };
 

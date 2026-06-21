@@ -202,9 +202,9 @@
         "modeAria": "Modo de búsqueda",
         "searchByPrefix": "Buscar por ",
         "place": "Lugar",
-        "description": "Descripción",
+        "description": "Interés",
         "byPlaceAria": "Buscar por lugar",
-        "byDescriptionAria": "Buscar por descripción",
+        "byDescriptionAria": "Buscar por interés",
         "or": "o",
         "aiTagline": "¿No sabes a dónde ir?",
         "aiCta": "Planifica mi viaje por mí",
@@ -567,8 +567,8 @@
                     "content": "¿Ya sabes a dónde vas? Elige <strong>Buscar por lugar</strong> y escribe un país o una ciudad. Abriremos su guía para que empieces un viaje ahí."
                 },
                 "describe": {
-                    "title": "Buscar por descripción",
-                    "content": "¿No te casas con un solo lugar? Cambia a <strong>Buscar por descripción</strong> y describe la vibra — \"playas cálidas en diciembre\", \"ciudades con comida barata\" — y te sugeriremos lugares que encajen."
+                    "title": "Buscar por interés",
+                    "content": "¿No te casas con un solo lugar? Cambia a <strong>Buscar por interés</strong> y describe la vibra — \"playas cálidas en diciembre\", \"ciudades con comida barata\" — y te sugeriremos lugares que encajen."
                 },
                 "searchbar": {
                     "title": "Una sola caja de búsqueda",
@@ -613,7 +613,9 @@
             "quotaBody": "Las búsquedas gratis se reinician a medianoche UTC. O mejora a Pro para tener Búsqueda Avanzada ilimitada y viajes guardados sin límite. <link>Ver comparación de planes</link>.",
             "loadError": "No se pudieron cargar las recomendaciones: {{message}}",
             "unknownError": "Error desconocido",
-            "noMatches": "No hay resultados para “{{query}}”. Prueba con otra búsqueda."
+            "noMatches": "No hay resultados para “{{query}}”. Prueba con otra búsqueda.",
+            "related": "Búsquedas relacionadas",
+            "relatedAria": "Búsquedas relacionadas que puedes probar"
         },
         "history": {
             "title": "Tus búsquedas recientes",
@@ -627,7 +629,8 @@
         "card": {
             "openAria": "Abrir {{name}}",
             "ratingAria": "Calificación {{rating}} de 5",
-            "bestTime": "Ideal: {{time}}"
+            "bestTime": "Ideal: {{time}}",
+            "view": "Ver destino"
         }
     },
     "membership": {
@@ -1878,11 +1881,11 @@
             },
             "itinerary": {
                 "add": "Agregar al itinerario",
-                "startNew": "Empezar un nuevo viaje",
+                "startNew": "Planear un viaje aquí",
                 "adding": "Agregando…",
                 "loading": "Cargando…",
                 "addAria": "Agregar {{name}} a tu viaje",
-                "startAria": "Empezar un nuevo viaje con {{name}}",
+                "startAria": "Planear un viaje a {{name}}",
                 "startedToast": "Empezaste un nuevo viaje con {{name}}",
                 "tripMissing": "Este viaje no está en tu lista — puede que no tengas acceso o que se haya eliminado.",
                 "countryUnresolved": "No se pudo encontrar \"{{name}}\" en nuestro catálogo de países.",
@@ -1939,6 +1942,7 @@
             "notFoundTitle": "Lugar no encontrado",
             "notFoundDesc": "No hay ningún lugar en la posición {{position}} para \"{{query}}\".",
             "backToResults": "Volver a los resultados",
+            "matchesSearch": "Coincide con tu búsqueda: {{query}}",
             "visitedOn": "Visitado el {{date}}",
             "visitedAria": "Has visitado este lugar",
             "viewOnGoogleMaps": "Ver en Google Maps",

@@ -9,6 +9,7 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import HikingRoundedIcon from "@mui/icons-material/HikingRounded";
 import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import Layout from "components/common/Layout/SubLayout";
 import ErrorPage from "components/common/ErrorPage";
@@ -147,6 +148,19 @@ const PlaceDetail = () => {
   const backUrl = `/search?q=${encodeURIComponent(query)}`;
 
   const place = data?.items[effectiveIndex];
+
+  // Descriptive-search badge: when the user reached this page from an
+  // interest search ("ancient ruins") rather than a direct place link, echo
+  // what they searched so they remember why this place surfaced — reinforcing
+  // the interest → discovery funnel. Suppressed in go-direct mode and when the
+  // query is essentially the place name (a literal place search), where the
+  // echo would be redundant.
+  const showSearchMatch = (() => {
+    if (isDirect || !query) return false;
+    const q = query.trim().toLowerCase();
+    const n = (place?.name ?? "").trim().toLowerCase();
+    return q.length > 0 && q !== n && !n.includes(q) && !q.includes(n);
+  })();
 
   // Hero-image fallback. When the place row arrives with no `imageUrl`
   // (older cached recommendation, transient miss), resolve one via the
@@ -405,6 +419,15 @@ const PlaceDetail = () => {
           <p className="place-detail-location">
             {place.city} · {place.country}
           </p>
+          {showSearchMatch && (
+            <p className="place-detail-search-match" role="status">
+              <SearchRoundedIcon
+                className="place-detail-search-match-icon"
+                fontSize="small"
+              />
+              {t('detail.place.matchesSearch', { query })}
+            </p>
+          )}
           {/* Desktop-only slot — pairs with the mobile slot inside
               the top section above. CSS-hidden below 720px so the
               chip appears once per viewport. */}
