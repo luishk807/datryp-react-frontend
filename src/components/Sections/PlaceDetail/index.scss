@@ -471,6 +471,22 @@ a.place-detail-google-rating {
     > span {
       display: inline;
     }
+
+    // The base pill's :hover / :active set `transform` for a vertical
+    // lift, which CLOBBERS the `translateX(-50%)` centering above —
+    // `transform` doesn't compose across rules, last declaration wins.
+    // On touch the first tap applies :hover, the button loses its -50%
+    // offset and jumps right by half its width, and iOS swallows that
+    // tap as a hover (forcing a second tap to actually click). Re-assert
+    // the centering in both states so the CTA never moves and the first
+    // tap registers as a click.
+    &:hover:not(.is-disabled) {
+      transform: translateX(-50%) translateY(-1px);
+    }
+
+    &:active {
+      transform: translateX(-50%);
+    }
   }
 
   .place-detail-toolbar-actions .add-itinerary-pill .add-itinerary-icon {

@@ -169,6 +169,20 @@
     box-shadow: 0 10px 26px rgba(60, 181, 75, 0.4),
       0 3px 8px rgba(0, 0, 0, 0.16);
     border: none;
+
+    // The base CTA's :hover / :active set `transform` for a vertical lift,
+    // which CLOBBERS the `translateX(-50%)` centering above (transform
+    // doesn't compose — last rule wins). On touch the first tap applies
+    // :hover, the button jumps right by half its width, and iOS swallows
+    // that tap as a hover (forcing a second tap). Re-assert the centering
+    // in both states so the CTA never moves and the first tap clicks.
+    &:hover {
+      transform: translateX(-50%) translateY(-1px);
+    }
+
+    &:active {
+      transform: translateX(-50%);
+    }
   }
 }
 
