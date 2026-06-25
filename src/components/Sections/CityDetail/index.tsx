@@ -464,23 +464,68 @@ const CityDetail = () => {
                         className="city-detail-hero"
                     />
 
-                    {/* Mobile-only slot: chip sits right below the hero
-                        image, BEFORE the weather/currency/safety stack.
-                        CSS-hidden on desktop so the desktop layout
-                        keeps the chip in the header below the title.
-                        TanStack caches the hook so this + the header
-                        copy share a single network request. */}
-                    <div className="city-detail-friends-slot is-mobile-only">
-                        <FriendsVisitedBadge
-                            kind="city"
-                            placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
-                            reviewKey={getPlaceKey(
-                                city.name,
-                                city.name,
-                                city.country,
+                    <header className="city-detail-header">
+                        <div className="city-detail-name-row">
+                            <h1 className="city-detail-name">{city.name}</h1>
+                            <CostBadge level={details.costLevel} />
+                        </div>
+                        <PlaceMetaLine
+                            countryCode={city.countryCode}
+                            countryName={city.country}
+                        >
+                            <span className="place-meta-seg">
+                                {city.country} ({city.countryCode})
+                            </span>
+                            {details.travelBasics?.language && (
+                                <span className="place-meta-seg">
+                                    <strong>
+                                        {t('detail.country.language')}
+                                    </strong>
+                                    {details.travelBasics.language}
+                                </span>
                             )}
+                        </PlaceMetaLine>
+                        {/* Visited-by-friends chip (self-hides at count 0). */}
+                        <div className="city-detail-friends-slot">
+                            <FriendsVisitedBadge
+                                kind="city"
+                                placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
+                                reviewKey={getPlaceKey(
+                                    city.name,
+                                    city.name,
+                                    city.country,
+                                )}
+                            />
+                        </div>
+                        <p className="city-detail-highlight">
+                            {details.cityHighlight}
+                        </p>
+                        {(details.touristRating ?? 0) > 0 && (
+                            <div className="city-detail-meta">
+                                <Tooltip
+                                    title={t('detail.common.overallRating')}
+                                    arrow
+                                >
+                                    <span
+                                        className="city-detail-meta-icon"
+                                        role="img"
+                                        aria-label={t(
+                                            'detail.common.overallRating',
+                                        )}
+                                    >
+                                        <PublicRoundedIcon />
+                                    </span>
+                                </Tooltip>
+                                <Stars rating={details.touristRating ?? 0} />
+                            </div>
+                        )}
+                        <ReviewSummary
+                            placeName={city.name}
+                            placeCity={city.name}
+                            placeCountry={city.country}
+                            targetId="city-reviews"
                         />
-                    </div>
+                    </header>
 
                     <aside className="city-detail-side">
                         <WeatherSection
@@ -498,70 +543,6 @@ const CityDetail = () => {
                         />
                     </aside>
                 </div>
-
-                <header className="city-detail-header">
-                    <div className="city-detail-name-row">
-                        <h1 className="city-detail-name">{city.name}</h1>
-                        <CostBadge level={details.costLevel} />
-                    </div>
-                    <PlaceMetaLine
-                        countryCode={city.countryCode}
-                        countryName={city.country}
-                    >
-                        <span className="place-meta-seg">
-                            {city.country} ({city.countryCode})
-                        </span>
-                        {details.travelBasics?.language && (
-                            <span className="place-meta-seg">
-                                <strong>{t('detail.country.language')}</strong>
-                                {details.travelBasics.language}
-                            </span>
-                        )}
-                    </PlaceMetaLine>
-                    {/* Desktop-only slot — pairs with the mobile slot
-                        inside `.city-detail-top` above. CSS-hidden
-                        below 720px so we don't render two chips at
-                        the same time. */}
-                    <div className="city-detail-friends-slot is-desktop-only">
-                        <FriendsVisitedBadge
-                            kind="city"
-                            placeKey={`${city.name.trim().toLowerCase().replace(/\s+/g, ' ')}--${city.countryCode.trim().toLowerCase()}`}
-                            reviewKey={getPlaceKey(
-                                city.name,
-                                city.name,
-                                city.country,
-                            )}
-                        />
-                    </div>
-                    <p className="city-detail-highlight">
-                        {details.cityHighlight}
-                    </p>
-                    {(details.touristRating ?? 0) > 0 && (
-                        <div className="city-detail-meta">
-                            <Tooltip
-                                title={t('detail.common.overallRating')}
-                                arrow
-                            >
-                                <span
-                                    className="city-detail-meta-icon"
-                                    role="img"
-                                    aria-label={t(
-                                        'detail.common.overallRating',
-                                    )}
-                                >
-                                    <PublicRoundedIcon />
-                                </span>
-                            </Tooltip>
-                            <Stars rating={details.touristRating ?? 0} />
-                        </div>
-                    )}
-                    <ReviewSummary
-                        placeName={city.name}
-                        placeCity={city.name}
-                        placeCountry={city.country}
-                        targetId="city-reviews"
-                    />
-                </header>
 
                 <div className="city-detail-content">
                     <div className="city-detail-content-main">

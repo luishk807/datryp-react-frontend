@@ -381,18 +381,115 @@ const PlaceDetail = () => {
               .join(" ")}
           />
 
-          {/* Mobile-only slot: chip sits directly under the hero,
-              BEFORE the weather/currency/safety stack. CSS-hidden on
-              desktop where the header copy below renders instead. */}
-          <div className="place-detail-friends-slot is-mobile-only">
-            <FriendsVisitedBadge
-              kind="place"
-              placeKey={getPlaceKey(place.name, place.city, place.country)}
-            />
-          </div>
-
           {/* Right column on desktop / stacked under hero on mobile.
                         Weather, Currency, and Safety stack vertically. */}
+          <header className="place-detail-header">
+            <div className="place-detail-name-row">
+              <h1 className="place-detail-name">{place.name}</h1>
+              <CostBadge level={detailsQuery.data?.details.costLevel} />
+            </div>
+            <PlaceMetaLine
+              countryCode={place.countryCode}
+              countryName={place.country}
+            >
+              <span className="place-meta-seg">
+                {place.city} · {place.country}
+              </span>
+              {detailsQuery.data?.details.travelBasics?.language && (
+                <span className="place-meta-seg">
+                  <strong>{t('detail.country.language')}</strong>
+                  {detailsQuery.data.details.travelBasics.language}
+                </span>
+              )}
+            </PlaceMetaLine>
+            {/* Why this place is worth a visit — also the "why it matches"
+                context when the user arrived via an interest search. Uses
+                the recommender's per-place blurb. */}
+            {place.description && (
+              <p className="place-detail-highlight">{place.description}</p>
+            )}
+            {showSearchMatch && (
+              <p className="place-detail-search-match" role="status">
+                <SearchRoundedIcon
+                  className="place-detail-search-match-icon"
+                  fontSize="small"
+                />
+                {t('detail.place.matchesSearch', { query })}
+              </p>
+            )}
+            {/* Visited-by-friends chip (self-hides at count 0). */}
+            <div className="place-detail-friends-slot">
+              <FriendsVisitedBadge
+                kind="place"
+                placeKey={getPlaceKey(place.name, place.city, place.country)}
+              />
+            </div>
+            {visitedRecord && (
+              <p
+                className="place-detail-visited-on"
+                role="status"
+                aria-label={t('detail.place.visitedAria')}
+              >
+                <CheckCircleRoundedIcon
+                  className="place-detail-visited-on-icon"
+                  fontSize="small"
+                />
+                {t('detail.place.visitedOn', {
+                  date: formatDate(visitedRecord.visitedAt, "MMM D, YYYY"),
+                })}
+              </p>
+            )}
+            <div className="place-detail-meta">
+              <Tooltip title={t('detail.common.overallRating')} arrow>
+                <span
+                  className="place-detail-meta-icon"
+                  role="img"
+                  aria-label={t('detail.common.overallRating')}
+                >
+                  <PublicRoundedIcon />
+                </span>
+              </Tooltip>
+              <Stars rating={place.rating} />
+            </div>
+            {googleRating?.rating != null && (
+              <Tooltip title={t('detail.place.viewOnGoogleMaps')} arrow>
+                <a
+                  className="place-detail-meta place-detail-google-rating"
+                  href={googleRating.googleMapsUri ?? '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={
+                    googleRating.userRatingCount
+                      ? t('detail.place.googleRatingAriaCount', {
+                          rating: googleRating.rating.toFixed(1),
+                          n: googleRating.userRatingCount.toLocaleString(),
+                        })
+                      : t('detail.place.googleRatingAria', {
+                          rating: googleRating.rating.toFixed(1),
+                        })
+                  }
+                >
+                  <span className="place-detail-meta-icon place-detail-google-icon">
+                    <GoogleGlyph size={18} />
+                  </span>
+                  <Stars rating={googleRating.rating} />
+                  {googleRating.userRatingCount != null &&
+                    googleRating.userRatingCount > 0 && (
+                      <span className="place-detail-google-count">
+                        ({googleRating.userRatingCount.toLocaleString()})
+                      </span>
+                    )}
+                </a>
+              </Tooltip>
+            )}
+            <ReviewSummary
+              placeName={place.name}
+              placeCity={place.city}
+              placeCountry={place.country}
+              targetId="reviews"
+            />
+          </header>
+
           <aside className="place-detail-side">
             <WeatherSection
               weather={detailsQuery.data?.details.weather}
@@ -411,109 +508,6 @@ const PlaceDetail = () => {
             />
           </aside>
         </div>
-
-        <header className="place-detail-header">
-          <div className="place-detail-name-row">
-            <h1 className="place-detail-name">{place.name}</h1>
-            <CostBadge level={detailsQuery.data?.details.costLevel} />
-          </div>
-          <PlaceMetaLine
-            countryCode={place.countryCode}
-            countryName={place.country}
-          >
-            <span className="place-meta-seg">
-              {place.city} · {place.country}
-            </span>
-            {detailsQuery.data?.details.travelBasics?.language && (
-              <span className="place-meta-seg">
-                <strong>{t('detail.country.language')}</strong>
-                {detailsQuery.data.details.travelBasics.language}
-              </span>
-            )}
-          </PlaceMetaLine>
-          {showSearchMatch && (
-            <p className="place-detail-search-match" role="status">
-              <SearchRoundedIcon
-                className="place-detail-search-match-icon"
-                fontSize="small"
-              />
-              {t('detail.place.matchesSearch', { query })}
-            </p>
-          )}
-          {/* Desktop-only slot — pairs with the mobile slot inside
-              the top section above. CSS-hidden below 720px so the
-              chip appears once per viewport. */}
-          <div className="place-detail-friends-slot is-desktop-only">
-            <FriendsVisitedBadge
-              kind="place"
-              placeKey={getPlaceKey(place.name, place.city, place.country)}
-            />
-          </div>
-          {visitedRecord && (
-            <p
-              className="place-detail-visited-on"
-              role="status"
-              aria-label={t('detail.place.visitedAria')}
-            >
-              <CheckCircleRoundedIcon
-                className="place-detail-visited-on-icon"
-                fontSize="small"
-              />
-              {t('detail.place.visitedOn', {
-                date: formatDate(visitedRecord.visitedAt, "MMM D, YYYY"),
-              })}
-            </p>
-          )}
-          <div className="place-detail-meta">
-            <Tooltip title={t('detail.common.overallRating')} arrow>
-              <span
-                className="place-detail-meta-icon"
-                role="img"
-                aria-label={t('detail.common.overallRating')}
-              >
-                <PublicRoundedIcon />
-              </span>
-            </Tooltip>
-            <Stars rating={place.rating} />
-          </div>
-          {googleRating?.rating != null && (
-            <Tooltip title={t('detail.place.viewOnGoogleMaps')} arrow>
-              <a
-                className="place-detail-meta place-detail-google-rating"
-                href={googleRating.googleMapsUri ?? '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={
-                  googleRating.userRatingCount
-                    ? t('detail.place.googleRatingAriaCount', {
-                        rating: googleRating.rating.toFixed(1),
-                        n: googleRating.userRatingCount.toLocaleString(),
-                      })
-                    : t('detail.place.googleRatingAria', {
-                        rating: googleRating.rating.toFixed(1),
-                      })
-                }
-              >
-                <span className="place-detail-meta-icon place-detail-google-icon">
-                  <GoogleGlyph size={18} />
-                </span>
-                <Stars rating={googleRating.rating} />
-                {googleRating.userRatingCount != null &&
-                  googleRating.userRatingCount > 0 && (
-                    <span className="place-detail-google-count">
-                      ({googleRating.userRatingCount.toLocaleString()})
-                    </span>
-                  )}
-              </a>
-            </Tooltip>
-          )}
-          <ReviewSummary
-            placeName={place.name}
-            placeCity={place.city}
-            placeCountry={place.country}
-            targetId="reviews"
-          />
-        </header>
 
         {/* Description on the left; travel + highlights + when-to-visit
                     stack on the right. Single column on mobile. */}

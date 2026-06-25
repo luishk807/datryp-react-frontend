@@ -335,7 +335,7 @@
 @media (min-width: 640px) and (max-width: 1199px) {
   .country-detail-top {
     grid-template-columns: 1fr !important;
-    grid-template-areas: 'hero' 'side' !important;
+    grid-template-areas: 'hero' 'header' 'side' !important;
   }
   .country-detail-top > .place-hero {
     grid-area: hero;
@@ -352,16 +352,32 @@
     flex-direction: row !important;
     gap: 12px;
   }
+  .country-detail-top > .country-detail-header {
+    grid-area: header;
+  }
 }
 
 @media (min-width: 1200px) {
   .country-detail-top {
     grid-template-columns: 7fr 3fr;
+    // Hero + side share the top row; the header spans full width below.
+    // It lives INSIDE this grid so it can sit directly under the hero on
+    // mobile (see the phone breakpoint).
+    grid-template-areas:
+      'hero side'
+      'header header';
     align-items: stretch;
   }
-  .country-detail-top .place-hero {
+  .country-detail-top > .place-hero {
+    grid-area: hero;
     height: 100%;
     aspect-ratio: auto;
+  }
+  .country-detail-top > .country-detail-side {
+    grid-area: side;
+  }
+  .country-detail-top > .country-detail-header {
+    grid-area: header;
   }
 }
 
@@ -372,13 +388,10 @@
   gap: 6px;
 }
 
-// Friends-visited chip slots — paired show/hide. Desktop default
-// hides the mobile slot; the 720px media query inverts it.
-.country-detail-friends-slot.is-mobile-only {
+// Single friends-visited chip wrapper, now inside the header. The badge
+// self-hides at count 0 (returns null), so collapse the empty slot.
+.country-detail-friends-slot:empty {
   display: none;
-}
-.country-detail-friends-slot.is-desktop-only {
-  display: block;
 }
 
 .country-detail-name-row {
@@ -446,21 +459,11 @@
 
 @media (max-width: 720px) {
   .country-detail-header {
-    gap: 2px;
+    gap: 4px;
     padding: 0;
-    margin-top: 14px;
-  }
-  // Mobile chip lives in `.is-mobile-only` slot inside the top
-  // section (directly under the hero). The desktop slot collapses
-  // out of the layout entirely so we don't ship double chips.
-  .country-detail-friends-slot.is-desktop-only {
-    display: none;
-  }
-  .country-detail-friends-slot.is-mobile-only {
-    display: block;
-    // Pull the chip up against the hero, cancelling the parent
-    // grid gap that would float it in dead space below the image.
-    margin: -10px 0 6px;
+    // Header sits inside the grid right under the hero now; grid gap
+    // handles spacing.
+    margin-top: 0;
   }
   .country-detail-name {
     font-size: 0.95rem;

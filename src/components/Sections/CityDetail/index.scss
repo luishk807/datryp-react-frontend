@@ -340,7 +340,7 @@
      *  query block entirely. That's why the iPad tablet layout
      *  was silently failing earlier. Do NOT split !important
      *  across the multi-line value. */
-    grid-template-areas: 'hero' 'side' !important;
+    grid-template-areas: 'hero' 'header' 'side' !important;
   }
   /* Belt-and-suspenders: explicit width: 100% + !important so the
    *  hero takes the full container width on iPad portrait. Dropped
@@ -367,16 +367,32 @@
     flex-direction: row !important;
     gap: 12px;
   }
+  .city-detail-top > .city-detail-header {
+    grid-area: header;
+  }
 }
 
 @media (min-width: 1200px) {
   .city-detail-top {
     grid-template-columns: 7fr 3fr;
+    // Hero + side share the top row; the header spans the full width
+    // underneath (it lives INSIDE this grid now so it can sit directly
+    // under the hero on mobile — see the phone breakpoint).
+    grid-template-areas:
+      'hero side'
+      'header header';
     align-items: stretch;
   }
-  .city-detail-top .place-hero {
+  .city-detail-top > .place-hero {
+    grid-area: hero;
     height: 100%;
     aspect-ratio: auto;
+  }
+  .city-detail-top > .city-detail-side {
+    grid-area: side;
+  }
+  .city-detail-top > .city-detail-header {
+    grid-area: header;
   }
 }
 
@@ -386,13 +402,11 @@
   gap: 6px;
 }
 
-// Friends-visited chip slots — paired show/hide. Desktop default
-// hides the mobile slot; the 720px media query below inverts it.
-.city-detail-friends-slot.is-mobile-only {
+// Single friends-visited chip wrapper, now inside the header. The badge
+// self-hides at count 0 (returns null), so collapse the empty slot to
+// avoid a stray gap.
+.city-detail-friends-slot:empty {
   display: none;
-}
-.city-detail-friends-slot.is-desktop-only {
-  display: block;
 }
 
 // Mirrors `.place-detail-meta` on PlaceDetail — small green-globe icon
@@ -457,24 +471,11 @@
 
 @media (max-width: 720px) {
   .city-detail-header {
-    gap: 2px;
+    gap: 4px;
     padding: 0;
-    margin-top: 14px;
-  }
-  // Mobile: the chip is rendered TWICE in the JSX — one inside
-  // `.city-detail-top` directly under the hero (`.is-mobile-only`),
-  // one inside the header (`.is-desktop-only`). CSS picks the right
-  // copy per viewport. Hidden state collapses the wrong slot out of
-  // the layout entirely so we don't ship double chips.
-  .city-detail-friends-slot.is-desktop-only {
-    display: none;
-  }
-  .city-detail-friends-slot.is-mobile-only {
-    display: block;
-    // Negative top margin cancels the parent grid `gap: 16px` so the
-    // chip sits flush below the hero image instead of floating in
-    // the gap between hero and the side-cards stack.
-    margin: -10px 0 6px;
+    // Header now sits inside the grid right under the hero; the grid gap
+    // handles spacing, so no extra top margin.
+    margin-top: 0;
   }
   .city-detail-name {
     font-size: 0.95rem;

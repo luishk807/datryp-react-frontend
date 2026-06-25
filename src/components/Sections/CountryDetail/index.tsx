@@ -455,20 +455,68 @@ const CountryDetail = () => {
             className="country-detail-hero"
           />
 
-          {/* Mobile-only slot: chip lands directly under the hero
-              before the side cards stack. Desktop slot lives inside
-              the header below. */}
-          <div className="country-detail-friends-slot is-mobile-only">
-            <FriendsVisitedBadge
-              kind="country"
-              placeKey={country.code ?? ""}
-              reviewKey={getPlaceKey(
-                country.name,
-                country.name,
-                country.name,
+          <header className="country-detail-header">
+            <div className="country-detail-name-row">
+              <h1 className="country-detail-name">{country.name}</h1>
+              <CostBadge level={details.costLevel} />
+            </div>
+            {country.local && country.local !== country.name && (
+              <p className="country-detail-local">{country.local}</p>
+            )}
+            <PlaceMetaLine
+              countryCode={country.code}
+              countryName={country.name}
+            >
+              <span className="place-meta-seg">
+                <strong>{t('detail.country.capital')}</strong>
+                {details.capitalCity}
+              </span>
+              {/* `travelBasics` arrives with the facts slice — render the
+                  Language line only once it lands so a cold first paint
+                  (prose only) doesn't dereference an undefined object. */}
+              {details.travelBasics?.language && (
+                <span className="place-meta-seg">
+                  <strong>{t('detail.country.language')}</strong>
+                  {details.travelBasics.language}
+                </span>
               )}
+            </PlaceMetaLine>
+            <p className="country-detail-highlight">
+              {details.countryHighlight}
+            </p>
+            {/* Visited-by-friends chip (self-hides at count 0). */}
+            <div className="country-detail-friends-slot">
+              <FriendsVisitedBadge
+                kind="country"
+                placeKey={country.code ?? ""}
+                reviewKey={getPlaceKey(
+                  country.name,
+                  country.name,
+                  country.name,
+                )}
+              />
+            </div>
+            {(details.touristRating ?? 0) > 0 && (
+              <div className="country-detail-rating">
+                <Tooltip title={t('detail.common.overallRating')} arrow>
+                  <span
+                    className="country-detail-rating-icon"
+                    role="img"
+                    aria-label={t('detail.common.overallRating')}
+                  >
+                    <PublicRoundedIcon />
+                  </span>
+                </Tooltip>
+                <Stars rating={details.touristRating ?? 0} />
+              </div>
+            )}
+            <ReviewSummary
+              placeName={country.name}
+              placeCity={country.name}
+              placeCountry={country.name}
+              targetId="country-reviews"
             />
-          </div>
+          </header>
 
           <aside className="country-detail-side">
             <PopularitySection
@@ -483,64 +531,6 @@ const CountryDetail = () => {
             <SafetySection safety={details.safety} isError={false} />
           </aside>
         </div>
-
-        <header className="country-detail-header">
-          <div className="country-detail-name-row">
-            <h1 className="country-detail-name">{country.name}</h1>
-            <CostBadge level={details.costLevel} />
-          </div>
-          {country.local && country.local !== country.name && (
-            <p className="country-detail-local">{country.local}</p>
-          )}
-          {/* Desktop-only slot — pairs with the mobile slot above. */}
-          <div className="country-detail-friends-slot is-desktop-only">
-            <FriendsVisitedBadge
-              kind="country"
-              placeKey={country.code ?? ""}
-              reviewKey={getPlaceKey(
-                country.name,
-                country.name,
-                country.name,
-              )}
-            />
-          </div>
-          <PlaceMetaLine countryCode={country.code} countryName={country.name}>
-            <span className="place-meta-seg">
-              <strong>{t('detail.country.capital')}</strong>
-              {details.capitalCity}
-            </span>
-            {/* `travelBasics` arrives with the facts slice — render the
-                Language line only once it lands so a cold first paint (prose
-                only) doesn't dereference an undefined object. */}
-            {details.travelBasics?.language && (
-              <span className="place-meta-seg">
-                <strong>{t('detail.country.language')}</strong>
-                {details.travelBasics.language}
-              </span>
-            )}
-          </PlaceMetaLine>
-          <p className="country-detail-highlight">{details.countryHighlight}</p>
-          {(details.touristRating ?? 0) > 0 && (
-            <div className="country-detail-rating">
-              <Tooltip title={t('detail.common.overallRating')} arrow>
-                <span
-                  className="country-detail-rating-icon"
-                  role="img"
-                  aria-label={t('detail.common.overallRating')}
-                >
-                  <PublicRoundedIcon />
-                </span>
-              </Tooltip>
-              <Stars rating={details.touristRating ?? 0} />
-            </div>
-          )}
-          <ReviewSummary
-            placeName={country.name}
-            placeCity={country.name}
-            placeCountry={country.name}
-            targetId="country-reviews"
-          />
-        </header>
 
         <div className="country-detail-content">
           <div className="country-detail-content-main">

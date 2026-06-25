@@ -31,14 +31,26 @@
   gap: 6px;
 }
 
-// Friends-visited chip slots — paired show/hide. Desktop default
-// hides the mobile slot; the 720px media query inverts it so the
-// chip lands under the hero on mobile.
-.place-detail-friends-slot.is-mobile-only {
+// Single friends-visited chip wrapper, now inside the header. The badge
+// self-hides at count 0 (returns null), so collapse the empty slot.
+.place-detail-friends-slot:empty {
   display: none;
 }
-.place-detail-friends-slot.is-desktop-only {
-  display: block;
+
+// Highlight tagline as a soft callout (orange left-rule + tint) — shared
+// treatment with `.city-detail-highlight` / `.country-detail-highlight`.
+// On the place page it carries the recommender's per-place "why it's worth
+// visiting" blurb (also the "why it matches" context for interest searches).
+.place-detail-highlight {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid theme('colors.primaryOrange');
+  border-radius: 0 10px 10px 0;
+  background: rgba(246, 137, 31, 0.08);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: color-mix(in srgb, theme('colors.primaryOrange') 72%, black);
 }
 
 .place-detail-name-row {
@@ -268,6 +280,7 @@ a.place-detail-google-rating {
     grid-template-columns: 1fr;
     grid-template-areas:
       'hero'
+      'header'
       'side';
   }
   .place-detail-top > .place-hero {
@@ -287,18 +300,34 @@ a.place-detail-google-rating {
     flex-direction: row !important;
     gap: 12px;
   }
+  .place-detail-top > .place-detail-header {
+    grid-area: header;
+  }
 }
 
 @media (min-width: 1200px) {
   .place-detail-top {
     grid-template-columns: 7fr 3fr;
+    // Hero + side share the top row; the header spans full width below.
+    // It lives INSIDE this grid so it can sit directly under the hero on
+    // mobile (see the phone breakpoint).
+    grid-template-areas:
+      'hero side'
+      'header header';
     align-items: stretch;
   }
   /* Stretch the hero to match the aside (Weather + Currency + Safety) on
    * desktop. Drop the aspect-ratio so it doesn't fight `height: 100%`. */
-  .place-detail-top .place-hero {
+  .place-detail-top > .place-hero {
+    grid-area: hero;
     height: 100%;
     aspect-ratio: auto;
+  }
+  .place-detail-top > .place-detail-side {
+    grid-area: side;
+  }
+  .place-detail-top > .place-detail-header {
+    grid-area: header;
   }
 }
 
@@ -532,22 +561,11 @@ a.place-detail-google-rating {
 
 @media (max-width: 720px) {
   .place-detail-header {
-    gap: 2px;
+    gap: 4px;
     padding: 0;
-    margin-top: 14px;
-  }
-  // Mobile chip lives in `.is-mobile-only` slot inside the top
-  // section (directly under the hero). The desktop slot collapses
-  // out of the layout entirely so we don't ship double chips.
-  .place-detail-friends-slot.is-desktop-only {
-    display: none;
-  }
-  .place-detail-friends-slot.is-mobile-only {
-    display: block;
-    // Negative top margin pulls the chip flush against the hero,
-    // cancelling the parent grid gap that would otherwise float it
-    // in dead space between the image and the side-cards stack.
-    margin: -10px 0 6px;
+    // Header sits inside the grid right under the hero now; grid gap
+    // handles spacing.
+    margin-top: 0;
   }
   .place-detail-name {
     font-size: 0.95rem;
