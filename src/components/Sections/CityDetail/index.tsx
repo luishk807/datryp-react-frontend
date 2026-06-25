@@ -44,6 +44,7 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
+import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
 import { useNearestAirport } from "api/hooks/useHomeDeparture";
@@ -481,6 +482,17 @@ const CityDetail = () => {
                         />
                     </div>
 
+                    {/* Mobile-only: the highlight tagline as a caption
+                        directly under the hero photo. The header copy
+                        below is hidden on mobile (CSS), so this isn't a
+                        duplicate on screen — same dual-slot pattern as
+                        the friends chip above. */}
+                    {details.cityHighlight && (
+                        <p className="city-detail-highlight is-mobile-only">
+                            {details.cityHighlight}
+                        </p>
+                    )}
+
                     <aside className="city-detail-side">
                         <WeatherSection
                             weather={details.weather}
@@ -503,9 +515,20 @@ const CityDetail = () => {
                         <h1 className="city-detail-name">{city.name}</h1>
                         <CostBadge level={details.costLevel} />
                     </div>
-                    <p className="city-detail-location">
-                        {city.country} ({city.countryCode})
-                    </p>
+                    <PlaceMetaLine
+                        countryCode={city.countryCode}
+                        countryName={city.country}
+                    >
+                        <span className="place-meta-seg">
+                            {city.country} ({city.countryCode})
+                        </span>
+                        {details.travelBasics?.language && (
+                            <span className="place-meta-seg">
+                                <strong>{t('detail.country.language')}</strong>
+                                {details.travelBasics.language}
+                            </span>
+                        )}
+                    </PlaceMetaLine>
                     {/* Desktop-only slot — pairs with the mobile slot
                         inside `.city-detail-top` above. CSS-hidden
                         below 720px so we don't render two chips at
@@ -521,7 +544,7 @@ const CityDetail = () => {
                             )}
                         />
                     </div>
-                    <p className="city-detail-highlight">
+                    <p className="city-detail-highlight is-desktop-only">
                         {details.cityHighlight}
                     </p>
                     {(details.touristRating ?? 0) > 0 && (

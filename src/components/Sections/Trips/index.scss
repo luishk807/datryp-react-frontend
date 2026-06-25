@@ -354,7 +354,11 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 640px) {
+// Mobile chrome breakpoint = 1024px (matches BottomNav + the rest of the
+// app, per CLAUDE.md — iPad portrait/landscape count as "mobile" here).
+// Keeping this at 640px left the 641–1024px band in a broken desktop/mobile
+// hybrid: clipped filter chips, no floating CTA, and a squeezed toolbar.
+@media (max-width: 1024px) {
   .trips-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -374,30 +378,26 @@
     display: none !important;
   }
 
-  // Filters: horizontal scrolling chip strip, same affordance as
-  // the account-page mobile nav. Cancel the page padding so chips
-  // run edge-to-edge and the scroll feels like a real strip rather
-  // than a constrained row.
+  // Filters wrap to as many rows as needed so every status chip stays on
+  // screen without a horizontal-scroll gesture. With only four short chips
+  // the old scroll strip clipped the last one ("Completed") on phones and
+  // was finicky to swipe; wrapping keeps them all reachable.
   .trips-filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
+    flex-wrap: wrap;
     gap: 8px;
-    padding: 4px 8px;
-    // Bleed edge-to-edge (cancel the page padding); the toolbar owns the
-    // bottom spacing now that the strip sits inside it.
-    margin: 0 -8px;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
   }
 
   .trips-filter {
     flex: 0 0 auto;
     white-space: nowrap;
+  }
+
+  // Touch devices have no hover, so surface the Select control's accent
+  // up-front — otherwise the white ghost pill reads as decoration and the
+  // entry point into multi-select / delete gets missed.
+  .trips-select-toggle {
+    border-color: rgba(246, 137, 31, 0.45);
+    color: theme('colors.primaryOrange');
   }
 
   // Floating "+ Plan new trip" pill — fixed above the bottom nav so

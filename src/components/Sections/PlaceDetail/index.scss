@@ -55,11 +55,8 @@
   margin: 0;
 }
 
-.place-detail-location {
-  font-size: 1rem;
-  color: rgba(0, 0, 0, 0.55);
-  margin: 0;
-}
+/* The location line is now the shared `PlaceMetaLine` (flag + city · country
+ * + language); see components/PlaceDetail/PlaceMetaLine. */
 
 /* "Matches your search: …" — only shown when the user arrived from an
  * interest/description search. Understated chip so it reminds without
@@ -559,8 +556,5 @@ a.place-detail-google-rating {
   }
   .place-detail-name-row {
     gap: 6px;
-  }
-  .place-detail-location {
-    font-size: 0.8rem;
   }
 }

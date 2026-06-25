@@ -409,20 +409,8 @@
   font-weight: 500;
 }
 
-.country-detail-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin: 6px 0 0;
-  font-size: 0.9rem;
-  color: rgba(0, 0, 0, 0.65);
-
-  strong {
-    color: theme('colors.primary');
-    font-weight: 600;
-    margin-right: 4px;
-  }
-}
+/* The capital/language line is now the shared `PlaceMetaLine` (flag +
+ * capital + language); see components/PlaceDetail/PlaceMetaLine. */
 
 // AI-curated 0-5 tourist rating — mirrors `.city-detail-meta` /
 // `.place-detail-meta`. A green globe icon followed by the Stars

@@ -1,0 +1,34 @@
+// Shared "where it is" line for the city / country / place detail headers.
+// Flag first, then a wrapping row of meta segments (geo context + Language).
+.place-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  color: rgba(0, 0, 0, 0.62);
+
+  // Nudge the flag down a hair so it sits optically centered with the text.
+  .country-flag {
+    margin-top: 1px;
+  }
+}
+
+.place-meta-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  strong {
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.78);
+  }
+}
+
+@media (max-width: 720px) {
+  .place-meta-line {
+    font-size: 0.85rem;
+    gap: 5px 12px;
+  }
+}

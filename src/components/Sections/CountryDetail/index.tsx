@@ -45,6 +45,7 @@ import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
 import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
+import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useCountryDetailsProgressive } from "api/hooks/useCountryDetails";
 import { useCountries } from "api/hooks/useCountries";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
@@ -504,21 +505,21 @@ const CountryDetail = () => {
             />
           </div>
           <p className="country-detail-highlight">{details.countryHighlight}</p>
-          <p className="country-detail-meta">
-            <span>
-              <strong>{t('detail.country.capital')}</strong>{" "}
+          <PlaceMetaLine countryCode={country.code} countryName={country.name}>
+            <span className="place-meta-seg">
+              <strong>{t('detail.country.capital')}</strong>
               {details.capitalCity}
             </span>
             {/* `travelBasics` arrives with the facts slice — render the
                 Language line only once it lands so a cold first paint (prose
                 only) doesn't dereference an undefined object. */}
             {details.travelBasics?.language && (
-              <span>
-                <strong>{t('detail.country.language')}</strong>{" "}
+              <span className="place-meta-seg">
+                <strong>{t('detail.country.language')}</strong>
                 {details.travelBasics.language}
               </span>
             )}
-          </p>
+          </PlaceMetaLine>
           {(details.touristRating ?? 0) > 0 && (
             <div className="country-detail-rating">
               <Tooltip title={t('detail.common.overallRating')} arrow>

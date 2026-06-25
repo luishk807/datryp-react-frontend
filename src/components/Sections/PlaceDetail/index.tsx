@@ -49,6 +49,7 @@ import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
+import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useSearchPlaces } from "api/hooks/useSearchPlaces";
 import { usePlaceDirect } from "api/hooks/usePlaceDirect";
 import { usePlaceDetailsProgressive } from "api/hooks/usePlaceDetails";
@@ -416,9 +417,20 @@ const PlaceDetail = () => {
             <h1 className="place-detail-name">{place.name}</h1>
             <CostBadge level={detailsQuery.data?.details.costLevel} />
           </div>
-          <p className="place-detail-location">
-            {place.city} · {place.country}
-          </p>
+          <PlaceMetaLine
+            countryCode={place.countryCode}
+            countryName={place.country}
+          >
+            <span className="place-meta-seg">
+              {place.city} · {place.country}
+            </span>
+            {detailsQuery.data?.details.travelBasics?.language && (
+              <span className="place-meta-seg">
+                <strong>{t('detail.country.language')}</strong>
+                {detailsQuery.data.details.travelBasics.language}
+              </span>
+            )}
+          </PlaceMetaLine>
           {showSearchMatch && (
             <p className="place-detail-search-match" role="status">
               <SearchRoundedIcon

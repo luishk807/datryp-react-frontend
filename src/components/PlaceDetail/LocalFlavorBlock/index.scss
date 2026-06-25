@@ -134,19 +134,31 @@
 .local-flavor-mustdo {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+  gap: 12px;
+  padding-top: 16px;
+  margin-top: 4px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
 }
 
+// Was a muted gray label that read as an afterthought next to the green
+// nightlife/liquor/souvenir headings above. Aligned to the same
+// green-text/orange-icon language and given a soft star badge so it reads
+// as a deliberate "save the best for last" section marker.
 .local-flavor-mustdo-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
+  gap: 8px;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.55);
+  color: theme('colors.primaryGreen');
+
+  .local-flavor-row-icon {
+    background: rgba(246, 137, 31, 0.12);
+    border-radius: 7px;
+    padding: 4px;
+    box-sizing: content-box;
+  }
 }
 
