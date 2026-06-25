@@ -459,11 +459,11 @@
 
 @media (max-width: 720px) {
   .country-detail-header {
-    gap: 4px;
+    gap: 6px;
     padding: 0;
-    // Header sits inside the grid right under the hero now; grid gap
-    // handles spacing.
-    margin-top: 0;
+    // Breathing room above (from the hero) and below (before the
+    // popularity/weather/safety cards), on top of the grid gap.
+    margin: 8px 0 14px;
   }
   .country-detail-name {
     font-size: 0.95rem;

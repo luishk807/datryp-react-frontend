@@ -471,11 +471,11 @@
 
 @media (max-width: 720px) {
   .city-detail-header {
-    gap: 4px;
+    gap: 6px;
     padding: 0;
-    // Header now sits inside the grid right under the hero; the grid gap
-    // handles spacing, so no extra top margin.
-    margin-top: 0;
+    // Breathing room above (from the hero) and below (before the
+    // weather/currency/safety cards), on top of the grid gap.
+    margin: 8px 0 14px;
   }
   .city-detail-name {
     font-size: 0.95rem;
