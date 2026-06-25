@@ -402,11 +402,19 @@
   font-style: italic;
 }
 
+// Shared callout treatment with `.city-detail-highlight` (orange left-rule +
+// tint), and now positioned AFTER the capital/language meta line so the
+// city and country headers read in the same order.
 .country-detail-highlight {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid theme('colors.primaryOrange');
+  border-radius: 0 10px 10px 0;
+  background: rgba(246, 137, 31, 0.08);
   font-size: 1rem;
-  color: theme('colors.primaryOrange');
-  margin: 4px 0 0;
+  line-height: 1.5;
   font-weight: 500;
+  color: color-mix(in srgb, theme('colors.primaryOrange') 72%, black);
 }
 
 /* The capital/language line is now the shared `PlaceMetaLine` (flag +

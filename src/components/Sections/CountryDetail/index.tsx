@@ -504,7 +504,6 @@ const CountryDetail = () => {
               )}
             />
           </div>
-          <p className="country-detail-highlight">{details.countryHighlight}</p>
           <PlaceMetaLine countryCode={country.code} countryName={country.name}>
             <span className="place-meta-seg">
               <strong>{t('detail.country.capital')}</strong>
@@ -520,6 +519,7 @@ const CountryDetail = () => {
               </span>
             )}
           </PlaceMetaLine>
+          <p className="country-detail-highlight">{details.countryHighlight}</p>
           {(details.touristRating ?? 0) > 0 && (
             <div className="country-detail-rating">
               <Tooltip title={t('detail.common.overallRating')} arrow>

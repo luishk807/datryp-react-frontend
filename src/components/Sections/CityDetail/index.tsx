@@ -533,7 +533,7 @@ const CityDetail = () => {
                             )}
                         />
                     </div>
-                    <p className="city-detail-highlight is-desktop-only">
+                    <p className="city-detail-highlight">
                         {details.cityHighlight}
                     </p>
                     {(details.touristRating ?? 0) > 0 && (

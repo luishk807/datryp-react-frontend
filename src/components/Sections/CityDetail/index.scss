@@ -141,26 +141,6 @@
     aspect-ratio: 4 / 3;
   }
 
-  // Highlight tagline as a caption directly under the full-bleed hero —
-  // moved up from the header so the descriptive "message" reads right off
-  // the photo instead of being buried below the weather/currency/safety
-  // cards. The header copy is hidden at this breakpoint (rule below).
-  .city-detail-highlight.is-desktop-only {
-    display: none;
-  }
-  .city-detail-top > .city-detail-highlight.is-mobile-only {
-    display: block;
-    margin: 4px 0 0;
-    padding: 11px 14px;
-    border-left: 3px solid theme('colors.primaryOrange');
-    border-radius: 0 10px 10px 0;
-    background: rgba(246, 137, 31, 0.08);
-    font-size: 0.95rem;
-    line-height: 1.5;
-    font-weight: 500;
-    color: color-mix(in srgb, theme('colors.primaryOrange') 72%, black);
-  }
-
   // "Start planning" CTA — the only floating trip-launch button on
   // a city detail page. Solid brand green, no gradient. Sits
   // directly above the bottom nav (the global "Plan new trip" FAB
@@ -460,18 +440,19 @@
   margin: 0;
 }
 
+// Highlight tagline rendered as a soft callout (orange left-rule + tint) so
+// the "why you'd go" line reads as a deliberate, polished element rather than
+// loose orange text. Shared treatment with `.country-detail-highlight`.
 .city-detail-highlight {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid theme('colors.primaryOrange');
+  border-radius: 0 10px 10px 0;
+  background: rgba(246, 137, 31, 0.08);
   font-size: 1rem;
-  color: theme('colors.primaryOrange');
-  margin: 4px 0 0;
+  line-height: 1.5;
   font-weight: 500;
-}
-
-// Dual-slot highlight (mirrors the friends chip): the header copy is the
-// desktop default; the mobile copy lives under the hero and is revealed
-// only at the phone breakpoint below.
-.city-detail-highlight.is-mobile-only {
-  display: none;
+  color: color-mix(in srgb, theme('colors.primaryOrange') 72%, black);
 }
 
 @media (max-width: 720px) {
