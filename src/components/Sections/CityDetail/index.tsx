@@ -482,17 +482,6 @@ const CityDetail = () => {
                         />
                     </div>
 
-                    {/* Mobile-only: the highlight tagline as a caption
-                        directly under the hero photo. The header copy
-                        below is hidden on mobile (CSS), so this isn't a
-                        duplicate on screen — same dual-slot pattern as
-                        the friends chip above. */}
-                    {details.cityHighlight && (
-                        <p className="city-detail-highlight is-mobile-only">
-                            {details.cityHighlight}
-                        </p>
-                    )}
-
                     <aside className="city-detail-side">
                         <WeatherSection
                             weather={details.weather}

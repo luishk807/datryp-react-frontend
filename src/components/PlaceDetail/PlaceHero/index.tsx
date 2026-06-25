@@ -60,9 +60,14 @@ const PlaceHero = ({
   const images = useMemo<HeroImage[]>(() => {
     const list: HeroImage[] = [];
     const seen = new Set<string>();
+    // Dedup on the photo's stable path (sans query string). The same
+    // Unsplash photo often arrives as BOTH the main hero and a gallery
+    // result with different size/crop params (`?w=1080` vs `?w=400`), so an
+    // exact-URL match misses it and the strip shows the same image twice.
+    const keyOf = (url: string) => url.split("?")[0];
     const push = (img: HeroImage) => {
-      if (!img.url || seen.has(img.url)) return;
-      seen.add(img.url);
+      if (!img.url || seen.has(keyOf(img.url))) return;
+      seen.add(keyOf(img.url));
       list.push(img);
     };
     if (imageUrl) {
