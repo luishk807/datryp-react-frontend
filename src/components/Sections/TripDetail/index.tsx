@@ -6,7 +6,6 @@ import confetti from "canvas-confetti";
 import "./index.scss";
 import {
   Alert,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -45,6 +44,7 @@ import CloudDoneRoundedIcon from "@mui/icons-material/CloudDoneRounded";
 import SyncRoundedIcon from "@mui/icons-material/SyncRounded";
 import classnames from "classnames";
 import Layout from "components/common/Layout/SubLayout";
+import PageLoader from "components/common/PageLoader";
 import BudgetSummary from "components/BudgetSummary";
 import BasicTripInfo from "components/BasicTripInfo";
 import DestinationDetail from "components/DestinationDetail";
@@ -958,14 +958,13 @@ export const TripDetail = () => {
     isFetching ||
     !offline.isHydrated;
   if (!apiTrip && tripStillResolving) {
-    return (
-      <Layout>
-        <div className="trip-detail-empty trip-detail-loading">
-          <CircularProgress size={28} className="trip-detail-loading-spinner" />
-          <p>{t("tripDetail.loading")}</p>
-        </div>
-      </Layout>
-    );
+    // Branded full-viewport loader — the SAME one the route-level Suspense
+    // fallback shows while the page chunk loads. Rendering it here too makes
+    // "navigating in → resolving the trip" one seamless animation instead of
+    // the old MUI spinner flashing in after the branded loader. It also keeps
+    // the loader up for the whole resolving window, so the user never sees the
+    // misleading "Trip not found" screen before the itineraries list settles.
+    return <PageLoader label={t("tripDetail.loading")} />;
   }
 
   if (!apiTrip || !tripData) {

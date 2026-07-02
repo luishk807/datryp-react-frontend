@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import { useSearchParams } from "react-router-dom";
-import { prefetchActivitySuggestions } from "api/suggestionsPrefetch";
+import {
+  prefetchActivitySuggestions,
+  prefetchSuggestions,
+} from "api/suggestionsPrefetch";
 import classNames from "classnames";
 import { useNow } from "hooks/useNow";
 import {
@@ -23,6 +26,20 @@ import FlightTakeoffOutlinedIcon from "@mui/icons-material/FlightTakeoffOutlined
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
+import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
+import LocalCafeRoundedIcon from "@mui/icons-material/LocalCafeRounded";
+import LocalBarRoundedIcon from "@mui/icons-material/LocalBarRounded";
+import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
+import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
+import HikingRoundedIcon from "@mui/icons-material/HikingRounded";
+import MuseumRoundedIcon from "@mui/icons-material/MuseumRounded";
+import TempleBuddhistRoundedIcon from "@mui/icons-material/TempleBuddhistRounded";
+import ChurchRoundedIcon from "@mui/icons-material/ChurchRounded";
+import MosqueRoundedIcon from "@mui/icons-material/MosqueRounded";
+import CastleRoundedIcon from "@mui/icons-material/CastleRounded";
+import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
+import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import AttractionsRoundedIcon from "@mui/icons-material/AttractionsRounded";
 import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
 import HotelRoundedIcon from "@mui/icons-material/HotelRounded";
@@ -353,21 +370,79 @@ const PaidByRow = ({
   );
 };
 
-/** Icon to show on the left of an activity title, based on its kind:
- *   - flight → angled takeoff plane (reads as "flight" at a glance)
- *   - hotel check-in → bed icon
- *   - hotel check-out → outbound-arrow (departure) icon
- *   - train → transit/train icon
- *   - bus → bus icon
- *   - rental car → car-rental icon
- *   - note → lined notepad (reads as "note" — a sticky-note icon is
- *     too generic to differentiate)
- *   - place → map pin, ALWAYS (even with a thumbnail). Suggestion-added
- *     places always carry an image, so gating the pin on "no image" left
- *     them with a bare title while manually-added (image-less) places got
- *     the pin — an inconsistency the icon now removes.
- *  Returns `null` when no icon should render. */
-const titleIconFor = (a: Activity) => {
+// Semantic icon for a PLACE-kind activity, derived from its NAME. There is
+// no per-category "kind" — the AI trip builder and CityDetail seeding emit
+// every sightseeing stop, meal, park, temple, and market as a plain `place`,
+// so the name is the only signal we have. Without this a museum, a beach,
+// and a steakhouse all showed the identical generic pin, which made an
+// AI-built day impossible to scan at a glance.
+//
+// Rules are checked in ORDER; the first whose keywords hit wins, else the
+// generic map pin. Each pattern matches a LEADING activity word (e.g.
+// "Lunch at …") OR an embedded category keyword, and uses `(?![a-z])` rather
+// than a trailing `\b` so it stays accent-tolerant ("café") and matches
+// simple plurals. Ordering resolves overlaps deliberately: food before
+// bar/café so a "Noodle Bar" reads as a restaurant and "Drinks at …" as a
+// bar; amusement/theme park before plain "park".
+//
+// Only the GLYPH changes here — the icon COLOUR still tracks the kind tint
+// (orange = the Planning status system), so the status colours stay
+// meaningful and we don't drift into "a colour per category".
+type TitleIcon = typeof PlaceRoundedIcon;
+const PLACE_ICON_RULES: ReadonlyArray<readonly [RegExp, TitleIcon]> = [
+  // Meals + dining venues (before café/bar so "Noodle Bar" → restaurant).
+  [
+    /^(?:lunch|dinner|brunch|breakfast|supper|snacks?|dine|dining|eat)\b|\b(?:restaurants?|bistros?|brasseries?|trattorias?|osteria|ristorante|eatery|eateries|steakhouses?|diners?|pizzerias?|taqueria|tapas|izakaya|ramen|noodles?|dumplings?|sushi|bbq|barbecue|grill|food\s?(?:court|market|hall)|street\s?food)(?![a-z])/i,
+    RestaurantRoundedIcon,
+  ],
+  // Coffee / tea houses — a cup reads better than a fork.
+  [/^(?:coffee|tea)\b|\b(?:caf[eé]|coffee\s?house|tea\s?house|teahouse)(?![a-z])/i, LocalCafeRoundedIcon],
+  // Bars / nightlife.
+  [
+    /^drinks?\b|\b(?:bars?|pubs?|nightclubs?|nightlife|clubs?|lounges?|cocktails?|brewer(?:y|ies)|speakeasy|taverns?)(?![a-z])/i,
+    LocalBarRoundedIcon,
+  ],
+  // Amusement / theme / water parks, zoos, aquariums — BEFORE plain "park".
+  [/\b(?:amusement|theme|water)\s?parks?|funfair|\bzoos?\b|aquarium|safari|ferris/i, AttractionsRoundedIcon],
+  // Beaches / coast.
+  [/\b(?:beach(?:es)?|seaside|shore|lagoons?|coves?)(?![a-z])/i, BeachAccessRoundedIcon],
+  // Hiking / trails / mountains.
+  [/\b(?:hikes?|hiking|trails?|trek(?:king)?|summits?|peaks?|mount(?:ain)?s?|ridges?|canyons?|volcanoe?s?)(?![a-z])/i, HikingRoundedIcon],
+  // Parks / gardens / nature reserves / forests.
+  [/\b(?:parks?|gardens?|botanical|arboretum|reserves?|forests?|woods|nature|meadows?|greenway)(?![a-z])/i, ParkRoundedIcon],
+  // Museums / galleries / exhibitions.
+  [/\b(?:museums?|galleries|gallery|exhibitions?|exhibits?)(?![a-z])/i, MuseumRoundedIcon],
+  // Temples / shrines / pagodas / monasteries.
+  [/\b(?:temples?|shrines?|pagodas?|monaster(?:y|ies)|wat)(?![a-z])/i, TempleBuddhistRoundedIcon],
+  // Churches / cathedrals / basilicas / chapels / abbeys.
+  [/\b(?:churches|church|cathedrals?|basilicas?|chapels?|abbeys?|minster|duomo|sagrada)(?![a-z])/i, ChurchRoundedIcon],
+  // Mosques.
+  [/\b(?:mosques?|masjid)(?![a-z])/i, MosqueRoundedIcon],
+  // Castles / palaces / forts / citadels.
+  [/\b(?:castles?|palaces?|palais|forts?|fortress(?:es)?|citadels?|ch[aâ]teau|alcazar)(?![a-z])/i, CastleRoundedIcon],
+  // Monuments / memorials / landmarks / towers / statues.
+  [/\b(?:monuments?|memorials?|mausoleums?|landmarks?|towers?|statues?|obelisks?|capitol|parliament|gates?|arch)(?![a-z])/i, AccountBalanceRoundedIcon],
+  // Markets / bazaars / shopping.
+  [/\b(?:markets?|bazaars?|souks?|shopping|malls?|arcades?|outlets?)(?![a-z])/i, StorefrontRoundedIcon],
+];
+
+/** Best-guess category icon for a place activity name; the generic pin when
+ *  nothing matches. */
+const placeIconFor = (name: string): TitleIcon => {
+  const n = (name ?? "").trim();
+  for (const [re, Icon] of PLACE_ICON_RULES) {
+    if (re.test(n)) return Icon;
+  }
+  return PlaceRoundedIcon;
+};
+
+/** Icon to show on the left of an activity title. Transport / hotel / note
+ *  kinds map straight from `kind`; PLACE kinds (which cover every AI- and
+ *  suggestion-generated sight, meal, park, temple, market, …) are classified
+ *  by name via `placeIconFor` so the day scans by shape instead of a wall of
+ *  identical pins. Icon COLOUR still tracks the kind tint (orange = Planning),
+ *  never the category — the status colour system stays intact. */
+const titleIconFor = (a: Activity): TitleIcon => {
   const kind = a.kind ?? ACTIVITY_KIND.PLACE;
   if (kind === ACTIVITY_KIND.FLIGHT) return FlightTakeoffRoundedIcon;
   if (kind === ACTIVITY_KIND.HOTEL_CHECKIN) return HotelRoundedIcon;
@@ -377,7 +452,7 @@ const titleIconFor = (a: Activity) => {
   if (kind === ACTIVITY_KIND.RENTAL_CAR) return CarRentalRoundedIcon;
   if (kind === ACTIVITY_KIND.OTHER) return LocalTaxiRoundedIcon;
   if (kind === ACTIVITY_KIND.NOTE) return EditNoteRoundedIcon;
-  return PlaceRoundedIcon;
+  return placeIconFor(a.name ?? "");
 };
 
 const Activities = ({
@@ -449,7 +524,15 @@ const Activities = ({
   useEffect(() => {
     if (isViewMode || !country) return;
     prefetchActivitySuggestions(queryClient, country, cityScope);
-  }, [queryClient, country, cityScope, isViewMode]);
+    // Warm the hotel suggestions too (same topic the check-in step passes)
+    // so "Suggested hotels" is ready instead of cold-loading a slow OpenAI
+    // round-trip when the user opens Add Activity → Hotel → Check-in.
+    prefetchSuggestions(queryClient, {
+      country,
+      city: cityScope,
+      topic: t("addForms.activity.hotel.suggestionsTopic"),
+    });
+  }, [queryClient, country, cityScope, isViewMode, t]);
 
   // Tracks the activity whose status pill the user just clicked, so
   // we can render "Saving…" + disable just that one pill until the

@@ -34,6 +34,12 @@
          contemporary feel. Signika kept on the link line as a fallback
          for users with a slow first-load (lasts about a second). -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Signika:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Warm the animated loader asset on first paint. The pre-React splash
+         below shows a static SVG; preloading the dotLottie in parallel with
+         the JS bundle means the in-app <PageLoader/> animation plays the
+         instant React mounts, with no download gap where the icon sits
+         frozen. -->
+    <link rel="preload" href="/images/logo-icon.lottie" as="fetch" crossorigin="anonymous" />
     <title>DaTryp.com — Plan your next trip</title>
     <style>
       /* First-paint loader — pure HTML/CSS so it shows the instant the page

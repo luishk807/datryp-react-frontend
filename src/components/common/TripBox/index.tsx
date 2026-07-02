@@ -175,13 +175,15 @@ export const TripBox = ({
         t
     );
 
-    // Lifecycle-specific card extras: a Completed trip reads as a "memory
-    // card" (days / places / friends), while a Planning trip shows how filled
-    // in the itinerary is. Both derive straight from the card's itinerary.
+    // Lifecycle-specific card extras. Every non-selectable card gets an
+    // at-a-glance stat row (days / places / who's going); a Planning trip
+    // additionally shows how filled in the itinerary is. All derive straight
+    // from the card's itinerary.
     const isCompleted = statusKey === TRIP_STATUS.COMPLETED.toLowerCase();
     const isPlanning = statusKey === TRIP_STATUS.PLANNING.toLowerCase();
-    const memoryDays = isCompleted ? tripCardDays(data) : 0;
-    const memoryPlaces = isCompleted ? tripCardPlaces(data) : 0;
+    const statPlaces = tripCardPlaces(data);
+    const statDays = tripCardDays(data);
+    const hasStats = statDays > 0 || statPlaces > 0 || friendsCount > 0;
     const plannedPercent = isPlanning ? tripCardPlannedPercent(data) : 0;
 
     // Body shared by both interaction modes — only the wrapper element
@@ -231,7 +233,9 @@ export const TripBox = ({
                 )}
             </div>
             <div className="trip-box-content">
-                <h3 className="trip-box-name">{data.name}</h3>
+                <h3 className="trip-box-name" title={data.name}>
+                    {data.name}
+                </h3>
                 <p className="trip-box-destination" title={destinationLabel}>
                     {shownDestinations.join(' · ') ||
                         t('tripCard.multiDestination')}
@@ -278,28 +282,36 @@ export const TripBox = ({
                             )}
                         </div>
                     )}
-                {/* Completed = a "memory card": at-a-glance stats instead of a
-                    countdown. */}
-                {!selectable && isCompleted && (
-                    <div className="trip-box-memory">
-                        <span className="trip-box-memory-stat">
-                            <CalendarMonthRoundedIcon className="trip-box-memory-icon" />
-                            {t('tripCard.memoryDays', { count: memoryDays })}
-                        </span>
-                        {memoryPlaces > 0 && (
-                            <span className="trip-box-memory-stat">
-                                <PlaceRoundedIcon className="trip-box-memory-icon" />
+                {/* At-a-glance stat row — what's in the trip and who's going.
+                    Completed cards read as a "memory card" (they lead with the
+                    trip length); confirmed/planning cards show the same
+                    places + companions so every lifecycle stage feels alike. */}
+                {!selectable && hasStats && (
+                    <div className="trip-box-stats">
+                        {statDays > 0 && (
+                            <span className="trip-box-stat">
+                                <CalendarMonthRoundedIcon className="trip-box-stat-icon" />
+                                {t('tripCard.memoryDays', { count: statDays })}
+                            </span>
+                        )}
+                        {statPlaces > 0 && (
+                            <span className="trip-box-stat">
+                                <PlaceRoundedIcon className="trip-box-stat-icon" />
                                 {t('tripCard.memoryPlaces', {
-                                    count: memoryPlaces,
+                                    count: statPlaces,
                                 })}
                             </span>
                         )}
                         {friendsCount > 0 && (
-                            <span className="trip-box-memory-stat">
-                                <GroupRoundedIcon className="trip-box-memory-icon" />
-                                {t('tripCard.memoryFriends', {
-                                    count: friendsCount,
-                                })}
+                            <span className="trip-box-stat">
+                                <GroupRoundedIcon className="trip-box-stat-icon" />
+                                {isCompleted
+                                    ? t('tripCard.memoryFriends', {
+                                          count: friendsCount,
+                                      })
+                                    : t('tripCard.statGoing', {
+                                          count: friendsCount,
+                                      })}
                             </span>
                         )}
                     </div>

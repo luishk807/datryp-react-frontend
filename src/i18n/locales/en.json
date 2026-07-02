@@ -1522,6 +1522,8 @@
         "memoryPlaces_other": "{{count}} places",
         "memoryFriends_one": "{{count}} friend",
         "memoryFriends_other": "{{count}} friends",
+        "statGoing_one": "{{count}} going",
+        "statGoing_other": "{{count}} going",
         "friendsOnTrip_one": "{{count}} friend on this trip",
         "friendsOnTrip_other": "{{count}} friends on this trip",
         "selectTrip": "Select trip {{name}}",

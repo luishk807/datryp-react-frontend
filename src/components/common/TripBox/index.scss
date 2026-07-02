@@ -192,8 +192,9 @@ button.trip-box-link.is-select-trigger {
   background: rgba(246, 137, 31, 0.1);
 }
 
-// Completed "memory card" stat row — days / places / friends.
-.trip-box-memory {
+// At-a-glance stat row — days (completed only) / places / who's going.
+// Shared across completed ("memory card"), confirmed, and planning cards.
+.trip-box-stats {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -204,14 +205,14 @@ button.trip-box-link.is-select-trigger {
   color: rgba(0, 0, 0, 0.62);
 }
 
-.trip-box-memory-stat {
+.trip-box-stat {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   white-space: nowrap;
 }
 
-.trip-box-memory-icon {
+.trip-box-stat-icon {
   font-size: 0.95rem !important;
   color: theme('colors.primaryGreen');
 }
@@ -275,6 +276,13 @@ button.trip-box-link.is-select-trigger {
   color: theme('colors.primary');
   margin: 0 0 4px;
   letter-spacing: -0.005em;
+  // Keep the title to a single line — a long name (e.g. "Cappadocia
+  // Adventure: Balloons & Culture") truncates with an ellipsis instead of
+  // wrapping and pushing the card taller. The full name is on the `title`
+  // attribute, so hovering reveals it.
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trip-box-destination {

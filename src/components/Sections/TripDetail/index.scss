@@ -1,29 +1,3 @@
-.trip-detail-empty {
-  padding: 32px 16px;
-  color: rgba(0, 0, 0, 0.6);
-  text-align: center;
-}
-
-// Loading state — a spinner above the "Loading trip…" text, centered, so
-// navigating into a trip shows a clear loading affordance instead of a
-// premature "Trip not found" flash while the list resolves.
-.trip-detail-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  // Span the content area and fill the viewport so the spinner sits dead
-  // center — without an explicit width the block can shrink-wrap and hug
-  // the left when its parent is a flex container.
-  width: 100%;
-  min-height: 60vh;
-}
-
-.trip-detail-loading-spinner {
-  color: theme('colors.primaryGreen') !important;
-}
-
 // Centered not-found state — shown when the ?id= points at a trip the
 // user can't load (deleted, or no longer in their list). Fills the
 // available height and centers the message + recovery action so it
@@ -1049,7 +1023,6 @@ $night-border: rgba(255, 255, 255, 0.1);
   }
 
   // ---- Empty / hint / end states ----
-  .trip-detail-empty,
   .trip-detail-end-label,
   .activities-empty-hint {
     color: $night-text-3;

@@ -1,5 +1,14 @@
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { DotLottieReact, setWasmUrl } from '@lottiefiles/dotlottie-react';
+// Self-host the thorvg render engine WASM. By default dotlottie-web fetches
+// it from jsdelivr at runtime, which fails behind a corporate TLS proxy /
+// offline — the canvas then freezes on a single frame and the logo never
+// animates. Importing it with Vite's `?url` bundles the exact installed
+// version as a local asset (hashed, cached, no CDN dependency) and points
+// the player at it before any instance initializes.
+import dotlottieWasmUrl from '@lottiefiles/dotlottie-web/dotlottie-player.wasm?url';
 import './index.scss';
+
+setWasmUrl(dotlottieWasmUrl);
 
 interface PageLoaderProps {
     /** Optional message under the animation. Empty by default

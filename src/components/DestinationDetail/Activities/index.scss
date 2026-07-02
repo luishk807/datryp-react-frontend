@@ -308,6 +308,10 @@
   .activity-title-row
   .activity-title-icon {
   flex-shrink: 0;
+  // Extra breathing room after the kind icon so it isn't crammed against
+  // the title. Adds to the row's 8px flex gap (→ ~14px icon↔title) without
+  // loosening the spacing between the title and the controls that follow.
+  margin-right: 6px;
   color: theme("colors.primaryOrange");
   font-size: 1.25rem !important;
 }

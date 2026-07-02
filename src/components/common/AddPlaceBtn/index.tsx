@@ -39,7 +39,10 @@ import {
 import { useDestinationAirport } from 'api/hooks/useDestinationAirport';
 import { parseRouteStops } from 'utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { prefetchActivitySuggestions } from 'api/suggestionsPrefetch';
+import {
+    prefetchActivitySuggestions,
+    prefetchSuggestions,
+} from 'api/suggestionsPrefetch';
 import { useTripState } from 'context/TripContext';
 import PlaceForm from './forms/PlaceForm';
 import NoteForm from './forms/NoteForm';
@@ -2351,18 +2354,29 @@ const AddPlaceBtn = ({
                       : t('addForms.activity.trigger.edit')
             }
             onClose={handleModalClose}
-            // Pre-warm the destination's place suggestions the moment the
-            // Add-Activity modal opens, so the Suggestions strip is already
-            // loaded by the time the user reaches it. Add-mode only; uses the
-            // same country/city scope the strip queries with so the cache hits.
+            // Pre-warm the destination's suggestions the moment the
+            // Add-Activity modal opens, so the strips are already loaded by the
+            // time the user reaches them. Add-mode only; uses the same
+            // country/city scope the strips query with so the cache hits. Warms
+            // BOTH the "things to do" list AND the hotel list (same topic the
+            // hotel check-in step passes) — the hotel strip used to cold-load a
+            // slow OpenAI round-trip, showing skeletons for seconds.
             onOpen={
                 isAdd
-                    ? () =>
+                    ? () => {
                           prefetchActivitySuggestions(
                               queryClient,
                               countryScope,
                               cityScope,
-                          )
+                          );
+                          prefetchSuggestions(queryClient, {
+                              country: countryScope,
+                              city: cityScope,
+                              topic: t(
+                                  'addForms.activity.hotel.suggestionsTopic',
+                              ),
+                          });
+                      }
                     : undefined
             }
             // Activity form is content-heavy; flips to a full-viewport

@@ -1106,6 +1106,8 @@
         "memoryPlaces_other": "{{count}} lugares",
         "memoryFriends_one": "{{count}} amigo",
         "memoryFriends_other": "{{count}} amigos",
+        "statGoing_one": "{{count}} va",
+        "statGoing_other": "{{count}} van",
         "friendsOnTrip_one": "{{count}} amigo en este viaje",
         "friendsOnTrip_other": "{{count}} amigos en este viaje",
         "selectTrip": "Seleccionar viaje {{name}}",
