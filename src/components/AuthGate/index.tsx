@@ -111,6 +111,20 @@ const AuthGate = ({ children, title, subtitle }: AuthGateProps) => {
         [googleSignin, t]
     );
 
+    // Hero photo rotates monthly through popular destinations (the same
+    // backend set the homepage uses). Deterministic per month so it doesn't
+    // flicker on reload, and the dead CloudFront host is filtered out.
+    //
+    // MUST stay above the early returns below — exactly like
+    // handleGoogleCredential, these are hooks that have to run on EVERY
+    // render. They previously lived after the `isLoading` / `user` guards, so
+    // an early-return render (e.g. the authed → children path, or the
+    // post-login reload) called two fewer hooks and React threw "rendered
+    // more hooks than during the previous render" (#310), crashing gated
+    // deep links like /trip-detail for logged-out users.
+    const { data: heroImages } = useHeroImages();
+    const heroUrl = useMemo(() => pickMonthlyHeroUrl(heroImages), [heroImages]);
+
     if (isLoading) return <PageLoader />;
     if (user) return <>{children}</>;
 
@@ -192,12 +206,6 @@ const AuthGate = ({ children, title, subtitle }: AuthGateProps) => {
         setMode((m) => (m === AUTH_MODE.LOGIN ? AUTH_MODE.SIGNUP : AUTH_MODE.LOGIN));
         setError(null);
     };
-
-    // Hero photo rotates monthly through popular destinations (the same
-    // backend set the homepage uses). Deterministic per month so it doesn't
-    // flicker on reload, and the dead CloudFront host is filtered out.
-    const { data: heroImages } = useHeroImages();
-    const heroUrl = useMemo(() => pickMonthlyHeroUrl(heroImages), [heroImages]);
 
     const highlights = t('auth.gate.highlights', { returnObjects: true }) as string[];
 
