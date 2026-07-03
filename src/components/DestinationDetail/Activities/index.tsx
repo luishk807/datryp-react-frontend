@@ -16,6 +16,7 @@ import {
   safeFormatTime,
   type ActivityTimingState,
 } from "utils/activityTiming";
+import { nextActivityTime } from "utils/nextActivityTime";
 import { Grid, IconButton } from "@mui/material";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined";
@@ -702,6 +703,10 @@ const Activities = ({
   }, [activities, completedStatus, date, isTripConfirmed, now, onChangePlace]);
 
   const isEmpty = !activities || activities.length === 0;
+
+  // Default start/end for a NEW activity: the next free hour after the day's
+  // last activity (or 9 AM on an empty day) instead of the current clock time.
+  const addDefaultTimes = nextActivityTime(activities);
 
   return (
     <div
@@ -1499,6 +1504,8 @@ const Activities = ({
               countryScope={country}
               cityScope={cityScope}
               defaultDate={date}
+              defaultStartTime={addDefaultTimes.startTime}
+              defaultEndTime={addDefaultTimes.endTime}
               onChange={(e) => onChangePlace("add", e)}
             />
           </Grid>

@@ -168,6 +168,12 @@ export interface AddPlaceBtnProps extends AddEditButtonProps<PlaceDraft, Activit
      *  the trip is months out. Accepts either MM/DD/YYYY (the
      *  display format used by DateBlock) or YYYY-MM-DD. */
     defaultDate?: string;
+    /** Suggested start/end time ("HH:mm") for a NEW activity, computed by the
+     *  parent from the day's existing activities (see utils/nextActivityTime)
+     *  so the form opens on the next free slot instead of the current
+     *  wall-clock time. Add-mode only; ignored on edit (which uses `data`). */
+    defaultStartTime?: string;
+    defaultEndTime?: string;
 }
 
 const AddPlaceBtn = ({
@@ -182,6 +188,8 @@ const AddPlaceBtn = ({
     buttonType = BUTTON_VARIANT.STANDARD,
     isViewMode = false,
     defaultDate,
+    defaultStartTime,
+    defaultEndTime,
 }: AddPlaceBtnProps) => {
     const { t } = useTranslation();
     const modelRef = useRef<ModalButtonHandle>(null);
@@ -214,8 +222,11 @@ const AddPlaceBtn = ({
 
     const buildInitialPlace = (): PlaceDraft => ({
         kind: isAdd ? ACTIVITY_KIND.PLACE : existingKind,
-        startTime: now('HH:mm'),
-        endTime: now('HH:mm'),
+        // On ADD, seed the next free slot after the day's last activity
+        // (parent-computed); fall back to now() when the parent didn't pass
+        // one or on EDIT (where `data`'s own times take over below).
+        startTime: (isAdd && defaultStartTime) || now('HH:mm'),
+        endTime: (isAdd && defaultEndTime) || now('HH:mm'),
         status: existingStatus,
     });
 
@@ -2364,6 +2375,11 @@ const AddPlaceBtn = ({
             onOpen={
                 isAdd
                     ? () => {
+                          // Refresh the draft against the current props so the
+                          // default start/end reflect activities added since
+                          // the last open (defaultStartTime moves forward as
+                          // the day fills up) — not a stale slot from before.
+                          setPlace(buildInitialPlace());
                           prefetchActivitySuggestions(
                               queryClient,
                               countryScope,
