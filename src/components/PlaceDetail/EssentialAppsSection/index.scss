@@ -9,6 +9,42 @@
   line-height: 1.45;
 }
 
+.essential-apps-headsup {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: rgba(246, 137, 31, 0.08);
+  border: 1px solid rgba(246, 137, 31, 0.22);
+}
+
+.essential-apps-headsup-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: theme('colors.primaryOrange');
+  font-size: 1.2rem !important;
+}
+
+.essential-apps-headsup-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.essential-apps-headsup-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.essential-apps-headsup-body {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
+}
+
 .essential-apps-cats {
   list-style: none;
   margin: 0;

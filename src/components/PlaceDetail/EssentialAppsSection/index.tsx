@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded';
+import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded';
 import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
@@ -40,12 +41,30 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
 
     if (!data || data.categories.length === 0) return null;
 
+    // The heads-up is framed from a home-country traveler's perspective ("the
+    // apps you use at home may not work here"), so it's noise on the US page
+    // itself — hide it there.
+    const isHomeCountry = code.trim().toUpperCase() === 'US';
+
     return (
         <DetailSection
             title={t('essentialApps.title')}
             icon={<SmartphoneRoundedIcon />}
         >
             <p className="essential-apps-intro">{t('essentialApps.intro')}</p>
+            {!isHomeCountry && (
+                <div className="essential-apps-headsup">
+                    <PublicRoundedIcon className="essential-apps-headsup-icon" />
+                    <div className="essential-apps-headsup-text">
+                        <span className="essential-apps-headsup-title">
+                            {t('essentialApps.headsUp.title')}
+                        </span>
+                        <span className="essential-apps-headsup-body">
+                            {t('essentialApps.headsUp.body')}
+                        </span>
+                    </div>
+                </div>
+            )}
             <ul className="essential-apps-cats">
                 {data.categories.map((cat) => {
                     const Icon = CATEGORY_ICON[cat.key] ?? SmartphoneRoundedIcon;

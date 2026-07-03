@@ -1280,6 +1280,10 @@
     "essentialApps": {
         "title": "Essential apps",
         "intro": "The apps locals actually use — worth installing before you go.",
+        "headsUp": {
+            "title": "Apps from home may not work here",
+            "body": "The apps you rely on in the US — Venmo, Cash App, Zelle, iMessage, even Uber or DoorDash — often don't work abroad, run with limits, or are blocked outright. Locals usually reach for different apps, so install the ones below before you go."
+        },
         "disclaimer": "Approximate — availability and options change, so double-check before you travel.",
         "categories": {
             "ride_hailing": "Getting around",
