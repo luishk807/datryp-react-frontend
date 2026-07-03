@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.home-bucket {
+  padding: 0 20px;
+  margin: 0 auto 26px;
+}
+
+.home-bucket-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.home-bucket-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.home-bucket-title-icon {
+  color: #e5484d;
+  font-size: 1.2rem !important;
+}
+
+.home-bucket-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 9999px;
+  background: rgba(246, 137, 31, 0.14);
+  color: theme('colors.primaryOrange');
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.home-bucket-seeall {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  text-decoration: none;
+}
+
+.home-bucket-chips {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  // Bleed the scroller to the section's edges so the last chip can
+  // scroll fully into view, then re-inset with padding.
+  margin: 0 -20px;
+  padding: 2px 20px 6px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.home-bucket-chip {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 220px;
+  padding: 9px 14px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.home-bucket-chip-emoji {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.home-bucket-chip-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: theme('colors.primary');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

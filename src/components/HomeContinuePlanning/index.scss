@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.home-continue {
+  padding: 0 20px;
+  margin: 0 auto 26px;
+}
+
+.home-continue-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+
+.home-continue-title-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 1.3rem !important;
+}
+
+.home-continue-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.home-continue-flag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  font-size: 1.6rem;
+  line-height: 1;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 181, 75, 0.12) 0%,
+    rgba(246, 137, 31, 0.12) 100%
+  );
+}
+
+.home-continue-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-continue-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-continue-meta {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-continue-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.home-continue-track {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.home-continue-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: theme('colors.primaryGreen');
+  transition: width 0.3s ease;
+}
+
+.home-continue-pct {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+}
+
+.home-continue-arrow {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.35);
+}

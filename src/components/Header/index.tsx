@@ -134,7 +134,12 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
 
     return (
         <header className="app-header">
-            <div className={classnames('app-header-inner', { 'with-search': withSearch })}>
+            <div
+                className={classnames('app-header-inner', {
+                    'with-search': withSearch,
+                    'is-authed': !!user,
+                })}
+            >
                 {/* Brand group: logo + (optional) page-title. Wrapping
                     them in one flex container keeps the title flush
                     against the logo regardless of the outer

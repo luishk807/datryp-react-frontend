@@ -466,10 +466,20 @@
     display: none;
   }
 
-  // Hide the desktop nav (avatar + bell) — replaced by the bottom
-  // nav's Account + Alerts buttons.
+  // Guests keep the calm centered-logo header (the bottom nav carries
+  // their Sign in CTA). Signed-in users get the notification bell +
+  // avatar back in the header — Alerts left the bottom nav, so the
+  // unread badge lives on the header bell on mobile now.
   .app-header-nav {
     display: none;
+  }
+
+  .app-header-inner.is-authed {
+    justify-content: space-between;
+  }
+
+  .app-header-inner.is-authed .app-header-nav {
+    display: flex;
   }
 
   // Hide the hamburger — replaced by the bottom nav's Account

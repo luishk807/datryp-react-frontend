@@ -3,18 +3,15 @@
  * (≥720px) where the header serves as the nav surface.
  *
  * Five slots:
- *   Home · Search · MY TRIP (centered CTA) · Notifications · Account
+ *   Home · Explore · TRIPS (centered CTA) · Bucket · Account
  *
  * - Home: navigates to `/`.
- * - Search: opens a full-viewport search overlay with the same
- *   country / AI mode toggle the homepage uses, so the user can
+ * - Explore: opens a full-viewport search overlay with the same
+ *   place / AI mode toggle the homepage uses, so the user can
  *   search from anywhere without scrolling back to the hero.
- * - My Trip: standard tab styled the same as the others. Routes to
- *   `/trips`.
- * - Notifications: navigates to `/notifications`. Renders the
- *   unread-count bubble from `NotificationBell`'s underlying hook
- *   inline (no external Popper since the nav itself sits at the
- *   viewport bottom and there's no room for a popper).
+ * - Trips: centered CTA tab. Routes to `/trips`.
+ * - Bucket: navigates to `/bucket-list`. (Notifications moved to the
+ *   header bell — the unread badge lives there on mobile now.)
  * - Account: opens a full-height bottom-sheet (MUI Drawer
  *   anchor="bottom") with the menu items the desktop avatar Menu
  *   carries: Account, My Trips, Saved/Visited, Bucket list, Friends,
@@ -33,7 +30,6 @@ import { Drawer, Divider } from '@mui/material';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FlightTakeoffRoundedIcon from '@mui/icons-material/FlightTakeoffRounded';
-import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
@@ -50,7 +46,6 @@ import EventNoteRoundedIcon from '@mui/icons-material/EventNoteRounded';
 import SearchBar from 'components/SearchBar';
 import MenuFooterLinks from 'components/common/MenuFooterLinks';
 import { useUser } from 'context/UserContext';
-import { useUnreadNotificationCount } from 'api/hooks/useNotifications';
 import type { Country } from 'types';
 import type { PlaceResult } from 'api/hooks/usePlaces';
 import './index.scss';
@@ -70,12 +65,6 @@ const BottomNav = () => {
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchMode, setSearchMode] =
         useState<BottomNavSearchMode>('place');
-
-    // Hook must be called unconditionally before the bail-out below
-    // (React rules of hooks). The hook itself gates on the auth
-    // token, so it's a no-op for signed-out users.
-    const unreadQuery = useUnreadNotificationCount();
-    const unreadCount = unreadQuery.data ?? 0;
 
     // Lock body scroll while the full-viewport search overlay is open.
     // The overlay is a plain div (not a MUI Drawer, which handles this
@@ -234,10 +223,10 @@ const BottomNav = () => {
                         'is-active': searchOpen,
                     })}
                     onClick={() => setSearchOpen(true)}
-                    aria-label={t('nav.search')}
+                    aria-label={t('nav.explore')}
                 >
                     <SearchRoundedIcon className="bottom-nav-icon" />
-                    <span>{t('nav.search')}</span>
+                    <span>{t('nav.explore')}</span>
                 </button>
 
                 <button
@@ -253,26 +242,19 @@ const BottomNav = () => {
                     aria-label={t('nav.myTrips')}
                 >
                     <FlightTakeoffRoundedIcon className="bottom-nav-icon" />
-                    <span>{t('nav.myTrip')}</span>
+                    <span>{t('nav.trips')}</span>
                 </button>
 
                 <button
                     type="button"
                     className={classNames('bottom-nav-item', {
-                        'is-active': isActive('/notifications'),
+                        'is-active': isActive('/bucket-list'),
                     })}
-                    onClick={() => navigate('/notifications')}
-                    aria-label={t('nav.notifications')}
+                    onClick={() => navigate('/bucket-list')}
+                    aria-label={t('nav.bucketList')}
                 >
-                    <span className="bottom-nav-icon-wrap">
-                        <NotificationsNoneRoundedIcon className="bottom-nav-icon" />
-                        {unreadCount > 0 && (
-                            <span className="bottom-nav-badge">
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
-                    </span>
-                    <span>{t('nav.alerts')}</span>
+                    <FavoriteRoundedIcon className="bottom-nav-icon" />
+                    <span>{t('nav.bucket')}</span>
                 </button>
 
                 <button

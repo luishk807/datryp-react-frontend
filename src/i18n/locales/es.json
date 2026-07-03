@@ -169,8 +169,11 @@
     "nav": {
         "home": "Inicio",
         "search": "Buscar",
+        "explore": "Explorar",
         "myTrip": "Mi viaje",
+        "trips": "Viajes",
         "alerts": "Alertas",
+        "bucket": "Deseos",
         "account": "Cuenta",
         "upgradeToPro": "Mejora a Pro",
         "subscription": "Suscripción",
@@ -437,6 +440,25 @@
         "firstTime": "¿Primera vez aquí?",
         "learnHow": "Descubre cómo funciona Datryp →",
         "attribution": "Foto de <author>{{name}}</author> en <unsplash>Unsplash</unsplash>",
+        "seeAll": "Ver todo",
+        "trendingTitle": "Tendencia este mes",
+        "greeting": {
+            "morning": "Buenos días, {{name}}",
+            "afternoon": "Buenas tardes, {{name}}",
+            "evening": "Buenas noches, {{name}}"
+        },
+        "continue": {
+            "title": "Sigue planificando"
+        },
+        "bucket": {
+            "title": "Lista de deseos"
+        },
+        "upcoming": {
+            "title": "Próximos viajes"
+        },
+        "recent": {
+            "title": "Vistos recientemente"
+        },
         "placePlaceholders": [
             "Busca una ciudad o país",
             "Prueba: Tokio, Japón",

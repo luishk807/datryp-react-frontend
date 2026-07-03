@@ -2,9 +2,11 @@ import { useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import classnames from 'classnames';
+import { useMediaQuery } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import LocalFireDepartmentRoundedIcon from '@mui/icons-material/LocalFireDepartmentRounded';
 import './index.scss';
 import SearchBar from 'components/SearchBar';
 import Layout from 'components/common/Layout';
@@ -20,6 +22,11 @@ import CountryOfBirthEvent from 'components/CountryOfBirthEvent';
 import MonthlyBestPlace from 'components/MonthlyBestPlace';
 import SeasonalBestPlaces from 'components/SeasonalBestPlaces';
 import AiTripBuilderCard from 'components/AiTripBuilderCard';
+import AtlasSummaryCard from 'components/AtlasSummaryCard';
+import HomeContinuePlanning from 'components/HomeContinuePlanning';
+import HomeBucketStrip from 'components/HomeBucketStrip';
+import HomeUpcomingTrips from 'components/HomeUpcomingTrips';
+import HomeRecentlyViewed from 'components/HomeRecentlyViewed';
 import HomeTour from 'components/HomeTour';
 import { useHeroImages } from 'api/hooks/useHeroImages';
 import { useUser } from 'context/UserContext';
@@ -46,6 +53,15 @@ const KNOWN_BROKEN_HERO_HOSTS = ['d111x5lpaimz3o.cloudfront.net'];
 const isUsableHeroUrl = (url: string): boolean =>
     !KNOWN_BROKEN_HERO_HOSTS.some((host) => url.includes(host));
 
+/** Local time-of-day bucket for the mobile greeting line. No shared helper
+ *  exists for this and it's the only consumer, so it lives here. */
+const timeOfDay = (): 'morning' | 'afternoon' | 'evening' => {
+    const h = new Date().getHours();
+    if (h < 12) return 'morning';
+    if (h < 18) return 'afternoon';
+    return 'evening';
+};
+
 const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
     const usable = (heroes ?? []).filter((h) => isUsableHeroUrl(h.imageUrl));
     if (usable.length > 0) {
@@ -65,6 +81,10 @@ const Home = () => {
     const [homeMode, setHomeMode] = useState<HomeMode>('place');
     const navigate = useNavigate();
     const { user } = useUser();
+    // Mobile = the app's chrome breakpoint (≤1024px, where BottomNav shows).
+    // Drives the reordered "travel dashboard" layout; desktop keeps the
+    // original hero + discovery-strip stack untouched.
+    const isMobile = useMediaQuery('(max-width:1024px)');
 
     /** Rotating hero placeholders, one list per search tab. First entry is
      *  the resting prompt; the rest are example searches the bar cycles
@@ -136,7 +156,11 @@ const Home = () => {
 
     return (
         <Layout>
-            <section className="home-hero">
+            <section
+                className={classnames('home-hero', {
+                    'home-hero--compact': isMobile,
+                })}
+            >
                 {/* Photo layer — rendered as an actual <img> so we can
                     catch load failures via onError and fall back to
                     the gradient backdrop (set in SCSS on .home-hero
@@ -152,18 +176,24 @@ const Home = () => {
                     imperative `style.display = 'none'` set by a
                     previous onError sticks through the URL swap and
                     hides the new (working) image. */}
-                <img
-                    key={heroImage.url}
-                    className="home-hero-bg-photo"
-                    src={heroImage.url}
-                    alt=""
-                    aria-hidden="true"
-                    onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                    }}
-                />
+                {/* Mobile drops the hero photo entirely — the compressed
+                    dashboard hero rides on the branded gradient alone, so
+                    the page leads with the greeting + search, not a tall
+                    image. */}
+                {!isMobile && (
+                    <img
+                        key={heroImage.url}
+                        className="home-hero-bg-photo"
+                        src={heroImage.url}
+                        alt=""
+                        aria-hidden="true"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                        }}
+                    />
+                )}
                 <div className="home-hero-overlay" />
-                {heroImage.attribution && (
+                {!isMobile && heroImage.attribution && (
                     <span className="home-hero-attribution">
                         <Trans
                             i18nKey="home.attribution"
@@ -188,10 +218,26 @@ const Home = () => {
                     </span>
                 )}
                 <div className="home-hero-content">
-                    <h1 className="home-hero-title">{heroTitle}</h1>
-                    <p className="home-hero-subtitle">
-                        {t('home.heroSubtitle')}
-                    </p>
+                    {isMobile && firstName && (
+                        <p className="home-hero-greeting">
+                            {t(`home.greeting.${timeOfDay()}`, {
+                                name: firstName,
+                            })}{' '}
+                            <span aria-hidden="true">👋</span>
+                        </p>
+                    )}
+                    <h1 className="home-hero-title">
+                        {/* Mobile shows the greeting (with the name) above, so
+                            drop the redundant name from the title there. */}
+                        {isMobile && firstName
+                            ? t('home.heroTitle')
+                            : heroTitle}
+                    </h1>
+                    {!isMobile && (
+                        <p className="home-hero-subtitle">
+                            {t('home.heroSubtitle')}
+                        </p>
+                    )}
 
                     <div
                         role="tablist"
@@ -253,17 +299,20 @@ const Home = () => {
                     </div>
 
                     {/* Inline help — launches the homepage walkthrough
-                        (HomeTour) right where the user is, no navigation. */}
-                    <button
-                        type="button"
-                        className="home-hero-help"
-                        onClick={() => setTourRun(true)}
-                    >
-                        {t('home.firstTime')}{' '}
-                        <span className="home-hero-help-link">
-                            {t('home.learnHow')}
-                        </span>
-                    </button>
+                        (HomeTour) right where the user is, no navigation.
+                        Desktop only; the mobile dashboard hero stays minimal. */}
+                    {!isMobile && (
+                        <button
+                            type="button"
+                            className="home-hero-help"
+                            onClick={() => setTourRun(true)}
+                        >
+                            {t('home.firstTime')}{' '}
+                            <span className="home-hero-help-link">
+                                {t('home.learnHow')}
+                            </span>
+                        </button>
+                    )}
 
                     {/* Marketing CTA — visually separated from the
                         search field above by an explicit "or" divider
@@ -272,13 +321,17 @@ const Home = () => {
                         navigates to /discover, completely
                         independent of whatever is in the search
                         input. */}
-                    <div className="home-hero-or-divider" aria-hidden="true">
-                        <span>{t('heroSearch.or')}</span>
-                    </div>
+                    {!isMobile && (
+                        <div className="home-hero-or-divider" aria-hidden="true">
+                            <span>{t('heroSearch.or')}</span>
+                        </div>
+                    )}
                     <div className="home-hero-ai-callout">
-                        <span className="home-hero-ai-callout-tagline">
-                            {t('heroSearch.aiTagline')}
-                        </span>
+                        {!isMobile && (
+                            <span className="home-hero-ai-callout-tagline">
+                                {t('heroSearch.aiTagline')}
+                            </span>
+                        )}
                         <Link
                             to="/discover"
                             data-tour="home-ai-cta"
@@ -297,39 +350,66 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Upcoming world event lives at the top of the
-                recommendation stack — time-sensitive (a fixed event
-                window to act on) and the highest-impact CTA among the
-                cards. Holiday, monthly pick, and seasonal sit below
-                it. */}
-            <WorldEvent />
-            {/* Same shape as WorldEvent but scoped to the user's
-                country of birth — a heritage/diaspora signal that
-                surfaces big events in their home country (Carnaval
-                for a Brazilian-born user, Tour de France for a
-                French-born user). Self-hides when the user hasn't
-                set a country of birth or the AI returns no event
-                of sufficient scale (backend 204 → hook resolves to
-                null). */}
-            <CountryOfBirthEvent />
-            {/* "Best for <Next Month>" — driven by the user's saved
-                destinations whose best_time_to_visit window covers
-                next month, minus anywhere they've already been. Self-
-                hides when the user has no matching saves, so it
-                doesn't add visual noise for new accounts. */}
-            <NextMonthPicks />
-            {/* ML-driven kNN recommendation: average the user's saved
-                place embeddings into a taste vector, query the chroma
-                `places` collection for nearest neighbors, return the
-                top 6 minus saved/visited. Local sentence-transformers
-                + chroma — zero OpenAI cost per call. */}
-            <SimilarToSaves />
-            <PlacesYouMightLove variant="home" />
-            <AiTripBuilderCard />
-            <MonthlyBestPlace />
-            <SeasonalBestPlaces />
-            <UpcomingHoliday />
-            <TopPlaces onPlaceClick={handlePlaceClick} />
+            {isMobile ? (
+                /* Mobile "travel dashboard": the user's own trips/goals/
+                   history lead, then the discovery cards. Every personal
+                   module self-hides for signed-out or empty states, so a
+                   brand-new user still gets Trending + Events below the
+                   hero. */
+                <>
+                    <HomeContinuePlanning />
+                    <HomeBucketStrip />
+                    <HomeUpcomingTrips />
+                    <TopPlaces
+                        onPlaceClick={handlePlaceClick}
+                        title={t('home.trendingTitle')}
+                        titleIcon={
+                            <LocalFireDepartmentRoundedIcon className="home-trending-icon" />
+                        }
+                    />
+                    <WorldEvent />
+                    <HomeRecentlyViewed />
+                    <div className="home-atlas">
+                        <AtlasSummaryCard />
+                    </div>
+                </>
+            ) : (
+                <>
+                    {/* Upcoming world event lives at the top of the
+                        recommendation stack — time-sensitive (a fixed event
+                        window to act on) and the highest-impact CTA among the
+                        cards. Holiday, monthly pick, and seasonal sit below
+                        it. */}
+                    <WorldEvent />
+                    {/* Same shape as WorldEvent but scoped to the user's
+                        country of birth — a heritage/diaspora signal that
+                        surfaces big events in their home country (Carnaval
+                        for a Brazilian-born user, Tour de France for a
+                        French-born user). Self-hides when the user hasn't
+                        set a country of birth or the AI returns no event
+                        of sufficient scale (backend 204 → hook resolves to
+                        null). */}
+                    <CountryOfBirthEvent />
+                    {/* "Best for <Next Month>" — driven by the user's saved
+                        destinations whose best_time_to_visit window covers
+                        next month, minus anywhere they've already been. Self-
+                        hides when the user has no matching saves, so it
+                        doesn't add visual noise for new accounts. */}
+                    <NextMonthPicks />
+                    {/* ML-driven kNN recommendation: average the user's saved
+                        place embeddings into a taste vector, query the chroma
+                        `places` collection for nearest neighbors, return the
+                        top 6 minus saved/visited. Local sentence-transformers
+                        + chroma — zero OpenAI cost per call. */}
+                    <SimilarToSaves />
+                    <PlacesYouMightLove variant="home" />
+                    <AiTripBuilderCard />
+                    <MonthlyBestPlace />
+                    <SeasonalBestPlaces />
+                    <UpcomingHoliday />
+                    <TopPlaces onPlaceClick={handlePlaceClick} />
+                </>
+            )}
             <HomeTour run={tourRun} onClose={() => setTourRun(false)} />
         </Layout>
     );

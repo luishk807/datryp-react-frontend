@@ -169,8 +169,11 @@
     "nav": {
         "home": "Home",
         "search": "Search",
+        "explore": "Explore",
         "myTrip": "My Trip",
+        "trips": "Trips",
         "alerts": "Alerts",
+        "bucket": "Bucket",
         "account": "Account",
         "upgradeToPro": "Upgrade to Pro",
         "subscription": "Subscription",
@@ -437,6 +440,25 @@
         "firstTime": "First time here?",
         "learnHow": "Learn how Datryp works →",
         "attribution": "Photo by <author>{{name}}</author> on <unsplash>Unsplash</unsplash>",
+        "seeAll": "See all",
+        "trendingTitle": "Trending this month",
+        "greeting": {
+            "morning": "Good morning, {{name}}",
+            "afternoon": "Good afternoon, {{name}}",
+            "evening": "Good evening, {{name}}"
+        },
+        "continue": {
+            "title": "Continue planning"
+        },
+        "bucket": {
+            "title": "Bucket list"
+        },
+        "upcoming": {
+            "title": "Upcoming trips"
+        },
+        "recent": {
+            "title": "Recently viewed"
+        },
         "placePlaceholders": [
             "Search a city or country",
             "Try: Tokyo, Japan",

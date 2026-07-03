@@ -770,3 +770,122 @@
   }
 }
 
+/* ---------- Compact mobile hero (dashboard layout, ≤1024px) ----------
+ * Toggled from Home/index.tsx via `.home-hero--compact` (added only when
+ * the JS mobile breakpoint matches). No hero photo — the branded gradient
+ * on `.home-hero` carries it — and a shorter, tighter block so the page
+ * leads with the greeting + search rather than a tall image. Declared
+ * after the width media queries so it wins the min-height/padding cascade
+ * when both match. */
+.home-hero--compact {
+  min-height: 0;
+  margin-bottom: 20px;
+  // Light, minimal mobile hero (matches the design mock): drop the dark
+  // branded gradient + photo overlay for a soft, near-white surface (no green
+  // tint). Text + toggle flip to dark below. Desktop keeps the gradient hero.
+  background: linear-gradient(180deg, #f5f7f6 0%, #ffffff 62%);
+}
+
+.home-hero--compact .home-hero-overlay {
+  display: none;
+}
+
+.home-hero--compact .home-hero-title {
+  color: theme('colors.primary');
+  text-shadow: none;
+  // Compact hero: dial the headline down from the desktop hero's huge clamp
+  // (up to 3.5rem) to a dashboard-appropriate size.
+  font-size: 1.7rem;
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+
+// Light toggle: grey track instead of the glassy dark-photo pill. The orange
+// selected thumb + white selected-tab text stay as-is (higher specificity).
+.home-hero--compact .home-hero-options {
+  background: #eef1ef;
+  border-color: rgba(0, 0, 0, 0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  // Full-width on mobile so it spans the hero and aligns with the search box.
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.home-hero--compact .hero-option {
+  color: rgba(0, 0, 0, 0.55);
+  text-shadow: none;
+  padding: 7px 12px;
+  font-size: 0.8rem;
+}
+
+.home-hero--compact .hero-option:hover {
+  color: theme('colors.primary');
+}
+
+// Light hero: the search pill's desktop drop-shadow (0 18px 48px) was tuned to
+// pop over a dark photo — far too heavy on the light surface. Soften it and
+// tighten the field for both search modes (country + describe).
+.home-hero--compact .home-hero-search .searchbarMain .holder,
+.home-hero--compact
+  .home-hero-search
+  .searchbarMain
+  .holder-recommend
+  .searchbar-recommend-form {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 3px 3px 3px 14px;
+}
+
+.home-hero--compact .home-hero-search .searchbarMain .inputBar,
+.home-hero--compact
+  .home-hero-search
+  .searchbarMain
+  .holder-recommend
+  .searchbar-recommend-input {
+  font-size: 0.9rem;
+  padding: 8px 12px 8px 4px;
+}
+
+// Gap between the search field and the Plan-my-trip CTA below it.
+.home-hero--compact .home-hero-search {
+  margin-bottom: 16px;
+}
+
+// Selected toggle tab sits on the orange thumb — force white text so the
+// compact dark-label override doesn't bleed into the selected state.
+.home-hero--compact .hero-option.selected {
+  color: #fff;
+}
+
+.home-hero--compact .home-hero-content {
+  padding: 32px 20px 24px;
+  color: theme('colors.primary');
+  // Left-align so the greeting + title line up with the dashboard modules
+  // below (Continue planning, Bucket list…) instead of floating centered.
+  text-align: left;
+}
+
+/* Reused AtlasSummaryCard has no side inset of its own — give it the same
+   gutter as the other dashboard modules so it doesn't sit flush to the edge. */
+.home-atlas {
+  padding: 0 20px;
+  margin: 0 auto 26px;
+}
+
+// Fire glyph on the reused TopPlaces "Trending this month" header (mobile).
+.home-trending-icon {
+  color: theme('colors.primaryOrange');
+  font-size: 1.3rem !important;
+}
+
+.home-hero-greeting {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  // Mobile-only element; dark for the light compact hero.
+  color: rgba(0, 0, 0, 0.6);
+  text-shadow: none;
+}
+
