@@ -6,6 +6,7 @@ import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import { basicInfo, useTripDispatch } from 'context/TripContext';
+import { useStepperAdvance } from 'components/common/StepperComp';
 import { TRIP_BASIC, TRIP_MODE } from 'constants';
 import type { TripState } from 'types';
 import './index.scss';
@@ -21,6 +22,7 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
     const { t } = useTranslation();
     const dispatch = useTripDispatch();
     const navigate = useNavigate();
+    const { onAdvance } = useStepperAdvance();
     const selectedId = data?.type?.id;
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
     const isMulti = selectedId === TRIP_BASIC.MULTIPLE.id;
@@ -36,6 +38,10 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
         const next =
             mode === TRIP_MODE.SINGLE ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
         dispatch(basicInfo({ type: next }));
+        // Picking a mode IS the answer to this one-question step — advance to
+        // the next step immediately rather than making the user then hit Next.
+        // (The AI card navigates away on its own, so it doesn't go through here.)
+        onAdvance();
     };
 
     // Hand the planning to the Pro AI builder. When we already know the
