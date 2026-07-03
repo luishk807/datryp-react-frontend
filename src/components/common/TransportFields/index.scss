@@ -208,11 +208,28 @@
   }
 }
 
-// The combined date+time picker should fill its column like the other
-// fields (MUI's DateTimePicker defaults to an auto width otherwise).
+// The date + time pickers should fill their column like the other fields
+// (MUI's pickers default to an auto width otherwise).
 .transit-datetime .MuiFormControl-root,
 .transit-datetime .MuiTextField-root {
   width: 100%;
+}
+
+// Date picker + time picker sit side by side under the field label. The date
+// gets a little more room than the time; both shrink freely so the pair never
+// overflows its column (each half is a compact sheet/wheel trigger on mobile).
+.transit-datetime-inputs {
+  display: flex;
+  gap: 8px;
+
+  > :first-child {
+    flex: 1 1 60%;
+    min-width: 0;
+  }
+  > :last-child {
+    flex: 1 1 40%;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 640px) {

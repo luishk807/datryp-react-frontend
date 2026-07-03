@@ -105,12 +105,17 @@ const methodsForKind = (kind: ActivityKind): AddMethod[] => {
  *  picker opens on that day's month rather than today. Saves the user
  *  from manually scrolling months back when the trip is far out.
  *
- *  Times default to 00:00 (12:00 AM) so the time picker isn't blank —
- *  users typically tweak the time anyway and an unset time looked
- *  like a "you forgot something" warning. */
-const emptySegment = (defaultDate?: string): FlightInfo => ({
-    departTime: '00:00',
-    arrivalTime: '00:00',
+ *  `departTimeDefault` / `arrivalTimeDefault` seed the times to the day's
+ *  next free slot (parent-computed from the last activity — see
+ *  `nextActivityTime`) so a new flight lands after what's already planned
+ *  instead of at midnight. Falls back to 00:00 so the picker is never blank. */
+const emptySegment = (
+    defaultDate?: string,
+    departTimeDefault?: string,
+    arrivalTimeDefault?: string,
+): FlightInfo => ({
+    departTime: departTimeDefault || '00:00',
+    arrivalTime: arrivalTimeDefault || '00:00',
     ...(defaultDate
         ? { departDate: defaultDate, arrivalDate: defaultDate }
         : {}),
@@ -136,9 +141,13 @@ const deriveNoteName = (
     return firstLine ? firstLine.slice(0, 80) : fallback;
 };
 
-const emptyTransitSegment = (defaultDate?: string): TransitInfo => ({
-    departTime: '00:00',
-    arrivalTime: '00:00',
+const emptyTransitSegment = (
+    defaultDate?: string,
+    departTimeDefault?: string,
+    arrivalTimeDefault?: string,
+): TransitInfo => ({
+    departTime: departTimeDefault || '00:00',
+    arrivalTime: arrivalTimeDefault || '00:00',
     ...(defaultDate
         ? { departDate: defaultDate, arrivalDate: defaultDate }
         : {}),
@@ -205,6 +214,18 @@ const AddPlaceBtn = ({
     })();
 
     const isAdd = type === ACTION.ADD;
+
+    // Fresh flight / ground segments — seed the depart+arrival times to the
+    // day's next free slot (parent-computed from the last activity) on ADD so
+    // a new flight/train lands after what's already planned instead of at
+    // midnight; EDIT keeps the segment's own persisted times. Same suggested
+    // slot the PLACE / HOTEL forms use for `startTime` below.
+    const seedDepartTime = isAdd ? defaultStartTime : undefined;
+    const seedArriveTime = isAdd ? defaultEndTime : undefined;
+    const newFlightSeg = (): FlightInfo =>
+        emptySegment(isoDefaultDate, seedDepartTime, seedArriveTime);
+    const newTransitSeg = (): TransitInfo =>
+        emptyTransitSegment(isoDefaultDate, seedDepartTime, seedArriveTime);
 
     // Preserve an existing place's status on edit; leave undefined on add so
     // the activity card defaults to the "Planning" badge. The toggle on the
@@ -477,7 +498,7 @@ const AddPlaceBtn = ({
                 if (prev.flightSegments?.[0]?.flightNumber?.trim()) return prev;
                 const segs = prev.flightSegments?.length
                     ? [...prev.flightSegments]
-                    : [emptySegment(isoDefaultDate)];
+                    : [newFlightSeg()];
                 segs[0] = { ...segs[0], arrivalAirport: only };
                 return { ...prev, flightSegments: segs };
             });
@@ -495,7 +516,7 @@ const AddPlaceBtn = ({
             const legCount = Math.max(1, codes.length - 1);
             const existing = prev.flightSegments ?? [];
             const legs = Array.from({ length: legCount }, (_, i) => {
-                const base = existing[i] ?? emptySegment(isoDefaultDate);
+                const base = existing[i] ?? newFlightSeg();
                 const depart = codes[i];
                 const arrive = codes[i + 1];
                 return {
@@ -672,7 +693,7 @@ const AddPlaceBtn = ({
             setPlace((prev) => {
                 const baseSegs = prev.transitSegments?.length
                     ? [...prev.transitSegments]
-                    : [emptyTransitSegment(isoDefaultDate)];
+                    : [newTransitSeg()];
                 const first = { ...baseSegs[0] };
                 if (parsed.operator) first.operator = parsed.operator;
                 if (parsed.departStation) first.departStation = parsed.departStation;
@@ -786,7 +807,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
-                : [emptySegment(isoDefaultDate)];
+                : [newFlightSeg()];
 
             // Multi-flight rescue: when the user types two-or-more flight
             // numbers into a single Flight Number field (e.g. "UA123 with
@@ -809,7 +830,7 @@ const AddPlaceBtn = ({
                         const base =
                             i === 0
                                 ? segments[index]
-                                : emptySegment(isoDefaultDate);
+                                : newFlightSeg();
                         return {
                             ...base,
                             flightNumber:
@@ -900,7 +921,7 @@ const AddPlaceBtn = ({
                 flightSegments: [
                     ...existing,
                     {
-                        ...emptySegment(isoDefaultDate),
+                        ...newFlightSeg(),
                         flightNumber: last?.flightNumber,
                         ...(inheritedDepartAirport
                             ? { departAirport: inheritedDepartAirport }
@@ -930,7 +951,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
-                : [emptySegment(isoDefaultDate)];
+                : [newFlightSeg()];
             const current = segments[segIdx] ?? {};
             segments[segIdx] = {
                 ...current,
@@ -962,7 +983,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.flightSegments?.length
                 ? [...prev.flightSegments]
-                : [emptySegment(isoDefaultDate)];
+                : [newFlightSeg()];
             const current = segments[segIdx] ?? {};
             segments[segIdx] = {
                 ...current,
@@ -1022,7 +1043,7 @@ const AddPlaceBtn = ({
             // YYYY-MM-DD) and BA245 reads as an unpopulated stub.
             let runningDate: string | undefined;
             const merged = parsed.segments.map((p, i) => {
-                const base = existing[i] ?? emptySegment(isoDefaultDate);
+                const base = existing[i] ?? newFlightSeg();
                 const resolvedDate =
                     p.departDate ?? runningDate ?? base.departDate;
                 if (resolvedDate) runningDate = resolvedDate;
@@ -1081,7 +1102,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.transitSegments?.length
                 ? [...prev.transitSegments]
-                : [emptyTransitSegment(isoDefaultDate)];
+                : [newTransitSeg()];
             const current = segments[segIdx] ?? {};
             segments[segIdx] = {
                 ...current,
@@ -1169,7 +1190,7 @@ const AddPlaceBtn = ({
         setPlace((prev) => {
             const segments = prev.transitSegments?.length
                 ? [...prev.transitSegments]
-                : [emptyTransitSegment(isoDefaultDate)];
+                : [newTransitSeg()];
             const current = segments[index];
             const updated = { ...current, [name]: value };
             // Mirror the flight cascade: auto-fill arrival date when the
@@ -1210,7 +1231,7 @@ const AddPlaceBtn = ({
                 transitSegments: [
                     ...existing,
                     {
-                        ...emptyTransitSegment(isoDefaultDate),
+                        ...newTransitSeg(),
                         ...(inheritedDepartStation
                             ? { departStation: inheritedDepartStation }
                             : {}),
@@ -1314,12 +1335,12 @@ const AddPlaceBtn = ({
                 next === ACTIVITY_KIND.FLIGHT
                     ? prev.flightSegments?.length
                         ? prev.flightSegments
-                        : [emptySegment(isoDefaultDate)]
+                        : [newFlightSeg()]
                     : undefined,
             transitSegments: isTransit
                 ? prev.transitSegments?.length
                     ? prev.transitSegments
-                    : [emptyTransitSegment(isoDefaultDate)]
+                    : [newTransitSeg()]
                 : undefined,
             confirmationNumber: isHotel ? prev.confirmationNumber : undefined,
         }));
@@ -1517,7 +1538,7 @@ const AddPlaceBtn = ({
                 setPlace((prev) => {
                     const segments = prev.transitSegments?.length
                         ? [...prev.transitSegments]
-                        : [emptyTransitSegment(isoDefaultDate)];
+                        : [newTransitSeg()];
                     const first = { ...segments[0] };
                     // Segments seed depart/arrival time to the '00:00'
                     // placeholder (see emptyTransitSegment), so treat that
@@ -1842,12 +1863,12 @@ const AddPlaceBtn = ({
                     dataKind === ACTIVITY_KIND.FLIGHT
                         ? data.flightSegments?.length
                             ? data.flightSegments
-                            : [emptySegment(isoDefaultDate)]
+                            : [newFlightSeg()]
                         : undefined,
                 transitSegments: isTransitEdit
                     ? data.transitSegments?.length
                         ? data.transitSegments
-                        : [emptyTransitSegment(isoDefaultDate)]
+                        : [newTransitSeg()]
                     : undefined,
                 confirmationNumber: isHotelEdit
                     ? data.hotelInfo?.confirmationNumber

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import InputField from 'components/common/FormFields/InputField';
 import type { FlightInfo, TransitInfo } from 'types';
 
 /** "DEP → ARR" route string for a flight leg, or '' when neither airport is
@@ -81,26 +81,40 @@ export interface DateTimeFieldProps {
     onChange: (date: string, time: string) => void;
 }
 
-/** A single date+time control that writes back to the two separate model
- *  fields — used for both the depart and arrival rows in Schedule. */
+/** A date + time control that writes back to the two separate model fields —
+ *  used for both the depart and arrival rows in Schedule. Renders through the
+ *  shared `InputField`, which swaps to the mobile sheet date-picker + wheel
+ *  time-picker below 1024px and keeps the MUI pickers on desktop. Each half
+ *  edits its own field and preserves the other, so picking a date doesn't wipe
+ *  a chosen time. */
 export const DateTimeField = ({
     label,
     value,
     minDate,
     maxDate,
     onChange,
-}: DateTimeFieldProps) => (
-    <div className="add-destination-field transit-datetime">
-        <label className="add-destination-label">{label}</label>
-        <DateTimePicker
-            value={value}
-            onChange={(m) =>
-                m && m.isValid()
-                    ? onChange(m.format('YYYY-MM-DD'), m.format('HH:mm'))
-                    : onChange('', '')
-            }
-            {...(minDate ? { minDate: moment(minDate) } : {})}
-            {...(maxDate ? { maxDate: moment(maxDate) } : {})}
-        />
-    </div>
-);
+}: DateTimeFieldProps) => {
+    const dateStr = value && value.isValid() ? value.format('YYYY-MM-DD') : '';
+    const timeStr = value && value.isValid() ? value.format('HH:mm') : '';
+    return (
+        <div className="add-destination-field transit-datetime">
+            <label className="add-destination-label">{label}</label>
+            <div className="transit-datetime-inputs">
+                <InputField
+                    type="date"
+                    value={dateStr}
+                    label=""
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    onChange={(e) => onChange(e.target.value, timeStr)}
+                />
+                <InputField
+                    type="time"
+                    value={timeStr}
+                    label=""
+                    onChange={(e) => onChange(dateStr, e.target.value)}
+                />
+            </div>
+        </div>
+    );
+};
