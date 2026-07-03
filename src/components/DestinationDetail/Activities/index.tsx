@@ -8,6 +8,7 @@ import {
   prefetchActivitySuggestions,
   prefetchSuggestions,
 } from "api/suggestionsPrefetch";
+import { useAirportCity } from "api/hooks/useAirportCity";
 import classNames from "classnames";
 import { useNow } from "hooks/useNow";
 import {
@@ -490,9 +491,24 @@ const Activities = ({
   //   2. The city embedded in a seeded "Flight to <city>" or
   //      "Train to <city>" activity name (the entry path from
   //      CityDetail seeds these)
-  //   3. Walk all destinations' activities as a last-resort
-  //      fallback (covers the new-trip wizard before per-day data
-  //      is filled in)
+  //   3. The destination's arrival-airport city (BOS -> Boston), so a
+  //      leg the user hasn't planned anything on yet still scopes to the
+  //      city they're flying into rather than the whole country.
+  //
+  // The arrival airport lives on THIS destination's arrival transport
+  // (`flightInfo`, last leg). Resolved to a city via the static airports
+  // catalog; a non-IATA value (a train/bus station name) resolves to null and
+  // the scope quietly falls back to the country.
+  const arrivalAirportCode = useMemo<string | undefined>(() => {
+    const flightInfo = destinations?.[destIdx]?.flightInfo;
+    if (!flightInfo) return undefined;
+    const segments = flightInfo.segments ?? [];
+    const lastLeg = segments[segments.length - 1];
+    const code = (lastLeg?.arrivalAirport ?? flightInfo.arrivalAirport ?? "").trim();
+    return code || undefined;
+  }, [destinations, destIdx]);
+  const { data: arrivalCity } = useAirportCity(arrivalAirportCode);
+
   const cityScope = useMemo<string | undefined>(() => {
     const FROM_NAME = /^(?:Flight|Train) to (.+)$/i;
     const scan = (list: Activity[] | null | undefined): string | undefined => {
@@ -510,9 +526,10 @@ const Activities = ({
     // Only the CURRENT destination's own activities — never fall back to
     // scanning every destination, which returned the first city in the whole
     // trip (e.g. a Colombia leg suggesting Panama City). When this leg has no
-    // place yet, return undefined so suggestions scope to the country alone.
-    return scan(activities);
-  }, [activities]);
+    // place yet, fall back to the destination's arrival-airport city (below)
+    // so a not-yet-planned Boston leg still scopes to Boston, not the country.
+    return scan(activities) ?? arrivalCity ?? undefined;
+  }, [activities, arrivalCity]);
 
   // Pre-warm the place-suggestions recommender the moment a destination's day
   // renders (not just when the Add-Activity modal opens — by then the live
