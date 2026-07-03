@@ -38,6 +38,7 @@ import PopularitySection from "components/PlaceDetail/PopularitySection";
 import CulturalShockCallout from "components/PlaceDetail/CulturalShockCallout";
 import ExperienceHighlights from "components/PlaceDetail/ExperienceHighlights";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
+import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import BudgetSection from "components/PlaceDetail/BudgetSection";
@@ -569,6 +570,8 @@ const PlaceDetail = () => {
               airports={detailsQuery.data?.details.airports}
               isError={factsError}
             />
+
+            <EssentialAppsSection code={place.countryCode} />
 
             <VisaSection
               visa={detailsQuery.data?.details.visa}

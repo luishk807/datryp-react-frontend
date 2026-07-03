@@ -44,6 +44,7 @@ import LodgingSection from "components/PlaceDetail/LodgingSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
+import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
 import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
@@ -601,6 +602,8 @@ const CityDetail = () => {
                         />
 
                         <AirportsSection airports={details.airports} />
+
+                        <EssentialAppsSection code={code} />
 
                         <VisaSection visa={details.visa} isError={false} />
 

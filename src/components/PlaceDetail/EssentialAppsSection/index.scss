@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.essential-apps-intro {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1.45;
+}
+
+.essential-apps-cats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.essential-apps-cat-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.essential-apps-cat-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 1.15rem !important;
+}
+
+.essential-apps-cat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.essential-apps-list {
+  list-style: none;
+  margin: 0;
+  // Indent the apps under the category icon.
+  padding: 0 0 0 27px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.essential-apps-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 11px;
+  border-left: 2px solid rgba(0, 0, 0, 0.08);
+
+  &.is-essential {
+    border-left-color: theme('colors.primaryGreen');
+  }
+  &.is-caution {
+    border-left-color: theme('colors.primaryOrange');
+  }
+}
+
+.essential-apps-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.essential-apps-note {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.4;
+}
+
+.essential-apps-disclaimer {
+  margin: 16px 0 0;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.4);
+}

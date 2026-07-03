@@ -1277,6 +1277,19 @@
         "close": "Close",
         "pickDay": "Pick a day"
     },
+    "essentialApps": {
+        "title": "Essential apps",
+        "intro": "The apps locals actually use — worth installing before you go.",
+        "disclaimer": "Approximate — availability and options change, so double-check before you travel.",
+        "categories": {
+            "ride_hailing": "Getting around",
+            "payments": "Paying",
+            "maps": "Maps & transit",
+            "food": "Food delivery",
+            "connectivity": "Staying connected",
+            "messaging": "Messaging"
+        }
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",
