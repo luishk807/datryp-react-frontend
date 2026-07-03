@@ -2,8 +2,10 @@ import { useMemo, useState, useEffect, forwardRef } from 'react';
 import moment from 'moment';
 import './index.scss';
 import classNames from 'classnames';
-import { FormControl, InputLabel, OutlinedInput } from '@mui/material';
+import { FormControl, InputLabel, OutlinedInput, useMediaQuery } from '@mui/material';
 import { TimePicker, DatePicker } from '@mui/x-date-pickers';
+import WheelTimePicker from 'components/common/WheelTimePicker';
+import SheetDatePicker from 'components/common/SheetDatePicker';
 
 type InputFieldType = 'text' | 'number' | 'email' | 'password' | 'date' | 'file' | 'time' | 'tel';
 type InputFieldVariant = 'outlined' | 'bare';
@@ -57,6 +59,10 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         ref
     ) => {
         const isControlled = value !== undefined;
+        // Below the app's mobile chrome breakpoint (≤1024px), swap MUI's
+        // dated clock TimePicker for the modern wheel picker. Desktop keeps
+        // the MUI pickers (fine with a mouse).
+        const isMobile = useMediaQuery('(max-width:1024px)');
         const [data, setData] = useState('');
         const [imageData, setImageData] = useState<string | null>(null);
 
@@ -97,6 +103,18 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                     // and made saved flight times look like they'd been
                     // silently overwritten).
                     const timeSource = isControlled ? value : defaultValue;
+                    if (isMobile) {
+                        return (
+                            <WheelTimePicker
+                                value={timeSource || ''}
+                                disabled={disabled}
+                                label={labelOnTop ? null : label}
+                                onChange={(v) =>
+                                    handleOnChange({ target: { value: v } })
+                                }
+                            />
+                        );
+                    }
                     const parsedTime = timeSource
                         ? moment(timeSource, 'HH:mm')
                         : null;
@@ -141,6 +159,21 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                     // flight dates) were ignored — the picker only read
                     // `defaultValue` and silently fell back to today.
                     const dateSource = isControlled ? value : defaultValue;
+                    if (isMobile) {
+                        return (
+                            <SheetDatePicker
+                                value={dateSource || ''}
+                                disabled={disabled}
+                                label={label}
+                                minDate={minDate}
+                                maxDate={maxDate}
+                                disablePast={disablePast}
+                                onChange={(v) =>
+                                    handleOnChange({ target: { value: v } })
+                                }
+                            />
+                        );
+                    }
                     const parsedDate = dateSource
                         ? moment(dateSource, 'YYYY-MM-DD')
                         : null;

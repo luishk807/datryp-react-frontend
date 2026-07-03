@@ -1,0 +1,214 @@
+// iOS-style wheel time picker — the mobile replacement for MUI's clock
+// TimePicker. Trigger looks like an outlined field; tapping opens a
+// bottom-sheet with three scroll-snap wheels (hour · minute · AM/PM).
+
+$green: theme('colors.primaryGreen');
+$item-h: 40px; // must match ITEM_H in index.tsx
+
+.wtp {
+    width: 100%;
+
+    &.is-disabled { opacity: 0.6; }
+}
+
+// ---- trigger (mimics the MUI outlined field the other inputs use) ----
+.wtp-trigger {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 16px 14px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.23);
+    border-radius: 8px;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+
+    &:hover { border-color: rgba(0, 0, 0, 0.6); }
+    &:focus-visible {
+        outline: none;
+        border-color: $green;
+        box-shadow: 0 0 0 1px $green;
+    }
+    &:disabled { cursor: not-allowed; }
+}
+
+.wtp-label {
+    position: absolute;
+    top: -8px;
+    left: 9px;
+    padding: 0 5px;
+    background: #fff;
+    font-size: 12px;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.wtp-value {
+    flex: 1;
+    font-size: 16px;
+    color: #1f2723;
+
+    &.is-placeholder { color: rgba(0, 0, 0, 0.42); }
+}
+
+.wtp-icon { color: rgba(0, 0, 0, 0.5); }
+
+// ---- bottom sheet ----
+.wtp-sheet-root {
+    position: fixed;
+    inset: 0;
+    z-index: 1500; // above MUI Modal (1300) so it works inside Add Activity
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.wtp-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(15, 21, 18, 0.45);
+    cursor: pointer;
+    animation: wtp-fade 0.18s ease;
+}
+
+.wtp-sheet {
+    position: relative;
+    width: 100%;
+    max-width: 520px; // centered card on tablet-width viewports
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    box-shadow: 0 -12px 40px -12px rgba(15, 21, 18, 0.4);
+    animation: wtp-rise 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wtp-sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    border-bottom: 1px solid #eef1ef;
+}
+
+.wtp-sheet-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2723;
+}
+
+.wtp-x,
+.wtp-done {
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+    padding: 6px;
+    min-width: 44px;
+}
+.wtp-x { color: #6b7770; font-size: 16px; text-align: left; }
+.wtp-done { color: $green; font-weight: 700; font-size: 15px; text-align: right; }
+
+// ---- wheels ----
+.wtp-wheels {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 16px 0; // symmetric so the wheel area stays vertically centered
+    overflow: hidden;
+}
+
+// centered selection band — aligns to the (centered) wheel area
+.wtp-highlight {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: $item-h;
+    border-radius: 10px;
+    background: rgba(46, 157, 70, 0.08);
+    border-top: 1px solid rgba(46, 157, 70, 0.28);
+    border-bottom: 1px solid rgba(46, 157, 70, 0.28);
+    pointer-events: none;
+}
+
+.wtp-wheel {
+    height: $item-h * 5; // five visible rows
+    width: 74px;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    // fade rows toward the top/bottom edges
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        #000 32%,
+        #000 68%,
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        #000 32%,
+        #000 68%,
+        transparent 100%
+    );
+
+    &::-webkit-scrollbar { display: none; }
+    &.wtp-wheel-ampm { width: 64px; }
+}
+
+.wtp-wheel-list {
+    list-style: none;
+    margin: 0;
+    padding: ($item-h * 2) 0; // two blank rows top & bottom so ends can center
+}
+
+.wtp-wheel-item {
+    height: $item-h;
+    line-height: $item-h;
+    text-align: center;
+    scroll-snap-align: center;
+    font-size: 21px;
+    color: #9aa39d;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.12s ease, font-weight 0.12s ease;
+
+    &.is-on { color: #17211c; font-weight: 600; }
+}
+
+.wtp-wheel-ampm .wtp-wheel-item { font-size: 17px; }
+
+.wtp-colon {
+    align-self: center;
+    font-size: 21px;
+    color: #17211c;
+    padding-bottom: 2px;
+}
+
+@keyframes wtp-rise {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+@keyframes wtp-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wtp-sheet,
+    .wtp-backdrop { animation: none; }
+    .wtp-wheel-item { transition: none; }
+}

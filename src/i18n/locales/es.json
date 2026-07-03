@@ -824,6 +824,20 @@
         "cancel": "Cancelar",
         "saving": "Guardando…"
     },
+    "timePicker": {
+        "select": "Seleccionar hora",
+        "done": "Listo",
+        "close": "Cerrar",
+        "hour": "Hora",
+        "minute": "Minuto",
+        "meridiem": "AM o PM"
+    },
+    "datePicker": {
+        "select": "Seleccionar fecha",
+        "done": "Listo",
+        "close": "Cerrar",
+        "pickDay": "Elige un día"
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",

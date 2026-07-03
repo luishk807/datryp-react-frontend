@@ -1240,6 +1240,20 @@
         "cancel": "Cancel",
         "saving": "Saving…"
     },
+    "timePicker": {
+        "select": "Select time",
+        "done": "Done",
+        "close": "Close",
+        "hour": "Hour",
+        "minute": "Minute",
+        "meridiem": "AM or PM"
+    },
+    "datePicker": {
+        "select": "Select date",
+        "done": "Done",
+        "close": "Close",
+        "pickDay": "Pick a day"
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",
