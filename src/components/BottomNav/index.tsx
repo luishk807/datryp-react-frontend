@@ -3,7 +3,10 @@
  * (≥720px) where the header serves as the nav surface.
  *
  * Five slots:
- *   Home · Explore · TRIPS (centered CTA) · Bucket · Account
+ *   Home · Explore · TRIPS (centered CTA) · Bucket · Atlas
+ *
+ * (Account moved to the header avatar menu on mobile. The account
+ * bottom-sheet below is retained but no longer triggered from the nav.)
  *
  * - Home: navigates to `/`.
  * - Explore: opens a full-viewport search overlay with the same
@@ -260,13 +263,13 @@ const BottomNav = () => {
                 <button
                     type="button"
                     className={classNames('bottom-nav-item', {
-                        'is-active': accountOpen,
+                        'is-active': isActive('/atlas-map'),
                     })}
-                    onClick={() => setAccountOpen(true)}
-                    aria-label={t('nav.openAccountMenu')}
+                    onClick={() => navigate('/atlas-map')}
+                    aria-label={t('nav.travelAtlas')}
                 >
-                    <PersonOutlineRoundedIcon className="bottom-nav-icon" />
-                    <span>{t('nav.account')}</span>
+                    <PublicRoundedIcon className="bottom-nav-icon" />
+                    <span>{t('nav.atlas')}</span>
                 </button>
             </nav>
 
