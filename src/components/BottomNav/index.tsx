@@ -112,68 +112,8 @@ const BottomNav = () => {
         };
     }, [searchOpen]);
 
-    // Signed-out users see a stripped-down version of the bottom nav
-    // (Home + Sign in CTA). Returning `null` here used to strand mobile
-    // users after logout — the bell would unmount with no replacement,
-    // leaving the user with no way to navigate back to a logged-in
-    // state without scrolling up to the header CTAs.
-    if (!user) {
-        const homeActive = location.pathname === '/';
-        const loginActive = location.pathname.startsWith('/login');
-        return (
-            <nav
-                className="bottom-nav bottom-nav--guest"
-                aria-label="Primary navigation"
-            >
-                <Link
-                    to="/"
-                    className={classNames('bottom-nav-item', {
-                        'is-active': homeActive,
-                    })}
-                    aria-label={t('nav.home')}
-                >
-                    <HomeRoundedIcon className="bottom-nav-icon" />
-                    <span className="bottom-nav-label">{t('nav.home')}</span>
-                </Link>
-                <Link
-                    to="/login"
-                    className={classNames('bottom-nav-item', {
-                        'is-active': loginActive,
-                    })}
-                    aria-label={t('nav.signInAria')}
-                >
-                    <PersonOutlineRoundedIcon className="bottom-nav-icon" />
-                    <span className="bottom-nav-label">{t('nav.signIn')}</span>
-                </Link>
-            </nav>
-        );
-    }
-
-    const showUpgradeLink = !isAdmin && !user.isPaidMember;
-    const showSubscriptionLink = !isAdmin && user.isPaidMember;
-
-    const isActive = (path: string) => {
-        if (path === '/') return location.pathname === '/';
-        return location.pathname.startsWith(path);
-    };
-
-    const handleNavigate = (path: string) => {
-        setAccountOpen(false);
-        navigate(path);
-    };
-
-    const handleLogout = () => {
-        setAccountOpen(false);
-        logout();
-        navigate('/');
-    };
-
-    /** Place picker callback — mirrors the homepage hero handler so
-     *  the bottom-nav search behaves identically to the homepage
-     *  search bar: countries go to /country, cities go to /city,
-     *  closing the overlay in either case. Replaces the old country-
-     *  only `handleSearchSelected` since the new `mode='place'`
-     *  surface returns either kind. */
+    // Search handlers — shared by the signed-in Explore overlay and the guest
+    // Explore overlay below, so they live above the guest early-return.
     const handlePlaceSelected = (place: PlaceResult) => {
         if (!place?.countryCode) return;
         setSearchOpen(false);
@@ -194,6 +134,102 @@ const BottomNav = () => {
     const handleAiSearchSubmit = (q: string) => {
         setSearchOpen(false);
         navigate(`/search?q=${encodeURIComponent(q)}`);
+    };
+
+    // Signed-out users see a stripped-down version of the bottom nav
+    // (Home + Sign in CTA). Returning `null` here used to strand mobile
+    // users after logout — the bell would unmount with no replacement,
+    // leaving the user with no way to navigate back to a logged-in
+    // state without scrolling up to the header CTAs.
+    if (!user) {
+        const homeActive = location.pathname === '/';
+        return (
+            <>
+                <nav
+                    className="bottom-nav bottom-nav--guest"
+                    aria-label="Primary navigation"
+                >
+                    <Link
+                        to="/"
+                        className={classNames('bottom-nav-item', {
+                            'is-active': homeActive,
+                        })}
+                        aria-label={t('nav.home')}
+                    >
+                        <HomeRoundedIcon className="bottom-nav-icon" />
+                        <span className="bottom-nav-label">
+                            {t('nav.home')}
+                        </span>
+                    </Link>
+                    <button
+                        type="button"
+                        className={classNames('bottom-nav-item', {
+                            'is-active': searchOpen,
+                        })}
+                        onClick={() => setSearchOpen(true)}
+                        aria-label={t('nav.explore')}
+                    >
+                        <SearchRoundedIcon className="bottom-nav-icon" />
+                        <span className="bottom-nav-label">
+                            {t('nav.explore')}
+                        </span>
+                    </button>
+                </nav>
+
+                {/* Guests get search too (place search → public city /
+                    country pages). Simpler than the signed-in overlay —
+                    just the field, no AI/shortcuts. */}
+                {searchOpen && (
+                    <div
+                        className="bottom-nav-search-overlay"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t('nav.search')}
+                    >
+                        <button
+                            type="button"
+                            className="bottom-nav-search-close"
+                            aria-label={t('heroSearch.close')}
+                            onClick={() => setSearchOpen(false)}
+                        >
+                            <CloseRoundedIcon />
+                        </button>
+                        <div className="bottom-nav-search-content">
+                            <h2 className="bottom-nav-search-title">
+                                {t('heroSearch.title')}
+                            </h2>
+                            <div className="bottom-nav-search-bar">
+                                <SearchBar
+                                    type="simple"
+                                    mode="place"
+                                    onPlaceSelected={handlePlaceSelected}
+                                    onAiSearchSubmit={handleAiSearchSubmit}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </>
+        );
+    }
+
+    const showUpgradeLink = !isAdmin && !user.isPaidMember;
+    const showSubscriptionLink = !isAdmin && user.isPaidMember;
+
+    const isActive = (path: string) => {
+        if (path === '/') return location.pathname === '/';
+        return location.pathname.startsWith(path);
+    };
+
+    const handleNavigate = (path: string) => {
+        setAccountOpen(false);
+        navigate(path);
+    };
+
+    const handleLogout = () => {
+        setAccountOpen(false);
+        logout();
+        navigate('/');
     };
 
     // No global "Plan new trip" FAB — detail pages already render

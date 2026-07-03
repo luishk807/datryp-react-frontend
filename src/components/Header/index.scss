@@ -448,10 +448,10 @@
   .app-header-inner {
     padding: 14px 12px;
     gap: 10px;
-    // Center the logo on mobile — the bottom nav now provides search,
-    // account, notifications etc., so the header just carries the
-    // brand wordmark. Simple, calm, makes the page feel less busy.
-    justify-content: center;
+    // Logo left, actions right for everyone on mobile: signed-in users get
+    // the bell + avatar; guests get Sign in (moved here from the bottom nav,
+    // which now carries Explore instead of the Sign in CTA).
+    justify-content: space-between;
     flex-wrap: nowrap;
   }
 
@@ -466,20 +466,16 @@
     display: none;
   }
 
-  // Guests keep the calm centered-logo header (the bottom nav carries
-  // their Sign in CTA). Signed-in users get the notification bell +
-  // avatar back in the header — Alerts left the bottom nav, so the
-  // unread badge lives on the header bell on mobile now.
+  // Header nav shown on mobile for everyone now: signed-in = bell + avatar
+  // (Alerts moved off the bottom nav, so the unread badge lives on the
+  // header bell); guests = Sign in. Guests drop the Sign Up CTA here so the
+  // top-right stays compact — sign up is one tap away inside the login.
   .app-header-nav {
-    display: none;
-  }
-
-  .app-header-inner.is-authed {
-    justify-content: space-between;
-  }
-
-  .app-header-inner.is-authed .app-header-nav {
     display: flex;
+  }
+
+  .app-header-inner:not(.is-authed) .auth-cta {
+    display: none;
   }
 
   // Hide the hamburger — replaced by the bottom nav's Account
