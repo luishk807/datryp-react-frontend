@@ -316,6 +316,30 @@
   font-size: 1.25rem !important;
 }
 
+// Rating + favorite share one row under the title. The favorite is pushed to
+// the right so mobile shows a stable "★★★★★ Rate this place …… ♥" line instead
+// of the heart wrapping out of the (flex-wrap) title row and the rating
+// scattering below it. nowrap keeps them on one line; the rating shrinks
+// before the fixed-size heart does.
+.activity-content-trip .content-detail .info .activity-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  margin: 4px 0 6px;
+
+  .activity-review-stars {
+    // The row owns the vertical spacing now.
+    margin: 0;
+    min-width: 0;
+  }
+
+  .activity-fav-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+
 // Per-kind tints so glance-scanning the day shows the entry shape.
 .activity-content-trip.kind-flight .activity-title-icon {
   color: theme("colors.primaryGreen");

@@ -1200,10 +1200,23 @@ const Activities = ({
                               </button>
                             );
                           })()}
-                        {/* Favorite sits in the title row (where the per-
-                            activity status chip used to be). Icon-only on
-                            mobile. */}
-                        {hasPlaceIdentity && (
+                      </div>
+                      {/* Rating + favorite grouped in one row under the title:
+                          stars / "Rate this place" on the left, the heart
+                          pushed to the right edge. Keeps a predictable layout
+                          on mobile instead of the favorite wrapping out of the
+                          title row and the rating scattering below it. */}
+                      {hasPlaceIdentity && (
+                        <div className="activity-actions-row">
+                          <ActivityReviewStars
+                            placeName={activity.name}
+                            placeCity={activity.placeCity as string}
+                            placeCountry={activity.placeCountry as string}
+                            placeKey={activity.placeKey}
+                            googleRating={activity.googleRating}
+                            googleRatingCount={activity.googleRatingCount}
+                            openaiRating={activity.openaiRating}
+                          />
                           <ActivityFavoriteButton
                             placeName={activity.name}
                             placeCity={activity.placeCity as string}
@@ -1212,21 +1225,7 @@ const Activities = ({
                             countryCode={activity.countryCode}
                             imageUrl={activity.image?.url}
                           />
-                        )}
-                      </div>
-                      {/* Traveler-review rating right under the title — opens
-                          the place's reviews window on click. Same place-keyed
-                          data the place detail page reads. */}
-                      {hasPlaceIdentity && (
-                        <ActivityReviewStars
-                          placeName={activity.name}
-                          placeCity={activity.placeCity as string}
-                          placeCountry={activity.placeCountry as string}
-                          placeKey={activity.placeKey}
-                          googleRating={activity.googleRating}
-                          googleRatingCount={activity.googleRatingCount}
-                          openaiRating={activity.openaiRating}
-                        />
+                        </div>
                       )}
                       <div className="activity-meta">
                         {(() => {
