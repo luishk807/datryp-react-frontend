@@ -1118,7 +1118,9 @@ const Activities = ({
                             />
                           </a>
                         ) : (
-                          <span className="title">{activity.name}</span>
+                          <span className="title" title={activity.name}>
+                            {activity.name}
+                          </span>
                         )}
                         <AddPlaceBtn
                           isViewMode={isPlaceLocked}
@@ -1202,10 +1204,10 @@ const Activities = ({
                           })()}
                       </div>
                       {/* Rating + favorite grouped in one row under the title:
-                          stars / "Rate this place" on the left, the heart
-                          pushed to the right edge. Keeps a predictable layout
-                          on mobile instead of the favorite wrapping out of the
-                          title row and the rating scattering below it. */}
+                          the star rating on the left, the heart pushed to the
+                          right edge. Keeps a predictable layout on mobile
+                          instead of the favorite wrapping out of the title row
+                          and the rating scattering below it. */}
                       {hasPlaceIdentity && (
                         <div className="activity-actions-row">
                           <ActivityReviewStars

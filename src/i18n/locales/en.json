@@ -2245,7 +2245,7 @@
         }
     },
     "review": {
-        "rateThisPlace": "Rate this place",
+        "rateYourVisit": "Rate your visit",
         "rateNamed": "Rate {{name}}",
         "viewRatings": "View ratings & reviews",
         "beTheFirst": "Be the first to review",

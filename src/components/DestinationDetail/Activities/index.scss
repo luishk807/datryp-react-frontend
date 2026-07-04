@@ -238,12 +238,13 @@
  * button via `padding-right`. */
 .activity-content-trip .content-detail .info .activity-title-row {
   display: flex;
-  // Top-align, not center: when a long title wraps to two lines, centering
-  // floated the leading kind-icon (and the trailing ↗) to the vertical middle
-  // of the whole block, leaving them stranded between the two lines. Aligning
-  // to the top keeps them on the FIRST line, where they read as the title's
-  // icon + link affordance. Single-line titles look identical either way.
-  align-items: flex-start;
+  // A long title is now truncated to a SINGLE line (see `.title` below) and
+  // reveals its full text on hover, so the whole row is one line — center the
+  // leading kind-icon, trailing ↗, edit pencil, and status pill on it. This
+  // replaces the old two-line wrap where the icons had to be nudged onto the
+  // first line. `flex-wrap` is kept only as a safety valve for the tightest
+  // viewports; the title shrinks first, so it rarely triggers.
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   padding-right: 40px;
@@ -255,19 +256,33 @@
   color: theme("colors.primary");
   text-transform: capitalize;
   letter-spacing: -0.005em;
-  // Explicit, tight leading so a two-line title stays compact and the
-  // first-line position is predictable for aligning the leading icon.
   line-height: 1.3;
+  // Take the row's remaining width and clip an over-long name to one line;
+  // the full text shows on hover via the `title` attribute. Keeping the title
+  // on a single line is what keeps the kind-icon + ↗ aligned to it.
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+
+  // Plain (non-link) titles ellipsis directly; link titles ellipsis on their
+  // inner `.title-link-text` so the ↗ glyph survives the truncation.
+  &:not(.title-link) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 
   // PLACE activities turn the title into a link to /place. Make the
   // affordance visible at rest so the user can see it's clickable
   // without hovering: orange color + adjacent open-in-new icon.
   &.title-link {
     display: inline-flex;
-    // Match the row: keep the open-in-new ↗ on the title's first line rather
-    // than centered against a wrapped two-line name.
-    align-items: flex-start;
+    align-items: center;
     gap: 4px;
+    // Allow the link (a flex item of the row) to shrink so its text can
+    // ellipsis instead of forcing the row to wrap.
+    min-width: 0;
+    overflow: hidden;
     color: theme("colors.primaryOrange");
     text-decoration: none;
     cursor: pointer;
@@ -276,6 +291,11 @@
       text-decoration-color 0.15s ease;
 
     .title-link-text {
+      // Single-line ellipsis; the ↗ glyph after it stays put (flex-shrink: 0).
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
       text-decoration: underline;
       text-decoration-style: dashed;
       text-decoration-color: rgba(247, 159, 38, 0.4);
@@ -286,9 +306,6 @@
 
     .title-link-icon {
       flex-shrink: 0;
-      // Nudge down to sit on the first text line (the row/link are top-
-      // aligned, so at 0 the glyph rides above the title cap height).
-      margin-top: 3px;
       font-size: 0.95rem !important;
       opacity: 0.7;
       transition:
@@ -325,18 +342,15 @@
   // the title. Adds to the row's 8px flex gap (→ ~14px icon↔title) without
   // loosening the spacing between the title and the controls that follow.
   margin-right: 6px;
-  // Nudge down so the glyph optically centers on the title's first line
-  // (the row is top-aligned, so at 0 the larger icon rides above the text).
-  margin-top: 2px;
   color: theme("colors.primaryOrange");
   font-size: 1.25rem !important;
 }
 
 // Rating + favorite share one row under the title. The favorite is pushed to
-// the right so mobile shows a stable "★★★★★ Rate this place …… ♥" line instead
-// of the heart wrapping out of the (flex-wrap) title row and the rating
-// scattering below it. nowrap keeps them on one line; the rating shrinks
-// before the fixed-size heart does.
+// the right so mobile shows a stable "★★★★★ …… ♥" line instead of the heart
+// wrapping out of the (flex-wrap) title row and the rating scattering below
+// it. nowrap keeps them on one line; the rating shrinks before the fixed-size
+// heart does.
 .activity-content-trip .content-detail .info .activity-actions-row {
   display: flex;
   align-items: center;
@@ -430,14 +444,36 @@
   }
 }
 
-// Completed activity — faded card so the user sees at a glance which
-// items are done. Inner content is non-interactive, but the tick button
-// stays clickable so the user can uncheck an accidental tap (the
-// `pointer-events: auto` override below restores it).
+// Completed activity (on a still-active trip) — the card recedes into a
+// "done" state, but NOT uniformly. Rating the place is the primary next
+// action (it feeds the traveler's history + Atlas), so the actions row stays
+// at full strength while the photo, title, and meta fade into the background
+// in a deliberate hierarchy:
+//   ✓ tick badge   → 100% (green, untouched — absolutely positioned)
+//   photo          → 50%
+//   title          → 70%
+//   ★ rate / score → 100% (primary action)
+//   location/time  → 50%
+// Inner content is non-interactive except the tick + rating/favorite, which
+// keep their pointer-events (escape hatch below).
 .activity-content-trip.is-completed {
-  opacity: 0.55;
   pointer-events: none;
-  filter: saturate(0.8);
+
+  .content-image {
+    opacity: 0.5;
+  }
+
+  .activity-title-row {
+    opacity: 0.7;
+  }
+
+  .activity-meta {
+    opacity: 0.5;
+  }
+
+  .activity-actions-row {
+    opacity: 1;
+  }
 }
 
 .activity-content-trip.is-completed .activity-card-complete-btn {
@@ -446,12 +482,17 @@
 }
 
 // On a COMPLETED trip the itinerary reads as a browsable memory/journal, not
-// a sealed record — drop the per-activity faded look entirely so places are
+// a sealed record — drop the faded hierarchy entirely so every place is
 // bright and the review/favorite actions are fully interactive.
 .trip-detail-status-completed .activity-content-trip.is-completed {
-  opacity: 1;
   pointer-events: auto;
-  filter: none;
+
+  .content-image,
+  .activity-title-row,
+  .activity-meta,
+  .activity-actions-row {
+    opacity: 1;
+  }
 }
 
 // Even on a still-active trip (a past activity auto-completes and dims), the

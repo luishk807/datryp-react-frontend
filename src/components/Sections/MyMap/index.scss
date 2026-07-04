@@ -130,7 +130,14 @@
   }
 }
 
-@media (max-width: 720px) {
+// Mobile/tablet layout — aligned to the app-wide mobile breakpoint
+// (≤1024px, same as BottomNav). Below this the Atlas collapses to its
+// compact chrome: the four stat pills fold into the "Layers" button and
+// the centered segmented toggles become single icon chips. Keeping this
+// at the old 720px left iPad-portrait (744px) in the desktop branch,
+// where the centered Day/Night + Globe/Flat toggles overlapped the
+// top-left stat pills and read as "blocked".
+@media (max-width: 1024px) {
   .my-map-atlas-pills {
     right: 6px;
     bottom: 10px;
@@ -258,7 +265,7 @@ img.my-map-trips-panel-flag {
   display: none;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   // On mobile the controls move to the top-left row, just right of the
   // "Layers" button (horizontal), and collapse to single icon chips — the
   // segmented toggles are hidden here.
@@ -392,7 +399,7 @@ img.my-map-trips-panel-flag {
   font-style: italic;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .my-map-intro {
     // Full-width lower window; the pills are hidden while it's open.
     width: auto;
@@ -567,7 +574,7 @@ img.my-map-trips-panel-flag {
   color: rgba(0, 0, 0, 0.55);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   // Stays bottom-left, a touch narrower. On phones the card defaults to
   // collapsed (see the JS default) so it doesn't crowd the bottom-right
   // intro card on first load — the bottom-left "Stats" pill reopens it.
@@ -617,7 +624,7 @@ img.my-map-trips-panel-flag {
   max-width: calc(100% - 28px);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   /* Phones don't have width for four permanent pills, so they're
    * hidden here and replaced by a single "Layers" button
    * (MyMapLayersMenu) anchored top-left. The Mapbox zoom control keeps
@@ -984,7 +991,7 @@ img.my-map-trips-panel-flag {
   flex-shrink: 0;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   /* Phone: the trips panel is desktop-only — on a small screen it
    * collides with the stats/about cards and the pin popup already
    * confirms the click. Hide it; the popup's "View trip" CTA still
@@ -1440,7 +1447,7 @@ img.my-map-trips-panel-flag {
   flex-direction: column;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .my-map-page {
     // Zero bottom padding so the canvas-wrap butts directly against
     // the page-shell's bottom padding (which now exactly equals the

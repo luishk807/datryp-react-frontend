@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import ModalButton, { type ModalButtonHandle } from "components/ModalButton";
 import ReviewSection from "components/Review/ReviewSection";
-import Stars from "components/common/Stars";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import { usePlaceReviews } from "api/hooks/useReviews";
 import { getPlaceKey } from "utils/placeKey";
 import { blendRatings } from "utils/blendedRating";
@@ -26,8 +26,8 @@ export interface ActivityReviewStarsProps {
  *  a single blended star value across whichever of the three sources have
  *  data — Google, OpenAI/recommender, and daTryp traveler reviews. Clicking
  *  opens the reviews window, where the three are broken out separately
- *  above the comments. Falls back to a "Rate this place" prompt when no
- *  source has a rating yet. */
+ *  above the comments. Falls back to empty (clickable) stars when no source
+ *  has a rating yet. */
 const ActivityReviewStars = ({
     placeName,
     placeCity,
@@ -76,8 +76,13 @@ const ActivityReviewStars = ({
                 }
             >
                 {blended ? (
+                    // Scored — a compact "★ 4.5" chip (single gold star + the
+                    // blended average), plus the review count when there is one.
                     <>
-                        <Stars rating={blended.average} />
+                        <span className="activity-review-score">
+                            <StarRoundedIcon className="activity-review-star" />
+                            {blended.average.toFixed(1)}
+                        </span>
                         {blended.totalCount > 0 && (
                             <span className="activity-review-count">
                                 ({blended.totalCount})
@@ -85,12 +90,13 @@ const ActivityReviewStars = ({
                         )}
                     </>
                 ) : (
-                    <>
-                        <Stars rating={0} showValue={false} />
-                        <span className="activity-review-rate">
-                            {t("review.rateThisPlace")}
-                        </span>
-                    </>
+                    // No rating from any source yet — a compact "★ Rate your
+                    // visit" prompt. Clicking opens the reviews window; the
+                    // button's aria-label still names the place.
+                    <span className="activity-review-rate">
+                        <StarRoundedIcon className="activity-review-star" />
+                        {t("review.rateYourVisit")}
+                    </span>
                 )}
             </button>
             <ModalButton ref={modalRef} title={placeName} buttonProps={null}>

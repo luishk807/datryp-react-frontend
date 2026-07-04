@@ -360,6 +360,14 @@ const Home = () => {
                     <HomeContinuePlanning />
                     <HomeBucketStrip />
                     <HomeUpcomingTrips />
+                    {/* Trending leads the discovery cards on mobile (kept
+                        from the dashboard layout). The full desktop
+                        discovery/AI stack follows so the tablet/portrait
+                        homepage reaches parity with desktop — each card
+                        already self-hides when it has no data, and each
+                        carries its own ≤1024px responsive styles. The
+                        mobile-only Recently-viewed + Atlas summary stay as
+                        the tail. */}
                     <TopPlaces
                         onPlaceClick={handlePlaceClick}
                         title={t('home.trendingTitle')}
@@ -368,6 +376,14 @@ const Home = () => {
                         }
                     />
                     <WorldEvent />
+                    <CountryOfBirthEvent />
+                    <NextMonthPicks />
+                    <SimilarToSaves />
+                    <PlacesYouMightLove variant="home" />
+                    <AiTripBuilderCard />
+                    <MonthlyBestPlace />
+                    <SeasonalBestPlaces />
+                    <UpcomingHoliday />
                     <HomeRecentlyViewed />
                     <div className="home-atlas">
                         <AtlasSummaryCard />
