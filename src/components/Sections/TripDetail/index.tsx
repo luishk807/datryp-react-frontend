@@ -174,17 +174,15 @@ export const TripDetail = () => {
   // surrounding chrome. Session-only; resets on reload.
   const [focusMode, setFocusMode] = useState(false);
   // Text-only mode: hide every activity's hero image so the itinerary reads
-  // as a dense text list. Session-only (resets on reload), independent of
-  // focus mode. Applied as a class on the trip wrapper below.
-  // Activity hero images default to hidden on mobile (dense, scannable
-  // itinerary — they make cards much taller), shown on desktop. Either way
-  // the header "show images" toggle flips it. Evaluated once at mount; a
-  // view toggle doesn't need to track later resizes.
-  const [hideImages, setHideImages] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(max-width: 720px)").matches,
-  );
+  // as a dense text list. Session-only (resets on reload).
+  //
+  // Images are SHOWN by default on every viewport, mobile included — the
+  // photos are a big part of the itinerary's appeal, so a fresh load should
+  // show them. Hiding is opt-in: either the standalone toggle (desktop button
+  // / mobile kebab) or, more commonly, turning on Focus, which bundles
+  // image-hiding (see the `hideImages || focusMode` class below). Un-focusing
+  // brings the images back.
+  const [hideImages, setHideImages] = useState(false);
   // Night view: dark theme for the itinerary (+ its chrome). Session-only
   // and tied to this visit — resets to day mode when the user leaves the
   // itinerary (the component unmounts), like the focus/text toggles above.
