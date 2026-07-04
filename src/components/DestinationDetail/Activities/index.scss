@@ -238,15 +238,17 @@
  * button via `padding-right`. */
 .activity-content-trip .content-detail .info .activity-title-row {
   display: flex;
-  // A long title is now truncated to a SINGLE line (see `.title` below) and
-  // reveals its full text on hover, so the whole row is one line — center the
-  // leading kind-icon, trailing ↗, edit pencil, and status pill on it. This
-  // replaces the old two-line wrap where the icons had to be nudged onto the
-  // first line. `flex-wrap` is kept only as a safety valve for the tightest
-  // viewports; the title shrinks first, so it rarely triggers.
+  // One row, NO wrap. The leading kind-icon, the title, and (in edit mode)
+  // the edit pencil + status pill all stay on a single centered line; the
+  // title absorbs the shrink (min-width:0 on `.title`) and ellipsizes.
+  // NOTE: `flex-wrap: wrap` here was a bug — a long title's flex-basis is its
+  // full nowrap content width, which exceeds the row, so flexbox wrapped the
+  // ENTIRE title onto a second line BELOW the kind-icon instead of shrinking
+  // it (the "icon stranded above the title" report). `nowrap` forces the
+  // shrink so the icon always sits beside the title.
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding-right: 40px;
 }
 
