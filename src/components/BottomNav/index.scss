@@ -125,6 +125,42 @@
   }
 }
 
+// Tablet / landscape (700–1024px, both orientations): the phone-sized bar
+// reads as oversized on a wide iPad — stretched edge-to-edge, tall, with big
+// glyphs. Make it a compact, center-clustered strip: shorter (less padding),
+// smaller icons + labels, and the five tabs grouped in the middle at a fixed
+// width instead of spread across the whole width.
+@media (min-width: 700px) and (max-width: 1024px) {
+  .bottom-nav {
+    justify-content: center;
+    gap: 12px;
+    padding: 6px 8px max(8px, env(safe-area-inset-bottom));
+  }
+
+  .bottom-nav-item {
+    flex: 0 0 auto;
+    width: 88px;
+    padding: 4px 8px 3px;
+    gap: 1px;
+    font-size: 0.6rem;
+  }
+
+  .bottom-nav-icon {
+    font-size: 21px !important;
+  }
+
+  .bottom-nav-item--primary .bottom-nav-icon {
+    font-size: 22px !important;
+  }
+
+  // Shorter bar → shrink the bottom reserve so pages don't leave a fat gap
+  // above the nav. `!important` beats the Atlas page's cross-file
+  // `.page-shell.is-full-bleed` reserve (sized for the taller phone bar).
+  .page-shell {
+    padding-bottom: calc(50px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 // (My Trip was a lifted gradient puck — restyled to look like every
 // other tab. JSX no longer renders a `.bottom-nav-cta-puck` wrapper.)
 
