@@ -835,6 +835,18 @@ $night-border: rgba(255, 255, 255, 0.1);
     .content-detail .info .title {
       color: $night-text;
     }
+    // Rating row: the numeric value ("4.5") and the empty stars are near-black
+    // in the light palette, so they vanished on the dark card. Re-tint them —
+    // filled stars (orange) + "Rate this place" (green) already read on dark.
+    .content-detail .info .stars-display-num {
+      color: $night-text;
+    }
+    .content-detail .info .stars-display-star:not(.filled) {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    .content-detail .info .activity-review-count {
+      color: $night-text-2;
+    }
     .content-detail .info .meta-row {
       color: $night-text-2;
     }
