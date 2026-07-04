@@ -265,7 +265,15 @@ img.my-map-trips-panel-flag {
   display: none;
 }
 
-@media (max-width: 1024px) {
+// The atlas TOP controls (this block + the stat pills below + the Layers
+// menu) use a WIDER breakpoint (1140px) than the rest of the atlas (1024px).
+// iPad Mini landscape is 1133px, where the desktop toolbar (four pills + the
+// centered segmented toggles) is too cramped on the small screen — so keep
+// the compact mobile controls (Layers button + icon toggles) up to 1140px.
+// Regular iPads (≥1180px landscape) still get the desktop toolbar. The BOTTOM
+// stats / about cards deliberately stay on the 1024px breakpoint (desktop
+// above it), so the Mini keeps the roomy desktop info card.
+@media (max-width: 1140px) {
   // On mobile the controls move to the top-left row, just right of the
   // "Layers" button (horizontal), and collapse to single icon chips — the
   // segmented toggles are hidden here.
@@ -624,11 +632,14 @@ img.my-map-trips-panel-flag {
   max-width: calc(100% - 28px);
 }
 
-@media (max-width: 1024px) {
-  /* Phones don't have width for four permanent pills, so they're
-   * hidden here and replaced by a single "Layers" button
-   * (MyMapLayersMenu) anchored top-left. The Mapbox zoom control keeps
-   * its top-right spot — the lone Layers button doesn't reach it. */
+// 1140px (not 1024px): the four pills stay folded into the Layers button up
+// through iPad Mini landscape (1133px) — see the top-controls note above.
+@media (max-width: 1140px) {
+  /* Phones + iPad Mini landscape don't have width for four permanent pills
+   * alongside the centered toggles, so they're hidden here and replaced by a
+   * single "Layers" button (MyMapLayersMenu) anchored top-left. The Mapbox
+   * zoom control keeps its top-right spot — the lone Layers button doesn't
+   * reach it. */
   .my-map-stats {
     display: none;
   }

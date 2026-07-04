@@ -185,7 +185,9 @@
   text-align: center;
 }
 
-@media (max-width: 1024px) {
+// 1140px to match the atlas top-controls breakpoint (covers iPad Mini
+// landscape 1133px) so the pill dropdowns stay compact there.
+@media (max-width: 1140px) {
   .my-map-stat-dropdown-panel {
     min-width: 200px;
     max-width: 80vw;

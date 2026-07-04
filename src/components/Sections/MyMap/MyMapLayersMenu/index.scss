@@ -6,7 +6,10 @@
   display: none;
 }
 
-@media (max-width: 1024px) {
+// 1140px so the Layers button (which replaces the four stat pills) shows up
+// through iPad Mini landscape (1133px), matching the atlas top-controls
+// breakpoint. The bottom stats/about cards keep the 1024px desktop cutoff.
+@media (max-width: 1140px) {
   .my-map-layers {
     position: absolute;
     top: 12px;
