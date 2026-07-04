@@ -1037,7 +1037,11 @@ export const TripDetail = () => {
           "trip-detail-themed",
           `trip-detail-status-${persistedStatusName.toLowerCase()}`,
           {
-            "trip-detail-text-only": hideImages,
+            // Focus mode bundles the "text-only / compact" simplification —
+            // one control hides the overview AND the activity hero images,
+            // so users don't juggle two separate toggles. `hideImages` is the
+            // standalone override (desktop toolbar button / mobile kebab item).
+            "trip-detail-text-only": hideImages || focusMode,
             "trip-detail-dark": nightMode,
           },
         )}
@@ -1714,34 +1718,38 @@ const TripDetailHeader = ({
           </span>
         </button>
         {/* Text-only mode: hide activity hero images for a dense, scannable
-            itinerary. Useful both in and out of focus mode. */}
-        <button
-          type="button"
-          className={classnames(
-            "trip-detail-basic-info-toggle",
-            "trip-detail-focus-toggle",
-            "trip-detail-textonly-toggle",
-            { "is-active": hideImages },
-          )}
-          onClick={onToggleHideImages}
-          aria-pressed={hideImages}
-          title={
-            hideImages
-              ? t("tripDetail.toolbar.showImagesTitle")
-              : t("tripDetail.toolbar.textOnlyTitle")
-          }
-        >
-          {hideImages ? (
-            <ImageOutlinedIcon fontSize="small" />
-          ) : (
-            <HideImageOutlinedIcon fontSize="small" />
-          )}
-          <span className="trip-detail-focus-label">
-            {hideImages
-              ? t("tripDetail.toolbar.showImages")
-              : t("tripDetail.toolbar.textOnly")}
-          </span>
-        </button>
+            itinerary. On mobile this is bundled into Focus (and offered as an
+            override in the kebab) to keep the tight action row to two toggles
+            — Focus + Dark. Desktop has room, so it stays inline. */}
+        {!isMobile && (
+          <button
+            type="button"
+            className={classnames(
+              "trip-detail-basic-info-toggle",
+              "trip-detail-focus-toggle",
+              "trip-detail-textonly-toggle",
+              { "is-active": hideImages },
+            )}
+            onClick={onToggleHideImages}
+            aria-pressed={hideImages}
+            title={
+              hideImages
+                ? t("tripDetail.toolbar.showImagesTitle")
+                : t("tripDetail.toolbar.textOnlyTitle")
+            }
+          >
+            {hideImages ? (
+              <ImageOutlinedIcon fontSize="small" />
+            ) : (
+              <HideImageOutlinedIcon fontSize="small" />
+            )}
+            <span className="trip-detail-focus-label">
+              {hideImages
+                ? t("tripDetail.toolbar.showImages")
+                : t("tripDetail.toolbar.textOnly")}
+            </span>
+          </button>
+        )}
         {/* Night view: dark theme scoped to the itinerary page only. */}
         <button
           type="button"
@@ -1932,6 +1940,25 @@ const TripDetailHeader = ({
               onClick={() => {
                 closeMenu();
                 onStartTour();
+              }}
+            />
+          )}
+          {/* Hide/show images — the standalone toolbar button is desktop-only
+              (Focus bundles image-hiding on mobile), so mobile users get the
+              explicit override here in the menu. */}
+          {isMobile && (
+            <MenuActionItem
+              icon={
+                hideImages ? <ImageOutlinedIcon /> : <HideImageOutlinedIcon />
+              }
+              label={
+                hideImages
+                  ? t("tripDetail.toolbar.showImages")
+                  : t("tripDetail.toolbar.textOnly")
+              }
+              onClick={() => {
+                closeMenu();
+                onToggleHideImages();
               }}
             />
           )}

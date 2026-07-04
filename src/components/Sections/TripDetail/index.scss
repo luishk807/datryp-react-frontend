@@ -213,9 +213,10 @@
   }
 }
 
-// Mobile: collapse the Focus toggle to an icon-only round button — the
-// header action row is tight on narrow screens, and the icon + title
-// tooltip carry the meaning without the label eating width.
+// Mobile: collapse the secondary view toggles (Night) to icon-only round
+// buttons — the header row is tight on narrow screens and the icon + tooltip
+// carry the meaning. Focus is the EXCEPTION: it's the primary "simplify the
+// view" control, so it stays a labeled pill ("Focus") for discoverability.
 @media (max-width: 720px) {
   .trip-detail-focus-toggle {
     padding: 0;
@@ -225,6 +226,15 @@
 
   .trip-detail-focus-label {
     display: none;
+  }
+
+  .trip-detail-focusmode-toggle {
+    width: auto;
+    padding: 0 12px;
+
+    .trip-detail-focus-label {
+      display: inline;
+    }
   }
 }
 
