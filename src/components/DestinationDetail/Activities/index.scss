@@ -348,11 +348,9 @@
   font-size: 1.25rem !important;
 }
 
-// Rating + favorite share one row under the title. The favorite is pushed to
-// the right so mobile shows a stable "★★★★★ …… ♥" line instead of the heart
-// wrapping out of the (flex-wrap) title row and the rating scattering below
-// it. nowrap keeps them on one line; the rating shrinks before the fixed-size
-// heart does.
+// Favorite + rating share one row under the title, LEFT-aligned with the heart
+// FIRST (to the left of the rating) so the row reads "♥ ★ Rate your visit".
+// nowrap keeps them on one line; the rating shrinks before the fixed-size heart.
 .activity-content-trip .content-detail .info .activity-actions-row {
   display: flex;
   align-items: center;
@@ -367,7 +365,6 @@
   }
 
   .activity-fav-btn {
-    margin-left: auto;
     flex-shrink: 0;
   }
 }

@@ -1210,6 +1210,14 @@ const Activities = ({
                           and the rating scattering below it. */}
                       {hasPlaceIdentity && (
                         <div className="activity-actions-row">
+                          <ActivityFavoriteButton
+                            placeName={activity.name}
+                            placeCity={activity.placeCity as string}
+                            placeCountry={activity.placeCountry as string}
+                            placeKey={activity.placeKey}
+                            countryCode={activity.countryCode}
+                            imageUrl={activity.image?.url}
+                          />
                           <ActivityReviewStars
                             placeName={activity.name}
                             placeCity={activity.placeCity as string}
@@ -1218,14 +1226,6 @@ const Activities = ({
                             googleRating={activity.googleRating}
                             googleRatingCount={activity.googleRatingCount}
                             openaiRating={activity.openaiRating}
-                          />
-                          <ActivityFavoriteButton
-                            placeName={activity.name}
-                            placeCity={activity.placeCity as string}
-                            placeCountry={activity.placeCountry as string}
-                            placeKey={activity.placeKey}
-                            countryCode={activity.countryCode}
-                            imageUrl={activity.image?.url}
                           />
                         </div>
                       )}

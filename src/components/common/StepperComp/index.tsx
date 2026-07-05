@@ -306,6 +306,11 @@ const StepperComp = ({
     // the Destination step (single-trip-only, when no country was preset),
     // so numeric indices shift. Labels mirror the entries in `TripSteps`.
     const activeLabel = steps[activeStep]?.label;
+    // The mode step (single vs. multi) auto-advances the instant the user picks
+    // a card (TripModeStep fires onAdvance), so the "Next" button is redundant
+    // there — hide it on that step. Step 0 has no Back either, so the actions
+    // row is simply empty on the mode screen.
+    const isModeStep = activeLabel === 'Trip type';
     const stepMissing: string[] = [];
     // Full-sentence validation errors (vs. `stepMissing`'s noun phrases).
     // Used for constraints that don't read as "Add X" — e.g. a backwards
@@ -1084,21 +1089,23 @@ const StepperComp = ({
                                     label={t('createTrip.back')}
                                 />
                             )}
-                            <Button
-                                type="standard"
-                                onClick={handleNext}
-                                label={
-                                    isLastStep
-                                        ? saveItinerary.isPending
-                                            ? t('common.saving')
-                                            : t('createTrip.stepper.finish')
-                                        : t('createTrip.next')
-                                }
-                                disabled={
-                                    blockAdvance ||
-                                    (isLastStep && saveItinerary.isPending)
-                                }
-                            />
+                            {!isModeStep && (
+                                <Button
+                                    type="standard"
+                                    onClick={handleNext}
+                                    label={
+                                        isLastStep
+                                            ? saveItinerary.isPending
+                                                ? t('common.saving')
+                                                : t('createTrip.stepper.finish')
+                                            : t('createTrip.next')
+                                    }
+                                    disabled={
+                                        blockAdvance ||
+                                        (isLastStep && saveItinerary.isPending)
+                                    }
+                                />
+                            )}
                         </div>
                     </Grid>
                 </Grid>
