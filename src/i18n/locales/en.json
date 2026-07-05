@@ -1326,6 +1326,18 @@
         "title": "Religion",
         "customsLabel": "Important customs"
     },
+    "tipping": {
+        "title": "Tipping",
+        "categories": {
+            "restaurants": "Restaurants",
+            "bars": "Bars & cafés",
+            "cafes": "Cafés",
+            "taxi": "Taxi",
+            "hotel": "Hotel",
+            "guide": "Guides",
+            "porter": "Porters"
+        }
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",

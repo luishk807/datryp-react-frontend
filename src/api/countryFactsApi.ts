@@ -23,6 +23,10 @@ interface ReligionInfoRaw {
     note: string | null;
     customs: string[];
 }
+interface TippingInfoRaw {
+    summary: string;
+    categories: Record<string, string>;
+}
 interface CountryFactsResponseRaw {
     country_code: string;
     emergency: Record<string, string>;
@@ -30,6 +34,7 @@ interface CountryFactsResponseRaw {
     timezone: string | null;
     timezone_multi: boolean;
     religion?: ReligionInfoRaw | null;
+    tipping?: TippingInfoRaw | null;
 }
 
 export interface PowerInfo {
@@ -48,6 +53,14 @@ export interface ReligionInfo {
     /** A few practical, widely-accepted customs a visitor actually acts on. */
     customs: string[];
 }
+export interface TippingInfo {
+    /** One-line overall stance (e.g. "Not expected — service is included"). */
+    summary: string;
+    /** Free-form service → expectation map. Common keys: `restaurants`,
+     *  `bars`, `taxi`, `hotel`. The component labels the ones it knows and
+     *  passes the rest through. */
+    categories: Record<string, string>;
+}
 export interface CountryFactsResult {
     countryCode: string;
     /** Free-form map of emergency-service → number. Common keys: `general`,
@@ -62,6 +75,9 @@ export interface CountryFactsResult {
     /** Dominant religion + practical customs. Grounded (never AI). Null for
      *  curated entries that predate this field. */
     religion: ReligionInfo | null;
+    /** Tipping norms (summary + per-service expectations). Grounded (never AI).
+     *  Null for curated entries that predate this field. */
+    tipping: TippingInfo | null;
 }
 
 export const fetchCountryFacts = async (
@@ -100,6 +116,12 @@ export const fetchCountryFacts = async (
                   emoji: body.religion.emoji ?? null,
                   note: body.religion.note ?? null,
                   customs: body.religion.customs ?? [],
+              }
+            : null,
+        tipping: body.tipping
+            ? {
+                  summary: body.tipping.summary,
+                  categories: body.tipping.categories ?? {},
               }
             : null,
     };

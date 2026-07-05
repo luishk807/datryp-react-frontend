@@ -910,6 +910,18 @@
         "title": "Religión",
         "customsLabel": "Costumbres importantes"
     },
+    "tipping": {
+        "title": "Propinas",
+        "categories": {
+            "restaurants": "Restaurantes",
+            "bars": "Bares y cafés",
+            "cafes": "Cafés",
+            "taxi": "Taxi",
+            "hotel": "Hotel",
+            "guide": "Guías",
+            "porter": "Maleteros"
+        }
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",
