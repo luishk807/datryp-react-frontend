@@ -57,7 +57,16 @@ body.trip-focus-mode {
 
 .homeContainer{
   display: flex;
-  margin: 10px 5px !important;
+  // Wrapping flex container for every subpage's content. Keep it from ever
+  // contributing to horizontal overflow (which the page-shell's
+  // overflow-x:hidden would then crop, not reflow): let it shrink
+  // (min-width:0), cap it at the viewport, and use PADDING for the side
+  // gutter instead of MARGIN — margin on a 100%-basis flex item can spill
+  // past the parent, padding stays inside the border-box.
+  min-width: 0;
+  max-width: 100%;
+  margin: 10px 0 !important;
+  padding: 0 5px;
 }
 
 // Adobe Acrobat browser extension injects a "Save as PDF" floating
