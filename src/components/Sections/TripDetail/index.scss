@@ -122,6 +122,16 @@
   }
 }
 
+// The itinerary day-list wrapper. Its `<Grid item>` gains md/xs breakpoints
+// in the JSX so it spans 100% on mobile — a bare lg={12} sized to CONTENT
+// width there, letting wide cards overflow and get cropped by the page-shell's
+// overflow-x:hidden (the "cards cut off on the right" bug). A little right
+// padding balances the timeline rail's left inset so cards don't sit flush
+// against the edge.
+.trip-detail-day-list {
+  padding-right: 16px;
+}
+
 // Collapsible "Trip details" overview — a toggle pill that expands the
 // (header-less) BasicTripInfo stats card below it. Tinted with the
 // status accent so it matches the rest of the lifecycle-colored chrome.

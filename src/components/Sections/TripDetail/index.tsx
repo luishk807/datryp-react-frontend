@@ -1340,7 +1340,7 @@ export const TripDetail = () => {
             </div>
           </Grid>
         )}
-        <Grid item lg={12}>
+        <Grid item lg={12} md={12} xs={12} className="trip-detail-day-list">
           {/* In Planning the day list is always editable for the
               organizer — add / edit / delete / status / budget all
               persist immediately via handleChangePlace's auto-save
