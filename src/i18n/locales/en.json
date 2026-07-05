@@ -1293,6 +1293,7 @@
     },
     "countryFacts": {
         "title": "Quick facts",
+        "approxNote": "Approximate — double-check the emergency numbers with an official local source.",
         "emergency": {
             "label": "Emergency",
             "general": "All emergencies",
@@ -1337,6 +1338,12 @@
             "guide": "Guides",
             "porter": "Porters"
         }
+    },
+    "tapWater": {
+        "title": "Tap water",
+        "safe": "Safe to drink",
+        "caution": "Use caution",
+        "unsafe": "Not recommended"
     },
     "trips": {
         "title": "My Trips",

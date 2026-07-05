@@ -877,6 +877,7 @@
     },
     "countryFacts": {
         "title": "Datos rápidos",
+        "approxNote": "Aproximado — verifica los números de emergencia con una fuente oficial local.",
         "emergency": {
             "label": "Emergencias",
             "general": "Todas las emergencias",
@@ -921,6 +922,12 @@
             "guide": "Guías",
             "porter": "Maleteros"
         }
+    },
+    "tapWater": {
+        "title": "Agua del grifo",
+        "safe": "Apta para beber",
+        "caution": "Con precaución",
+        "unsafe": "No recomendada"
     },
     "trips": {
         "title": "Mis viajes",

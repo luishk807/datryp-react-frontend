@@ -48,6 +48,7 @@ import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
 import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
 import ReligionSection from "components/PlaceDetail/ReligionSection";
 import TippingSection from "components/PlaceDetail/TippingSection";
+import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
@@ -614,6 +615,8 @@ const CityDetail = () => {
                         <ReligionSection code={city.countryCode} />
 
                         <TippingSection code={city.countryCode} />
+
+                        <TapWaterSection code={city.countryCode} />
 
                         <AirportsSection airports={details.airports} />
 

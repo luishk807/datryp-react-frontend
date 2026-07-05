@@ -27,6 +27,10 @@ interface TippingInfoRaw {
     summary: string;
     categories: Record<string, string>;
 }
+interface WaterInfoRaw {
+    status: string;
+    note: string | null;
+}
 interface CountryFactsResponseRaw {
     country_code: string;
     emergency: Record<string, string>;
@@ -35,6 +39,8 @@ interface CountryFactsResponseRaw {
     timezone_multi: boolean;
     religion?: ReligionInfoRaw | null;
     tipping?: TippingInfoRaw | null;
+    water?: WaterInfoRaw | null;
+    source?: string;
 }
 
 export interface PowerInfo {
@@ -61,6 +67,14 @@ export interface TippingInfo {
      *  passes the rest through. */
     categories: Record<string, string>;
 }
+export type WaterStatus = 'safe' | 'caution' | 'unsafe';
+export interface WaterInfo {
+    /** Tap-water safety verdict. Unknown backend values fall back to
+     *  `caution` (the safe default). */
+    status: WaterStatus;
+    /** Short practical note (e.g. "Stick to bottled water"). */
+    note: string | null;
+}
 export interface CountryFactsResult {
     countryCode: string;
     /** Free-form map of emergency-service → number. Common keys: `general`,
@@ -78,6 +92,13 @@ export interface CountryFactsResult {
     /** Tipping norms (summary + per-service expectations). Grounded (never AI).
      *  Null for curated entries that predate this field. */
     tipping: TippingInfo | null;
+    /** Tap-water safety verdict + note. Null for curated entries that predate
+     *  this field. */
+    water: WaterInfo | null;
+    /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
+     *  fallback for uncurated countries, shown under an "approximate — verify"
+     *  note. */
+    source: 'curated' | 'ai';
 }
 
 export const fetchCountryFacts = async (
@@ -124,5 +145,16 @@ export const fetchCountryFacts = async (
                   categories: body.tipping.categories ?? {},
               }
             : null,
+        water: body.water
+            ? {
+                  status:
+                      body.water.status === 'safe' ||
+                      body.water.status === 'unsafe'
+                          ? body.water.status
+                          : 'caution',
+                  note: body.water.note ?? null,
+              }
+            : null,
+        source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };

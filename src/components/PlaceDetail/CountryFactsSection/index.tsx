@@ -126,6 +126,8 @@ const CountryFactsSection = ({ code }: CountryFactsSectionProps) => {
     const hasTime = Boolean(localTime);
     if (!hasEmergency && !hasPower && !hasTime) return null;
 
+    const isApprox = data.source === 'ai';
+
     return (
         <DetailSection
             className="country-facts-section"
@@ -204,6 +206,13 @@ const CountryFactsSection = ({ code }: CountryFactsSectionProps) => {
                     </li>
                 )}
             </ul>
+            {/* Only AI-sourced (uncurated) countries carry a caveat — the
+                curated set is authoritative and shows none. */}
+            {isApprox && (
+                <p className="country-facts-approx">
+                    {t('countryFacts.approxNote')}
+                </p>
+            )}
         </DetailSection>
     );
 };

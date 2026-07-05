@@ -89,3 +89,13 @@
   font-size: 0.8rem;
   color: rgba(0, 0, 0, 0.6);
 }
+
+// Quiet italic gray caveat shown only for AI-sourced (uncurated) countries —
+// the page's shared disclaimer tone, no colored box.
+.country-facts-approx {
+  margin: 14px 0 0;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #8a8a8a;
+  line-height: 1.45;
+}
