@@ -3209,6 +3209,11 @@
                 "body1": "Our AI search is built to answer questions about trips, destinations, places, and activities. Searches that aren't about travel — for example, requests involving weapons, drugs, sexual content, or self-harm — may not return results. This isn't a punishment; it just isn't what DaTryp.com is for. Try a different search.",
                 "body2": "If you think a travel-related search was blocked by mistake, rephrase it (for example, “Amsterdam coffee culture” instead of a more loaded keyword) and try again."
             },
+            "accuracy": {
+                "heading": "Accuracy of the information we show",
+                "body1": "Much of what you see on DaTryp.com — destination guides, recommendations, essential-app lists, budgets, ratings, and safety or visa notes — is generated automatically (including by AI) or drawn from third-party sources. It may be inaccurate, incomplete, or out of date, and where a section is marked \"auto-suggested\" it has not been individually verified by us. It is provided for general information only and is not professional, financial, legal, immigration, medical, or safety advice.",
+                "body2": "Always confirm important details with an official source before you act on them — especially payment and banking apps, visa and entry requirements, and health and safety information. DaTryp.com is not responsible for any loss or harm resulting from reliance on this content."
+            },
             "account": {
                 "heading": "Your account",
                 "body": "You must be at least 13 years old to use DaTryp.com. You're responsible for keeping your sign-in details safe and for the activity that happens under your account."

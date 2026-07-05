@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Layout from 'components/common/Layout/SubLayout';
 import './index.scss';
 
-const LAST_UPDATED = 'May 18, 2026';
+const LAST_UPDATED = 'July 5, 2026';
 
 const Terms = () => {
     const { t } = useTranslation();
@@ -23,6 +23,12 @@ const Terms = () => {
                     <h2>{t('terms.sections.aiSearch.heading')}</h2>
                     <p>{t('terms.sections.aiSearch.body1')}</p>
                     <p>{t('terms.sections.aiSearch.body2')}</p>
+                </section>
+
+                <section className="terms-section">
+                    <h2>{t('terms.sections.accuracy.heading')}</h2>
+                    <p>{t('terms.sections.accuracy.body1')}</p>
+                    <p>{t('terms.sections.accuracy.body2')}</p>
                 </section>
 
                 <section className="terms-section">

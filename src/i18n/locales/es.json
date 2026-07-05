@@ -3209,6 +3209,11 @@
                 "body1": "Nuestra búsqueda con IA está hecha para responder preguntas sobre viajes, destinos, lugares y actividades. Las búsquedas que no tienen que ver con viajes — por ejemplo, solicitudes relacionadas con armas, drogas, contenido sexual o autolesiones — pueden no devolver resultados. Esto no es un castigo; simplemente no es para lo que sirve DaTryp.com. Prueba con otra búsqueda.",
                 "body2": "Si crees que una búsqueda relacionada con viajes se bloqueó por error, reformúlala (por ejemplo, “cultura del café en Ámsterdam” en lugar de una palabra clave más cargada) e inténtalo de nuevo."
             },
+            "accuracy": {
+                "heading": "Exactitud de la información que mostramos",
+                "body1": "Buena parte de lo que ves en DaTryp.com — guías de destinos, recomendaciones, listas de apps esenciales, presupuestos, valoraciones y notas de seguridad o visado — se genera de forma automática (incluida la IA) o proviene de terceros. Puede ser inexacta, incompleta o estar desactualizada, y cuando una sección aparece como \"sugerida por IA\" no ha sido verificada individualmente por nosotros. Se ofrece solo con carácter informativo y no constituye asesoramiento profesional, financiero, legal, migratorio, médico ni de seguridad.",
+                "body2": "Confirma siempre los datos importantes con una fuente oficial antes de actuar — sobre todo las apps de pago y banca, los requisitos de visado y entrada, y la información de salud y seguridad. DaTryp.com no se hace responsable de pérdidas o daños derivados de confiar en este contenido."
+            },
             "account": {
                 "heading": "Tu cuenta",
                 "body": "Debes tener al menos 13 años para usar DaTryp.com. Eres responsable de mantener seguros tus datos de acceso y de la actividad que ocurra en tu cuenta."
