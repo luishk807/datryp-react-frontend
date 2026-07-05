@@ -1291,6 +1291,37 @@
             "messaging": "Messaging"
         }
     },
+    "countryFacts": {
+        "title": "Quick facts",
+        "emergency": {
+            "label": "Emergency",
+            "general": "All emergencies",
+            "police": "Police",
+            "ambulance": "Ambulance",
+            "fire": "Fire",
+            "tourist": "Tourist police",
+            "mobile": "From a mobile",
+            "eu": "EU-wide",
+            "alt": "Alternate"
+        },
+        "power": {
+            "label": "Power",
+            "plugsOne": "Type {{letters}}",
+            "plugsMany": "Types {{letters}}",
+            "spec": "{{voltage}}V · {{frequency}}Hz"
+        },
+        "time": {
+            "label": "Local time",
+            "same": "Same time as you",
+            "ahead": "{{h}}h ahead of you",
+            "behind": "{{h}}h behind you",
+            "multi": "Capital's zone — the country spans several"
+        }
+    },
+    "beforeYouGo": {
+        "title": "Before you go",
+        "note": "A starting point — confirm the specifics for your dates and nationality."
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",

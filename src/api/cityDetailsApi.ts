@@ -131,6 +131,7 @@ interface CityDetailsRaw {
         summary: string;
     } | null;
     cultural_shock?: string | null;
+    before_you_go?: string[];
 }
 
 interface CitySummaryRaw {
@@ -176,6 +177,7 @@ type CityProseRaw = Pick<
     | "best_time_to_visit"
     | "worst_time_to_visit"
     | "cultural_shock"
+    | "before_you_go"
 >;
 
 type CityListsRaw = Pick<
@@ -211,6 +213,7 @@ const proseFromRaw = (raw: CityProseRaw): Partial<CityDetails> => ({
     bestTimeToVisit: raw.best_time_to_visit,
     worstTimeToVisit: raw.worst_time_to_visit,
     culturalShock: raw.cultural_shock ?? undefined,
+    beforeYouGo: raw.before_you_go ?? undefined,
 });
 
 const listsFromRaw = (raw: CityListsRaw): Partial<CityDetails> => ({

@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// Rendered inline in the main content column alongside About / Expenses /
+// Essential apps — all borderless. Drop the DetailSection card chrome so it
+// aligns with that flow, and give it vertical margin so the checklist reads as
+// its own spaced block. Same treatment as `.essential-apps-section`.
+.detail-section.before-you-go-section {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  margin: 28px 0;
+}
+
+.before-you-go-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.before-you-go-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.before-you-go-check {
+  color: theme('colors.primaryGreen');
+  font-size: 1.15rem !important;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.before-you-go-text {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: theme('colors.primary');
+}
+
+// One quiet, italic gray note in the page's shared disclaimer language — no
+// colored box, no "AI" label — so the checklist, not a warning, leads.
+.before-you-go-note {
+  margin: 14px 0 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: #8a8a8a;
+  line-height: 1.45;
+}

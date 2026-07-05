@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.country-facts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.country-facts-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.country-facts-icon {
+  color: theme('colors.primaryGreen');
+  font-size: 1.15rem !important;
+  margin-top: 1px;
+  flex-shrink: 0;
+
+  // Emergency leads with a red-cross accent — it's the one fact you dial
+  // under stress, so it reads distinctly from the neutral green fact icons.
+  &--sos {
+    color: #d5493f;
+  }
+}
+
+.country-facts-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.country-facts-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.country-facts-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.country-facts-offset {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.country-facts-sub {
+  font-size: 0.76rem;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.35;
+}
+
+.country-facts-numbers {
+  list-style: none;
+  margin: 3px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.country-facts-number {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.country-facts-number-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+}
+
+.country-facts-number-label {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+}

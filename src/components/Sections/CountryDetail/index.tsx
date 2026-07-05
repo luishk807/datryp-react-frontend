@@ -40,6 +40,8 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import VisaSection from "components/PlaceDetail/VisaSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
+import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
+import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
@@ -568,6 +570,8 @@ const CountryDetail = () => {
               subjectLabel={country.name}
             />
 
+            <BeforeYouGoSection items={details.beforeYouGo} />
+
             <NotesSection items={details.notesToKnow} isError={false} />
 
             <LocalFlavorSection
@@ -578,6 +582,8 @@ const CountryDetail = () => {
 
           <aside className="country-detail-content-side">
             <CurrencySection currency={details.currency} isError={false} />
+
+            <CountryFactsSection code={code} />
 
             <AirportsSection airports={details.airports} />
 

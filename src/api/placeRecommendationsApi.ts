@@ -293,6 +293,7 @@ interface PlaceDetailsRaw {
     airports?: AirportRaw[];
     popularity?: PopularityInfoRaw | null;
     cultural_shock?: string | null;
+    before_you_go?: string[];
 }
 
 interface PlaceDetailsResponseRaw {
@@ -317,6 +318,7 @@ type PlaceProseRaw = Pick<
     | 'weather'
     | 'worst_time_to_visit'
     | 'cultural_shock'
+    | 'before_you_go'
 >;
 
 type PlaceListsRaw = Pick<
@@ -350,6 +352,7 @@ const proseFromRaw = (raw: PlaceProseRaw): Partial<PlaceDetails> => ({
     weather: raw.weather,
     worstTimeToVisit: raw.worst_time_to_visit,
     culturalShock: raw.cultural_shock ?? undefined,
+    beforeYouGo: raw.before_you_go ?? undefined,
 });
 
 const listsFromRaw = (raw: PlaceListsRaw): Partial<PlaceDetails> => ({

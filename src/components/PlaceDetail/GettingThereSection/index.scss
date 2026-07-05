@@ -1,0 +1,13 @@
+// "Getting there" lives inline in the main content column alongside About /
+// Expenses / Essential apps — all of which are borderless. Drop the
+// DetailSection card chrome (border, shadow, fill, padding) so it aligns with
+// that flow instead of reading as the one boxed-in card, and give it vertical
+// margin so it sits as its own spaced block. Same treatment as
+// `.essential-apps-section`.
+.detail-section.getting-there-section {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  margin: 28px 0;
+}

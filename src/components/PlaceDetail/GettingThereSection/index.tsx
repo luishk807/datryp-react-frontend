@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import AsyncDetailSection from "components/PlaceDetail/AsyncDetailSection";
 import TravelWidget from "components/PlaceDetail/TravelWidget";
 import type { Coordinates } from "types";
+import "./index.scss";
 
 export interface GettingThereSectionProps {
   /** Display name shown in the Google-Maps deep-link label
@@ -31,6 +32,7 @@ const GettingThereSection = ({
   const { t } = useTranslation();
   return (
     <AsyncDetailSection
+      className="getting-there-section"
       title={t('detail.common.gettingThere.title')}
       icon={<FlightTakeoffRoundedIcon />}
       data={coordinates}

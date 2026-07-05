@@ -175,6 +175,9 @@ export interface PlaceDetails {
    *  experience. Optional for rows cached before this field shipped —
    *  the UI hides the callout when absent. */
   culturalShock?: string;
+  /** Actionable "sort this before you fly" checklist. Optional for rows
+   *  cached before this field shipped — the UI hides it when empty. */
+  beforeYouGo?: string[];
 }
 
 export interface PlaceDetailsResult {

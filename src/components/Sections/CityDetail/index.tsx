@@ -45,6 +45,8 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
+import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
+import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
 import { usePlaceImage } from "api/hooks/usePlaceImage";
@@ -578,6 +580,8 @@ const CityDetail = () => {
                             subjectLabel={city.country}
                         />
 
+                        <BeforeYouGoSection items={details.beforeYouGo} />
+
                         <NotesSection
                             items={details.notesToKnow}
                             isError={false}
@@ -602,6 +606,8 @@ const CityDetail = () => {
                             popularity={details.popularity}
                             isError={false}
                         />
+
+                        <CountryFactsSection code={city.countryCode} />
 
                         <AirportsSection airports={details.airports} />
 

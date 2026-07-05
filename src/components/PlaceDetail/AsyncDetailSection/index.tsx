@@ -27,6 +27,10 @@ export interface AsyncDetailSectionProps<T> {
    *  (rather than `ReactNode` children) so consumers don't need their
    *  own `data && ...` guard. */
   children: (data: T) => React.ReactNode;
+  /** Optional extra class forwarded to the underlying `DetailSection`
+   *  wrapper — lets a consumer drop the card chrome (e.g. Getting there
+   *  rendering inline in the main content column). */
+  className?: string;
 }
 
 /**
@@ -45,8 +49,9 @@ const AsyncDetailSection = <T,>({
   skeletonLines = 3,
   loadingHint,
   children,
+  className,
 }: AsyncDetailSectionProps<T>) => (
-  <DetailSection title={title} icon={icon}>
+  <DetailSection title={title} icon={icon} className={className}>
     {data != null ? (
       children(data)
     ) : isError ? (

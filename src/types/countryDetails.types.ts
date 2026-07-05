@@ -57,6 +57,9 @@ export interface CountryDetails {
     /** Heads-up on cultural-shock moments a first-time visitor might
      *  experience. Optional for rows cached before this field shipped. */
     culturalShock?: string;
+    /** Actionable "sort this before you fly" checklist. Optional for rows
+     *  cached before this field shipped — the UI hides it when empty. */
+    beforeYouGo?: string[];
 }
 
 export interface CountrySummary {

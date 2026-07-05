@@ -875,6 +875,37 @@
             "messaging": "Mensajería"
         }
     },
+    "countryFacts": {
+        "title": "Datos rápidos",
+        "emergency": {
+            "label": "Emergencias",
+            "general": "Todas las emergencias",
+            "police": "Policía",
+            "ambulance": "Ambulancia",
+            "fire": "Bomberos",
+            "tourist": "Policía turística",
+            "mobile": "Desde un móvil",
+            "eu": "En la UE",
+            "alt": "Alternativo"
+        },
+        "power": {
+            "label": "Electricidad",
+            "plugsOne": "Tipo {{letters}}",
+            "plugsMany": "Tipos {{letters}}",
+            "spec": "{{voltage}} V · {{frequency}} Hz"
+        },
+        "time": {
+            "label": "Hora local",
+            "same": "La misma hora que tú",
+            "ahead": "{{h}} h por delante de ti",
+            "behind": "{{h}} h por detrás de ti",
+            "multi": "Zona de la capital — el país abarca varias"
+        }
+    },
+    "beforeYouGo": {
+        "title": "Antes de viajar",
+        "note": "Un punto de partida — confirma los detalles según tus fechas y nacionalidad."
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",
