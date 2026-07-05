@@ -1,9 +1,12 @@
 import {
     Menu as MuiMenu,
     MenuItem as MuiMenuItem,
+    IconButton,
     type MenuProps as MuiMenuProps,
     type PopoverOrigin,
 } from '@mui/material';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import './index.scss';
 
@@ -26,6 +29,12 @@ export interface MenuProps extends Omit<MuiMenuProps, 'open' | 'children'> {
      *  the shared `.common-menu` look. Use only for paper-level tweaks
      *  beyond the default — most callers don't need this. */
     paperClassName?: string;
+    /** On phones (≤767px), render the menu as a FULL-SCREEN sheet (100%
+     *  width + height) with a close button in the top-right, instead of a
+     *  small anchored dropdown. Prevents a tall menu (e.g. the account menu)
+     *  from clipping its last row — the Logout item — off the bottom of the
+     *  viewport. Desktop keeps the normal anchored dropdown. */
+    fullScreenOnMobile?: boolean;
     /** Menu body — typically `<MenuActionItem>` and `<Divider>`. */
     children: React.ReactNode;
 }
@@ -42,29 +51,50 @@ export interface MenuProps extends Omit<MuiMenuProps, 'open' | 'children'> {
 const Menu = ({
     anchorEl,
     paperClassName,
+    fullScreenOnMobile = false,
     anchorOrigin = DEFAULT_ANCHOR_ORIGIN,
     transformOrigin = DEFAULT_TRANSFORM_ORIGIN,
     slotProps,
+    onClose,
     children,
     ...rest
-}: MenuProps) => (
-    <MuiMenu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        anchorOrigin={anchorOrigin}
-        transformOrigin={transformOrigin}
-        slotProps={{
-            ...slotProps,
-            paper: {
-                ...slotProps?.paper,
-                className: classNames('common-menu', paperClassName),
-            },
-        }}
-        {...rest}
-    >
-        {children}
-    </MuiMenu>
-);
+}: MenuProps) => {
+    const { t } = useTranslation();
+    return (
+        <MuiMenu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={onClose}
+            anchorOrigin={anchorOrigin}
+            transformOrigin={transformOrigin}
+            slotProps={{
+                ...slotProps,
+                paper: {
+                    ...slotProps?.paper,
+                    className: classNames(
+                        'common-menu',
+                        { 'common-menu--full-mobile': fullScreenOnMobile },
+                        paperClassName
+                    ),
+                },
+            }}
+            {...rest}
+        >
+            {fullScreenOnMobile && (
+                <div className="common-menu-mobile-head">
+                    <IconButton
+                        className="common-menu-close"
+                        aria-label={t('common.close', { defaultValue: 'Close' })}
+                        onClick={(e) => onClose?.(e, 'escapeKeyDown')}
+                    >
+                        <CloseRoundedIcon />
+                    </IconButton>
+                </div>
+            )}
+            {children}
+        </MuiMenu>
+    );
+};
 
 export type MenuActionTone = 'default' | 'danger';
 

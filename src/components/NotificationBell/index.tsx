@@ -134,6 +134,7 @@ const NotificationBell = () => {
                 anchorEl={anchorEl}
                 onClose={handleClose}
                 paperClassName="notification-menu"
+                fullScreenOnMobile
             >
                 <div className="notification-menu-head">
                     <span className="notification-menu-title">Notifications</span>

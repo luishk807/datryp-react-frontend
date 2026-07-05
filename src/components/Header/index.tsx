@@ -201,6 +201,7 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 anchorEl={menuAnchor}
                                 onClose={handleMenuClose}
                                 paperClassName="user-menu"
+                                fullScreenOnMobile
                             >
                                 <div className="user-menu-header">
                                     <span className="user-menu-avatar">

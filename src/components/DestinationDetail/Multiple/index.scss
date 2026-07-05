@@ -6,6 +6,21 @@
   margin-bottom: 20px !important;
 }
 
+// Overflow guard. A flex/grid item defaults to `min-width: auto`, which
+// refuses to shrink below its content's min-content width — so one wide
+// descendant (the depart→arrive header row, a long activity title, a wide
+// budget chip) forces the whole destination card past the viewport. On
+// /trip-detail the themed wrapper's `overflow-x: clip` then CROPS the right
+// edge (header + cards cut off on mobile); in the create/edit wizard it
+// overflows outright. Letting every grid descendant shrink to 0 min-width
+// fixes it at the source — the content wraps/ellipsises to fit instead.
+// Only min-width is touched, so MUI's per-breakpoint column max-widths
+// (md=6 header / actions split) are untouched.
+.multrip-content-item,
+.multrip-content-item .MuiGrid-root {
+  min-width: 0;
+}
+
 .multrip-content-item:not(:first-child) {
   padding-top: 20px !important;
 }

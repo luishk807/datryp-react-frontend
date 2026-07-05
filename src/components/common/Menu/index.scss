@@ -16,8 +16,57 @@
 }
 
 @media (max-width: 480px) {
-  .common-menu {
+  .common-menu:not(.common-menu--full-mobile) {
     min-width: min(240px, calc(100vw - 24px)) !important;
+  }
+}
+
+// Close header — rendered inside the paper only when `fullScreenOnMobile` is
+// set; hidden until the full-screen mobile sheet kicks in below.
+.common-menu-mobile-head {
+  display: none;
+}
+
+// Full-screen-on-mobile variant. A tall anchored dropdown (e.g. the account
+// menu with a dozen rows) clips its last item — Logout — off the bottom of a
+// phone. On phones, blow the paper up to a full-viewport sheet with a sticky
+// close button so every row is reachable and scrollable. Overrides MUI's inline
+// top/left/transform positioning (hence the `!important`s).
+@media (max-width: 767px) {
+  .common-menu.common-menu--full-mobile {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column;
+    overflow-y: auto !important;
+    padding: 0 10px calc(12px + env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box;
+
+    .MuiList-root {
+      flex: 1 1 auto;
+    }
+  }
+
+  .common-menu.common-menu--full-mobile .common-menu-mobile-head {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 0 4px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    // Match the paper so list rows scrolling underneath don't bleed through.
+    background: #fff;
+  }
+
+  .common-menu.common-menu--full-mobile .common-menu-close {
+    color: rgba(0, 0, 0, 0.6);
   }
 }
 
