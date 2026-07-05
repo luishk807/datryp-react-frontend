@@ -99,14 +99,20 @@ export const isNetworkError = (err: unknown): boolean => {
 /**
  * One-shot reachability probe against the cheap `/health` route. Updates the
  * store and resolves to the result. Used by `ServerGate` on boot, on the
- * user's "Try again" click, and by the auto-poll while the gate is shown.
- * Times out after 12s — long enough that a cold backend boot (container
+ * user's "Try again" click, by the auto-poll while the gate is shown, and by
+ * the background heartbeat while the gate is DOWN (a shorter timeout there so
+ * a mid-deploy hang trips the wall promptly).
+ * Default timeout is 12s — long enough that a cold backend boot (container
  * restart, serverless DB waking) isn't mistaken for a hard outage, but short
- * enough that a hung socket doesn't leave the probe pending forever.
+ * enough that a hung socket doesn't leave the probe pending forever. Callers
+ * that want snappier hang-detection (the background heartbeat) pass a smaller
+ * `timeoutMs`.
  */
-export const checkServerHealth = async (): Promise<boolean> => {
+export const checkServerHealth = async (
+    timeoutMs = 12000,
+): Promise<boolean> => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
         const resp = await fetch(`${API_BASE}/health`, {
             signal: controller.signal,

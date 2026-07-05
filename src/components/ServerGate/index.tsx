@@ -74,6 +74,42 @@ const ServerGate = ({ children }: ServerGateProps) => {
         return () => clearInterval(id);
     }, [status, isOffline, queryClient]);
 
+    // Background heartbeat while the backend LOOKS reachable. The store's
+    // "unreachable" signal is fed only by the GraphQL client's response
+    // middleware — but the country / city / place detail pages fetch over
+    // plain REST with no timeout, so during a deploy those requests stall with
+    // no response, the skeletons hang forever, and the gate never trips. This
+    // quiet /health probe closes that gap: it runs regardless of transport, so
+    // a stalled backend flips the gate on its own. Chained (not setInterval)
+    // so probes never overlap; paused while the tab is hidden; torn down the
+    // moment the status flips to 'unreachable' (the 5s recovery poll above then
+    // owns re-probing). /health is DB-free, so this never wakes the DB.
+    useEffect(() => {
+        if (status !== 'reachable' || isOffline) return;
+        let cancelled = false;
+        let timer: ReturnType<typeof setTimeout>;
+        const schedule = () => {
+            timer = setTimeout(async () => {
+                if (cancelled) return;
+                if (
+                    typeof document === 'undefined' ||
+                    document.visibilityState === 'visible'
+                ) {
+                    // 8s timeout: a mid-deploy hang trips the wall within ~2
+                    // failed probes instead of leaving the user on frozen
+                    // skeletons for a minute+.
+                    await checkServerHealth(8000);
+                }
+                if (!cancelled) schedule();
+            }, 15000);
+        };
+        schedule();
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [status, isOffline]);
+
     const handleRetry = useCallback(async () => {
         setIsRetrying(true);
         const ok = await checkServerHealth();
@@ -101,10 +137,10 @@ const ServerGate = ({ children }: ServerGateProps) => {
                 <div className="server-gate-icon" aria-hidden="true">
                     <CloudOffRoundedIcon fontSize="inherit" />
                 </div>
-                <h1 className="server-gate-title">Site Currently Unavailable</h1>
+                <h1 className="server-gate-title">We'll be right back</h1>
                 <p className="server-gate-body">
-                    We can't reach our servers right now. This is usually
-                    temporary — give it a moment and try again.
+                    daTryp is getting a quick update. This usually takes just a
+                    few moments — hang tight, or tap below to try again.
                 </p>
                 <button
                     type="button"
