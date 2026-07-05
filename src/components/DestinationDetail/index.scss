@@ -3,11 +3,51 @@
 // as a distinct, deliberate action (the per-block buttons were removed).
 .destination-detail-add-next {
   margin-top: 28px;
-  padding-top: 16px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+  padding-top: 20px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
 
+  // Prominent full-width orange call-to-action. The trigger used to render as
+  // faint orange text that was easy to miss (especially on mobile, tucked
+  // above the bottom nav) — make "Add next destination" read as the primary
+  // next step with a bold gradient button, white icon, and lift-on-hover.
   button {
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 20px;
+    border: none !important;
+    border-radius: 14px;
+    background: linear-gradient(
+      135deg,
+      theme('colors.primaryOrange') 0%,
+      #f8a83f 100%
+    ) !important;
+    color: #fff !important;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 8px 22px rgba(246, 137, 31, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease,
+      filter 0.15s ease;
+
+    .MuiSvgIcon-root {
+      color: #fff !important;
+      font-size: 1.4rem !important;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(246, 137, 31, 0.45);
+      filter: brightness(1.04);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 16px rgba(246, 137, 31, 0.35);
+    }
   }
 }
