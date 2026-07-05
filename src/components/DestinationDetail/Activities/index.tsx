@@ -509,6 +509,28 @@ const Activities = ({
   }, [destinations, destIdx]);
   const { data: arrivalCity } = useAirportCity(arrivalAirportCode);
 
+  // "Onward" hop: when the day itself ends with a flight LEAVING for a
+  // different airport than this destination's own arrival (e.g. a "BOS → LAX"
+  // card sitting under the Boston leg, or "ORD → SEA" under Chicago), the user
+  // is planning what to do AFTER they land — so scope Add-Activity suggestions
+  // to that arrival city, not the departure city where the earlier activities
+  // sit. Scans newest-first for the last such flight; skips the arrival flight
+  // INTO this destination (same airport as `arrivalAirportCode`).
+  const onwardArrivalAirportCode = useMemo<string | undefined>(() => {
+    const list = activities ?? [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const a = list[i];
+      if (a.kind !== ACTIVITY_KIND.FLIGHT) continue;
+      const segs = a.flightSegments ?? [];
+      const arr = (segs[segs.length - 1]?.arrivalAirport ?? "").trim();
+      if (arr && arr.toUpperCase() !== (arrivalAirportCode ?? "").toUpperCase()) {
+        return arr;
+      }
+    }
+    return undefined;
+  }, [activities, arrivalAirportCode]);
+  const { data: onwardCity } = useAirportCity(onwardArrivalAirportCode);
+
   const cityScope = useMemo<string | undefined>(() => {
     const FROM_NAME = /^(?:Flight|Train) to (.+)$/i;
     const scan = (list: Activity[] | null | undefined): string | undefined => {
@@ -528,8 +550,10 @@ const Activities = ({
     // trip (e.g. a Colombia leg suggesting Panama City). When this leg has no
     // place yet, fall back to the destination's arrival-airport city (below)
     // so a not-yet-planned Boston leg still scopes to Boston, not the country.
-    return scan(activities) ?? arrivalCity ?? undefined;
-  }, [activities, arrivalCity]);
+    // Onward-flight arrival city wins — the user just added a hop OUT, so the
+    // next thing they plan is at the destination they're flying to.
+    return onwardCity ?? scan(activities) ?? arrivalCity ?? undefined;
+  }, [activities, arrivalCity, onwardCity]);
 
   // Pre-warm the place-suggestions recommender the moment a destination's day
   // renders (not just when the Add-Activity modal opens — by then the live

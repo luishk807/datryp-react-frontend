@@ -258,6 +258,27 @@ const DestinationDetail = ({
         return endDate && isAfter(next, endDate) ? formatDate(endDate) : next;
     }, [derivedDestinations, startDate, endDate]);
 
+    // IATA of the last destination's ARRIVAL airport — pre-fills the new leg's
+    // "From airport" in the Add-next-destination modal, since a new flight
+    // departs from where the traveler currently is, not their home airport.
+    const lastArrivalAirport = useMemo<string | undefined>(() => {
+        const dated = derivedDestinations.filter((d) => d.startDate);
+        if (!dated.length) return undefined;
+        const last = dated
+            .slice()
+            .sort((a, b) => (isBefore(a.startDate, b.startDate) ? -1 : 1))
+            .pop();
+        const fi = last?.flightInfo;
+        if (!fi) return undefined;
+        const segs = fi.segments ?? [];
+        const code = (
+            segs[segs.length - 1]?.arrivalAirport ??
+            fi.arrivalAirport ??
+            ''
+        ).trim();
+        return code || undefined;
+    }, [derivedDestinations]);
+
     // Split sensors so desktop and mobile both feel right:
     //   - MouseSensor: 8px distance threshold so clicks on edit/X buttons
     //     inside a card aren't hijacked as drags.
@@ -497,6 +518,7 @@ const DestinationDetail = ({
                         addButtonLabel={t('activity.addNextDestination')}
                         tripMaxDate={endDate}
                         defaultDate={addNextDefaultDate}
+                        lastArrivalAirport={lastArrivalAirport}
                         onChange={(value) => {
                             const start =
                                 value?.startDate ?? addNextDefaultDate ?? '';

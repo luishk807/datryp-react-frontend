@@ -66,6 +66,11 @@ export interface AddDestinationBtnProps
     defaultDate?: string;
     tripMinDate?: string | null;
     tripMaxDate?: string | null;
+    /** IATA code of the PREVIOUS destination's arrival airport. On ADD, it
+     *  pre-fills the new leg's "From airport" (departures search + custom form)
+     *  — a new flight departs from where the traveler currently is, not their
+     *  home airport. Falls back to the nearest-home airport when absent. */
+    lastArrivalAirport?: string;
     /** Trigger-button label override for the ADD variant. The timeline uses
      *  "Add next destination" to make clear it's moving to the next place, not
      *  adding a per-day destination. Defaults to "Add Destination". */
@@ -91,11 +96,14 @@ const GROUND_ARRIVAL_KINDS: ReadonlySet<ActivityKind> = new Set([
     ACTIVITY_KIND.RENTAL_CAR,
 ]);
 
-const emptyFlightSegment = (date: string): FlightInfo => ({
+const emptyFlightSegment = (date: string, departAirport?: string): FlightInfo => ({
     departDate: date,
     departTime: now('HH:mm'),
     arrivalDate: date,
     arrivalTime: now('HH:mm'),
+    // Seed the origin with the previous destination's arrival airport when known
+    // — a new leg departs from where the traveler currently is.
+    ...(departAirport ? { departAirport } : {}),
 });
 
 const emptyTransitSegment = (date: string): TransitInfo => ({
@@ -115,6 +123,7 @@ const AddDestinationBtn = ({
     defaultDate,
     tripMinDate,
     tripMaxDate,
+    lastArrivalAirport,
     onChange,
     type = ACTION.ADD,
     data = null,
@@ -414,7 +423,7 @@ const AddDestinationBtn = ({
                 value === ACTIVITY_KIND.FLIGHT
                     ? prev.flightSegments.length
                         ? prev.flightSegments
-                        : [emptyFlightSegment(isoDefaultDate)]
+                        : [emptyFlightSegment(isoDefaultDate, lastArrivalAirport)]
                     : [],
             transitSegments:
                 value !== ACTIVITY_KIND.FLIGHT
@@ -596,6 +605,7 @@ const AddDestinationBtn = ({
                         <FlightDeparturesSearch
                             initialAirport={
                                 transport.flightSegments[0]?.departAirport ||
+                                lastArrivalAirport ||
                                 nearestAirport?.iataCode ||
                                 ''
                             }
