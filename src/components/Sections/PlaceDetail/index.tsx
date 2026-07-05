@@ -554,6 +554,8 @@ const PlaceDetail = () => {
               isError={proseError}
             />
 
+            <EssentialAppsSection code={place.countryCode} />
+
             <LocalFlavorSection
               flavor={detailsQuery.data?.details.localFlavor}
               isError={listsError}
@@ -570,8 +572,6 @@ const PlaceDetail = () => {
               airports={detailsQuery.data?.details.airports}
               isError={factsError}
             />
-
-            <EssentialAppsSection code={place.countryCode} />
 
             <VisaSection
               visa={detailsQuery.data?.details.visa}

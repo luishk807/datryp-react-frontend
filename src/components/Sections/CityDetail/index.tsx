@@ -589,6 +589,8 @@ const CityDetail = () => {
                             isError={false}
                         />
 
+                        <EssentialAppsSection code={code} />
+
                         <LocalFlavorSection
                             flavor={details.localFlavor}
                             isError={false}
@@ -602,8 +604,6 @@ const CityDetail = () => {
                         />
 
                         <AirportsSection airports={details.airports} />
-
-                        <EssentialAppsSection code={code} />
 
                         <VisaSection visa={details.visa} isError={false} />
 

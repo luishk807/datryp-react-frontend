@@ -561,6 +561,8 @@ const CountryDetail = () => {
               isError={false}
             />
 
+            <EssentialAppsSection code={code} />
+
             <CulturalShockCallout
               text={details.culturalShock}
               subjectLabel={country.name}
@@ -578,8 +580,6 @@ const CountryDetail = () => {
             <CurrencySection currency={details.currency} isError={false} />
 
             <AirportsSection airports={details.airports} />
-
-            <EssentialAppsSection code={code} />
 
             <VisaSection visa={details.visa} isError={false} />
 
