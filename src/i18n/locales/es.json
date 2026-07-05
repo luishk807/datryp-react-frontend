@@ -864,15 +864,7 @@
     "essentialApps": {
         "title": "Apps esenciales",
         "intro": "Las apps que de verdad usan los locales — vale la pena instalarlas antes de viajar.",
-        "headsUp": {
-            "title": "Puede que tus apps de casa no funcionen aquí",
-            "body": "Las apps que usas en EE. UU. — Venmo, Cash App, Zelle, iMessage, incluso Uber o DoorDash — muchas veces no funcionan en el extranjero, funcionan con límites o están bloqueadas. Los locales suelen usar otras apps, así que instala las de abajo antes de viajar."
-        },
-        "aiNotice": {
-            "title": "Sugerido por IA — verifícalo antes de confiar en ello",
-            "body": "Todavía no tenemos una lista verificada a mano para este país, así que estas apps son sugeridas por IA. Suelen ser correctas, pero confírmalas antes de viajar — sobre todo las de pago y transporte."
-        },
-        "disclaimer": "Aproximado — la disponibilidad y las opciones cambian, así que verifícalo antes de viajar.",
+        "note": "Aproximado — la disponibilidad y popularidad de las apps puede variar según la región. Verifícalo antes de tu viaje.",
         "categories": {
             "ride_hailing": "Transporte",
             "payments": "Pagos",
@@ -3211,7 +3203,7 @@
             },
             "accuracy": {
                 "heading": "Exactitud de la información que mostramos",
-                "body1": "Buena parte de lo que ves en DaTryp.com — guías de destinos, recomendaciones, listas de apps esenciales, presupuestos, valoraciones y notas de seguridad o visado — se genera de forma automática (incluida la IA) o proviene de terceros. Puede ser inexacta, incompleta o estar desactualizada, y cuando una sección aparece como \"sugerida por IA\" no ha sido verificada individualmente por nosotros. Se ofrece solo con carácter informativo y no constituye asesoramiento profesional, financiero, legal, migratorio, médico ni de seguridad.",
+                "body1": "Buena parte de lo que ves en DaTryp.com — guías de destinos, recomendaciones, listas de apps esenciales, presupuestos, valoraciones y notas de seguridad o visado — se genera de forma automática (incluida la IA) o proviene de terceros. Puede ser inexacta, incompleta o estar desactualizada, y parte de ello es generado por IA y no ha sido verificado individualmente por nosotros. Se ofrece solo con carácter informativo y no constituye asesoramiento profesional, financiero, legal, migratorio, médico ni de seguridad.",
                 "body2": "Confirma siempre los datos importantes con una fuente oficial antes de actuar — sobre todo las apps de pago y banca, los requisitos de visado y entrada, y la información de salud y seguridad. DaTryp.com no se hace responsable de pérdidas o daños derivados de confiar en este contenido."
             },
             "account": {

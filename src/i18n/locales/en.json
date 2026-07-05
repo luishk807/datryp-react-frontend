@@ -1280,15 +1280,7 @@
     "essentialApps": {
         "title": "Essential apps",
         "intro": "The apps locals actually use — worth installing before you go.",
-        "headsUp": {
-            "title": "Apps from home may not work here",
-            "body": "The apps you rely on in the US — Venmo, Cash App, Zelle, iMessage, even Uber or DoorDash — often don't work abroad, run with limits, or are blocked outright. Locals usually reach for different apps, so install the ones below before you go."
-        },
-        "aiNotice": {
-            "title": "Auto-suggested — double-check before you rely on it",
-            "body": "We don't have a hand-verified list for this country yet, so these picks are AI-suggested. They're usually right, but confirm before you travel — especially payment and ride-hailing apps."
-        },
-        "disclaimer": "Approximate — availability and options change, so double-check before you travel.",
+        "note": "Approximate — app availability and popularity may vary by region. Verify before your trip.",
         "categories": {
             "ride_hailing": "Getting around",
             "payments": "Paying",
@@ -3211,7 +3203,7 @@
             },
             "accuracy": {
                 "heading": "Accuracy of the information we show",
-                "body1": "Much of what you see on DaTryp.com — destination guides, recommendations, essential-app lists, budgets, ratings, and safety or visa notes — is generated automatically (including by AI) or drawn from third-party sources. It may be inaccurate, incomplete, or out of date, and where a section is marked \"auto-suggested\" it has not been individually verified by us. It is provided for general information only and is not professional, financial, legal, immigration, medical, or safety advice.",
+                "body1": "Much of what you see on DaTryp.com — destination guides, recommendations, essential-app lists, budgets, ratings, and safety or visa notes — is generated automatically (including by AI) or drawn from third-party sources. It may be inaccurate, incomplete, or out of date, and some of it is AI-generated and has not been individually verified by us. It is provided for general information only and is not professional, financial, legal, immigration, medical, or safety advice.",
                 "body2": "Always confirm important details with an official source before you act on them — especially payment and banking apps, visa and entry requirements, and health and safety information. DaTryp.com is not responsible for any loss or harm resulting from reliance on this content."
             },
             "account": {

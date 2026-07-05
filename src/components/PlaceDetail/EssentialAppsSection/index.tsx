@@ -3,14 +3,12 @@ import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import SmartphoneRoundedIcon from '@mui/icons-material/SmartphoneRounded';
-import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded';
 import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
 import RestaurantRoundedIcon from '@mui/icons-material/RestaurantRounded';
 import SignalCellularAltRoundedIcon from '@mui/icons-material/SignalCellularAltRounded';
 import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DetailSection from 'components/PlaceDetail/DetailSection';
 import { useEssentialApps } from 'api/hooks/useEssentialApps';
 
@@ -34,24 +32,16 @@ export interface EssentialAppsSectionProps {
  * "Essential apps" card on a country / city / place detail page — the apps a
  * traveler actually needs on the ground, grouped by category. Self-hides while
  * loading, on error, and for any country with neither curated nor AI-generated
- * data (backend 204 → hook resolves to null). Curated countries are shown
- * plainly (hand-verified); AI-sourced fallbacks carry an "auto-suggested —
- * verify" notice so nothing unverified is presented as fact.
+ * data (backend 204 → hook resolves to null). Both curated and AI-sourced
+ * lists render the same way, under one quiet italic "approximate — verify"
+ * note (the page's shared disclaimer style) rather than a colored warning box,
+ * so the app list stays the focus.
  */
 const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
     const { t } = useTranslation();
     const { data } = useEssentialApps(code);
 
     if (!data || data.categories.length === 0) return null;
-
-    // The heads-up is framed from a home-country traveler's perspective ("the
-    // apps you use at home may not work here"), so it's noise on the US page
-    // itself — hide it there.
-    const isHomeCountry = code.trim().toUpperCase() === 'US';
-    // AI-generated data is never presented as verified fact — surface an
-    // "auto-suggested — verify" notice and suppress the generic heads-up so
-    // there's a single, honest callout about where this list came from.
-    const isAiSourced = data.source === 'ai';
 
     return (
         <DetailSection
@@ -60,32 +50,9 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
             icon={<SmartphoneRoundedIcon />}
         >
             <p className="essential-apps-intro">{t('essentialApps.intro')}</p>
-            {isAiSourced && (
-                <div className="essential-apps-ai-notice">
-                    <AutoAwesomeRoundedIcon className="essential-apps-ai-notice-icon" />
-                    <div className="essential-apps-ai-notice-text">
-                        <span className="essential-apps-ai-notice-title">
-                            {t('essentialApps.aiNotice.title')}
-                        </span>
-                        <span className="essential-apps-ai-notice-body">
-                            {t('essentialApps.aiNotice.body')}
-                        </span>
-                    </div>
-                </div>
-            )}
-            {!isHomeCountry && !isAiSourced && (
-                <div className="essential-apps-headsup">
-                    <PublicRoundedIcon className="essential-apps-headsup-icon" />
-                    <div className="essential-apps-headsup-text">
-                        <span className="essential-apps-headsup-title">
-                            {t('essentialApps.headsUp.title')}
-                        </span>
-                        <span className="essential-apps-headsup-body">
-                            {t('essentialApps.headsUp.body')}
-                        </span>
-                    </div>
-                </div>
-            )}
+            {/* One quiet, italic gray note in the page's shared disclaimer
+                language — no colored box — so the list, not a warning, leads. */}
+            <p className="essential-apps-approx">{t('essentialApps.note')}</p>
             <ul className="essential-apps-cats">
                 {data.categories.map((cat) => {
                     const Icon = CATEGORY_ICON[cat.key] ?? SmartphoneRoundedIcon;
@@ -126,9 +93,6 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
                     );
                 })}
             </ul>
-            <p className="essential-apps-disclaimer">
-                {t('essentialApps.disclaimer')}
-            </p>
         </DetailSection>
     );
 };
