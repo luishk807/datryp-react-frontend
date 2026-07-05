@@ -864,6 +864,7 @@
     "essentialApps": {
         "title": "Apps esenciales",
         "intro": "Las apps que de verdad usan los locales — vale la pena instalarlas antes de viajar.",
+        "homeNote": "Ten en cuenta — las apps que usas en casa no siempre funcionan en el extranjero: algunas tienen límites o están bloqueadas, y los locales suelen usar otras. Para eso es la lista de abajo.",
         "note": "Aproximado — la disponibilidad y popularidad de las apps puede variar según la región. Verifícalo antes de tu viaje.",
         "categories": {
             "ride_hailing": "Transporte",

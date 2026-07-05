@@ -1280,6 +1280,7 @@
     "essentialApps": {
         "title": "Essential apps",
         "intro": "The apps locals actually use — worth installing before you go.",
+        "homeNote": "Heads up — the apps you rely on back home don't always work abroad: some run with limits or are blocked outright, and locals often use different ones. That's what the list below is for.",
         "note": "Approximate — app availability and popularity may vary by region. Verify before your trip.",
         "categories": {
             "ride_hailing": "Getting around",
