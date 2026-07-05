@@ -48,6 +48,7 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
 
     return (
         <DetailSection
+            className="essential-apps-section"
             title={t('essentialApps.title')}
             icon={<SmartphoneRoundedIcon />}
         >

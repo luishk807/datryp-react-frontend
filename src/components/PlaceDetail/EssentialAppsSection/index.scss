@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+// Rendered inline right after "Expenses & budget" in the main content
+// column — not a boxed card. Drop the DetailSection card chrome (border,
+// shadow, fill), align it with the budget text, and give it vertical
+// margin so it reads as its own spaced block.
+.detail-section.essential-apps-section {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  margin: 28px 0;
+}
+
 .essential-apps-intro {
   margin: 0 0 14px;
   font-size: 0.85rem;

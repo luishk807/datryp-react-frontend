@@ -1,9 +1,14 @@
+import classNames from "classnames";
 import "./index.scss";
 
 export interface DetailSectionProps {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
+  /** Optional extra class on the `.detail-section` wrapper — lets one
+   *  specific section override the default card chrome (border / shadow /
+   *  fill), e.g. the Essential apps section rendering inline under Budget. */
+  className?: string;
 }
 
 /**
@@ -14,8 +19,8 @@ export interface DetailSectionProps {
  * — see `.place-detail-content-side .detail-section` and
  * `.place-detail-side .detail-section` in the page stylesheet.
  */
-const DetailSection = ({ title, icon, children }: DetailSectionProps) => (
-  <section className="detail-section">
+const DetailSection = ({ title, icon, children, className }: DetailSectionProps) => (
+  <section className={classNames("detail-section", className)}>
     <h2 className="detail-section-title">
       <span className="detail-section-icon">{icon}</span>
       {title}
