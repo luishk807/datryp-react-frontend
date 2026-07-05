@@ -32,6 +32,44 @@
   border: 1px solid rgba(246, 137, 31, 0.22);
 }
 
+// AI-provenance notice — amber "caution" tone, distinct from the orange
+// heads-up, so an AI-generated list reads as "verify me", never as fact.
+.essential-apps-ai-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.38);
+}
+
+.essential-apps-ai-notice-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #b45309;
+  font-size: 1.2rem !important;
+}
+
+.essential-apps-ai-notice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.essential-apps-ai-notice-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.essential-apps-ai-notice-body {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.62);
+  line-height: 1.45;
+}
+
 .essential-apps-headsup-icon {
   flex-shrink: 0;
   margin-top: 1px;

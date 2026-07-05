@@ -20,6 +20,8 @@ interface EssentialAppCategoryRaw {
 interface EssentialAppsResponseRaw {
     country_code: string;
     categories: EssentialAppCategoryRaw[];
+    /** "curated" (hand-verified) or "ai" (auto-generated fallback). */
+    source?: string;
 }
 
 export interface EssentialApp {
@@ -34,6 +36,10 @@ export interface EssentialAppCategory {
 export interface EssentialAppsResult {
     countryCode: string;
     categories: EssentialAppCategory[];
+    /** Where the data came from: `curated` = hand-verified (shown plainly);
+     *  `ai` = auto-generated (shown with an "auto-suggested — verify" notice
+     *  so the user never treats it as verified fact). */
+    source: 'curated' | 'ai';
 }
 
 const toApp = (raw: EssentialAppRaw): EssentialApp => ({
@@ -69,5 +75,6 @@ export const fetchEssentialApps = async (
             key: cat.key,
             apps: cat.apps.map(toApp),
         })),
+        source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };

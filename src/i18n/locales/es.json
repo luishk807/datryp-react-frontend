@@ -868,6 +868,10 @@
             "title": "Puede que tus apps de casa no funcionen aquí",
             "body": "Las apps que usas en EE. UU. — Venmo, Cash App, Zelle, iMessage, incluso Uber o DoorDash — muchas veces no funcionan en el extranjero, funcionan con límites o están bloqueadas. Los locales suelen usar otras apps, así que instala las de abajo antes de viajar."
         },
+        "aiNotice": {
+            "title": "Sugerido por IA — verifícalo antes de confiar en ello",
+            "body": "Todavía no tenemos una lista verificada a mano para este país, así que estas apps son sugeridas por IA. Suelen ser correctas, pero confírmalas antes de viajar — sobre todo las de pago y transporte."
+        },
         "disclaimer": "Aproximado — la disponibilidad y las opciones cambian, así que verifícalo antes de viajar.",
         "categories": {
             "ride_hailing": "Transporte",

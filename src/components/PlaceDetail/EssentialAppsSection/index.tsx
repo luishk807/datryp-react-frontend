@@ -10,6 +10,7 @@ import MapRoundedIcon from '@mui/icons-material/MapRounded';
 import RestaurantRoundedIcon from '@mui/icons-material/RestaurantRounded';
 import SignalCellularAltRoundedIcon from '@mui/icons-material/SignalCellularAltRounded';
 import ChatRoundedIcon from '@mui/icons-material/ChatRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DetailSection from 'components/PlaceDetail/DetailSection';
 import { useEssentialApps } from 'api/hooks/useEssentialApps';
 
@@ -32,8 +33,10 @@ export interface EssentialAppsSectionProps {
 /**
  * "Essential apps" card on a country / city / place detail page — the apps a
  * traveler actually needs on the ground, grouped by category. Self-hides while
- * loading, on error, and for any country without curated data (backend 204 →
- * hook resolves to null).
+ * loading, on error, and for any country with neither curated nor AI-generated
+ * data (backend 204 → hook resolves to null). Curated countries are shown
+ * plainly (hand-verified); AI-sourced fallbacks carry an "auto-suggested —
+ * verify" notice so nothing unverified is presented as fact.
  */
 const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
     const { t } = useTranslation();
@@ -45,6 +48,10 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
     // apps you use at home may not work here"), so it's noise on the US page
     // itself — hide it there.
     const isHomeCountry = code.trim().toUpperCase() === 'US';
+    // AI-generated data is never presented as verified fact — surface an
+    // "auto-suggested — verify" notice and suppress the generic heads-up so
+    // there's a single, honest callout about where this list came from.
+    const isAiSourced = data.source === 'ai';
 
     return (
         <DetailSection
@@ -53,7 +60,20 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
             icon={<SmartphoneRoundedIcon />}
         >
             <p className="essential-apps-intro">{t('essentialApps.intro')}</p>
-            {!isHomeCountry && (
+            {isAiSourced && (
+                <div className="essential-apps-ai-notice">
+                    <AutoAwesomeRoundedIcon className="essential-apps-ai-notice-icon" />
+                    <div className="essential-apps-ai-notice-text">
+                        <span className="essential-apps-ai-notice-title">
+                            {t('essentialApps.aiNotice.title')}
+                        </span>
+                        <span className="essential-apps-ai-notice-body">
+                            {t('essentialApps.aiNotice.body')}
+                        </span>
+                    </div>
+                </div>
+            )}
+            {!isHomeCountry && !isAiSourced && (
                 <div className="essential-apps-headsup">
                     <PublicRoundedIcon className="essential-apps-headsup-icon" />
                     <div className="essential-apps-headsup-text">
