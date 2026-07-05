@@ -50,11 +50,12 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
             icon={<SmartphoneRoundedIcon />}
         >
             <p className="essential-apps-intro">{t('essentialApps.intro')}</p>
-            {/* Why the list matters: the apps a traveler uses back home
-                often don't work at the destination — blocked or limited
-                (e.g. Uber / Google / WhatsApp in China) — so locals reach
-                for different ones. Plain readable line, not a box. */}
-            <p className="essential-apps-intro">{t('essentialApps.homeNote')}</p>
+            {/* Country-specific scene-setter — hand-written for curated
+                countries, AI-generated for the rest (never labelled as AI).
+                Falls back to a generic line. Plain readable text, no box. */}
+            <p className="essential-apps-intro">
+                {data.intro || t('essentialApps.homeNote')}
+            </p>
             {/* One quiet, italic gray note in the page's shared disclaimer
                 language — no colored box — so the list, not a warning, leads. */}
             <p className="essential-apps-approx">{t('essentialApps.note')}</p>
