@@ -4,8 +4,10 @@ import './index.scss';
 import {
     useClearCityCache,
     useClearCountryCache,
+    useClearEssentialAppsCache,
     useCityCacheStatus,
     useCountryCacheStatus,
+    useEssentialAppsCacheStatus,
 } from 'api/hooks/useAdmin';
 import { useCountries } from 'api/hooks/useCountries';
 import { formatDate } from 'utils/date';
@@ -32,6 +34,7 @@ const CacheCard = () => {
         <>
             <CountryCacheSection onToast={setToast} />
             <CityCacheSection onToast={setToast} />
+            <EssentialAppsCacheSection onToast={setToast} />
             <Snackbar
                 open={Boolean(toast)}
                 autoHideDuration={3500}
@@ -407,6 +410,182 @@ const CityCacheSection = ({ onToast }: SectionProps) => {
                                     ? 'Clearing…'
                                     : 'Clear city cache'}
                             </ButtonCustom>
+                        </>
+                    )}
+                </div>
+            )}
+        </section>
+    );
+};
+
+// ---------- Essential apps (AI) cache ----------
+
+const essentialAppsSourceLabel = (
+    s: 'curated' | 'ai' | 'none'
+): string =>
+    s === 'curated'
+        ? 'curated (verified)'
+        : s === 'ai'
+          ? 'AI-suggested'
+          : 'not cached';
+
+const EssentialAppsCacheSection = ({ onToast }: SectionProps) => {
+    const [query, setQuery] = useState('');
+    const [selectedCode, setSelectedCode] = useState<string | null>(null);
+
+    const { data: results, isFetching } = useCountries(query, {
+        enabled: query.trim().length > 0 && !selectedCode,
+        limit: 8,
+    });
+    const { data: status, isFetching: statusFetching } =
+        useEssentialAppsCacheStatus(selectedCode);
+    const clear = useClearEssentialAppsCache();
+
+    const handlePick = (c: CountryResult) => {
+        setSelectedCode(c.code);
+        setQuery(c.name);
+    };
+
+    const handleClear = () => {
+        if (!selectedCode) return;
+        clear.mutate(
+            { code: selectedCode },
+            {
+                onSuccess: (res) =>
+                    onToast(
+                        res.cleared
+                            ? `Cleared AI apps for ${selectedCode} — regenerates on next visit`
+                            : `Nothing to clear for ${selectedCode}`
+                    ),
+                onError: (err) =>
+                    onToast(
+                        err instanceof Error
+                            ? err.message
+                            : 'Failed to clear essential-apps cache'
+                    ),
+            }
+        );
+    };
+
+    return (
+        <section className="dashboard-card">
+            <header className="dashboard-card-head">
+                <h2 className="dashboard-card-title">Essential apps (AI)</h2>
+                <p className="dashboard-card-subtitle">
+                    Review what the Essential apps section serves for a
+                    country. Curated countries are hand-verified (edit in
+                    code); AI ones can be wiped here if wrong — they
+                    regenerate on the next visit.
+                </p>
+            </header>
+
+            <div className="cache-card-search">
+                <InputField
+                    label="Search country"
+                    placeholder="Type a country name…"
+                    value={query}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                        setSelectedCode(null);
+                    }}
+                />
+                {query.trim().length > 0 && !selectedCode && (
+                    <div className="cache-card-results">
+                        {isFetching && (
+                            <p className="cache-card-status">Searching…</p>
+                        )}
+                        {!isFetching && (results ?? []).length === 0 && (
+                            <p className="cache-card-status">No matches.</p>
+                        )}
+                        {(results ?? []).map((c) => (
+                            <button
+                                key={c.id}
+                                type="button"
+                                className="cache-card-result"
+                                onClick={() => handlePick(c)}
+                            >
+                                <span className="cache-card-result-name">
+                                    {c.name}
+                                </span>
+                                <span className="cache-card-result-code">
+                                    {c.code}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {selectedCode && (
+                <div className="cache-card-detail">
+                    {statusFetching && !status && (
+                        <p className="cache-card-status">Loading status…</p>
+                    )}
+                    {status && (
+                        <>
+                            <div className="cache-card-detail-head">
+                                <div>
+                                    <span className="cache-card-detail-name">
+                                        {status.name}
+                                    </span>
+                                    <span className="cache-card-detail-sub">
+                                        {status.code} ·{' '}
+                                        {essentialAppsSourceLabel(status.source)}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="cache-card-link"
+                                    onClick={() => {
+                                        setSelectedCode(null);
+                                        setQuery('');
+                                    }}
+                                >
+                                    Pick another
+                                </button>
+                            </div>
+
+                            {status.categories &&
+                            Object.keys(status.categories).length > 0 ? (
+                                <ul className="cache-card-apps">
+                                    {Object.entries(status.categories).map(
+                                        ([cat, apps]) => (
+                                            <li key={cat}>
+                                                <span className="cache-card-apps-cat">
+                                                    {cat.replace(/_/g, ' ')}
+                                                </span>
+                                                <span className="cache-card-apps-names">
+                                                    {apps
+                                                        .map((a) => a.name)
+                                                        .join(', ')}
+                                                </span>
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
+                            ) : (
+                                <p className="cache-card-status">
+                                    Nothing shown for this country yet.
+                                </p>
+                            )}
+
+                            {status.source === 'ai' && (
+                                <ButtonCustom
+                                    type={BUTTON_VARIANT.STANDARD}
+                                    onClick={handleClear}
+                                    disabled={clear.isPending}
+                                >
+                                    {clear.isPending
+                                        ? 'Clearing…'
+                                        : 'Clear AI apps (regenerate)'}
+                                </ButtonCustom>
+                            )}
+                            {status.source === 'curated' && (
+                                <p className="cache-card-status">
+                                    Curated — hand-verified. Edit in{' '}
+                                    <code>country_apps.py</code>.
+                                </p>
+                            )}
                         </>
                     )}
                 </div>

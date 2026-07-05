@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     clearCityCache as clearCityCacheReq,
     clearCountryCache as clearCountryCacheReq,
+    clearEssentialAppsCache as clearEssentialAppsCacheReq,
     createAdminUser as createAdminUserReq,
     fetchActivityStats,
     fetchAdminUsers,
@@ -11,6 +12,7 @@ import {
     fetchCostAnalytics,
     fetchCityCacheStatus,
     fetchCountryCacheStatus,
+    fetchEssentialAppsCacheStatus,
     fetchGrowth,
     fetchOverview,
     fetchPostHogStats,
@@ -26,6 +28,7 @@ import {
     type AdminUserCreatePayload,
     type CityCacheStatus,
     type CountryCacheStatus,
+    type EssentialAppsCacheStatus,
 } from 'api/adminApi';
 import {
     fetchFreeEverything,
@@ -76,6 +79,8 @@ export const adminKeys = {
         ['admin', 'cache', 'country', code.toUpperCase()] as const,
     cityCache: (name: string, code: string) =>
         ['admin', 'cache', 'city', code.toUpperCase(), name.trim().toLowerCase()] as const,
+    essentialAppsCache: (code: string) =>
+        ['admin', 'cache', 'essential-apps', code.toUpperCase()] as const,
 };
 
 // Polling matches the "live-ish" choice — refreshes the dashboard
@@ -362,6 +367,31 @@ export const useClearCityCache = () => {
         onSuccess: (_data, vars) => {
             qc.invalidateQueries({
                 queryKey: adminKeys.cityCache(vars.name, vars.code),
+            });
+        },
+    });
+};
+
+export const useEssentialAppsCacheStatus = (code: string | null) => {
+    const { isAdmin } = useUser();
+    return useQuery<EssentialAppsCacheStatus>({
+        queryKey: code
+            ? adminKeys.essentialAppsCache(code)
+            : ['admin', 'cache', 'essential-apps', 'none'],
+        queryFn: () => fetchEssentialAppsCacheStatus(code as string),
+        enabled: adminEnabled(isAdmin) && Boolean(code),
+        staleTime: 10 * 1000,
+    });
+};
+
+export const useClearEssentialAppsCache = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ code }: { code: string }) =>
+            clearEssentialAppsCacheReq(code),
+        onSuccess: (_data, vars) => {
+            qc.invalidateQueries({
+                queryKey: adminKeys.essentialAppsCache(vars.code),
             });
         },
     });

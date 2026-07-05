@@ -725,3 +725,70 @@ export const clearCityCache = async (
     if (!resp.ok) await handleError(resp, 'clear city cache');
     return toClearResult((await resp.json()) as CacheClearResultRaw);
 };
+
+// ---- Essential apps (AI) cache ----
+
+/** One app entry as stored for a country (curated or AI). */
+export interface EssentialAppsCacheApp {
+    name: string;
+    note?: string | null;
+    status?: string | null;
+}
+
+interface EssentialAppsCacheStatusRaw {
+    code: string;
+    name: string;
+    source: string;
+    cached: boolean;
+    hits: number;
+    updated_at: string | null;
+    categories: Record<string, EssentialAppsCacheApp[]> | null;
+}
+
+export interface EssentialAppsCacheStatus {
+    code: string;
+    name: string;
+    /** "curated" (authoritative, edit in code), "ai" (reviewable + clearable),
+     *  or "none". */
+    source: 'curated' | 'ai' | 'none';
+    cached: boolean;
+    hits: number;
+    updatedAt: string | null;
+    categories: Record<string, EssentialAppsCacheApp[]> | null;
+}
+
+const toEssentialAppsCache = (
+    r: EssentialAppsCacheStatusRaw
+): EssentialAppsCacheStatus => ({
+    code: r.code,
+    name: r.name,
+    source: r.source === 'curated' || r.source === 'ai' ? r.source : 'none',
+    cached: r.cached,
+    hits: r.hits,
+    updatedAt: r.updated_at,
+    categories: r.categories,
+});
+
+export const fetchEssentialAppsCacheStatus = async (
+    code: string
+): Promise<EssentialAppsCacheStatus> => {
+    const resp = await fetch(
+        `${API_BASE}/admin/cache/essential-apps/${encodeURIComponent(code)}`,
+        { headers: authHeaders() }
+    );
+    if (!resp.ok) await handleError(resp, '/admin/cache/essential-apps');
+    return toEssentialAppsCache(
+        (await resp.json()) as EssentialAppsCacheStatusRaw
+    );
+};
+
+export const clearEssentialAppsCache = async (
+    code: string
+): Promise<CacheClearResult> => {
+    const resp = await fetch(
+        `${API_BASE}/admin/cache/essential-apps/${encodeURIComponent(code)}`,
+        { method: 'DELETE', headers: authHeaders() }
+    );
+    if (!resp.ok) await handleError(resp, 'clear essential-apps cache');
+    return toClearResult((await resp.json()) as CacheClearResultRaw);
+};

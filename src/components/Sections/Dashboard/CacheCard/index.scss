@@ -4,6 +4,36 @@
     gap: 8px;
 }
 
+// Review list for the Essential-apps (AI) cache — the apps the AI produced,
+// grouped by category, so an admin can eyeball them for anything wrong.
+.cache-card-apps {
+    list-style: none;
+    margin: 8px 0 14px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+}
+
+.cache-card-apps-cat {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.cache-card-apps-names {
+    font-size: 0.88rem;
+    color: rgba(0, 0, 0, 0.8);
+}
+
 .cache-card-city-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
