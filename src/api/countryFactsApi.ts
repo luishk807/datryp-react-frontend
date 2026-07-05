@@ -17,12 +17,19 @@ interface PowerInfoRaw {
     voltage: number;
     frequency: number;
 }
+interface ReligionInfoRaw {
+    main: string;
+    emoji: string | null;
+    note: string | null;
+    customs: string[];
+}
 interface CountryFactsResponseRaw {
     country_code: string;
     emergency: Record<string, string>;
     power: PowerInfoRaw | null;
     timezone: string | null;
     timezone_multi: boolean;
+    religion?: ReligionInfoRaw | null;
 }
 
 export interface PowerInfo {
@@ -30,6 +37,16 @@ export interface PowerInfo {
     plugs: string[];
     voltage: number;
     frequency: number;
+}
+export interface ReligionInfo {
+    /** Dominant faith(s), traveler-facing (e.g. "Islam", "Shinto & Buddhism"). */
+    main: string;
+    /** Decorative glyph for the faith (e.g. "☪️", "⛩️"); may be null. */
+    emoji: string | null;
+    /** Short qualifier: "majority" / "official religion" / "very secular" … */
+    note: string | null;
+    /** A few practical, widely-accepted customs a visitor actually acts on. */
+    customs: string[];
 }
 export interface CountryFactsResult {
     countryCode: string;
@@ -42,6 +59,9 @@ export interface CountryFactsResult {
     timezone: string | null;
     /** True when the country spans several zones (this is just the capital's). */
     timezoneMulti: boolean;
+    /** Dominant religion + practical customs. Grounded (never AI). Null for
+     *  curated entries that predate this field. */
+    religion: ReligionInfo | null;
 }
 
 export const fetchCountryFacts = async (
@@ -74,5 +94,13 @@ export const fetchCountryFacts = async (
             : null,
         timezone: body.timezone ?? null,
         timezoneMulti: Boolean(body.timezone_multi),
+        religion: body.religion
+            ? {
+                  main: body.religion.main,
+                  emoji: body.religion.emoji ?? null,
+                  note: body.religion.note ?? null,
+                  customs: body.religion.customs ?? [],
+              }
+            : null,
     };
 };

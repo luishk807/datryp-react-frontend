@@ -906,6 +906,10 @@
         "title": "Antes de viajar",
         "note": "Un punto de partida — confirma los detalles según tus fechas y nacionalidad."
     },
+    "religion": {
+        "title": "Religión",
+        "customsLabel": "Costumbres importantes"
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",

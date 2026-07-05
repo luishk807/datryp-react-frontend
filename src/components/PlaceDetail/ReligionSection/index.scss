@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// The faith glyph sits in the card's icon slot. `.detail-section-icon` is
+// sized for MUI SVGs; render the emoji at a matching size and drop the green
+// tint (emoji carry their own color).
+.religion-section .detail-section-icon .religion-emoji {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.religion-main {
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.religion-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: theme('colors.primary');
+}
+
+.religion-note {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.religion-customs-label {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.religion-customs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.religion-custom {
+  position: relative;
+  padding-left: 16px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.72);
+
+  // Small green dot marker — these are pointers, not a checklist to tick off.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 0.5em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: theme('colors.primaryGreen');
+  }
+}

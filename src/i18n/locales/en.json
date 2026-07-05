@@ -1322,6 +1322,10 @@
         "title": "Before you go",
         "note": "A starting point — confirm the specifics for your dates and nationality."
     },
+    "religion": {
+        "title": "Religion",
+        "customsLabel": "Important customs"
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",

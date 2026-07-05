@@ -41,6 +41,7 @@ import VisaSection from "components/PlaceDetail/VisaSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
 import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
+import ReligionSection from "components/PlaceDetail/ReligionSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
@@ -313,8 +314,8 @@ const CountryDetail = () => {
               className="country-detail-hero"
             />
             <aside className="country-detail-side">
-              <PopularitySection popularity={undefined} isError={false} />
               <WeatherSection weather={undefined} isError={false} />
+              <CurrencySection currency={undefined} isError={false} />
               <SafetySection safety={undefined} isError={false} />
             </aside>
           </div>
@@ -522,15 +523,12 @@ const CountryDetail = () => {
           </header>
 
           <aside className="country-detail-side">
-            <PopularitySection
-              popularity={details.popularity}
-              isError={false}
-            />
             <WeatherSection
               weather={details.weather}
               coordinates={details.capitalCoordinates}
               isError={false}
             />
+            <CurrencySection currency={details.currency} isError={false} />
             <SafetySection safety={details.safety} isError={false} />
           </aside>
         </div>
@@ -581,9 +579,14 @@ const CountryDetail = () => {
           </div>
 
           <aside className="country-detail-content-side">
-            <CurrencySection currency={details.currency} isError={false} />
+            <PopularitySection
+              popularity={details.popularity}
+              isError={false}
+            />
 
             <CountryFactsSection code={code} />
+
+            <ReligionSection code={code} />
 
             <AirportsSection airports={details.airports} />
 
