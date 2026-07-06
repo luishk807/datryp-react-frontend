@@ -1352,6 +1352,12 @@
     "stayingSafe": {
         "title": "Staying safe"
     },
+    "currencyTips": {
+        "title": "Cards & cash",
+        "cards": "Cards",
+        "cash": "Cash",
+        "atm": "ATMs"
+    },
     "greatFor": {
         "title": "Great for",
         "tags": {

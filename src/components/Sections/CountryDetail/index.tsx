@@ -43,6 +43,7 @@ import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
 import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
 import ReligionSection from "components/PlaceDetail/ReligionSection";
 import TippingSection from "components/PlaceDetail/TippingSection";
+import CurrencyTipsSection from "components/PlaceDetail/CurrencyTipsSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
@@ -606,6 +607,8 @@ const CountryDetail = () => {
             <ReligionSection code={code} />
 
             <TippingSection code={code} />
+
+            <CurrencyTipsSection code={code} />
 
             <TapWaterSection code={code} />
 

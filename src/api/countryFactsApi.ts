@@ -36,6 +36,11 @@ interface WifiInfoRaw {
     summary: string;
     mobile: string | null;
 }
+interface CurrencyTipsInfoRaw {
+    cards: string | null;
+    cash: string | null;
+    atm: string | null;
+}
 interface CountryFactsResponseRaw {
     country_code: string;
     emergency: Record<string, string>;
@@ -48,6 +53,7 @@ interface CountryFactsResponseRaw {
     wifi?: WifiInfoRaw | null;
     great_for?: string[];
     safety_tips?: string[];
+    currency_tips?: CurrencyTipsInfoRaw | null;
     source?: string;
 }
 
@@ -91,6 +97,14 @@ export interface WifiInfo {
     /** Optional mobile-network note (e.g. "5G widely available"). */
     mobile: string | null;
 }
+export interface CurrencyTipsInfo {
+    /** Are cards widely accepted? */
+    cards: string | null;
+    /** Is cash needed, and where? */
+    cash: string | null;
+    /** ATM availability / caveats. */
+    atm: string | null;
+}
 export interface CountryFactsResult {
     countryCode: string;
     /** Free-form map of emergency-service → number. Common keys: `general`,
@@ -120,6 +134,8 @@ export interface CountryFactsResult {
     /** Actionable safety pointers (the "watch out for X" bullets). Empty when
      *  none. */
     safetyTips: string[];
+    /** Practical money tips (cards / cash / ATM). Null when none. */
+    currencyTips: CurrencyTipsInfo | null;
     /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
      *  fallback for uncurated countries, shown under an "approximate — verify"
      *  note. */
@@ -189,6 +205,13 @@ export const fetchCountryFacts = async (
             : null,
         greatFor: Array.isArray(body.great_for) ? body.great_for : [],
         safetyTips: Array.isArray(body.safety_tips) ? body.safety_tips : [],
+        currencyTips: body.currency_tips
+            ? {
+                  cards: body.currency_tips.cards ?? null,
+                  cash: body.currency_tips.cash ?? null,
+                  atm: body.currency_tips.atm ?? null,
+              }
+            : null,
         source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };

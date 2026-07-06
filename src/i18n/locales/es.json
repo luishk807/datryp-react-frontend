@@ -936,6 +936,12 @@
     "stayingSafe": {
         "title": "Mantente seguro"
     },
+    "currencyTips": {
+        "title": "Tarjetas y efectivo",
+        "cards": "Tarjetas",
+        "cash": "Efectivo",
+        "atm": "Cajeros"
+    },
     "greatFor": {
         "title": "Ideal para",
         "tags": {
