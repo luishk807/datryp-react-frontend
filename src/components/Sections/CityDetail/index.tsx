@@ -53,6 +53,7 @@ import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import AirQualitySection from "components/PlaceDetail/AirQualitySection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
+import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
@@ -642,6 +643,8 @@ const CityDetail = () => {
                         <WifiSection code={city.countryCode} />
 
                         <GreatForSection code={city.countryCode} />
+
+                        <FestivalsSection code={city.countryCode} />
 
                         <LatestNewsSection
                             country={city.country}

@@ -48,6 +48,7 @@ import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import AirQualitySection from "components/PlaceDetail/AirQualitySection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
+import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
@@ -618,6 +619,8 @@ const CountryDetail = () => {
             <WifiSection code={code} />
 
             <GreatForSection code={code} />
+
+            <FestivalsSection code={code} />
 
             <LatestNewsSection country={country.name} />
           </aside>

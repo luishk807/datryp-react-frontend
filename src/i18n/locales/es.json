@@ -954,6 +954,9 @@
             "hazardous": "Peligrosa"
         }
     },
+    "festivals": {
+        "title": "Fiestas y festivales"
+    },
     "greatFor": {
         "title": "Ideal para",
         "tags": {

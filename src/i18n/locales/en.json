@@ -1370,6 +1370,9 @@
             "hazardous": "Hazardous"
         }
     },
+    "festivals": {
+        "title": "Festivals & holidays"
+    },
     "greatFor": {
         "title": "Great for",
         "tags": {

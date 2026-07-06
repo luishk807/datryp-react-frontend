@@ -41,6 +41,10 @@ interface CurrencyTipsInfoRaw {
     cash: string | null;
     atm: string | null;
 }
+interface FestivalInfoRaw {
+    name: string;
+    when: string | null;
+}
 interface CountryFactsResponseRaw {
     country_code: string;
     emergency: Record<string, string>;
@@ -54,6 +58,7 @@ interface CountryFactsResponseRaw {
     great_for?: string[];
     safety_tips?: string[];
     currency_tips?: CurrencyTipsInfoRaw | null;
+    festivals?: FestivalInfoRaw[];
     source?: string;
 }
 
@@ -105,6 +110,11 @@ export interface CurrencyTipsInfo {
     /** ATM availability / caveats. */
     atm: string | null;
 }
+export interface FestivalInfo {
+    name: string;
+    /** Rough timing — a month or season (many are movable). */
+    when: string | null;
+}
 export interface CountryFactsResult {
     countryCode: string;
     /** Free-form map of emergency-service → number. Common keys: `general`,
@@ -136,6 +146,9 @@ export interface CountryFactsResult {
     safetyTips: string[];
     /** Practical money tips (cards / cash / ATM). Null when none. */
     currencyTips: CurrencyTipsInfo | null;
+    /** Major festivals & holidays to know (name + rough timing). Empty when
+     *  none. */
+    festivals: FestivalInfo[];
     /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
      *  fallback for uncurated countries, shown under an "approximate — verify"
      *  note. */
@@ -212,6 +225,12 @@ export const fetchCountryFacts = async (
                   atm: body.currency_tips.atm ?? null,
               }
             : null,
+        festivals: Array.isArray(body.festivals)
+            ? body.festivals.map((f) => ({
+                  name: f.name,
+                  when: f.when ?? null,
+              }))
+            : [],
         source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };
