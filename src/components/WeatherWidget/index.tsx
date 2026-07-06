@@ -9,7 +9,13 @@ import FilterDramaRoundedIcon from '@mui/icons-material/FilterDramaRounded';
 import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import type { WeatherLive } from 'types';
-import { convertTemp, useTempUnit, type TempUnit } from 'hooks/useTempUnit';
+import {
+    convertTemp,
+    defaultUnitForCountry,
+    useTempUnit,
+    type TempUnit,
+} from 'hooks/useTempUnit';
+import { useResidenceCountry } from 'api/hooks/useResidenceCountry';
 
 const WEATHER_CONDITION = {
     TROPICAL: 'tropical',
@@ -121,7 +127,10 @@ export interface WeatherWidgetProps {
  */
 const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
     const { t } = useTranslation();
-    const { unit, setUnit } = useTempUnit();
+    // Default the unit from the traveler's country (Fahrenheit for the US &c),
+    // but an explicit toggle always overrides it.
+    const residence = useResidenceCountry();
+    const { unit, setUnit } = useTempUnit(defaultUnitForCountry(residence));
     const flavor = current
         ? WEATHER_FLAVORS[current.flavor]
         : WEATHER_FLAVORS[detectCondition(text ?? '')];
