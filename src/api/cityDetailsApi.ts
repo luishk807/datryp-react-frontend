@@ -130,6 +130,7 @@ interface CityDetailsRaw {
         trend: 'rising' | 'steady' | 'falling';
         summary: string;
     } | null;
+    walkability?: { rating: number; note: string } | null;
     cultural_shock?: string | null;
     before_you_go?: string[];
 }
@@ -201,6 +202,7 @@ type CityFactsRaw = {
     airports?: AirportRaw[];
     tourist_rating?: number;
     popularity?: CityDetailsRaw["popularity"];
+    walkability?: CityDetailsRaw["walkability"];
 };
 
 const proseFromRaw = (raw: CityProseRaw): Partial<CityDetails> => ({
@@ -304,6 +306,13 @@ const factsFromRaw = (raw: CityFactsRaw): Partial<CityDetails> => ({
               summary: raw.popularity.summary,
           }
         : undefined,
+    walkability:
+        raw.walkability && raw.walkability.rating >= 1
+            ? {
+                  rating: raw.walkability.rating,
+                  note: raw.walkability.note ?? '',
+              }
+            : undefined,
 });
 
 const toDetails = (raw: CityDetailsRaw): CityDetails =>

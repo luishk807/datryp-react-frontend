@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.walkability-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.walkability-star {
+  font-size: 1.15rem !important;
+  color: rgba(0, 0, 0, 0.2);
+
+  &.is-on {
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.walkability-note {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.6);
+}

@@ -1352,6 +1352,10 @@
         "title": "Internet",
         "ratingAria": "{{rating}} out of 5"
     },
+    "walkability": {
+        "title": "Walkability",
+        "ratingAria": "{{rating}} out of 5"
+    },
     "stayingSafe": {
         "title": "Staying safe"
     },

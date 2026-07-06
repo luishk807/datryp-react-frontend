@@ -141,6 +141,13 @@ export interface PopularityInfo {
   summary: string;
 }
 
+/** How walkable a place/city is on foot. `rating` 1-5 (5 = very walkable);
+ *  `note` is one short sentence. Mirrors backend `WalkabilityInfo`. */
+export interface WalkabilityInfo {
+  rating: number;
+  note: string;
+}
+
 /** Enriched detail-page info. Lazy-fetched per place from `/place-details`. */
 export interface PlaceDetails {
   longDescription: string;
@@ -178,6 +185,9 @@ export interface PlaceDetails {
   /** Actionable "sort this before you fly" checklist. Optional for rows
    *  cached before this field shipped — the UI hides it when empty. */
   beforeYouGo?: string[];
+  /** How walkable the place is on foot. Optional for rows cached before this
+   *  field shipped — the UI hides the card when absent. */
+  walkability?: WalkabilityInfo;
 }
 
 export interface PlaceDetailsResult {

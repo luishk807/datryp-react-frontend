@@ -292,6 +292,7 @@ interface PlaceDetailsRaw {
     visa: VisaInfoRaw;
     airports?: AirportRaw[];
     popularity?: PopularityInfoRaw | null;
+    walkability?: { rating: number; note: string } | null;
     cultural_shock?: string | null;
     before_you_go?: string[];
 }
@@ -341,6 +342,7 @@ type PlaceFactsRaw = {
     visa: VisaInfoRaw | null;
     airports?: AirportRaw[];
     popularity?: PopularityInfoRaw | null;
+    walkability?: { rating: number; note: string } | null;
 };
 
 const proseFromRaw = (raw: PlaceProseRaw): Partial<PlaceDetails> => ({
@@ -439,6 +441,13 @@ const factsFromRaw = (raw: PlaceFactsRaw): Partial<PlaceDetails> => ({
               summary: raw.popularity.summary,
           }
         : undefined,
+    walkability:
+        raw.walkability && raw.walkability.rating >= 1
+            ? {
+                  rating: raw.walkability.rating,
+                  note: raw.walkability.note ?? '',
+              }
+            : undefined,
 });
 
 const toDetails = (raw: PlaceDetailsRaw): PlaceDetails =>

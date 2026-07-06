@@ -936,6 +936,10 @@
         "title": "Internet",
         "ratingAria": "{{rating}} de 5"
     },
+    "walkability": {
+        "title": "Caminabilidad",
+        "ratingAria": "{{rating}} de 5"
+    },
     "stayingSafe": {
         "title": "Mantente seguro"
     },

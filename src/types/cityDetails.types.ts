@@ -14,6 +14,7 @@ import type {
     SafetyInfo,
     TravelBasics,
     VisaInfo,
+    WalkabilityInfo,
 } from "./placeDetails.types";
 
 export interface CityDetails {
@@ -57,6 +58,9 @@ export interface CityDetails {
     /** Actionable "sort this before you fly" checklist. Optional for rows
      *  cached before this field shipped — the UI hides it when empty. */
     beforeYouGo?: string[];
+    /** How walkable the city is on foot. Optional for rows cached before this
+     *  field shipped — the UI hides the card when absent. */
+    walkability?: WalkabilityInfo;
 }
 
 export interface CitySummary {

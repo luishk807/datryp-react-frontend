@@ -52,6 +52,7 @@ import TippingSection from "components/PlaceDetail/TippingSection";
 import CurrencyTipsSection from "components/PlaceDetail/CurrencyTipsSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import AirQualitySection from "components/PlaceDetail/AirQualitySection";
+import WalkabilitySection from "components/PlaceDetail/WalkabilitySection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
 import FestivalsSection from "components/PlaceDetail/FestivalsSection";
@@ -642,6 +643,8 @@ const CityDetail = () => {
                         <TapWaterSection code={city.countryCode} />
 
                         <AirQualitySection coordinates={details.coordinates} />
+
+                        <WalkabilitySection walkability={details.walkability} />
 
                         <WifiSection code={city.countryCode} />
 
