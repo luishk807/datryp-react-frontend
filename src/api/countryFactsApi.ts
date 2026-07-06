@@ -31,6 +31,11 @@ interface WaterInfoRaw {
     status: string;
     note: string | null;
 }
+interface WifiInfoRaw {
+    rating: number;
+    summary: string;
+    mobile: string | null;
+}
 interface CountryFactsResponseRaw {
     country_code: string;
     emergency: Record<string, string>;
@@ -40,6 +45,7 @@ interface CountryFactsResponseRaw {
     religion?: ReligionInfoRaw | null;
     tipping?: TippingInfoRaw | null;
     water?: WaterInfoRaw | null;
+    wifi?: WifiInfoRaw | null;
     source?: string;
 }
 
@@ -75,6 +81,14 @@ export interface WaterInfo {
     /** Short practical note (e.g. "Stick to bottled water"). */
     note: string | null;
 }
+export interface WifiInfo {
+    /** Overall connectivity quality, 1-5. */
+    rating: number;
+    /** One-line availability + speed feel. */
+    summary: string;
+    /** Optional mobile-network note (e.g. "5G widely available"). */
+    mobile: string | null;
+}
 export interface CountryFactsResult {
     countryCode: string;
     /** Free-form map of emergency-service → number. Common keys: `general`,
@@ -95,6 +109,9 @@ export interface CountryFactsResult {
     /** Tap-water safety verdict + note. Null for curated entries that predate
      *  this field. */
     water: WaterInfo | null;
+    /** Internet / connectivity (rating + summary + mobile note). Null for
+     *  curated entries that predate this field. */
+    wifi: WifiInfo | null;
     /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
      *  fallback for uncurated countries, shown under an "approximate — verify"
      *  note. */
@@ -153,6 +170,13 @@ export const fetchCountryFacts = async (
                           ? body.water.status
                           : 'caution',
                   note: body.water.note ?? null,
+              }
+            : null,
+        wifi: body.wifi
+            ? {
+                  rating: body.wifi.rating,
+                  summary: body.wifi.summary,
+                  mobile: body.wifi.mobile ?? null,
               }
             : null,
         source: body.source === 'ai' ? 'ai' : 'curated',

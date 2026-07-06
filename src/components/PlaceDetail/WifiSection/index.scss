@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.wifi-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.wifi-star {
+  font-size: 1.15rem !important;
+  color: rgba(0, 0, 0, 0.2);
+
+  &.is-on {
+    color: theme('colors.primaryGreen');
+  }
+}
+
+.wifi-summary {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: theme('colors.primary');
+}
+
+.wifi-mobile {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.55);
+}

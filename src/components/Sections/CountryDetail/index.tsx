@@ -44,6 +44,7 @@ import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
 import ReligionSection from "components/PlaceDetail/ReligionSection";
 import TippingSection from "components/PlaceDetail/TippingSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
+import WifiSection from "components/PlaceDetail/WifiSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
@@ -586,14 +587,6 @@ const CountryDetail = () => {
               isError={false}
             />
 
-            <CountryFactsSection code={code} />
-
-            <ReligionSection code={code} />
-
-            <TippingSection code={code} />
-
-            <TapWaterSection code={code} />
-
             <AirportsSection airports={details.airports} />
 
             <VisaSection visa={details.visa} isError={false} />
@@ -603,6 +596,16 @@ const CountryDetail = () => {
               worstTime={details.worstTimeToVisit}
               isError={false}
             />
+
+            <CountryFactsSection code={code} />
+
+            <ReligionSection code={code} />
+
+            <TippingSection code={code} />
+
+            <TapWaterSection code={code} />
+
+            <WifiSection code={code} />
 
             <LatestNewsSection country={country.name} />
           </aside>

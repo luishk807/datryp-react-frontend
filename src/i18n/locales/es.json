@@ -929,6 +929,10 @@
         "caution": "Con precaución",
         "unsafe": "No recomendada"
     },
+    "wifi": {
+        "title": "Internet",
+        "ratingAria": "{{rating}} de 5"
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",

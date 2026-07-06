@@ -1345,6 +1345,10 @@
         "caution": "Use caution",
         "unsafe": "Not recommended"
     },
+    "wifi": {
+        "title": "Internet",
+        "ratingAria": "{{rating}} out of 5"
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",
