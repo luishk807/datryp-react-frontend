@@ -11,6 +11,7 @@ import type {
     LodgingInfo,
     NamedTip,
     NearbyDestination,
+    NeighborhoodTips,
     PopularityInfo,
     SafetyInfo,
     TravelBasics,
@@ -65,6 +66,9 @@ export interface CityDetails {
     /** Lesser-known spots/neighborhoods most visitors miss. Optional for rows
      *  cached before this field shipped — the UI hides the card when empty. */
     hiddenGems?: HiddenGem[];
+    /** Where to stay: best areas + areas to avoid. Optional for rows cached
+     *  before this field shipped. */
+    neighborhoods?: NeighborhoodTips;
 }
 
 export interface CitySummary {

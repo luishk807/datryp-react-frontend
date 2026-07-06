@@ -1908,6 +1908,10 @@
             "practicalInfo": {
                 "title": "Información práctica"
             },
+            "neighborhoods": {
+                "best": "Mejores zonas para alojarse",
+                "avoid": "Zonas a evitar"
+            },
             "travelBasics": {
                 "title": "Datos básicos del viaje",
                 "gettingAround": "Cómo moverse",

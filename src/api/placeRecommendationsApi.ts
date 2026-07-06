@@ -296,6 +296,7 @@ interface PlaceDetailsRaw {
     cultural_shock?: string | null;
     before_you_go?: string[];
     hidden_gems?: { name: string; why: string }[];
+    neighborhoods?: { best: string[]; avoid: string[] } | null;
 }
 
 interface PlaceDetailsResponseRaw {
@@ -322,6 +323,7 @@ type PlaceProseRaw = Pick<
     | 'cultural_shock'
     | 'before_you_go'
     | 'hidden_gems'
+    | 'neighborhoods'
 >;
 
 type PlaceListsRaw = Pick<
@@ -360,6 +362,12 @@ const proseFromRaw = (raw: PlaceProseRaw): Partial<PlaceDetails> => ({
     hiddenGems: raw.hidden_gems
         ?.filter((g) => g?.name)
         .map((g) => ({ name: g.name, why: g.why ?? '' })),
+    neighborhoods: raw.neighborhoods
+        ? {
+              best: raw.neighborhoods.best ?? [],
+              avoid: raw.neighborhoods.avoid ?? [],
+          }
+        : undefined,
 });
 
 const listsFromRaw = (raw: PlaceListsRaw): Partial<PlaceDetails> => ({

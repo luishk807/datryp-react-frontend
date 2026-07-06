@@ -8,13 +8,16 @@ import TravelBasicsRows, {
 import LodgingRows, {
     LodgingSkeleton,
 } from 'components/PlaceDetail/LodgingRows';
-import type { LodgingInfo, TravelBasics } from 'types';
+import type { LodgingInfo, NeighborhoodTips, TravelBasics } from 'types';
 
 export interface PracticalInfoSectionProps {
     /** Travel-basics payload; `undefined` renders a skeleton. */
     basics: TravelBasics | undefined;
     /** Lodging payload; `undefined` renders a skeleton. */
     lodging: LodgingInfo | undefined;
+    /** Best areas to stay + areas to avoid (city/place only). Rendered under
+     *  "Where to stay"; omitted on country pages and older cached rows. */
+    neighborhoods?: NeighborhoodTips;
     /** When true, the whole section renders nothing (pass the source query's
      *  `isError`). */
     isError?: boolean;
@@ -29,10 +32,14 @@ export interface PracticalInfoSectionProps {
 const PracticalInfoSection = ({
     basics,
     lodging,
+    neighborhoods,
     isError = false,
 }: PracticalInfoSectionProps) => {
     const { t } = useTranslation();
     if (isError) return null;
+
+    const best = neighborhoods?.best ?? [];
+    const avoid = neighborhoods?.avoid ?? [];
     return (
         <DetailSection
             className="practical-info-section"
@@ -57,6 +64,38 @@ const PracticalInfoSection = ({
                     <LodgingRows lodging={lodging} />
                 ) : (
                     <LodgingSkeleton />
+                )}
+                {(best.length > 0 || avoid.length > 0) && (
+                    <div className="practical-info-neighborhoods">
+                        {best.length > 0 && (
+                            <div className="pi-nb">
+                                <span className="pi-nb-label">
+                                    {t('detail.common.neighborhoods.best')}
+                                </span>
+                                <ul className="pi-nb-list">
+                                    {best.map((area) => (
+                                        <li key={area} className="pi-nb-item is-best">
+                                            {area}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        {avoid.length > 0 && (
+                            <div className="pi-nb">
+                                <span className="pi-nb-label">
+                                    {t('detail.common.neighborhoods.avoid')}
+                                </span>
+                                <ul className="pi-nb-list">
+                                    {avoid.map((area) => (
+                                        <li key={area} className="pi-nb-item is-avoid">
+                                            {area}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
         </DetailSection>

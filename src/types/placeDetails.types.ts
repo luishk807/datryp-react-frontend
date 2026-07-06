@@ -155,6 +155,13 @@ export interface HiddenGem {
   why: string;
 }
 
+/** Where to stay: best areas + areas to avoid. Mirrors backend
+ *  `NeighborhoodTips`. City/place-scoped. */
+export interface NeighborhoodTips {
+  best: string[];
+  avoid: string[];
+}
+
 /** Enriched detail-page info. Lazy-fetched per place from `/place-details`. */
 export interface PlaceDetails {
   longDescription: string;
@@ -198,6 +205,9 @@ export interface PlaceDetails {
   /** Lesser-known spots most visitors miss. Optional for rows cached before
    *  this field shipped — the UI hides the card when empty. */
   hiddenGems?: HiddenGem[];
+  /** Where to stay: best areas + areas to avoid. Optional for rows cached
+   *  before this field shipped. */
+  neighborhoods?: NeighborhoodTips;
 }
 
 export interface PlaceDetailsResult {

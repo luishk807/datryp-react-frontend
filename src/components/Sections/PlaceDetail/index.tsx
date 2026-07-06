@@ -673,6 +673,7 @@ const PlaceDetail = () => {
         <PracticalInfoSection
           basics={detailsQuery.data?.details.travelBasics}
           lodging={detailsQuery.data?.details.lodging}
+          neighborhoods={detailsQuery.data?.details.neighborhoods}
           isError={factsError}
         />
 

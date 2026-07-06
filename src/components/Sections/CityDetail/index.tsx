@@ -688,6 +688,7 @@ const CityDetail = () => {
                 <PracticalInfoSection
                     basics={details.travelBasics}
                     lodging={details.lodging}
+                    neighborhoods={details.neighborhoods}
                     isError={false}
                 />
 

@@ -712,6 +712,10 @@
             "practicalInfo": {
                 "title": "Practical information"
             },
+            "neighborhoods": {
+                "best": "Best areas to stay",
+                "avoid": "Areas to avoid"
+            },
             "travelBasics": {
                 "title": "Travel basics",
                 "gettingAround": "Getting around",
