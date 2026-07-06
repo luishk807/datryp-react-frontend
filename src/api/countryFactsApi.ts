@@ -59,6 +59,7 @@ interface CountryFactsResponseRaw {
     safety_tips?: string[];
     currency_tips?: CurrencyTipsInfoRaw | null;
     festivals?: FestivalInfoRaw[];
+    etiquette?: string[];
     source?: string;
 }
 
@@ -149,6 +150,8 @@ export interface CountryFactsResult {
     /** Major festivals & holidays to know (name + rough timing). Empty when
      *  none. */
     festivals: FestivalInfo[];
+    /** Everyday cultural etiquette do's and don'ts. Empty when none. */
+    etiquette: string[];
     /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
      *  fallback for uncurated countries, shown under an "approximate — verify"
      *  note. */
@@ -231,6 +234,7 @@ export const fetchCountryFacts = async (
                   when: f.when ?? null,
               }))
             : [],
+        etiquette: Array.isArray(body.etiquette) ? body.etiquette : [],
         source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };

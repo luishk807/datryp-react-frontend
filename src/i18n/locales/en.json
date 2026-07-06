@@ -1327,6 +1327,9 @@
         "title": "Religion",
         "customsLabel": "Important customs"
     },
+    "etiquette": {
+        "title": "Local etiquette"
+    },
     "tipping": {
         "title": "Tipping",
         "categories": {

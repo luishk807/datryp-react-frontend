@@ -911,6 +911,9 @@
         "title": "Religión",
         "customsLabel": "Costumbres importantes"
     },
+    "etiquette": {
+        "title": "Etiqueta local"
+    },
     "tipping": {
         "title": "Propinas",
         "categories": {
