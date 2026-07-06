@@ -12,12 +12,18 @@ export interface WifiSectionProps {
     code: string;
 }
 
+// Travel eSIM providers work globally (not country-specific), so they're a
+// static pick rather than backend data — pulled out of the Essential-apps list
+// into this card since "which eSIM?" is one of the most-searched travel Qs.
+const ESIM_PROVIDERS = ['Airalo', 'Nomad', 'Holafly'];
+
 /**
- * "Internet" sidebar card on a country / city / place detail page — a 1-5
- * connectivity rating plus a one-line availability/speed feel and an optional
- * mobile-network note. Digital nomads and remote workers care a lot about this.
- * Served on the same /country-facts payload as Quick facts. Self-hides while
- * loading, on error, and for any country with no connectivity info.
+ * "Connectivity" sidebar card on a country / city / place detail page — a 1-5
+ * internet rating plus a one-line availability/speed feel, an optional
+ * mobile-network note, and the go-to travel eSIM picks. Digital nomads and
+ * remote workers care a lot about this. The rating/summary ride the
+ * /country-facts payload; the eSIM row is static. Self-hides while loading, on
+ * error, and for any country with no connectivity info.
  */
 const WifiSection = ({ code }: WifiSectionProps) => {
     const { t } = useTranslation();
@@ -50,6 +56,12 @@ const WifiSection = ({ code }: WifiSectionProps) => {
             </div>
             <p className="wifi-summary">{wifi.summary}</p>
             {wifi.mobile && <p className="wifi-mobile">{wifi.mobile}</p>}
+            <div className="wifi-esim">
+                <span className="wifi-esim-label">{t('wifi.esim')}</span>
+                <span className="wifi-esim-value">
+                    {ESIM_PROVIDERS.join(' · ')}
+                </span>
+            </div>
         </DetailSection>
     );
 };

@@ -936,8 +936,9 @@
         "unsafe": "No recomendada"
     },
     "wifi": {
-        "title": "Internet",
-        "ratingAria": "{{rating}} de 5"
+        "title": "Conectividad",
+        "ratingAria": "{{rating}} de 5",
+        "esim": "eSIM"
     },
     "walkability": {
         "title": "Caminabilidad",
