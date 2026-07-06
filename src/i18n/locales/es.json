@@ -970,6 +970,9 @@
         "reviewed": "Instantánea · revisada en {{date}}",
         "readMore": "Ver aviso oficial"
     },
+    "weatherUnit": {
+        "label": "Unidad de temperatura"
+    },
     "currencyTips": {
         "title": "Tarjetas y efectivo",
         "cards": "Tarjetas",

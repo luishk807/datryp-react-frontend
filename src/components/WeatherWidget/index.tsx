@@ -9,6 +9,7 @@ import FilterDramaRoundedIcon from '@mui/icons-material/FilterDramaRounded';
 import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
 import WbSunnyRoundedIcon from '@mui/icons-material/WbSunnyRounded';
 import type { WeatherLive } from 'types';
+import { convertTemp, useTempUnit, type TempUnit } from 'hooks/useTempUnit';
 
 const WEATHER_CONDITION = {
     TROPICAL: 'tropical',
@@ -93,7 +94,10 @@ const WEATHER_CODE_KEY: Record<number, string> = {
     99: 'thunderstormHail',
 };
 
-const roundTemp = (c: number) => `${Math.round(c)}°`;
+// Main temperature carries the unit so it's never ambiguous ("26°C" / "79°F");
+// the high/low range shows bare degrees (same, obviously, as the main reading).
+const mainTemp = (c: number, unit: TempUnit) => `${convertTemp(c, unit)}°${unit}`;
+const rangeTemp = (c: number, unit: TempUnit) => `${convertTemp(c, unit)}°`;
 
 export interface WeatherWidgetProps {
     /** Free-text climate paragraph. When `current` is absent, the widget
@@ -117,6 +121,7 @@ export interface WeatherWidgetProps {
  */
 const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
     const { t } = useTranslation();
+    const { unit, setUnit } = useTempUnit();
     const flavor = current
         ? WEATHER_FLAVORS[current.flavor]
         : WEATHER_FLAVORS[detectCondition(text ?? '')];
@@ -140,20 +145,20 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
                         </span>
                         <div className="weather-widget-now">
                             <span className="weather-widget-temp">
-                                {roundTemp(current.temperatureC)}
+                                {mainTemp(current.temperatureC, unit)}
                             </span>
                             {(current.highC != null || current.lowC != null) && (
                                 <span className="weather-widget-range">
                                     {current.highC != null &&
                                         t('detail.common.weatherFlavor.high', {
-                                            temp: roundTemp(current.highC),
+                                            temp: rangeTemp(current.highC, unit),
                                         })}
                                     {current.highC != null &&
                                         current.lowC != null &&
                                         ' · '}
                                     {current.lowC != null &&
                                         t('detail.common.weatherFlavor.low', {
-                                            temp: roundTemp(current.lowC),
+                                            temp: rangeTemp(current.lowC, unit),
                                         })}
                                 </span>
                             )}
@@ -169,6 +174,27 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
                     </>
                 )}
             </div>
+            {current && (
+                <div
+                    className="weather-widget-unit"
+                    role="group"
+                    aria-label={t('weatherUnit.label')}
+                >
+                    {(['C', 'F'] as const).map((u) => (
+                        <button
+                            key={u}
+                            type="button"
+                            className={classNames('wu-opt', {
+                                'is-on': unit === u,
+                            })}
+                            aria-pressed={unit === u}
+                            onClick={() => setUnit(u)}
+                        >
+                            °{u}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

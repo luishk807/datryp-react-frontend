@@ -1393,6 +1393,9 @@
         "reviewed": "Snapshot · reviewed {{date}}",
         "readMore": "Read official advisory"
     },
+    "weatherUnit": {
+        "label": "Temperature unit"
+    },
     "currencyTips": {
         "title": "Cards & cash",
         "cards": "Cards",
