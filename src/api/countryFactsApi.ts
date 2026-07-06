@@ -40,6 +40,9 @@ interface CurrencyTipsInfoRaw {
     cards: string | null;
     cash: string | null;
     atm: string | null;
+    apple_pay?: string | null;
+    cards_rating?: number | null;
+    cash_rating?: number | null;
 }
 interface HealthInfoRaw {
     vaccinations: string | null;
@@ -134,6 +137,12 @@ export interface CurrencyTipsInfo {
     cash: string | null;
     /** ATM availability / caveats. */
     atm: string | null;
+    /** Apple/Google Pay acceptance. Null for rows predating this field. */
+    applePay: string | null;
+    /** 1-5 how card-friendly. Null when unrated. */
+    cardsRating: number | null;
+    /** 1-5 how much cash you still need. Null when unrated. */
+    cashRating: number | null;
 }
 export interface HealthInfo {
     /** Routine vs recommended vaccinations. */
@@ -312,6 +321,9 @@ export const fetchCountryFacts = async (
                   cards: body.currency_tips.cards ?? null,
                   cash: body.currency_tips.cash ?? null,
                   atm: body.currency_tips.atm ?? null,
+                  applePay: body.currency_tips.apple_pay ?? null,
+                  cardsRating: body.currency_tips.cards_rating ?? null,
+                  cashRating: body.currency_tips.cash_rating ?? null,
               }
             : null,
         avgCosts: body.avg_costs

@@ -967,7 +967,9 @@
         "title": "Tarjetas y efectivo",
         "cards": "Tarjetas",
         "cash": "Efectivo",
-        "atm": "Cajeros"
+        "atm": "Cajeros",
+        "applePay": "Apple Pay",
+        "ratingAria": "{{rating}} de 5"
     },
     "avgCosts": {
         "title": "Costos promedio",

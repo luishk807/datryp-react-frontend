@@ -15,10 +15,14 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
+
+  &.is-rated {
+    align-items: center;
+  }
 }
 
 .currency-tips-label {
-  flex: 0 0 62px;
+  flex: 0 0 72px;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -32,4 +36,18 @@
   font-size: 0.85rem;
   line-height: 1.4;
   color: rgba(0, 0, 0, 0.72);
+}
+
+.currency-tips-stars {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.currency-tips-star {
+  font-size: 0.95rem !important;
+  color: rgba(0, 0, 0, 0.18);
+
+  &.is-on {
+    color: theme('colors.primaryOrange');
+  }
 }

@@ -1383,7 +1383,9 @@
         "title": "Cards & cash",
         "cards": "Cards",
         "cash": "Cash",
-        "atm": "ATMs"
+        "atm": "ATMs",
+        "applePay": "Apple Pay",
+        "ratingAria": "{{rating}} out of 5"
     },
     "avgCosts": {
         "title": "Average costs",
