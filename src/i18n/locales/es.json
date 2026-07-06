@@ -1004,6 +1004,9 @@
         "matchLabel": "Compatible",
         "because": "Porque te gusta",
         "mightNot": "Quizás no cumpla con",
+        "takeLabel": "Tu análisis personal",
+        "takeLoading": "Personalizando tu análisis…",
+        "pro": "PRO",
         "interests": {
             "foodie": "Gastronomía",
             "beach": "Playas",

@@ -74,3 +74,54 @@
   font-size: 0.95rem;
   flex-shrink: 0;
 }
+
+// Pro "personal take" — the AI opinion layered under the deterministic match.
+.match-take {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.match-take-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.match-take-icon {
+  font-size: 1rem !important;
+  color: theme('colors.primaryOrange');
+}
+
+.match-take-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.match-take-pro {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: theme('colors.primaryOrange');
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.match-take-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: theme('colors.primary');
+}
+
+.match-take-loading {
+  margin: 14px 0 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #8a8a8a;
+}

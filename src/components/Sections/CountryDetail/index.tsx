@@ -630,7 +630,13 @@ const CountryDetail = () => {
 
             <AvgCostsSection code={code} />
 
-            <MatchForYouSection code={code} costLevel={details.costLevel} />
+            <MatchForYouSection
+              code={code}
+              costLevel={details.costLevel}
+              name={country.name}
+              country={country.name}
+              kind="country"
+            />
 
             <FestivalsSection code={code} />
 

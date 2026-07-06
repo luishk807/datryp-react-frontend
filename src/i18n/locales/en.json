@@ -1420,6 +1420,9 @@
         "matchLabel": "Match",
         "because": "Because you like",
         "mightNot": "Might not satisfy",
+        "takeLabel": "Your personal take",
+        "takeLoading": "Personalizing your take…",
+        "pro": "PRO",
         "interests": {
             "foodie": "Food",
             "beach": "Beaches",

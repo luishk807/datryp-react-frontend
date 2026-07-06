@@ -644,6 +644,9 @@ const PlaceDetail = () => {
             <MatchForYouSection
               code={place.countryCode}
               costLevel={detailsQuery.data?.details.costLevel}
+              name={place.name}
+              country={place.country}
+              kind="place"
             />
 
             <FestivalsSection code={place.countryCode} />

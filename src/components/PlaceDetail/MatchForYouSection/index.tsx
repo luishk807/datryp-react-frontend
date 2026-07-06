@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import DetailSection from 'components/PlaceDetail/DetailSection';
 import GreatForSection from 'components/PlaceDetail/GreatForSection';
 import { useCountryFacts } from 'api/hooks/useCountryFacts';
 import { useMyPreferences } from 'api/hooks/useMyPreferences';
+import { useDestinationFit } from 'api/hooks/useDestinationFit';
 import { useUser } from 'context/UserContext';
 import { computeDestinationMatch } from './match';
 
@@ -36,6 +38,12 @@ export interface MatchForYouSectionProps {
     code: string;
     /** Destination cost level (1-5), for the budget/luxury cross-check. */
     costLevel?: number;
+    /** Destination display name — powers the Pro "personal take" AI opinion. */
+    name: string;
+    /** Country name for the AI take's context. */
+    country?: string;
+    /** Which detail page this is, for the AI take's phrasing. */
+    kind: 'country' | 'city' | 'place';
 }
 
 /**
@@ -46,9 +54,15 @@ export interface MatchForYouSectionProps {
  * call. Everyone else (logged out, or no interests saved, or nothing to match
  * on) falls back to the plain "Great for" chips, unchanged.
  */
-const MatchForYouSection = ({ code, costLevel }: MatchForYouSectionProps) => {
+const MatchForYouSection = ({
+    code,
+    costLevel,
+    name,
+    country,
+    kind,
+}: MatchForYouSectionProps) => {
     const { t } = useTranslation();
-    const { user } = useUser();
+    const { user, isAdmin } = useUser();
     const { data: prefs } = useMyPreferences();
     const { data: facts } = useCountryFacts(code);
 
@@ -60,6 +74,14 @@ const MatchForYouSection = ({ code, costLevel }: MatchForYouSectionProps) => {
                   costLevel
               )
             : null;
+
+    // Pro "personal take" — an AI opinion layered on the deterministic match.
+    // Gated to paid/admin (backend enforces too); only fetched once there's a
+    // match to accompany, and cached server-side per user+destination.
+    const isPro = Boolean(user?.isPaidMember) || isAdmin;
+    const fit = useDestinationFit(
+        match && isPro ? { name, country, kind } : null
+    );
 
     // Logged out, no saved interests, or nothing meaningful to match on → the
     // plain "Great for" chips (unchanged behavior).
@@ -106,6 +128,25 @@ const MatchForYouSection = ({ code, costLevel }: MatchForYouSectionProps) => {
             </div>
             {renderGroup(match.matched, t('match.because'), 'match')}
             {renderGroup(match.mismatched, t('match.mightNot'), 'miss')}
+
+            {fit.data ? (
+                <div className="match-take">
+                    <div className="match-take-header">
+                        <AutoAwesomeRoundedIcon className="match-take-icon" />
+                        <span className="match-take-label">
+                            {t('match.takeLabel')}
+                        </span>
+                        <span className="match-take-pro">{t('match.pro')}</span>
+                    </div>
+                    <p className="match-take-text">{fit.data}</p>
+                </div>
+            ) : (
+                fit.isLoading && (
+                    <p className="match-take-loading">
+                        {t('match.takeLoading')}
+                    </p>
+                )
+            )}
         </DetailSection>
     );
 };
