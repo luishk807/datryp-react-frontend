@@ -709,6 +709,9 @@
                 "hoursAgo": "{{n}}h ago",
                 "daysAgo": "{{n}}d ago"
             },
+            "practicalInfo": {
+                "title": "Practical information"
+            },
             "travelBasics": {
                 "title": "Travel basics",
                 "gettingAround": "Getting around",

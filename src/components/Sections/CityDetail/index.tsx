@@ -39,8 +39,7 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import VisaSection from "components/PlaceDetail/VisaSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
-import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
-import LodgingSection from "components/PlaceDetail/LodgingSection";
+import PracticalInfoSection from "components/PlaceDetail/PracticalInfoSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
@@ -686,12 +685,11 @@ const CityDetail = () => {
 
                 <ExperienceHighlights things={details.thingsToDo} />
 
-                <TravelBasicsSection
+                <PracticalInfoSection
                     basics={details.travelBasics}
+                    lodging={details.lodging}
                     isError={false}
                 />
-
-                <LodgingSection lodging={details.lodging} isError={false} />
 
                 <div className="city-detail-extras">
                     <TipListSection

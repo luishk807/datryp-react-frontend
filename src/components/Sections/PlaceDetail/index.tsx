@@ -63,8 +63,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import BudgetSection from "components/PlaceDetail/BudgetSection";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
 import VisaSection from "components/PlaceDetail/VisaSection";
-import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
-import LodgingSection from "components/PlaceDetail/LodgingSection";
+import PracticalInfoSection from "components/PlaceDetail/PracticalInfoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
@@ -671,12 +670,8 @@ const PlaceDetail = () => {
           things={detailsQuery.data?.details.thingsToDo}
         />
 
-        <TravelBasicsSection
+        <PracticalInfoSection
           basics={detailsQuery.data?.details.travelBasics}
-          isError={factsError}
-        />
-
-        <LodgingSection
           lodging={detailsQuery.data?.details.lodging}
           isError={factsError}
         />

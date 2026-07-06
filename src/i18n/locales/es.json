@@ -1904,6 +1904,9 @@
                 "hoursAgo": "hace {{n}} h",
                 "daysAgo": "hace {{n}} d"
             },
+            "practicalInfo": {
+                "title": "Información práctica"
+            },
             "travelBasics": {
                 "title": "Datos básicos del viaje",
                 "gettingAround": "Cómo moverse",

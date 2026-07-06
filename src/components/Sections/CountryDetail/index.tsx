@@ -60,8 +60,7 @@ import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import HiddenGemsSection from "components/PlaceDetail/HiddenGemsSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
-import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
-import LodgingSection from "components/PlaceDetail/LodgingSection";
+import PracticalInfoSection from "components/PlaceDetail/PracticalInfoSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import MainSection from "components/PlaceDetail/MainSection";
 import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
@@ -655,12 +654,11 @@ const CountryDetail = () => {
 
         <ExperienceHighlights things={details.thingsToDo} />
 
-        <TravelBasicsSection
+        <PracticalInfoSection
           basics={details.travelBasics}
+          lodging={details.lodging}
           isError={false}
         />
-
-        <LodgingSection lodging={details.lodging} isError={false} />
 
         <div className="country-detail-extras">
           <MainSection
