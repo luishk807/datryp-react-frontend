@@ -5,6 +5,7 @@
 import type {
     Airport,
     CurrencyInfo,
+    HiddenGem,
     LocalFlavor,
     LodgingInfo,
     NamedTip,
@@ -60,6 +61,10 @@ export interface CountryDetails {
     /** Actionable "sort this before you fly" checklist. Optional for rows
      *  cached before this field shipped — the UI hides it when empty. */
     beforeYouGo?: string[];
+    /** Underrated regions/towns/experiences most visitors miss. Optional for
+     *  rows cached before this field shipped — the UI hides the card when
+     *  empty. */
+    hiddenGems?: HiddenGem[];
 }
 
 export interface CountrySummary {

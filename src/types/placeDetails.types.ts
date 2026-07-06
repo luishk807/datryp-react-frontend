@@ -148,6 +148,13 @@ export interface WalkabilityInfo {
   note: string;
 }
 
+/** A lesser-known spot / area / experience most visitors miss, plus one line
+ *  on why it's worth seeking out. Mirrors backend `HiddenGem`. */
+export interface HiddenGem {
+  name: string;
+  why: string;
+}
+
 /** Enriched detail-page info. Lazy-fetched per place from `/place-details`. */
 export interface PlaceDetails {
   longDescription: string;
@@ -188,6 +195,9 @@ export interface PlaceDetails {
   /** How walkable the place is on foot. Optional for rows cached before this
    *  field shipped — the UI hides the card when absent. */
   walkability?: WalkabilityInfo;
+  /** Lesser-known spots most visitors miss. Optional for rows cached before
+   *  this field shipped — the UI hides the card when empty. */
+  hiddenGems?: HiddenGem[];
 }
 
 export interface PlaceDetailsResult {

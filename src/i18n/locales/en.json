@@ -1323,6 +1323,9 @@
         "title": "Before you go",
         "note": "A starting point — confirm the specifics for your dates and nationality."
     },
+    "hiddenGems": {
+        "title": "Hidden gems"
+    },
     "religion": {
         "title": "Religion",
         "customsLabel": "Important customs"

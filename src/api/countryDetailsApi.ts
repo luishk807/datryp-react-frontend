@@ -131,6 +131,7 @@ interface CountryDetailsRaw {
     } | null;
     cultural_shock?: string | null;
     before_you_go?: string[];
+    hidden_gems?: { name: string; why: string }[];
 }
 
 interface CountrySummaryRaw {
@@ -176,6 +177,7 @@ type CountryProseRaw = Pick<
     | "worst_time_to_visit"
     | "cultural_shock"
     | "before_you_go"
+    | "hidden_gems"
 >;
 
 type CountryListsRaw = Pick<
@@ -213,6 +215,9 @@ const proseFromRaw = (raw: CountryProseRaw): Partial<CountryDetails> => ({
     worstTimeToVisit: raw.worst_time_to_visit,
     culturalShock: raw.cultural_shock ?? undefined,
     beforeYouGo: raw.before_you_go ?? undefined,
+    hiddenGems: raw.hidden_gems
+        ?.filter((g) => g?.name)
+        .map((g) => ({ name: g.name, why: g.why ?? "" })),
 });
 
 const listsFromRaw = (raw: CountryListsRaw): Partial<CountryDetails> => ({

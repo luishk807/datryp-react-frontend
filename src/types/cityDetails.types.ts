@@ -6,6 +6,7 @@ import type {
     Airport,
     Coordinates,
     CurrencyInfo,
+    HiddenGem,
     LocalFlavor,
     LodgingInfo,
     NamedTip,
@@ -61,6 +62,9 @@ export interface CityDetails {
     /** How walkable the city is on foot. Optional for rows cached before this
      *  field shipped — the UI hides the card when absent. */
     walkability?: WalkabilityInfo;
+    /** Lesser-known spots/neighborhoods most visitors miss. Optional for rows
+     *  cached before this field shipped — the UI hides the card when empty. */
+    hiddenGems?: HiddenGem[];
 }
 
 export interface CitySummary {

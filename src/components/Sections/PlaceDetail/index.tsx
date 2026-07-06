@@ -53,6 +53,7 @@ import GreatForSection from "components/PlaceDetail/GreatForSection";
 import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
+import HiddenGemsSection from "components/PlaceDetail/HiddenGemsSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
 import BudgetSection from "components/PlaceDetail/BudgetSection";
@@ -559,6 +560,10 @@ const PlaceDetail = () => {
 
             <BeforeYouGoSection
               items={detailsQuery.data?.details.beforeYouGo}
+            />
+
+            <HiddenGemsSection
+              items={detailsQuery.data?.details.hiddenGems}
             />
 
             <NotesSection

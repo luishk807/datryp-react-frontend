@@ -907,6 +907,9 @@
         "title": "Antes de viajar",
         "note": "Un punto de partida — confirma los detalles según tus fechas y nacionalidad."
     },
+    "hiddenGems": {
+        "title": "Joyas ocultas"
+    },
     "religion": {
         "title": "Religión",
         "customsLabel": "Costumbres importantes"

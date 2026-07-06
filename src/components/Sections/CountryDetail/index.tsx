@@ -53,6 +53,7 @@ import GreatForSection from "components/PlaceDetail/GreatForSection";
 import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
+import HiddenGemsSection from "components/PlaceDetail/HiddenGemsSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
 import TravelBasicsSection from "components/PlaceDetail/TravelBasicsSection";
@@ -579,6 +580,8 @@ const CountryDetail = () => {
             />
 
             <BeforeYouGoSection items={details.beforeYouGo} />
+
+            <HiddenGemsSection items={details.hiddenGems} />
 
             <NotesSection items={details.notesToKnow} isError={false} />
 
