@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// A block of the compact fact cards in the main content column, before
+// Essential apps. Three columns on desktop; stacks to one on mobile.
+.detail-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+
+  // Every child card returns null when it has no data; when they all do, the
+  // grid has no DOM children and must take up no space (no stray margin).
+  &:empty {
+    display: none;
+    margin: 0;
+  }
+
+  // Match the compact card sizing the sidebar (`*-content-side`) applies, so
+  // the cards look identical after moving into the main column — only relocated.
+  // `height: 100%` lets cards in a row stretch to an even bottom edge.
+  .detail-section {
+    height: 100%;
+    padding: 14px 16px;
+  }
+
+  .detail-section-title {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .detail-facts-grid {
+    grid-template-columns: 1fr;
+  }
+}

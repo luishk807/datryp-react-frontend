@@ -45,6 +45,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
+import DetailFactsGrid from "components/PlaceDetail/DetailFactsGrid";
 import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
 import ReligionSection from "components/PlaceDetail/ReligionSection";
 import EtiquetteSection from "components/PlaceDetail/EtiquetteSection";
@@ -608,6 +609,17 @@ const CityDetail = () => {
                             isError={false}
                         />
 
+                        <DetailFactsGrid>
+                            <TapWaterSection code={city.countryCode} />
+                            <AirQualitySection
+                                coordinates={details.coordinates}
+                            />
+                            <WalkabilitySection
+                                walkability={details.walkability}
+                            />
+                            <WifiSection code={city.countryCode} />
+                        </DetailFactsGrid>
+
                         <EssentialAppsSection code={code} />
 
                         <LocalFlavorSection
@@ -645,14 +657,6 @@ const CityDetail = () => {
                         <CurrencyTipsSection code={city.countryCode} />
 
                         <AvgCostsSection code={city.countryCode} />
-
-                        <TapWaterSection code={city.countryCode} />
-
-                        <AirQualitySection coordinates={details.coordinates} />
-
-                        <WalkabilitySection walkability={details.walkability} />
-
-                        <WifiSection code={city.countryCode} />
 
                         <GreatForSection code={city.countryCode} />
 

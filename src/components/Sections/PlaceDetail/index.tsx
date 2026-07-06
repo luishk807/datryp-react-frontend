@@ -39,6 +39,7 @@ import CulturalShockCallout from "components/PlaceDetail/CulturalShockCallout";
 import ExperienceHighlights from "components/PlaceDetail/ExperienceHighlights";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
+import DetailFactsGrid from "components/PlaceDetail/DetailFactsGrid";
 import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
 import ReligionSection from "components/PlaceDetail/ReligionSection";
 import EtiquetteSection from "components/PlaceDetail/EtiquetteSection";
@@ -577,6 +578,17 @@ const PlaceDetail = () => {
               isError={proseError}
             />
 
+            <DetailFactsGrid>
+              <TapWaterSection code={place.countryCode} />
+              <AirQualitySection
+                coordinates={detailsQuery.data?.details.coordinates}
+              />
+              <WalkabilitySection
+                walkability={detailsQuery.data?.details.walkability}
+              />
+              <WifiSection code={place.countryCode} />
+            </DetailFactsGrid>
+
             <EssentialAppsSection code={place.countryCode} />
 
             <LocalFlavorSection
@@ -628,18 +640,6 @@ const PlaceDetail = () => {
             <CurrencyTipsSection code={place.countryCode} />
 
             <AvgCostsSection code={place.countryCode} />
-
-            <TapWaterSection code={place.countryCode} />
-
-            <AirQualitySection
-              coordinates={detailsQuery.data?.details.coordinates}
-            />
-
-            <WalkabilitySection
-              walkability={detailsQuery.data?.details.walkability}
-            />
-
-            <WifiSection code={place.countryCode} />
 
             <GreatForSection code={place.countryCode} />
 

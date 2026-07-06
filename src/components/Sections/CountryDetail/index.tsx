@@ -40,6 +40,7 @@ import NearbySection from "components/PlaceDetail/NearbySection";
 import VisaSection from "components/PlaceDetail/VisaSection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
+import DetailFactsGrid from "components/PlaceDetail/DetailFactsGrid";
 import CountryFactsSection from "components/PlaceDetail/CountryFactsSection";
 import ReligionSection from "components/PlaceDetail/ReligionSection";
 import EtiquetteSection from "components/PlaceDetail/EtiquetteSection";
@@ -572,6 +573,14 @@ const CountryDetail = () => {
               isError={false}
             />
 
+            <DetailFactsGrid>
+              <TapWaterSection code={code} />
+              <AirQualitySection
+                coordinates={details.capitalCoordinates}
+              />
+              <WifiSection code={code} />
+            </DetailFactsGrid>
+
             <EssentialAppsSection code={code} />
 
             <CulturalShockCallout
@@ -620,12 +629,6 @@ const CountryDetail = () => {
             <CurrencyTipsSection code={code} />
 
             <AvgCostsSection code={code} />
-
-            <TapWaterSection code={code} />
-
-            <AirQualitySection coordinates={details.capitalCoordinates} />
-
-            <WifiSection code={code} />
 
             <GreatForSection code={code} />
 
