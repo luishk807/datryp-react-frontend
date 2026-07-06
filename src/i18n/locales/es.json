@@ -933,6 +933,25 @@
         "title": "Internet",
         "ratingAria": "{{rating}} de 5"
     },
+    "greatFor": {
+        "title": "Ideal para",
+        "tags": {
+            "couples": "Parejas",
+            "families": "Familias",
+            "solo": "Viajar solo",
+            "friends": "Amigos",
+            "backpackers": "Mochileros",
+            "nomads": "Nómadas digitales",
+            "luxury": "Lujo",
+            "foodies": "Gastronomía",
+            "nature": "Naturaleza",
+            "nightlife": "Vida nocturna",
+            "culture": "Cultura",
+            "history": "Historia",
+            "beaches": "Playas",
+            "adventure": "Aventura"
+        }
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",

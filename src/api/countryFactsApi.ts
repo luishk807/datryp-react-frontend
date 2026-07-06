@@ -46,6 +46,7 @@ interface CountryFactsResponseRaw {
     tipping?: TippingInfoRaw | null;
     water?: WaterInfoRaw | null;
     wifi?: WifiInfoRaw | null;
+    great_for?: string[];
     source?: string;
 }
 
@@ -112,6 +113,9 @@ export interface CountryFactsResult {
     /** Internet / connectivity (rating + summary + mobile note). Null for
      *  curated entries that predate this field. */
     wifi: WifiInfo | null;
+    /** "Great for" traveler-type / vibe tags from a closed vocabulary (the
+     *  component labels + icons each). Empty when none. */
+    greatFor: string[];
     /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
      *  fallback for uncurated countries, shown under an "approximate — verify"
      *  note. */
@@ -179,6 +183,7 @@ export const fetchCountryFacts = async (
                   mobile: body.wifi.mobile ?? null,
               }
             : null,
+        greatFor: Array.isArray(body.great_for) ? body.great_for : [],
         source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };

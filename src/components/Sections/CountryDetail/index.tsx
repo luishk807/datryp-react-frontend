@@ -45,6 +45,7 @@ import ReligionSection from "components/PlaceDetail/ReligionSection";
 import TippingSection from "components/PlaceDetail/TippingSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import WifiSection from "components/PlaceDetail/WifiSection";
+import GreatForSection from "components/PlaceDetail/GreatForSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
@@ -606,6 +607,8 @@ const CountryDetail = () => {
             <TapWaterSection code={code} />
 
             <WifiSection code={code} />
+
+            <GreatForSection code={code} />
 
             <LatestNewsSection country={country.name} />
           </aside>

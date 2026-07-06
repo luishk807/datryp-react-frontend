@@ -1349,6 +1349,25 @@
         "title": "Internet",
         "ratingAria": "{{rating}} out of 5"
     },
+    "greatFor": {
+        "title": "Great for",
+        "tags": {
+            "couples": "Couples",
+            "families": "Families",
+            "solo": "Solo travel",
+            "friends": "Friends",
+            "backpackers": "Backpackers",
+            "nomads": "Digital nomads",
+            "luxury": "Luxury",
+            "foodies": "Foodies",
+            "nature": "Nature",
+            "nightlife": "Nightlife",
+            "culture": "Culture",
+            "history": "History",
+            "beaches": "Beaches",
+            "adventure": "Adventure"
+        }
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",
