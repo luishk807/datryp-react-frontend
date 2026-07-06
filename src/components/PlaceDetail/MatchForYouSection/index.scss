@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.match-score {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.match-score-pct {
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+  color: theme('colors.primaryGreen');
+}
+
+.match-score-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.match-group + .match-group {
+  margin-top: 12px;
+}
+
+.match-group-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.match-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.match-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: theme('colors.primary');
+}
+
+.match-icon {
+  font-size: 1rem !important;
+  flex-shrink: 0;
+}
+
+.match-item.is-match .match-icon {
+  color: theme('colors.primaryGreen');
+}
+
+.match-item.is-miss .match-icon {
+  color: #c0392b;
+}
+
+.match-item.is-miss .match-text {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.match-emoji {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}

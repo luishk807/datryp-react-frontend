@@ -56,7 +56,7 @@ import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import AirQualitySection from "components/PlaceDetail/AirQualitySection";
 import WalkabilitySection from "components/PlaceDetail/WalkabilitySection";
 import WifiSection from "components/PlaceDetail/WifiSection";
-import GreatForSection from "components/PlaceDetail/GreatForSection";
+import MatchForYouSection from "components/PlaceDetail/MatchForYouSection";
 import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
@@ -658,7 +658,10 @@ const CityDetail = () => {
 
                         <AvgCostsSection code={city.countryCode} />
 
-                        <GreatForSection code={city.countryCode} />
+                        <MatchForYouSection
+                            code={city.countryCode}
+                            costLevel={details.costLevel}
+                        />
 
                         <FestivalsSection code={city.countryCode} />
 

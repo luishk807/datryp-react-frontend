@@ -1415,6 +1415,30 @@
             "adventure": "Adventure"
         }
     },
+    "match": {
+        "title": "Is this right for you?",
+        "matchLabel": "Match",
+        "because": "Because you like",
+        "mightNot": "Might not satisfy",
+        "interests": {
+            "foodie": "Food",
+            "beach": "Beaches",
+            "hiking": "Hiking",
+            "museums": "Museums",
+            "nightlife": "Nightlife",
+            "family": "Family",
+            "solo": "Solo travel",
+            "budget": "Budget",
+            "luxury": "Luxury",
+            "road_trips": "Road trips",
+            "wellness": "Wellness",
+            "photography": "Photography",
+            "diving": "Diving",
+            "skiing": "Skiing",
+            "festivals": "Festivals",
+            "local_culture": "Local culture"
+        }
+    },
     "trips": {
         "title": "My Trips",
         "loading": "Loading trips…",

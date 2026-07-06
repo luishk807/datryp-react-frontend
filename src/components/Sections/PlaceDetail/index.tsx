@@ -50,7 +50,7 @@ import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import AirQualitySection from "components/PlaceDetail/AirQualitySection";
 import WalkabilitySection from "components/PlaceDetail/WalkabilitySection";
 import WifiSection from "components/PlaceDetail/WifiSection";
-import GreatForSection from "components/PlaceDetail/GreatForSection";
+import MatchForYouSection from "components/PlaceDetail/MatchForYouSection";
 import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
@@ -641,7 +641,10 @@ const PlaceDetail = () => {
 
             <AvgCostsSection code={place.countryCode} />
 
-            <GreatForSection code={place.countryCode} />
+            <MatchForYouSection
+              code={place.countryCode}
+              costLevel={detailsQuery.data?.details.costLevel}
+            />
 
             <FestivalsSection code={place.countryCode} />
 

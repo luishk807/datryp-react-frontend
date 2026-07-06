@@ -999,6 +999,30 @@
             "adventure": "Aventura"
         }
     },
+    "match": {
+        "title": "¿Es este destino para ti?",
+        "matchLabel": "Compatible",
+        "because": "Porque te gusta",
+        "mightNot": "Quizás no cumpla con",
+        "interests": {
+            "foodie": "Gastronomía",
+            "beach": "Playas",
+            "hiking": "Senderismo",
+            "museums": "Museos",
+            "nightlife": "Vida nocturna",
+            "family": "Familia",
+            "solo": "Viaje en solitario",
+            "budget": "Económico",
+            "luxury": "Lujo",
+            "road_trips": "Viajes por carretera",
+            "wellness": "Bienestar",
+            "photography": "Fotografía",
+            "diving": "Buceo",
+            "skiing": "Esquí",
+            "festivals": "Festivales",
+            "local_culture": "Cultura local"
+        }
+    },
     "trips": {
         "title": "Mis viajes",
         "loading": "Cargando viajes…",
