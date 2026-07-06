@@ -1372,6 +1372,13 @@
         "malaria": "Malaria",
         "note": "General guidance — consult a travel clinic before you go."
     },
+    "accessibility": {
+        "title": "Accessibility",
+        "wheelchair": "Wheelchair",
+        "transit": "Transit",
+        "sidewalks": "Sidewalks",
+        "signage": "English"
+    },
     "currencyTips": {
         "title": "Cards & cash",
         "cards": "Cards",

@@ -55,6 +55,7 @@ import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import ScamsSection from "components/PlaceDetail/ScamsSection";
 import HealthSection from "components/PlaceDetail/HealthSection";
+import AccessibilitySection from "components/PlaceDetail/AccessibilitySection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import HiddenGemsSection from "components/PlaceDetail/HiddenGemsSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
@@ -634,6 +635,8 @@ const PlaceDetail = () => {
             <ScamsSection code={place.countryCode} />
 
             <HealthSection code={place.countryCode} />
+
+            <AccessibilitySection code={place.countryCode} />
 
             <CountryFactsSection code={place.countryCode} />
 

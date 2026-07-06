@@ -46,6 +46,12 @@ interface HealthInfoRaw {
     mosquitoes: string | null;
     malaria: string | null;
 }
+interface AccessibilityInfoRaw {
+    wheelchair: string | null;
+    transit: string | null;
+    sidewalks: string | null;
+    signage: string | null;
+}
 interface AvgCostsInfoRaw {
     budget: string | null;
     midrange: string | null;
@@ -75,6 +81,7 @@ interface CountryFactsResponseRaw {
     currency_tips?: CurrencyTipsInfoRaw | null;
     avg_costs?: AvgCostsInfoRaw | null;
     health?: HealthInfoRaw | null;
+    accessibility?: AccessibilityInfoRaw | null;
     festivals?: FestivalInfoRaw[];
     etiquette?: string[];
     source?: string;
@@ -136,6 +143,16 @@ export interface HealthInfo {
     /** Malaria risk picture. */
     malaria: string | null;
 }
+export interface AccessibilityInfo {
+    /** Wheelchair-friendliness. */
+    wheelchair: string | null;
+    /** Public-transit accessibility. */
+    transit: string | null;
+    /** Sidewalk quality / terrain. */
+    sidewalks: string | null;
+    /** How much English signage to expect. */
+    signage: string | null;
+}
 export interface AvgCostsInfo {
     /** Budget traveler, per-day all-in total (USD). */
     budget: string | null;
@@ -192,6 +209,9 @@ export interface CountryFactsResult {
     /** Traveler-health basics (vaccinations / mosquitoes / malaria). Null when
      *  none. Always shown with a "consult a travel clinic" note. */
     health: HealthInfo | null;
+    /** Accessibility basics (wheelchair / transit / sidewalks / signage). Null
+     *  when none. */
+    accessibility: AccessibilityInfo | null;
     /** Practical money tips (cards / cash / ATM). Null when none. */
     currencyTips: CurrencyTipsInfo | null;
     /** Rough travel costs in USD (daily budget bands + sample prices). Always
@@ -277,6 +297,14 @@ export const fetchCountryFacts = async (
                   vaccinations: body.health.vaccinations ?? null,
                   mosquitoes: body.health.mosquitoes ?? null,
                   malaria: body.health.malaria ?? null,
+              }
+            : null,
+        accessibility: body.accessibility
+            ? {
+                  wheelchair: body.accessibility.wheelchair ?? null,
+                  transit: body.accessibility.transit ?? null,
+                  sidewalks: body.accessibility.sidewalks ?? null,
+                  signage: body.accessibility.signage ?? null,
               }
             : null,
         currencyTips: body.currency_tips

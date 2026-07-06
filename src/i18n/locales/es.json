@@ -956,6 +956,13 @@
         "malaria": "Malaria",
         "note": "Orientación general — consulta una clínica del viajero antes de ir."
     },
+    "accessibility": {
+        "title": "Accesibilidad",
+        "wheelchair": "Movilidad",
+        "transit": "Transporte",
+        "sidewalks": "Aceras",
+        "signage": "Inglés"
+    },
     "currencyTips": {
         "title": "Tarjetas y efectivo",
         "cards": "Tarjetas",
