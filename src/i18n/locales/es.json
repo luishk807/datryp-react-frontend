@@ -946,6 +946,9 @@
     "stayingSafe": {
         "title": "Mantente seguro"
     },
+    "scams": {
+        "title": "Estafas comunes"
+    },
     "currencyTips": {
         "title": "Tarjetas y efectivo",
         "cards": "Tarjetas",

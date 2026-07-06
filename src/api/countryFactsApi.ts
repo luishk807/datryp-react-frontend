@@ -66,6 +66,7 @@ interface CountryFactsResponseRaw {
     wifi?: WifiInfoRaw | null;
     great_for?: string[];
     safety_tips?: string[];
+    scams?: string[];
     currency_tips?: CurrencyTipsInfoRaw | null;
     avg_costs?: AvgCostsInfoRaw | null;
     festivals?: FestivalInfoRaw[];
@@ -171,6 +172,9 @@ export interface CountryFactsResult {
     /** Actionable safety pointers (the "watch out for X" bullets). Empty when
      *  none. */
     safetyTips: string[];
+    /** Common tourist scams to recognize (distinct from safetyTips). Empty
+     *  when none. */
+    scams: string[];
     /** Practical money tips (cards / cash / ATM). Null when none. */
     currencyTips: CurrencyTipsInfo | null;
     /** Rough travel costs in USD (daily budget bands + sample prices). Always
@@ -250,6 +254,7 @@ export const fetchCountryFacts = async (
             : null,
         greatFor: Array.isArray(body.great_for) ? body.great_for : [],
         safetyTips: Array.isArray(body.safety_tips) ? body.safety_tips : [],
+        scams: Array.isArray(body.scams) ? body.scams : [],
         currencyTips: body.currency_tips
             ? {
                   cards: body.currency_tips.cards ?? null,

@@ -53,6 +53,7 @@ import WifiSection from "components/PlaceDetail/WifiSection";
 import MatchForYouSection from "components/PlaceDetail/MatchForYouSection";
 import FestivalsSection from "components/PlaceDetail/FestivalsSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
+import ScamsSection from "components/PlaceDetail/ScamsSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import HiddenGemsSection from "components/PlaceDetail/HiddenGemsSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
@@ -628,6 +629,8 @@ const PlaceDetail = () => {
             />
 
             <StayingSafeSection code={place.countryCode} />
+
+            <ScamsSection code={place.countryCode} />
 
             <CountryFactsSection code={place.countryCode} />
 
