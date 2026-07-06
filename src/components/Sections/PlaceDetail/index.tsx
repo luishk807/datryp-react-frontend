@@ -45,6 +45,7 @@ import TippingSection from "components/PlaceDetail/TippingSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
+import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import NotesSection from "components/PlaceDetail/NotesSection";
 import TipListSection from "components/PlaceDetail/TipListSection";
@@ -602,6 +603,8 @@ const PlaceDetail = () => {
               countryHighlight={detailsQuery.data?.details.countryHighlight}
               isError={proseError}
             />
+
+            <StayingSafeSection code={place.countryCode} />
 
             <CountryFactsSection code={place.countryCode} />
 

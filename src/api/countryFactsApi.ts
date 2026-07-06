@@ -47,6 +47,7 @@ interface CountryFactsResponseRaw {
     water?: WaterInfoRaw | null;
     wifi?: WifiInfoRaw | null;
     great_for?: string[];
+    safety_tips?: string[];
     source?: string;
 }
 
@@ -116,6 +117,9 @@ export interface CountryFactsResult {
     /** "Great for" traveler-type / vibe tags from a closed vocabulary (the
      *  component labels + icons each). Empty when none. */
     greatFor: string[];
+    /** Actionable safety pointers (the "watch out for X" bullets). Empty when
+     *  none. */
+    safetyTips: string[];
     /** `curated` = hand-verified (authoritative); `ai` = guardrailed AI
      *  fallback for uncurated countries, shown under an "approximate — verify"
      *  note. */
@@ -184,6 +188,7 @@ export const fetchCountryFacts = async (
               }
             : null,
         greatFor: Array.isArray(body.great_for) ? body.great_for : [],
+        safetyTips: Array.isArray(body.safety_tips) ? body.safety_tips : [],
         source: body.source === 'ai' ? 'ai' : 'curated',
     };
 };

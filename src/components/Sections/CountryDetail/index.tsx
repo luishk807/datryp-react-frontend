@@ -46,6 +46,7 @@ import TippingSection from "components/PlaceDetail/TippingSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
+import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
@@ -597,6 +598,8 @@ const CountryDetail = () => {
               worstTime={details.worstTimeToVisit}
               isError={false}
             />
+
+            <StayingSafeSection code={code} />
 
             <CountryFactsSection code={code} />
 

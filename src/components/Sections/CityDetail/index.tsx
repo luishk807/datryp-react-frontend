@@ -51,6 +51,7 @@ import TippingSection from "components/PlaceDetail/TippingSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
+import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
 import BeforeYouGoSection from "components/PlaceDetail/BeforeYouGoSection";
 import PlaceMetaLine from "components/PlaceDetail/PlaceMetaLine";
 import { useCityDetailsProgressive } from "api/hooks/useCityDetails";
@@ -621,6 +622,8 @@ const CityDetail = () => {
                             worstTime={details.worstTimeToVisit}
                             isError={false}
                         />
+
+                        <StayingSafeSection code={city.countryCode} />
 
                         <CountryFactsSection code={city.countryCode} />
 
