@@ -63,6 +63,7 @@ import TipListSection from "components/PlaceDetail/TipListSection";
 import BudgetSection from "components/PlaceDetail/BudgetSection";
 import PlaceHero from "components/PlaceDetail/PlaceHero";
 import VisaSection from "components/PlaceDetail/VisaSection";
+import TravelAdvisorySection from "components/PlaceDetail/TravelAdvisorySection";
 import PracticalInfoSection from "components/PlaceDetail/PracticalInfoSection";
 import WhenToVisitSection from "components/PlaceDetail/WhenToVisitSection";
 import LatestNewsSection from "components/PlaceDetail/LatestNewsSection";
@@ -614,6 +615,8 @@ const PlaceDetail = () => {
               visa={detailsQuery.data?.details.visa}
               isError={factsError}
             />
+
+            <TravelAdvisorySection destination={place.countryCode} />
 
             <WhenToVisitSection
               bestTime={place.bestTimeToVisit}

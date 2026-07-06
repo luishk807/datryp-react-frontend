@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.ta-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ta-flag {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.ta-source-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: theme('colors.primary');
+}
+
+.ta-level {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  margin-bottom: 10px;
+}
+
+.ta-level-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ta-level-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: theme('colors.primary');
+}
+
+// Severity colors: 1 green · 2 amber · 3 orange · 4 red.
+.ta-level.is-1 {
+  background: rgba(39, 174, 96, 0.08);
+  border-left-color: #27ae60;
+
+  .ta-level-badge {
+    color: #1e8449;
+  }
+}
+
+.ta-level.is-2 {
+  background: rgba(241, 196, 15, 0.12);
+  border-left-color: #f1c40f;
+
+  .ta-level-badge {
+    color: #b7950b;
+  }
+}
+
+.ta-level.is-3 {
+  background: rgba(230, 126, 34, 0.1);
+  border-left-color: #e67e22;
+
+  .ta-level-badge {
+    color: #ca6f1e;
+  }
+}
+
+.ta-level.is-4 {
+  background: rgba(192, 57, 43, 0.1);
+  border-left-color: #c0392b;
+
+  .ta-level-badge {
+    color: #c0392b;
+  }
+}
+
+.ta-meta {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #8a8a8a;
+}
+
+.ta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: theme('colors.primaryGreen');
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.ta-link-icon {
+  font-size: 0.95rem !important;
+}

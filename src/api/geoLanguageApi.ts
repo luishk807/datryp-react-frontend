@@ -29,3 +29,20 @@ export const fetchSuggestedLanguage = async (
         return null;
     }
 };
+
+/** Resolves to the visitor's IP-geolocated ISO-2 country code, or null. Reuses
+ *  the same `/geo/language` endpoint (it already returns `country`), used as a
+ *  residence fallback for the travel-advisory widget when the user hasn't set a
+ *  home country. Fail-soft to null. */
+export const fetchGeoCountry = async (
+    signal?: AbortSignal,
+): Promise<string | null> => {
+    try {
+        const resp = await fetch(`${API_BASE}/geo/language`, { signal });
+        if (!resp.ok) return null;
+        const body = (await resp.json()) as GeoLanguageRaw;
+        return body.country ? body.country.toUpperCase() : null;
+    } catch {
+        return null;
+    }
+};

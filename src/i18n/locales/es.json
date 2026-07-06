@@ -964,6 +964,12 @@
         "sidewalks": "Aceras",
         "signage": "Inglés"
     },
+    "travelAdvisory": {
+        "title": "Aviso oficial de viaje",
+        "level": "Nivel {{n}}",
+        "reviewed": "Instantánea · revisada en {{date}}",
+        "readMore": "Ver aviso oficial"
+    },
     "currencyTips": {
         "title": "Tarjetas y efectivo",
         "cards": "Tarjetas",

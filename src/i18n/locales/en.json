@@ -1387,6 +1387,12 @@
         "sidewalks": "Sidewalks",
         "signage": "English"
     },
+    "travelAdvisory": {
+        "title": "Official travel advisory",
+        "level": "Level {{n}}",
+        "reviewed": "Snapshot · reviewed {{date}}",
+        "readMore": "Read official advisory"
+    },
     "currencyTips": {
         "title": "Cards & cash",
         "cards": "Cards",

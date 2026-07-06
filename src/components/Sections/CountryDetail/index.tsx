@@ -38,6 +38,7 @@ import BudgetSection from "components/PlaceDetail/BudgetSection";
 import LocalFlavorSection from "components/PlaceDetail/LocalFlavorSection";
 import NearbySection from "components/PlaceDetail/NearbySection";
 import VisaSection from "components/PlaceDetail/VisaSection";
+import TravelAdvisorySection from "components/PlaceDetail/TravelAdvisorySection";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
 import EssentialAppsSection from "components/PlaceDetail/EssentialAppsSection";
 import DetailFactsGrid from "components/PlaceDetail/DetailFactsGrid";
@@ -611,6 +612,8 @@ const CountryDetail = () => {
             <AirportsSection airports={details.airports} />
 
             <VisaSection visa={details.visa} isError={false} />
+
+            <TravelAdvisorySection destination={code} />
 
             <WhenToVisitSection
               bestTime={details.bestTimeToVisit}
