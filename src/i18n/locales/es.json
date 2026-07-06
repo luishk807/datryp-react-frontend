@@ -1923,12 +1923,12 @@
                 "headsUpAbout": "Aviso sobre {{name}}"
             },
             "top5": {
-                "places": "Los 5 mejores lugares de {{name}}",
-                "cities": "Las 5 mejores ciudades de {{name}}",
-                "foods": "Las 5 mejores comidas para probar",
-                "things": "Las 5 mejores cosas que hacer",
-                "photoSpots": "Los 5 mejores lugares para fotos",
-                "placesToVisit": "Los 5 mejores lugares para visitar"
+                "places": "Qué ver",
+                "cities": "Qué visitar",
+                "foods": "Qué comer",
+                "things": "Qué hacer",
+                "photoSpots": "Mejores fotos",
+                "placesToVisit": "Qué ver"
             },
             "weatherFlavor": {
                 "tropical": "Tropical",

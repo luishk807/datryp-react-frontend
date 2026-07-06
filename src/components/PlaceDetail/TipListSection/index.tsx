@@ -21,7 +21,7 @@ export interface TipListSectionProps {
  * loaded and loading.
  */
 const TipListSection = ({ title, icon, items }: TipListSectionProps) => (
-  <DetailSection title={title} icon={icon}>
+  <DetailSection title={title} icon={icon} badge={items?.length || undefined}>
     {items ? <TipList items={items} /> : <TipListSkeleton />}
   </DetailSection>
 );

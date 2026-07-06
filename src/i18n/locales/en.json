@@ -774,12 +774,12 @@
                 "headsUpAbout": "Heads up about {{name}}"
             },
             "top5": {
-                "places": "Top 5 places in {{name}}",
-                "cities": "Top 5 cities in {{name}}",
-                "foods": "Top 5 foods to try",
-                "things": "Top 5 things to do",
-                "photoSpots": "Top 5 photo spots",
-                "placesToVisit": "Top 5 places to visit"
+                "places": "Must See",
+                "cities": "Must Visit",
+                "foods": "Must Eat",
+                "things": "Must Do",
+                "photoSpots": "Best Photo Spots",
+                "placesToVisit": "Must See"
             },
             "weatherFlavor": {
                 "tropical": "Tropical",

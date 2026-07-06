@@ -9,6 +9,10 @@ export interface DetailSectionProps {
    *  specific section override the default card chrome (border / shadow /
    *  fill), e.g. the Essential apps section rendering inline under Budget. */
   className?: string;
+  /** Optional small pill at the end of the title row — e.g. the curated item
+   *  count ("5") on the Must-see / Must-eat lists, so the shortlist still
+   *  reads as hand-picked after dropping the "Top 5" wording. */
+  badge?: React.ReactNode;
 }
 
 /**
@@ -19,11 +23,12 @@ export interface DetailSectionProps {
  * — see `.place-detail-content-side .detail-section` and
  * `.place-detail-side .detail-section` in the page stylesheet.
  */
-const DetailSection = ({ title, icon, children, className }: DetailSectionProps) => (
+const DetailSection = ({ title, icon, children, className, badge }: DetailSectionProps) => (
   <section className={classNames("detail-section", className)}>
     <h2 className="detail-section-title">
       <span className="detail-section-icon">{icon}</span>
       {title}
+      {badge != null && <span className="detail-section-badge">{badge}</span>}
     </h2>
     {children}
   </section>
