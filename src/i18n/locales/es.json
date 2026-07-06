@@ -949,6 +949,19 @@
         "cash": "Efectivo",
         "atm": "Cajeros"
     },
+    "avgCosts": {
+        "title": "Costos promedio",
+        "dailyLabel": "Presupuesto diario",
+        "samplesLabel": "Precios de referencia",
+        "budget": "Económico",
+        "midrange": "Intermedio",
+        "luxury": "Lujo",
+        "meal": "Comida",
+        "coffee": "Café",
+        "transit": "Transporte",
+        "beer": "Cerveza",
+        "note": "≈ USD · los precios varían según ciudad y temporada"
+    },
     "airQuality": {
         "title": "Calidad del aire",
         "sub": "AQI de EE. UU. · en vivo",

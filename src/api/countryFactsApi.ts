@@ -41,6 +41,15 @@ interface CurrencyTipsInfoRaw {
     cash: string | null;
     atm: string | null;
 }
+interface AvgCostsInfoRaw {
+    budget: string | null;
+    midrange: string | null;
+    luxury: string | null;
+    meal: string | null;
+    coffee: string | null;
+    transit: string | null;
+    beer: string | null;
+}
 interface FestivalInfoRaw {
     name: string;
     when: string | null;
@@ -58,6 +67,7 @@ interface CountryFactsResponseRaw {
     great_for?: string[];
     safety_tips?: string[];
     currency_tips?: CurrencyTipsInfoRaw | null;
+    avg_costs?: AvgCostsInfoRaw | null;
     festivals?: FestivalInfoRaw[];
     etiquette?: string[];
     source?: string;
@@ -111,6 +121,22 @@ export interface CurrencyTipsInfo {
     /** ATM availability / caveats. */
     atm: string | null;
 }
+export interface AvgCostsInfo {
+    /** Budget traveler, per-day all-in total (USD). */
+    budget: string | null;
+    /** Mid-range traveler, per-day total (USD). */
+    midrange: string | null;
+    /** Luxury traveler, per-day total (USD). */
+    luxury: string | null;
+    /** Casual sit-down meal (USD). */
+    meal: string | null;
+    /** Café coffee (USD). */
+    coffee: string | null;
+    /** One local transit ride (USD). */
+    transit: string | null;
+    /** Local beer at a bar (USD). */
+    beer: string | null;
+}
 export interface FestivalInfo {
     name: string;
     /** Rough timing — a month or season (many are movable). */
@@ -147,6 +173,9 @@ export interface CountryFactsResult {
     safetyTips: string[];
     /** Practical money tips (cards / cash / ATM). Null when none. */
     currencyTips: CurrencyTipsInfo | null;
+    /** Rough travel costs in USD (daily budget bands + sample prices). Always
+     *  approximate. Null when none. */
+    avgCosts: AvgCostsInfo | null;
     /** Major festivals & holidays to know (name + rough timing). Empty when
      *  none. */
     festivals: FestivalInfo[];
@@ -226,6 +255,17 @@ export const fetchCountryFacts = async (
                   cards: body.currency_tips.cards ?? null,
                   cash: body.currency_tips.cash ?? null,
                   atm: body.currency_tips.atm ?? null,
+              }
+            : null,
+        avgCosts: body.avg_costs
+            ? {
+                  budget: body.avg_costs.budget ?? null,
+                  midrange: body.avg_costs.midrange ?? null,
+                  luxury: body.avg_costs.luxury ?? null,
+                  meal: body.avg_costs.meal ?? null,
+                  coffee: body.avg_costs.coffee ?? null,
+                  transit: body.avg_costs.transit ?? null,
+                  beer: body.avg_costs.beer ?? null,
               }
             : null,
         festivals: Array.isArray(body.festivals)

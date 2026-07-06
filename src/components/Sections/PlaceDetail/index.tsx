@@ -44,6 +44,7 @@ import ReligionSection from "components/PlaceDetail/ReligionSection";
 import EtiquetteSection from "components/PlaceDetail/EtiquetteSection";
 import TippingSection from "components/PlaceDetail/TippingSection";
 import CurrencyTipsSection from "components/PlaceDetail/CurrencyTipsSection";
+import AvgCostsSection from "components/PlaceDetail/AvgCostsSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
 import AirQualitySection from "components/PlaceDetail/AirQualitySection";
 import WalkabilitySection from "components/PlaceDetail/WalkabilitySection";
@@ -620,6 +621,8 @@ const PlaceDetail = () => {
             <TippingSection code={place.countryCode} />
 
             <CurrencyTipsSection code={place.countryCode} />
+
+            <AvgCostsSection code={place.countryCode} />
 
             <TapWaterSection code={place.countryCode} />
 

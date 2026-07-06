@@ -1365,6 +1365,19 @@
         "cash": "Cash",
         "atm": "ATMs"
     },
+    "avgCosts": {
+        "title": "Average costs",
+        "dailyLabel": "Daily budget",
+        "samplesLabel": "Sample prices",
+        "budget": "Budget",
+        "midrange": "Mid-range",
+        "luxury": "Luxury",
+        "meal": "Meal",
+        "coffee": "Coffee",
+        "transit": "Transit",
+        "beer": "Beer",
+        "note": "≈ USD · prices vary by city and season"
+    },
     "airQuality": {
         "title": "Air quality",
         "sub": "US AQI · live",
