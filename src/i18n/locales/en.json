@@ -1365,6 +1365,13 @@
     "scams": {
         "title": "Common scams"
     },
+    "health": {
+        "title": "Health",
+        "vaccinations": "Vaccines",
+        "mosquitoes": "Mosquitoes",
+        "malaria": "Malaria",
+        "note": "General guidance — consult a travel clinic before you go."
+    },
     "currencyTips": {
         "title": "Cards & cash",
         "cards": "Cards",

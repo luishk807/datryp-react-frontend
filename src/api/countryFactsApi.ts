@@ -41,6 +41,11 @@ interface CurrencyTipsInfoRaw {
     cash: string | null;
     atm: string | null;
 }
+interface HealthInfoRaw {
+    vaccinations: string | null;
+    mosquitoes: string | null;
+    malaria: string | null;
+}
 interface AvgCostsInfoRaw {
     budget: string | null;
     midrange: string | null;
@@ -69,6 +74,7 @@ interface CountryFactsResponseRaw {
     scams?: string[];
     currency_tips?: CurrencyTipsInfoRaw | null;
     avg_costs?: AvgCostsInfoRaw | null;
+    health?: HealthInfoRaw | null;
     festivals?: FestivalInfoRaw[];
     etiquette?: string[];
     source?: string;
@@ -121,6 +127,14 @@ export interface CurrencyTipsInfo {
     cash: string | null;
     /** ATM availability / caveats. */
     atm: string | null;
+}
+export interface HealthInfo {
+    /** Routine vs recommended vaccinations. */
+    vaccinations: string | null;
+    /** Mosquito-borne disease risk + advice. */
+    mosquitoes: string | null;
+    /** Malaria risk picture. */
+    malaria: string | null;
 }
 export interface AvgCostsInfo {
     /** Budget traveler, per-day all-in total (USD). */
@@ -175,6 +189,9 @@ export interface CountryFactsResult {
     /** Common tourist scams to recognize (distinct from safetyTips). Empty
      *  when none. */
     scams: string[];
+    /** Traveler-health basics (vaccinations / mosquitoes / malaria). Null when
+     *  none. Always shown with a "consult a travel clinic" note. */
+    health: HealthInfo | null;
     /** Practical money tips (cards / cash / ATM). Null when none. */
     currencyTips: CurrencyTipsInfo | null;
     /** Rough travel costs in USD (daily budget bands + sample prices). Always
@@ -255,6 +272,13 @@ export const fetchCountryFacts = async (
         greatFor: Array.isArray(body.great_for) ? body.great_for : [],
         safetyTips: Array.isArray(body.safety_tips) ? body.safety_tips : [],
         scams: Array.isArray(body.scams) ? body.scams : [],
+        health: body.health
+            ? {
+                  vaccinations: body.health.vaccinations ?? null,
+                  mosquitoes: body.health.mosquitoes ?? null,
+                  malaria: body.health.malaria ?? null,
+              }
+            : null,
         currencyTips: body.currency_tips
             ? {
                   cards: body.currency_tips.cards ?? null,

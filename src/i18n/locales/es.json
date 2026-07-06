@@ -949,6 +949,13 @@
     "scams": {
         "title": "Estafas comunes"
     },
+    "health": {
+        "title": "Salud",
+        "vaccinations": "Vacunas",
+        "mosquitoes": "Mosquitos",
+        "malaria": "Malaria",
+        "note": "Orientación general — consulta una clínica del viajero antes de ir."
+    },
     "currencyTips": {
         "title": "Tarjetas y efectivo",
         "cards": "Tarjetas",
