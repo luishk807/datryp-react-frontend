@@ -1358,6 +1358,18 @@
         "cash": "Cash",
         "atm": "ATMs"
     },
+    "airQuality": {
+        "title": "Air quality",
+        "sub": "US AQI · live",
+        "bands": {
+            "good": "Good",
+            "moderate": "Moderate",
+            "sensitive": "Unhealthy for sensitive groups",
+            "unhealthy": "Unhealthy",
+            "very_unhealthy": "Very unhealthy",
+            "hazardous": "Hazardous"
+        }
+    },
     "greatFor": {
         "title": "Great for",
         "tags": {

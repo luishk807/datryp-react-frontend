@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.air-quality-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+
+  // AQI band colors (US AQI scale).
+  &.is-good {
+    color: #2e9e5b;
+  }
+  &.is-moderate {
+    color: #d9a300;
+  }
+  &.is-sensitive {
+    color: #e8730c;
+  }
+  &.is-unhealthy {
+    color: #d5493f;
+  }
+  &.is-very_unhealthy {
+    color: #8e44ad;
+  }
+  &.is-hazardous {
+    color: #7e2320;
+  }
+}
+
+.air-quality-aqi {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.air-quality-category {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.air-quality-sub {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: rgba(0, 0, 0, 0.45);
+}

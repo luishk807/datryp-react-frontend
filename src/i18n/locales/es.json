@@ -942,6 +942,18 @@
         "cash": "Efectivo",
         "atm": "Cajeros"
     },
+    "airQuality": {
+        "title": "Calidad del aire",
+        "sub": "AQI de EE. UU. · en vivo",
+        "bands": {
+            "good": "Buena",
+            "moderate": "Moderada",
+            "sensitive": "Dañina para grupos sensibles",
+            "unhealthy": "Dañina",
+            "very_unhealthy": "Muy dañina",
+            "hazardous": "Peligrosa"
+        }
+    },
     "greatFor": {
         "title": "Ideal para",
         "tags": {

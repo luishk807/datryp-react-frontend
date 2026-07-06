@@ -45,6 +45,7 @@ import ReligionSection from "components/PlaceDetail/ReligionSection";
 import TippingSection from "components/PlaceDetail/TippingSection";
 import CurrencyTipsSection from "components/PlaceDetail/CurrencyTipsSection";
 import TapWaterSection from "components/PlaceDetail/TapWaterSection";
+import AirQualitySection from "components/PlaceDetail/AirQualitySection";
 import WifiSection from "components/PlaceDetail/WifiSection";
 import GreatForSection from "components/PlaceDetail/GreatForSection";
 import StayingSafeSection from "components/PlaceDetail/StayingSafeSection";
@@ -611,6 +612,8 @@ const CountryDetail = () => {
             <CurrencyTipsSection code={code} />
 
             <TapWaterSection code={code} />
+
+            <AirQualitySection coordinates={details.capitalCoordinates} />
 
             <WifiSection code={code} />
 
