@@ -72,18 +72,12 @@ const ReviewSummary = ({
                     </button>
                 </>
             ) : (
-                <>
-                    <span className="review-summary-empty">
-                        {t('detail.reviews.noReviewsYet')}
-                    </span>
-                    <button
-                        type="button"
-                        className="review-summary-link"
-                        onClick={handleViewAll}
-                    >
-                        {t('detail.reviews.beTheFirst')}
-                    </button>
-                </>
+                // No write-a-review CTA here — reviews come only from
+                // completed-trip activity reviews, so there's nothing to
+                // author on the detail page.
+                <span className="review-summary-empty">
+                    {t('detail.reviews.noReviewsYet')}
+                </span>
             )}
         </div>
     );
