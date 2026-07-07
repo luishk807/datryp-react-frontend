@@ -51,6 +51,7 @@ import DirectionsBusRoundedIcon from "@mui/icons-material/DirectionsBusRounded";
 import CarRentalRoundedIcon from "@mui/icons-material/CarRentalRounded";
 import LocalTaxiRoundedIcon from "@mui/icons-material/LocalTaxiRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import DirectionsRoundedIcon from "@mui/icons-material/DirectionsRounded";
@@ -1166,8 +1167,14 @@ const Activities = ({
                         {/* Status pill is hidden once the trip is past
                                                     Planning — no purpose toggling an
                                                     activity's "Confirmed" once the whole
-                                                    trip is locked. */}
+                                                    trip is locked. `!isTripConfirmed`
+                                                    alone let it leak onto Completed /
+                                                    Cancelled trips (where it read a
+                                                    non-Confirmed activity as "Planning");
+                                                    gate on locked-in too so it only shows
+                                                    while the trip is actually Planning. */}
                         {!isTripConfirmed &&
+                          !isTripLockedIn &&
                           (() => {
                             const confirmed = isConfirmedStatus(
                               activity.status,
@@ -1177,12 +1184,26 @@ const Activities = ({
                               : confirmedStatus;
                             const isSavingThisPill =
                               pendingStatusActivityId === activity.id;
+                            // Past Due — an unconfirmed activity whose time has
+                            // already elapsed, on a still-Planning trip. Same
+                            // derived read-time state as the trip-level "Trip
+                            // ended" header; the pill stays a live toggle
+                            // (tapping it confirms the activity) but reads as
+                            // ⚠ needs-attention instead of a neutral "Planning".
+                            const isPastDuePill =
+                              !confirmed &&
+                              activityTiming === "past" &&
+                              tripStatusName === TRIP_STATUS.PLANNING;
+                            const pillLabel = isPastDuePill
+                              ? t("activity.status.pastDue")
+                              : t("activity.status.planning");
                             return (
                               <button
                                 type="button"
                                 className={
                                   "status-toggle " +
                                   (confirmed ? "is-confirmed" : "is-pending") +
+                                  (isPastDuePill ? " is-past-due" : "") +
                                   (isSavingThisPill ? " is-saving" : "") +
                                   // Every OTHER pill reads as locked while
                                   // a status save is in flight, so the user
@@ -1201,7 +1222,7 @@ const Activities = ({
                                 aria-label={t("activity.status.toggleAria", {
                                   status: confirmed
                                     ? t("activity.status.confirmed")
-                                    : t("activity.status.planning"),
+                                    : pillLabel,
                                 })}
                                 onClick={() => {
                                   // Mark THIS pill as saving so its label
@@ -1219,11 +1240,21 @@ const Activities = ({
                                   });
                                 }}
                               >
-                                {isSavingThisPill
-                                  ? t("activity.status.saving")
-                                  : confirmed
-                                    ? t("activity.status.confirmed")
-                                    : t("activity.status.planning")}
+                                {isSavingThisPill ? (
+                                  t("activity.status.saving")
+                                ) : confirmed ? (
+                                  t("activity.status.confirmed")
+                                ) : (
+                                  <>
+                                    {isPastDuePill && (
+                                      <WarningAmberRoundedIcon
+                                        className="status-toggle-icon"
+                                        fontSize="inherit"
+                                      />
+                                    )}
+                                    {pillLabel}
+                                  </>
+                                )}
                               </button>
                             );
                           })()}

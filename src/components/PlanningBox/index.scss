@@ -29,6 +29,27 @@
         align-items: center;
         gap: 14px;
     }
+
+    // Past Due — a still-Planning trip whose dates have already passed.
+    // Repaint the whole box in a red "needs attention" tone; the orange
+    // "in progress" read is wrong once the trip is over.
+    &.is-pastdue {
+        background: linear-gradient(
+            135deg,
+            rgba(226, 87, 76, 0.16) 0%,
+            rgba(226, 87, 76, 0.06) 100%
+        );
+        border-color: rgba(226, 87, 76, 0.34);
+
+        .planning-box-icon {
+            color: #e2574c;
+            box-shadow: 0 2px 8px rgba(226, 87, 76, 0.34);
+        }
+
+        .planning-box-body {
+            border-top-color: rgba(226, 87, 76, 0.24);
+        }
+    }
 }
 
 .planning-box-head {
@@ -128,6 +149,49 @@
     transition: width 0.35s ease;
 }
 
+// Past-due action set — Complete (primary green, reuses .planning-box-confirm)
+// + Shift dates + Continue planning, laid out as a wrapping row above the
+// (now secondary) readiness meter.
+.planning-box-pastdue-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+
+    .planning-box-confirm {
+        flex: 0 0 auto;
+    }
+}
+
+.planning-box-pastdue-shift {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: theme('colors.primary');
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    svg {
+        font-size: 1.05rem;
+    }
+
+    &:hover {
+        color: #c0392b;
+    }
+}
+
+.planning-box-pastdue-continue {
+    margin-left: auto;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.82rem;
+
+    &:hover {
+        color: rgba(0, 0, 0, 0.82);
+    }
+}
+
 // The app's mobile chrome is ≤1024px (BottomNav, iPad portrait/landscape), so
 // reflow the header across that whole range — not just narrow phones.
 // Otherwise the long Spanish label ("Confirmar viaje") gets squeezed in the
@@ -162,5 +226,16 @@
         .trip-status-badge-label {
             white-space: normal;
         }
+    }
+
+    // In the past-due action row the Complete button stays FIRST (the header
+    // reorder above targets the plain .planning-box-confirm); keep it full-width
+    // but reset the order/margin so Shift + Continue sit beneath it.
+    .planning-box-pastdue-actions .planning-box-confirm {
+        order: 0;
+        margin-top: 0;
+    }
+    .planning-box-pastdue-continue {
+        margin-left: 0;
     }
 }

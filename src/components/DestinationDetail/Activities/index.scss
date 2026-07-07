@@ -572,6 +572,30 @@
   border-color: rgba(245, 158, 11, 0.5);
 }
 
+// Past Due — an unconfirmed activity whose time has already passed on a
+// still-Planning trip. Red "needs attention" tint that overrides the neutral
+// is-pending orange; the ⚠ glyph makes it scannable in a wall of pills.
+.activity-content-trip .content-detail .info .status-toggle.is-past-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(226, 87, 76, 0.12);
+  color: #c0392b;
+  border-color: rgba(226, 87, 76, 0.36);
+}
+
+.activity-content-trip
+  .content-detail
+  .info
+  .status-toggle.is-past-due:hover:not(:disabled) {
+  background: rgba(226, 87, 76, 0.2);
+  border-color: rgba(226, 87, 76, 0.54);
+}
+
+.activity-content-trip .content-detail .info .status-toggle .status-toggle-icon {
+  font-size: 0.85rem;
+}
+
 .activity-content-trip .content-detail .info .status-toggle.is-confirmed {
   background: rgba(60, 181, 75, 0.12);
   color: theme("colors.primaryGreen");

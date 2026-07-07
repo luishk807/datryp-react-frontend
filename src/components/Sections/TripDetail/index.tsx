@@ -76,7 +76,7 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
-import { isSameDay, isValidDate, diffDays, tripHasRealActivities } from "utils";
+import { isSameDay, isValidDate, diffDays, tripHasRealActivities, isTripPastDue } from "utils";
 import { duplicateTripState, type DuplicateTripRange } from "utils";
 import DuplicateTripModal from "components/DuplicateTripModal";
 import TripNote from "components/TripNote";
@@ -674,6 +674,15 @@ export const TripDetail = () => {
       if (!apiTrip || !tripData || !apiTrip.interaryType?.id) return;
       setSaveError(null);
       const previousStatus = persistedStatusName;
+      // "Complete trip" on a past-due Planning trip promotes to Confirmed —
+      // the backend then auto-completes it (and its now-elapsed activities) on
+      // the next read. It's a completion, NOT a confirmation, so it must skip
+      // the "Trip confirmed 🎉" confetti + the auto-export email (mailing
+      // everyone the itinerary for a trip that already happened reads as a bug).
+      const completingPastDue =
+        previousStatus === TRIP_STATUS.PLANNING &&
+        next.name === TRIP_STATUS.CONFIRMED &&
+        isTripPastDue(tripData);
       // When the user promotes Planning → Confirmed and chose "confirm all"
       // from the prompt, flip every activity to Confirmed in the SAME save —
       // so a Confirmed trip never carries leftover Planning activities, and
@@ -710,7 +719,12 @@ export const TripDetail = () => {
         // plus a sticky-ish toast — the trip just graduated from "an
         // idea" to "happening." Fires only on the actual transition so
         // toggling back-and-forth doesn't re-trigger.
-        if (
+        if (completingPastDue) {
+          // Past-due completion — quiet, record-keeping toast instead of the
+          // celebratory confirm flow. The trip lands in Completed on refetch,
+          // unlocking reviews / Atlas.
+          setSuccessToast(t("tripDetail.toasts.tripCompletedPastDue"));
+        } else if (
           previousStatus === TRIP_STATUS.PLANNING &&
           next.name === TRIP_STATUS.CONFIRMED
         ) {

@@ -1795,7 +1795,13 @@
         "readinessHead": "Trip readiness · {{pct}}% ready",
         "cancel": "Cancel",
         "saving": "Saving…",
-        "confirmAll": "Confirm all"
+        "confirmAll": "Confirm all",
+        "completeTrip": "Complete trip",
+        "completePastDueDialogTitle": "Complete this trip?",
+        "completePastDueDialogBody": "Marks the trip and everything on it as completed. You'll be able to review the places you went, rate activities, and it's saved to your Travel Atlas.",
+        "completePastDueTitle": "Complete this trip?",
+        "completePastDueNote": "These will be marked done and the whole trip completed — you can then review your places and it's saved to your Atlas.",
+        "completeAll": "Complete all"
     },
     "tripDetail": {
         "loading": "Loading trip…",
@@ -1929,6 +1935,7 @@
         "toasts": {
             "tripInfoSaved": "Trip info saved.",
             "tripConfirmed": "Yay! Your trip is confirmed and ready to go!",
+            "tripCompletedPastDue": "Trip marked complete — your places are ready to review and it's saved to your Atlas.",
             "itineraryEmailed_one": "Itinerary emailed to {{count}} person.",
             "itineraryEmailed_other": "Itinerary emailed to {{count}} people.",
             "emailFailed": "Couldn't email the itinerary — you can still share it from the ⋮ menu.",
@@ -1991,6 +1998,14 @@
             "readonlySub": "The organizer is still arranging activities. Check back soon.",
             "showChecklist": "Show readiness checklist",
             "hideChecklist": "Hide readiness checklist"
+        },
+        "pastDue": {
+            "boxTitle": "Trip ended",
+            "boxSub_one": "Your itinerary ended {{count}} day ago — complete it or shift the dates.",
+            "boxSub_other": "Your itinerary ended {{count}} days ago — complete it or shift the dates.",
+            "readonlySub": "This trip's dates have already passed.",
+            "shiftDates": "Shift dates",
+            "continuePlanning": "Continue planning"
         },
         "readiness": {
             "lodging": {
@@ -2353,7 +2368,8 @@
             "uncheckTitle": "Uncheck — reverts to Confirmed",
             "uncheckAria": "Uncheck {{name}} (reverts to Confirmed)",
             "pastLockedTitle": "This activity has already passed and is locked",
-            "lockedAria": "{{name}} is locked — its time has passed"
+            "lockedAria": "{{name}} is locked — its time has passed",
+            "pastDue": "Past due"
         },
         "directions": {
             "getAria": "Get directions on Google Maps",

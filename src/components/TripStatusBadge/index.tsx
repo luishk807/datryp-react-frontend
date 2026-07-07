@@ -50,6 +50,13 @@ interface TripStatusBadgeProps {
      *  "some activities aren't confirmed" modal appends the checklist so the
      *  organizer sees what's still missing before they commit. */
     readiness?: TripReadiness;
+    /** Past-due mode — the trip is still Planning but its dates have passed.
+     *  The Planning→Confirmed promotion is UNCHANGED (the backend then
+     *  auto-completes the past-due trip + its activities on the next read), but
+     *  the button + dialog copy switch from "Confirm trip" to "Complete trip"
+     *  and the "N% ready" suffix is dropped — completing a trip that already
+     *  happened isn't about readiness. */
+    pastDue?: boolean;
 }
 
 /** Cap the names listed in the "some activities aren't confirmed" dialog so a
@@ -114,6 +121,7 @@ export const TripStatusBadge = ({
     className,
     onEditTripDates,
     readiness,
+    pastDue = false,
 }: TripStatusBadgeProps) => {
     const { t } = useTranslation();
     const { data: tripStatuses = [] } = useTripStatuses();
@@ -140,12 +148,22 @@ export const TripStatusBadge = ({
         if (statusName === TRIP_STATUS.PLANNING) {
             return {
                 next: tripStatuses.find((s) => s.name === TRIP_STATUS.CONFIRMED),
-                label: t('tripCard.confirmTrip'),
-                Icon: CheckCircleOutlineRoundedIcon,
+                label: pastDue
+                    ? t('tripCard.completeTrip')
+                    : t('tripCard.confirmTrip'),
+                Icon: pastDue
+                    ? CheckCircleRoundedIcon
+                    : CheckCircleOutlineRoundedIcon,
                 requiresActivitiesConfirmed: true,
-                dialogTitle: t('tripCard.confirmDialogTitle'),
-                dialogBody: t('tripCard.confirmDialogBody'),
-                confirmLabel: t('tripCard.confirmTrip'),
+                dialogTitle: pastDue
+                    ? t('tripCard.completePastDueDialogTitle')
+                    : t('tripCard.confirmDialogTitle'),
+                dialogBody: pastDue
+                    ? t('tripCard.completePastDueDialogBody')
+                    : t('tripCard.confirmDialogBody'),
+                confirmLabel: pastDue
+                    ? t('tripCard.completeTrip')
+                    : t('tripCard.confirmTrip'),
             };
         }
         if (statusName === TRIP_STATUS.CONFIRMED) {
@@ -165,7 +183,7 @@ export const TripStatusBadge = ({
             };
         }
         return null;
-    }, [statusName, tripStatuses, t]);
+    }, [statusName, tripStatuses, t, pastDue]);
 
     if (disabled || !target) return null;
 
@@ -287,9 +305,10 @@ export const TripStatusBadge = ({
     // Planning target to declare an empty one.
     const benefits = "benefits" in target ? target.benefits : undefined;
     // Only the Planning → Confirmed button surfaces readiness; "Mark complete"
-    // has no checklist behind it.
+    // has no checklist behind it. Past-due "Complete trip" drops it too —
+    // a trip that already happened isn't graded on how "ready" it is.
     const showReady =
-        statusName === TRIP_STATUS.PLANNING && readiness != null;
+        statusName === TRIP_STATUS.PLANNING && readiness != null && !pastDue;
 
     return (
         <span className={classnames('trip-status-badge-wrapper', className)}>
@@ -363,7 +382,9 @@ export const TripStatusBadge = ({
             >
                 <DialogTitle className="confirm-all-title">
                     <WarningAmberRoundedIcon className="confirm-all-title-icon" />
-                    {t('tripCard.someUnconfirmedTitle')}
+                    {pastDue
+                        ? t('tripCard.completePastDueTitle')
+                        : t('tripCard.someUnconfirmedTitle')}
                 </DialogTitle>
                 <DialogContent>
                     <p className="confirm-all-intro">
@@ -388,7 +409,9 @@ export const TripStatusBadge = ({
                         )}
                     </ul>
                     <p className="confirm-all-note">
-                        {t('tripCard.someUnconfirmedNote')}
+                        {pastDue
+                            ? t('tripCard.completePastDueNote')
+                            : t('tripCard.someUnconfirmedNote')}
                     </p>
                     {readiness && (
                         <div className="confirm-all-readiness">
@@ -418,7 +441,9 @@ export const TripStatusBadge = ({
                         label={
                             isSaving
                                 ? t('tripCard.saving')
-                                : t('tripCard.confirmAll')
+                                : pastDue
+                                  ? t('tripCard.completeAll')
+                                  : t('tripCard.confirmAll')
                         }
                         onClick={handleConfirmAll}
                         disabled={isSaving}

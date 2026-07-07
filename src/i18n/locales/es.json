@@ -1365,7 +1365,13 @@
         "readinessHead": "Preparación del viaje · {{pct}}% listo",
         "cancel": "Cancelar",
         "saving": "Guardando…",
-        "confirmAll": "Confirmar todas"
+        "confirmAll": "Confirmar todas",
+        "completeTrip": "Completar viaje",
+        "completePastDueDialogTitle": "¿Completar este viaje?",
+        "completePastDueDialogBody": "Marca el viaje y todo lo que contiene como completado. Podrás reseñar los lugares que visitaste, calificar actividades, y se guarda en tu Atlas de Viajes.",
+        "completePastDueTitle": "¿Completar este viaje?",
+        "completePastDueNote": "Se marcarán como realizadas y el viaje completo — luego podrás reseñar tus lugares y se guarda en tu Atlas.",
+        "completeAll": "Completar todas"
     },
     "tripDetail": {
         "loading": "Cargando viaje…",
@@ -1499,6 +1505,7 @@
         "toasts": {
             "tripInfoSaved": "Información del viaje guardada.",
             "tripConfirmed": "¡Genial! Tu viaje está confirmado y listo para comenzar.",
+            "tripCompletedPastDue": "Viaje marcado como completado — tus lugares están listos para reseñar y se guardó en tu Atlas.",
             "itineraryEmailed_one": "Itinerario enviado por correo a {{count}} persona.",
             "itineraryEmailed_other": "Itinerario enviado por correo a {{count}} personas.",
             "emailFailed": "No se pudo enviar el itinerario por correo — aún puedes compartirlo desde el menú ⋮.",
@@ -1561,6 +1568,14 @@
             "readonlySub": "El organizador todavía está organizando las actividades. Vuelve pronto.",
             "showChecklist": "Mostrar lista de preparación",
             "hideChecklist": "Ocultar lista de preparación"
+        },
+        "pastDue": {
+            "boxTitle": "Viaje finalizado",
+            "boxSub_one": "Tu itinerario terminó hace {{count}} día — complétalo o cambia las fechas.",
+            "boxSub_other": "Tu itinerario terminó hace {{count}} días — complétalo o cambia las fechas.",
+            "readonlySub": "Las fechas de este viaje ya pasaron.",
+            "shiftDates": "Cambiar fechas",
+            "continuePlanning": "Seguir planificando"
         },
         "readiness": {
             "lodging": {
@@ -2322,7 +2337,8 @@
             "uncheckTitle": "Desmarcar — vuelve a Confirmado",
             "uncheckAria": "Desmarcar {{name}} (vuelve a Confirmado)",
             "pastLockedTitle": "Esta actividad ya pasó y está bloqueada",
-            "lockedAria": "{{name}} está bloqueada — su hora ya pasó"
+            "lockedAria": "{{name}} está bloqueada — su hora ya pasó",
+            "pastDue": "Vencida"
         },
         "directions": {
             "getAria": "Obtener indicaciones en Google Maps",

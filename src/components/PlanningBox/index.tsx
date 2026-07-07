@@ -2,10 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import classnames from "classnames";
 import EditCalendarRoundedIcon from "@mui/icons-material/EditCalendarRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import TripStatusBadge from "components/TripStatusBadge";
 import ReadinessChecklist from "components/ReadinessChecklist";
-import { deriveTripReadiness } from "utils";
+import ButtonIcon from "components/common/FormFields/ButtonIcon";
+import ButtonCustom from "components/common/FormFields/ButtonCustom";
+import { BUTTON_VARIANT } from "constants";
+import { deriveTripReadiness, isTripPastDue, tripEndedDaysAgo } from "utils";
 import type { TripState, TripStatus } from "types";
 import "./index.scss";
 
@@ -44,21 +48,35 @@ const PlanningBox = ({
     // leaves just the header + Confirm button (which still shows "N% ready").
     const [collapsed, setCollapsed] = useState(false);
 
+    // Past Due — a still-Planning trip whose end date has passed. Derived at
+    // read time (never persisted): the header flips to a warning-toned "Trip
+    // ended" so the box reads as needs-attention instead of "still planning".
+    const pastDue = isTripPastDue(data);
+    const endedDaysAgo = tripEndedDaysAgo(data);
+    const HeadIcon = pastDue ? WarningAmberRoundedIcon : EditCalendarRoundedIcon;
+    const boxTitle = pastDue
+        ? t('tripDetail.pastDue.boxTitle')
+        : t('tripDetail.planning.title');
+    const boxSub = pastDue
+        ? t('tripDetail.pastDue.boxSub', { count: endedDaysAgo })
+        : t('tripDetail.planning.sub');
+
     // Non-organizers can't confirm or act on the checklist, so they get a
     // plain informational banner — no readiness, no collapse, no button.
     if (!isOrganizer) {
         return (
-            <div className="planning-box is-readonly">
-                <EditCalendarRoundedIcon
-                    className="planning-box-icon"
-                    fontSize="medium"
-                />
+            <div
+                className={classnames('planning-box is-readonly', {
+                    'is-pastdue': pastDue,
+                })}
+            >
+                <HeadIcon className="planning-box-icon" fontSize="medium" />
                 <div className="planning-box-text">
-                    <span className="planning-box-title">
-                        {t('tripDetail.planning.title')}
-                    </span>
+                    <span className="planning-box-title">{boxTitle}</span>
                     <span className="planning-box-sub">
-                        {t('tripDetail.planning.readonlySub')}
+                        {pastDue
+                            ? t('tripDetail.pastDue.readonlySub')
+                            : t('tripDetail.planning.readonlySub')}
                     </span>
                 </div>
             </div>
@@ -74,22 +92,19 @@ const PlanningBox = ({
                 "planning-box",
                 `planning-box-tone-${tone}`,
                 collapsed && "is-collapsed",
+                pastDue && "is-pastdue",
             )}
         >
             <div className="planning-box-head">
-                <EditCalendarRoundedIcon
-                    className="planning-box-icon"
-                    fontSize="medium"
-                />
+                <HeadIcon className="planning-box-icon" fontSize="medium" />
                 <div className="planning-box-text">
-                    <span className="planning-box-title">
-                        {t('tripDetail.planning.title')}
-                    </span>
-                    <span className="planning-box-sub">
-                        {t('tripDetail.planning.sub')}
-                    </span>
+                    <span className="planning-box-title">{boxTitle}</span>
+                    <span className="planning-box-sub">{boxSub}</span>
                 </div>
-                {canPromoteStatus && (
+                {/* In Past-Due the forward action isn't "Confirm" — it's the
+                    Complete / Shift / Continue set below in the body. Keep the
+                    header button only for a normal (future) Planning trip. */}
+                {canPromoteStatus && !pastDue && (
                     <TripStatusBadge
                         data={data}
                         onStatusChange={onStatusChange}
@@ -116,6 +131,42 @@ const PlanningBox = ({
 
             {!collapsed && (
                 <div className="planning-box-body">
+                    {/* Past-due action set — "What would you like to do?"
+                        Complete (promotes to Confirmed → backend completes the
+                        elapsed trip), Shift dates (hand off to the date editor),
+                        or Continue planning (collapse the prompt, keep editing;
+                        nothing is mutated). */}
+                    {pastDue && (
+                        <div className="planning-box-pastdue-actions">
+                            {canPromoteStatus && (
+                                <TripStatusBadge
+                                    data={data}
+                                    onStatusChange={onStatusChange}
+                                    isSaving={isSaving}
+                                    onEditTripDates={onEditTripDates}
+                                    pastDue
+                                    className="planning-box-confirm"
+                                />
+                            )}
+                            {onEditTripDates && (
+                                <ButtonIcon
+                                    type={BUTTON_VARIANT.TEXT}
+                                    Icon={EditCalendarRoundedIcon}
+                                    iconPosition="start"
+                                    title={t('tripDetail.pastDue.shiftDates')}
+                                    onClick={onEditTripDates}
+                                    className="planning-box-pastdue-shift"
+                                />
+                            )}
+                            <ButtonCustom
+                                type={BUTTON_VARIANT.TEXT}
+                                capitalizeType="none"
+                                label={t('tripDetail.pastDue.continuePlanning')}
+                                onClick={() => setCollapsed(true)}
+                                className="planning-box-pastdue-continue"
+                            />
+                        </div>
+                    )}
                     <div className="planning-box-meter">
                         <span
                             className="planning-box-meter-fill"
