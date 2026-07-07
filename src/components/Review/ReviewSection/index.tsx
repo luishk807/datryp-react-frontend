@@ -24,14 +24,8 @@ import RatingStats from "components/common/RatingStats";
 import GoogleGlyph from "components/common/GoogleGlyph";
 import Stars from "components/common/Stars";
 import ReviewCard from "components/Review/ReviewCard";
-import ReviewForm from "components/Review/ReviewForm";
 import Skeleton from "components/common/Skeleton";
-import { useUser } from "context/UserContext";
-import {
-  usePlaceReviews,
-  useCreateReview,
-  useUpdateReview,
-} from "api/hooks/useReviews";
+import { usePlaceReviews } from "api/hooks/useReviews";
 import type { ReviewSort } from "api/reviewsApi";
 import { getPlaceKey } from "utils/placeKey";
 import { blendRatings } from "utils/blendedRating";
@@ -61,14 +55,6 @@ const SORT_OPTIONS: { value: ReviewSort; labelKey: string }[] = [
   { value: "lowest", labelKey: "detail.reviews.sortLowest" },
 ];
 
-const REVIEW_FORM_MODE = {
-  CLOSED: "closed",
-  CREATE: "create",
-  EDIT: "edit",
-} as const;
-
-type ReviewFormMode = (typeof REVIEW_FORM_MODE)[keyof typeof REVIEW_FORM_MODE];
-
 const ReviewSection = ({
   placeName,
   placeCity,
@@ -78,7 +64,6 @@ const ReviewSection = ({
   openaiRating,
 }: ReviewSectionProps) => {
   const { t } = useTranslation();
-  const { user } = useUser();
   const placeKey = getPlaceKey(placeName, placeCity, placeCountry);
   // Only the activity-card entry point passes external ratings; the place
   // page omits them (it shows the same numbers in its own header).
@@ -92,19 +77,6 @@ const ReviewSection = ({
     pageSize: 10,
     sort,
   });
-  const createReview = useCreateReview();
-  const updateReview = useUpdateReview();
-
-  const [formMode, setFormMode] = useState<ReviewFormMode>(
-    REVIEW_FORM_MODE.CLOSED,
-  );
-
-  // viewer_review_id is server-resolved across all pages, but the matching
-  // item itself may not be on the current page — only use it to know the
-  // user has reviewed; the form edit mode loads from the response or
-  // falls back to a server fetch on open.
-  const viewerReview = data?.items.find((r) => r.id === data.viewerReviewId);
-  const hasOwnReview = Boolean(data?.viewerReviewId);
 
   // Blended "overall" across whichever of the three sources have data —
   // the same number the activity card shows. Only computed in the
@@ -122,34 +94,6 @@ const ReviewSection = ({
     if (next === sort) return;
     setSort(next);
     setPage(1);
-  };
-
-  const submitCreate = (rating: number, text: string) => {
-    createReview.mutate(
-      {
-        placeKey,
-        payload: {
-          placeName,
-          placeCity,
-          placeCountry,
-          rating,
-          text: text || null,
-        },
-      },
-      { onSuccess: () => setFormMode(REVIEW_FORM_MODE.CLOSED) },
-    );
-  };
-
-  const submitEdit = (rating: number, text: string) => {
-    if (!viewerReview) return;
-    updateReview.mutate(
-      {
-        placeKey,
-        reviewId: viewerReview.id,
-        payload: { rating, text: text || null },
-      },
-      { onSuccess: () => setFormMode(REVIEW_FORM_MODE.CLOSED) },
-    );
   };
 
   return (
@@ -226,55 +170,9 @@ const ReviewSection = ({
         </ul>
       )}
 
-      {/* CTA / form area. The `/place` route is auth-gated upstream
-                via `<Gated>`, so we can assume `user` exists by the time
-                this renders — the `user &&` guards below are defensive only. */}
-      {user && formMode === REVIEW_FORM_MODE.CLOSED && (
-        <div className="review-section-cta">
-          <ButtonCustom
-            type={BUTTON_VARIANT.STANDARD}
-            label={
-              hasOwnReview
-                ? t('detail.reviews.editYour')
-                : t('detail.reviews.leave')
-            }
-            onClick={() => {
-              if (!hasOwnReview) {
-                setFormMode(REVIEW_FORM_MODE.CREATE);
-                return;
-              }
-              if (viewerReview) {
-                setFormMode(REVIEW_FORM_MODE.EDIT);
-                return;
-              }
-              // Your review isn't on the current page — jump
-              // back to recent / page 1 so it loads.
-              setSort("recent");
-              setPage(1);
-            }}
-          />
-        </div>
-      )}
-
-      {user && formMode === REVIEW_FORM_MODE.CREATE && (
-        <ReviewForm
-          submitting={createReview.isPending}
-          submitLabel={t('detail.reviews.postReview')}
-          onSubmit={submitCreate}
-          onCancel={() => setFormMode(REVIEW_FORM_MODE.CLOSED)}
-        />
-      )}
-
-      {user && formMode === REVIEW_FORM_MODE.EDIT && viewerReview && (
-        <ReviewForm
-          initialRating={viewerReview.rating}
-          initialText={viewerReview.text ?? ""}
-          submitting={updateReview.isPending}
-          submitLabel={t('detail.reviews.updateReview')}
-          onSubmit={submitEdit}
-          onCancel={() => setFormMode(REVIEW_FORM_MODE.CLOSED)}
-        />
-      )}
+      {/* No authoring here — a place's reviews come from travelers' own
+          completed-trip activity reviews (the single source of truth), so
+          this section only displays them + the aggregate. */}
 
       {/* List */}
       {isLoading && (
@@ -330,7 +228,6 @@ const ReviewSection = ({
                 key={review.id}
                 review={review}
                 placeKey={placeKey}
-                onEditStart={() => setFormMode(REVIEW_FORM_MODE.EDIT)}
               />
             ))}
           </ul>

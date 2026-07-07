@@ -121,9 +121,10 @@ export const TRIP_EXPECTATION = {
     WORSE: 'worse',
 } as const;
 
-/** Emoji for the three-way expectations rows (shared by activity + trip). */
+/** Emoji for the three-way expectations rows (shared by the activity review,
+ *  the trip recap, and the place-page insights widget). */
 export const EXPECTATION_EMOJI = {
-    positive: '😃',
+    positive: '😊',
     neutral: '😐',
-    negative: '😞',
+    negative: '🙁',
 } as const;

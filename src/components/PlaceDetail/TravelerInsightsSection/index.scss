@@ -33,8 +33,16 @@
     }
 
     .ti-expect-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
         font-size: 0.8rem;
         color: rgba(0, 0, 0, 0.7);
+    }
+
+    .ti-expect-emoji {
+        font-size: 0.95rem;
+        line-height: 1;
     }
 
     .ti-expect-bar {

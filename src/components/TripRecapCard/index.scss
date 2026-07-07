@@ -33,28 +33,15 @@
         flex-wrap: wrap;
     }
 
-    .trip-recap-edit {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-    }
-
-    .trip-recap-edit-icon {
-        font-size: 0.95rem;
-    }
-
     .trip-recap-count {
         font-size: 0.82rem;
         color: rgba(0, 0, 0, 0.5);
     }
 
-    // ── prompt ────────────────────────────────────────────────────────────
-    // Clean, quiet row — no coloured block. A quiet "Not now" text link and a
-    // single tidy "Review trip" button that never wraps.
-    .trip-recap-prompt {
+    // ── rate (un-reviewed): the stars themselves are the action ───────────
+    .trip-recap-rate {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
         margin-top: 14px;
@@ -62,51 +49,12 @@
         border-top: 1px solid rgba(0, 0, 0, 0.06);
     }
 
-    .trip-recap-prompt-text {
-        margin: 0;
-        font-size: 0.9rem;
-        color: rgba(0, 0, 0, 0.6);
-    }
-
-    .trip-recap-prompt-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-
-        button {
-            white-space: nowrap;
-        }
-    }
-
-    .trip-recap-not-now {
+    .trip-recap-rate-hint {
+        font-size: 0.85rem;
         color: rgba(0, 0, 0, 0.45);
-        font-weight: 500;
-
-        &:hover {
-            color: rgba(0, 0, 0, 0.7);
-        }
     }
 
-    .trip-recap-review-link {
-        display: inline-flex;
-        align-items: center;
-        color: theme('colors.primaryGreen');
-        font-weight: 600;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    .trip-recap-review-arrow {
-        font-weight: 700;
-    }
-
-    .trip-recap-reopen {
-        margin-top: 12px;
-    }
-
-    // ── viewer summary ────────────────────────────────────────────────────
+    // ── viewer summary (reviewed) ─────────────────────────────────────────
     .trip-recap-mine {
         display: flex;
         align-items: center;
@@ -126,6 +74,23 @@
     .trip-recap-mine-emoji {
         font-size: 1.1rem;
         line-height: 1;
+    }
+
+    // Quiet green "Edit recap →" link, pushed to the right of the row.
+    .trip-recap-edit {
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+        color: theme('colors.primaryGreen');
+        font-weight: 600;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .trip-recap-edit-arrow {
+        font-weight: 700;
     }
 
     // ── group ratings ─────────────────────────────────────────────────────

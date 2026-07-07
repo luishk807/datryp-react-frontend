@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import DetailSection from "components/PlaceDetail/DetailSection";
 import { usePlaceReviewInsights } from "api/hooks/useReviews";
-import { REVIEW_CHIP_EMOJI } from "constants";
+import { EXPECTATION_EMOJI, REVIEW_CHIP_EMOJI } from "constants";
 import "./index.scss";
 
 export interface TravelerInsightsSectionProps {
@@ -30,9 +30,9 @@ const TravelerInsightsSection = ({ placeKey }: TravelerInsightsSectionProps) => 
     const expectRows =
         exp.total > 0
             ? [
-                  { key: "better", count: exp.better, labelKey: "review.expect.better" },
-                  { key: "asExpected", count: exp.asExpected, labelKey: "review.expect.asExpected" },
-                  { key: "overhyped", count: exp.overhyped, labelKey: "review.expect.overhyped" },
+                  { key: "better", count: exp.better, emoji: EXPECTATION_EMOJI.positive, labelKey: "review.expect.better" },
+                  { key: "asExpected", count: exp.asExpected, emoji: EXPECTATION_EMOJI.neutral, labelKey: "review.expect.asExpected" },
+                  { key: "overhyped", count: exp.overhyped, emoji: EXPECTATION_EMOJI.negative, labelKey: "review.expect.overhyped" },
               ]
             : [];
 
@@ -43,7 +43,9 @@ const TravelerInsightsSection = ({ placeKey }: TravelerInsightsSectionProps) => 
             className="traveler-insights"
         >
             <p className="ti-based-on">
-                {t("detail.insights.basedOn", { count: data.total })}
+                {t("detail.insights.basedOn", {
+                    count: data.verifiedCount || data.total,
+                })}
             </p>
 
             {exp.total > 0 && (
@@ -55,6 +57,9 @@ const TravelerInsightsSection = ({ placeKey }: TravelerInsightsSectionProps) => 
                         {expectRows.map((r) => (
                             <li className="ti-expect-row" key={r.key}>
                                 <span className="ti-expect-label">
+                                    <span className="ti-expect-emoji">
+                                        {r.emoji}
+                                    </span>
                                     {t(r.labelKey)}
                                 </span>
                                 <span className="ti-expect-bar">

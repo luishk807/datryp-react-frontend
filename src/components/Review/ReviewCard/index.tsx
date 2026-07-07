@@ -19,8 +19,10 @@ export interface ReviewCardProps {
      *  correct cache entry after like / delete mutations. */
     placeKey: string;
     /** Fires when the owner clicks "Edit" — the parent decides where the
-     *  edit form opens (currently inline above the list). */
-    onEditStart: () => void;
+     *  edit form opens. Omitted where reviews are read-only (e.g. the place
+     *  page, whose reviews are authored from completed-trip activities), in
+     *  which case the Edit affordance is hidden. */
+    onEditStart?: () => void;
 }
 
 /**
@@ -134,16 +136,18 @@ const ReviewCard = ({ review, placeKey, onEditStart }: ReviewCardProps) => {
 
                 {review.isOwner && (
                     <div className="review-card-owner-actions">
-                        <ButtonIcon
-                            type={BUTTON_VARIANT.TEXT_PLAIN}
-                            className="review-card-owner-btn"
-                            Icon={EditRoundedIcon}
-                            iconPosition="start"
-                            iconProps={{ fontSize: 'small' }}
-                            title={t('detail.reviews.edit')}
-                            ariaLabel={t('detail.reviews.editAria')}
-                            onClick={onEditStart}
-                        />
+                        {onEditStart && (
+                            <ButtonIcon
+                                type={BUTTON_VARIANT.TEXT_PLAIN}
+                                className="review-card-owner-btn"
+                                Icon={EditRoundedIcon}
+                                iconPosition="start"
+                                iconProps={{ fontSize: 'small' }}
+                                title={t('detail.reviews.edit')}
+                                ariaLabel={t('detail.reviews.editAria')}
+                                onClick={onEditStart}
+                            />
+                        )}
                         <ButtonIcon
                             type={BUTTON_VARIANT.TEXT_PLAIN}
                             className="review-card-owner-btn danger"

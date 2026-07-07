@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import Stars from "components/common/Stars";
 import StarInput from "components/common/FormFields/StarInput";
@@ -33,12 +32,12 @@ const TRIP_EXPECT_EMOJI: Record<string, string> = {
 };
 
 /**
- * Whole-trip recap on a Completed trip — replaces the old inline "Your rating"
- * stars. A traveler who hasn't reviewed sees a "Want to leave a quick recap?"
- * prompt opening the recap modal (stars + expectations + surprised + advice);
- * once reviewed they see their own summary + an edit affordance. Below, the
- * group's ratings ("Reviews from your group") surface each traveler's own
- * verdict — everyone reviews, the recap is shared but personal.
+ * Whole-trip recap on a Completed trip. The stars themselves are the action:
+ * an un-reviewed traveler taps the empty stars ("Click to rate") to open the
+ * recap modal (pre-filled with that rating; then expectations + surprised +
+ * advice); once reviewed they see their own rating + a quiet "Edit recap"
+ * link. Below, the group's ratings ("Reviews from your group") surface each
+ * traveler's own verdict — everyone reviews, the recap is shared but personal.
  */
 const TripRecapCard = ({ tripId, canRate }: TripRecapCardProps) => {
     const { t } = useTranslation();
@@ -47,7 +46,11 @@ const TripRecapCard = ({ tripId, canRate }: TripRecapCardProps) => {
     const { data: companionsData } = useTripCompanions(tripId);
     const save = useSaveTripRating();
     const modalRef = useRef<ModalButtonHandle>(null);
-    const [dismissed, setDismissed] = useState(false);
+    // The recap modal opens pre-filled with `draftRating`; `modalNonce`
+    // remounts RecapForm on each open so that pre-fill actually takes (its
+    // internal state only seeds on mount).
+    const [draftRating, setDraftRating] = useState(0);
+    const [modalNonce, setModalNonce] = useState(0);
 
     const myRating = data?.myRating ?? 0;
     const average = data?.average ?? null;
@@ -55,7 +58,11 @@ const TripRecapCard = ({ tripId, canRate }: TripRecapCardProps) => {
     const hasReviewed = myRating > 0;
     const companions = companionsData ?? [];
 
-    const openModal = () => modalRef.current?.openModel();
+    const openRecap = (initialRating: number) => {
+        setDraftRating(initialRating);
+        setModalNonce((n) => n + 1);
+        modalRef.current?.openModel();
+    };
 
     const handleSave = (recap: TripRecapInput) => {
         save.mutate(
@@ -96,56 +103,41 @@ const TripRecapCard = ({ tripId, canRate }: TripRecapCardProps) => {
                 <h3 className="trip-recap-title">
                     {t("tripDetail.rating.title")}
                 </h3>
-                <span className="trip-recap-avg">
-                    {count > 0 ? (
-                        <>
-                            <Stars rating={average ?? 0} />
-                            <span className="trip-recap-count">
-                                {t("tripDetail.rating.count", { count })}
-                            </span>
-                        </>
-                    ) : (
+                {count > 0 && (
+                    <span className="trip-recap-avg">
+                        <Stars rating={average ?? 0} />
                         <span className="trip-recap-count">
-                            {t("tripDetail.rating.noneYet")}
+                            {t("tripDetail.rating.count", { count })}
                         </span>
-                    )}
-                    {/* Edit action sits beside the score it affects, not
-                        floating on the far side of the card. */}
-                    {canRate && hasReviewed && (
-                        <ButtonCustom
-                            type={BUTTON_VARIANT.TEXT}
-                            onClick={openModal}
-                            className="trip-recap-edit"
-                            ariaLabel={t("tripDetail.recap.editReview")}
-                        >
-                            <EditOutlinedIcon className="trip-recap-edit-icon" />
-                            {t("tripDetail.recap.editReview")}
-                        </ButtonCustom>
-                    )}
-                </span>
+                    </span>
+                )}
             </div>
 
-            {canRate && !hasReviewed && !dismissed && (
-                <div className="trip-recap-prompt">
-                    <p className="trip-recap-prompt-text">
-                        {t("tripDetail.recap.promptTitle")}
-                    </p>
-                    <div className="trip-recap-prompt-actions">
+            {/* The stars ARE the action: unreviewed → empty stars + "Click to
+                rate" open the recap modal (pre-filled with the star tapped);
+                reviewed → your rating + a quiet "Edit recap" link. No separate
+                CTA button competing with the itinerary. */}
+            {canRate &&
+                (hasReviewed ? (
+                    <div className="trip-recap-mine">
+                        <StarInput value={myRating} readonly size="md" />
+                        <span className="trip-recap-mine-label">
+                            {t("tripDetail.rating.yourRating")}
+                        </span>
+                        {data?.myExpectations && (
+                            <span className="trip-recap-mine-emoji">
+                                {TRIP_EXPECT_EMOJI[data.myExpectations]}
+                            </span>
+                        )}
                         <ButtonCustom
                             type={BUTTON_VARIANT.TEXT}
-                            label={t("tripDetail.recap.notNow")}
-                            onClick={() => setDismissed(true)}
-                            className="trip-recap-not-now"
-                        />
-                        <ButtonCustom
-                            type={BUTTON_VARIANT.TEXT}
-                            onClick={openModal}
-                            className="trip-recap-review-link"
-                            ariaLabel={t("tripDetail.recap.reviewTrip")}
+                            onClick={() => openRecap(myRating)}
+                            className="trip-recap-edit"
+                            ariaLabel={t("tripDetail.recap.edit")}
                         >
-                            {t("tripDetail.recap.reviewTrip")}
+                            {t("tripDetail.recap.edit")}
                             <span
-                                className="trip-recap-review-arrow"
+                                className="trip-recap-edit-arrow"
                                 aria-hidden="true"
                             >
                                 {" "}
@@ -153,31 +145,18 @@ const TripRecapCard = ({ tripId, canRate }: TripRecapCardProps) => {
                             </span>
                         </ButtonCustom>
                     </div>
-                </div>
-            )}
-
-            {canRate && !hasReviewed && dismissed && (
-                <ButtonCustom
-                    type={BUTTON_VARIANT.TEXT}
-                    label={t("tripDetail.recap.reviewTrip")}
-                    onClick={openModal}
-                    className="trip-recap-reopen"
-                />
-            )}
-
-            {canRate && hasReviewed && (
-                <div className="trip-recap-mine">
-                    <span className="trip-recap-mine-label">
-                        {t("tripDetail.rating.yourRating")}
-                    </span>
-                    <StarInput value={myRating} readonly size="md" />
-                    {data?.myExpectations && (
-                        <span className="trip-recap-mine-emoji">
-                            {TRIP_EXPECT_EMOJI[data.myExpectations]}
+                ) : (
+                    <div className="trip-recap-rate">
+                        <StarInput
+                            value={0}
+                            onChange={(n) => openRecap(n)}
+                            size="lg"
+                        />
+                        <span className="trip-recap-rate-hint">
+                            {t("tripDetail.recap.clickToRate")}
                         </span>
-                    )}
-                </div>
-            )}
+                    </div>
+                ))}
 
             {companions.length > 0 && groupRows.length > 0 && (
                 <div className="trip-recap-group">
@@ -233,7 +212,8 @@ const TripRecapCard = ({ tripId, canRate }: TripRecapCardProps) => {
                 buttonProps={null}
             >
                 <RecapForm
-                    initialRating={myRating}
+                    key={modalNonce}
+                    initialRating={draftRating}
                     initialExpectations={data?.myExpectations ?? null}
                     initialSurprised={data?.mySurprised ?? ""}
                     initialAdvice={data?.myAdvice ?? ""}

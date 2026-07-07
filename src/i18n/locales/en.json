@@ -988,8 +988,8 @@
         },
         "insights": {
             "title": "Verified traveler insights",
-            "basedOn_one": "From {{count}} traveler review",
-            "basedOn_other": "From {{count}} traveler reviews",
+            "basedOn_one": "From {{count}} verified visit",
+            "basedOn_other": "From {{count}} verified visits",
             "livedUp": "{{pct}}% said it lived up to expectations",
             "mostMentioned": "Most mentioned"
         },
@@ -2084,6 +2084,7 @@
             "reviewTrip": "Review trip",
             "edit": "Edit recap",
             "editReview": "Edit review",
+            "clickToRate": "Click to rate",
             "you": "You",
             "groupTitle": "Reviews from your group",
             "modalTitle": "Trip recap",
