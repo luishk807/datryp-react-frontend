@@ -986,6 +986,13 @@
             "extrasError": "Could not load extras: {{message}}",
             "unknownError": "Unknown error"
         },
+        "insights": {
+            "title": "Verified traveler insights",
+            "basedOn_one": "From {{count}} traveler review",
+            "basedOn_other": "From {{count}} traveler reviews",
+            "livedUp": "{{pct}}% said it lived up to expectations",
+            "mostMentioned": "Most mentioned"
+        },
         "reviews": {
             "travelerReviews": "Traveler reviews",
             "ratingsReviews": "Ratings & reviews",
@@ -2071,6 +2078,29 @@
             "traveler": "Traveler",
             "notRatedYet": "Hasn't rated yet"
         },
+        "recap": {
+            "promptTitle": "Want to leave a quick recap?",
+            "notNow": "Not now",
+            "reviewTrip": "Review trip",
+            "edit": "Edit recap",
+            "editReview": "Edit review",
+            "you": "You",
+            "groupTitle": "Reviews from your group",
+            "modalTitle": "Trip recap",
+            "starsLabel": "How was the trip?",
+            "expectLabel": "Did it live up to expectations?",
+            "expect": {
+                "better": "Better than expected",
+                "about": "About expected",
+                "worse": "Worse than expected"
+            },
+            "surprisedLabel": "What surprised you?",
+            "surprisedPlaceholder": "Anything unexpected — good or bad? (optional)",
+            "adviceLabel": "Any advice for someone taking this trip?",
+            "advicePlaceholder": "What would you tell a friend planning this? (optional)",
+            "save": "Save recap",
+            "needStars": "Add a star rating to save your recap."
+        },
         "note": {
             "badge": "Trip recap",
             "placeholder": "How did the trip go? Anything to remember for next time…",
@@ -2435,7 +2465,53 @@
         "beTheFirst": "Be the first to review",
         "starsAria": "{{rating}} out of 5 — open ratings & reviews",
         "starsAriaWithCount_one": "{{rating}} out of 5 from {{count}} review — open ratings & reviews",
-        "starsAriaWithCount_other": "{{rating}} out of 5 from {{count}} reviews — open ratings & reviews"
+        "starsAriaWithCount_other": "{{rating}} out of 5 from {{count}} reviews — open ratings & reviews",
+        "inline": {
+            "review": "Review",
+            "edit": "Edit",
+            "save": "Save",
+            "saving": "Saving…",
+            "saveError": "Couldn't save — try again.",
+            "expectLabel": "Did it live up to expectations?",
+            "tagsLabel": "Tags",
+            "tagsHint": "pick up to {{max}}",
+            "tipPlaceholder": "Tip for future travelers (optional)",
+            "visibilityShort": "Visibility",
+            "visAnon": "Anonymous",
+            "visPublic": "With my name",
+            "visPrivate": "Only me"
+        },
+        "expect": {
+            "better": "Better than expected",
+            "asExpected": "As expected",
+            "overhyped": "Overhyped"
+        },
+        "chips": {
+            "better_than_photos": "Better than photos",
+            "crowded": "Crowded",
+            "worth_the_money": "Worth the money",
+            "hidden_gem": "Hidden gem",
+            "long_lines": "Long lines",
+            "delicious": "Delicious",
+            "worth_the_price": "Worth the price",
+            "great_service": "Great service",
+            "long_wait": "Long wait",
+            "tourist_trap": "Tourist trap",
+            "crystal_clear_water": "Crystal-clear water",
+            "great_for_families": "Great for families",
+            "easy_parking": "Easy parking",
+            "worth_the_ticket": "Worth the ticket",
+            "educational": "Educational",
+            "needs_more_time": "Needs more time",
+            "skip_the_tour": "Skip the tour",
+            "amazing_views": "Amazing views",
+            "challenging": "Challenging",
+            "worth_the_effort": "Worth the effort",
+            "bring_water": "Bring water",
+            "family_friendly": "Family friendly",
+            "better_than_expected": "Better than expected",
+            "would_visit_again": "Would visit again"
+        }
     },
     "placeSuggestions": {
         "headingPrefix": "Suggested for",

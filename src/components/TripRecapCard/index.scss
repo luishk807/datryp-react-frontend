@@ -1,0 +1,269 @@
+// Whole-trip recap card on a Completed trip (replaces the old inline stars):
+// average up top, a "leave a recap" prompt or the viewer's own summary, then
+// the group's per-traveller ratings. Form styles (used inside the modal) live
+// here too since RecapForm ships no stylesheet of its own.
+.trip-recap-card {
+    margin: 4px 8px 18px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+
+    .trip-recap-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .trip-recap-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: theme('colors.primary');
+        letter-spacing: -0.005em;
+    }
+
+    .trip-recap-avg {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .trip-recap-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .trip-recap-edit-icon {
+        font-size: 0.95rem;
+    }
+
+    .trip-recap-count {
+        font-size: 0.82rem;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    // ── prompt ────────────────────────────────────────────────────────────
+    // Clean, quiet row — no coloured block. A quiet "Not now" text link and a
+    // single tidy "Review trip" button that never wraps.
+    .trip-recap-prompt {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .trip-recap-prompt-text {
+        margin: 0;
+        font-size: 0.9rem;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    .trip-recap-prompt-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+
+        button {
+            white-space: nowrap;
+        }
+    }
+
+    .trip-recap-not-now {
+        color: rgba(0, 0, 0, 0.45);
+        font-weight: 500;
+
+        &:hover {
+            color: rgba(0, 0, 0, 0.7);
+        }
+    }
+
+    .trip-recap-review-link {
+        display: inline-flex;
+        align-items: center;
+        color: theme('colors.primaryGreen');
+        font-weight: 600;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .trip-recap-review-arrow {
+        font-weight: 700;
+    }
+
+    .trip-recap-reopen {
+        margin-top: 12px;
+    }
+
+    // ── viewer summary ────────────────────────────────────────────────────
+    .trip-recap-mine {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .trip-recap-mine-label {
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    .trip-recap-mine-emoji {
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+
+    // ── group ratings ─────────────────────────────────────────────────────
+    .trip-recap-group {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .trip-recap-group-title {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: rgba(0, 0, 0, 0.45);
+        margin-bottom: 8px;
+    }
+
+    .trip-recap-group-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .trip-recap-group-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .trip-recap-group-name {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.78);
+    }
+
+    .trip-recap-group-rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+    }
+
+    .trip-recap-group-muted {
+        font-size: 0.78rem;
+        color: rgba(0, 0, 0, 0.4);
+    }
+
+    .trip-recap-group-fav {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.78rem;
+        color: rgba(0, 0, 0, 0.55);
+    }
+
+    .trip-recap-group-fav-icon {
+        font-size: 0.9rem;
+        color: theme('colors.primaryOrange');
+    }
+}
+
+// ── recap modal form (portaled — classes are global) ──────────────────────
+.trip-recap-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .trip-recap-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .trip-recap-field-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.75);
+    }
+
+    .trip-recap-expect {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .trip-recap-expect-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.14);
+        background: #fff;
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.72);
+        cursor: pointer;
+        transition: background 0.12s, border-color 0.12s;
+
+        &:hover {
+            border-color: theme('colors.primaryOrange');
+        }
+
+        &.active {
+            border-color: theme('colors.primaryOrange');
+            background: theme('colors.primaryOrange');
+            color: #fff;
+        }
+    }
+
+    .trip-recap-expect-emoji {
+        font-size: 1.05rem;
+        line-height: 1;
+    }
+
+    .trip-recap-textarea {
+        width: 100%;
+        resize: vertical;
+        padding: 9px 11px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.14);
+        font: inherit;
+        font-size: 0.9rem;
+        color: rgba(0, 0, 0, 0.85);
+
+        &:focus {
+            outline: none;
+            border-color: theme('colors.primaryGreen');
+        }
+    }
+
+    .trip-recap-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+}

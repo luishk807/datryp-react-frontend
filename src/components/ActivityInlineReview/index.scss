@@ -1,0 +1,194 @@
+// Progressive traveler review under a Completed-trip activity. Collapsed it's
+// one compact row; clicking Review/Edit expands the panel, and saving collapses
+// it again so a long itinerary stays scannable.
+.activity-inline-review {
+    // ── collapsed row ─────────────────────────────────────────────────────
+    // Sits inline next to Favorite in the actions-row, so no own margin and
+    // the pieces flow left-to-right: stars · status · a subtle Review button.
+    // Compact affordance pushed to the right of the row; Favorite stays left.
+    &.air-collapsed {
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+    }
+
+    .air-affordance {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+
+    // Not reviewed: a subtle "★ Review →" that warms to colour on hover.
+    .air-cta {
+        color: rgba(0, 0, 0, 0.5);
+        font-weight: 500;
+        transition: color 0.12s;
+
+        &:hover {
+            color: theme('colors.primaryGreen');
+        }
+    }
+
+    .air-cta-star {
+        font-size: 1.05rem;
+        color: rgba(0, 0, 0, 0.28);
+        transition: color 0.12s;
+    }
+
+    .air-cta:hover .air-cta-star {
+        color: theme('colors.primaryOrange');
+    }
+
+    .air-cta-arrow {
+        font-weight: 600;
+    }
+
+    // Reviewed: the gold stars + a green check, tappable to edit.
+    .air-reviewed-check {
+        font-size: 1.05rem;
+        color: theme('colors.primaryGreen');
+    }
+
+    // ── expanded panel ────────────────────────────────────────────────────
+    &.air-expanded {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .air-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .air-field-label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.65);
+    }
+
+    .air-field-hint {
+        margin-left: 6px;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.4);
+    }
+
+    .air-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .air-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        background: #fff;
+        font-size: 0.8rem;
+        color: rgba(0, 0, 0, 0.72);
+        cursor: pointer;
+        transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+
+        &:hover:not(:disabled) {
+            border-color: theme('colors.primaryOrange');
+        }
+
+        &.active {
+            border-color: theme('colors.primaryOrange');
+            background: theme('colors.primaryOrange');
+            color: #fff;
+        }
+
+        &.air-chip.active {
+            border-color: theme('colors.primaryGreen');
+            background: rgba(60, 181, 75, 0.12);
+            color: theme('colors.primaryGreen');
+            font-weight: 600;
+        }
+
+        &.at-max {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+    }
+
+    .air-pill-emoji {
+        font-size: 0.95rem;
+        line-height: 1;
+    }
+
+    .air-tip {
+        width: 100%;
+        min-height: 52px;
+        resize: vertical;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.14);
+        font: inherit;
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.82);
+
+        &:focus {
+            outline: none;
+            border-color: theme('colors.primaryGreen');
+        }
+    }
+
+    // ── visibility (collapsible) ──────────────────────────────────────────
+    .air-visibility-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0;
+        background: none;
+        border: none;
+        font-size: 0.8rem;
+        color: rgba(0, 0, 0, 0.55);
+        cursor: pointer;
+    }
+
+    .air-visibility-caret {
+        font-size: 0.6rem;
+    }
+
+    .air-visibility-opts {
+        display: inline-flex;
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .air-vis-opt {
+        padding: 3px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        background: #fff;
+        font-size: 0.74rem;
+        color: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+
+        &.active {
+            border-color: theme('colors.primary');
+            background: theme('colors.primary');
+            color: #fff;
+        }
+    }
+
+    .air-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+}

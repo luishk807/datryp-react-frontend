@@ -74,6 +74,7 @@ import MarkPaidModal, {
 import NotifyParticipantsButton from "components/NotifyParticipantsButton";
 import ActivityFavoriteButton from "components/ActivityFavoriteButton";
 import ActivityReviewStars from "components/ActivityReviewStars";
+import ActivityInlineReview from "components/ActivityInlineReview";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import { getPlaceKey } from "utils/placeKey";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
@@ -1242,15 +1243,32 @@ const Activities = ({
                             countryCode={activity.countryCode}
                             imageUrl={activity.image?.url}
                           />
-                          <ActivityReviewStars
-                            placeName={activity.name}
-                            placeCity={activity.placeCity as string}
-                            placeCountry={activity.placeCountry as string}
-                            placeKey={activity.placeKey}
-                            googleRating={activity.googleRating}
-                            googleRatingCount={activity.googleRatingCount}
-                            openaiRating={activity.openaiRating}
-                          />
+                          {/* On a Completed trip the read-only blended-rating
+                              chip gives way to the inline authoring review —
+                              shown right next to Favorite so the row stays one
+                              line; expanding it wraps a full-width panel below.
+                              Elsewhere it stays a compact "★ 4.5" that opens
+                              the reviews window. */}
+                          {isActivityCompleted ? (
+                            <ActivityInlineReview
+                              placeName={activity.name}
+                              placeCity={activity.placeCity as string}
+                              placeCountry={activity.placeCountry as string}
+                              placeKey={activity.placeKey}
+                              itineraryId={tripId}
+                              activityId={activity.apiId}
+                            />
+                          ) : (
+                            <ActivityReviewStars
+                              placeName={activity.name}
+                              placeCity={activity.placeCity as string}
+                              placeCountry={activity.placeCountry as string}
+                              placeKey={activity.placeKey}
+                              googleRating={activity.googleRating}
+                              googleRatingCount={activity.googleRatingCount}
+                              openaiRating={activity.openaiRating}
+                            />
+                          )}
                         </div>
                       )}
                       <div className="activity-meta">

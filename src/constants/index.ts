@@ -1,3 +1,5 @@
+export * from "./reviewChips";
+
 export const NO_IMAGE = "./images/logo-gray.png";
 export const LOGO_IMAGE = "/images/logo.svg";
 /** Icon-only variant of the logo (no wordmark). Used on mobile where

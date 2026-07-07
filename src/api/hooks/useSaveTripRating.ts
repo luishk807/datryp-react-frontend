@@ -4,20 +4,28 @@
  * aggregate, so we drop it straight into the query cache.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { setTripRating, type TripRating } from 'api/tripRatingApi';
+import {
+    setTripRating,
+    type TripRating,
+    type TripRecapInput,
+} from 'api/tripRatingApi';
 import { tripRatingKey } from 'api/hooks/useTripRating';
+import { tripCompanionsKey } from 'api/hooks/useTripCompanions';
 
 interface SaveTripRatingVars {
     tripId: string;
-    rating: number | null;
+    recap: TripRecapInput;
 }
 
 export const useSaveTripRating = () => {
     const queryClient = useQueryClient();
     return useMutation<TripRating, Error, SaveTripRatingVars>({
-        mutationFn: ({ tripId, rating }) => setTripRating(tripId, rating),
+        mutationFn: ({ tripId, recap }) => setTripRating(tripId, recap),
         onSuccess: (data, { tripId }) => {
             queryClient.setQueryData(tripRatingKey(tripId), data);
+            // The group-ratings card reads the companions endpoint (which
+            // includes each member's rating) — refresh it too.
+            queryClient.invalidateQueries({ queryKey: tripCompanionsKey(tripId) });
         },
     });
 };

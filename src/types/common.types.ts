@@ -1,5 +1,6 @@
 import type {
   ACTION,
+  ACTIVITY_EXPECTATION,
   ACTIVITY_KIND,
   ADD_METHOD,
   AUTH_MODE,
@@ -9,14 +10,21 @@ import type {
   MAINTENANCE_MODE,
   NOTIFY_CHANNEL,
   OFFLINE_STATUS,
+  REVIEW_CATEGORY,
+  REVIEW_VISIBILITY,
   SUBSCRIPTION_PLAN,
   SUBSCRIPTION_STATUS,
+  TRIP_EXPECTATION,
   TRIP_MODE,
   TRIP_STATUS,
   USER_ROLE,
 } from "constants";
 
 export type ActionType = (typeof ACTION)[keyof typeof ACTION];
+export type ReviewCategory = (typeof REVIEW_CATEGORY)[keyof typeof REVIEW_CATEGORY];
+export type ReviewVisibility = (typeof REVIEW_VISIBILITY)[keyof typeof REVIEW_VISIBILITY];
+export type ActivityExpectation = (typeof ACTIVITY_EXPECTATION)[keyof typeof ACTIVITY_EXPECTATION];
+export type TripExpectation = (typeof TRIP_EXPECTATION)[keyof typeof TRIP_EXPECTATION];
 export type ActivityKind = (typeof ACTIVITY_KIND)[keyof typeof ACTIVITY_KIND];
 export type AddMethod = (typeof ADD_METHOD)[keyof typeof ADD_METHOD];
 export type AuthMode = (typeof AUTH_MODE)[keyof typeof AUTH_MODE];

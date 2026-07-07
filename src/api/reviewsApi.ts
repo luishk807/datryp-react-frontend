@@ -26,6 +26,10 @@ export interface ReviewItem {
     author: ReviewAuthor;
     rating: number;
     text: string | null;
+    tags: string[];
+    expectations: string | null;
+    visibility: string;
+    isVerifiedVisit: boolean;
     createdAt: string;
     updatedAt: string;
     likeCount: number;
@@ -64,9 +68,48 @@ export interface ReviewCreatePayload {
     text?: string | null;
 }
 
+/** Body for the save-on-star upsert. Beyond the base create fields it carries
+ *  the structured chips + expectations + visibility, and the source trip /
+ *  activity the review was authored from (marks it a verified visit). */
+export interface ReviewUpsertPayload extends ReviewCreatePayload {
+    tags?: string[];
+    expectations?: string | null;
+    visibility?: string;
+    itineraryId?: string | null;
+    activityId?: string | null;
+}
+
 export interface ReviewUpdatePayload {
     rating?: number;
     text?: string | null;
+    tags?: string[];
+    expectations?: string | null;
+    visibility?: string;
+}
+
+/** One aggregated chip for a place: slug + how many travelers used it + what
+ *  share of reviewers that is (0-100). */
+export interface ReviewInsightChip {
+    slug: string;
+    count: number;
+    pct: number;
+}
+
+export interface ReviewExpectationsBreakdown {
+    total: number;
+    better: number;
+    asExpected: number;
+    overhyped: number;
+    livedUpPct: number;
+}
+
+export interface ReviewInsights {
+    placeKey: string;
+    total: number;
+    verifiedCount: number;
+    averageRating: number | null;
+    expectations: ReviewExpectationsBreakdown;
+    topTags: ReviewInsightChip[];
 }
 
 interface ReviewItemRaw {
@@ -74,6 +117,10 @@ interface ReviewItemRaw {
     author: ReviewAuthor;
     rating: number;
     text: string | null;
+    tags: string[] | null;
+    expectations: string | null;
+    visibility: string;
+    is_verified_visit: boolean;
     created_at: string;
     updated_at: string;
     like_count: number;
@@ -100,6 +147,10 @@ const toItem = (r: ReviewItemRaw): ReviewItem => ({
     author: r.author,
     rating: r.rating,
     text: r.text,
+    tags: r.tags ?? [],
+    expectations: r.expectations,
+    visibility: r.visibility,
+    isVerifiedVisit: r.is_verified_visit,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     likeCount: r.like_count,
@@ -174,6 +225,83 @@ export const createPlaceReview = async (
     return toItem((await resp.json()) as ReviewItemRaw);
 };
 
+export const upsertPlaceReview = async (
+    placeKey: string,
+    payload: ReviewUpsertPayload
+): Promise<ReviewItem> => {
+    const resp = await fetch(`${API_BASE}/places/${encodeURIComponent(placeKey)}/reviews`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(),
+        },
+        body: JSON.stringify({
+            place_name: payload.placeName,
+            place_city: payload.placeCity,
+            place_country: payload.placeCountry,
+            rating: payload.rating,
+            text: payload.text ?? null,
+            tags: payload.tags ?? [],
+            expectations: payload.expectations ?? null,
+            visibility: payload.visibility ?? 'public',
+            itinerary_id: payload.itineraryId ?? null,
+            activity_id: payload.activityId ?? null,
+        }),
+    });
+    if (!resp.ok) await handleError(resp, 'upsert review');
+    return toItem((await resp.json()) as ReviewItemRaw);
+};
+
+/** The caller's own review for a place, or null if they haven't reviewed it. */
+export const fetchMyPlaceReview = async (
+    placeKey: string
+): Promise<ReviewItem | null> => {
+    const resp = await fetch(`${API_BASE}/me/reviews/${encodeURIComponent(placeKey)}`, {
+        headers: { ...authHeaders() },
+    });
+    if (!resp.ok) await handleError(resp, 'get my review');
+    const body = (await resp.json()) as ReviewItemRaw | null;
+    return body ? toItem(body) : null;
+};
+
+export const fetchReviewInsights = async (
+    placeKey: string
+): Promise<ReviewInsights> => {
+    const resp = await fetch(
+        `${API_BASE}/places/${encodeURIComponent(placeKey)}/review-insights`,
+        { headers: { ...authHeaders() } }
+    );
+    if (!resp.ok) await handleError(resp, 'review insights');
+    const body = (await resp.json()) as {
+        place_key: string;
+        total: number;
+        verified_count: number;
+        average_rating: number | null;
+        expectations: {
+            total: number;
+            better: number;
+            as_expected: number;
+            overhyped: number;
+            lived_up_pct: number;
+        };
+        top_tags: ReviewInsightChip[];
+    };
+    return {
+        placeKey: body.place_key,
+        total: body.total,
+        verifiedCount: body.verified_count,
+        averageRating: body.average_rating,
+        expectations: {
+            total: body.expectations.total,
+            better: body.expectations.better,
+            asExpected: body.expectations.as_expected,
+            overhyped: body.expectations.overhyped,
+            livedUpPct: body.expectations.lived_up_pct,
+        },
+        topTags: body.top_tags,
+    };
+};
+
 export const updateReview = async (
     reviewId: string,
     payload: ReviewUpdatePayload
@@ -187,6 +315,9 @@ export const updateReview = async (
         body: JSON.stringify({
             rating: payload.rating,
             text: payload.text,
+            tags: payload.tags,
+            expectations: payload.expectations,
+            visibility: payload.visibility,
         }),
     });
     if (!resp.ok) await handleError(resp, 'update review');

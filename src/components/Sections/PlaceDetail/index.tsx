@@ -35,6 +35,7 @@ import CurrencySection from "components/PlaceDetail/CurrencySection";
 import SafetySection from "components/PlaceDetail/SafetySection";
 import GettingThereSection from "components/PlaceDetail/GettingThereSection";
 import PopularitySection from "components/PlaceDetail/PopularitySection";
+import TravelerInsightsSection from "components/PlaceDetail/TravelerInsightsSection";
 import CulturalShockCallout from "components/PlaceDetail/CulturalShockCallout";
 import ExperienceHighlights from "components/PlaceDetail/ExperienceHighlights";
 import AirportsSection from "components/PlaceDetail/AirportsSection";
@@ -604,6 +605,10 @@ const PlaceDetail = () => {
             <PopularitySection
               popularity={detailsQuery.data?.details.popularity}
               isError={factsError}
+            />
+
+            <TravelerInsightsSection
+              placeKey={getPlaceKey(place.name, place.city, place.country)}
             />
 
             <AirportsSection

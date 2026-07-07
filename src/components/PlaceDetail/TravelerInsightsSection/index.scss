@@ -1,0 +1,105 @@
+// "Verified traveler insights" sidebar widget: expectations breakdown +
+// most-mentioned chips, computed from the place's shared reviews.
+.traveler-insights {
+    .ti-based-on {
+        margin: 0 0 12px;
+        font-size: 0.78rem;
+        color: rgba(0, 0, 0, 0.45);
+    }
+
+    // ── expectations ──────────────────────────────────────────────────────
+    .ti-expect-headline {
+        margin: 0 0 10px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: theme('colors.primaryGreen');
+        line-height: 1.3;
+    }
+
+    .ti-expect-rows {
+        list-style: none;
+        margin: 0 0 14px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .ti-expect-row {
+        display: grid;
+        grid-template-columns: 1fr 64px 34px;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ti-expect-label {
+        font-size: 0.8rem;
+        color: rgba(0, 0, 0, 0.7);
+    }
+
+    .ti-expect-bar {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .ti-expect-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: theme('colors.primaryGreen');
+    }
+
+    .ti-expect-pct {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.55);
+        text-align: right;
+    }
+
+    // ── most mentioned ────────────────────────────────────────────────────
+    .ti-chips-title {
+        display: block;
+        font-size: 0.74rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 8px;
+    }
+
+    .ti-chips-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ti-chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: rgba(0, 0, 0, 0.8);
+    }
+
+    .ti-chip-emoji {
+        font-size: 1rem;
+        line-height: 1;
+        width: 1.3em;
+        text-align: center;
+    }
+
+    .ti-chip-pct {
+        font-weight: 700;
+        color: theme('colors.primaryOrange');
+        min-width: 34px;
+    }
+
+    .ti-chip-label {
+        color: rgba(0, 0, 0, 0.72);
+    }
+}

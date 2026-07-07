@@ -2,18 +2,67 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import {
     createPlaceReview,
     deleteReview as deleteReviewReq,
+    fetchMyPlaceReview,
     fetchPlaceReviews,
+    fetchReviewInsights,
     likeReview as likeReviewReq,
     unlikeReview as unlikeReviewReq,
     updateReview as updateReviewReq,
+    upsertPlaceReview,
     type ReviewCreatePayload,
+    type ReviewInsights,
+    type ReviewItem,
     type ReviewQueryParams,
     type ReviewSort,
     type ReviewUpdatePayload,
+    type ReviewUpsertPayload,
     type ReviewsResponse,
 } from 'api/reviewsApi';
 
 const placeReviewsKey = (placeKey: string) => ['reviews', placeKey] as const;
+const myReviewKey = (placeKey: string) => ['myReview', placeKey] as const;
+const reviewInsightsKey = (placeKey: string) =>
+    ['reviewInsights', placeKey] as const;
+
+/** The caller's own review for a place (null when unreviewed). Powers the
+ *  inline activity review's prefill. Auth-only — disabled when logged out. */
+export const useMyPlaceReview = (placeKey: string | null, enabled = true) =>
+    useQuery<ReviewItem | null>({
+        queryKey: myReviewKey(placeKey ?? ''),
+        queryFn: () => fetchMyPlaceReview(placeKey as string),
+        enabled: Boolean(placeKey) && enabled,
+        staleTime: 60 * 1000,
+    });
+
+/** Aggregated "Verified traveler insights" for a place (chip % + expectations
+ *  breakdown). Public. */
+export const usePlaceReviewInsights = (placeKey: string | null, enabled = true) =>
+    useQuery<ReviewInsights>({
+        queryKey: reviewInsightsKey(placeKey ?? ''),
+        queryFn: () => fetchReviewInsights(placeKey as string),
+        enabled: Boolean(placeKey) && enabled,
+        staleTime: 5 * 60 * 1000,
+    });
+
+interface UpsertReviewArgs {
+    placeKey: string;
+    payload: ReviewUpsertPayload;
+}
+
+/** Create-or-update the viewer's review for a place (save-on-star). Refreshes
+ *  the place list, the viewer's own review, and the aggregate insights. */
+export const useUpsertReview = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ placeKey, payload }: UpsertReviewArgs) =>
+            upsertPlaceReview(placeKey, payload),
+        onSuccess: (data, { placeKey }) => {
+            qc.setQueryData(myReviewKey(placeKey), data);
+            qc.invalidateQueries({ queryKey: placeReviewsKey(placeKey) });
+            qc.invalidateQueries({ queryKey: reviewInsightsKey(placeKey) });
+        },
+    });
+};
 
 /**
  * Reviews for a place, paginated + sorted. Public — anonymous callers still

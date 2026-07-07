@@ -59,8 +59,7 @@ import TripSuggestionsCard from "components/TripSuggestionsCard";
 import TripCheckupCard from "components/TripCheckupCard";
 import TripCompletionSummary from "components/TripCompletionSummary";
 import TripAtlasConfirmation from "components/TripAtlasConfirmation";
-import TripRatingCard from "components/TripRatingCard";
-import TripCompanionsCard from "components/TripCompanionsCard";
+import TripRecapCard from "components/TripRecapCard";
 import PlanningBox from "components/PlanningBox";
 import AiFillItineraryBox from "components/AiFillItineraryBox";
 import { useUser } from "context/UserContext";
@@ -1225,9 +1224,8 @@ export const TripDetail = () => {
               travelers={participants.length}
             />
             {apiTrip?.id && (
-              <TripRatingCard tripId={apiTrip.id} canRate={canRateTrip} />
+              <TripRecapCard tripId={apiTrip.id} canRate={canRateTrip} />
             )}
-            {apiTrip?.id && <TripCompanionsCard tripId={apiTrip.id} />}
           </Grid>
         )}
         {!focusMode && persistedStatusName === TRIP_STATUS.CANCELLED && (
@@ -1648,15 +1646,15 @@ const TripDetailHeader = ({
             />
           )}
       </div>
-      {/* Recap note — a retrospective, so it's only offered once the trip
-          is done (Completed) or called off (Cancelled), never during
-          Planning/Confirmed. Its own full-width row under the title
-          (flex-basis:100% forces the wrap). Owner/organizer edits; persists
-          via its own endpoint. Hidden in focus mode. */}
+      {/* Recap note — a retrospective free-text note. On a Completed trip the
+          richer per-traveller recap (TripRecapCard) now covers this, so the
+          note only shows for a Cancelled trip (which has no recap). Its own
+          full-width row under the title (flex-basis:100% forces the wrap).
+          Owner/organizer edits; persists via its own endpoint. Hidden in
+          focus mode. */}
       {!focusMode &&
         tripData.apiId &&
-        (statusName === TRIP_STATUS.COMPLETED ||
-          statusName === TRIP_STATUS.CANCELLED) && (
+        statusName === TRIP_STATUS.CANCELLED && (
           <div className="trip-detail-note-row">
             <TripNote
               tripId={tripData.apiId}

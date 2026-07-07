@@ -12,14 +12,29 @@ const API_BASE =
 export interface TripRating {
     /** The viewer's own 1-5 rating; null when they haven't rated yet. */
     myRating: number | null;
+    /** The viewer's own recap fields (null when unset). */
+    myExpectations: string | null;
+    mySurprised: string | null;
+    myAdvice: string | null;
     /** Average across all members' ratings (1 dp); null when nobody rated. */
     average: number | null;
     /** How many members have rated. */
     count: number;
 }
 
+/** Recap payload sent with a rating. `null` clears just that field. */
+export interface TripRecapInput {
+    rating: number | null;
+    expectations?: string | null;
+    surprised?: string | null;
+    advice?: string | null;
+}
+
 interface TripRatingPayload {
     my_rating: number | null;
+    my_expectations: string | null;
+    my_surprised: string | null;
+    my_advice: string | null;
     average: number | null;
     count: number;
 }
@@ -44,6 +59,9 @@ const handleError = async (resp: Response, label: string): Promise<never> => {
 
 const fromPayload = (p: TripRatingPayload): TripRating => ({
     myRating: p.my_rating,
+    myExpectations: p.my_expectations,
+    mySurprised: p.my_surprised,
+    myAdvice: p.my_advice,
     average: p.average,
     count: p.count,
 });
@@ -58,12 +76,17 @@ export const getTripRating = async (tripId: string): Promise<TripRating> => {
 
 export const setTripRating = async (
     tripId: string,
-    rating: number | null
+    recap: TripRecapInput
 ): Promise<TripRating> => {
     const resp = await fetch(`${API_BASE}/me/trip-rating/${tripId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({ rating }),
+        body: JSON.stringify({
+            rating: recap.rating,
+            expectations: recap.expectations ?? null,
+            surprised: recap.surprised ?? null,
+            advice: recap.advice ?? null,
+        }),
     });
     if (!resp.ok) await handleError(resp, 'set trip rating');
     return fromPayload((await resp.json()) as TripRatingPayload);
