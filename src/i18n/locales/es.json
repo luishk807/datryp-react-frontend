@@ -1506,6 +1506,7 @@
             "tripInfoSaved": "Información del viaje guardada.",
             "tripConfirmed": "¡Genial! Tu viaje está confirmado y listo para comenzar.",
             "tripCompletedPastDue": "Viaje marcado como completado — tus lugares están listos para reseñar y se guardó en tu Atlas.",
+            "tripShifted": "Viaje movido al {{date}}.",
             "itineraryEmailed_one": "Itinerario enviado por correo a {{count}} persona.",
             "itineraryEmailed_other": "Itinerario enviado por correo a {{count}} personas.",
             "emailFailed": "No se pudo enviar el itinerario por correo — aún puedes compartirlo desde el menú ⋮.",
@@ -1576,6 +1577,27 @@
             "readonlySub": "Las fechas de este viaje ya pasaron.",
             "shiftDates": "Cambiar fechas",
             "continuePlanning": "Seguir planificando"
+        },
+        "shift": {
+            "title": "Cambiar fechas del viaje",
+            "intro": "Mueve todo el viaje a nuevas fechas — cada actividad conserva su lugar. Las reservas reales se quedan para que las vuelvas a reservar.",
+            "current": "Actualmente {{range}}",
+            "newStartLabel": "Nueva fecha de inicio",
+            "keepDuration_one": "Manteniendo tu viaje de {{count}} día",
+            "keepDuration_other": "Manteniendo tu viaje de {{count}} días",
+            "newRange": "Nuevas fechas · {{start}} → {{end}}",
+            "moreDays_one": "+{{count}} día más",
+            "moreDays_other": "+{{count}} días más",
+            "flexibleMoves_one": "{{count}} actividad se mueve automáticamente",
+            "flexibleMoves_other": "{{count}} actividades se mueven automáticamente",
+            "reservationsHeading_one": "{{count}} reserva requiere reprogramación",
+            "reservationsHeading_other": "{{count}} reservas requieren reprogramación",
+            "reservationsNote": "Estas se quedan en sus fechas reservadas y se marcan — actualízalas cuando hayas vuelto a reservar.",
+            "nothingDeleted": "No se elimina nada — costos, notas y fotos siguen adjuntos.",
+            "noChange": "Elige una fecha de inicio diferente para mover el viaje.",
+            "cancel": "Cancelar",
+            "shift": "Cambiar fechas",
+            "saving": "Cambiando…"
         },
         "readiness": {
             "lodging": {
@@ -2339,6 +2361,9 @@
             "pastLockedTitle": "Esta actividad ya pasó y está bloqueada",
             "lockedAria": "{{name}} está bloqueada — su hora ya pasó",
             "pastDue": "Vencida"
+        },
+        "reschedule": {
+            "banner": "Requiere reprogramación — reservada para {{date}}. Vuelve a reservar para tus nuevas fechas."
         },
         "directions": {
             "getAria": "Obtener indicaciones en Google Maps",

@@ -79,7 +79,7 @@ import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import { getPlaceKey } from "utils/placeKey";
 import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import ButtonCustom from "components/common/FormFields/ButtonCustom";
-import { convertMoney } from "utils";
+import { convertMoney, reservationNeedsReschedule, reservationBookedDate } from "utils";
 import { useTripStatuses } from "api/hooks/useLookups";
 import { ACTIVITY_KIND, BUTTON_VARIANT, TRIP_STATUS } from "constants";
 import type {
@@ -798,6 +798,13 @@ const Activities = ({
           const isHotel =
             activityKind === ACTIVITY_KIND.HOTEL_CHECKIN ||
             activityKind === ACTIVITY_KIND.HOTEL_CHECKOUT;
+          // Post-shift "needs rescheduling": a flight/transit whose booked
+          // depart date no longer matches the (shifted) day it sits on. The
+          // trip moved around the real booking, which stays put until the
+          // traveller rebooks — derived, no persisted flag (see shiftTripDates).
+          const rescheduleBookedDate = reservationNeedsReschedule(activity, date)
+            ? reservationBookedDate(activity)
+            : undefined;
           // Notes are timeless; flights and transit show their
           // depart→arrival datetime; hotel check-in/out show a
           // single time (the check-in or check-out time). Places
@@ -1295,6 +1302,16 @@ const Activities = ({
                             )}
                           </div>
                         )}
+                      {rescheduleBookedDate && (
+                        <div className="activity-reschedule">
+                          <WarningAmberRoundedIcon className="activity-reschedule-icon" />
+                          <span className="activity-reschedule-text">
+                            {t("activity.reschedule.banner", {
+                              date: formatPaidDate(rescheduleBookedDate),
+                            })}
+                          </span>
+                        </div>
+                      )}
                       <div className="activity-meta">
                         {(() => {
                           // AI-built activities frequently leave the

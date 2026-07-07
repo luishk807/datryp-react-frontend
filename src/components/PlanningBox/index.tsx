@@ -27,6 +27,10 @@ export interface PlanningBoxProps {
     ) => void | Promise<void>;
     isSaving?: boolean;
     onEditTripDates?: () => void;
+    /** Opens the focused Shift-dates modal. Preferred over `onEditTripDates`
+     *  for the past-due "Shift dates" action; falls back to the stepper
+     *  handoff when not supplied. */
+    onShiftDates?: () => void;
 }
 
 const toneFor = (percent: number): "low" | "mid" | "high" => {
@@ -42,6 +46,7 @@ const PlanningBox = ({
     onStatusChange,
     isSaving = false,
     onEditTripDates,
+    onShiftDates,
 }: PlanningBoxProps) => {
     const { t } = useTranslation();
     // Expanded by default — the readiness checklist is the point. Collapsing
@@ -148,13 +153,13 @@ const PlanningBox = ({
                                     className="planning-box-confirm"
                                 />
                             )}
-                            {onEditTripDates && (
+                            {(onShiftDates || onEditTripDates) && (
                                 <ButtonIcon
                                     type={BUTTON_VARIANT.TEXT}
                                     Icon={EditCalendarRoundedIcon}
                                     iconPosition="start"
                                     title={t('tripDetail.pastDue.shiftDates')}
-                                    onClick={onEditTripDates}
+                                    onClick={onShiftDates ?? onEditTripDates}
                                     className="planning-box-pastdue-shift"
                                 />
                             )}

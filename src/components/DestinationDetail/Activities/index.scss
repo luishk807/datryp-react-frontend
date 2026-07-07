@@ -596,6 +596,33 @@
   font-size: 0.85rem;
 }
 
+// Post-shift "needs rescheduling" banner — a real booking (flight/transit)
+// left on its old date after the trip was shifted. Red, compact, sits under
+// the title so it's the first thing the traveller sees on that card.
+.activity-content-trip .content-detail .activity-reschedule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 2px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(226, 87, 76, 0.1);
+  border: 1px solid rgba(226, 87, 76, 0.28);
+}
+
+.activity-content-trip .content-detail .activity-reschedule-icon {
+  font-size: 1rem;
+  color: #c0392b;
+  flex-shrink: 0;
+}
+
+.activity-content-trip .content-detail .activity-reschedule-text {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #c0392b;
+  line-height: 1.35;
+}
+
 .activity-content-trip .content-detail .info .status-toggle.is-confirmed {
   background: rgba(60, 181, 75, 0.12);
   color: theme("colors.primaryGreen");

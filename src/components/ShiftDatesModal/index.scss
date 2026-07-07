@@ -1,0 +1,152 @@
+.shift-dates-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.shift-dates-intro {
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.66);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.shift-dates-current {
+    font-size: 0.86rem;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.shift-dates-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shift-dates-duration {
+    font-size: 0.8rem;
+    color: theme('colors.primaryGreen');
+    font-weight: 600;
+}
+
+.shift-dates-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.shift-dates-newrange {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: theme('colors.primary');
+}
+
+.shift-dates-map {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.84rem;
+        color: rgba(0, 0, 0, 0.7);
+    }
+
+    span:last-child {
+        font-weight: 600;
+        color: theme('colors.primary');
+    }
+}
+
+.shift-dates-map-arrow {
+    font-size: 0.95rem;
+    color: rgba(0, 0, 0, 0.35);
+}
+
+.shift-dates-map-more {
+    color: rgba(0, 0, 0, 0.45) !important;
+    font-style: italic;
+}
+
+.shift-dates-impact {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 12px;
+
+    li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.86rem;
+        line-height: 1.4;
+    }
+
+    .is-ok {
+        color: rgba(0, 0, 0, 0.72);
+    }
+}
+
+.shift-dates-impact-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+
+    .is-ok & {
+        color: theme('colors.primaryGreen');
+    }
+    .is-warn & {
+        color: #e2574c;
+    }
+}
+
+.shift-dates-res {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.shift-dates-res-head {
+    font-weight: 700;
+    color: #c0392b;
+}
+
+.shift-dates-res-names {
+    color: rgba(0, 0, 0, 0.72);
+}
+
+.shift-dates-res-note {
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.55);
+}
+
+.shift-dates-nothing {
+    font-size: 0.82rem;
+    color: rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.shift-dates-hint {
+    font-size: 0.86rem;
+    color: rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.shift-dates-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+}

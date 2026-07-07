@@ -54,6 +54,7 @@ import ModalButton, {
 } from "components/ModalButton";
 import NotifyParticipantsCheckbox from "components/NotifyParticipantsCheckbox";
 import EditBasicInfoModal from "components/EditBasicInfoModal";
+import ShiftDatesModal from "components/ShiftDatesModal";
 import TripStatusBadge from "components/TripStatusBadge";
 import TripSuggestionsCard from "components/TripSuggestionsCard";
 import TripCheckupCard from "components/TripCheckupCard";
@@ -76,7 +77,7 @@ import {
   isCurrentUserOrganizer,
 } from "utils/itineraryAdapter";
 import { tripStateToSaveInput } from "utils/tripMapper";
-import { isSameDay, isValidDate, diffDays, tripHasRealActivities, isTripPastDue } from "utils";
+import { isSameDay, isValidDate, diffDays, formatDate, tripHasRealActivities, isTripPastDue, shiftTripDates } from "utils";
 import { duplicateTripState, type DuplicateTripRange } from "utils";
 import DuplicateTripModal from "components/DuplicateTripModal";
 import TripNote from "components/TripNote";
@@ -282,6 +283,7 @@ export const TripDetail = () => {
   // card. Activities are edited inline on the day list; this only covers
   // name / destination / organizer / budget / dates.
   const editBasicInfoRef = useRef<ModalButtonHandle>(null);
+  const shiftDatesModalRef = useRef<ModalButtonHandle>(null);
 
   // Hoisted early so callbacks below can reference it in their deps
   // arrays without tripping a TDZ error.
@@ -612,6 +614,56 @@ export const TripDetail = () => {
       }
     },
     [apiTrip, notifyParticipants, activityStatusLookup, saveItinerary, t],
+  );
+
+  // "Shift dates" — move the whole trip to a new start date, preserving every
+  // relative gap. Flexible activities ride along on their day; real bookings
+  // (flights / hotels / transit) stay on their booked date and surface as
+  // "needs rescheduling" so the traveller rebooks them for real. Reuses the
+  // same save path as basic-info edits, keeping the trip's current status
+  // (a shifted past-due trip drops back to a normal future Planning trip).
+  const handleShiftDates = useCallback(
+    async (newStartDate: string): Promise<boolean> => {
+      if (!apiTrip || !apiTrip.interaryType?.id || !tripData?.startDate) {
+        return false;
+      }
+      const delta = diffDays(tripData.startDate, newStartDate);
+      if (!delta) return true;
+      setSaveError(null);
+      const shifted = shiftTripDates(tripData, delta);
+      setLocalTripData(shifted); // optimistic
+      try {
+        const input = tripStateToSaveInput(shifted, {
+          id: apiTrip.id,
+          interaryTypeId: apiTrip.interaryType.id,
+          tripStatusId: apiTrip.status?.id ?? null,
+          notifyParticipants,
+          activityStatusLookup,
+        });
+        await saveItinerary.mutateAsync(input);
+        setSuccessToast(
+          t("tripDetail.toasts.tripShifted", {
+            date: formatDate(shifted.startDate, "MMM D, YYYY"),
+          }),
+        );
+        return true;
+      } catch (err) {
+        setSaveError(
+          err instanceof Error
+            ? err.message
+            : t("tripDetail.errors.saveTripInfo"),
+        );
+        return false;
+      }
+    },
+    [
+      apiTrip,
+      tripData,
+      notifyParticipants,
+      activityStatusLookup,
+      saveItinerary,
+      t,
+    ],
   );
 
   // The "Trip details" overview is an independent toggle — the day list
@@ -1295,6 +1347,14 @@ export const TripDetail = () => {
               onStatusChange={handleStatusChange}
               isSaving={saveItinerary.isPending}
               onEditTripDates={handleChangeStep}
+              onShiftDates={() => shiftDatesModalRef.current?.openModel()}
+            />
+            <ShiftDatesModal
+              ref={shiftDatesModalRef}
+              data={tripData}
+              isSaving={saveItinerary.isPending}
+              saveError={saveError}
+              onShift={handleShiftDates}
             />
           </Grid>
         )}

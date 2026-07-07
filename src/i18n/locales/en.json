@@ -1936,6 +1936,7 @@
             "tripInfoSaved": "Trip info saved.",
             "tripConfirmed": "Yay! Your trip is confirmed and ready to go!",
             "tripCompletedPastDue": "Trip marked complete — your places are ready to review and it's saved to your Atlas.",
+            "tripShifted": "Trip moved to {{date}}.",
             "itineraryEmailed_one": "Itinerary emailed to {{count}} person.",
             "itineraryEmailed_other": "Itinerary emailed to {{count}} people.",
             "emailFailed": "Couldn't email the itinerary — you can still share it from the ⋮ menu.",
@@ -2006,6 +2007,27 @@
             "readonlySub": "This trip's dates have already passed.",
             "shiftDates": "Shift dates",
             "continuePlanning": "Continue planning"
+        },
+        "shift": {
+            "title": "Shift trip dates",
+            "intro": "Move your whole trip to new dates — every activity keeps its place. Real bookings stay put so you can rebook them.",
+            "current": "Currently {{range}}",
+            "newStartLabel": "New start date",
+            "keepDuration_one": "Keeping your {{count}}-day trip",
+            "keepDuration_other": "Keeping your {{count}}-day trip",
+            "newRange": "New dates · {{start}} → {{end}}",
+            "moreDays_one": "+{{count}} more day",
+            "moreDays_other": "+{{count}} more days",
+            "flexibleMoves_one": "{{count}} activity moves automatically",
+            "flexibleMoves_other": "{{count}} activities move automatically",
+            "reservationsHeading_one": "{{count}} booking needs rescheduling",
+            "reservationsHeading_other": "{{count}} bookings need rescheduling",
+            "reservationsNote": "These stay on their booked dates and get flagged — update them once you've rebooked.",
+            "nothingDeleted": "Nothing is deleted — costs, notes, and photos stay attached.",
+            "noChange": "Pick a different start date to move the trip.",
+            "cancel": "Cancel",
+            "shift": "Shift dates",
+            "saving": "Shifting…"
         },
         "readiness": {
             "lodging": {
@@ -2370,6 +2392,9 @@
             "pastLockedTitle": "This activity has already passed and is locked",
             "lockedAria": "{{name}} is locked — its time has passed",
             "pastDue": "Past due"
+        },
+        "reschedule": {
+            "banner": "Needs rescheduling — booked for {{date}}. Rebook it for your new dates."
         },
         "directions": {
             "getAria": "Get directions on Google Maps",
