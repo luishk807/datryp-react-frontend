@@ -96,6 +96,15 @@ const ReviewSection = ({
     setPage(1);
   };
 
+  // A detail page's reviews come only from travelers' completed-trip activity
+  // reviews, so when there are none there's nothing to author or read here —
+  // hide the whole section rather than show an empty "no reviews yet" card.
+  // (The activity-modal breakdown entry still renders for its Google / OpenAI
+  // numbers.)
+  if (!showRatingBreakdown && (!data || data.total === 0)) {
+    return null;
+  }
+
   return (
     <section className="review-section">
       <header className="review-section-head">
@@ -190,12 +199,6 @@ const ReviewSection = ({
       {isError && (
         <p className="review-section-error" role="alert">
           {t('detail.reviews.loadError')}
-        </p>
-      )}
-
-      {data && data.items.length === 0 && (
-        <p className="review-section-empty">
-          {t('detail.reviews.empty')}
         </p>
       )}
 

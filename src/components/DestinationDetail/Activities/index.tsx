@@ -73,7 +73,6 @@ import MarkPaidModal, {
 } from "components/MarkPaidModal";
 import NotifyParticipantsButton from "components/NotifyParticipantsButton";
 import ActivityFavoriteButton from "components/ActivityFavoriteButton";
-import ActivityReviewStars from "components/ActivityReviewStars";
 import ActivityInlineReview from "components/ActivityInlineReview";
 import FriendsVisitedBadge from "components/FriendsVisitedBadge";
 import { getPlaceKey } from "utils/placeKey";
@@ -603,6 +602,7 @@ const Activities = ({
   const isTripLockedIn =
     tripStatusName === TRIP_STATUS.COMPLETED ||
     tripStatusName === TRIP_STATUS.CANCELLED;
+  const isTripCompleted = tripStatusName === TRIP_STATUS.COMPLETED;
 
   // Trip id pulled from the URL — present on /trip-detail?id=, /single?id=,
   // /multiple?id=. Drives the place-name → /place link in PLACE activities
@@ -1233,44 +1233,37 @@ const Activities = ({
                           right edge. Keeps a predictable layout on mobile
                           instead of the favorite wrapping out of the title row
                           and the rating scattering below it. */}
-                      {hasPlaceIdentity && (
-                        <div className="activity-actions-row">
-                          <ActivityFavoriteButton
-                            placeName={activity.name}
-                            placeCity={activity.placeCity as string}
-                            placeCountry={activity.placeCountry as string}
-                            placeKey={activity.placeKey}
-                            countryCode={activity.countryCode}
-                            imageUrl={activity.image?.url}
-                          />
-                          {/* On a Completed trip the read-only blended-rating
-                              chip gives way to the inline authoring review —
-                              shown right next to Favorite so the row stays one
-                              line; expanding it wraps a full-width panel below.
-                              Elsewhere it stays a compact "★ 4.5" that opens
-                              the reviews window. */}
-                          {isActivityCompleted ? (
-                            <ActivityInlineReview
+                      {/* Favorite + Review only on Confirmed / Completed trips
+                          (a Planning trip isn't "live" yet — nothing to
+                          favourite-as-visited or review). The inline review
+                          itself only renders once the visit has happened: on a
+                          Completed trip always, on a Confirmed trip only for an
+                          activity that's completed or whose time has passed. */}
+                      {hasPlaceIdentity &&
+                        (isTripConfirmed || isTripCompleted) && (
+                          <div className="activity-actions-row">
+                            <ActivityFavoriteButton
                               placeName={activity.name}
                               placeCity={activity.placeCity as string}
                               placeCountry={activity.placeCountry as string}
                               placeKey={activity.placeKey}
-                              itineraryId={tripId}
-                              activityId={activity.apiId}
+                              countryCode={activity.countryCode}
+                              imageUrl={activity.image?.url}
                             />
-                          ) : (
-                            <ActivityReviewStars
-                              placeName={activity.name}
-                              placeCity={activity.placeCity as string}
-                              placeCountry={activity.placeCountry as string}
-                              placeKey={activity.placeKey}
-                              googleRating={activity.googleRating}
-                              googleRatingCount={activity.googleRatingCount}
-                              openaiRating={activity.openaiRating}
-                            />
-                          )}
-                        </div>
-                      )}
+                            {(isTripCompleted ||
+                              isActivityCompleted ||
+                              activityTiming === "past") && (
+                              <ActivityInlineReview
+                                placeName={activity.name}
+                                placeCity={activity.placeCity as string}
+                                placeCountry={activity.placeCountry as string}
+                                placeKey={activity.placeKey}
+                                itineraryId={tripId}
+                                activityId={activity.apiId}
+                              />
+                            )}
+                          </div>
+                        )}
                       <div className="activity-meta">
                         {(() => {
                           // AI-built activities frequently leave the
