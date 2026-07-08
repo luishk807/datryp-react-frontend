@@ -127,7 +127,17 @@ const MatchForYouSection = ({
                 <span className="match-score-label">{t('match.matchLabel')}</span>
             </div>
             {renderGroup(match.matched, t('match.because'), 'match')}
-            {renderGroup(match.mismatched, t('match.mightNot'), 'miss')}
+            {/* "Might not satisfy" misses are only trustworthy on the COUNTRY
+                page, where the "Great for" tags actually describe the
+                destination. City / place pages borrow their COUNTRY's tags
+                (there are no city-level tags), so a miss there answers "is this
+                a top vibe for the whole country?" — not "does this city lack
+                it?". That produced nonsense like Hawaii (code=US) reading
+                "might not satisfy beaches" off the USA's tags. Positives stay as
+                a rough proxy; misses are suppressed until per-city/place tags
+                exist. */}
+            {kind === 'country' &&
+                renderGroup(match.mismatched, t('match.mightNot'), 'miss')}
 
             {fit.data ? (
                 <div className="match-take">
