@@ -9,6 +9,10 @@ export interface Preferences {
     phone: string | null;
     birthYear: number | null;
     countryOfBirthCode: string | null;
+    /** Passport / citizenship country (ISO-2). Drives the destination-page
+     *  visa widget — visa rules key on the passport you carry, not where you
+     *  physically are. Separate from `countryOfBirthCode`. Null when unset. */
+    passportCountryCode: string | null;
     /** UUID of the row in the `genders` catalog. Null when the user
      *  hasn't picked one (or chose to skip). Powers the personalized
      *  "best place this month" recommender. */
@@ -52,6 +56,7 @@ export interface PreferencesUpdate {
     phone?: string | null;
     birthYear?: number | null;
     countryOfBirthCode?: string | null;
+    passportCountryCode?: string | null;
     genderId?: string | null;
     interests?: string[];
     travelerStyles?: string[];

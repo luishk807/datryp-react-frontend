@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon, LatLngBoundsExpression, LatLngTuple, Map as LeafletMap } from 'leaflet';
 import {
     MapContainer,
@@ -13,7 +13,12 @@ import DirectionsCarRoundedIcon from '@mui/icons-material/DirectionsCarRounded';
 import DirectionsRailwayRoundedIcon from '@mui/icons-material/DirectionsRailwayRounded';
 import DirectionsWalkRoundedIcon from '@mui/icons-material/DirectionsWalkRounded';
 import Skeleton from 'components/common/Skeleton';
-import { useUserLocation } from 'hooks/useUserLocation';
+import CityAutocomplete, {
+    type CitySelection,
+} from 'components/common/FormFields/CityAutocomplete';
+import { useUser } from 'context/UserContext';
+import { useUpdateMyPreferences } from 'api/hooks/useMyPreferences';
+import { useTravelerOrigin } from 'hooks/useTravelerOrigin';
 import { haversineKm } from 'utils/geo';
 import type { Coordinates } from 'types';
 import 'leaflet/dist/leaflet.css';
@@ -108,7 +113,35 @@ export interface TravelWidgetProps {
 
 const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
     const { t } = useTranslation();
-    const { data: user, isLoading, isError } = useUserLocation();
+    const { user } = useUser();
+    const { data: origin, isLoading, isError } = useTravelerOrigin();
+    const updatePrefs = useUpdateMyPreferences();
+
+    // Local override wins immediately when the user picks a different origin
+    // via "Change"; for signed-in users it's also persisted to their home
+    // base so the choice sticks everywhere.
+    const [override, setOverride] = useState<CitySelection | null>(null);
+    const [pickerOpen, setPickerOpen] = useState(false);
+
+    // Effective origin: the "Change" override, else the resolved residence /
+    // IP origin. Normalized to one shape so the map + labels read from it.
+    const eff = override
+        ? {
+              lat: override.latitude,
+              lng: override.longitude,
+              city: override.city,
+              country: override.country,
+          }
+        : origin
+          ? {
+                lat: origin.lat,
+                lng: origin.lng,
+                city: origin.city,
+                country: origin.country,
+            }
+          : null;
+    const userLat = eff?.lat ?? null;
+    const userLng = eff?.lng ?? null;
 
     // Memoize icons so each render doesn't allocate fresh Leaflet
     // Icon instances — react-leaflet diffs by reference identity.
@@ -119,8 +152,8 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
     // dimensions weren't fully laid out yet (common with grid layouts
     // and the surrounding AsyncDetailSection), the map renders at a
     // wrong size and gray tile-pane gaps appear. Hold a ref to the
-    // map and call `invalidateSize()` after first paint AND on every
-    // resize so the canvas always matches its container.
+    // map and call `invalidateSize()` after first paint AND whenever
+    // the origin changes so the canvas always matches its container.
     const mapRef = useRef<LeafletMap | null>(null);
     useEffect(() => {
         const map = mapRef.current;
@@ -132,7 +165,22 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
             map.invalidateSize();
         });
         return () => window.cancelAnimationFrame(handle);
-    }, [user]);
+    }, [userLat, userLng]);
+
+    const handleCityPick = (sel: CitySelection | null) => {
+        if (!sel) return;
+        setOverride(sel);
+        setPickerOpen(false);
+        if (user) {
+            updatePrefs.mutate({
+                homeCity: sel.city,
+                homeCountry: sel.country,
+                homeCountryCode: sel.countryCode,
+                homeLatitude: sel.latitude,
+                homeLongitude: sel.longitude,
+            });
+        }
+    };
 
     if (isLoading) {
         return (
@@ -145,9 +193,8 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
     }
 
     const destPos: LatLngTuple = [placeCoords.lat, placeCoords.lng];
-    const userPos: LatLngTuple | null = user
-        ? [user.lat, user.lng]
-        : null;
+    const userPos: LatLngTuple | null =
+        userLat != null && userLng != null ? [userLat, userLng] : null;
 
     // Bounds covering both endpoints with a small padding factor so
     // neither pin is glued to the map edge. Falls back to a tight
@@ -166,10 +213,13 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
           ]
         : null;
 
-    const km = userPos ? haversineKm(user!, placeCoords) : null;
+    const km =
+        userPos && userLat != null && userLng != null
+            ? haversineKm({ lat: userLat, lng: userLng }, placeCoords)
+            : null;
     const est = km !== null ? estimateTravel(km) : null;
-    const fromLabel = user
-        ? [user.city, user.country].filter(Boolean).join(', ') ||
+    const fromLabel = eff
+        ? [eff.city, eff.country].filter(Boolean).join(', ') ||
           t('detail.common.travelWidget.yourLocation')
         : null;
 
@@ -246,45 +296,60 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                 </MapContainer>
             </div>
 
-            {est && (
-                <>
-                    {fromLabel && (
-                        <p className="travel-widget-from">
-                            {t('detail.common.travelWidget.from', {
-                                name: fromLabel,
-                            })}
-                        </p>
-                    )}
-                    <div className="travel-widget-stats">
-                        <span
-                            className="travel-widget-icon"
-                            aria-hidden="true"
-                        >
-                            <ModeIcon mode={est.mode} />
-                        </span>
-                        <span className="travel-widget-distance">
-                            {formatKm(est.km)}
-                        </span>
-                        <span className="travel-widget-dot" aria-hidden="true">
-                            ·
-                        </span>
-                        <span className="travel-widget-duration">
-                            {formatHours(est.hours)} {t(MODE_LABEL_KEY[est.mode])}
-                        </span>
-                    </div>
-                    <p className="travel-widget-disclaimer">
-                        {t('detail.common.travelWidget.disclaimer')}
-                    </p>
-                </>
+            {/* Origin line — "From <city>, <country> · Change". Always
+                shown so the user can correct the origin even when we
+                couldn't resolve one (Change lets them set it). */}
+            <p className="travel-widget-from">
+                {fromLabel
+                    ? t('detail.common.travelWidget.from', { name: fromLabel })
+                    : t('detail.common.travelWidget.fromUnknown')}
+                <span className="travel-widget-dot" aria-hidden="true">
+                    ·
+                </span>
+                <button
+                    type="button"
+                    className="travel-widget-change"
+                    onClick={() => setPickerOpen((o) => !o)}
+                    disabled={updatePrefs.isPending}
+                >
+                    {t('detail.common.travelWidget.change')}
+                </button>
+            </p>
+
+            {pickerOpen && (
+                <CityAutocomplete
+                    value={override}
+                    onChange={handleCityPick}
+                    variant="bare"
+                    placeholder={t('detail.common.travelWidget.pickOrigin')}
+                    disabled={updatePrefs.isPending}
+                />
             )}
 
-            {!est && (
-                <p className="travel-widget-fallback">
-                    {isError
-                        ? t('detail.common.travelWidget.noLocation')
-                        : t('detail.common.travelWidget.dragMap')}
-                </p>
+            {est && (
+                <div className="travel-widget-stats">
+                    <span className="travel-widget-icon" aria-hidden="true">
+                        <ModeIcon mode={est.mode} />
+                    </span>
+                    <span className="travel-widget-distance">
+                        {formatKm(est.km)}
+                    </span>
+                    <span className="travel-widget-dot" aria-hidden="true">
+                        ·
+                    </span>
+                    <span className="travel-widget-duration">
+                        {formatHours(est.hours)} {t(MODE_LABEL_KEY[est.mode])}
+                    </span>
+                </div>
             )}
+
+            <p className="travel-widget-disclaimer">
+                {est
+                    ? t('detail.common.travelWidget.disclaimer')
+                    : isError
+                      ? t('detail.common.travelWidget.noLocation')
+                      : t('detail.common.travelWidget.dragMap')}
+            </p>
         </div>
     );
 };

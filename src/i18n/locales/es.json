@@ -75,6 +75,7 @@
             "yearOfBirth": "Año de nacimiento",
             "selectYear": "Selecciona un año",
             "countryOfBirth": "País de nacimiento",
+            "passportCountry": "País del pasaporte",
             "loadingCountries": "Cargando países…",
             "selectCountry": "Selecciona un país",
             "gender": "Género",
@@ -2099,7 +2100,10 @@
                 "byFlight": "en avión",
                 "disclaimer": "Estimación en línea recta — la ruta real y la disponibilidad de transporte varían según la región.",
                 "noLocation": "No se pudo detectar tu ubicación — el mapa muestra solo el destino.",
-                "dragMap": "Arrastra el mapa para explorar la zona alrededor del destino."
+                "dragMap": "Arrastra el mapa para explorar la zona alrededor del destino.",
+                "fromUnknown": "Desde tu ubicación",
+                "change": "Cambiar",
+                "pickOrigin": "¿Desde dónde viajas?"
             },
             "visaWidget": {
                 "citizen": "Eres ciudadano",
@@ -2110,6 +2114,10 @@
                 "detecting": "Detectando tu ubicación…",
                 "from": "Desde {{name}}",
                 "fromYourLocation": "Desde tu ubicación",
+                "forPassport": "Para pasaporte de {{name}}",
+                "setPassport": "Añade tu país de pasaporte",
+                "change": "Cambiar",
+                "pickPassport": "Selecciona tu país de pasaporte",
                 "disclaimer": "Verifica con un consulado oficial antes de reservar."
             },
             "cost": {

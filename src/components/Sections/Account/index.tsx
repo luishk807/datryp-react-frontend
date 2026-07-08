@@ -108,6 +108,11 @@ export const Account = () => {
     const [countryOfBirth, setCountryOfBirth] = useState(
         user?.countryOfBirthCode ?? ''
     );
+    // Passport / citizenship country — drives the visa widget on destination
+    // pages (visa rules key on the passport you carry, not where you are).
+    const [passportCountry, setPassportCountry] = useState(
+        user?.passportCountryCode ?? ''
+    );
     const [genderId, setGenderId] = useState<string>(user?.genderId ?? '');
     const [profileSaved, setProfileSaved] = useState(false);
     // Toast that surfaces save success / failure prominently — the
@@ -227,6 +232,7 @@ export const Account = () => {
         setPhone(user.phone ?? '');
         setBirthYear(user.birthYear ?? '');
         setCountryOfBirth(user.countryOfBirthCode ?? '');
+        setPassportCountry(user.passportCountryCode ?? '');
         setGenderId(user.genderId ?? '');
         setInterests(user.interests ?? []);
         setTravelerStyles(user.travelerStyles ?? []);
@@ -369,10 +375,13 @@ export const Account = () => {
         const phoneVal = trimmedPhone === '' ? null : trimmedPhone;
         const birthVal = typeof birthYear === 'number' ? birthYear : null;
         const countryVal = countryOfBirth || null;
+        const passportVal = passportCountry || null;
         const phoneChanged = phoneVal !== (user?.phone ?? null);
         const birthYearChanged = birthVal !== (user?.birthYear ?? null);
         const countryChanged =
             countryVal !== (user?.countryOfBirthCode ?? null);
+        const passportChanged =
+            passportVal !== (user?.passportCountryCode ?? null);
         const genderChanged =
             (genderId || null) !== (user?.genderId ?? null);
         const prevHomeCity = user?.homeCity ?? null;
@@ -381,6 +390,7 @@ export const Account = () => {
             phoneChanged ||
             birthYearChanged ||
             countryChanged ||
+            passportChanged ||
             genderChanged ||
             homeBaseChanged;
         let prefsError: string | null = null;
@@ -391,6 +401,9 @@ export const Account = () => {
                     ...(birthYearChanged ? { birthYear: birthVal } : {}),
                     ...(countryChanged
                         ? { countryOfBirthCode: countryVal }
+                        : {}),
+                    ...(passportChanged
+                        ? { passportCountryCode: passportVal }
                         : {}),
                     ...(genderChanged ? { genderId: genderId || null } : {}),
                     ...(homeBaseChanged
@@ -867,6 +880,20 @@ export const Account = () => {
                             placeholder={countriesLoading ? t('account.profile.loadingCountries') : t('account.profile.selectCountry')}
                             disabled={countriesLoading}
                             onChange={(opt) => setCountryOfBirth(opt?.code ?? '')}
+                        />
+                        {/* Passport country drives the visa widget on
+                            destination pages — visa rules depend on the
+                            passport you carry, not your birth country or
+                            where you physically are. */}
+                        <DropDown
+                            variant="bare"
+                            label={t('account.profile.passportCountry')}
+                            options={countries}
+                            valueKey="code"
+                            value={passportCountry}
+                            placeholder={countriesLoading ? t('account.profile.loadingCountries') : t('account.profile.selectCountry')}
+                            disabled={countriesLoading}
+                            onChange={(opt) => setPassportCountry(opt?.code ?? '')}
                         />
                         <DropDown
                             variant="bare"

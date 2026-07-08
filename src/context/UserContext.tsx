@@ -73,6 +73,10 @@ export interface User {
      *  Persisted on the User row; replaced the localStorage `countryOfBirth`
      *  overlay so it survives a new browser / re-login. */
     countryOfBirthCode: string | null;
+    /** Server-authoritative ISO-2 passport / citizenship country. Drives the
+     *  destination-page visa widget (visa rules key on the passport you
+     *  carry). Separate from `countryOfBirthCode`; null when unset. */
+    passportCountryCode: string | null;
     /** Interest slugs the user picked during onboarding (or later on the
      *  Account page). Empty array = none chosen yet. */
     interests: string[];
@@ -232,6 +236,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             currentPeriodEnd: me.current_period_end,
             cancelAtPeriodEnd: me.subscription_cancel_at_period_end,
             countryOfBirthCode: me.country_of_birth_code,
+            passportCountryCode: me.passport_country_code,
             interests: me.interests ?? [],
             travelerStyles: me.traveler_styles ?? [],
             dreamDestinations: me.dream_destinations ?? [],

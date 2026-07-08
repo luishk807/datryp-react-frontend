@@ -89,6 +89,9 @@ export interface MeResponse {
      *  round-trip on every page load. Null `onboarding_completed_at` means
      *  the wizard hasn't been finished (or explicitly skipped) yet. */
     country_of_birth_code: string | null;
+    /** Passport / citizenship country (ISO-2). Drives the visa widget's
+     *  "which passport" resolution — separate from birth country. */
+    passport_country_code: string | null;
     gender_id: string | null;
     interests: string[];
     traveler_styles: string[];

@@ -44,13 +44,57 @@
   color: var(--visa-color);
 }
 
-.visa-widget-from {
+.visa-widget-passport {
   margin: 0;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.visa-widget-flag {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+}
+
+.visa-widget-dot {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.visa-widget-change {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.5);
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.visa-widget-picker {
+  margin-top: 4px;
+  width: 100%;
+
+  .MuiOutlinedInput-root {
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
 }
 
 .visa-widget-summary {

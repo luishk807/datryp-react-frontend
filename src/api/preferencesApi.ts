@@ -21,6 +21,7 @@ interface PreferencesRaw {
     phone: string | null;
     birth_year: number | null;
     country_of_birth_code: string | null;
+    passport_country_code: string | null;
     gender_id: string | null;
     interests: string[];
     traveler_styles: string[];
@@ -72,6 +73,7 @@ const toPreferences = (r: PreferencesRaw): Preferences => ({
     phone: r.phone,
     birthYear: r.birth_year,
     countryOfBirthCode: r.country_of_birth_code,
+    passportCountryCode: r.passport_country_code,
     genderId: r.gender_id,
     interests: r.interests ?? [],
     travelerStyles: r.traveler_styles ?? [],
@@ -111,6 +113,9 @@ export const updateMyPreferences = async (
     }
     if (payload.countryOfBirthCode !== undefined) {
         body.country_of_birth_code = payload.countryOfBirthCode;
+    }
+    if (payload.passportCountryCode !== undefined) {
+        body.passport_country_code = payload.passportCountryCode;
     }
     if (payload.genderId !== undefined) {
         body.gender_id = payload.genderId;

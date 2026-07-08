@@ -58,11 +58,35 @@
 
 .travel-widget-from {
   margin: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.travel-widget-change {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
   font-weight: 700;
-  color: rgba(0, 0, 0, 0.5);
+  color: theme('colors.primaryGreen');
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 .travel-widget-stats {
@@ -95,37 +119,6 @@
 
 .travel-widget-duration {
   color: rgba(0, 0, 0, 0.75);
-}
-
-.travel-widget-maps {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  margin-top: 2px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: theme('colors.primaryGreen');
-  color: #fff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: opacity 0.15s ease;
-
-  &:hover {
-    opacity: 0.88;
-  }
-
-  .MuiSvgIcon-root {
-    font-size: 1rem;
-  }
-}
-
-.travel-widget-fallback {
-  margin: 0 0 4px;
-  font-size: 0.85rem;
-  color: rgba(0, 0, 0, 0.65);
-  line-height: 1.45;
 }
 
 .travel-widget-disclaimer {

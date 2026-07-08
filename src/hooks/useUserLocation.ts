@@ -66,11 +66,17 @@ const fetchUserLocation = async (): Promise<UserLocation> => {
 
 /** Best-effort browser location via IP geolocation (ipapi.co). City-level
  *  accuracy; no permission prompt. Cached in sessionStorage so each tab only
- *  hits the API once. */
-export const useUserLocation = () =>
+ *  hits the API once.
+ *
+ *  Pass `enabled = false` to skip the lookup entirely — callers that already
+ *  have a better signal (e.g. the signed-in user's saved home/passport
+ *  country) use this so we don't spend the ipapi.co quota on a fallback we
+ *  won't read. */
+export const useUserLocation = (enabled = true) =>
     useQuery<UserLocation>({
         queryKey: ['user-location'],
         queryFn: fetchUserLocation,
+        enabled,
         staleTime: Infinity,
         gcTime: Infinity,
         retry: 1,
