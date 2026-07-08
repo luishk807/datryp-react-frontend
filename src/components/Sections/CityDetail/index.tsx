@@ -677,6 +677,7 @@ const CityDetail = () => {
                             name={city.name}
                             country={city.country}
                             kind="city"
+                            greatFor={details.greatFor}
                         />
 
                         <FestivalsSection code={city.countryCode} />

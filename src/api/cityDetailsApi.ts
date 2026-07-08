@@ -207,6 +207,7 @@ type CityFactsRaw = {
     tourist_rating?: number;
     popularity?: CityDetailsRaw["popularity"];
     walkability?: CityDetailsRaw["walkability"];
+    great_for?: string[];
 };
 
 const proseFromRaw = (raw: CityProseRaw): Partial<CityDetails> => ({
@@ -326,6 +327,9 @@ const factsFromRaw = (raw: CityFactsRaw): Partial<CityDetails> => ({
                   note: raw.walkability.note ?? '',
               }
             : undefined,
+    // City-specific "Great for" vibe tags. Empty for rows cached before this
+    // field shipped — the match widget falls back to the country's tags.
+    greatFor: raw.great_for ?? [],
 });
 
 const toDetails = (raw: CityDetailsRaw): CityDetails =>

@@ -663,6 +663,7 @@ const PlaceDetail = () => {
               name={place.name}
               country={place.country}
               kind="place"
+              greatFor={detailsQuery.data?.details.greatFor}
             />
 
             <FestivalsSection code={place.countryCode} />

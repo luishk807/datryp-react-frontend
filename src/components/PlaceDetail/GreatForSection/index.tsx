@@ -26,6 +26,11 @@ const TAG_EMOJI: Record<string, string> = {
 export interface GreatForSectionProps {
     /** ISO-2 country code the "great for" tags are curated / AI-generated for. */
     code: string;
+    /** Destination-specific tags (city / place detail slice). When present +
+     *  non-empty, they're shown instead of the country's tags so a city/place
+     *  page reflects the locale, not its whole country. Falls back to the
+     *  country facts when omitted / empty (older cached rows, country pages). */
+    greatFor?: string[];
 }
 
 /**
@@ -34,10 +39,12 @@ export interface GreatForSectionProps {
  * vocabulary. Served on the same /country-facts payload as Quick facts.
  * Self-hides while loading, on error, and when there are no tags.
  */
-const GreatForSection = ({ code }: GreatForSectionProps) => {
+const GreatForSection = ({ code, greatFor }: GreatForSectionProps) => {
     const { t } = useTranslation();
     const { data } = useCountryFacts(code);
-    const tags = data?.greatFor ?? [];
+    // Locale tags win when present; otherwise fall back to the country's.
+    const tags =
+        greatFor && greatFor.length > 0 ? greatFor : data?.greatFor ?? [];
     if (tags.length === 0) return null;
 
     return (

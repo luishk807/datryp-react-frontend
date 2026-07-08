@@ -44,6 +44,12 @@ export interface MatchForYouSectionProps {
     country?: string;
     /** Which detail page this is, for the AI take's phrasing. */
     kind: 'country' | 'city' | 'place';
+    /** The destination's OWN "Great for" tags (from the city / place detail
+     *  slice). When present they're used instead of the country's tags, and the
+     *  "might not satisfy" misses become trustworthy — they now describe THIS
+     *  locale, not the whole country. Omitted on country pages, which read the
+     *  country facts directly. Empty (older cached rows) → country fallback. */
+    greatFor?: string[];
 }
 
 /**
@@ -60,19 +66,26 @@ const MatchForYouSection = ({
     name,
     country,
     kind,
+    greatFor,
 }: MatchForYouSectionProps) => {
     const { t } = useTranslation();
     const { user, isAdmin } = useUser();
     const { data: prefs } = useMyPreferences();
     const { data: facts } = useCountryFacts(code);
 
+    // Prefer the destination's OWN tags (city / place) over the country's.
+    // Only when the tags actually describe this locale can we trust a "might
+    // not satisfy" miss — a country page always does; a city/place page does
+    // only once it has its own tags, otherwise it borrows the country's and we
+    // suppress misses (that's what made Hawaii read "might not satisfy beaches"
+    // off the USA's tags).
+    const localeTags = greatFor && greatFor.length > 0 ? greatFor : undefined;
+    const tags = localeTags ?? facts?.greatFor ?? [];
+    const tagsDescribeDestination = kind === 'country' || Boolean(localeTags);
+
     const match =
         user && prefs
-            ? computeDestinationMatch(
-                  prefs.interests ?? [],
-                  facts?.greatFor ?? [],
-                  costLevel
-              )
+            ? computeDestinationMatch(prefs.interests ?? [], tags, costLevel)
             : null;
 
     // Pro "personal take" — an AI opinion layered on the deterministic match.
@@ -85,7 +98,7 @@ const MatchForYouSection = ({
 
     // Logged out, no saved interests, or nothing meaningful to match on → the
     // plain "Great for" chips (unchanged behavior).
-    if (!match) return <GreatForSection code={code} />;
+    if (!match) return <GreatForSection code={code} greatFor={greatFor} />;
 
     const label = (slug: string) =>
         t(`match.interests.${slug}`, { defaultValue: slug });
@@ -127,16 +140,12 @@ const MatchForYouSection = ({
                 <span className="match-score-label">{t('match.matchLabel')}</span>
             </div>
             {renderGroup(match.matched, t('match.because'), 'match')}
-            {/* "Might not satisfy" misses are only trustworthy on the COUNTRY
-                page, where the "Great for" tags actually describe the
-                destination. City / place pages borrow their COUNTRY's tags
-                (there are no city-level tags), so a miss there answers "is this
-                a top vibe for the whole country?" — not "does this city lack
-                it?". That produced nonsense like Hawaii (code=US) reading
-                "might not satisfy beaches" off the USA's tags. Positives stay as
-                a rough proxy; misses are suppressed until per-city/place tags
-                exist. */}
-            {kind === 'country' &&
+            {/* Misses only render when the tags actually describe THIS
+                destination — a country page always, or a city/place once it has
+                its own tags. A city/place falling back to the country's tags
+                suppresses them (that's what made Hawaii read "might not satisfy
+                beaches" off the USA's tags). See `tagsDescribeDestination`. */}
+            {tagsDescribeDestination &&
                 renderGroup(match.mismatched, t('match.mightNot'), 'miss')}
 
             {fit.data ? (

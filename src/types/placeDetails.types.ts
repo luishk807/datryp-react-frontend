@@ -208,6 +208,11 @@ export interface PlaceDetails {
   /** Where to stay: best areas + areas to avoid. Optional for rows cached
    *  before this field shipped. */
   neighborhoods?: NeighborhoodTips;
+  /** Place-specific "Great for" traveler-type / vibe tags (closed vocabulary).
+   *  Drives the "Is this right for you?" match at place granularity instead of
+   *  borrowing the country's tags. Empty for rows cached before this field
+   *  shipped — the widget falls back to the country tags. */
+  greatFor?: string[];
 }
 
 export interface PlaceDetailsResult {
