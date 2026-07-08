@@ -164,7 +164,11 @@
             "resubscribeHeadline": "Resubscribe to Pro",
             "upgradeBody": "Unlimited saved trips, Advanced Search, richer recommendations.",
             "resubscribeBody": "Pick up where you left off — your saved trips are still there.",
-            "compare": "Want the full feature breakdown? <compareLink>See plan comparison</compareLink>."
+            "compare": "Want the full feature breakdown? <compareLink>See plan comparison</compareLink>.",
+            "freeAllSubtitle": "The paywall is temporarily disabled while we test new features.",
+            "freeAllBadge": "Pro is currently free for everyone",
+            "freeAllUntil": "All accounts have full Pro access until <strong>{{date}}</strong> — no subscription needed.",
+            "freeAllNoDate": "All accounts have full Pro access right now — no subscription needed."
         }
     },
     "nav": {

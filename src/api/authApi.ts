@@ -123,6 +123,12 @@ export interface MeResponse {
      *  country dropdowns to put the user's likely country at the top.
      *  Null when no upstream geo header is set (local dev). */
     detected_country_code: string | null;
+    /** Global "free everything" override (admin toggle). `active` is true
+     *  while the paywall is temporarily off for all users; `until` is when it
+     *  lapses. Drives the Account "Pro is free for everyone" notice — note
+     *  `is_paid_member` is already forced true while this is on. */
+    free_everything_active: boolean;
+    free_everything_until: string | null;
 }
 
 class AuthError extends Error {

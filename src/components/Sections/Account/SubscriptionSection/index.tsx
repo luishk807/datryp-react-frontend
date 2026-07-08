@@ -20,6 +20,21 @@ const formatDate = (iso: string | null): string => {
     });
 };
 
+/** Like `formatDate` but includes the time — "Jul 9, 2026, 12:04 PM". Used
+ *  for the "free everything" expiry, which is a precise moment, not a day. */
+const formatDateTime = (iso: string | null): string => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+};
+
 /**
  * Account-page subscription panel. Shows current plan + status with the
  * right CTA per state:
@@ -166,6 +181,59 @@ const SubscriptionSection = () => {
                         })}
                     </p>
                 )}
+            </section>
+        );
+    }
+
+    // ── "Free everything" admin override ────────────────────────────────
+    // While the global override is on, a non-subscriber actually HAS Pro
+    // access (the server forces is_paid_member true). Don't show the paywall
+    // — that reads as "is my account broken / did I pay?". Reassure instead.
+    // Real subscribers (trialing/active/past_due) returned above, so they
+    // still see their true billing state; only free/canceled users land here.
+    if (user.freeEverythingActive) {
+        const freeUntil = formatDateTime(user.freeEverythingUntil);
+        return (
+            <section className="account-card" id="subscription">
+                <div className="account-card-headings simple">
+                    <h2 className="account-card-title">
+                        {t('account.subscription.title')}
+                    </h2>
+                    <p className="account-card-subtitle">
+                        {t('account.subscription.freeAllSubtitle')}
+                    </p>
+                </div>
+
+                <div className="subscription-freeall">
+                    <span className="subscription-freeall-badge">
+                        🎉 {t('account.subscription.freeAllBadge')}
+                    </span>
+                    <p className="subscription-status-line">
+                        {freeUntil ? (
+                            <Trans
+                                i18nKey="account.subscription.freeAllUntil"
+                                values={{ date: freeUntil }}
+                                components={{ strong: <strong /> }}
+                            />
+                        ) : (
+                            t('account.subscription.freeAllNoDate')
+                        )}
+                    </p>
+                </div>
+
+                <p className="subscription-compare">
+                    <Trans
+                        i18nKey="account.subscription.compare"
+                        components={{
+                            compareLink: (
+                                <Link
+                                    to="/membership"
+                                    className="subscription-compare-link"
+                                />
+                            ),
+                        }}
+                    />
+                </p>
             </section>
         );
     }

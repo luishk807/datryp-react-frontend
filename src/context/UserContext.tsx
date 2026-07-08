@@ -127,6 +127,12 @@ export interface User {
      *  reorder country dropdowns (Country of birth, etc). Null when
      *  no geo header is set (local dev without a CDN in front). */
     detectedCountryCode: string | null;
+    /** Global "free everything" override state (admin toggle). `active` is
+     *  true while the paywall is temporarily off for everyone; `until` is the
+     *  expiry ISO timestamp. Drives the Account subscription notice so a
+     *  free user sees "Pro is free for everyone" instead of the paywall. */
+    freeEverythingActive: boolean;
+    freeEverythingUntil: string | null;
 }
 
 /**
@@ -254,6 +260,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             notifySms: me.notify_sms ?? false,
             emailVerified: me.email_verified ?? false,
             detectedCountryCode: me.detected_country_code ?? null,
+            freeEverythingActive: me.free_everything_active ?? false,
+            freeEverythingUntil: me.free_everything_until ?? null,
             ...overlay,
         };
     }, [me, overlay]);

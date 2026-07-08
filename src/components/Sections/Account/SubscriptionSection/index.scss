@@ -49,6 +49,27 @@
     margin-bottom: 8px;
 }
 
+.subscription-freeall {
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(60, 181, 75, 0.08);
+    border: 1px solid rgba(60, 181, 75, 0.22);
+
+    .subscription-freeall-badge {
+        display: inline-block;
+        font-size: 1rem;
+        font-weight: 700;
+        color: rgb(20, 100, 30);
+    }
+
+    .subscription-status-line {
+        margin: 8px 0 0;
+        font-size: 0.95rem;
+        color: rgba(0, 0, 0, 0.78);
+        line-height: 1.5;
+    }
+}
+
 .subscription-error {
     margin: 12px 0 0;
     padding: 10px 12px;

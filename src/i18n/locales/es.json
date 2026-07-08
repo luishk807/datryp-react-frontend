@@ -164,7 +164,11 @@
             "resubscribeHeadline": "Vuelve a suscribirte a Pro",
             "upgradeBody": "Viajes guardados ilimitados, Búsqueda Avanzada y recomendaciones más completas.",
             "resubscribeBody": "Retoma donde lo dejaste — tus viajes guardados siguen ahí.",
-            "compare": "¿Quieres ver todas las funciones en detalle? <compareLink>Ver comparación de planes</compareLink>."
+            "compare": "¿Quieres ver todas las funciones en detalle? <compareLink>Ver comparación de planes</compareLink>.",
+            "freeAllSubtitle": "El muro de pago está desactivado temporalmente mientras probamos nuevas funciones.",
+            "freeAllBadge": "Pro es gratis para todos por ahora",
+            "freeAllUntil": "Todas las cuentas tienen acceso Pro completo hasta el <strong>{{date}}</strong> — sin suscripción.",
+            "freeAllNoDate": "Todas las cuentas tienen acceso Pro completo ahora mismo — sin suscripción."
         }
     },
     "nav": {
