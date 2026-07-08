@@ -30,15 +30,25 @@ const INTEREST_TO_TAGS: Record<string, string[]> = {
 };
 
 /** Interests whose absence is meaningful enough to surface as "might not
- *  satisfy" — geography/vibe-specific needs. Generic interests (foodie,
- *  museums, photography…) are never called out as a miss (too presumptuous —
- *  almost anywhere is fine for them). */
+ *  satisfy" — genuinely geography/feasibility-gated needs (a landlocked
+ *  country really has no beach; you can't dive without a coast). Two classes
+ *  are deliberately EXCLUDED:
+ *
+ *  - Broadly-available interests (foodie, museums, photography, nightlife…) are
+ *    never called out as a miss — treating their absence from a top-3-6 "Great
+ *    for" list as a shortcoming is too presumptuous. Nightlife in particular
+ *    exists in virtually every city; it just rarely makes the "best for" cut,
+ *    which made it read as a miss almost everywhere. It stays in
+ *    `INTEREST_TO_TAGS` so it can still surface as a POSITIVE match.
+ *
+ *  - `skiing` has NO representable tag (`skiing: []`), so no destination can
+ *    ever satisfy it — leaving it here flagged it as a miss EVERYWHERE, ski
+ *    meccas included. We can't honestly assess ski-suitability without a
+ *    `winter`/`skiing` tag in the vocabulary, so we don't guess. */
 const SPECIFIC_NEEDS = new Set([
     'beach',
     'hiking',
-    'skiing',
     'diving',
-    'nightlife',
     'luxury',
 ]);
 
