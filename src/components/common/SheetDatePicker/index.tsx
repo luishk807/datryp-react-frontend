@@ -189,7 +189,12 @@ const SheetDatePicker = ({
 
             {open &&
                 createPortal(
-                    <div className="sdp-sheet-root" role="dialog" aria-modal="true">
+                    <div
+                        className="sdp-sheet-root"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t('datePicker.select', 'Select date')}
+                    >
                         <button
                             type="button"
                             className="sdp-backdrop"

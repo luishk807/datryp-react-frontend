@@ -78,6 +78,7 @@
             "passportCountry": "País del pasaporte",
             "loadingCountries": "Cargando países…",
             "selectCountry": "Selecciona un país",
+            "countrySelectorAria": "País: {{name}}",
             "gender": "Género",
             "loading": "Cargando…",
             "selectOption": "Selecciona una opción",
@@ -854,7 +855,8 @@
         "save": "Guardar",
         "cancel": "Cancelar",
         "saving": "Guardando…",
-        "skipToContent": "Saltar al contenido principal"
+        "skipToContent": "Saltar al contenido principal",
+        "close": "Cerrar"
     },
     "timePicker": {
         "select": "Seleccionar hora",
@@ -2100,6 +2102,7 @@
             },
             "travelWidget": {
                 "from": "Desde {{name}}",
+                "mapAria": "Mapa que muestra la ruta hacia tu destino",
                 "you": "Tú — {{name}}",
                 "yourLocation": "tu ubicación",
                 "onFoot": "a pie",

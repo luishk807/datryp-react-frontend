@@ -242,6 +242,7 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                               zoom: 9,
                           })}
                     scrollWheelZoom={false}
+                    aria-label={t('detail.common.travelWidget.mapAria')}
                     // Inline width/height — Leaflet measures the
                     // container at mount and a CSS-only sizing
                     // sometimes resolves a frame too late, leaving

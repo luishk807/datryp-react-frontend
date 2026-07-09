@@ -8,6 +8,7 @@ import React, {
     type ReactNode,
 } from 'react';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 import { IconButton, Modal } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -74,6 +75,7 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
         },
         ref
     ) => {
+        const { t } = useTranslation();
         const [open, setOpen] = useState(false);
         // Unique per instance — a hard-coded id collides (breaking
         // aria-labelledby) whenever two ModalButtons mount at once.
@@ -130,7 +132,7 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                             )}
                             <IconButton
                                 className="modalCustom-close"
-                                aria-label="Close"
+                                aria-label={t('common.close')}
                                 onClick={handleClose}
                             >
                                 <CloseRoundedIcon />

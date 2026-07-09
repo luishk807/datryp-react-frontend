@@ -218,7 +218,9 @@ const PhoneInput = ({
                     disabled={disabled}
                     aria-haspopup="listbox"
                     aria-expanded={pickerOpen}
-                    aria-label={`Country: ${countryName(country)}`}
+                    aria-label={t('account.profile.countrySelectorAria', {
+                        name: countryName(country),
+                    })}
                 >
                     <span
                         className="phone-input-country-flag"
@@ -284,7 +286,7 @@ const PhoneInput = ({
                 <ul
                     className="phone-input-popover-list"
                     role="listbox"
-                    aria-label="Country"
+                    aria-label={t('account.profile.selectCountry')}
                 >
                     {filteredCountries.length === 0 ? (
                         <li className="phone-input-popover-empty">

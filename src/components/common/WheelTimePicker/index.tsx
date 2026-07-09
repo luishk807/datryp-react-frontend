@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +58,8 @@ interface WheelProps {
 const Wheel = ({ items, index, onIndex, ariaLabel, className }: WheelProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const settle = useRef<number | undefined>(undefined);
+    const listId = useId();
+    const optionId = (i: number) => `${listId}-opt-${i}`;
 
     useEffect(() => {
         const el = ref.current;
@@ -66,6 +68,14 @@ const Wheel = ({ items, index, onIndex, ariaLabel, className }: WheelProps) => {
         // fight the user mid-scroll.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Scroll to (and select) a row, clamped to range — shared by tap and
+    // keyboard so both paths behave identically.
+    const goTo = (i: number) => {
+        const next = Math.max(0, Math.min(items.length - 1, i));
+        ref.current?.scrollTo({ top: next * ITEM_H, behavior: 'smooth' });
+        if (next !== index) onIndex(next);
+    };
 
     const handleScroll = () => {
         const el = ref.current;
@@ -80,25 +90,51 @@ const Wheel = ({ items, index, onIndex, ariaLabel, className }: WheelProps) => {
         }, 80);
     };
 
+    // Keyboard support for the listbox: focus stays on the column, arrows
+    // move the centered row (mirrored via aria-activedescendant).
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                goTo(index + 1);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                goTo(index - 1);
+                break;
+            case 'Home':
+                e.preventDefault();
+                goTo(0);
+                break;
+            case 'End':
+                e.preventDefault();
+                goTo(items.length - 1);
+                break;
+            default:
+                break;
+        }
+    };
+
     return (
         <div
             className={classNames('wtp-wheel', className)}
             ref={ref}
             onScroll={handleScroll}
+            onKeyDown={handleKeyDown}
             role="listbox"
             aria-label={ariaLabel}
+            tabIndex={0}
+            aria-activedescendant={optionId(index)}
         >
             <ul className="wtp-wheel-list">
                 {items.map((item, i) => (
                     <li
                         key={item}
+                        id={optionId(i)}
                         className={classNames('wtp-wheel-item', { 'is-on': i === index })}
                         role="option"
                         aria-selected={i === index}
-                        onClick={() => {
-                            ref.current?.scrollTo({ top: i * ITEM_H, behavior: 'smooth' });
-                            onIndex(i);
-                        }}
+                        onClick={() => goTo(i)}
                     >
                         {item}
                     </li>
@@ -174,7 +210,12 @@ const WheelTimePicker = ({
 
             {open &&
                 createPortal(
-                    <div className="wtp-sheet-root" role="dialog" aria-modal="true">
+                    <div
+                        className="wtp-sheet-root"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t('timePicker.select', 'Select time')}
+                    >
                         <button
                             type="button"
                             className="wtp-backdrop"

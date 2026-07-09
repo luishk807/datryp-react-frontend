@@ -167,6 +167,14 @@ $item-h: 40px; // must match ITEM_H in index.tsx
 
     &::-webkit-scrollbar { display: none; }
     &.wtp-wheel-ampm { width: 64px; }
+
+    // The column is keyboard-focusable (Arrow keys change the value); show
+    // a clear ring so keyboard users can see which wheel is active.
+    &:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px $green;
+        border-radius: 8px;
+    }
 }
 
 .wtp-wheel-list {

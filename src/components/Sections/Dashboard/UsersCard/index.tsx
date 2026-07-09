@@ -250,9 +250,15 @@ const ConfirmInline = ({ label, onConfirm, onCancel }: ConfirmInlineProps) => {
             className="users-card-confirm-strip"
             role="dialog"
             aria-modal="true"
+            aria-labelledby="users-card-confirm-label"
         >
             <div className="users-card-confirm-card">
-                <p className="users-card-confirm-label">{label}</p>
+                <p
+                    id="users-card-confirm-label"
+                    className="users-card-confirm-label"
+                >
+                    {label}
+                </p>
                 <div className="users-card-confirm-actions">
                     <button
                         type="button"
