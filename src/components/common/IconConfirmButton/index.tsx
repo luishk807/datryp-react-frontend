@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import {
     Dialog,
     DialogActions,
@@ -43,6 +43,10 @@ const IconConfirmButton = ({
     isViewMode = false,
 }: IconConfirmButtonProps) => {
     const [open, setOpen] = useState(false);
+    // Unique per instance — several IconConfirmButtons (e.g. one per card)
+    // are commonly mounted at once; a shared id breaks aria-labelledby.
+    const titleId = useId();
+    const descId = useId();
 
     if (isViewMode) return null;
 
@@ -66,17 +70,17 @@ const IconConfirmButton = ({
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}
-                aria-labelledby="icon-confirm-title"
-                aria-describedby="icon-confirm-desc"
+                aria-labelledby={titleId}
+                aria-describedby={descId}
                 className="datryp-dialog"
             >
-                <DialogTitle className="datryp-title" id="icon-confirm-title">
+                <DialogTitle className="datryp-title" id={titleId}>
                     {title}
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText
                         className="datryp-dialog-content"
-                        id="icon-confirm-desc"
+                        id={descId}
                     >
                         {children}
                     </DialogContentText>

@@ -2135,8 +2135,9 @@ const TripDetailHeader = ({
         onClose={closeConfirm}
         maxWidth="xs"
         fullWidth
+        aria-labelledby="trip-detail-confirm-dialog-title"
       >
-        <DialogTitle>
+        <DialogTitle id="trip-detail-confirm-dialog-title">
           {confirmDialog === "cancel"
             ? t("tripDetail.confirm.cancelTitle")
             : t("tripDetail.confirm.deleteTitle")}

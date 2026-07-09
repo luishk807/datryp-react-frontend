@@ -457,7 +457,10 @@ const AiTripBuilderPage = () => {
                         <section className="ai-trip-builder-page-panel">
                             {wizardStepKey === 'budget' && (
                                 <div className="ai-trip-builder-page-step-body">
-                                    <h2 className="ai-trip-builder-page-step-title">
+                                    <h2
+                                        className="ai-trip-builder-page-step-title"
+                                        id="aitb-budget-q"
+                                    >
                                         {t('aiTrip.budget.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
@@ -471,6 +474,7 @@ const AiTripBuilderPage = () => {
                                             <input
                                                 type="number"
                                                 className="ai-trip-builder-page-budget-field"
+                                                aria-labelledby="aitb-budget-q"
                                                 value={budget}
                                                 min={MIN_BUDGET}
                                                 max={MAX_BUDGET}
@@ -516,7 +520,10 @@ const AiTripBuilderPage = () => {
 
                             {wizardStepKey === 'interests' && (
                                 <div className="ai-trip-builder-page-step-body">
-                                    <h2 className="ai-trip-builder-page-step-title">
+                                    <h2
+                                        className="ai-trip-builder-page-step-title"
+                                        id="aitb-interests-q"
+                                    >
                                         {t('aiTrip.interests.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
@@ -525,6 +532,7 @@ const AiTripBuilderPage = () => {
                                     <input
                                         type="text"
                                         className="ai-trip-builder-page-text"
+                                        aria-labelledby="aitb-interests-q"
                                         value={interestDraft}
                                         placeholder={t(
                                             'aiTrip.interests.placeholder',
@@ -578,7 +586,10 @@ const AiTripBuilderPage = () => {
 
                             {wizardStepKey === 'destination' && (
                                 <div className="ai-trip-builder-page-step-body">
-                                    <h2 className="ai-trip-builder-page-step-title">
+                                    <h2
+                                        className="ai-trip-builder-page-step-title"
+                                        id="aitb-destination-q"
+                                    >
                                         {t('aiTrip.destination.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
@@ -587,6 +598,7 @@ const AiTripBuilderPage = () => {
                                     <input
                                         type="text"
                                         className="ai-trip-builder-page-text"
+                                        aria-labelledby="aitb-destination-q"
                                         value={countryHint}
                                         placeholder={t(
                                             'aiTrip.destination.placeholder',
@@ -623,7 +635,10 @@ const AiTripBuilderPage = () => {
 
                             {wizardStepKey === 'duration' && (
                                 <div className="ai-trip-builder-page-step-body">
-                                    <h2 className="ai-trip-builder-page-step-title">
+                                    <h2
+                                        className="ai-trip-builder-page-step-title"
+                                        id="aitb-duration-q"
+                                    >
                                         {t('aiTrip.duration.question')}
                                     </h2>
                                     <p className="ai-trip-builder-page-step-hint">
@@ -634,6 +649,7 @@ const AiTripBuilderPage = () => {
                                             <input
                                                 type="number"
                                                 className="ai-trip-builder-page-budget-field"
+                                                aria-labelledby="aitb-duration-q"
                                                 value={duration}
                                                 min={1}
                                                 max={21}
@@ -702,6 +718,7 @@ const AiTripBuilderPage = () => {
                                     <h2
                                         className="ai-trip-builder-page-step-title"
                                         style={{ marginTop: 28 }}
+                                        id="aitb-party-q"
                                     >
                                         {t('aiTrip.party.question')}
                                     </h2>
@@ -713,6 +730,7 @@ const AiTripBuilderPage = () => {
                                             <input
                                                 type="number"
                                                 className="ai-trip-builder-page-budget-field"
+                                                aria-labelledby="aitb-party-q"
                                                 value={partySize}
                                                 min={1}
                                                 max={20}

@@ -230,6 +230,7 @@ const ActivityInlineReview = ({
 
             <textarea
                 className="air-tip"
+                aria-label={t("review.inline.tipPlaceholder")}
                 value={tip}
                 maxLength={TIP_MAX}
                 placeholder={t("review.inline.tipPlaceholder")}

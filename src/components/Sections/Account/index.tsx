@@ -778,6 +778,7 @@ export const Account = () => {
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
                                 className="account-avatar-file"
+                                aria-label={t('account.profile.uploadPictureAria')}
                                 onChange={onFileChosen}
                             />
                         </div>

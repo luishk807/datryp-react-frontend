@@ -4,6 +4,7 @@ import 'App.scss';
 import './index.scss';
 import Footer from 'components/Footer';
 import Header from 'components/Header';
+import SkipLink from 'components/common/SkipLink';
 
 interface SubLayoutProps {
     children?: ReactNode;
@@ -27,6 +28,7 @@ const Layout = ({
     if (fullBleed) {
         return (
             <div className="page-shell is-subpage is-full-bleed">
+                <SkipLink />
                 {/* `title` doubles as the in-header page-title slot on
                     full-bleed pages so the chrome row stays a single
                     line and the page-body can claim 100% vertical
@@ -42,7 +44,7 @@ const Layout = ({
                         ) : undefined
                     }
                 />
-                <main className="page-content page-content-full-bleed">
+                <main id="main-content" className="page-content page-content-full-bleed">
                     {children}
                 </main>
                 <Footer />
@@ -57,8 +59,9 @@ const Layout = ({
         // direction. Re-add per-page if a future page needs to hide
         // it again.
         <div className="page-shell is-subpage">
+            <SkipLink />
             <Header withSearch />
-            <main className="page-content">
+            <main id="main-content" className="page-content">
                 <Grid container spacing={0} id="layout" className="root">
                     <Grid item lg={8} md={12} xs={12} className="layout-container">
                         <Grid container>
@@ -70,7 +73,7 @@ const Layout = ({
                                     xs={12}
                                     className="layout-title"
                                 >
-                                    <span>{title}</span>
+                                    <h1 className="layout-title-text">{title}</h1>
                                     {titleAction}
                                 </Grid>
                             )}

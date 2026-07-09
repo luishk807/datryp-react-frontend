@@ -84,6 +84,7 @@ const TripNote = ({ tripId, note, canEdit }: TripNoteProps) => {
                 <textarea
                     ref={textareaRef}
                     className="trip-note-input"
+                    aria-label={t('tripDetail.note.badge')}
                     value={draft}
                     maxLength={NOTE_MAX_LEN}
                     placeholder={t('tripDetail.note.placeholder')}

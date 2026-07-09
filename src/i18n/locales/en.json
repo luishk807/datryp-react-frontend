@@ -624,6 +624,9 @@
             "placePlaceholder": "Search a city or country",
             "describePlaceholder": "Try 'beach yoga retreat' or 'ancient ruins'",
             "describeAria": "Describe what you're looking for",
+            "placeAria": "Search for a city or country",
+            "countryAria": "Search for a country",
+            "resultsAria": "Search results",
             "searching": "Searching…",
             "countryError": "Could not reach the country service. Is the backend running?",
             "placeError": "Could not reach the place search. Is the backend running?",
@@ -1287,7 +1290,8 @@
     "common": {
         "save": "Save",
         "cancel": "Cancel",
-        "saving": "Saving…"
+        "saving": "Saving…",
+        "skipToContent": "Skip to main content"
     },
     "timePicker": {
         "select": "Select time",

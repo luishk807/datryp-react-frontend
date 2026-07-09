@@ -193,11 +193,15 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                                 capitalizeType="none"
                                 className="app-header-avatar"
                                 ariaLabel={t('nav.accountMenuFor', { name: user.name })}
+                                ariaHasPopup="menu"
+                                ariaExpanded={Boolean(menuAnchor)}
+                                ariaControls={menuAnchor ? 'account-menu' : undefined}
                                 onClick={(e) => setMenuAnchor(e.currentTarget)}
                             >
                                 {avatarContent}
                             </ButtonCustom>
                             <Menu
+                                id="account-menu"
                                 anchorEl={menuAnchor}
                                 onClose={handleMenuClose}
                                 paperClassName="user-menu"

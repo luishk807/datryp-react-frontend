@@ -139,7 +139,10 @@ const FriendsVisitedBadge = ({
                 const body = (
                     <div className="friends-visited-drawer">
                         <header className="friends-visited-drawer-head">
-                            <h2 className="friends-visited-drawer-title">
+                            <h2
+                                id="friends-visited-title"
+                                className="friends-visited-drawer-title"
+                            >
                                 {t('detail.common.friends.title')}
                             </h2>
                             <button
@@ -179,7 +182,15 @@ const FriendsVisitedBadge = ({
                                     })}
                                 </li>
                             ) : (
-                                filteredFriends.map((friend) => (
+                                filteredFriends.map((friend) => {
+                                    // No public profile route today — /friends
+                                    // is the closest. Wire to the future
+                                    // profile page when it exists.
+                                    const openFriend = () => {
+                                        handleClose();
+                                        navigate(`/friends`);
+                                    };
+                                    return (
                                     <li
                                         key={friend.userId}
                                         className={
@@ -187,13 +198,17 @@ const FriendsVisitedBadge = ({
                                                 ? 'friends-visited-row has-review'
                                                 : 'friends-visited-row'
                                         }
-                                        onClick={() => {
-                                            handleClose();
-                                            // No public profile route today —
-                                            // /friends is the closest. Wire to
-                                            // the future profile page when it
-                                            // exists.
-                                            navigate(`/friends`);
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={openFriend}
+                                        onKeyDown={(e) => {
+                                            if (
+                                                e.key === 'Enter' ||
+                                                e.key === ' '
+                                            ) {
+                                                e.preventDefault();
+                                                openFriend();
+                                            }
                                         }}
                                     >
                                         {friend.profileImageUrl ? (
@@ -239,7 +254,8 @@ const FriendsVisitedBadge = ({
                                             </span>
                                         </span>
                                     </li>
-                                ))
+                                    );
+                                })
                             )}
                         </ul>
                     </div>
@@ -251,6 +267,7 @@ const FriendsVisitedBadge = ({
                         onClose={handleClose}
                         maxWidth="xs"
                         fullWidth
+                        aria-labelledby="friends-visited-title"
                         PaperProps={{
                             className: 'friends-visited-dialog-paper',
                         }}
@@ -262,6 +279,7 @@ const FriendsVisitedBadge = ({
                         anchor="bottom"
                         open={open}
                         onClose={handleClose}
+                        aria-labelledby="friends-visited-title"
                         PaperProps={{
                             className: 'friends-visited-drawer-paper',
                         }}

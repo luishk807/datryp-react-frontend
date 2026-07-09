@@ -624,6 +624,9 @@
             "placePlaceholder": "Busca una ciudad o país",
             "describePlaceholder": "Prueba 'retiro de yoga en la playa' o 'ruinas antiguas'",
             "describeAria": "Describe lo que estás buscando",
+            "placeAria": "Busca una ciudad o país",
+            "countryAria": "Busca un país",
+            "resultsAria": "Resultados de búsqueda",
             "searching": "Buscando…",
             "countryError": "No se pudo conectar con el servicio de países. ¿Está corriendo el backend?",
             "placeError": "No se pudo conectar con la búsqueda de lugares. ¿Está corriendo el backend?",
@@ -850,7 +853,8 @@
     "common": {
         "save": "Guardar",
         "cancel": "Cancelar",
-        "saving": "Guardando…"
+        "saving": "Guardando…",
+        "skipToContent": "Saltar al contenido principal"
     },
     "timePicker": {
         "select": "Seleccionar hora",

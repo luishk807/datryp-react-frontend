@@ -399,7 +399,11 @@ export const BasicTripInfo = ({
                 className={classnames('trip-collapsible-body', {
                     'is-collapsed': collapsible && collapsed,
                 })}
-                aria-hidden={collapsible && collapsed ? true : undefined}
+                // `inert` (not just aria-hidden) so the Edit button + form
+                // fields inside are pulled out of the tab order while
+                // collapsed — the CSS only sets max-height:0, so they'd
+                // otherwise stay keyboard-focusable inside a hidden region.
+                inert={collapsible && collapsed}
             >
             {hideHeader && onEditBasicInfo && (
                 <div className="trip-edit-basic-row">

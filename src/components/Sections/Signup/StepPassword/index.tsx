@@ -29,7 +29,9 @@ const StepPassword = ({ value, onChange, onContinue }: StepPasswordProps) => {
 
     return (
         <>
-            <h1 className="signup-step-title">{t('auth.signup.password.title')}</h1>
+            <h1 className="signup-step-title" id="signup-password-q">
+                {t('auth.signup.password.title')}
+            </h1>
             <p className="signup-step-subtitle">
                 {t('auth.signup.password.subtitle', { min: MIN_LEN })}
             </p>
@@ -38,6 +40,7 @@ const StepPassword = ({ value, onChange, onContinue }: StepPasswordProps) => {
                     className="signup-step-input signup-password-input"
                     type={show ? 'text' : 'password'}
                     autoFocus
+                    aria-labelledby="signup-password-q"
                     autoComplete="new-password"
                     placeholder="••••••••"
                     value={value}

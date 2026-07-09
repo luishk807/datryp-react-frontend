@@ -107,8 +107,9 @@ const CreateUserModal = ({ open, onClose, onCreated }: CreateUserModalProps) => 
             fullWidth
             maxWidth="sm"
             className="create-user-dialog"
+            aria-labelledby="create-user-dialog-title"
         >
-            <DialogTitle>Create user</DialogTitle>
+            <DialogTitle id="create-user-dialog-title">Create user</DialogTitle>
             <DialogContent className="create-user-dialog-content">
                 <p className="create-user-dialog-help">
                     Admin-create skips the COPPA attestation. The new user

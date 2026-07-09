@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import './index.scss';
 import {
     DialogContentText,
@@ -44,6 +44,10 @@ const DialogBox = ({
     destructive = false,
 }: DialogBoxProps) => {
     const [open, setOpen] = useState(false);
+    // Unique per instance so concurrent DialogBoxes don't share DOM ids
+    // (which would break aria-labelledby / aria-describedby).
+    const titleId = useId();
+    const descId = useId();
 
     const handleConfirm = () => {
         setOpen(false);
@@ -62,19 +66,19 @@ const DialogBox = ({
             <Dialog
                 open={open}
                 onClose={() => setOpen(false)}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
+                aria-labelledby={titleId}
+                aria-describedby={descId}
                 className={classNames('datryp-dialog', {
                     'is-destructive': destructive,
                 })}
             >
-                <DialogTitle className="datryp-title" id="alert-dialog-title">
+                <DialogTitle className="datryp-title" id={titleId}>
                     {title}
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText
                         className="datryp-dialog-content"
-                        id="alert-dialog-description"
+                        id={descId}
                     >
                         {children}
                     </DialogContentText>

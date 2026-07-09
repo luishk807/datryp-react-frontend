@@ -124,6 +124,11 @@
   padding: 10px 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.025);
+
+  // The input suppresses its own outline; surface keyboard focus on the row.
+  &:focus-within {
+    box-shadow: inset 0 0 0 2px rgba(60, 181, 75, 0.5);
+  }
 }
 
 .phone-input-popover-search-icon {

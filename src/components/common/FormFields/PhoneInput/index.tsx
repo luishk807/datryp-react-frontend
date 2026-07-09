@@ -16,6 +16,7 @@
  * Bare variant only — matches the Account settings form.
  */
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     AsYouType,
     getCountries,
@@ -120,6 +121,7 @@ const PhoneInput = ({
     defaultCountry = 'US',
     disabled = false,
 }: PhoneInputProps) => {
+    const { t } = useTranslation();
     const fieldId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
     const countryBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -272,6 +274,7 @@ const PhoneInput = ({
                     <input
                         type="text"
                         className="phone-input-popover-search-input"
+                        aria-label={t('account.profile.selectCountry')}
                         placeholder="Search country"
                         value={filter}
                         autoFocus

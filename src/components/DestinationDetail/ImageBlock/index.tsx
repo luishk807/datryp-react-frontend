@@ -10,10 +10,10 @@ const ImageBlock = ({ image }: ImageBlockProps) => {
     return (
         <div className="activity-image">
             {image ? (
-                <img src={image.url} />
+                <img src={image.url} alt={image.name} />
             ) : (
                 <div className="in-no-image">
-                    <img src={NO_IMAGE} />
+                    <img src={NO_IMAGE} alt="" />
                 </div>
             )}
         </div>

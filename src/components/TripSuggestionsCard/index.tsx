@@ -406,8 +406,12 @@ const TripSuggestionsCard = ({
                 onClose={() => setPickerSuggestion(null)}
                 maxWidth="xs"
                 fullWidth
+                aria-labelledby="trip-suggestions-picker-dialog-title"
             >
-                <DialogTitle className="trip-suggestions-picker-title">
+                <DialogTitle
+                    id="trip-suggestions-picker-dialog-title"
+                    className="trip-suggestions-picker-title"
+                >
                     {t("tripDetail.suggestions.picker.title")}
                     <button
                         type="button"

@@ -379,8 +379,9 @@ export const TripStatusBadge = ({
                 maxWidth="xs"
                 fullWidth
                 className="confirm-all-dialog"
+                aria-labelledby="confirm-all-dialog-title"
             >
-                <DialogTitle className="confirm-all-title">
+                <DialogTitle id="confirm-all-dialog-title" className="confirm-all-title">
                     <WarningAmberRoundedIcon className="confirm-all-title-icon" />
                     {pastDue
                         ? t('tripCard.completePastDueTitle')
@@ -456,8 +457,9 @@ export const TripStatusBadge = ({
                 onClose={handleClose}
                 maxWidth="xs"
                 fullWidth
+                aria-labelledby="trip-status-confirm-dialog-title"
             >
-                <DialogTitle>{dialogTitle}</DialogTitle>
+                <DialogTitle id="trip-status-confirm-dialog-title">{dialogTitle}</DialogTitle>
                 <DialogContent>
                     <p>{dialogBody}</p>
                     {benefits && benefits.length > 0 && (

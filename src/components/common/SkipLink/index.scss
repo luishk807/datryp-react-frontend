@@ -1,0 +1,22 @@
+// Off-screen until focused, then slides into the top-left. Kept above all
+// app chrome (header z-index) so keyboard users always see it land.
+.skip-link {
+    position: absolute;
+    left: 8px;
+    top: -60px;
+    z-index: 2000;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: theme('colors.primaryGreen');
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.15s ease;
+
+    &:focus,
+    &:focus-visible {
+        top: 8px;
+        outline: 3px solid rgba(255, 255, 255, 0.85);
+        outline-offset: 2px;
+    }
+}

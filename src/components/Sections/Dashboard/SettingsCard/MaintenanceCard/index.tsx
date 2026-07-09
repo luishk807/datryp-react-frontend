@@ -237,8 +237,9 @@ const MaintenanceCard = () => {
                 onClose={cancelToggle}
                 maxWidth="xs"
                 fullWidth
+                aria-labelledby="maintenance-toggle-dialog-title"
             >
-                <DialogTitle>
+                <DialogTitle id="maintenance-toggle-dialog-title">
                     {pendingToggle
                         ? 'Turn on Maintenance mode?'
                         : 'Turn off Maintenance mode?'}

@@ -403,8 +403,9 @@ export const Friends = () => {
                 onClose={handleUnfriendCancel}
                 maxWidth="xs"
                 fullWidth
+                aria-labelledby="friends-remove-dialog-title"
             >
-                <DialogTitle>
+                <DialogTitle id="friends-remove-dialog-title">
                     {t('friends.removeDialog.title', {
                         name:
                             unfriendCandidate?.name ??

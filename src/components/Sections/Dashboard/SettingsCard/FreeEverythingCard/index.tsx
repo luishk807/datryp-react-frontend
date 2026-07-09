@@ -157,8 +157,9 @@ const FreeEverythingCard = () => {
                 onClose={cancelToggle}
                 maxWidth="xs"
                 fullWidth
+                aria-labelledby="free-everything-toggle-dialog-title"
             >
-                <DialogTitle>
+                <DialogTitle id="free-everything-toggle-dialog-title">
                     {pendingToggle
                         ? 'Turn on Free Everything?'
                         : 'Turn off Free Everything?'}

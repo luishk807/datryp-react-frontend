@@ -74,6 +74,14 @@
   -o-border-radius: 10px;
 }
 
+// The input itself is borderless with `outline: none`, so keyboard focus
+// had no visible indicator (WCAG 2.4.7). Ring the wrapping holder when the
+// input inside is focused.
+.searchbarMain .holder:focus-within,
+.searchbarMain .holder-simple:focus-within {
+  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.35);
+}
+
 .searchbarMain .holder .container{
   width: 100%;
   justify-content: space-between;
@@ -208,7 +216,10 @@
   animation: searchbar-item-enter 0.28s ease-out backwards;
 }
 
-.searchbarMain .searchbar-country-item:hover {
+.searchbarMain .searchbar-country-item:hover,
+// Keyboard highlight (aria-activedescendant). Matches :hover so mouse and
+// keyboard share one visual "active option".
+.searchbarMain .searchbar-country-item[aria-selected='true'] {
   background: rgba(60, 181, 75, 0.1);
   transform: translateX(2px);
 }
@@ -304,6 +315,14 @@
   flex-direction: column;
   width: 100%;
   position: relative;
+}
+
+// Keyboard focus ring for the recommend-mode input (border:none; outline:none)
+// — the input's own focus indicator was suppressed, so surface it on the
+// wrapping form row instead (WCAG 2.4.7).
+.searchbarMain .holder-recommend .searchbar-recommend-form:focus-within {
+  box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.35);
+  border-color: rgba(60, 181, 75, 0.55);
 }
 
 /* ── Recommend mode form ─────────────────────────────────────────────── */

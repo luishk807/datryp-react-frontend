@@ -864,8 +864,9 @@ const StepperComp = ({
                     onClose={() => setEditConfirm(null)}
                     maxWidth="xs"
                     fullWidth
+                    aria-labelledby="stepper-edit-confirm-dialog-title"
                 >
-                    <DialogTitle>
+                    <DialogTitle id="stepper-edit-confirm-dialog-title">
                         {editConfirm === 'cancel'
                             ? t('createTrip.stepper.cancelDialog.title')
                             : t('createTrip.stepper.deleteDialog.title')}

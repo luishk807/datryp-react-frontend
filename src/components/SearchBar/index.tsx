@@ -61,6 +61,13 @@ interface SearchBarProps {
 // the /countries endpoint.
 const DEBOUNCE_MS = 250;
 
+// Shared ids for the WAI-ARIA combobox wiring. Only one of country/place
+// mode ever renders a listbox at a time, so a single listbox id + option-id
+// namespace is unambiguous and lets the input reference the active option
+// via aria-activedescendant.
+const LISTBOX_ID = 'searchbar-results-listbox';
+const optionId = (index: number) => `searchbar-result-option-${index}`;
+
 /** Two-letter ISO 3166-1 alpha-2 country code → Unicode flag emoji.
  *  Falls back to a globe icon if the code is missing/malformed. */
 const flagEmoji = (code?: string | null): string => {
@@ -98,6 +105,10 @@ const SearchBar = ({
     // input falls back to its own static placeholder.
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const [isFocused, setIsFocused] = useState(false);
+
+    // Highlighted result for keyboard navigation of the country/place
+    // listbox (WAI-ARIA combobox pattern). -1 = nothing highlighted.
+    const [activeIndex, setActiveIndex] = useState(-1);
     const canRotate = !isFocused && rawQuery.trim().length === 0;
     useEffect(() => {
         setPlaceholderIdx(0);
@@ -159,6 +170,22 @@ const SearchBar = ({
         const handle = setTimeout(() => setSubmittedQuery(trimmed), DEBOUNCE_MS);
         return () => clearTimeout(handle);
     }, [rawQuery]);
+
+    // A fresh query or mode switch rebuilds the result list, so drop any
+    // stale highlight — otherwise aria-activedescendant could point past
+    // the end of the new results.
+    useEffect(() => {
+        setActiveIndex(-1);
+    }, [submittedQuery, mode]);
+
+    // Keep the keyboard-highlighted option scrolled into view inside the
+    // (scrollable) dropdown.
+    useEffect(() => {
+        if (activeIndex < 0) return;
+        document
+            .getElementById(optionId(activeIndex))
+            ?.scrollIntoView({ block: 'nearest' });
+    }, [activeIndex]);
 
     useEffect(() => {
         if (defaultValue) {
@@ -225,6 +252,53 @@ const SearchBar = ({
 
     const handleClickAway = () => closeResults();
 
+    // Keyboard navigation for the country/place results listbox. Focus stays
+    // on the input (combobox pattern); Arrow keys move a virtual highlight
+    // exposed via aria-activedescendant, Enter selects it, Escape closes the
+    // list. Generic over the two result shapes so both modes share it.
+    const handleListKeyDown = <T,>(
+        e: React.KeyboardEvent<HTMLInputElement>,
+        items: T[],
+        onSelect: (item: T) => void
+    ) => {
+        switch (e.key) {
+            case 'ArrowDown':
+                if (!items.length) return;
+                e.preventDefault();
+                setActiveIndex((i) => (i + 1) % items.length);
+                break;
+            case 'ArrowUp':
+                if (!items.length) return;
+                e.preventDefault();
+                setActiveIndex((i) => (i <= 0 ? items.length - 1 : i - 1));
+                break;
+            case 'Home':
+                if (!items.length) return;
+                e.preventDefault();
+                setActiveIndex(0);
+                break;
+            case 'End':
+                if (!items.length) return;
+                e.preventDefault();
+                setActiveIndex(items.length - 1);
+                break;
+            case 'Enter':
+                if (activeIndex >= 0 && activeIndex < items.length) {
+                    e.preventDefault();
+                    onSelect(items[activeIndex]);
+                }
+                break;
+            case 'Escape':
+                if (rawQuery.trim().length > 0) {
+                    e.preventDefault();
+                    closeResults();
+                }
+                break;
+            default:
+                break;
+        }
+    };
+
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
         setIsFocused(true);
         e.target.select();
@@ -256,6 +330,17 @@ const SearchBar = ({
                             ref={inputRef}
                             className="inputBar"
                             type="text"
+                            role="combobox"
+                            aria-label={t('search.bar.countryAria')}
+                            aria-autocomplete="list"
+                            aria-expanded={showDropdown}
+                            aria-controls={LISTBOX_ID}
+                            aria-activedescendant={
+                                activeIndex >= 0 ? optionId(activeIndex) : undefined
+                            }
+                            onKeyDown={(e) =>
+                                handleListKeyDown(e, items, handleCountryClick)
+                            }
                             onFocus={handleFocus}
                             placeholder={t('search.bar.countryPlaceholder')}
                         />
@@ -297,11 +382,22 @@ const SearchBar = ({
                             </p>
                         )}
                         {!!items.length && (
-                            <ul className="searchbar-country-list">
-                                {items.map((item) => (
+                            <ul
+                                id={LISTBOX_ID}
+                                role="listbox"
+                                aria-label={t('search.bar.resultsAria')}
+                                className="searchbar-country-list"
+                            >
+                                {items.map((item, index) => (
                                     <li
+                                        id={optionId(index)}
+                                        role="option"
+                                        aria-selected={activeIndex === index}
                                         onClick={() => handleCountryClick(item)}
-                                        onMouseEnter={() => handleListHover(item.name)}
+                                        onMouseEnter={() => {
+                                            setActiveIndex(index);
+                                            handleListHover(item.name);
+                                        }}
                                         key={item.id}
                                         className="item searchbar-country-item"
                                     >
@@ -360,6 +456,17 @@ const SearchBar = ({
                             ref={inputRef}
                             className="inputBar"
                             type="text"
+                            role="combobox"
+                            aria-label={t('search.bar.placeAria')}
+                            aria-autocomplete="list"
+                            aria-expanded={showDropdown}
+                            aria-controls={LISTBOX_ID}
+                            aria-activedescendant={
+                                activeIndex >= 0 ? optionId(activeIndex) : undefined
+                            }
+                            onKeyDown={(e) =>
+                                handleListKeyDown(e, items, handlePlaceClick)
+                            }
                             onFocus={handleFocus}
                             onBlur={handleBlur}
                             placeholder={
@@ -408,17 +515,26 @@ const SearchBar = ({
                             </p>
                         )}
                         {!!items.length && (
-                            <ul className="searchbar-country-list">
-                                {items.map((place) => (
+                            <ul
+                                id={LISTBOX_ID}
+                                role="listbox"
+                                aria-label={t('search.bar.resultsAria')}
+                                className="searchbar-country-list"
+                            >
+                                {items.map((place, index) => (
                                     <li
+                                        id={optionId(index)}
+                                        role="option"
+                                        aria-selected={activeIndex === index}
                                         onClick={() => handlePlaceClick(place)}
-                                        onMouseEnter={() =>
+                                        onMouseEnter={() => {
+                                            setActiveIndex(index);
                                             handleListHover(
                                                 place.kind === 'country'
                                                     ? place.name
                                                     : `${place.name}, ${place.countryName}`
-                                            )
-                                        }
+                                            );
+                                        }}
                                         key={place.id}
                                         className="item searchbar-country-item"
                                     >

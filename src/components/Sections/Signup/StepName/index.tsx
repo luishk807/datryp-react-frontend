@@ -31,7 +31,9 @@ const StepName = ({
 
     return (
         <>
-            <h1 className="signup-step-title">{t('auth.signup.name.title')}</h1>
+            <h1 className="signup-step-title" id="signup-name-q">
+                {t('auth.signup.name.title')}
+            </h1>
             <p className="signup-step-subtitle">
                 {t('auth.signup.name.subtitle')}
             </p>
@@ -39,6 +41,7 @@ const StepName = ({
                 className="signup-step-input"
                 type="text"
                 autoFocus
+                aria-labelledby="signup-name-q"
                 placeholder={t('auth.signup.name.placeholder')}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}

@@ -52,7 +52,9 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
 
     return (
         <>
-            <h1 className="signup-step-title">{t('auth.signup.bucket.title')}</h1>
+            <h1 className="signup-step-title" id="signup-bucket-q">
+                {t('auth.signup.bucket.title')}
+            </h1>
             <p className="signup-step-subtitle">
                 {t('auth.signup.bucket.subtitle')}
             </p>
@@ -61,6 +63,7 @@ const StepBucketList = ({ onFinish, onSkip }: StepBucketListProps) => {
                 <input
                     className="signup-step-input"
                     type="text"
+                    aria-labelledby="signup-bucket-q"
                     placeholder={t('auth.signup.bucket.placeholder')}
                     value={draft}
                     onChange={(e) => {

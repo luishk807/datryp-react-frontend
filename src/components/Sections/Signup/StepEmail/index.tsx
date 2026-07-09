@@ -34,7 +34,9 @@ const StepEmail = ({
 
     return (
         <>
-            <h1 className="signup-step-title">{t('auth.signup.email.title')}</h1>
+            <h1 className="signup-step-title" id="signup-email-q">
+                {t('auth.signup.email.title')}
+            </h1>
             <p className="signup-step-subtitle">
                 {t('auth.signup.email.subtitle')}
             </p>
@@ -42,6 +44,7 @@ const StepEmail = ({
                 className="signup-step-input"
                 type="email"
                 autoFocus
+                aria-labelledby="signup-email-q"
                 inputMode="email"
                 autoComplete="email"
                 placeholder={t('auth.common.emailPlaceholder')}

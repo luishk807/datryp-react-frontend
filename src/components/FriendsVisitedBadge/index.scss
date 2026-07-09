@@ -173,6 +173,14 @@
         background: rgba(0, 0, 0, 0.04);
     }
 
+    // Each row is a role="button" — give keyboard focus a clear ring
+    // distinct from the hover tint.
+    &:focus-visible {
+        outline: none;
+        background: rgba(0, 0, 0, 0.04);
+        box-shadow: 0 0 0 2px theme('colors.primaryGreen');
+    }
+
     // Review rows carry stars + a multi-line quote, so the avatar
     // top-aligns against the text block instead of centering on it —
     // the standard review-card layout.

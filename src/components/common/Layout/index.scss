@@ -8,6 +8,17 @@
   padding: 0 16px;
 }
 
+// The page title is a real <h1> for landmark/heading semantics, but should
+// look exactly like the plain text it replaced — inherit the sizing/color
+// from .layout-title and strip the UA heading margins.
+#layout .layout-title .layout-title-text {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
 @media (min-width: 1200px) {
   #layout .layout-title {
     padding: 0;

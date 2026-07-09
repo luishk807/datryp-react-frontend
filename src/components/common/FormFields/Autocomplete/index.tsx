@@ -1,7 +1,12 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import classnames from 'classnames';
 import './index.scss';
-import { TextField, Autocomplete } from '@mui/material';
+import {
+    TextField,
+    Autocomplete,
+    type AutocompleteChangeReason,
+    type AutocompleteChangeDetails,
+} from '@mui/material';
 
 export interface AutocompleteOption {
     id: number;
@@ -14,7 +19,7 @@ export interface AutocompleteCustomProps<T extends AutocompleteOption = Autocomp
     isMultiple?: boolean;
     onSelect?: (selected: T) => void;
     name?: string;
-    onRemove?: (remaining: T[]) => void;
+    onRemove?: (removed: T[]) => void;
     selectedOptions?: T[];
     renderOption?: (option: T, isSelected: boolean) => ReactNode;
 }
@@ -31,23 +36,34 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
 }: AutocompleteCustomProps<T>) => {
     const [data, setData] = useState<T[]>([]);
 
-    const handleOnClick = (selected: T) => {
-        if (selected.id !== -1) {
-            const exists = data.some((item) => item.id === selected.id);
-            if (!exists) setData((prev) => [...prev, selected]);
-        }
-        onSelect?.(selected);
-    };
-
-    const handleOnChange = (_event: unknown, newValue: T[]) => {
-        const ids = new Set(newValue.map((item) => item.id));
-        const remaining = data.filter((item) => !ids.has(item.id));
-        onRemove?.(remaining);
-    };
-
     useEffect(() => {
         setData(selectedOptions);
     }, [selectedOptions]);
+
+    // Selection flows through MUI's own onChange rather than a hand-rolled
+    // per-option onClick. That keeps the options fully keyboard-operable:
+    // MUI leaves focus on the input and drives the highlighted option via
+    // aria-activedescendant, so Arrow keys + Enter select without ever
+    // needing the option element itself to be focusable. We translate MUI's
+    // add/remove events back into this component's onSelect / onRemove.
+    const handleOnChange = (
+        _event: unknown,
+        newValue: T[],
+        reason: AutocompleteChangeReason,
+        details?: AutocompleteChangeDetails<T>
+    ) => {
+        const option = details?.option;
+        if (reason === 'selectOption' && option) {
+            onSelect?.(option);
+            return;
+        }
+        // removeOption / clear — report the items that left the selection,
+        // preserving the original callback contract (onRemove receives the
+        // removed options, not the survivors).
+        const nextIds = new Set(newValue.map((item) => item.id));
+        const removed = data.filter((item) => !nextIds.has(item.id));
+        if (removed.length) onRemove?.(removed);
+    };
 
     return (
         <Autocomplete
@@ -58,7 +74,13 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
             freeSolo
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={handleOnChange}
-            renderOption={(_props, option) => {
+            renderOption={(props, option) => {
+                // MUI (>=5.15) puts `key` in the props object; pull it out so
+                // it's passed explicitly and the rest spreads cleanly onto the
+                // <li> — this spread is what carries role="option", the id
+                // referenced by aria-activedescendant, and MUI's click/keyboard
+                // selection wiring.
+                const { key, ...optionProps } = props;
                 const alreadySelected = selectedOptions.some(
                     (item) => item.id === option.id
                 );
@@ -66,11 +88,13 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
                 if (renderOption) {
                     return (
                         <li
+                            {...optionProps}
                             key={`fd-${option.id}`}
-                            className={classnames('autocomplete-custom-li', {
-                                disabled: alreadySelected && option.id !== -1,
-                            })}
-                            onClick={() => handleOnClick(option)}
+                            className={classnames(
+                                optionProps.className,
+                                'autocomplete-custom-li',
+                                { disabled: alreadySelected && option.id !== -1 }
+                            )}
                         >
                             {renderOption(option, alreadySelected)}
                         </li>
@@ -79,26 +103,27 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
 
                 if (option.id === -1) {
                     return (
-                        <li key={`fd-${option.id}`}>
+                        <li
+                            {...optionProps}
+                            key={`fd-${option.id}`}
+                            className={classnames(optionProps.className)}
+                        >
                             <hr className="my-2" />
-                            <div
-                                className="autocomplete-custom-option"
-                                onClick={() => handleOnClick(option)}
-                            >
+                            <div className="autocomplete-custom-option">
                                 {option.label}
                             </div>
                         </li>
                     );
                 }
                 return (
-                    <li key={`fd-${option.id}`}>
-                        <div
-                            className={classnames({
-                                'autocomplete-custom-item': true,
-                                disabled: alreadySelected,
-                            })}
-                            onClick={() => handleOnClick(option)}
-                        >
+                    <li
+                        {...optionProps}
+                        key={`fd-${option.id}`}
+                        className={classnames(optionProps.className, {
+                            disabled: alreadySelected,
+                        })}
+                    >
+                        <div className="autocomplete-custom-item">
                             {option.label}
                         </div>
                     </li>

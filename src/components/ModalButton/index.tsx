@@ -1,5 +1,6 @@
 import React, {
     forwardRef,
+    useId,
     useImperativeHandle,
     useState,
     type ComponentType,
@@ -74,6 +75,9 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
         ref
     ) => {
         const [open, setOpen] = useState(false);
+        // Unique per instance — a hard-coded id collides (breaking
+        // aria-labelledby) whenever two ModalButtons mount at once.
+        const titleId = useId();
         const handleOpen = () => {
             setOpen(true);
             onOpen?.();
@@ -95,7 +99,7 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                 <Modal
                     open={open}
                     onClose={handleClose}
-                    aria-labelledby="modal-modal-title"
+                    aria-labelledby={titleId}
                 >
                     <div
                         className={classNames('modalCustom', containerClassName)}
@@ -116,10 +120,7 @@ const ModalButton = forwardRef<ModalButtonHandle, ModalButtonProps>(
                     >
                         <span className="modalCustom-stripe" aria-hidden="true" />
                         <div className="modalCustom-header">
-                            <h2
-                                id="modal-modal-title"
-                                className="modalCustom-title"
-                            >
+                            <h2 id={titleId} className="modalCustom-title">
                                 {title}
                             </h2>
                             {headerAction && (

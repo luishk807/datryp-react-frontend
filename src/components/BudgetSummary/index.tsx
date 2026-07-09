@@ -155,7 +155,10 @@ const BudgetSummary = ({
                 className={classNames('budget-collapsible-body', {
                     'is-collapsed': collapsible && collapsed,
                 })}
-                aria-hidden={collapsible && collapsed ? true : undefined}
+                // `inert` so controls inside the collapsed body leave the tab
+                // order too (CSS only collapses max-height, keeping them
+                // focusable otherwise).
+                inert={collapsible && collapsed}
             >
             {status !== BUDGET_STATUS.EMPTY && (
                 <div className="budget-bar">
