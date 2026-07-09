@@ -26,9 +26,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Claude Code (local only — let collaborators use their own AI tools)
+# Claude Code local settings (personal — collaborators use their own).
+# CLAUDE.md itself IS versioned: it documents shared project conventions.
 /.claude/
-/CLAUDE.md
 
 # Design/spec samples kept locally for export-format reference but not
 # checked in (binary, evolves, not a build artifact).
