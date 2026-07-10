@@ -96,8 +96,18 @@ export default defineConfig({
                 },
                 // API client modules — all ~50 fetch modules contract-tested
                 // (MSW + Zod). Direct children only (`*.ts`, not hooks/); infra
-                // glue is excluded above. The api/hooks/ layer is not gated yet.
+                // glue is excluded above.
                 'src/api/*.ts': {
+                    statements: 80,
+                    branches: 80,
+                    functions: 80,
+                    lines: 80,
+                },
+                // TanStack Query hooks — every hook driven through MSW via
+                // `renderHookWithProviders` (REST + both GraphQL endpoints),
+                // asserting reshaping, enabled guards, param forwarding, and
+                // mutation cache invalidation. Aggregate sits ~97/95/98/97.
+                'src/api/hooks/**': {
                     statements: 80,
                     branches: 80,
                     functions: 80,

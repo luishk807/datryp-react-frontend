@@ -15,13 +15,17 @@ moment.suppressDeprecationWarnings = true;
 // mock fail loudly — pure unit tests make no requests, so this only bites
 // tests that hit the network without a handler (which is what we want).
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-// Unmount React trees between tests so DOM state / effects never leak across
-// cases (RTL doesn't auto-cleanup outside its own test runner integration).
+// Order matters: unmount React trees FIRST (RTL doesn't auto-cleanup outside
+// its own runner integration), THEN reset handlers. A still-mounted query that
+// dispatches a request into a handler-less server would trip
+// `onUnhandledRequest:'error'` as an async unhandled rejection — which Vitest
+// blames on whatever file happens to be running, an intermittent cross-file
+// flake. Tearing down the trees before the reset closes that window.
 afterEach(() => {
     cleanup();
+    server.resetHandlers();
 });
 
 // ---- jsdom polyfills for browser APIs the app (and MUI) touch ----
