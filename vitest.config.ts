@@ -109,6 +109,20 @@ export default defineConfig({
                     functions: 80,
                     lines: 80,
                 },
+                // Page-level sections — every routed page + its cards/steps:
+                // static/legal, auth+onboarding (all Signup steps), list pages,
+                // Home + destination detail pages, the admin Dashboard (20
+                // cards), and the giants (TripDetail 2181, Account, MyMap 3017
+                // w/ a mocked mapbox, AiTripBuilderPage). Pages tested by
+                // stubbing the shell + mocking data hooks. Aggregate sits
+                // ~96/83/87/96 — the big detail pages fan out many optional
+                // `details?.x` branches that dilute to a passing aggregate.
+                'src/components/Sections/**': {
+                    statements: 80,
+                    branches: 80,
+                    functions: 80,
+                    lines: 80,
+                },
                 // API client modules — all ~50 fetch modules contract-tested
                 // (MSW + Zod). Direct children only (`*.ts`, not hooks/); infra
                 // glue is excluded above.
