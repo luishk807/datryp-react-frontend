@@ -21,8 +21,35 @@ env:
   CLOUDFRONT_DISTRIBUTION_ID: E1IZZH238E1OSP
 
 jobs:
+  # Gate: production deploy only proceeds if type-check + the full test suite
+  # (incl. coverage thresholds) pass. A push to master with failing tests is
+  # NOT deployed — `build-and-deploy` is skipped when this job fails.
+  test:
+    name: Type-check & test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Test (with coverage thresholds)
+        run: npm run test:coverage
+
   build-and-deploy:
     name: Build, sync, invalidate
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

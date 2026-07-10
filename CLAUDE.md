@@ -98,5 +98,21 @@ Every component you create or touch must be usable by keyboard and screen-reader
 - **Respect `prefers-reduced-motion`** for non-essential animation.
 - Quick self-check before finishing UI work: can you Tab to every control, see where focus is, operate it with Enter/Space/Arrows/Escape, and would a screen reader announce a sensible name + role? If not, it's not done.
 
+### 11. Tests ship with the change — non-negotiable
+Every code change updates or adds proper tests **in the same change**. A behavior change with no test change is incomplete — treat missing tests like a failing build. This is not "write tests later."
+
+- **Stack:** Vitest + React Testing Library + jsdom, with MSW + Zod for API-contract tests. Run `npm run test` (once), `npm run test:watch` (TDD), `npm run test:coverage` (report). Config in `vitest.config.ts`; global setup + jsdom polyfills + MSW lifecycle in `src/test/setup.ts`.
+- **Co-locate** the test next to the unit: `foo.ts` → `foo.test.ts`; `Component/index.tsx` → `Component/index.test.tsx`. Test files are matched by `src/**/*.{test,spec}.{ts,tsx}`.
+- **What to test, by kind of change:**
+  - **Pure function / util** → unit test the real behavior + edge cases (empty, null/invalid, boundaries). Pin actual output — if a test surprises you, verify the code is right before "fixing" the test (several of ours caught wrong assumptions, not bugs).
+  - **Component** → React Testing Library: render, assert on **roles/accessible names** (not implementation details), drive interaction with `userEvent`, and cover the a11y contract (rule 10) — keyboard operation, `aria-*`, disabled state.
+  - **API client / hook** → a **contract test**: a Zod `.strict()` schema in `src/test/contracts/*.contract.ts` is the source of truth for the wire shape; a fixture typed as the FE's own interface (`src/test/fixtures/*`) can't drift from that interface; drive the **real** client fn through MSW and `Contract.parse(result)`. Add a negative case (missing/extra/wrong-typed field) so drift actually fails. Reference: `src/api/authApi.contract.test.ts`.
+  - **Bug fix** → add a regression test that FAILS without the fix and passes with it.
+- **Backend-mirrored logic** (anything whose comment says "must stay in sync with `app/...`", e.g. `placeKey` ↔ `slugify_place`, `age` ↔ COPPA gate) MUST have a test pinning the shared contract, so drift on either side is caught.
+- **Green before done:** `npm run test` and `npm run type-check` both pass. Don't weaken an assertion or delete a test to get green — fix the code. Skips (`it.skip`) need a one-line why + a follow-up.
+- **Coverage floor ≥ 80%.** New/changed logic ships with enough tests to hold **≥80% lines AND branches** on the covered scope (`npm run test:coverage`). An enforced Vitest threshold gates this — currently scoped to `src/utils/**` and **ratcheting outward** (add `src/components/…`, `src/api/…` globs to `coverage.thresholds` as each layer reaches 80%, until it's global). Never lower a threshold to pass; raise coverage. Only exclude a file from the gate for a real reason (heavy third-party glue — PDF/Excel exporters, dynamic-import runtime helpers) with a comment saying why, and prefer an integration test over a blanket exclude.
+- **Master is gated on tests.** `.github/workflows/deploy.yml` runs `type-check` + `test:coverage` as a `test` job that `build-and-deploy` **`needs:`** — a push to master with a failing test or below-threshold coverage is **not deployed**. `ci.yml` runs the same on PRs/develop. So: never push to master with red tests; if the gate fails, fix the code, don't bypass the workflow.
+- **Gotcha:** test files are excluded from `tsconfig.json` (the `constants` alias collides with `@types/node` once the runner is present), so they're validated by *running*, not by the app `type-check`. The Vitest config re-adds the src path aliases via `resolve.alias` — if you introduce a new top-level `src/` dir, add it there too. (v8 coverage can race on `coverage/.tmp` on Windows locally — CI/Linux is fine; locally run once with `--no-file-parallelism` if it flakes.)
+
 ## Specialized agents
 - `react-expert` (in `.claude/agents/`) — invoke for non-trivial React/TS work that needs the full conventions above front-of-mind.
