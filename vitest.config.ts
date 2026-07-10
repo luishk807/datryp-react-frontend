@@ -52,6 +52,9 @@ export default defineConfig({
                 // Non-executable / not-meaningfully-testable: pure type
                 // declarations, i18n locale bundles, and static assets.
                 'src/**/*.types.ts',
+                // Bare `types.ts` barrels (e.g. common/AddPlaceBtn, AddDestination)
+                // are pure type declarations too — verified no runtime exports.
+                'src/**/types.ts',
                 'src/types/**',
                 'src/i18n/**',
                 'src/assets/**',
@@ -92,6 +95,18 @@ export default defineConfig({
                 'src/components/common/FormFields/**': {
                     statements: 80,
                     branches: 80,
+                    lines: 80,
+                },
+                // ALL shared components in common/ — 71 folders: leaf primitives
+                // (badges/cards/buttons/menus/pickers/autocompletes) plus the
+                // deep Add-Place / Add-Destination wizard subtrees, StepperComp,
+                // and their pure parsers (parsePlaceQuery/parseTransitQuery/…).
+                // RTL for the UI, unit tests for the parsers. Aggregate sits
+                // ~95/87/84/95; pure `types.ts` barrels excluded above.
+                'src/components/common/**': {
+                    statements: 80,
+                    branches: 80,
+                    functions: 80,
                     lines: 80,
                 },
                 // API client modules — all ~50 fetch modules contract-tested
