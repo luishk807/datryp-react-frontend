@@ -24,6 +24,12 @@ export interface AutocompleteCustomProps<T extends AutocompleteOption = Autocomp
     renderOption?: (option: T, isSelected: boolean) => ReactNode;
 }
 
+// Stable empty-array default. Without it, omitting `selectedOptions` handed the
+// sync effect below a FRESH `[]` on every render, so its `[selectedOptions]`
+// dep always "changed" → setData → re-render → infinite loop. A shared module
+// reference keeps the dependency stable when the caller passes nothing.
+const EMPTY_SELECTION: never[] = [];
+
 const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
     options = [],
     label = '',
@@ -31,7 +37,7 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
     onSelect,
     name,
     onRemove,
-    selectedOptions = [],
+    selectedOptions = EMPTY_SELECTION,
     renderOption,
 }: AutocompleteCustomProps<T>) => {
     const [data, setData] = useState<T[]>([]);

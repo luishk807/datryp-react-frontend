@@ -15,7 +15,7 @@ const srcAlias = (p: string) => resolve(rootDir, 'src', p);
 // Node's empty `constants` shim. These explicit aliases re-root the project's
 // baseUrl (`src`) specifiers for the test runner, independent of the tsconfig.
 const projectAliases = Object.fromEntries(
-    ['api', 'assets', 'components', 'constants', 'context', 'hooks', 'i18n', 'lib', 'offline', 'types', 'utils'].map(
+    ['api', 'assets', 'components', 'constants', 'context', 'hooks', 'i18n', 'lib', 'offline', 'test', 'types', 'utils'].map(
         (name) => [name, srcAlias(name)]
     )
 );
@@ -75,6 +75,14 @@ export default defineConfig({
                     statements: 80,
                     branches: 80,
                     functions: 80,
+                    lines: 80,
+                },
+                // Shared form primitives — all 15 covered. Functions is omitted
+                // here because MUI picker/callback internals in InputField
+                // aren't driven in tests; lines/branches are the real gate.
+                'src/components/common/FormFields/**': {
+                    statements: 80,
+                    branches: 80,
                     lines: 80,
                 },
             },
