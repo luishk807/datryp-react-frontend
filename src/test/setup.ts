@@ -64,6 +64,8 @@ if (!window.IntersectionObserver) {
 if (!window.ResizeObserver) {
     window.ResizeObserver = MockObserver as unknown as typeof ResizeObserver;
 }
-if (!window.scrollTo) {
-    window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
-}
+// jsdom DOES define window.scrollTo, but as a stub that throws
+// "Not implemented" — so `if (!window.scrollTo)` never fires and any real
+// scrollTo call (e.g. list pagination) throws, surfacing as an uncaught error
+// that can fail an unrelated file. Always override with a no-op.
+window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
