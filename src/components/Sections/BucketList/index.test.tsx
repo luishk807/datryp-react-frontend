@@ -96,8 +96,8 @@ const goal = (over: Record<string, unknown> = {}) => ({
     ...over,
 });
 
-// The card's own CTA is also labelled "Build trip", so scope the wizard's
-// build button to the wizard region (found via its step-2 heading).
+// Scope the wizard's build button to the wizard region (found via its step-2
+// heading) so it's never confused with a card CTA elsewhere on the page.
 const wizardBuildButton = () => {
     const wizard = screen
         .getByRole('heading', { name: /how long should the trip be/i })
@@ -159,9 +159,12 @@ describe('BucketList', () => {
         mockItems = [goal()];
         renderWithProviders(<BucketList />);
         expect(screen.getByText('Create trip')).toBeInTheDocument();
-        // The card CTA's own `aria-label` prop is ignored by ButtonCustom, so
-        // the accessible name falls back to the visible "Create trip" + "Pro".
-        const cta = screen.getByRole('button', { name: /create trip/i });
+        // The locked CTA's accessible name is its descriptive `ariaLabel`
+        // (buildLockedAria), which overrides the visible "Create trip" — this
+        // query fails if the prop is ever dropped (regression guard).
+        const cta = screen.getByRole('button', {
+            name: /upgrade to create a trip/i,
+        });
         await userEvent.click(cta);
         expect(mockOpenPaywall).toHaveBeenCalledTimes(1);
     });
@@ -243,9 +246,12 @@ describe('BucketList', () => {
         mockItems = [goal({ title: 'Aurora Weekend', enrichmentAttempted: true })];
         renderWithProviders(<BucketList />);
 
-        // The Pro card CTA shows "Build trip" (its aria-label is ignored by
-        // ButtonCustom). Unique until the wizard opens its own build button.
-        await userEvent.click(screen.getByRole('button', { name: 'Build trip' }));
+        // The Pro card CTA's accessible name is its descriptive `ariaLabel`
+        // (buildAria = "Create trip from …"), distinct from the wizard's own
+        // "Build trip" button that appears after it opens.
+        await userEvent.click(
+            screen.getByRole('button', { name: /^Create trip from/i })
+        );
         // Step 1 — party size.
         expect(
             screen.getByRole('heading', {
@@ -283,7 +289,9 @@ describe('BucketList', () => {
         mockItems = [goal({ title: 'Aurora Weekend' })];
         renderWithProviders(<BucketList />);
 
-        await userEvent.click(screen.getByRole('button', { name: 'Build trip' }));
+        await userEvent.click(
+            screen.getByRole('button', { name: /^Create trip from/i })
+        );
         await userEvent.click(screen.getByText('4')); // party chip: Family
         await userEvent.click(screen.getByRole('button', { name: 'Next' }));
         await userEvent.click(screen.getByText('7')); // duration chip: 7 days
@@ -309,7 +317,9 @@ describe('BucketList', () => {
         mockItems = [goal({ title: 'Aurora Weekend' })];
         renderWithProviders(<BucketList />);
 
-        await userEvent.click(screen.getByRole('button', { name: 'Build trip' }));
+        await userEvent.click(
+            screen.getByRole('button', { name: /^Create trip from/i })
+        );
         const custom = screen.getByLabelText(/or enter a number/i);
         await userEvent.clear(custom);
         await userEvent.type(custom, '3');
@@ -338,7 +348,9 @@ describe('BucketList', () => {
         mockUser = { id: 'u1', name: 'Luis', isPaidMember: true, travelerStyles: [] };
         mockItems = [goal({ title: 'Aurora Weekend' })];
         renderWithProviders(<BucketList />);
-        await userEvent.click(screen.getByRole('button', { name: 'Build trip' }));
+        await userEvent.click(
+            screen.getByRole('button', { name: /^Create trip from/i })
+        );
         await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(
             screen.queryByRole('heading', {
@@ -356,7 +368,9 @@ describe('BucketList', () => {
         mockGenerate.mockRejectedValue(new Error('500'));
         renderWithProviders(<BucketList />);
 
-        await userEvent.click(screen.getByRole('button', { name: 'Build trip' }));
+        await userEvent.click(
+            screen.getByRole('button', { name: /^Create trip from/i })
+        );
         await userEvent.click(screen.getByRole('button', { name: 'Next' }));
         await userEvent.click(wizardBuildButton());
 

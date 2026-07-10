@@ -601,7 +601,7 @@ const BucketList = () => {
                                                     openBuildWizard(item.id)
                                                 }
                                                 disabled={generate.isPending}
-                                                aria-label={
+                                                ariaLabel={
                                                     isPro
                                                         ? t(
                                                               'bucketList.card.buildAria',
