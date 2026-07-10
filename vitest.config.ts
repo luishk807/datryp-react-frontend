@@ -66,6 +66,15 @@ export default defineConfig({
                 'src/utils/lazyWithRetry.ts',
                 'src/utils/heroImages.ts',
                 'src/utils/index.ts',
+                // API infra glue: GraphQL client setup, TanStack Query config,
+                // barrel re-exports, and prefetch orchestration — low logic
+                // density / mostly wiring. The client MODULES (fetch fns) are
+                // all contract-tested; these are excluded from the api gate.
+                'src/api/graphqlClient.ts',
+                'src/api/pythonGqlClient.ts',
+                'src/api/queryClient.ts',
+                'src/api/index.ts',
+                'src/api/suggestionsPrefetch.ts',
             ],
             // Enforced coverage floor. Currently scoped to the tested logic
             // core (src/utils); RATCHET this outward — add src/components/…,
@@ -83,6 +92,15 @@ export default defineConfig({
                 'src/components/common/FormFields/**': {
                     statements: 80,
                     branches: 80,
+                    lines: 80,
+                },
+                // API client modules — all ~50 fetch modules contract-tested
+                // (MSW + Zod). Direct children only (`*.ts`, not hooks/); infra
+                // glue is excluded above. The api/hooks/ layer is not gated yet.
+                'src/api/*.ts': {
+                    statements: 80,
+                    branches: 80,
+                    functions: 80,
                     lines: 80,
                 },
             },
