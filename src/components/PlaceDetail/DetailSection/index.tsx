@@ -1,3 +1,4 @@
+import { useId } from "react";
 import classNames from "classnames";
 import "./index.scss";
 
@@ -22,16 +23,31 @@ export interface DetailSectionProps {
  * Parent layouts can shrink the padding/title size via contextual selectors
  * — see `.place-detail-content-side .detail-section` and
  * `.place-detail-side .detail-section` in the page stylesheet.
+ *
+ * Exposed as a named `role="region"` landmark (accessible name = its title,
+ * via `aria-labelledby`) and made a keyboard tab stop (`tabIndex={0}`) so
+ * keyboard + screen-reader users can jump straight to each content widget
+ * (Weather, Currency, Safety, …) rather than tabbing through inert prose.
  */
-const DetailSection = ({ title, icon, children, className, badge }: DetailSectionProps) => (
-  <section className={classNames("detail-section", className)}>
-    <h2 className="detail-section-title">
-      <span className="detail-section-icon">{icon}</span>
-      {title}
-      {badge != null && <span className="detail-section-badge">{badge}</span>}
-    </h2>
-    {children}
-  </section>
-);
+const DetailSection = ({ title, icon, children, className, badge }: DetailSectionProps) => {
+  const titleId = useId();
+  return (
+    <section
+      className={classNames("detail-section", className)}
+      role="region"
+      aria-labelledby={titleId}
+      tabIndex={0}
+    >
+      <h2 id={titleId} className="detail-section-title">
+        <span className="detail-section-icon" aria-hidden="true">
+          {icon}
+        </span>
+        {title}
+        {badge != null && <span className="detail-section-badge">{badge}</span>}
+      </h2>
+      {children}
+    </section>
+  );
+};
 
 export default DetailSection;

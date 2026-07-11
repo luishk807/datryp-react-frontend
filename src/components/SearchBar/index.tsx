@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, type ReactNode } from 'react';
 import { ClickAwayListener, Grid } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { Link } from 'react-router-dom';
@@ -61,12 +61,25 @@ interface SearchBarProps {
 // the /countries endpoint.
 const DEBOUNCE_MS = 250;
 
-// Shared ids for the WAI-ARIA combobox wiring. Only one of country/place
-// mode ever renders a listbox at a time, so a single listbox id + option-id
-// namespace is unambiguous and lets the input reference the active option
-// via aria-activedescendant.
-const LISTBOX_ID = 'searchbar-results-listbox';
-const optionId = (index: number) => `searchbar-result-option-${index}`;
+// The results list is a Tab-navigable disclosure: the input references the
+// list via aria-controls, and the option buttons are real tab stops that
+// Arrow keys rove between. Only one of country/place mode renders a list at a
+// time, so a single id is unambiguous.
+const LISTBOX_ID = 'searchbar-results-list';
+
+/** One rendered result row — country and place modes both map their raw
+ *  items to this shape so they can share `renderResultsList`. */
+interface ResultRow {
+    key: string;
+    flagCode: string | null;
+    name: string;
+    /** Line under the name: the local country name, or the city/country chip. */
+    secondary: ReactNode;
+    code: string;
+    /** Text pushed into the input on hover (hover-to-fill). */
+    hoverLabel: string;
+    onSelect: () => void;
+}
 
 /** Two-letter ISO 3166-1 alpha-2 country code → Unicode flag emoji.
  *  Falls back to a globe icon if the code is missing/malformed. */
@@ -89,6 +102,10 @@ const SearchBar = ({
 }: SearchBarProps) => {
     const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement | null>(null);
+    // The results list — used to move DOM focus between the option buttons for
+    // Arrow-key navigation. The options are real <button>s in the tab order, so
+    // Tab / Shift+Tab walk them too (JetBlue-style), not just the arrows.
+    const listRef = useRef<HTMLUListElement | null>(null);
     const [selectedDestination, setSelectedDestination] = useState('');
 
     // Single text-state across both modes; we just route it to a different
@@ -106,9 +123,6 @@ const SearchBar = ({
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Highlighted result for keyboard navigation of the country/place
-    // listbox (WAI-ARIA combobox pattern). -1 = nothing highlighted.
-    const [activeIndex, setActiveIndex] = useState(-1);
     const canRotate = !isFocused && rawQuery.trim().length === 0;
     useEffect(() => {
         setPlaceholderIdx(0);
@@ -170,22 +184,6 @@ const SearchBar = ({
         const handle = setTimeout(() => setSubmittedQuery(trimmed), DEBOUNCE_MS);
         return () => clearTimeout(handle);
     }, [rawQuery]);
-
-    // A fresh query or mode switch rebuilds the result list, so drop any
-    // stale highlight — otherwise aria-activedescendant could point past
-    // the end of the new results.
-    useEffect(() => {
-        setActiveIndex(-1);
-    }, [submittedQuery, mode]);
-
-    // Keep the keyboard-highlighted option scrolled into view inside the
-    // (scrollable) dropdown.
-    useEffect(() => {
-        if (activeIndex < 0) return;
-        document
-            .getElementById(optionId(activeIndex))
-            ?.scrollIntoView({ block: 'nearest' });
-    }, [activeIndex]);
 
     useEffect(() => {
         if (defaultValue) {
@@ -252,52 +250,109 @@ const SearchBar = ({
 
     const handleClickAway = () => closeResults();
 
-    // Keyboard navigation for the country/place results listbox. Focus stays
-    // on the input (combobox pattern); Arrow keys move a virtual highlight
-    // exposed via aria-activedescendant, Enter selects it, Escape closes the
-    // list. Generic over the two result shapes so both modes share it.
-    const handleListKeyDown = <T,>(
-        e: React.KeyboardEvent<HTMLInputElement>,
-        items: T[],
-        onSelect: (item: T) => void
+    // The result options are real <button> tab stops (JetBlue-style): Tab /
+    // Shift+Tab walk them, Enter / Space select natively via onClick. These
+    // handlers add the extras — ArrowDown from the input drops into the list,
+    // Arrow keys rove between buttons, and Escape closes + refocuses the input.
+    const resultButtons = () =>
+        Array.from(
+            listRef.current?.querySelectorAll<HTMLButtonElement>(
+                'button.searchbar-country-item'
+            ) ?? []
+        );
+
+    const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'ArrowDown') {
+            const [first] = resultButtons();
+            if (first) {
+                e.preventDefault();
+                first.focus();
+            }
+        } else if (e.key === 'Escape' && rawQuery.trim().length > 0) {
+            e.preventDefault();
+            closeResults();
+        }
+    };
+
+    const handleResultKeyDown = (
+        e: React.KeyboardEvent<HTMLButtonElement>,
+        index: number
     ) => {
+        const buttons = resultButtons();
         switch (e.key) {
             case 'ArrowDown':
-                if (!items.length) return;
                 e.preventDefault();
-                setActiveIndex((i) => (i + 1) % items.length);
+                buttons[Math.min(index + 1, buttons.length - 1)]?.focus();
                 break;
             case 'ArrowUp':
-                if (!items.length) return;
                 e.preventDefault();
-                setActiveIndex((i) => (i <= 0 ? items.length - 1 : i - 1));
+                // Up from the first option hands focus back to the input.
+                (index === 0 ? inputRef.current : buttons[index - 1])?.focus();
                 break;
             case 'Home':
-                if (!items.length) return;
                 e.preventDefault();
-                setActiveIndex(0);
+                buttons[0]?.focus();
                 break;
             case 'End':
-                if (!items.length) return;
                 e.preventDefault();
-                setActiveIndex(items.length - 1);
-                break;
-            case 'Enter':
-                if (activeIndex >= 0 && activeIndex < items.length) {
-                    e.preventDefault();
-                    onSelect(items[activeIndex]);
-                }
+                buttons[buttons.length - 1]?.focus();
                 break;
             case 'Escape':
-                if (rawQuery.trim().length > 0) {
-                    e.preventDefault();
-                    closeResults();
-                }
+                e.preventDefault();
+                closeResults();
+                inputRef.current?.focus();
                 break;
             default:
                 break;
         }
     };
+
+    // Both modes share this list markup; each maps its raw items to ResultRow[]
+    // first (see renderCountryMode / renderPlaceMode). The dropdown is a
+    // Tab-navigable disclosure (no combobox role → `aria-expanded` isn't valid
+    // on the plain textbox), so a polite live region announces the result count
+    // to screen-reader users when the list opens.
+    const renderResultsList = (rows: ResultRow[]) => (
+        <>
+            <span role="status" className="searchbar-sr-status">
+                {t('search.bar.resultsCount', { count: rows.length })}
+            </span>
+            <ul
+                id={LISTBOX_ID}
+                ref={listRef}
+                aria-label={t('search.bar.resultsAria')}
+                className="searchbar-country-list"
+            >
+                {rows.map((row, index) => (
+                    <li key={row.key}>
+                        <button
+                            type="button"
+                            className="item searchbar-country-item"
+                            onClick={row.onSelect}
+                            onMouseEnter={() => handleListHover(row.hoverLabel)}
+                            onKeyDown={(e) => handleResultKeyDown(e, index)}
+                        >
+                            <span
+                                className="searchbar-country-flag"
+                                aria-hidden="true"
+                            >
+                                {flagEmoji(row.flagCode)}
+                            </span>
+                            <span className="searchbar-country-text">
+                                <span className="searchbar-country-name">
+                                    {row.name}
+                                </span>
+                                {row.secondary}
+                            </span>
+                            <span className="searchbar-country-code">
+                                {row.code}
+                            </span>
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </>
+    );
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
         setIsFocused(true);
@@ -308,6 +363,18 @@ const SearchBar = ({
 
     const renderCountryMode = () => {
         const items = countryResults ?? [];
+        const rows: ResultRow[] = items.map((item) => ({
+            key: item.id,
+            flagCode: item.code,
+            name: item.name,
+            secondary:
+                item.local && item.local !== item.name ? (
+                    <span className="searchbar-country-local">{item.local}</span>
+                ) : null,
+            code: item.code,
+            hoverLabel: item.name,
+            onSelect: () => handleCountryClick(item),
+        }));
         const trimmed = rawQuery.trim();
         const showLoading = isCountryFetching && items.length === 0 && !hasCountryError;
         const showEmpty =
@@ -330,17 +397,11 @@ const SearchBar = ({
                             ref={inputRef}
                             className="inputBar"
                             type="text"
-                            role="combobox"
                             aria-label={t('search.bar.countryAria')}
-                            aria-autocomplete="list"
-                            aria-expanded={showDropdown}
-                            aria-controls={LISTBOX_ID}
-                            aria-activedescendant={
-                                activeIndex >= 0 ? optionId(activeIndex) : undefined
+                            aria-controls={
+                                showDropdown && rows.length ? LISTBOX_ID : undefined
                             }
-                            onKeyDown={(e) =>
-                                handleListKeyDown(e, items, handleCountryClick)
-                            }
+                            onKeyDown={handleInputKeyDown}
                             onFocus={handleFocus}
                             placeholder={t('search.bar.countryPlaceholder')}
                         />
@@ -381,50 +442,7 @@ const SearchBar = ({
                                 {t('search.bar.noCountries', { query: submittedQuery })}
                             </p>
                         )}
-                        {!!items.length && (
-                            <ul
-                                id={LISTBOX_ID}
-                                role="listbox"
-                                aria-label={t('search.bar.resultsAria')}
-                                className="searchbar-country-list"
-                            >
-                                {items.map((item, index) => (
-                                    <li
-                                        id={optionId(index)}
-                                        role="option"
-                                        aria-selected={activeIndex === index}
-                                        onClick={() => handleCountryClick(item)}
-                                        onMouseEnter={() => {
-                                            setActiveIndex(index);
-                                            handleListHover(item.name);
-                                        }}
-                                        key={item.id}
-                                        className="item searchbar-country-item"
-                                    >
-                                        <span
-                                            className="searchbar-country-flag"
-                                            aria-hidden="true"
-                                        >
-                                            {flagEmoji(item.code)}
-                                        </span>
-                                        <span className="searchbar-country-text">
-                                            <span className="searchbar-country-name">
-                                                {item.name}
-                                            </span>
-                                            {item.local &&
-                                                item.local !== item.name && (
-                                                    <span className="searchbar-country-local">
-                                                        {item.local}
-                                                    </span>
-                                                )}
-                                        </span>
-                                        <span className="searchbar-country-code">
-                                            {item.code}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        {!!rows.length && renderResultsList(rows)}
                     </div>
                 )}
             </Grid>
@@ -433,6 +451,27 @@ const SearchBar = ({
 
     const renderPlaceMode = () => {
         const items = placeResults ?? [];
+        const rows: ResultRow[] = items.map((place) => {
+            const label =
+                place.kind === 'country'
+                    ? place.name
+                    : `${place.name}, ${place.countryName}`;
+            return {
+                key: place.id,
+                flagCode: place.countryCode,
+                name: label,
+                secondary: (
+                    <span className="searchbar-place-kind">
+                        {place.kind === 'country'
+                            ? t('search.bar.kindCountry')
+                            : t('search.bar.kindCity')}
+                    </span>
+                ),
+                code: place.countryCode,
+                hoverLabel: label,
+                onSelect: () => handlePlaceClick(place),
+            };
+        });
         const trimmed = rawQuery.trim();
         const showLoading = isPlaceFetching && items.length === 0 && !hasPlaceError;
         const showEmpty =
@@ -456,17 +495,11 @@ const SearchBar = ({
                             ref={inputRef}
                             className="inputBar"
                             type="text"
-                            role="combobox"
                             aria-label={t('search.bar.placeAria')}
-                            aria-autocomplete="list"
-                            aria-expanded={showDropdown}
-                            aria-controls={LISTBOX_ID}
-                            aria-activedescendant={
-                                activeIndex >= 0 ? optionId(activeIndex) : undefined
+                            aria-controls={
+                                showDropdown && rows.length ? LISTBOX_ID : undefined
                             }
-                            onKeyDown={(e) =>
-                                handleListKeyDown(e, items, handlePlaceClick)
-                            }
+                            onKeyDown={handleInputKeyDown}
                             onFocus={handleFocus}
                             onBlur={handleBlur}
                             placeholder={
@@ -514,55 +547,7 @@ const SearchBar = ({
                                 {t('search.bar.noPlaces', { query: submittedQuery })}
                             </p>
                         )}
-                        {!!items.length && (
-                            <ul
-                                id={LISTBOX_ID}
-                                role="listbox"
-                                aria-label={t('search.bar.resultsAria')}
-                                className="searchbar-country-list"
-                            >
-                                {items.map((place, index) => (
-                                    <li
-                                        id={optionId(index)}
-                                        role="option"
-                                        aria-selected={activeIndex === index}
-                                        onClick={() => handlePlaceClick(place)}
-                                        onMouseEnter={() => {
-                                            setActiveIndex(index);
-                                            handleListHover(
-                                                place.kind === 'country'
-                                                    ? place.name
-                                                    : `${place.name}, ${place.countryName}`
-                                            );
-                                        }}
-                                        key={place.id}
-                                        className="item searchbar-country-item"
-                                    >
-                                        <span
-                                            className="searchbar-country-flag"
-                                            aria-hidden="true"
-                                        >
-                                            {flagEmoji(place.countryCode)}
-                                        </span>
-                                        <span className="searchbar-country-text">
-                                            <span className="searchbar-country-name">
-                                                {place.kind === 'country'
-                                                    ? place.name
-                                                    : `${place.name}, ${place.countryName}`}
-                                            </span>
-                                            <span className="searchbar-place-kind">
-                                                {place.kind === 'country'
-                                                    ? t('search.bar.kindCountry')
-                                                    : t('search.bar.kindCity')}
-                                            </span>
-                                        </span>
-                                        <span className="searchbar-country-code">
-                                            {place.countryCode}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        {!!rows.length && renderResultsList(rows)}
                     </div>
                 )}
             </Grid>

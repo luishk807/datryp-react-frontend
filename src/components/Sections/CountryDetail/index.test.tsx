@@ -12,13 +12,20 @@ const { modStub } = vi.hoisted(() => {
     return { modStub: () => ({ default: Pass }) };
 });
 
+// Faithful to the real SubLayout: it renders an <h1> ONLY when given a
+// `title`. Detail pages pass no title (their in-page name is the single h1),
+// so this stays null — but if a title is ever re-introduced the duplicate-h1
+// guard below will catch it.
 vi.mock('components/common/Layout/SubLayout', () => ({
-    default: ({ title, children }: { title?: string; children: ReactNode }) => (
-        <div>
-            <span data-testid="layout-title">{title}</span>
-            {children}
-        </div>
-    ),
+    default: ({ title, children }: { title?: string; children: ReactNode }) =>
+        title ? (
+            <div>
+                <h1 data-testid="layout-title">{title}</h1>
+                {children}
+            </div>
+        ) : (
+            <div>{children}</div>
+        ),
 }));
 
 vi.mock('components/common/CostBadge', modStub);
@@ -166,8 +173,10 @@ describe('CountryDetail', () => {
             factsLoading: true,
         };
         renderWithProviders(<CountryDetail />, { route: '/country?code=JP' });
-        expect(screen.getByTestId('layout-title')).toHaveTextContent('JP…');
-        expect(screen.getByRole('heading', { name: 'JP' })).toBeInTheDocument();
+        // Single h1 even while loading — the in-page name, no shell title.
+        const h1s = screen.getAllByRole('heading', { level: 1 });
+        expect(h1s).toHaveLength(1);
+        expect(h1s[0]).toHaveTextContent('JP');
         expect(screen.getByRole('status')).toBeInTheDocument();
     });
 
@@ -190,9 +199,10 @@ describe('CountryDetail', () => {
 
     it('renders the loaded country with headline, top cities, and plan CTA', () => {
         renderWithProviders(<CountryDetail />, { route: '/country?code=JP' });
-        expect(
-            screen.getByRole('heading', { level: 1, name: 'Japan' })
-        ).toBeInTheDocument();
+        // Exactly one h1 on the page — the country name (no shell-title h1).
+        const h1s = screen.getAllByRole('heading', { level: 1 });
+        expect(h1s).toHaveLength(1);
+        expect(h1s[0]).toHaveTextContent('Japan');
         expect(screen.getByText('Land of the rising sun')).toBeInTheDocument();
         expect(
             screen.getByRole('link', { name: /Kyoto/i })

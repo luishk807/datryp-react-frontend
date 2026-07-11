@@ -20,6 +20,35 @@ const DEFAULT_TRANSFORM_ORIGIN: PopoverOrigin = {
     horizontal: 'right',
 };
 
+/**
+ * When the menu finishes opening, move keyboard focus INTO it, onto the
+ * first real action. MUI's own autoFocus targets the first child — which
+ * here is a non-focusable header `<div>` / `<Divider>` (or the mobile
+ * close-button head), so the caret never lands on an item. We do it
+ * explicitly instead: prefer a real `[role="menuitem"]`, and only fall back
+ * to any other actionable control (e.g. the notification "See all" button in
+ * the empty state) — never the mobile close button, which is chrome.
+ */
+const focusFirstMenuItem = (paper: HTMLElement) => {
+    const target =
+        paper.querySelector<HTMLElement>('[role="menuitem"]') ??
+        paper.querySelector<HTMLElement>(
+            'button:not(.common-menu-close),a[href],[tabindex]:not([tabindex="-1"])'
+        );
+    target?.focus();
+};
+
+/**
+ * MUI's `Menu` installs an `onKeyDown` on its `MenuList` that intercepts Tab
+ * with `preventDefault()` + `onClose` — so Tab just closes the menu instead
+ * of walking the items. Replacing that handler (via `MenuListProps.onKeyDown`,
+ * which MUI spreads *after* its own) lets Tab / Shift+Tab traverse the items
+ * like a normal nav dropdown; the Modal focus trap wraps at the ends. Arrow
+ * keys are still handled inside `MenuList` and Escape by the Modal root above
+ * the list, so neither regresses. Intentionally a no-op passthrough.
+ */
+const allowTabTraversal = () => undefined;
+
 export interface MenuProps extends Omit<MuiMenuProps, 'open' | 'children'> {
     /** Element to anchor the menu to. Open state is derived from this:
      *  truthy → open, `null` → closed. Both call sites in this codebase
@@ -57,6 +86,8 @@ const Menu = ({
     slotProps,
     onClose,
     children,
+    MenuListProps,
+    TransitionProps,
     ...rest
 }: MenuProps) => {
     const { t } = useTranslation();
@@ -67,6 +98,9 @@ const Menu = ({
             onClose={onClose}
             anchorOrigin={anchorOrigin}
             transformOrigin={transformOrigin}
+            // We drive focus ourselves in `onEntered` (see focusFirstMenuItem),
+            // so keep MUI from autofocusing the non-focusable header row first.
+            disableAutoFocusItem
             slotProps={{
                 ...slotProps,
                 paper: {
@@ -76,6 +110,17 @@ const Menu = ({
                         { 'common-menu--full-mobile': fullScreenOnMobile },
                         paperClassName
                     ),
+                },
+            }}
+            MenuListProps={{
+                ...MenuListProps,
+                onKeyDown: allowTabTraversal,
+            }}
+            TransitionProps={{
+                ...TransitionProps,
+                onEntered: (node, isAppearing) => {
+                    focusFirstMenuItem(node);
+                    TransitionProps?.onEntered?.(node, isAppearing);
                 },
             }}
             {...rest}
@@ -128,6 +173,10 @@ export const MenuActionItem = ({
 }: MenuActionItemProps) => (
     <MuiMenuItem
         onClick={onClick}
+        // Opt every item into the tab order (MUI's roving tabindex leaves
+        // only one item tabbable). The shared Menu wrapper strips MUI's
+        // Tab-closes-menu handler, so Tab / Shift+Tab now walk the items.
+        tabIndex={0}
         className={classNames('common-menu-item', `tone-${tone}`, className)}
     >
         {icon}

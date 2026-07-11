@@ -258,7 +258,9 @@ const PlaceDetail = () => {
     // query + fast image endpoint) so the page feels instant, with the
     // recommender-backed body filling in once the search resolves.
     return (
-      <Layout title={query ? `${query}…` : t('detail.place.loading')}>
+      // No `title` → the page shell renders no <h1>; the in-page
+      // `.place-detail-name` below is the single h1 in every state.
+      <Layout>
         <article className="place-detail place-detail--loading">
           {/* Same hero+side grid as the loaded page so the hero keeps its
               size across the transition (it used to be full-width here, then

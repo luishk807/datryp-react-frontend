@@ -317,7 +317,9 @@ const CountryDetail = () => {
     // body filling in once country-details resolves.
     const loadingName = loadingCountry?.name ?? code;
     return (
-      <Layout title={`${loadingName}…`}>
+      // No `title` → the page shell renders no <h1>; the in-page
+      // `.country-detail-name` below is the single h1 in every state.
+      <Layout>
         <article className="country-detail country-detail--loading">
           {/* Same hero+side grid as the loaded page so the hero keeps its
               size across the transition instead of shrinking from full-width

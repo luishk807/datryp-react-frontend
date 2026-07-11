@@ -131,6 +131,75 @@ describe('Menu', () => {
         ).toBeTruthy();
     });
 
+    it('moves focus onto the first menu item when opened by mouse', async () => {
+        renderWithProviders(<MenuHarness />);
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Open menu' })
+        );
+        const profile = screen.getByRole('menuitem', { name: 'Profile' });
+        await waitFor(() => expect(profile).toHaveFocus());
+    });
+
+    it('moves focus into the menu when opened by keyboard (Enter)', async () => {
+        renderWithProviders(<MenuHarness />);
+        const trigger = screen.getByRole('button', { name: 'Open menu' });
+        trigger.focus();
+        await userEvent.keyboard('{Enter}');
+        const menu = screen.getByRole('menu');
+        await waitFor(() =>
+            expect(menu.contains(document.activeElement)).toBe(true)
+        );
+        expect(screen.getByRole('menuitem', { name: 'Profile' })).toHaveFocus();
+    });
+
+    it('lets Tab walk from one item to the next (not close the menu)', async () => {
+        renderWithProviders(<MenuHarness />);
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Open menu' })
+        );
+        const profile = screen.getByRole('menuitem', { name: 'Profile' });
+        const logout = screen.getByRole('menuitem', { name: 'Logout' });
+        // Both items are in the tab order (MUI's roving tabindex is stripped).
+        expect(profile).toHaveAttribute('tabindex', '0');
+        expect(logout).toHaveAttribute('tabindex', '0');
+        await waitFor(() => expect(profile).toHaveFocus());
+        await userEvent.tab();
+        expect(logout).toHaveFocus();
+        // Menu is still open — Tab navigated, it did not dismiss.
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('activates the focused item with the Enter key', async () => {
+        const onProfile = vi.fn();
+        renderWithProviders(<MenuHarness onProfile={onProfile} />);
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Open menu' })
+        );
+        await waitFor(() =>
+            expect(
+                screen.getByRole('menuitem', { name: 'Profile' })
+            ).toHaveFocus()
+        );
+        await userEvent.keyboard('{Enter}');
+        expect(onProfile).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns focus to the trigger after Escape closes the menu', async () => {
+        renderWithProviders(<MenuHarness />);
+        const trigger = screen.getByRole('button', { name: 'Open menu' });
+        await userEvent.click(trigger);
+        await waitFor(() =>
+            expect(
+                screen.getByRole('menuitem', { name: 'Profile' })
+            ).toHaveFocus()
+        );
+        await userEvent.keyboard('{Escape}');
+        await waitFor(() =>
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+        );
+        expect(trigger).toHaveFocus();
+    });
+
     it('applies tone + icon + className on MenuActionItem', async () => {
         renderWithProviders(<MenuHarness />);
         await userEvent.click(

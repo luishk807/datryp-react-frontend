@@ -12,13 +12,20 @@ const { modStub } = vi.hoisted(() => {
     return { modStub: () => ({ default: Pass }) };
 });
 
+// Faithful to the real SubLayout: it renders an <h1> ONLY when given a
+// `title`. Detail pages pass no title (their in-page name is the single h1),
+// so this stays null — but if a title is ever re-introduced the duplicate-h1
+// guard below will catch it.
 vi.mock('components/common/Layout/SubLayout', () => ({
-    default: ({ title, children }: { title?: string; children: ReactNode }) => (
-        <div>
-            <span data-testid="layout-title">{title}</span>
-            {children}
-        </div>
-    ),
+    default: ({ title, children }: { title?: string; children: ReactNode }) =>
+        title ? (
+            <div>
+                <h1 data-testid="layout-title">{title}</h1>
+                {children}
+            </div>
+        ) : (
+            <div>{children}</div>
+        ),
 }));
 
 vi.mock('components/common/CostBadge', modStub);
@@ -158,10 +165,10 @@ describe('CityDetail', () => {
             factsLoading: true,
         };
         renderWithProviders(<CityDetail />, { route: ROUTE });
-        expect(screen.getByTestId('layout-title')).toHaveTextContent('Kyoto…');
-        expect(
-            screen.getByRole('heading', { name: 'Kyoto' })
-        ).toBeInTheDocument();
+        // Single h1 even while loading — the in-page name, no shell title.
+        const h1s = screen.getAllByRole('heading', { level: 1 });
+        expect(h1s).toHaveLength(1);
+        expect(h1s[0]).toHaveTextContent('Kyoto');
         expect(screen.getByRole('status')).toBeInTheDocument();
     });
 
@@ -184,9 +191,10 @@ describe('CityDetail', () => {
 
     it('renders the loaded city with headline, highlight, and plan CTA', () => {
         renderWithProviders(<CityDetail />, { route: ROUTE });
-        expect(
-            screen.getByRole('heading', { level: 1, name: 'Kyoto' })
-        ).toBeInTheDocument();
+        // Exactly one h1 on the page — the city name (no shell-title h1).
+        const h1s = screen.getAllByRole('heading', { level: 1 });
+        expect(h1s).toHaveLength(1);
+        expect(h1s[0]).toHaveTextContent('Kyoto');
         expect(screen.getByText('A temple city')).toBeInTheDocument();
         expect(screen.getByText('Japanese')).toBeInTheDocument();
         expect(

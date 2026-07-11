@@ -629,6 +629,8 @@
             "placeAria": "Search for a city or country",
             "countryAria": "Search for a country",
             "resultsAria": "Search results",
+            "resultsCount_one": "{{count}} result available",
+            "resultsCount_other": "{{count}} results available",
             "searching": "Searching…",
             "countryError": "Could not reach the country service. Is the backend running?",
             "placeError": "Could not reach the place search. Is the backend running?",

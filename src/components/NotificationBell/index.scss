@@ -60,6 +60,11 @@
     background-color: rgba(60, 181, 75, 0.1);
   }
 
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px theme('colors.primaryGreen');
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -152,5 +157,10 @@
 
   &:hover {
     background-color: rgba(60, 181, 75, 0.1);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px theme('colors.primaryGreen');
   }
 }

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import classNames from "classnames";
 import "./index.scss";
 
@@ -24,24 +25,37 @@ export interface MainSectionProps {
  * green heading with optional icon, and a flex-column body. Each consumer
  * (`Country`, `Notes`, `Local flavor`, `Nearby`, `BudgetSection`) varies
  * only in title content, icon, and `size`.
+ *
+ * These are top-level sections (siblings of the `DetailSection` cards), so the
+ * heading is an `<h2>` and the block is exposed as a named `role="region"`
+ * landmark (accessible name = its title) and a keyboard tab stop
+ * (`tabIndex={0}`) — same reach-each-widget treatment as `DetailSection`.
  */
 const MainSection = ({
   title,
   icon,
   size = "sm",
   children,
-}: MainSectionProps) => (
-  <section className={classNames("main-section", `size-${size}`)}>
-    <h3 className="main-section-heading">
-      {icon && (
-        <span className="main-section-icon" aria-hidden="true">
-          {icon}
-        </span>
-      )}
-      {title}
-    </h3>
-    {children}
-  </section>
-);
+}: MainSectionProps) => {
+  const titleId = useId();
+  return (
+    <section
+      className={classNames("main-section", `size-${size}`)}
+      role="region"
+      aria-labelledby={titleId}
+      tabIndex={0}
+    >
+      <h2 id={titleId} className="main-section-heading">
+        {icon && (
+          <span className="main-section-icon" aria-hidden="true">
+            {icon}
+          </span>
+        )}
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+};
 
 export default MainSection;

@@ -3,16 +3,34 @@ import { renderWithProviders, screen } from '../../../test/renderWithProviders';
 import MainSection from './index';
 
 describe('MainSection', () => {
-    it('renders the title as a heading with its children', () => {
+    it('renders the title as a level-2 heading with its children', () => {
         renderWithProviders(
             <MainSection title="About Japan">
                 <p>Body copy</p>
             </MainSection>
         );
         expect(
-            screen.getByRole('heading', { name: 'About Japan' })
+            screen.getByRole('heading', { level: 2, name: 'About Japan' })
         ).toBeInTheDocument();
         expect(screen.getByText('Body copy')).toBeInTheDocument();
+    });
+
+    it('exposes the section as a keyboard-focusable named region', () => {
+        renderWithProviders(
+            <MainSection title="About Japan">
+                <p>Body copy</p>
+            </MainSection>
+        );
+
+        const region = screen.getByRole('region', { name: 'About Japan' });
+        expect(region).toHaveAttribute('tabindex', '0');
+        const heading = screen.getByRole('heading', {
+            level: 2,
+            name: 'About Japan',
+        });
+        expect(heading.id).toBeTruthy();
+        expect(region).toHaveAttribute('aria-labelledby', heading.id);
+        expect(region).not.toHaveAttribute('aria-label');
     });
 
     it('renders a decorative icon wrapper when an icon is passed', () => {

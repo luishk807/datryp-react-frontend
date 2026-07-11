@@ -4,7 +4,7 @@ import { renderWithProviders, screen } from '../../../test/renderWithProviders';
 import DetailSection from './index';
 
 describe('DetailSection', () => {
-    it('renders the title heading and children', () => {
+    it('renders the title as a level-2 heading with its children', () => {
         renderWithProviders(
             <DetailSection title="Weather" icon={<InfoRoundedIcon />}>
                 <p>Sunny all week</p>
@@ -12,9 +12,31 @@ describe('DetailSection', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Weather' })
+            screen.getByRole('heading', { level: 2, name: 'Weather' })
         ).toBeInTheDocument();
         expect(screen.getByText('Sunny all week')).toBeInTheDocument();
+    });
+
+    it('exposes the section as a keyboard-focusable named region', () => {
+        renderWithProviders(
+            <DetailSection title="Currency" icon={<InfoRoundedIcon />}>
+                <p>USD</p>
+            </DetailSection>
+        );
+
+        // Landmark navigation: each widget is a region named by its title.
+        const region = screen.getByRole('region', { name: 'Currency' });
+        // Keyboard users can Tab straight to the section.
+        expect(region).toHaveAttribute('tabindex', '0');
+        // Name comes from the heading via aria-labelledby — no duplicated
+        // aria-label on the region.
+        const heading = screen.getByRole('heading', {
+            level: 2,
+            name: 'Currency',
+        });
+        expect(heading.id).toBeTruthy();
+        expect(region).toHaveAttribute('aria-labelledby', heading.id);
+        expect(region).not.toHaveAttribute('aria-label');
     });
 
     it('appends the optional badge to the title', () => {

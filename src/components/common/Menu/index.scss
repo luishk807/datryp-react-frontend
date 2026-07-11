@@ -87,6 +87,15 @@
     font-size: 22px;
   }
 
+  // Keyboard focus indicator. Focus is now driven into the menu on open and
+  // moves item-to-item on Tab / Arrow, so every item needs a clearly visible
+  // ring (color alone isn't enough — pair the tint with an inset border).
+  &:focus-visible {
+    outline: none;
+    background: rgba(60, 181, 75, 0.12);
+    box-shadow: inset 0 0 0 2px theme('colors.primaryGreen');
+  }
+
   &.tone-default {
     .MuiSvgIcon-root {
       color: theme('colors.primaryGreen');
@@ -106,6 +115,11 @@
 
     &:hover {
       background: rgba(192, 57, 43, 0.08) !important;
+    }
+
+    &:focus-visible {
+      background: rgba(192, 57, 43, 0.12);
+      box-shadow: inset 0 0 0 2px #c0392b;
     }
   }
 }

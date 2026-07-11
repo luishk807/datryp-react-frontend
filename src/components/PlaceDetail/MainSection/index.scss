@@ -14,6 +14,13 @@
   &.size-md {
     gap: 14px;
   }
+
+  // The block is a keyboard tab stop (see index.tsx) — show a clear focus
+  // ring when reached via keyboard, but not on mouse click.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 2px;
+  }
 }
 
 .main-section-heading {

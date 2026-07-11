@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders, screen, within } from '../../test/renderWithProviders';
+import {
+    renderWithProviders,
+    screen,
+    waitFor,
+    within,
+} from '../../test/renderWithProviders';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => ({
@@ -107,6 +112,52 @@ describe('Header — signed in', () => {
         expect(
             within(menu).getByRole('menuitem', { name: 'Logout' })
         ).toBeInTheDocument();
+    });
+
+    it('moves focus onto the first menu item on open and Tab walks the items', async () => {
+        renderWithProviders(<Header />);
+        const trigger = screen.getByRole('button', {
+            name: 'Account menu for Ada',
+        });
+        await userEvent.click(trigger);
+        const menu = screen.getByRole('menu');
+        const items = within(menu).getAllByRole('menuitem');
+        await waitFor(() => expect(items[0]).toHaveFocus());
+        await userEvent.tab();
+        expect(items[1]).toHaveFocus();
+        // Tab navigated between items rather than dismissing the menu.
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('opens the account menu via keyboard and focuses the first item', async () => {
+        renderWithProviders(<Header />);
+        const trigger = screen.getByRole('button', {
+            name: 'Account menu for Ada',
+        });
+        trigger.focus();
+        await userEvent.keyboard('{Enter}');
+        const menu = screen.getByRole('menu');
+        await waitFor(() =>
+            expect(within(menu).getAllByRole('menuitem')[0]).toHaveFocus()
+        );
+    });
+
+    it('closes on Escape and returns focus to the account trigger', async () => {
+        renderWithProviders(<Header />);
+        const trigger = screen.getByRole('button', {
+            name: 'Account menu for Ada',
+        });
+        await userEvent.click(trigger);
+        await waitFor(() =>
+            expect(
+                within(screen.getByRole('menu')).getAllByRole('menuitem')[0]
+            ).toHaveFocus()
+        );
+        await userEvent.keyboard('{Escape}');
+        await waitFor(() =>
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+        );
+        await waitFor(() => expect(trigger).toHaveFocus());
     });
 
     it('navigates from a menu item', async () => {

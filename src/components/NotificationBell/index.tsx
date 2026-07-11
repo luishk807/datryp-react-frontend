@@ -163,6 +163,10 @@ const NotificationBell = () => {
                             <MuiMenuItem
                                 key={n.id}
                                 onClick={() => handleRowClick(n)}
+                                // Tab-navigable like the other menu items —
+                                // the shared Menu strips MUI's roving tabindex
+                                // + Tab-close so each row is reachable by Tab.
+                                tabIndex={0}
                                 className={classnames(
                                     'common-menu-item',
                                     'notification-row',

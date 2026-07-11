@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {
     renderWithProviders,
     screen,
+    waitFor,
     within,
 } from '../../test/renderWithProviders';
 import { NOTIFICATION_KIND } from 'constants';
@@ -101,6 +102,38 @@ describe('NotificationBell', () => {
         );
         expect(mockMarkRead).toHaveBeenCalledWith('n2');
         expect(mockNavigate).toHaveBeenCalledWith('/notifications');
+    });
+
+    it('moves focus onto the first row on open and Tab walks the rows', async () => {
+        mockRows = [row(), row({ id: 'n3' })];
+        renderWithProviders(<NotificationBell />);
+        const trigger = screen.getByRole('button', { name: 'Notifications' });
+        await userEvent.click(trigger);
+        const menu = screen.getByRole('menu');
+        const rows = within(menu).getAllByRole('menuitem');
+        await waitFor(() => expect(rows[0]).toHaveFocus());
+        expect(rows[0]).toHaveAttribute('tabindex', '0');
+        await userEvent.tab();
+        expect(rows[1]).toHaveFocus();
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('opens via keyboard and returns focus to the bell on Escape', async () => {
+        mockRows = [row()];
+        renderWithProviders(<NotificationBell />);
+        const trigger = screen.getByRole('button', { name: 'Notifications' });
+        trigger.focus();
+        await userEvent.keyboard('{Enter}');
+        await waitFor(() =>
+            expect(
+                within(screen.getByRole('menu')).getAllByRole('menuitem')[0]
+            ).toHaveFocus()
+        );
+        await userEvent.keyboard('{Escape}');
+        await waitFor(() =>
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+        );
+        await waitFor(() => expect(trigger).toHaveFocus());
     });
 
     it('offers "Mark all read" when unread and fires the mutation', async () => {

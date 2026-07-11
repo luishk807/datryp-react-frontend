@@ -276,7 +276,9 @@ const CityDetail = () => {
         // the URL params + the fast image endpoint) so the page feels instant,
         // with the AI-enriched body filling in once city-details resolves.
         return (
-            <Layout title={`${name}…`}>
+            // No `title` → the page shell renders no <h1>; the in-page
+            // `.city-detail-name` below is the single h1 in every state.
+            <Layout>
                 <article className="city-detail city-detail--loading">
                     {/* Same hero+side grid as the loaded page so the hero
                         keeps its size across the transition instead of
