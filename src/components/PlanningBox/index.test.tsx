@@ -112,7 +112,10 @@ describe('PlanningBox', () => {
             />
         );
         expect(screen.getByText('Trip ended')).toBeInTheDocument();
-        expect(screen.getByText(/ended 2 days ago/)).toBeInTheDocument();
+        // `fromNow()` rounds by elapsed time, so a date-only "2 days ago"
+        // fixture reads as 2 or 3 days depending on the time of day — assert
+        // the relative-time phrase, not the exact count (which drifts).
+        expect(screen.getByText(/ended \d+ days? ago/)).toBeInTheDocument();
         // The confirm badge switches into "complete" (past-due) mode.
         expect(screen.getByTestId('status-badge')).toHaveAttribute(
             'data-pastdue',

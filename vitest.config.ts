@@ -28,6 +28,11 @@ export default defineConfig({
     resolve: { alias: projectAliases },
     test: {
         environment: 'jsdom',
+        // The default 5s per-test timeout is too tight for heavy multi-step
+        // component tests (wizards, trip detail) once v8 coverage
+        // instrumentation is added — CI runs `test:coverage`, so give them
+        // headroom to avoid instrumentation-only timeout flakes.
+        testTimeout: 15000,
         // Jest-style globals (describe/it/expect) without per-file imports.
         globals: true,
         setupFiles: ['./src/test/setup.ts'],

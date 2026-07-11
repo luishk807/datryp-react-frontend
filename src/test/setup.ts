@@ -69,3 +69,24 @@ if (!window.ResizeObserver) {
 // scrollTo call (e.g. list pagination) throws, surfacing as an uncaught error
 // that can fail an unrelated file. Always override with a no-op.
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
+
+// jsdom's `HTMLFormElement.prototype.requestSubmit` is likewise a
+// "Not implemented" throwing stub. Forms that submit programmatically
+// (e.g. PlanningBox) would throw/hang. Replace it with a spec-ish shim that
+// clicks the submitter (or a synthetic submit button) so the submit event
+// actually fires.
+HTMLFormElement.prototype.requestSubmit = function (
+    this: HTMLFormElement,
+    submitter?: HTMLElement | null
+) {
+    if (submitter) {
+        (submitter as HTMLButtonElement).click();
+        return;
+    }
+    const button = document.createElement('button');
+    button.type = 'submit';
+    button.hidden = true;
+    this.appendChild(button);
+    button.click();
+    this.removeChild(button);
+};
