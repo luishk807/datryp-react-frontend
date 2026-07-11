@@ -17,13 +17,11 @@ import {
 // lifecycle events are fired explicitly by `renderMap` (post-mount, in act) so
 // `mapReady` flips true and the data-sync effects run; the getSource/getLayer
 // stubs return "added" once addSource/addLayer ran, so both the create branch
-// AND the later setData/setFilter branches execute. The
-// module-const MAPBOX_TOKEN is read at import time, so the token is stubbed in
-// this hoisted block before the component module evaluates.
+// AND the later setData/setFilter branches execute. The module-const
+// MAPBOX_TOKEN is read at import time and gates the whole map UI; the token is
+// supplied by `test.env.VITE_MAPBOX_TOKEN` in vitest.config.ts (present in CI
+// and locally alike), so we don't touch import.meta.env here.
 const mapbox = vi.hoisted(() => {
-    (import.meta as unknown as { env: Record<string, string> }).env
-        .VITE_MAPBOX_TOKEN = 'pk.test.token';
-
     const state: { instance: any } = { instance: null };
 
     const parse = (a: unknown, b: unknown) => {

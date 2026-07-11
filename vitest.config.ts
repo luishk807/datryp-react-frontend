@@ -36,6 +36,16 @@ export default defineConfig({
         // Jest-style globals (describe/it/expect) without per-file imports.
         globals: true,
         setupFiles: ['./src/test/setup.ts'],
+        // Test-only env. The Travel Atlas page (Sections/MyMap) reads
+        // `import.meta.env.VITE_MAPBOX_TOKEN` at module load and renders a
+        // "setup needed" fallback when it's empty — which hides the whole map
+        // UI its tests assert on. Locally a gitignored `.env` supplies the
+        // token, but CI has none, so provide a dummy here to make the map path
+        // render identically in both places. (mapbox-gl itself is mocked in
+        // that test; this only satisfies the token gate.)
+        env: {
+            VITE_MAPBOX_TOKEN: 'pk.test.token',
+        },
         // Component stylesheets (index.scss) are irrelevant to behavior and
         // would drag Tailwind/Sass into every test run — leave CSS unprocessed
         // so `import './index.scss'` is a no-op.
