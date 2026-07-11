@@ -31,7 +31,9 @@
 }
 
 .top-places-subtitle {
-  color: rgba(0, 0, 0, 0.5);
+  // rgba(0,0,0,0.5) (=#808080) was 3.94:1 on white — fails WCAG AA. 0.6
+  // (=#666) lifts it to ~5.7:1.
+  color: rgba(0, 0, 0, 0.6);
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;

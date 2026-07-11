@@ -12,15 +12,18 @@ const basePlace: PlaceCardData = {
 };
 
 describe('PlaceCard', () => {
-    it('renders the place name, country, tagline and a described image', () => {
+    it('renders the place name, country, tagline and a labelled action', () => {
         renderWithProviders(<PlaceCard place={basePlace} />);
         expect(
             screen.getByRole('heading', { name: 'Kyoto' })
         ).toBeInTheDocument();
         expect(screen.getByText('Japan')).toBeInTheDocument();
         expect(screen.getByText('Temples and tea houses')).toBeInTheDocument();
-        const img = screen.getByRole('img', { name: 'Kyoto, Japan' });
-        expect(img).toHaveAttribute('src', basePlace.image);
+        // The whole card is one labelled action button; the photo is
+        // decorative (empty alt) so it isn't announced as a named image.
+        expect(
+            screen.getByRole('button', { name: 'Kyoto, Japan' })
+        ).toBeInTheDocument();
     });
 
     it('renders as a real button and fires onClick when activated', async () => {
@@ -28,6 +31,23 @@ describe('PlaceCard', () => {
         renderWithProviders(<PlaceCard place={basePlace} onClick={onClick} />);
         await userEvent.click(screen.getByRole('button', { name: /kyoto/i }));
         expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the attribution links out of the action button (no nested interactive)', () => {
+        renderWithProviders(
+            <PlaceCard
+                place={{
+                    ...basePlace,
+                    photographerName: 'Ansel Adams',
+                    photographerUrl: 'https://unsplash.com/@ansel',
+                }}
+                onClick={vi.fn()}
+            />
+        );
+        const action = screen.getByRole('button', { name: 'Kyoto, Japan' });
+        const unsplash = screen.getByRole('link', { name: 'Unsplash' });
+        // A button may not contain focusable descendants (WCAG nested-interactive).
+        expect(action.contains(unsplash)).toBe(false);
     });
 
     it('omits the tagline when none is provided', () => {

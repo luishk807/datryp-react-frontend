@@ -41,6 +41,7 @@ const WifiSection = ({ code }: WifiSectionProps) => {
         >
             <div
                 className="wifi-stars"
+                role="img"
                 aria-label={t('wifi.ratingAria', { rating })}
             >
                 {Array.from({ length: 5 }, (_, i) =>

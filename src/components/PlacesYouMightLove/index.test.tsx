@@ -91,8 +91,10 @@ describe('PlacesYouMightLove', () => {
         expect(
             screen.getByRole('heading', { name: /places you might love/i })
         ).toBeInTheDocument();
-        const img = screen.getByRole('img', { name: 'Paris, France' });
-        expect(img).toHaveAttribute('src', 'https://img.example/paris.jpg');
+        // The card is a single labelled action button; the photo is decorative.
+        expect(
+            screen.getByRole('button', { name: 'Paris, France' })
+        ).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', { name: /Paris/i }));
         expect(mockNavigate).toHaveBeenCalledWith(

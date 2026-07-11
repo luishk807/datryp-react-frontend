@@ -20,6 +20,27 @@
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
 }
 
+// Invisible, full-card click/keyboard target. Sits above the image + content
+// but BELOW the attribution links (which set z-index: 2) so those stay
+// independently clickable. Replaces the old card-is-a-button markup that
+// illegally nested the attribution anchors inside a <button>.
+.place-card-action {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: inherit;
+}
+
+.place-card-action:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px rgba(60, 181, 75, 0.6);
+}
+
 .place-card-image-wrap {
   position: relative;
   width: 100%;
@@ -47,6 +68,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: auto;
+  // Above `.place-card-action` so the credit links remain clickable.
+  z-index: 2;
 
   a {
     color: inherit;

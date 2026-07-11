@@ -34,6 +34,7 @@ const CostBadge = ({ level, className }: CostBadgeProps) => {
   return (
     <span
       className={classNames("cost-badge", className)}
+      role="img"
       aria-label={t('detail.common.cost.aria', { n: clamped })}
       title={`${clamped}/5 — ${t(COST_LABEL_KEY[clamped - 1])}`}
     >

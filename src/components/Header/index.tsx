@@ -151,12 +151,12 @@ const Header = ({ withSearch = false, pageTitle }: HeaderProps) => {
                             <>
                                 <img
                                     src={LOGO_IMAGE}
-                                    alt=""
+                                    alt={t('nav.logoAlt')}
                                     className="app-header-logo-full"
                                 />
                                 <img
                                     src={LOGO_ICON_IMAGE}
-                                    alt=""
+                                    alt={t('nav.logoAlt')}
                                     className="app-header-logo-icon"
                                 />
                             </>

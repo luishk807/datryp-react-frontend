@@ -101,8 +101,9 @@ describe('TopPlaces', () => {
         renderWithProviders(<TopPlaces onPlaceClick={onPlaceClick} />);
 
         expect(screen.getByText(/curated for may 2026/i)).toBeInTheDocument();
+        // The card is a single labelled action button; its photo is decorative.
         expect(
-            screen.getByRole('img', { name: 'Lisbon, Portugal' })
+            screen.getByRole('button', { name: 'Lisbon, Portugal' })
         ).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', { name: /Lisbon/i }));

@@ -23,12 +23,18 @@ const stopPropagation: React.MouseEventHandler = (e) => e.stopPropagation();
 
 const PlaceCard = ({ place, onClick }: PlaceCardProps) => {
     const hasAttribution = Boolean(place.photographerName);
+    // The card is a plain container, not a <button>: it must hold the Unsplash
+    // attribution <a> links, and a button may not contain focusable descendants
+    // (WCAG "nested-interactive"). Instead, a single stretched, transparent
+    // action button overlays the whole card as the primary click/keyboard
+    // target, and the attribution links sit above it (z-index) so they stay
+    // independently clickable.
     return (
-        <button type="button" className="place-card" onClick={onClick}>
+        <div className="place-card">
             <div className="place-card-image-wrap">
                 <img
                     src={place.image}
-                    alt={`${place.name}, ${place.country}`}
+                    alt=""
                     className="place-card-image"
                     loading="lazy"
                 />
@@ -68,7 +74,13 @@ const PlaceCard = ({ place, onClick }: PlaceCardProps) => {
                     <p className="place-card-tagline">{place.tagline}</p>
                 )}
             </div>
-        </button>
+            <button
+                type="button"
+                className="place-card-action"
+                onClick={onClick}
+                aria-label={`${place.name}, ${place.country}`}
+            />
+        </div>
     );
 };
 
