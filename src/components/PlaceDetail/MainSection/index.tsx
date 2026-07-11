@@ -30,6 +30,13 @@ export interface MainSectionProps {
  * heading is an `<h2>` and the block is exposed as a named `role="region"`
  * landmark (accessible name = its title) and a keyboard tab stop
  * (`tabIndex={0}`) — same reach-each-widget treatment as `DetailSection`.
+ *
+ * The body is wrapped in a `.main-section-body` div referenced by
+ * `aria-describedby` so a screen reader reads the section content (not just the
+ * title) when focus lands on the box. The wrapper is `display: contents` so it
+ * generates no box — critical here because `.main-section` is a flex column
+ * with a `gap`, and the body's children must stay direct flex items to keep
+ * that spacing.
  */
 const MainSection = ({
   title,
@@ -38,11 +45,13 @@ const MainSection = ({
   children,
 }: MainSectionProps) => {
   const titleId = useId();
+  const bodyId = useId();
   return (
     <section
       className={classNames("main-section", `size-${size}`)}
       role="region"
       aria-labelledby={titleId}
+      aria-describedby={bodyId}
       tabIndex={0}
     >
       <h2 id={titleId} className="main-section-heading">
@@ -53,7 +62,9 @@ const MainSection = ({
         )}
         {title}
       </h2>
-      {children}
+      <div id={bodyId} className="main-section-body">
+        {children}
+      </div>
     </section>
   );
 };

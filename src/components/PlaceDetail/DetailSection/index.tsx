@@ -28,14 +28,24 @@ export interface DetailSectionProps {
  * via `aria-labelledby`) and made a keyboard tab stop (`tabIndex={0}`) so
  * keyboard + screen-reader users can jump straight to each content widget
  * (Weather, Currency, Safety, …) rather than tabbing through inert prose.
+ *
+ * The body is wrapped in a `.detail-section-body` div referenced by
+ * `aria-describedby`, so when focus lands on the box a screen reader (e.g.
+ * Windows Narrator) announces the title AND reads the section's content (the
+ * safety level, "68/100", the advice, …) — not just the title. The wrapper is
+ * `display: contents` so it generates no box: the body's children stay direct
+ * flow/flex items of `.detail-section` exactly as before (the sidebar cards
+ * turn `.detail-section` into a flex column), so nothing shifts visually.
  */
 const DetailSection = ({ title, icon, children, className, badge }: DetailSectionProps) => {
   const titleId = useId();
+  const bodyId = useId();
   return (
     <section
       className={classNames("detail-section", className)}
       role="region"
       aria-labelledby={titleId}
+      aria-describedby={bodyId}
       tabIndex={0}
     >
       <h2 id={titleId} className="detail-section-title">
@@ -45,7 +55,9 @@ const DetailSection = ({ title, icon, children, className, badge }: DetailSectio
         {title}
         {badge != null && <span className="detail-section-badge">{badge}</span>}
       </h2>
-      {children}
+      <div id={bodyId} className="detail-section-body">
+        {children}
+      </div>
     </section>
   );
 };

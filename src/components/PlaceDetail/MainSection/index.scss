@@ -23,6 +23,14 @@
   }
 }
 
+// The body only carries the `aria-describedby` id (so a screen reader reads the
+// content on focus). `display: contents` removes its box so the body's children
+// stay direct flex items of the flex-column `.main-section` — the `gap` spacing
+// between them is preserved.
+.main-section-body {
+  display: contents;
+}
+
 .main-section-heading {
   display: inline-flex;
   align-items: center;

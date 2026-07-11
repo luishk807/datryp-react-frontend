@@ -39,6 +39,30 @@ describe('DetailSection', () => {
         expect(region).not.toHaveAttribute('aria-label');
     });
 
+    it('describes the region by its body so focus reads the content', () => {
+        renderWithProviders(
+            <DetailSection title="Safety" icon={<InfoRoundedIcon />}>
+                <p>Level 2 · 68/100 · Exercise increased caution</p>
+            </DetailSection>
+        );
+
+        const region = screen.getByRole('region', { name: 'Safety' });
+        const describedBy = region.getAttribute('aria-describedby');
+        // Points at the body, NOT the title — so a screen reader announces the
+        // title (name) AND reads the section content (description) on focus.
+        expect(describedBy).toBeTruthy();
+        expect(describedBy).not.toBe(region.getAttribute('aria-labelledby'));
+
+        const body = document.getElementById(describedBy as string);
+        expect(body).not.toBeNull();
+        expect(body).toHaveClass('detail-section-body');
+        expect(body).toHaveTextContent('68/100');
+        expect(body).toHaveTextContent('Exercise increased caution');
+
+        // The computed accessible description is the flattened body text.
+        expect(region).toHaveAccessibleDescription(/68\/100/);
+    });
+
     it('appends the optional badge to the title', () => {
         renderWithProviders(
             <DetailSection

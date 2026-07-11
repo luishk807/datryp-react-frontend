@@ -14,6 +14,14 @@
   }
 }
 
+// The body is only a wrapper carrying the `aria-describedby` id (so a screen
+// reader reads the content on focus). `display: contents` removes its box, so
+// its children stay direct flow/flex items of `.detail-section` — no layout
+// change even where the card is turned into a flex column (sidebar widgets).
+.detail-section-body {
+  display: contents;
+}
+
 .detail-section-title {
   display: flex;
   align-items: center;
