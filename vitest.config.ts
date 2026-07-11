@@ -15,7 +15,7 @@ const srcAlias = (p: string) => resolve(rootDir, 'src', p);
 // Node's empty `constants` shim. These explicit aliases re-root the project's
 // baseUrl (`src`) specifiers for the test runner, independent of the tsconfig.
 const projectAliases = Object.fromEntries(
-    ['api', 'assets', 'components', 'constants', 'context', 'hooks', 'i18n', 'lib', 'offline', 'test', 'types', 'utils'].map(
+    ['api', 'assets', 'components', 'constants', 'context', 'hooks', 'i18n', 'lib', 'offline', 'sample', 'test', 'types', 'utils'].map(
         (name) => [name, srcAlias(name)]
     )
 );
