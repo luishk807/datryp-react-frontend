@@ -84,10 +84,27 @@ export default defineConfig({
                 'src/api/index.ts',
                 'src/api/suggestionsPrefetch.ts',
             ],
-            // Enforced coverage floor. Currently scoped to the tested logic
-            // core (src/utils); RATCHET this outward — add src/components/…,
-            // src/api/… globs as those layers reach 80% — until it's global.
+            // Enforced coverage floor. The ratchet is COMPLETE — every layer
+            // (utils, FormFields, common, Sections, the whole component tree,
+            // and api) reached 80%, and the GLOBAL All-files aggregate now
+            // clears 80% on all four metrics (~92.9 stmts / 86.8 branch /
+            // 85.9 funcs / 92.9 lines), so the gate is global — the Rule 11
+            // endpoint. The per-glob gates below stay as finer-grained
+            // per-layer floors: a large regression in one layer is caught even
+            // when the high-coverage bulk keeps the global aggregate green.
             thresholds: {
+                // GLOBAL floor. Vitest builds the global coverage map from
+                // ALL included src files (not just glob-unmatched ones — see
+                // resolveThresholds in vitest/dist/coverage.js), so this is a
+                // true all-files aggregate. The only layers still well under
+                // 80% on their own (context/ ~21%, hooks/ ~15%, lib/offline/
+                // sample, App.tsx) are a small share of total LOC and are
+                // absorbed by the ~90%+ components/api/utils bulk. Test those
+                // to RAISE this floor over time.
+                statements: 80,
+                branches: 80,
+                functions: 80,
+                lines: 80,
                 'src/utils/**': {
                     statements: 80,
                     branches: 80,
@@ -126,6 +143,21 @@ export default defineConfig({
                     statements: 80,
                     branches: 80,
                     functions: 80,
+                    lines: 80,
+                },
+                // The WHOLE component tree — the 163 top-level feature comps
+                // plus common/ and Sections/ (which also keep their own gates
+                // above for per-layer protection). Aggregate ~94.7 stmts /
+                // 84.6 branch / 94.7 lines. `functions` is intentionally
+                // OMITTED here: the tree-wide function coverage sits ~81% — a
+                // margin too thin to gate reliably, because components are
+                // dense with undriven MUI/event callbacks (same rationale as
+                // FormFields/** above). Function coverage is still enforced by
+                // the GLOBAL gate, where api/utils/hooks lift it to a roomier
+                // ~85.9%.
+                'src/components/**': {
+                    statements: 80,
+                    branches: 80,
                     lines: 80,
                 },
                 // API client modules — all ~50 fetch modules contract-tested
