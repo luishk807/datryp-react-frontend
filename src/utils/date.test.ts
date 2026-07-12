@@ -162,15 +162,30 @@ describe('reformatDate', () => {
     });
 });
 
-// The wrappers coalesce null/undefined to `undefined` (moment => "now"). These
-// exercise the nullish side of every `value ?? undefined` guard.
-describe('nullish inputs coalesce to now', () => {
-    it('isAfter treats null/undefined as now (equal -> not after)', () => {
+// The comparison wrappers coalesce a nullish operand to a "now" reference that
+// is shared across both operands of a single call. So when BOTH operands are
+// nullish they resolve to the exact same instant (equal) — never "before" or
+// "after". This used to read the clock twice (moment() per operand), which made
+// isBefore(null, undefined) flakily true whenever the two reads landed in
+// different milliseconds. Every nullish combo must be deterministically equal.
+describe('nullish inputs coalesce to a single shared now', () => {
+    it('isAfter treats both-nullish as equal (not after) for every combo', () => {
         expect(isAfter(null, undefined)).toBe(false);
+        expect(isAfter(undefined, null)).toBe(false);
+        expect(isAfter(null, null)).toBe(false);
+        expect(isAfter(undefined, undefined)).toBe(false);
     });
 
-    it('isBefore treats null/undefined as now (equal -> not before)', () => {
+    it('isBefore treats both-nullish as equal (not before) for every combo', () => {
         expect(isBefore(null, undefined)).toBe(false);
+        expect(isBefore(undefined, null)).toBe(false);
+        expect(isBefore(null, null)).toBe(false);
+        expect(isBefore(undefined, undefined)).toBe(false);
+    });
+
+    it('isSameDay is true and diffDays is 0 for both-nullish operands', () => {
+        expect(isSameDay(null, undefined)).toBe(true);
+        expect(diffDays(null, undefined)).toBe(0);
     });
 
     it('isValidDate is false for a null value when an input format is required', () => {
