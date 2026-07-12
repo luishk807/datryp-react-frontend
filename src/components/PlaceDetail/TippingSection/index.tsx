@@ -50,12 +50,22 @@ const TippingSection = ({ code }: TippingSectionProps) => {
             className="tipping-section"
             title={t('tipping.title')}
             icon={<PaymentsRoundedIcon />}
+            contentRead="items"
         >
             <p className="tipping-summary">{tipping.summary}</p>
             {rows.length > 0 && (
                 <ul className="tipping-list">
                     {rows.map((row) => (
-                        <li key={row.key} className="tipping-row">
+                        // Each row is its own tab stop so keyboard +
+                        // screen-reader users hear "<label>: <value>" per row,
+                        // instead of the whole card being one stop that only
+                        // announces "Tipping".
+                        <li
+                            key={row.key}
+                            className="tipping-row"
+                            tabIndex={0}
+                            aria-label={`${row.label}: ${row.value}`}
+                        >
                             <span className="tipping-label">{row.label}</span>
                             <span className="tipping-value">{row.value}</span>
                         </li>

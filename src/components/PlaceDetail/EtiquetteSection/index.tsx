@@ -27,10 +27,20 @@ const EtiquetteSection = ({ code }: EtiquetteSectionProps) => {
             className="etiquette-section"
             title={t('etiquette.title')}
             icon={<WavingHandRoundedIcon />}
+            contentRead="items"
         >
             <ul className="etiquette-list">
                 {tips.map((tip) => (
-                    <li key={tip} className="etiquette-item">
+                    // Each tip is its own keyboard tab stop, so screen-reader +
+                    // keyboard users Tab through them and hear each tip rather
+                    // than the whole card being a single stop. A listitem isn't a
+                    // name-from-content role, so it needs an explicit aria-label.
+                    <li
+                        key={tip}
+                        className="etiquette-item"
+                        tabIndex={0}
+                        aria-label={tip}
+                    >
                         {tip}
                     </li>
                 ))}

@@ -48,6 +48,7 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
             className="essential-apps-section"
             title={t('essentialApps.title')}
             icon={<SmartphoneRoundedIcon />}
+            contentRead="items"
         >
             <p className="essential-apps-intro">{t('essentialApps.intro')}</p>
             {/* Country-specific scene-setter — hand-written for curated
@@ -72,6 +73,13 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
                             </div>
                             <ul className="essential-apps-list">
                                 {cat.apps.map((app) => (
+                                    // Each app is its own keyboard tab stop, so
+                                    // screen-reader + keyboard users Tab through
+                                    // them and hear each name + note rather than
+                                    // the whole card being a single stop. The
+                                    // aria-label carries the full text (the
+                                    // visible spans aren't a name-from-content
+                                    // role on their own).
                                     <li
                                         key={app.name}
                                         className={classNames(
@@ -83,6 +91,12 @@ const EssentialAppsSection = ({ code }: EssentialAppsSectionProps) => {
                                                     app.status === 'caution',
                                             }
                                         )}
+                                        tabIndex={0}
+                                        aria-label={
+                                            app.note
+                                                ? `${app.name}. ${app.note}`
+                                                : app.name
+                                        }
                                     >
                                         <span className="essential-apps-name">
                                             {app.name}

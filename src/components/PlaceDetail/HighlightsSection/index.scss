@@ -16,6 +16,14 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
+
+  // Each row is a keyboard tab stop (see index.tsx) — give it a clear focus
+  // ring so keyboard users can see which row they're on.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
 }
 
 .highlights-section-label {

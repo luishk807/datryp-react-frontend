@@ -63,4 +63,25 @@ describe('AccessibilitySection', () => {
         expect(screen.getByText('English')).toBeInTheDocument();
         expect(screen.getAllByRole('listitem')).toHaveLength(3);
     });
+
+    it('makes each row a keyboard tab stop named "<label>: <value>"', () => {
+        mockFacts = {
+            accessibility: {
+                wheelchair: 'Fairly wheelchair-friendly',
+                transit: null,
+                sidewalks: 'Wide and well kept',
+                signage: 'Widely bilingual',
+            },
+        };
+        renderWithProviders(<AccessibilitySection code="JP" />);
+
+        expect(
+            screen.getByRole('listitem', {
+                name: 'Wheelchair: Fairly wheelchair-friendly',
+            })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('listitem', { name: 'English: Widely bilingual' })
+        ).toHaveAttribute('tabindex', '0');
+    });
 });

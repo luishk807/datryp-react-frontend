@@ -54,27 +54,46 @@ const AirportsSection = ({ airports, isError = false }: AirportsSectionProps) =>
   }
 
   return (
-    <DetailSection title={title} icon={<FlightRoundedIcon />}>
+    <DetailSection title={title} icon={<FlightRoundedIcon />} contentRead="items">
       <ul className="airports-list">
-        {airports.map((a) => (
-          <li key={a.iataCode} className="airports-item">
-            <span className="airports-code">{a.iataCode}</span>
-            <div className="airports-meta">
-              <span className="airports-name">{a.name}</span>
-              <span className="airports-sub">
-                {formatDistance(a.distanceKm, t)}
-                {a.international && (
-                  <>
-                    {" · "}
-                    <span className="airports-intl">
-                      {t('detail.common.airports.international')}
-                    </span>
-                  </>
-                )}
-              </span>
-            </div>
-          </li>
-        ))}
+        {airports.map((a) => {
+          // Each airport is its own tab stop; the aria-label carries the code,
+          // name, distance, and (if any) the international flag — so a screen
+          // reader announces the whole airport on focus rather than the card
+          // only saying "Airports".
+          const label = `${a.iataCode}. ${a.name}. ${formatDistance(
+            a.distanceKm,
+            t
+          )}${
+            a.international
+              ? ` · ${t('detail.common.airports.international')}`
+              : ''
+          }`;
+          return (
+            <li
+              key={a.iataCode}
+              className="airports-item"
+              tabIndex={0}
+              aria-label={label}
+            >
+              <span className="airports-code">{a.iataCode}</span>
+              <div className="airports-meta">
+                <span className="airports-name">{a.name}</span>
+                <span className="airports-sub">
+                  {formatDistance(a.distanceKm, t)}
+                  {a.international && (
+                    <>
+                      {" · "}
+                      <span className="airports-intl">
+                        {t('detail.common.airports.international')}
+                      </span>
+                    </>
+                  )}
+                </span>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </DetailSection>
   );

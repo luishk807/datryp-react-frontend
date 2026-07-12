@@ -26,10 +26,19 @@ const ScamsSection = ({ code }: ScamsSectionProps) => {
             className="scams-section"
             title={t('scams.title')}
             icon={<ReportProblemRoundedIcon />}
+            contentRead="items"
         >
             <ul className="scams-list">
                 {scams.map((scam) => (
-                    <li key={scam} className="scams-item">
+                    // Each scam is its own keyboard tab stop so screen-reader +
+                    // keyboard users Tab through them one by one, rather than the
+                    // whole card being a single stop.
+                    <li
+                        key={scam}
+                        className="scams-item"
+                        tabIndex={0}
+                        aria-label={scam}
+                    >
                         {scam}
                     </li>
                 ))}

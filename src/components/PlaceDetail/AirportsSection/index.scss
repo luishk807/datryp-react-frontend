@@ -11,6 +11,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+
+  // Each airport is a keyboard tab stop (see index.tsx) — give it a clear
+  // focus ring so keyboard users can see which airport they're on.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
 }
 
 // IATA code badge — bold mono-ish look so VYR / JFK / LGA / EWR

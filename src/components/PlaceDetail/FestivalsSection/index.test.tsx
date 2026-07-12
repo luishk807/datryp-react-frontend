@@ -43,4 +43,26 @@ describe('FestivalsSection', () => {
         expect(screen.getByText('Obon')).toBeInTheDocument();
         expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
+
+    it('makes each festival a keyboard tab stop that voices its name and timing', () => {
+        mockFacts = {
+            festivals: [
+                { name: 'Cherry Blossom', when: 'Late March' },
+                { name: 'Obon', when: null },
+            ],
+        };
+        renderWithProviders(<FestivalsSection code="JP" />);
+
+        // Each festival is its own tab stop (so Tab walks through them) and
+        // carries an accessible name of "<name>. <when>" — screen readers voice
+        // the whole entry on focus, not just the card title.
+        const cherry = screen.getByRole('listitem', {
+            name: 'Cherry Blossom. Late March',
+        });
+        expect(cherry).toHaveAttribute('tabindex', '0');
+        // A timing-less festival is named by its name alone.
+        expect(
+            screen.getByRole('listitem', { name: 'Obon' })
+        ).toHaveAttribute('tabindex', '0');
+    });
 });

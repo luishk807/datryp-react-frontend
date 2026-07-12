@@ -42,4 +42,14 @@ describe('HighlightsSection', () => {
         expect(screen.getByText('Kyoto')).toBeInTheDocument();
         expect(container.querySelectorAll('.skeleton').length).toBe(2);
     });
+
+    it('makes each row a keyboard tab stop named "<place>: <highlight>"', () => {
+        renderWithProviders(<HighlightsSection {...baseProps} />);
+        expect(
+            screen.getByLabelText('Kyoto: Temples and tea houses.')
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByLabelText('Japan: Bullet trains and onsen.')
+        ).toHaveAttribute('tabindex', '0');
+    });
 });

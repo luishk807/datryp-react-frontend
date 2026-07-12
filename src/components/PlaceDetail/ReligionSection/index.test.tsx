@@ -47,6 +47,29 @@ describe('ReligionSection', () => {
         expect(customs[0]).toHaveTextContent('Dress modestly at mosques');
     });
 
+    it('makes the main faith line and each custom their own keyboard tab stops', () => {
+        mockFacts = {
+            religion: {
+                main: 'Islam',
+                emoji: '☪️',
+                note: 'official religion',
+                customs: ['Dress modestly at mosques', 'Remove shoes indoors'],
+            },
+        } as Partial<CountryFactsResult>;
+        renderWithProviders(<ReligionSection code="SA" />);
+
+        const main = screen.getByText('Islam').closest('.religion-main');
+        expect(main).toHaveAttribute('tabindex', '0');
+        expect(main).toHaveAttribute('aria-label', 'Islam. official religion');
+
+        expect(
+            screen.getByRole('listitem', { name: 'Dress modestly at mosques' })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('listitem', { name: 'Remove shoes indoors' })
+        ).toHaveAttribute('tabindex', '0');
+    });
+
     it('falls back to the icon and omits the customs block when there are none', () => {
         mockFacts = {
             religion: {

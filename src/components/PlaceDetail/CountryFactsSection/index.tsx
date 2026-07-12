@@ -102,6 +102,14 @@ const CountryFactsSection = ({ code }: CountryFactsSectionProps) => {
               )
             : null;
 
+    const powerSpec =
+        power && plugText
+            ? t('countryFacts.power.spec', {
+                  voltage: power.voltage,
+                  frequency: power.frequency,
+              })
+            : null;
+
     const localTime = timezone ? localTimeIn(timezone) : null;
     const offset = timezone ? offsetHoursFromViewer(timezone) : null;
     let offsetText: string | null = null;
@@ -133,10 +141,23 @@ const CountryFactsSection = ({ code }: CountryFactsSectionProps) => {
             className="country-facts-section"
             title={t('countryFacts.title')}
             icon={<FactCheckRoundedIcon />}
+            contentRead="items"
         >
             <ul className="country-facts-list">
                 {hasEmergency && (
-                    <li className="country-facts-row">
+                    // Each fact row is its own tab stop with an aria-label that
+                    // carries the whole row (label + every value), so keyboard
+                    // + screen-reader users hear the complete fact on focus
+                    // rather than the card only announcing "Quick facts". The
+                    // nested emergency numbers stay non-focusable — only the
+                    // outer row is a stop.
+                    <li
+                        className="country-facts-row"
+                        tabIndex={0}
+                        aria-label={`${t('countryFacts.emergency.label')}. ${emergencyEntries
+                            .map((e) => `${e.number} ${e.label}`)
+                            .join(', ')}`}
+                    >
                         <LocalHospitalRoundedIcon className="country-facts-icon country-facts-icon--sos" />
                         <div className="country-facts-body">
                             <span className="country-facts-label">
@@ -162,7 +183,13 @@ const CountryFactsSection = ({ code }: CountryFactsSectionProps) => {
                 )}
 
                 {hasPower && power && (
-                    <li className="country-facts-row">
+                    <li
+                        className="country-facts-row"
+                        tabIndex={0}
+                        aria-label={`${t('countryFacts.power.label')}. ${plugText}${
+                            powerSpec ? `. ${powerSpec}` : ''
+                        }`}
+                    >
                         <PowerRoundedIcon className="country-facts-icon" />
                         <div className="country-facts-body">
                             <span className="country-facts-label">
@@ -172,17 +199,24 @@ const CountryFactsSection = ({ code }: CountryFactsSectionProps) => {
                                 {plugText}
                             </span>
                             <span className="country-facts-sub">
-                                {t('countryFacts.power.spec', {
-                                    voltage: power.voltage,
-                                    frequency: power.frequency,
-                                })}
+                                {powerSpec}
                             </span>
                         </div>
                     </li>
                 )}
 
                 {hasTime && (
-                    <li className="country-facts-row">
+                    <li
+                        className="country-facts-row"
+                        tabIndex={0}
+                        aria-label={`${t('countryFacts.time.label')}. ${localTime}${
+                            offsetText ? ` · ${offsetText}` : ''
+                        }${
+                            timezoneMulti
+                                ? `. ${t('countryFacts.time.multi')}`
+                                : ''
+                        }`}
+                    >
                         <ScheduleRoundedIcon className="country-facts-icon" />
                         <div className="country-facts-body">
                             <span className="country-facts-label">

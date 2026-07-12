@@ -17,6 +17,14 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: theme('colors.primary');
+
+  // Each chip is a keyboard tab stop (see index.tsx) — focus ring follows the
+  // pill shape so keyboard users can see which chip they're on.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 2px;
+    border-radius: 999px;
+  }
 }
 
 .great-for-emoji {

@@ -39,4 +39,22 @@ describe('WhenToVisitSection', () => {
         expect(screen.getByText('Apr–May')).toBeInTheDocument();
         expect(screen.getByText('—')).toBeInTheDocument();
     });
+
+    it('makes each row a keyboard tab stop named "<label>: <value>"', () => {
+        renderWithProviders(
+            <WhenToVisitSection
+                bestTime="Apr–May"
+                worstTime="Jul–Aug"
+                isError={false}
+            />
+        );
+        expect(screen.getByLabelText('Best: Apr–May')).toHaveAttribute(
+            'tabindex',
+            '0'
+        );
+        expect(screen.getByLabelText('Worst: Jul–Aug')).toHaveAttribute(
+            'tabindex',
+            '0'
+        );
+    });
 });

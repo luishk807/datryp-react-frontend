@@ -15,6 +15,14 @@
   &.is-rated {
     align-items: center;
   }
+
+  // Each row is a keyboard tab stop (see index.tsx) — give it a clear focus
+  // ring so keyboard users can see which row they're on.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
 }
 
 .currency-tips-label {

@@ -29,10 +29,21 @@ const BeforeYouGoSection = ({ items }: BeforeYouGoSectionProps) => {
             className="before-you-go-section"
             title={t('beforeYouGo.title')}
             icon={<ChecklistRoundedIcon />}
+            contentRead="items"
         >
             <ul className="before-you-go-list">
                 {list.map((item) => (
-                    <li key={item} className="before-you-go-item">
+                    // Each checklist row is its own keyboard tab stop so
+                    // screen-reader + keyboard users Tab through them one by one
+                    // and hear each item, instead of the whole card being a
+                    // single stop. aria-label carries the row's text (the check
+                    // icon is decorative).
+                    <li
+                        key={item}
+                        className="before-you-go-item"
+                        tabIndex={0}
+                        aria-label={item}
+                    >
                         <CheckCircleRoundedIcon className="before-you-go-check" />
                         <span className="before-you-go-text">{item}</span>
                     </li>

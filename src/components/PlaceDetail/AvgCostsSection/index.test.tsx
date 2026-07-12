@@ -83,4 +83,26 @@ describe('AvgCostsSection', () => {
         expect(screen.getByText('Sample prices')).toBeInTheDocument();
         expect(screen.queryByText('Daily budget')).not.toBeInTheDocument();
     });
+
+    it('makes each cost row a keyboard tab stop named "<label>: <value>"', () => {
+        mockFacts = {
+            avgCosts: {
+                budget: '$60/day',
+                midrange: '$150/day',
+                luxury: null,
+                meal: '$12',
+                coffee: null,
+                transit: null,
+                beer: '$4',
+            },
+        };
+        renderWithProviders(<AvgCostsSection code="JP" />);
+
+        expect(
+            screen.getByRole('listitem', { name: 'Budget: $60/day' })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('listitem', { name: 'Meal: $12' })
+        ).toHaveAttribute('tabindex', '0');
+    });
 });

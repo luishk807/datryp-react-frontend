@@ -36,10 +36,19 @@ const AccessibilitySection = ({ code }: AccessibilitySectionProps) => {
             className="accessibility-section"
             title={t('accessibility.title')}
             icon={<AccessibleRoundedIcon />}
+            contentRead="items"
         >
             <ul className="accessibility-list">
                 {rows.map((row) => (
-                    <li key={row.key} className="accessibility-row">
+                    // Each row is its own tab stop so keyboard + screen-reader
+                    // users hear "<label>: <value>" per row, instead of the
+                    // whole card being one stop that only says "Accessibility".
+                    <li
+                        key={row.key}
+                        className="accessibility-row"
+                        tabIndex={0}
+                        aria-label={`${row.label}: ${row.value}`}
+                    >
                         <span className="accessibility-label">{row.label}</span>
                         <span className="accessibility-value">{row.value}</span>
                     </li>

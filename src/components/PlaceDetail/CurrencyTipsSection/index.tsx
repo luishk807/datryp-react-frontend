@@ -71,30 +71,46 @@ const CurrencyTipsSection = ({ code }: CurrencyTipsSectionProps) => {
             className="currency-tips-section"
             title={t('currencyTips.title')}
             icon={<CreditCardRoundedIcon />}
+            contentRead="items"
         >
             <ul className="currency-tips-list">
-                {rows.map((row) => (
-                    <li
-                        key={row.key}
-                        className={classNames('currency-tips-row', {
-                            'is-rated': row.rating != null,
-                        })}
-                    >
-                        <span className="currency-tips-label">{row.label}</span>
-                        {row.rating != null ? (
-                            <Stars
-                                rating={row.rating}
-                                ariaLabel={t('currencyTips.ratingAria', {
-                                    rating: row.rating,
-                                })}
-                            />
-                        ) : (
-                            <span className="currency-tips-value">
-                                {row.text}
+                {rows.map((row) => {
+                    // Each row is its own tab stop; its aria-label carries the
+                    // label plus the rating (spoken as the same "N out of 5"
+                    // string as the visible stars) or the text value — so a
+                    // screen reader announces the whole row on focus, not just
+                    // "Cards & cash".
+                    const ariaValue =
+                        row.rating != null
+                            ? t('currencyTips.ratingAria', {
+                                  rating: row.rating,
+                              })
+                            : row.text ?? '';
+                    return (
+                        <li
+                            key={row.key}
+                            className={classNames('currency-tips-row', {
+                                'is-rated': row.rating != null,
+                            })}
+                            tabIndex={0}
+                            aria-label={`${row.label}. ${ariaValue}`}
+                        >
+                            <span className="currency-tips-label">
+                                {row.label}
                             </span>
-                        )}
-                    </li>
-                ))}
+                            {row.rating != null ? (
+                                <Stars
+                                    rating={row.rating}
+                                    ariaLabel={ariaValue}
+                                />
+                            ) : (
+                                <span className="currency-tips-value">
+                                    {row.text}
+                                </span>
+                            )}
+                        </li>
+                    );
+                })}
             </ul>
         </DetailSection>
     );

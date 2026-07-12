@@ -50,4 +50,16 @@ describe('GreatForSection', () => {
         );
         expect(screen.getByText('stargazing')).toBeInTheDocument();
     });
+
+    it('makes each chip a keyboard tab stop named by its label', () => {
+        mockFacts = { greatFor: ['couples', 'foodies'] };
+        renderWithProviders(<GreatForSection code="JP" />);
+
+        expect(
+            screen.getByRole('listitem', { name: 'Couples' })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('listitem', { name: 'Foodies' })
+        ).toHaveAttribute('tabindex', '0');
+    });
 });
