@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Grid } from '@mui/material';
 import 'App.scss';
 import './index.scss';
@@ -17,6 +17,13 @@ interface SubLayoutProps {
      *  hidden on phones for full-bleed pages so the map gets every
      *  available pixel (see Footer/index.scss). */
     fullBleed?: boolean;
+    /** When true, move keyboard focus to the page `<h1>` on mount so
+     *  screen-reader users hear which page they landed on after an in-app
+     *  navigation (e.g. opening Account from the header menu), instead of
+     *  focus being stranded on the trigger they clicked. The title is a
+     *  programmatic focus target (tabIndex -1), not a Tab stop; its outline
+     *  is suppressed for that non-keyboard focus in the stylesheet. */
+    focusTitleOnMount?: boolean;
 }
 
 const Layout = ({
@@ -24,7 +31,12 @@ const Layout = ({
     title = '',
     titleAction,
     fullBleed = false,
+    focusTitleOnMount = false,
 }: SubLayoutProps) => {
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    useEffect(() => {
+        if (focusTitleOnMount) titleRef.current?.focus();
+    }, [focusTitleOnMount]);
     if (fullBleed) {
         return (
             <div className="page-shell is-subpage is-full-bleed">
@@ -73,7 +85,13 @@ const Layout = ({
                                     xs={12}
                                     className="layout-title"
                                 >
-                                    <h1 className="layout-title-text">{title}</h1>
+                                    <h1
+                                        ref={titleRef}
+                                        tabIndex={focusTitleOnMount ? -1 : undefined}
+                                        className="layout-title-text"
+                                    >
+                                        {title}
+                                    </h1>
                                     {titleAction}
                                 </Grid>
                             )}

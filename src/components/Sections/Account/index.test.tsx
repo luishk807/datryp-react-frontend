@@ -245,6 +245,28 @@ describe('Account — layout & nav', () => {
         expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
     });
 
+    it('moves focus to the section heading when a nav link is activated', async () => {
+        renderWithProviders(<Account />);
+        await userEvent.click(screen.getByRole('link', { name: 'Notifications' }));
+        // Keyboard/SR users land at the top of the section they chose, not
+        // stranded on the nav link.
+        const heading = screen.getByRole('heading', {
+            level: 2,
+            name: 'Notifications',
+        });
+        expect(heading).toHaveAttribute('tabindex', '-1');
+        expect(heading).toHaveFocus();
+    });
+
+    it('returns focus to the nav item when Escape is pressed in the content', async () => {
+        renderWithProviders(<Account />);
+        const link = screen.getByRole('link', { name: 'Notifications' });
+        await userEvent.click(link);
+        // Focus is now inside the section; Escape hops back to the menu.
+        await userEvent.keyboard('{Escape}');
+        expect(link).toHaveFocus();
+    });
+
     it('scrolls to the hash target section on mount', () => {
         renderWithProviders(<Account />, { route: '/account#profile' });
         // Effect ran without throwing; the section still renders.

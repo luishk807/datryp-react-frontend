@@ -17,6 +17,14 @@
   font-weight: inherit;
   color: inherit;
   line-height: inherit;
+
+  // The title can receive programmatic focus on mount (SubLayout
+  // focusTitleOnMount) so screen readers announce the page. It's a -1 target,
+  // not a Tab stop, so hide the outline for that non-keyboard focus while
+  // keeping a ring if a keyboard ever lands on it.
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 @media (min-width: 1200px) {

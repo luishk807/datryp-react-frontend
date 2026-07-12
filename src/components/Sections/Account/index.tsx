@@ -342,7 +342,7 @@ export const Account = () => {
 
     if (!user) {
         return (
-            <Layout title={t('account.common.pageTitle')}>
+            <Layout title={t('account.common.pageTitle')} focusTitleOnMount>
                 <div className="account-page account-logged-out">
                     <p>{t('account.common.loggedOut')}</p>
                 </div>
@@ -658,6 +658,26 @@ export const Account = () => {
         });
     }, [activeSection]);
 
+    // The nav link the user last activated — Escape inside the content area
+    // returns focus here so keyboard users can hop back to the menu without
+    // Shift+Tabbing past every field in the section.
+    const lastNavId = useRef<string>('profile');
+
+    // Move keyboard focus to a section's heading so activating a nav item
+    // (Enter/click) drops the user at the top of that section and a screen
+    // reader announces which one — instead of leaving focus on the nav link.
+    // The heading is a programmatic -1 target (see index.scss), not a Tab stop.
+    const focusSectionHeading = (id: string) => {
+        const section = document.getElementById(id);
+        if (!section) return;
+        const heading =
+            section.querySelector<HTMLElement>('h2, h1, h3') ?? section;
+        heading.setAttribute('tabindex', '-1');
+        // preventScroll: the smooth-scroll below owns the viewport motion;
+        // focusing must not fight it with a second instant jump.
+        heading.focus({ preventScroll: true });
+    };
+
     const handleNavClick = (
         e: React.MouseEvent<HTMLAnchorElement>,
         id: string
@@ -673,10 +693,41 @@ export const Account = () => {
         // share a deep link to a specific section.
         window.history.replaceState(null, '', `#${id}`);
         setActiveSection(id);
+        lastNavId.current = id;
+        focusSectionHeading(id);
+    };
+
+    // Escape from within the content area sends focus back to the nav item the
+    // user came in on. Skip it when a popup already consumed the key (an open
+    // dropdown/select closes on Escape and marks the event handled) so we don't
+    // hijack Escape from those widgets.
+    const handleContentKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key !== 'Escape' || e.defaultPrevented) return;
+        // Don't hijack Escape from an open dropdown/combobox — those use it to
+        // close. MUI selects portal a `.MuiPopover-root`; custom comboboxes
+        // (SearchablePicker, PhoneInput) mark their trigger aria-expanded.
+        const active = document.activeElement as HTMLElement | null;
+        if (
+            document.querySelector('.MuiPopover-root') ||
+            active?.closest('[aria-expanded="true"]')
+        ) {
+            return;
+        }
+        // Both the desktop rail and the mobile chip strip carry the same
+        // data-nav-id; focus whichever is actually visible (the other is
+        // display:none for the current breakpoint).
+        const links = document.querySelectorAll<HTMLElement>(
+            `[data-nav-id="${lastNavId.current}"]`
+        );
+        const navLink =
+            Array.from(links).find((l) => l.offsetParent !== null) ?? links[0];
+        if (!navLink) return;
+        e.preventDefault();
+        navLink.focus();
     };
 
     return (
-        <Layout title={t('account.common.pageTitle')}>
+        <Layout title={t('account.common.pageTitle')} focusTitleOnMount>
             <div className="account-page">
                 <nav className="account-nav" aria-label={t('account.common.navAria')}>
                     <ul className="account-nav-list">
@@ -728,7 +779,7 @@ export const Account = () => {
                     ))}
                 </div>
 
-                <div className="account-content">
+                <div className="account-content" onKeyDown={handleContentKeyDown}>
                 {/* Profile */}
                 <section className="account-card" id="profile">
                     <div className="account-card-header">

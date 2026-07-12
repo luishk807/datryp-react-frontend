@@ -53,6 +53,32 @@ describe('SubLayout', () => {
         ).not.toBeInTheDocument();
     });
 
+    it('moves focus to the title on mount when focusTitleOnMount is set', () => {
+        renderWithProviders(
+            <SubLayout title="Account" focusTitleOnMount>
+                body
+            </SubLayout>
+        );
+        const heading = screen.getByRole('heading', {
+            level: 1,
+            name: 'Account',
+        });
+        // Programmatic focus target: focusable (-1) and actually focused, so a
+        // screen reader announces the page after an in-app navigation.
+        expect(heading).toHaveAttribute('tabindex', '-1');
+        expect(heading).toHaveFocus();
+    });
+
+    it('does not focus or make the title focusable by default', () => {
+        renderWithProviders(<SubLayout title="My Trips">body</SubLayout>);
+        const heading = screen.getByRole('heading', {
+            level: 1,
+            name: 'My Trips',
+        });
+        expect(heading).not.toHaveAttribute('tabindex');
+        expect(heading).not.toHaveFocus();
+    });
+
     it('renders a supplied titleAction alongside the title', () => {
         renderWithProviders(
             <SubLayout
