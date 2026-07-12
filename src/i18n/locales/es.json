@@ -1699,6 +1699,30 @@
             "traveler": "Viajero",
             "notRatedYet": "Aún no ha calificado"
         },
+        "recap": {
+            "promptTitle": "¿Quieres dejar un breve resumen?",
+            "notNow": "Ahora no",
+            "reviewTrip": "Reseñar viaje",
+            "edit": "Editar resumen",
+            "editReview": "Editar reseña",
+            "clickToRate": "Haz clic para calificar",
+            "you": "Tú",
+            "groupTitle": "Reseñas de tu grupo",
+            "modalTitle": "Resumen del viaje",
+            "starsLabel": "¿Qué tal estuvo el viaje?",
+            "expectLabel": "¿Cumplió las expectativas?",
+            "expect": {
+                "better": "Mejor de lo esperado",
+                "about": "Como esperaba",
+                "worse": "Peor de lo esperado"
+            },
+            "surprisedLabel": "¿Qué te sorprendió?",
+            "surprisedPlaceholder": "¿Algo inesperado, bueno o malo? (opcional)",
+            "adviceLabel": "¿Algún consejo para quien haga este viaje?",
+            "advicePlaceholder": "¿Qué le dirías a un amigo que lo esté planeando? (opcional)",
+            "save": "Guardar resumen",
+            "needStars": "Añade una calificación con estrellas para guardar tu resumen."
+        },
         "note": {
             "badge": "Resumen del viaje",
             "placeholder": "¿Qué tal estuvo el viaje? ¿Algo que recordar para la próxima vez…",
@@ -2250,6 +2274,13 @@
             "extrasError": "No se pudieron cargar los extras: {{message}}",
             "unknownError": "Error desconocido"
         },
+        "insights": {
+            "title": "Opiniones verificadas de viajeros",
+            "basedOn_one": "De {{count}} visita verificada",
+            "basedOn_other": "De {{count}} visitas verificadas",
+            "livedUp": "{{pct}}% dijo que cumplió las expectativas",
+            "mostMentioned": "Lo más mencionado"
+        },
         "reviews": {
             "travelerReviews": "Reseñas de viajeros",
             "ratingsReviews": "Calificaciones y reseñas",
@@ -2498,7 +2529,53 @@
         "beTheFirst": "Sé el primero en reseñar",
         "starsAria": "{{rating}} de 5 — abrir calificaciones y reseñas",
         "starsAriaWithCount_one": "{{rating}} de 5 a partir de {{count}} reseña — abrir calificaciones y reseñas",
-        "starsAriaWithCount_other": "{{rating}} de 5 a partir de {{count}} reseñas — abrir calificaciones y reseñas"
+        "starsAriaWithCount_other": "{{rating}} de 5 a partir de {{count}} reseñas — abrir calificaciones y reseñas",
+        "inline": {
+            "review": "Reseñar",
+            "edit": "Editar",
+            "save": "Guardar",
+            "saving": "Guardando…",
+            "saveError": "No se pudo guardar — inténtalo de nuevo.",
+            "expectLabel": "¿Cumplió las expectativas?",
+            "tagsLabel": "Etiquetas",
+            "tagsHint": "elige hasta {{max}}",
+            "tipPlaceholder": "Consejo para futuros viajeros (opcional)",
+            "visibilityShort": "Visibilidad",
+            "visAnon": "Anónimo",
+            "visPublic": "Con mi nombre",
+            "visPrivate": "Solo yo"
+        },
+        "expect": {
+            "better": "Mejor de lo esperado",
+            "asExpected": "Como esperaba",
+            "overhyped": "Sobrevalorado"
+        },
+        "chips": {
+            "better_than_photos": "Mejor que las fotos",
+            "crowded": "Concurrido",
+            "worth_the_money": "Vale lo que cuesta",
+            "hidden_gem": "Joya escondida",
+            "long_lines": "Filas largas",
+            "delicious": "Delicioso",
+            "worth_the_price": "Vale el precio",
+            "great_service": "Excelente servicio",
+            "long_wait": "Espera larga",
+            "tourist_trap": "Trampa para turistas",
+            "crystal_clear_water": "Agua cristalina",
+            "great_for_families": "Ideal para familias",
+            "easy_parking": "Estacionamiento fácil",
+            "worth_the_ticket": "Vale la entrada",
+            "educational": "Educativo",
+            "needs_more_time": "Necesita más tiempo",
+            "skip_the_tour": "Sáltate el tour",
+            "amazing_views": "Vistas increíbles",
+            "challenging": "Exigente",
+            "worth_the_effort": "Vale el esfuerzo",
+            "bring_water": "Lleva agua",
+            "family_friendly": "Apto para familias",
+            "better_than_expected": "Mejor de lo esperado",
+            "would_visit_again": "Volvería a visitar"
+        }
     },
     "placeSuggestions": {
         "headingPrefix": "Sugerencias para",
