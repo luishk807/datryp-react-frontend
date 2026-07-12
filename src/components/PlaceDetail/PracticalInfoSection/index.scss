@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Second group (Where to stay) sits under a divider from the first (Travel
 // basics), so the merged card reads as two clear sub-sections.
 .practical-info-group + .practical-info-group {
@@ -70,3 +66,4 @@
     color: #c0392b;
   }
 }
+

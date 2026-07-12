@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Tone palette — drives the score-marker color, dimension bar fills,
 // and the score-card chip color. Four buckets matched 1:1 with the
 // BE verdict bands.
@@ -465,3 +461,4 @@
 .trip-checkup-error {
     font-size: 13px;
 }
+

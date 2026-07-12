@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // The faith glyph sits in the card's icon slot. `.detail-section-icon` is
 // sized for MUI SVGs; render the emoji at a matching size and drop the green
 // tint (emoji carry their own color).
@@ -63,3 +59,4 @@
     background: theme('colors.primaryGreen');
   }
 }
+

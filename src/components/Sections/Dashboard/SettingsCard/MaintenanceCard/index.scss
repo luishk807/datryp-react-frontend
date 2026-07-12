@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Maintenance-specific controls. Shared `.settings-card-*` layout classes
 // come from the parent SettingsCard stylesheet.
 .maintenance-card-field {
@@ -82,3 +78,4 @@
         opacity: 0.6;
     }
 }
+

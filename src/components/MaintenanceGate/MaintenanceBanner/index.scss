@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Sticky top warning bar (mode: "banner", and the persistent admin reminder
 // during a "full" block). Pinned above the app header (z-index 100) but below
 // MUI dialogs (1300) so modals still cover it.
@@ -88,3 +84,4 @@
         gap: 8px;
     }
 }
+

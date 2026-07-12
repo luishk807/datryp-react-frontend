@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 .add-method-tiles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -60,3 +56,4 @@
     padding: 16px 14px;
   }
 }
+

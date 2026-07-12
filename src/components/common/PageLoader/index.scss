@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Fixed full-viewport centered loader — shared by App's Suspense
  * fallbacks for every lazy route AND AuthGate's auth-resolving
  * placeholder. Sits above the page-shell so it covers any partial
@@ -69,3 +65,4 @@
   font-size: 0.95rem;
   color: rgba(0, 0, 0, 0.55);
 }
+

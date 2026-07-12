@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // A block of the compact fact cards in the main content column, before
 // Essential apps. Three columns on desktop; stacks to one on mobile.
 .detail-facts-grid {
@@ -36,3 +32,4 @@
     grid-template-columns: 1fr;
   }
 }
+

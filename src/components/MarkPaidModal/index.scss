@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // The ModalButton shell already paints a 100% gradient top stripe;
 // keep this file scoped to the modal's content + actions.
 .mark-paid-modal {
@@ -354,4 +350,5 @@
 .mark-paid-split-add {
   margin-top: 4px;
 }
+
 

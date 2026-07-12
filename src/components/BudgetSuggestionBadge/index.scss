@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Self-contained badge styles shared by every consumer (the create-flow
 // BudgetStep + the Edit Trip Info modal's BasicInfo). The class names are
 // owned here — keep them stable so the badge looks identical wherever the
@@ -59,3 +55,4 @@
         opacity: 1;
     }
 }
+

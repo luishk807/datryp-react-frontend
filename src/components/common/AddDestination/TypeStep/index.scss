@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Smart box (top of step 1) — describe the whole trip and we detect the
 // type. One clean pill: spark + bare input + green go arrow. Label/sub sit
 // above; the bare input drops its own border to avoid a box-in-a-box.
@@ -156,3 +152,4 @@
     padding: 14px 8px;
   }
 }
+

@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Full-bleed wrapper. The SubLayout `fullBleed` mode removes the
 // constrained Grid; the parent flex chain stretches us to the full
 // available viewport. `flex: 1` is the load-bearing piece —
@@ -1644,3 +1640,4 @@ img.my-map-trips-panel-flag {
     border-left-color: $card;
   }
 }
+

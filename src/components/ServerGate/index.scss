@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Full-viewport downtime overlay. Same fixed/centered treatment as
 // OfflineGate (z-index above MUI modals/snackbars) so any route mid-render
 // gets fully replaced by the "Site Currently Unavailable" panel.
@@ -130,3 +126,4 @@
         padding: 14px 20px;
     }
 }
+

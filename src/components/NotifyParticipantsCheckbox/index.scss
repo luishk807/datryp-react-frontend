@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 // Bell IconButton — sits inline with the other header action buttons.
 // Filled green when notifications are on; muted grey when off. The
 // wrapper span is just a tooltip anchor for disabled states.
@@ -48,3 +44,4 @@
     cursor: not-allowed;
   }
 }
+
