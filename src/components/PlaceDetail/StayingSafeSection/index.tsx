@@ -27,19 +27,10 @@ const StayingSafeSection = ({ code }: StayingSafeSectionProps) => {
             className="staying-safe-section"
             title={t('stayingSafe.title')}
             icon={<HealthAndSafetyRoundedIcon />}
-            contentRead="items"
         >
             <ul className="staying-safe-list">
                 {tips.map((tip) => (
-                    // Each tip is its own keyboard tab stop so screen-reader +
-                    // keyboard users Tab through them one by one, rather than the
-                    // whole card being a single stop.
-                    <li
-                        key={tip}
-                        className="staying-safe-item"
-                        tabIndex={0}
-                        aria-label={tip}
-                    >
+                    <li key={tip} className="staying-safe-item">
                         {tip}
                     </li>
                 ))}

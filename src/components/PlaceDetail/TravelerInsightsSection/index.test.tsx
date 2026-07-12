@@ -114,24 +114,4 @@ describe('TravelerInsightsSection', () => {
             screen.getByText('75% said it lived up to expectations')
         ).toBeInTheDocument();
     });
-
-    it('makes each expectation row and chip a tab stop named "label: percent"', () => {
-        mockData = insights();
-        renderWithProviders(<TravelerInsightsSection placeKey="senso-ji" />);
-        // Expectation shares: 5/8 = 63%, 2/8 = 25%.
-        expect(
-            screen.getByRole('listitem', { name: 'Better than expected: 63%' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'As expected: 25%' })
-        ).toHaveAttribute('tabindex', '0');
-        // Chips carry their own pct.
-        expect(
-            screen.getByRole('listitem', { name: 'Delicious: 80%' })
-        ).toHaveAttribute('tabindex', '0');
-        // The rows voice themselves, so the card announces only its title.
-        expect(
-            screen.getByRole('region', { name: /verified traveler insights/i })
-        ).not.toHaveAttribute('aria-describedby');
-    });
 });

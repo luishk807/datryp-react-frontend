@@ -86,22 +86,4 @@ describe('EssentialAppsSection', () => {
             screen.getByText('In Japan, cash is still king.')
         ).toBeInTheDocument();
     });
-
-    it('makes each app a keyboard tab stop that voices its name and note', () => {
-        mockData = result();
-        renderWithProviders(<EssentialAppsSection code="JP" />);
-
-        // Each app is its own tab stop (so Tab walks through them) and carries
-        // an accessible name of "<name>. <note>" — screen readers voice the
-        // whole entry on focus, not just the card title. The category <li>
-        // wrappers stay non-focusable groupings.
-        const uber = screen.getByRole('listitem', {
-            name: 'Uber. Airports & big cities',
-        });
-        expect(uber).toHaveAttribute('tabindex', '0');
-        // A note-less app is named by its name alone.
-        expect(
-            screen.getByRole('listitem', { name: 'GO Taxi' })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

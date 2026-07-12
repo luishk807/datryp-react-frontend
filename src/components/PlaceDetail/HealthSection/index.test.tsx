@@ -53,22 +53,4 @@ describe('HealthSection', () => {
             )
         ).toBeInTheDocument();
     });
-
-    it('makes each row a keyboard tab stop named "<label>: <value>"', () => {
-        mockFacts = {
-            health: {
-                vaccinations: 'Routine only',
-                mosquitoes: null,
-                malaria: 'No risk',
-            },
-        };
-        renderWithProviders(<HealthSection code="JP" />);
-
-        expect(
-            screen.getByRole('listitem', { name: 'Vaccines: Routine only' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'Malaria: No risk' })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

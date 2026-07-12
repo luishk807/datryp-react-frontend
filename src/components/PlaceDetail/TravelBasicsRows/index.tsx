@@ -44,7 +44,6 @@ const TravelBasicsRows = ({ basics }: TravelBasicsRowsProps) => {
           <span className="info-rows-sub"> — {basics.paymentNote}</span>
         </>
       ),
-      valueText: `${t(PAYMENT_LABEL_KEY[basics.paymentMethod])} — ${basics.paymentNote}`,
     },
     {
       icon: <TranslateRoundedIcon />,

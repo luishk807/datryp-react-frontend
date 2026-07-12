@@ -52,33 +52,20 @@ const GreatForSection = ({ code, greatFor }: GreatForSectionProps) => {
             className="great-for-section"
             title={t('greatFor.title')}
             icon={<FavoriteRoundedIcon />}
-            contentRead="items"
         >
             <ul className="great-for-chips">
-                {tags.map((tag) => {
-                    const label = t(`greatFor.tags.${tag}`, {
-                        defaultValue: tag,
-                    });
-                    return (
-                        // Each chip is its own keyboard tab stop so screen-reader
-                        // + keyboard users Tab through them one by one and hear
-                        // each label (the emoji is decorative), rather than the
-                        // whole card being a single stop.
-                        <li
-                            key={tag}
-                            className="great-for-chip"
-                            tabIndex={0}
-                            aria-label={label}
-                        >
-                            {TAG_EMOJI[tag] && (
-                                <span className="great-for-emoji" aria-hidden>
-                                    {TAG_EMOJI[tag]}
-                                </span>
-                            )}
-                            <span className="great-for-label">{label}</span>
-                        </li>
-                    );
-                })}
+                {tags.map((tag) => (
+                    <li key={tag} className="great-for-chip">
+                        {TAG_EMOJI[tag] && (
+                            <span className="great-for-emoji" aria-hidden>
+                                {TAG_EMOJI[tag]}
+                            </span>
+                        )}
+                        <span className="great-for-label">
+                            {t(`greatFor.tags.${tag}`, { defaultValue: tag })}
+                        </span>
+                    </li>
+                ))}
             </ul>
         </DetailSection>
     );

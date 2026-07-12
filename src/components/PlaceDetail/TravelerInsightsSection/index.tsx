@@ -41,7 +41,6 @@ const TravelerInsightsSection = ({ placeKey }: TravelerInsightsSectionProps) => 
             title={t("detail.insights.title")}
             icon={<VerifiedRoundedIcon />}
             className="traveler-insights"
-            contentRead="items"
         >
             <p className="ti-based-on">
                 {t("detail.insights.basedOn", {
@@ -55,34 +54,27 @@ const TravelerInsightsSection = ({ placeKey }: TravelerInsightsSectionProps) => 
                         {t("detail.insights.livedUp", { pct: exp.livedUpPct })}
                     </p>
                     <ul className="ti-expect-rows">
-                        {expectRows.map((r) => {
-                            const p = pct(r.count, exp.total);
-                            return (
-                                <li
-                                    className="ti-expect-row"
-                                    key={r.key}
-                                    tabIndex={0}
-                                    aria-label={`${t(r.labelKey)}: ${p}%`}
-                                >
-                                    <span className="ti-expect-label">
-                                        <span
-                                            className="ti-expect-emoji"
-                                            aria-hidden="true"
-                                        >
-                                            {r.emoji}
-                                        </span>
-                                        {t(r.labelKey)}
+                        {expectRows.map((r) => (
+                            <li className="ti-expect-row" key={r.key}>
+                                <span className="ti-expect-label">
+                                    <span className="ti-expect-emoji">
+                                        {r.emoji}
                                     </span>
-                                    <span className="ti-expect-bar">
-                                        <span
-                                            className="ti-expect-fill"
-                                            style={{ width: `${p}%` }}
-                                        />
-                                    </span>
-                                    <span className="ti-expect-pct">{p}%</span>
-                                </li>
-                            );
-                        })}
+                                    {t(r.labelKey)}
+                                </span>
+                                <span className="ti-expect-bar">
+                                    <span
+                                        className="ti-expect-fill"
+                                        style={{
+                                            width: `${pct(r.count, exp.total)}%`,
+                                        }}
+                                    />
+                                </span>
+                                <span className="ti-expect-pct">
+                                    {pct(r.count, exp.total)}%
+                                </span>
+                            </li>
+                        ))}
                     </ul>
                 </div>
             )}
@@ -94,13 +86,8 @@ const TravelerInsightsSection = ({ placeKey }: TravelerInsightsSectionProps) => 
                     </span>
                     <ul className="ti-chips-list">
                         {topTags.map((chip) => (
-                            <li
-                                className="ti-chip"
-                                key={chip.slug}
-                                tabIndex={0}
-                                aria-label={`${t(`review.chips.${chip.slug}`)}: ${chip.pct}%`}
-                            >
-                                <span className="ti-chip-emoji" aria-hidden="true">
+                            <li className="ti-chip" key={chip.slug}>
+                                <span className="ti-chip-emoji">
                                     {REVIEW_CHIP_EMOJI[chip.slug] ?? "•"}
                                 </span>
                                 <span className="ti-chip-pct">{chip.pct}%</span>

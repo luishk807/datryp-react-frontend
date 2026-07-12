@@ -42,18 +42,4 @@ describe('StayingSafeSection', () => {
         expect(items).toHaveLength(2);
         expect(items[0]).toHaveTextContent('Avoid displaying valuables');
     });
-
-    it('makes each tip a keyboard tab stop named by its text', () => {
-        mockFacts = {
-            safetyTips: ['Avoid displaying valuables', 'Use registered taxis'],
-        } as Partial<CountryFactsResult>;
-        renderWithProviders(<StayingSafeSection code="BR" />);
-
-        expect(
-            screen.getByRole('listitem', { name: 'Avoid displaying valuables' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'Use registered taxis' })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

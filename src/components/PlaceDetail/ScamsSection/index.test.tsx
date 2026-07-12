@@ -39,18 +39,4 @@ describe('ScamsSection', () => {
         expect(items[0]).toHaveTextContent('Taxi meter "broken"');
         expect(items[1]).toHaveTextContent('Gem-shop redirect');
     });
-
-    it('makes each scam a keyboard tab stop named by its text', () => {
-        mockFacts = {
-            scams: ['Taxi meter "broken"', 'Gem-shop redirect'],
-        } as Partial<CountryFactsResult>;
-        renderWithProviders(<ScamsSection code="TH" />);
-
-        expect(
-            screen.getByRole('listitem', { name: 'Taxi meter "broken"' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'Gem-shop redirect' })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

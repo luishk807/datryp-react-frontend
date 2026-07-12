@@ -12,14 +12,6 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-
-  // Each festival is a keyboard tab stop (see index.tsx) — give it a clear
-  // focus ring so keyboard users can see which one they're on.
-  &:focus-visible {
-    outline: 2px solid theme('colors.primaryGreen');
-    outline-offset: 4px;
-    border-radius: 2px;
-  }
 }
 
 .festivals-name {

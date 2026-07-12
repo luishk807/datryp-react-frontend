@@ -51,23 +51,13 @@ const AvgCostsSection = ({ code }: AvgCostsSectionProps) => {
             className="avg-costs-section"
             title={t('avgCosts.title')}
             icon={<PaymentsRoundedIcon />}
-            contentRead="items"
         >
             {groups.map((group) => (
                 <div key={group.key} className="avg-costs-group">
                     <span className="avg-costs-group-label">{group.label}</span>
                     <ul className="avg-costs-list">
                         {group.rows.map((row) => (
-                            // Each row is its own tab stop so keyboard +
-                            // screen-reader users hear "<label>: <value>" per
-                            // row, instead of the whole card being one stop
-                            // that only announces "Average costs".
-                            <li
-                                key={row.key}
-                                className="avg-costs-row"
-                                tabIndex={0}
-                                aria-label={`${row.label}: ${row.value}`}
-                            >
+                            <li key={row.key} className="avg-costs-row">
                                 <span className="avg-costs-label">
                                     {row.label}
                                 </span>

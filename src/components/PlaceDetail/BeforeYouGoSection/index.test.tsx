@@ -36,19 +36,4 @@ describe('BeforeYouGoSection', () => {
             )
         ).toBeInTheDocument();
     });
-
-    it('makes each checklist row a keyboard tab stop named by its text', () => {
-        renderWithProviders(
-            <BeforeYouGoSection
-                items={['Sort out a visa', 'Bring a power adapter']}
-            />
-        );
-
-        expect(
-            screen.getByRole('listitem', { name: 'Sort out a visa' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'Bring a power adapter' })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

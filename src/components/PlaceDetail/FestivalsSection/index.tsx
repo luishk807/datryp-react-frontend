@@ -26,25 +26,10 @@ const FestivalsSection = ({ code }: FestivalsSectionProps) => {
             className="festivals-section"
             title={t('festivals.title')}
             icon={<CelebrationRoundedIcon />}
-            contentRead="items"
         >
             <ul className="festivals-list">
                 {festivals.map((festival) => (
-                    // Each festival is its own keyboard tab stop, so screen-reader
-                    // + keyboard users Tab through them and hear each name + timing
-                    // rather than the whole card being a single stop. The aria-label
-                    // carries the full text (the visible spans aren't a
-                    // name-from-content role on their own).
-                    <li
-                        key={festival.name}
-                        className="festivals-item"
-                        tabIndex={0}
-                        aria-label={
-                            festival.when
-                                ? `${festival.name}. ${festival.when}`
-                                : festival.name
-                        }
-                    >
+                    <li key={festival.name} className="festivals-item">
                         <span className="festivals-name">{festival.name}</span>
                         {festival.when && (
                             <span className="festivals-when">

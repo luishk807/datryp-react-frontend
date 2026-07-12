@@ -42,22 +42,10 @@ const HighlightsSection = ({
     <DetailSection
       title={t('detail.common.highlights.title')}
       icon={<EmojiEventsRoundedIcon />}
-      contentRead="items"
     >
       <div className="highlights-section">
         {rows.map((row) => (
-          // Each row is its own tab stop so keyboard + screen-reader users hear
-          // "<place>: <highlight>" per row, instead of the whole card being one
-          // stop that only announces "Highlights". The highlight is lazy-loaded,
-          // so the name falls back to the place label until it resolves.
-          <div
-            key={row.tier}
-            className="highlights-section-row"
-            tabIndex={0}
-            aria-label={
-              row.highlight ? `${row.label}: ${row.highlight}` : row.label
-            }
-          >
+          <div key={row.tier} className="highlights-section-row">
             <span
               className={classNames(
                 "highlights-section-label",

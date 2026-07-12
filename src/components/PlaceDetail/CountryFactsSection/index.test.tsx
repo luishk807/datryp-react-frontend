@@ -63,27 +63,6 @@ describe('CountryFactsSection', () => {
         expect(screen.getByText('Local time')).toBeInTheDocument();
     });
 
-    it('makes each fact row a keyboard tab stop with a full accessible name', () => {
-        mockFacts = facts();
-        renderWithProviders(<CountryFactsSection code="US" />);
-
-        // Emergency row voices its label + every number/service on focus.
-        const emergency = screen.getByRole('listitem', {
-            name: 'Emergency. 112 All emergencies, 110 Police',
-        });
-        expect(emergency).toHaveAttribute('tabindex', '0');
-
-        // Power row voices label + plugs + voltage/frequency spec.
-        const power = screen.getByRole('listitem', {
-            name: 'Power. Types C / F. 230V · 50Hz',
-        });
-        expect(power).toHaveAttribute('tabindex', '0');
-
-        // Local time is a live clock, so match the leading label only.
-        const time = screen.getByRole('listitem', { name: /^Local time\./ });
-        expect(time).toHaveAttribute('tabindex', '0');
-    });
-
     it('uses the singular plug label for a single plug type', () => {
         mockFacts = facts({
             power: { plugs: ['A'], voltage: 120, frequency: 60 },

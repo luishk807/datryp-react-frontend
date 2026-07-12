@@ -15,7 +15,7 @@ describe('MainSection', () => {
         expect(screen.getByText('Body copy')).toBeInTheDocument();
     });
 
-    it('exposes the section as a keyboard-focusable named region', () => {
+    it('is a named region (landmark) but NOT a keyboard tab stop', () => {
         renderWithProviders(
             <MainSection title="About Japan">
                 <p>Body copy</p>
@@ -23,7 +23,6 @@ describe('MainSection', () => {
         );
 
         const region = screen.getByRole('region', { name: 'About Japan' });
-        expect(region).toHaveAttribute('tabindex', '0');
         const heading = screen.getByRole('heading', {
             level: 2,
             name: 'About Japan',
@@ -31,26 +30,10 @@ describe('MainSection', () => {
         expect(heading.id).toBeTruthy();
         expect(region).toHaveAttribute('aria-labelledby', heading.id);
         expect(region).not.toHaveAttribute('aria-label');
-    });
-
-    it('describes the region by its body so focus reads the content', () => {
-        renderWithProviders(
-            <MainSection title="Budget">
-                <p>Mid-range · around $120 per day</p>
-            </MainSection>
-        );
-
-        const region = screen.getByRole('region', { name: 'Budget' });
-        const describedBy = region.getAttribute('aria-describedby');
-        expect(describedBy).toBeTruthy();
-        expect(describedBy).not.toBe(region.getAttribute('aria-labelledby'));
-
-        const body = document.getElementById(describedBy as string);
-        expect(body).not.toBeNull();
-        expect(body).toHaveClass('main-section-body');
-        expect(body).toHaveTextContent('around $120 per day');
-
-        expect(region).toHaveAccessibleDescription(/\$120 per day/);
+        // Informational block: reached by heading/landmark nav and read in
+        // browse mode — Tab must skip it (no tabindex, no describedby).
+        expect(region).not.toHaveAttribute('tabindex');
+        expect(region).not.toHaveAttribute('aria-describedby');
     });
 
     it('renders a decorative icon wrapper when an icon is passed', () => {

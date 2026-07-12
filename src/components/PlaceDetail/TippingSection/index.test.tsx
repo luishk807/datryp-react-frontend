@@ -56,21 +56,4 @@ describe('TippingSection', () => {
         expect(within(rows[1]).getByText('valet')).toBeInTheDocument();
         expect(within(rows[1]).getByText('$2')).toBeInTheDocument();
     });
-
-    it('makes each service row a keyboard tab stop named "<label>: <value>"', () => {
-        mockFacts = {
-            tipping: {
-                summary: '10% is customary',
-                categories: { restaurants: '10%', valet: '$2' },
-            },
-        } as Partial<CountryFactsResult>;
-        renderWithProviders(<TippingSection code="US" />);
-
-        expect(
-            screen.getByRole('listitem', { name: 'Restaurants: 10%' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'valet: $2' })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

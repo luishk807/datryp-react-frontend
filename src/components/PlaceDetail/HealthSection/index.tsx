@@ -35,19 +35,10 @@ const HealthSection = ({ code }: HealthSectionProps) => {
             className="health-section"
             title={t('health.title')}
             icon={<VaccinesRoundedIcon />}
-            contentRead="items"
         >
             <ul className="health-list">
                 {rows.map((row) => (
-                    // Each row is its own tab stop so keyboard + screen-reader
-                    // users hear "<label>: <value>" per row, instead of the
-                    // whole card being one stop that only announces "Health".
-                    <li
-                        key={row.key}
-                        className="health-row"
-                        tabIndex={0}
-                        aria-label={`${row.label}: ${row.value}`}
-                    >
+                    <li key={row.key} className="health-row">
                         <span className="health-label">{row.label}</span>
                         <span className="health-value">{row.value}</span>
                     </li>

@@ -37,21 +37,8 @@ const ReligionSection = ({ code }: ReligionSectionProps) => {
                     <Diversity3RoundedIcon />
                 )
             }
-            contentRead="items"
         >
-            {/* The card announces only its title (contentRead="items"), so the
-                main faith line and each custom below are made their own keyboard
-                tab stops — screen-reader + keyboard users Tab through them one by
-                one, and nothing is dropped from announcement. */}
-            <p
-                className="religion-main"
-                tabIndex={0}
-                aria-label={
-                    religion.note
-                        ? `${religion.main}. ${religion.note}`
-                        : religion.main
-                }
-            >
+            <p className="religion-main">
                 <span className="religion-name">{religion.main}</span>
                 {religion.note && (
                     <span className="religion-note"> · {religion.note}</span>
@@ -65,12 +52,7 @@ const ReligionSection = ({ code }: ReligionSectionProps) => {
                     </p>
                     <ul className="religion-customs">
                         {religion.customs.map((custom) => (
-                            <li
-                                key={custom}
-                                className="religion-custom"
-                                tabIndex={0}
-                                aria-label={custom}
-                            >
+                            <li key={custom} className="religion-custom">
                                 {custom}
                             </li>
                         ))}

@@ -5,16 +5,6 @@
   margin-bottom: 14px;
 }
 
-// The score, each matched/missed interest, and the AI take are all keyboard
-// tab stops (see index.tsx) — give them a visible focus ring.
-.match-score:focus-visible,
-.match-item:focus-visible,
-.match-take:focus-visible {
-  outline: 2px solid theme('colors.primaryGreen');
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
 .match-score-pct {
   font-size: 1.9rem;
   font-weight: 800;

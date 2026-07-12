@@ -86,30 +86,6 @@ describe('MatchForYouSection — computed match', () => {
         expect(screen.getByText('Beaches')).toBeInTheDocument();
     });
 
-    it('exposes the score and each interest as named keyboard tab stops', () => {
-        mockUser = { isPaidMember: false };
-        mockPrefs = { interests: ['foodie', 'beach'] };
-        renderWithProviders(
-            <MatchForYouSection {...baseProps} greatFor={['foodies']} />
-        );
-        // Score is a focusable stat naming its percentage.
-        expect(
-            screen.getByRole('group', { name: '79% Match' })
-        ).toHaveAttribute('tabindex', '0');
-        // Each interest is a tab stop whose match/miss context is announced
-        // (the check/cross icon is only a visual signal on its own).
-        expect(
-            screen.getByRole('listitem', { name: 'Because you like: Food' })
-        ).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', { name: 'Might not satisfy: Beaches' })
-        ).toHaveAttribute('tabindex', '0');
-        // Rows voice themselves → card announces only its title.
-        expect(
-            screen.getByRole('region', { name: /is this right for you/i })
-        ).not.toHaveAttribute('aria-describedby');
-    });
-
     it('suppresses the misses when a city borrows the country tags', () => {
         mockUser = { isPaidMember: false };
         mockPrefs = { interests: ['foodie', 'beach'] };
@@ -174,20 +150,6 @@ describe('MatchForYouSection — Pro personal take', () => {
         expect(
             screen.getByText('You will devour the ramen alleys here.')
         ).toBeInTheDocument();
-    });
-
-    it('exposes the Pro take as a focusable group naming its content', () => {
-        mockUser = { isPaidMember: true };
-        mockPrefs = { interests: ['foodie'] };
-        mockFit = { data: 'You will devour the ramen alleys here.' };
-        renderWithProviders(
-            <MatchForYouSection {...baseProps} greatFor={['foodies']} />
-        );
-        expect(
-            screen.getByRole('group', {
-                name: 'Your personal take: You will devour the ramen alleys here.',
-            })
-        ).toHaveAttribute('tabindex', '0');
     });
 
     it('shows the loading hint while the Pro take is being fetched', () => {

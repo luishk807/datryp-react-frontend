@@ -5,10 +5,6 @@ export interface InfoRow {
   icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
-  /** Plain-text version of `value` for the row's accessible name, used when
-   *  `value` is a node (badge/formatted markup) rather than a string. Ignored
-   *  when `value` is already a string. */
-  valueText?: string;
 }
 
 export interface InfoRowListProps {
@@ -24,32 +20,17 @@ export interface InfoRowListProps {
  */
 const InfoRowList = ({ rows }: InfoRowListProps) => (
   <dl className="info-rows-list">
-    {rows.map((row) => {
-      // Each row is a keyboard tab stop that voices "label: value" — so
-      // keyboard/screen-reader users Tab through the facts one by one instead
-      // of the whole card being a single stop. role="group" because a bare
-      // <div> (generic role) can't carry aria-label (axe aria-prohibited-attr).
-      const valueStr =
-        row.valueText ?? (typeof row.value === "string" ? row.value : undefined);
-      const rowLabel = valueStr ? `${row.label}: ${valueStr}` : row.label;
-      return (
-        <div
-          key={row.label}
-          className="info-rows-row"
-          role="group"
-          tabIndex={0}
-          aria-label={rowLabel}
-        >
-          <dt className="info-rows-label">
-            <span className="info-rows-icon" aria-hidden="true">
-              {row.icon}
-            </span>
-            {row.label}
-          </dt>
-          <dd className="info-rows-value">{row.value}</dd>
-        </div>
-      );
-    })}
+    {rows.map((row) => (
+      <div key={row.label} className="info-rows-row">
+        <dt className="info-rows-label">
+          <span className="info-rows-icon" aria-hidden="true">
+            {row.icon}
+          </span>
+          {row.label}
+        </dt>
+        <dd className="info-rows-value">{row.value}</dd>
+      </div>
+    ))}
   </dl>
 );
 

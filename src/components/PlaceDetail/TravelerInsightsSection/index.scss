@@ -30,13 +30,6 @@
         grid-template-columns: 1fr 64px 34px;
         align-items: center;
         gap: 8px;
-
-        // Keyboard tab stop (see index.tsx) — visible focus ring.
-        &:focus-visible {
-            outline: 2px solid theme('colors.primaryGreen');
-            outline-offset: 3px;
-            border-radius: 3px;
-        }
     }
 
     .ti-expect-label {
@@ -99,13 +92,6 @@
         gap: 8px;
         font-size: 0.85rem;
         color: rgba(0, 0, 0, 0.8);
-
-        // Keyboard tab stop (see index.tsx) — visible focus ring.
-        &:focus-visible {
-            outline: 2px solid theme('colors.primaryGreen');
-            outline-offset: 3px;
-            border-radius: 3px;
-        }
     }
 
     .ti-chip-emoji {

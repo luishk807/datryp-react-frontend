@@ -60,32 +60,4 @@ describe('AirportsSection', () => {
         expect(screen.getByText('in the city')).toBeInTheDocument();
         expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
-
-    it('makes each airport a keyboard tab stop with a full accessible name', () => {
-        renderWithProviders(
-            <AirportsSection
-                airports={[
-                    airport(),
-                    airport({
-                        iataCode: 'HND',
-                        name: 'Haneda',
-                        distanceKm: 0,
-                        international: false,
-                    }),
-                ]}
-            />
-        );
-
-        // Intl airport voices code + name + distance + the international flag.
-        const nrt = screen.getByRole('listitem', {
-            name: 'NRT. Narita International. 60 km away · International',
-        });
-        expect(nrt).toHaveAttribute('tabindex', '0');
-
-        // In-city, non-intl airport omits the flag.
-        const hnd = screen.getByRole('listitem', {
-            name: 'HND. Haneda. in the city',
-        });
-        expect(hnd).toHaveAttribute('tabindex', '0');
-    });
 });

@@ -70,35 +70,6 @@ describe('CurrencyTipsSection', () => {
         expect(screen.getByText('Everywhere in cities')).toBeInTheDocument();
     });
 
-    it('makes each row a keyboard tab stop with a full accessible name', () => {
-        mockFacts = {
-            currencyTips: {
-                cards: 'Accepted almost everywhere',
-                cash: 'Handy for small shops',
-                atm: 'Everywhere in cities',
-                applePay: null,
-                cardsRating: 4,
-                cashRating: null,
-            },
-        };
-        renderWithProviders(<CurrencyTipsSection code="JP" />);
-
-        // Rated row voices label + the same "N out of 5" string as the stars.
-        const cards = screen.getByRole('listitem', { name: 'Cards. 4 out of 5' });
-        expect(cards).toHaveAttribute('tabindex', '0');
-
-        // Text row voices label + its value.
-        const cash = screen.getByRole('listitem', {
-            name: 'Cash. Handy for small shops',
-        });
-        expect(cash).toHaveAttribute('tabindex', '0');
-
-        const atm = screen.getByRole('listitem', {
-            name: 'ATMs. Everywhere in cities',
-        });
-        expect(atm).toHaveAttribute('tabindex', '0');
-    });
-
     it('treats an out-of-range rating as unrated and shows the text', () => {
         mockFacts = {
             currencyTips: {

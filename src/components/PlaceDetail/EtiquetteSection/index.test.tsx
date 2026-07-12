@@ -41,22 +41,4 @@ describe('EtiquetteSection', () => {
         ).toBeInTheDocument();
         expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
-
-    it('makes each tip a keyboard tab stop that voices the tip', () => {
-        mockFacts = {
-            etiquette: ['Bow when greeting', 'Take your shoes off indoors'],
-        };
-        renderWithProviders(<EtiquetteSection code="JP" />);
-
-        // Each tip is its own tab stop (so Tab walks through them) with an
-        // accessible name of the tip — screen readers voice it on focus, not
-        // just the card title.
-        const bow = screen.getByRole('listitem', { name: 'Bow when greeting' });
-        expect(bow).toHaveAttribute('tabindex', '0');
-        expect(
-            screen.getByRole('listitem', {
-                name: 'Take your shoes off indoors',
-            })
-        ).toHaveAttribute('tabindex', '0');
-    });
 });

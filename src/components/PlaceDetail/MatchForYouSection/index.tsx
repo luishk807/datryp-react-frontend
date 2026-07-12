@@ -113,16 +113,7 @@ const MatchForYouSection = ({
                 <span className="match-group-label">{groupLabel}</span>
                 <ul className="match-list">
                     {slugs.map((slug) => (
-                        <li
-                            key={slug}
-                            className={`match-item is-${variant}`}
-                            tabIndex={0}
-                            // Prefix the group context so the match/miss meaning
-                            // (conveyed visually by the check/cross icon) is also
-                            // announced — "Because you like: Foodie" vs
-                            // "Might not satisfy: Beaches".
-                            aria-label={`${groupLabel}: ${label(slug)}`}
-                        >
+                        <li key={slug} className={`match-item is-${variant}`}>
                             {variant === 'match' ? (
                                 <CheckRoundedIcon className="match-icon" />
                             ) : (
@@ -143,14 +134,8 @@ const MatchForYouSection = ({
             className="match-for-you-section"
             title={t('match.title')}
             icon={<FavoriteRoundedIcon />}
-            contentRead="items"
         >
-            <div
-                className="match-score"
-                role="group"
-                tabIndex={0}
-                aria-label={`${match.score}% ${t('match.matchLabel')}`}
-            >
+            <div className="match-score">
                 <span className="match-score-pct">{match.score}%</span>
                 <span className="match-score-label">{t('match.matchLabel')}</span>
             </div>
@@ -164,12 +149,7 @@ const MatchForYouSection = ({
                 renderGroup(match.mismatched, t('match.mightNot'), 'miss')}
 
             {fit.data ? (
-                <div
-                    className="match-take"
-                    role="group"
-                    tabIndex={0}
-                    aria-label={`${t('match.takeLabel')}: ${fit.data}`}
-                >
+                <div className="match-take">
                     <div className="match-take-header">
                         <AutoAwesomeRoundedIcon className="match-take-icon" />
                         <span className="match-take-label">

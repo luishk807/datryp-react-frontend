@@ -17,19 +17,16 @@ describe('DetailSection', () => {
         expect(screen.getByText('Sunny all week')).toBeInTheDocument();
     });
 
-    it('exposes the section as a keyboard-focusable named region', () => {
+    it('is a named region (landmark) but NOT a keyboard tab stop', () => {
         renderWithProviders(
             <DetailSection title="Currency" icon={<InfoRoundedIcon />}>
                 <p>USD</p>
             </DetailSection>
         );
 
-        // Landmark navigation: each widget is a region named by its title.
+        // Named via the heading, so screen-reader users jump here by landmark /
+        // heading navigation and read the body with browse-mode commands.
         const region = screen.getByRole('region', { name: 'Currency' });
-        // Keyboard users can Tab straight to the section.
-        expect(region).toHaveAttribute('tabindex', '0');
-        // Name comes from the heading via aria-labelledby — no duplicated
-        // aria-label on the region.
         const heading = screen.getByRole('heading', {
             level: 2,
             name: 'Currency',
@@ -37,55 +34,11 @@ describe('DetailSection', () => {
         expect(heading.id).toBeTruthy();
         expect(region).toHaveAttribute('aria-labelledby', heading.id);
         expect(region).not.toHaveAttribute('aria-label');
-    });
-
-    it('describes the region by its body so focus reads the content', () => {
-        renderWithProviders(
-            <DetailSection title="Safety" icon={<InfoRoundedIcon />}>
-                <p>Level 2 · 68/100 · Exercise increased caution</p>
-            </DetailSection>
-        );
-
-        const region = screen.getByRole('region', { name: 'Safety' });
-        const describedBy = region.getAttribute('aria-describedby');
-        // Points at the body, NOT the title — so a screen reader announces the
-        // title (name) AND reads the section content (description) on focus.
-        expect(describedBy).toBeTruthy();
-        expect(describedBy).not.toBe(region.getAttribute('aria-labelledby'));
-
-        const body = document.getElementById(describedBy as string);
-        expect(body).not.toBeNull();
-        expect(body).toHaveClass('detail-section-body');
-        expect(body).toHaveTextContent('68/100');
-        expect(body).toHaveTextContent('Exercise increased caution');
-
-        // The computed accessible description is the flattened body text.
-        expect(region).toHaveAccessibleDescription(/68\/100/);
-    });
-
-    it('drops aria-describedby when contentRead is "items"', () => {
-        renderWithProviders(
-            <DetailSection
-                title="Hidden gems"
-                icon={<InfoRoundedIcon />}
-                contentRead="items"
-            >
-                <ul>
-                    <li tabIndex={0} aria-label="The High Line. A park.">
-                        The High Line
-                    </li>
-                </ul>
-            </DetailSection>
-        );
-
-        const region = screen.getByRole('region', { name: 'Hidden gems' });
-        // No describedby: the body's rows are individually focusable and voice
-        // themselves, so the region announces only its title (no double read).
+        // Informational card: Tab must skip it — Tab belongs to real controls.
+        expect(region).not.toHaveAttribute('tabindex');
+        // No aria-describedby — the content is in the reading order, not a
+        // (Narrator-unreliable) description.
         expect(region).not.toHaveAttribute('aria-describedby');
-        // The focusable row is still reachable with its own accessible name.
-        expect(
-            screen.getByRole('listitem', { name: 'The High Line. A park.' })
-        ).toHaveAttribute('tabindex', '0');
     });
 
     it('appends the optional badge to the title', () => {

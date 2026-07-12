@@ -40,14 +40,11 @@ const PracticalInfoSection = ({
 
     const best = neighborhoods?.best ?? [];
     const avoid = neighborhoods?.avoid ?? [];
-    const bestLabel = t('detail.common.neighborhoods.best');
-    const avoidLabel = t('detail.common.neighborhoods.avoid');
     return (
         <DetailSection
             className="practical-info-section"
             title={t('detail.common.practicalInfo.title')}
             icon={<LuggageRoundedIcon />}
-            contentRead="items"
         >
             <div className="practical-info-group">
                 <h3 className="practical-info-subtitle">
@@ -73,16 +70,11 @@ const PracticalInfoSection = ({
                         {best.length > 0 && (
                             <div className="pi-nb">
                                 <span className="pi-nb-label">
-                                    {bestLabel}
+                                    {t('detail.common.neighborhoods.best')}
                                 </span>
                                 <ul className="pi-nb-list">
                                     {best.map((area) => (
-                                        <li
-                                            key={area}
-                                            className="pi-nb-item is-best"
-                                            tabIndex={0}
-                                            aria-label={`${bestLabel}: ${area}`}
-                                        >
+                                        <li key={area} className="pi-nb-item is-best">
                                             {area}
                                         </li>
                                     ))}
@@ -92,16 +84,11 @@ const PracticalInfoSection = ({
                         {avoid.length > 0 && (
                             <div className="pi-nb">
                                 <span className="pi-nb-label">
-                                    {avoidLabel}
+                                    {t('detail.common.neighborhoods.avoid')}
                                 </span>
                                 <ul className="pi-nb-list">
                                     {avoid.map((area) => (
-                                        <li
-                                            key={area}
-                                            className="pi-nb-item is-avoid"
-                                            tabIndex={0}
-                                            aria-label={`${avoidLabel}: ${area}`}
-                                        >
+                                        <li key={area} className="pi-nb-item is-avoid">
                                             {area}
                                         </li>
                                     ))}
