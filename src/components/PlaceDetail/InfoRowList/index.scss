@@ -26,6 +26,13 @@
     // On 2-col layout, the bottom row of each column shouldn't draw a divider.
     border-bottom: 0;
   }
+
+  // Each row is a keyboard tab stop (see index.tsx) — give it a visible ring.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 @media (max-width: 767px) {

@@ -54,6 +54,7 @@ const LodgingRows = ({ lodging }: LodgingRowsProps) => {
           <span className="info-rows-sub"> — {lodging.airbnbNote}</span>
         </>
       ),
+      valueText: `${t(AVAILABILITY_LABEL_KEY[lodging.airbnbAvailability])} — ${lodging.airbnbNote}`,
     },
     {
       icon: <ApartmentRoundedIcon />,
@@ -64,6 +65,7 @@ const LodgingRows = ({ lodging }: LodgingRowsProps) => {
           <span className="info-rows-sub"> — {lodging.hotelNote}</span>
         </>
       ),
+      valueText: `${t(AVAILABILITY_LABEL_KEY[lodging.hotelAvailability])} — ${lodging.hotelNote}`,
     },
     {
       icon: <AttachMoneyRoundedIcon />,

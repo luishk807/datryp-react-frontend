@@ -49,6 +49,13 @@
   line-height: 1.4;
   color: theme('colors.primary');
 
+  // Each neighborhood is a keyboard tab stop (see index.tsx) — give it a ring.
+  &:focus-visible {
+    outline: 2px solid theme('colors.primaryGreen');
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
   &::before {
     position: absolute;
     left: 0;

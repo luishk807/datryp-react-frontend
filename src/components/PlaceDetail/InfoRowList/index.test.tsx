@@ -29,6 +29,41 @@ describe('InfoRowList', () => {
         const { container } = renderWithProviders(<InfoRowList rows={[]} />);
         expect(container.querySelectorAll('.info-rows-row').length).toBe(0);
     });
+
+    it('exposes each row as a focusable group named "label: value"', () => {
+        renderWithProviders(
+            <InfoRowList
+                rows={[
+                    { icon: <span>i1</span>, label: 'Language', value: 'Japanese' },
+                    {
+                        // Node value → the plain-text override names the row.
+                        icon: <span>i2</span>,
+                        label: 'Payment',
+                        value: <strong>Cards — widely accepted</strong>,
+                        valueText: 'Cards — widely accepted',
+                    },
+                    {
+                        // Node value with no override → named by its label alone.
+                        icon: <span>i3</span>,
+                        label: 'Currency',
+                        value: <strong>Yen</strong>,
+                    },
+                ]}
+            />
+        );
+        const language = screen.getByRole('group', {
+            name: 'Language: Japanese',
+        });
+        expect(language).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('group', {
+                name: 'Payment: Cards — widely accepted',
+            })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('group', { name: 'Currency' })
+        ).toHaveAttribute('tabindex', '0');
+    });
 });
 
 describe('InfoRowListSkeleton', () => {

@@ -85,4 +85,48 @@ describe('PracticalInfoSection', () => {
             container.querySelector('.practical-info-neighborhoods')
         ).toBeNull();
     });
+
+    it('makes each neighborhood a tab stop named with its best/avoid context', () => {
+        renderWithProviders(
+            <PracticalInfoSection
+                basics={basics}
+                lodging={lodging}
+                neighborhoods={neighborhoods}
+            />
+        );
+        expect(
+            screen.getByRole('listitem', { name: 'Best areas to stay: Gion' })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('listitem', {
+                name: 'Areas to avoid: The far industrial edge',
+            })
+        ).toHaveAttribute('tabindex', '0');
+        // The card's rows voice themselves, so the region announces only its
+        // title — no whole-block aria-describedby (contentRead="items").
+        expect(
+            screen.getByRole('region', { name: /practical information/i })
+        ).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('names basics/lodging rows as focusable "label: value" groups (incl. node values)', () => {
+        renderWithProviders(
+            <PracticalInfoSection basics={basics} lodging={lodging} />
+        );
+        // String value row.
+        expect(
+            screen.getByRole('group', { name: 'Language: Japanese' })
+        ).toHaveAttribute('tabindex', '0');
+        // Node value rows read via their valueText override (payment / Airbnb).
+        expect(
+            screen.getByRole('group', {
+                name: 'Payment: Cards widely accepted — Cards accepted almost everywhere.',
+            })
+        ).toHaveAttribute('tabindex', '0');
+        expect(
+            screen.getByRole('group', {
+                name: 'Airbnb: Widely available — Many central options.',
+            })
+        ).toHaveAttribute('tabindex', '0');
+    });
 });
