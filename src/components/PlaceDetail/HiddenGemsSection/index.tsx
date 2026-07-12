@@ -28,16 +28,31 @@ const HiddenGemsSection = ({ items }: HiddenGemsSectionProps) => {
             className="hidden-gems-section"
             title={t('hiddenGems.title')}
             icon={<DiamondRoundedIcon />}
+            contentRead="items"
         >
             <ul className="hidden-gems-list">
-                {gems.map((gem) => (
-                    <li key={gem.name} className="hidden-gems-item">
-                        <span className="hidden-gems-name">{gem.name}</span>
-                        {gem.why.trim() && (
-                            <span className="hidden-gems-why">{gem.why}</span>
-                        )}
-                    </li>
-                ))}
+                {gems.map((gem) => {
+                    const why = gem.why.trim();
+                    return (
+                        // Each gem is its own keyboard tab stop so screen-reader
+                        // + keyboard users Tab through them one by one and hear
+                        // each name + why, instead of the whole card being a
+                        // single stop that only announces "Hidden gems". The
+                        // aria-label carries the full text (the visible spans
+                        // aren't a name-from-content role on their own).
+                        <li
+                            key={gem.name}
+                            className="hidden-gems-item"
+                            tabIndex={0}
+                            aria-label={why ? `${gem.name}. ${why}` : gem.name}
+                        >
+                            <span className="hidden-gems-name">{gem.name}</span>
+                            {why && (
+                                <span className="hidden-gems-why">{gem.why}</span>
+                            )}
+                        </li>
+                    );
+                })}
             </ul>
         </DetailSection>
     );

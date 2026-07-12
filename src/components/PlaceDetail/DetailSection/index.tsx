@@ -14,6 +14,17 @@ export interface DetailSectionProps {
    *  count ("5") on the Must-see / Must-eat lists, so the shortlist still
    *  reads as hand-picked after dropping the "Top 5" wording. */
   badge?: React.ReactNode;
+  /** How the section exposes its content to assistive tech when focus lands
+   *  on the card.
+   *  - `'describe'` (default): the body is referenced via `aria-describedby`,
+   *    so a screen reader announces the title then reads the whole content.
+   *    Right for single-widget blocks (Weather, Currency, Safety, …) whose
+   *    body has no individually-focusable parts.
+   *  - `'items'`: the section announces only its title; use when the body's
+   *    rows are themselves keyboard tab stops (e.g. Hidden gems, where each
+   *    gem is focusable and voices its own name). Prevents the content being
+   *    announced twice — once as the region description and again per row. */
+  contentRead?: 'describe' | 'items';
 }
 
 /**
@@ -37,7 +48,14 @@ export interface DetailSectionProps {
  * flow/flex items of `.detail-section` exactly as before (the sidebar cards
  * turn `.detail-section` into a flex column), so nothing shifts visually.
  */
-const DetailSection = ({ title, icon, children, className, badge }: DetailSectionProps) => {
+const DetailSection = ({
+  title,
+  icon,
+  children,
+  className,
+  badge,
+  contentRead = "describe",
+}: DetailSectionProps) => {
   const titleId = useId();
   const bodyId = useId();
   return (
@@ -45,7 +63,7 @@ const DetailSection = ({ title, icon, children, className, badge }: DetailSectio
       className={classNames("detail-section", className)}
       role="region"
       aria-labelledby={titleId}
-      aria-describedby={bodyId}
+      aria-describedby={contentRead === "describe" ? bodyId : undefined}
       tabIndex={0}
     >
       <h2 id={titleId} className="detail-section-title">

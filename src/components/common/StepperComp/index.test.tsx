@@ -229,6 +229,29 @@ describe('StepperComp — basic navigation', () => {
         expect(screen.queryByText('Step two body')).not.toBeInTheDocument();
     });
 
+    it('moves focus to the new step heading when advancing', async () => {
+        // Screen-reader + keyboard users must land on the new question when the
+        // wizard advances, not stay on the now-replaced Next button.
+        const focusSteps: StepperStep[] = [
+            {
+                label: 'First',
+                comp: <h2 className="trip-step-headline">Where to?</h2>,
+            },
+            {
+                label: 'Second',
+                comp: (
+                    <h2 className="trip-step-headline">When are you going?</h2>
+                ),
+            },
+        ];
+        renderStepperWith(focusSteps);
+        await userEvent.click(screen.getByRole('button', { name: /next/i }));
+        const heading = screen.getByRole('heading', {
+            name: 'When are you going?',
+        });
+        await waitFor(() => expect(heading).toHaveFocus());
+    });
+
     it('notifies the parent when the active step changes', async () => {
         const onActiveStepChange = vi.fn();
         renderStepper({ onActiveStepChange });

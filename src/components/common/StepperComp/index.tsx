@@ -289,6 +289,25 @@ const StepperComp = ({
         if (paywallInfo) paywallModalRef.current?.openModel();
     }, [paywallInfo]);
 
+    // Move keyboard focus to the current step's heading whenever the wizard
+    // mounts or advances/goes back, so screen-reader + keyboard users land on
+    // the new question ("When are you going?", "What's your budget?", …)
+    // instead of being stranded on the now-replaced Next button. The heading is
+    // made programmatically focusable (tabIndex -1) on the fly; its focus
+    // outline is suppressed in CSS since it's not a Tab stop. Create-flow only —
+    // the ref is unattached in edit mode, so this no-ops there.
+    const stepContentRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const container = stepContentRef.current;
+        if (!container) return;
+        const heading =
+            container.querySelector<HTMLElement>('.trip-step-headline') ??
+            container.querySelector<HTMLElement>('h1, h2');
+        if (!heading) return;
+        heading.setAttribute('tabindex', '-1');
+        heading.focus();
+    }, [activeStep]);
+
     // In edit mode the "Describe Your Trip!" form opens as a modal triggered
     // by the pencil-edit icon on BasicTripInfo, rather than appearing inline
     // (the summary card already shows that data — duplicating it inline read
@@ -1027,9 +1046,13 @@ const StepperComp = ({
                         </Grid>
                     )}
                     <Grid item lg={12} md={12} xs={12}>
-                        <StepperAdvanceContext.Provider value={stepperAdvanceValue}>
-                            {steps[activeStep]?.comp}
-                        </StepperAdvanceContext.Provider>
+                        <div ref={stepContentRef} className="step-content">
+                            <StepperAdvanceContext.Provider
+                                value={stepperAdvanceValue}
+                            >
+                                {steps[activeStep]?.comp}
+                            </StepperAdvanceContext.Provider>
+                        </div>
                     </Grid>
                     {saveError && (
                         <Grid item lg={12} md={12} xs={12}>

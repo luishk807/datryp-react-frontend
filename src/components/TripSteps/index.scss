@@ -21,6 +21,14 @@
   color: theme('colors.primary');
   margin: 0 0 8px;
   text-align: center;
+
+  // StepperComp moves focus here on each step change so screen-reader users
+  // hear the new question. It's a programmatic focus target (tabIndex -1),
+  // not a Tab stop, so suppress the outline for that non-keyboard focus while
+  // keeping a ring if a keyboard ever lands on it.
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 .trip-step-sub {

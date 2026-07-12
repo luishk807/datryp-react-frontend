@@ -63,6 +63,31 @@ describe('DetailSection', () => {
         expect(region).toHaveAccessibleDescription(/68\/100/);
     });
 
+    it('drops aria-describedby when contentRead is "items"', () => {
+        renderWithProviders(
+            <DetailSection
+                title="Hidden gems"
+                icon={<InfoRoundedIcon />}
+                contentRead="items"
+            >
+                <ul>
+                    <li tabIndex={0} aria-label="The High Line. A park.">
+                        The High Line
+                    </li>
+                </ul>
+            </DetailSection>
+        );
+
+        const region = screen.getByRole('region', { name: 'Hidden gems' });
+        // No describedby: the body's rows are individually focusable and voice
+        // themselves, so the region announces only its title (no double read).
+        expect(region).not.toHaveAttribute('aria-describedby');
+        // The focusable row is still reachable with its own accessible name.
+        expect(
+            screen.getByRole('listitem', { name: 'The High Line. A park.' })
+        ).toHaveAttribute('tabindex', '0');
+    });
+
     it('appends the optional badge to the title', () => {
         renderWithProviders(
             <DetailSection
