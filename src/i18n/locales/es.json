@@ -2113,7 +2113,7 @@
                 "low": "Riesgo bajo",
                 "moderate": "Riesgo moderado",
                 "high": "Riesgo alto",
-                "scoreAria": "Puntuación de seguridad {{score}} de 100",
+                "scoreAria": "Puntuación de seguridad",
                 "disclaimer": "Aproximado — verifica con los avisos oficiales de viaje antes de viajar."
             },
             "popularityWidget": {
@@ -2124,7 +2124,7 @@
                 "popular": "Popular",
                 "niche": "Fuera del radar",
                 "trendThisYear": "{{trend}} este año",
-                "scoreAria": "Puntuación de popularidad {{score}} de 100",
+                "scoreAria": "Puntuación de popularidad",
                 "disclaimer": "Aproximado — basado en señales generales de interés de viaje."
             },
             "travelWidget": {

@@ -63,6 +63,16 @@ describe('VisaWidget — status resolution', () => {
         expect(screen.getByText(visa.summary)).toBeInTheDocument();
     });
 
+    it('renders the passport flag as decorative (name is already in the text)', () => {
+        mockPassport = passport('US');
+        const { container } = renderWithProviders(<VisaWidget visa={visa} />);
+        const flag = container.querySelector('.visa-widget-flag');
+        // "For United States passport" already carries the country name, so the
+        // adjacent flag is hidden from the a11y tree.
+        expect(flag).toHaveAttribute('alt', '');
+        expect(flag).toHaveAttribute('aria-hidden', 'true');
+    });
+
     it('flags the traveler as a citizen when the passport matches the destination', () => {
         mockPassport = passport('FR');
         const { container } = renderWithProviders(<VisaWidget visa={visa} />);
@@ -103,10 +113,17 @@ describe('VisaWidget — passport picker', () => {
             screen.queryByPlaceholderText('Select your passport country')
         ).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByRole('button', { name: /change/i }));
+        // Accessible name spells out the passport context (bare "Change" is
+        // meaningless to a screen reader) and echoes the current country.
+        const change = screen.getByRole('button', {
+            name: /change, for united states passport/i,
+        });
+        expect(change).toHaveAttribute('aria-expanded', 'false');
+        await userEvent.click(change);
         expect(
             screen.getByPlaceholderText('Select your passport country')
         ).toBeInTheDocument();
+        expect(change).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('offers "Add your passport country" and opens the picker when none is set', async () => {

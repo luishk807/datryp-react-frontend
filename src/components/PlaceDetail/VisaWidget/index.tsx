@@ -106,6 +106,7 @@ const VisaWidget = ({ visa }: VisaWidgetProps) => {
               code={code}
               title={name}
               className="visa-widget-flag"
+              decorative
             />
             <span>
               {t("detail.common.visaWidget.forPassport", { name })}
@@ -120,6 +121,18 @@ const VisaWidget = ({ visa }: VisaWidgetProps) => {
           className="visa-widget-change"
           onClick={() => setPickerOpen((o) => !o)}
           disabled={updatePrefs.isPending}
+          aria-expanded={pickerOpen}
+          // Bare "Change" is meaningless out of context to a screen reader, so
+          // spell out what changes and the current passport. The "add" state's
+          // visible label already reads clearly, so it keeps its text as-is.
+          aria-label={
+            code
+              ? `${t("detail.common.visaWidget.change")}, ${t(
+                  "detail.common.visaWidget.forPassport",
+                  { name },
+                )}`
+              : undefined
+          }
         >
           {code
             ? t("detail.common.visaWidget.change")

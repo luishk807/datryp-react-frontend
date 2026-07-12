@@ -101,9 +101,13 @@ const RatingBadge = ({
                 fontSize="inherit"
                 aria-hidden="true"
             />
-            <span className="rating-badge-value">{ratingStr}</span>
+            <span className="rating-badge-value" aria-hidden="true">
+                {ratingStr}
+            </span>
             {variant === 'chip' && countStr && (
-                <span className="rating-badge-count">· {countStr}</span>
+                <span className="rating-badge-count" aria-hidden="true">
+                    · {countStr}
+                </span>
             )}
         </>
     );

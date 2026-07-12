@@ -3,17 +3,19 @@ import { renderWithProviders, screen } from '../../../test/renderWithProviders';
 import PlaceMetaLine from './index';
 
 describe('PlaceMetaLine', () => {
-    it('renders the country flag image and the meta children', () => {
-        renderWithProviders(
+    it('renders the country flag as decorative (name already in the meta text)', () => {
+        const { container } = renderWithProviders(
             <PlaceMetaLine countryCode="JP" countryName="Japan">
                 <span className="place-meta-seg">Kyoto · Japan</span>
             </PlaceMetaLine>
         );
-        const flag = screen.getByRole('img', { name: 'Japan' });
-        expect(flag).toHaveAttribute(
-            'src',
-            'https://flagcdn.com/w40/jp.png'
-        );
+        const flag = container.querySelector('.country-flag');
+        expect(flag).toHaveAttribute('src', 'https://flagcdn.com/w40/jp.png');
+        // The country name is already in the meta text, so the flag is hidden
+        // from the a11y tree to avoid double-announcing "Japan".
+        expect(flag).toHaveAttribute('alt', '');
+        expect(flag).toHaveAttribute('aria-hidden', 'true');
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
         expect(screen.getByText('Kyoto · Japan')).toBeInTheDocument();
     });
 

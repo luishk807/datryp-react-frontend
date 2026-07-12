@@ -4,7 +4,7 @@ import WhenToVisitSection from './index';
 
 describe('WhenToVisitSection', () => {
     it('shows both best and worst times once resolved', () => {
-        renderWithProviders(
+        const { container } = renderWithProviders(
             <WhenToVisitSection
                 bestTime="Apr–May"
                 worstTime="Jul–Aug"
@@ -14,10 +14,26 @@ describe('WhenToVisitSection', () => {
         expect(
             screen.getByRole('heading', { name: /when to visit/i })
         ).toBeInTheDocument();
-        expect(screen.getByText('Best')).toBeInTheDocument();
-        expect(screen.getByText('Worst')).toBeInTheDocument();
         expect(screen.getByText('Apr–May')).toBeInTheDocument();
         expect(screen.getByText('Jul–Aug')).toBeInTheDocument();
+
+        // The coloured pills are decorative — hidden from assistive tech so the
+        // loose "Best"/"Worst" tokens aren't announced on their own.
+        const bestPill = container.querySelector(
+            '.when-to-visit-label.tone-best'
+        );
+        const worstPill = container.querySelector(
+            '.when-to-visit-label.tone-worst'
+        );
+        expect(bestPill).toHaveTextContent('Best');
+        expect(bestPill).toHaveAttribute('aria-hidden', 'true');
+        expect(worstPill).toHaveTextContent('Worst');
+        expect(worstPill).toHaveAttribute('aria-hidden', 'true');
+
+        // …and each value carries a screen-reader-only prefix so the row still
+        // reads as one phrase ("Best: Apr–May").
+        expect(screen.getByText('Best:')).toBeInTheDocument();
+        expect(screen.getByText('Worst:')).toBeInTheDocument();
     });
 
     it('keeps the best row (and a shimmer) while the worst time is loading', () => {

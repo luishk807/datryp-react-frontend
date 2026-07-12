@@ -31,10 +31,17 @@ describe('RatingBadge', () => {
         expect(
             screen.getByLabelText(/Rated 4\.6 out of 5 based on 374k reviews/)
         ).toBeInTheDocument();
-        expect(screen.getByText('4.6')).toBeInTheDocument();
-        expect(screen.getByText(/374k/)).toBeInTheDocument();
-        // A snapshot carries no maps URI → renders as a span, not a link.
+        // Visual number + count stay on screen but are hidden from the a11y
+        // tree so the wrapper's label is the single spoken value.
+        expect(screen.getByText('4.6')).toHaveAttribute('aria-hidden', 'true');
+        expect(screen.getByText(/374k/)).toHaveAttribute('aria-hidden', 'true');
+        // A snapshot carries no maps URI → renders as a span, not a link, and
+        // a static (non-interactive) rating must not be focusable.
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        const badge = screen.getByLabelText(
+            /Rated 4\.6 out of 5 based on 374k reviews/
+        );
+        expect(badge).not.toHaveAttribute('tabindex');
     });
 
     it('omits the review count in the compact variant', () => {

@@ -13,12 +13,13 @@ const info = (over: Partial<SafetyInfo> = {}): SafetyInfo => ({
 describe('SafetyWidget', () => {
     it('renders the score, its meter, and the summary', () => {
         renderWithProviders(<SafetyWidget info={info()} />);
-        const meter = screen.getByRole('meter', {
-            name: /Safety score 78 out of 100/i,
-        });
+        const meter = screen.getByRole('meter', { name: 'Safety score' });
         expect(meter).toHaveAttribute('aria-valuenow', '78');
         expect(meter).toHaveAttribute('aria-valuemin', '0');
         expect(meter).toHaveAttribute('aria-valuemax', '100');
+        // Human phrasing = the risk level (aria-hidden visual duplicate stays
+        // on-screen), so Narrator reads the level once.
+        expect(meter).toHaveAttribute('aria-valuetext', 'Low risk');
         expect(screen.getByText('78')).toBeInTheDocument();
         expect(screen.getByText('/100')).toBeInTheDocument();
         expect(
@@ -38,6 +39,11 @@ describe('SafetyWidget', () => {
         (level, label) => {
             renderWithProviders(<SafetyWidget info={info({ level })} />);
             expect(screen.getByText(label)).toBeInTheDocument();
+            // Meter's value text reuses the same translated level string.
+            expect(screen.getByRole('meter')).toHaveAttribute(
+                'aria-valuetext',
+                label
+            );
         }
     );
 

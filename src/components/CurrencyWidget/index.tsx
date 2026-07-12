@@ -52,15 +52,23 @@ const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
                     {t('detail.common.currencyWidget.home')}
                 </p>
             ) : (
-                <div className="currency-widget-rate">
-                    <span className="currency-widget-from">1 {fromCode}</span>
+                <div
+                    className="currency-widget-rate"
+                    role="img"
+                    aria-label={`1 ${fromCode} ≈ ${formatRate(rate)} ${info.name}`}
+                >
+                    <span className="currency-widget-from" aria-hidden="true">
+                        1 {fromCode}
+                    </span>
                     <span className="currency-widget-arrow" aria-hidden="true">
                         ≈
                     </span>
-                    <span className="currency-widget-amount">
+                    <span className="currency-widget-amount" aria-hidden="true">
                         {formatRate(rate)}
                     </span>
-                    <span className="currency-widget-code">{info.code}</span>
+                    <span className="currency-widget-code" aria-hidden="true">
+                        {info.code}
+                    </span>
                 </div>
             )}
             <p className="currency-widget-name">{info.name}</p>

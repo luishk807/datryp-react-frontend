@@ -32,14 +32,29 @@ const Stars = ({ rating, showValue = true, className }: StarsProps) => {
       aria-label={t('search.card.ratingAria', { rating: clamped })}
     >
       {Array.from({ length: full }).map((_, i) => (
-        <StarRoundedIcon key={`f-${i}`} className="stars-display-star filled" />
+        <StarRoundedIcon
+          key={`f-${i}`}
+          className="stars-display-star filled"
+          aria-hidden="true"
+        />
       ))}
-      {hasHalf && <StarHalfRoundedIcon className="stars-display-star filled" />}
+      {hasHalf && (
+        <StarHalfRoundedIcon
+          className="stars-display-star filled"
+          aria-hidden="true"
+        />
+      )}
       {Array.from({ length: empty }).map((_, i) => (
-        <StarOutlineRoundedIcon key={`e-${i}`} className="stars-display-star" />
+        <StarOutlineRoundedIcon
+          key={`e-${i}`}
+          className="stars-display-star"
+          aria-hidden="true"
+        />
       ))}
       {showValue && (
-        <span className="stars-display-num">{clamped.toFixed(1)}</span>
+        <span className="stars-display-num" aria-hidden="true">
+          {clamped.toFixed(1)}
+        </span>
       )}
     </span>
   );

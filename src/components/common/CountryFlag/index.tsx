@@ -9,6 +9,12 @@ export interface CountryFlagProps {
     /** Accessible label / tooltip — usually the country name. */
     title?: string;
     className?: string;
+    /** When `true`, the flag is purely decorative: it renders with an empty
+     *  `alt` + `aria-hidden` so screen readers skip it. Use on surfaces where
+     *  the country name is already present as adjacent text (e.g. detail-page
+     *  headers, the visa passport line) to avoid double-announcing it. The
+     *  visual output — image and hover tooltip — is unchanged. */
+    decorative?: boolean;
 }
 
 const isAlpha2 = (code?: string | null): code is string =>
@@ -19,14 +25,20 @@ const isAlpha2 = (code?: string | null): code is string =>
  * icon when the code is missing/invalid or the image fails to load — emoji
  * flags are not rendered on Windows/Chrome, so images are used instead.
  */
-const CountryFlag = ({ code, title, className }: CountryFlagProps) => {
+const CountryFlag = ({
+    code,
+    title,
+    className,
+    decorative = false,
+}: CountryFlagProps) => {
     const [errored, setErrored] = useState(false);
 
     if (!isAlpha2(code) || errored) {
         return (
             <PublicRoundedIcon
                 className={classNames('country-flag-fallback', className)}
-                titleAccess={title}
+                titleAccess={decorative ? undefined : title}
+                aria-hidden={decorative || undefined}
             />
         );
     }
@@ -37,10 +49,11 @@ const CountryFlag = ({ code, title, className }: CountryFlagProps) => {
             className={classNames('country-flag', className)}
             src={`https://flagcdn.com/w40/${slug}.png`}
             srcSet={`https://flagcdn.com/w80/${slug}.png 2x`}
-            alt={title ?? code.toUpperCase()}
+            alt={decorative ? '' : title ?? code.toUpperCase()}
             title={title}
             loading="lazy"
             onError={() => setErrored(true)}
+            aria-hidden={decorative || undefined}
         />
     );
 };

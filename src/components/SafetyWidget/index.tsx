@@ -23,12 +23,14 @@ export interface SafetyWidgetProps {
 const SafetyWidget = ({ info }: SafetyWidgetProps) => {
     const { t } = useTranslation();
     const score = Math.max(0, Math.min(100, Math.round(info.score)));
+    const levelLabel = t(SAFETY_LEVEL_LABEL_KEY[info.level]);
     return (
         <div className={classNames('safety-widget', `level-${info.level}`)}>
-            <div className="safety-widget-top">
-                <span className="safety-widget-level">
-                    {t(SAFETY_LEVEL_LABEL_KEY[info.level])}
-                </span>
+            {/* The meter below (name + value text) already announces the level
+                and score, so hide this visual duplicate from the a11y tree —
+                it stays on-screen for sighted users. */}
+            <div className="safety-widget-top" aria-hidden="true">
+                <span className="safety-widget-level">{levelLabel}</span>
                 <span className="safety-widget-score">
                     <strong>{score}</strong>
                     <span className="safety-widget-score-max">/100</span>
@@ -40,9 +42,8 @@ const SafetyWidget = ({ info }: SafetyWidgetProps) => {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={score}
-                aria-label={t('detail.common.safetyWidget.scoreAria', {
-                    score,
-                })}
+                aria-valuetext={levelLabel}
+                aria-label={t('detail.common.safetyWidget.scoreAria')}
             >
                 <div
                     className="safety-widget-meter-fill"

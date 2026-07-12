@@ -211,11 +211,12 @@
 }
 
 // Selected tab: orange (or AI gradient) thumb sits behind it; text
-// becomes solid white + heavier weight. text-shadow drops here
-// because the thumb is solid behind the text — extra shadow would
-// muddy it.
+// is near-black + heavier weight. White-on-orange only hit ~2.5:1
+// (fails WCAG AA); #1f1f1f on the #f6891f thumb is ~6.7:1. text-shadow
+// drops here because the thumb is solid behind the text — extra shadow
+// would muddy it.
 .home-hero-options .hero-option.selected {
-  color: #fff;
+  color: #1f1f1f;
   font-weight: 600;
   text-shadow: none;
 }
@@ -849,10 +850,11 @@
   margin-bottom: 16px;
 }
 
-// Selected toggle tab sits on the orange thumb — force white text so the
-// compact dark-label override doesn't bleed into the selected state.
+// Selected toggle tab sits on the orange thumb — force the same near-black
+// (WCAG-AA ~6.7:1 on #f6891f) so the compact dark-label override doesn't
+// bleed into the selected state.
 .home-hero--compact .hero-option.selected {
-  color: #fff;
+  color: #1f1f1f;
 }
 
 .home-hero--compact .home-hero-content {

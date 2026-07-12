@@ -30,7 +30,8 @@ describe('SafetySection', () => {
         expect(screen.getByText('Low risk')).toBeInTheDocument();
         expect(screen.getByText('82')).toBeInTheDocument();
         expect(screen.getByText('Very safe for travelers.')).toBeInTheDocument();
-        const meter = screen.getByRole('meter');
+        const meter = screen.getByRole('meter', { name: 'Safety score' });
         expect(meter).toHaveAttribute('aria-valuenow', '82');
+        expect(meter).toHaveAttribute('aria-valuetext', 'Low risk');
     });
 });

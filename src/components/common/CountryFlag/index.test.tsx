@@ -41,4 +41,28 @@ describe('CountryFlag', () => {
         expect(container.querySelector('img')).toBeNull();
         expect(container.querySelector('svg')).toBeInTheDocument();
     });
+
+    it('renders a decorative flag with empty alt + aria-hidden', () => {
+        const { container } = renderWithProviders(
+            <CountryFlag code="SV" title="El Salvador" decorative />
+        );
+        const img = container.querySelector('img');
+        expect(img).toHaveAttribute('alt', '');
+        expect(img).toHaveAttribute('aria-hidden', 'true');
+        // Hidden from the a11y tree — no longer exposed as an image.
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        // Visual output (image + hover tooltip) unchanged.
+        expect(img).toHaveAttribute('src', 'https://flagcdn.com/w40/sv.png');
+        expect(img).toHaveAttribute('title', 'El Salvador');
+    });
+
+    it('hides the decorative fallback globe from the a11y tree', () => {
+        const { container } = renderWithProviders(
+            <CountryFlag code={null} title="Nowhere" decorative />
+        );
+        expect(container.querySelector('img')).toBeNull();
+        expect(
+            container.querySelector('.country-flag-fallback')
+        ).toHaveAttribute('aria-hidden', 'true');
+    });
 });

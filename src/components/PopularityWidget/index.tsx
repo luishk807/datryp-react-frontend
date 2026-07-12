@@ -52,6 +52,10 @@ const PopularityWidget = ({ info }: PopularityWidgetProps) => {
     const { t } = useTranslation();
     const score = Math.max(0, Math.min(100, Math.round(info.score)));
     const level = levelForScore(score);
+    const levelLabel = t(LEVEL_LABEL_KEY[level]);
+    const trendLabel = t('detail.common.popularityWidget.trendThisYear', {
+        trend: t(TREND_LABEL_KEY[info.trend]),
+    });
     return (
         <div
             className={classNames(
@@ -60,10 +64,10 @@ const PopularityWidget = ({ info }: PopularityWidgetProps) => {
                 `trend-${info.trend}`,
             )}
         >
-            <div className="popularity-widget-top">
-                <span className="popularity-widget-level">
-                    {t(LEVEL_LABEL_KEY[level])}
-                </span>
+            {/* Score + level are announced by the meter (name + value text)
+                below; hidden from the a11y tree but kept on-screen. */}
+            <div className="popularity-widget-top" aria-hidden="true">
+                <span className="popularity-widget-level">{levelLabel}</span>
                 <span className="popularity-widget-score">
                     <strong>{score}</strong>
                     <span className="popularity-widget-score-max">/100</span>
@@ -75,23 +79,22 @@ const PopularityWidget = ({ info }: PopularityWidgetProps) => {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={score}
-                aria-label={t('detail.common.popularityWidget.scoreAria', {
-                    score,
-                })}
+                aria-valuetext={`${score}, ${levelLabel}, ${trendLabel}`}
+                aria-label={t('detail.common.popularityWidget.scoreAria')}
             >
                 <div
                     className="popularity-widget-meter-fill"
                     style={{ ['--popularity-target' as string]: `${score}%` }}
                 />
             </div>
-            <div className="popularity-widget-trend">
-                <span className="popularity-widget-trend-icon" aria-hidden="true">
+            {/* Trend phrase is folded into the meter's value text above —
+                hidden from the a11y tree, still shown for sighted users. */}
+            <div className="popularity-widget-trend" aria-hidden="true">
+                <span className="popularity-widget-trend-icon">
                     {TREND_ICON[info.trend]}
                 </span>
                 <span className="popularity-widget-trend-label">
-                    {t('detail.common.popularityWidget.trendThisYear', {
-                        trend: t(TREND_LABEL_KEY[info.trend]),
-                    })}
+                    {trendLabel}
                 </span>
             </div>
             <p className="popularity-widget-summary">{info.summary}</p>

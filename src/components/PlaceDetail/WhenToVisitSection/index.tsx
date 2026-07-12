@@ -36,16 +36,27 @@ const WhenToVisitSection = ({
   >
     <div className="when-to-visit">
       <div className="when-to-visit-row">
-        <span className="when-to-visit-label tone-best">
+        {/* Decorative pill — the row's meaning is carried for assistive tech by
+            the visually-hidden prefix on the value, so the loose "BEST" token
+            isn't announced on its own. */}
+        <span className="when-to-visit-label tone-best" aria-hidden="true">
           {t('detail.common.whenToVisit.best')}
         </span>
-        <span className="when-to-visit-value">{bestTime}</span>
+        <span className="when-to-visit-value">
+          <span className="when-to-visit-sr">
+            {t('detail.common.whenToVisit.best')}:{' '}
+          </span>
+          {bestTime}
+        </span>
       </div>
       <div className="when-to-visit-row">
-        <span className="when-to-visit-label tone-worst">
+        <span className="when-to-visit-label tone-worst" aria-hidden="true">
           {t('detail.common.whenToVisit.worst')}
         </span>
         <span className="when-to-visit-value">
+          <span className="when-to-visit-sr">
+            {t('detail.common.whenToVisit.worst')}:{' '}
+          </span>
           <AsyncText
             value={worstTime}
             isError={isError}

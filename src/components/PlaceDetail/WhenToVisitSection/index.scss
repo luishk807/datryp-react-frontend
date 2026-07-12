@@ -37,3 +37,17 @@
   min-width: 0;
   flex: 1;
 }
+
+// Screen-reader-only context ("Best:" / "Worst:") that pairs the value with its
+// decorative (aria-hidden) pill, so each row is announced as one phrase.
+.when-to-visit-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -845,7 +845,7 @@
                 "low": "Low risk",
                 "moderate": "Moderate risk",
                 "high": "High risk",
-                "scoreAria": "Safety score {{score}} out of 100",
+                "scoreAria": "Safety score",
                 "disclaimer": "Approximate — verify with official travel advisories before travel."
             },
             "popularityWidget": {
@@ -856,7 +856,7 @@
                 "popular": "Popular",
                 "niche": "Off the radar",
                 "trendThisYear": "{{trend}} this year",
-                "scoreAria": "Popularity score {{score}} out of 100",
+                "scoreAria": "Popularity score",
                 "disclaimer": "Approximate — based on broad travel-interest signals."
             },
             "travelWidget": {

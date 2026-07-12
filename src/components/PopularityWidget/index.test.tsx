@@ -13,12 +13,16 @@ const info = (over: Partial<PopularityInfo> = {}): PopularityInfo => ({
 describe('PopularityWidget', () => {
     it('renders the score, its meter, and the summary', () => {
         renderWithProviders(<PopularityWidget info={info()} />);
-        const meter = screen.getByRole('meter', {
-            name: /Popularity score 82 out of 100/i,
-        });
+        const meter = screen.getByRole('meter', { name: 'Popularity score' });
         expect(meter).toHaveAttribute('aria-valuenow', '82');
         expect(meter).toHaveAttribute('aria-valuemin', '0');
         expect(meter).toHaveAttribute('aria-valuemax', '100');
+        // Human phrasing folds score + level + trend (reusing the widget's own
+        // translated strings) so the aria-hidden visual rows read only once.
+        expect(meter).toHaveAttribute(
+            'aria-valuetext',
+            '82, Trending, Rising this year'
+        );
         expect(screen.getByText('82')).toBeInTheDocument();
         expect(screen.getByText('/100')).toBeInTheDocument();
         expect(

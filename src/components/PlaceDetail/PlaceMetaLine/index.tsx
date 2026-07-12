@@ -25,7 +25,7 @@ const PlaceMetaLine = ({
     children,
 }: PlaceMetaLineProps) => (
     <p className="place-meta-line">
-        <CountryFlag code={countryCode} title={countryName} />
+        <CountryFlag code={countryCode} title={countryName} decorative />
         {children}
     </p>
 );

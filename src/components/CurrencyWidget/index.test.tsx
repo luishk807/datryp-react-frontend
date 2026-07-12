@@ -34,6 +34,24 @@ describe('CurrencyWidget', () => {
         ).toBeInTheDocument();
     });
 
+    it('reads the rate as one accessible sentence, hiding the split pieces', () => {
+        renderWithProviders(<CurrencyWidget info={krw} />);
+        // The whole rate row is a single labelled unit for screen readers,
+        // using the currency NAME (not the code chip) for a readable name.
+        expect(
+            screen.getByRole('img', {
+                name: '1 USD ≈ 1300 South Korean Won',
+            })
+        ).toBeInTheDocument();
+        // The visual tokens are hidden so they don't double-read.
+        expect(screen.getByText('1 USD')).toHaveAttribute(
+            'aria-hidden',
+            'true'
+        );
+        expect(screen.getByText('1300')).toHaveAttribute('aria-hidden', 'true');
+        expect(screen.getByText('KRW')).toHaveAttribute('aria-hidden', 'true');
+    });
+
     it('shows the live-rate disclaimer once fx rates are present', () => {
         mockFxRates = { KRW: 1300 };
         renderWithProviders(<CurrencyWidget info={krw} />);

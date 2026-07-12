@@ -58,8 +58,12 @@ describe('PopularitySection — content states (Pro user)', () => {
         renderWithProviders(
             <PopularitySection popularity={popularity} isError={false} />
         );
-        const meter = screen.getByRole('meter');
+        const meter = screen.getByRole('meter', { name: 'Popularity score' });
         expect(meter).toHaveAttribute('aria-valuenow', '82');
+        expect(meter).toHaveAttribute(
+            'aria-valuetext',
+            '82, Trending, Rising this year'
+        );
         expect(
             screen.getByText('Cherry-blossom season is packed this year.')
         ).toBeInTheDocument();
