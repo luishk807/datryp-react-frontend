@@ -1,19 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders, screen } from '../../../test/renderWithProviders';
+import { renderWithProviders, screen, waitFor } from '../../../test/renderWithProviders';
 
 // The landing page composes the SearchBar + ~17 discovery/personal strips, each
 // with its own data hooks. Stub them all so their queries don't fire (MSW is
 // `onUnhandledRequest: 'error'`) — the test covers the page's own hero/search
 // region + the signed-in / anonymous / mobile branching. `TopPlaces` gets a
 // visible marker so we can prove a discovery strip is composed in.
-const { modStub } = vi.hoisted(() => {
+const { modStub, focusInputSpy } = vi.hoisted(() => {
     const Pass = (props: { children?: unknown }) => props.children ?? null;
-    return { modStub: () => ({ default: Pass }) };
+    return { modStub: () => ({ default: Pass }), focusInputSpy: vi.fn() };
 });
 
 vi.mock('components/common/Layout', modStub);
-vi.mock('components/SearchBar', modStub);
+// SearchBar is stubbed to a forwardRef that exposes the same `focusInput`
+// imperative handle the real one does, so we can assert the hero moves focus
+// into the field when a search-mode tab is activated.
+vi.mock('components/SearchBar', async () => {
+    const { forwardRef, useImperativeHandle } = await import('react');
+    return {
+        __esModule: true,
+        default: forwardRef((_props, ref) => {
+            useImperativeHandle(ref, () => ({ focusInput: focusInputSpy }));
+            return null;
+        }),
+    };
+});
 vi.mock('components/TopPlaces', () => ({
     default: () => <div>trending-strip</div>,
 }));
@@ -59,6 +71,7 @@ import Home from './index';
 
 beforeEach(() => {
     mockNavigate.mockReset();
+    focusInputSpy.mockReset();
     mockUser = null;
     mockIsMobile = false;
     mockHero = { data: undefined };
@@ -133,5 +146,65 @@ describe('Home', () => {
         expect(interestTab).toHaveAttribute('aria-selected', 'false');
         await userEvent.click(interestTab);
         expect(interestTab).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('exposes the switcher as an APG tablist with a labelled, controlled panel', () => {
+        renderWithProviders(<Home />);
+        const placeTab = screen.getByRole('tab', { name: 'Search by place' });
+        const interestTab = screen.getByRole('tab', {
+            name: 'Search by interest',
+        });
+
+        // Roving tabindex: only the selected tab sits in the Tab order.
+        expect(placeTab).toHaveAttribute('tabindex', '0');
+        expect(interestTab).toHaveAttribute('tabindex', '-1');
+
+        // The panel is controlled by, and labelled by, the active tab.
+        const panel = screen.getByRole('tabpanel');
+        expect(placeTab).toHaveAttribute('aria-controls', panel.id);
+        expect(panel).toHaveAttribute('aria-labelledby', placeTab.id);
+    });
+
+    it('roves between search-mode tabs with the arrow keys, activating on move', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<Home />);
+        const placeTab = screen.getByRole('tab', { name: 'Search by place' });
+        const interestTab = screen.getByRole('tab', {
+            name: 'Search by interest',
+        });
+
+        placeTab.focus();
+        expect(placeTab).toHaveFocus();
+
+        await user.keyboard('{ArrowRight}');
+        expect(interestTab).toHaveFocus();
+        expect(interestTab).toHaveAttribute('aria-selected', 'true');
+        expect(interestTab).toHaveAttribute('tabindex', '0');
+        expect(placeTab).toHaveAttribute('tabindex', '-1');
+        // The panel label follows the newly-activated tab.
+        expect(screen.getByRole('tabpanel')).toHaveAttribute(
+            'aria-labelledby',
+            interestTab.id
+        );
+
+        // ArrowLeft wraps back to the first tab and re-activates it.
+        await user.keyboard('{ArrowLeft}');
+        expect(placeTab).toHaveFocus();
+        expect(placeTab).toHaveAttribute('aria-selected', 'true');
+
+        // Arrow roving keeps focus on the tabs — it must NOT yank focus into
+        // the search field (that only happens on deliberate activation).
+        expect(focusInputSpy).not.toHaveBeenCalled();
+    });
+
+    it('moves focus into the search field when a mode tab is activated', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<Home />);
+
+        await user.click(screen.getByRole('tab', { name: 'Search by interest' }));
+
+        // Focus is handed to SearchBar's input (via its focusInput handle) so a
+        // screen-reader user lands in the field instead of on a silent tab.
+        await waitFor(() => expect(focusInputSpy).toHaveBeenCalled());
     });
 });

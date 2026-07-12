@@ -172,8 +172,6 @@
   border-radius: 14px;
   padding: 6px;
   min-height: 50px;
-  max-height: 320px;
-  overflow: auto;
   border: 1px solid rgba(60, 181, 75, 0.22);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12),
     0 2px 6px rgba(0, 0, 0, 0.05);
@@ -197,6 +195,16 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+// The list container is the first Tab stop ("the dropdown"). It's a real focus
+// target, so give it a visible ring (WCAG 2.4.7) — and this focusable scroll
+// region also satisfies axe scrollable-region-focusable.
+.searchbarMain .searchbar-country-list:focus-visible {
+  outline: 2px solid theme('colors.primaryGreen');
+  outline-offset: 2px;
 }
 
 // Visually-hidden polite live region (role="status") that announces the
@@ -215,20 +223,17 @@
   border: 0;
 }
 
-// Each option is a real <button> tab stop now, so reset the native button
-// chrome (border/font/width/alignment) back to the row layout it replaced.
+// Each option is a `role="option"` row in the combobox listbox (focus stays
+// in the input), so it's a plain <li> laid out as a row — no native button
+// chrome to reset.
 .searchbarMain .searchbar-country-item {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
   padding: 8px 12px;
-  border: none;
   border-radius: 10px;
   cursor: pointer;
-  background: transparent;
-  color: inherit;
-  font: inherit;
   text-align: left;
   transition: background-color 0.15s ease, transform 0.15s ease;
   animation: searchbar-item-enter 0.28s ease-out backwards;
@@ -239,13 +244,19 @@
   transform: translateX(2px);
 }
 
-// Keyboard focus indicator (WCAG 2.4.7). The options are Arrow-key-roved
-// <button> tab stops, so the focused row must be clearly visible.
+// Highlight for the option that currently holds DOM focus (each option is a
+// real Tab stop) plus a hover echo. A left accent bar backs up the tint so the
+// state isn't conveyed by color alone.
+.searchbarMain .searchbar-country-item.is-active {
+  background: rgba(60, 181, 75, 0.14);
+  box-shadow: inset 3px 0 0 0 theme('colors.primaryGreen');
+  transform: translateX(2px);
+}
+
+// Keyboard focus ring on the focused option (WCAG 2.4.7).
 .searchbarMain .searchbar-country-item:focus-visible {
-  background: rgba(60, 181, 75, 0.12);
   outline: 2px solid theme('colors.primaryGreen');
   outline-offset: -2px;
-  transform: translateX(2px);
 }
 
 // Stagger first ~10 items so they cascade in — cheap "alive" feel
@@ -301,7 +312,9 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: rgba(0, 0, 0, 0.45);
+  // #666 on the white dropdown = 5.7:1 (was rgba .45 ≈ 3:1, failing AA for
+  // this small text).
+  color: rgba(0, 0, 0, 0.6);
   text-transform: uppercase;
   line-height: 1.2;
 }
@@ -311,7 +324,10 @@
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: rgba(0, 0, 0, 0.5);
+  // Darker text on the ~#f2f2f2 pill so the chip clears AA (was rgba .5 on
+  // rgba .05 ≈ 2.9:1). It's decorative/aria-hidden, but sighted users still
+  // read it, so it must meet contrast.
+  color: rgba(0, 0, 0, 0.68);
   background: rgba(0, 0, 0, 0.05);
   border-radius: 999px;
   padding: 3px 8px;

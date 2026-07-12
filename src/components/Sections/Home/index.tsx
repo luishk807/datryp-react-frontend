@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import classnames from 'classnames';
@@ -8,7 +8,7 @@ import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import LocalFireDepartmentRoundedIcon from '@mui/icons-material/LocalFireDepartmentRounded';
 import './index.scss';
-import SearchBar from 'components/SearchBar';
+import SearchBar, { type SearchBarHandle } from 'components/SearchBar';
 import Layout from 'components/common/Layout';
 import { FALLBACK_HERO_IMAGES } from 'constants';
 import type { TopPlace } from 'types';
@@ -35,6 +35,38 @@ import type { PlaceResult } from 'api/hooks/usePlaces';
 import type { HeroImage } from 'types';
 
 type HomeMode = 'place' | 'describe';
+
+/** The hero search-mode switcher is a WAI-ARIA tablist: the two options are
+ *  `role="tab"` buttons with roving tabindex (Arrow/Home/End move + activate),
+ *  and the search field below is the associated `role="tabpanel"`. Declared as
+ *  data so the tab markup + keyboard handler stay in sync from one source. */
+const HERO_TABS: {
+    mode: HomeMode;
+    id: string;
+    tour: string;
+    Icon: typeof PublicRoundedIcon;
+    labelKey: string;
+    ariaKey: string;
+}[] = [
+    {
+        mode: 'place',
+        id: 'hero-tab-place',
+        tour: 'home-search-place',
+        Icon: PublicRoundedIcon,
+        labelKey: 'heroSearch.place',
+        ariaKey: 'heroSearch.byPlaceAria',
+    },
+    {
+        mode: 'describe',
+        id: 'hero-tab-describe',
+        tour: 'home-search-describe',
+        Icon: SearchRoundedIcon,
+        labelKey: 'heroSearch.description',
+        ariaKey: 'heroSearch.byDescriptionAria',
+    },
+];
+
+const HERO_TABPANEL_ID = 'hero-search-panel';
 
 interface SelectedHero {
     url: string;
@@ -79,6 +111,21 @@ const pickRandomHero = (heroes: HeroImage[] | undefined): SelectedHero => {
 const Home = () => {
     const { t } = useTranslation();
     const [homeMode, setHomeMode] = useState<HomeMode>('place');
+    // Refs to the tab buttons so Arrow/Home/End can move DOM focus to the
+    // newly-activated tab (roving tabindex — only the selected tab is tabbable).
+    const tabRefs = useRef<Record<HomeMode, HTMLButtonElement | null>>({
+        place: null,
+        describe: null,
+    });
+    // Imperative handle to move focus into the search field when the user
+    // *activates* a tab (click / Enter / Space) — so a screen-reader user is
+    // taken straight to the input and hears what to do, instead of landing on
+    // a tab that "does nothing". Deferred a frame so the newly-rendered mode's
+    // input exists before we focus it.
+    const searchBarRef = useRef<SearchBarHandle>(null);
+    const focusSearchInput = () => {
+        requestAnimationFrame(() => searchBarRef.current?.focusInput());
+    };
     const navigate = useNavigate();
     const { user } = useUser();
     // Mobile = the app's chrome breakpoint (≤1024px, where BottomNav shows).
@@ -153,6 +200,39 @@ const Home = () => {
                 `&mode=single`
         );
     };
+
+    /** APG tablist roving-focus: Arrow keys (and Home/End) move between the two
+     *  search-mode tabs, activating each as focus lands on it (automatic
+     *  activation — switching modes is instant, so there's no reason to defer
+     *  it to Enter). Tab itself leaves the tablist for the search panel. */
+    const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+        const idx = HERO_TABS.findIndex((tab) => tab.mode === homeMode);
+        let nextIdx: number | null = null;
+        switch (e.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+                nextIdx = (idx + 1) % HERO_TABS.length;
+                break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+                nextIdx = (idx - 1 + HERO_TABS.length) % HERO_TABS.length;
+                break;
+            case 'Home':
+                nextIdx = 0;
+                break;
+            case 'End':
+                nextIdx = HERO_TABS.length - 1;
+                break;
+            default:
+                return;
+        }
+        e.preventDefault();
+        const next = HERO_TABS[nextIdx];
+        setHomeMode(next.mode);
+        tabRefs.current[next.mode]?.focus();
+    };
+
+    const activeTabId = HERO_TABS.find((tab) => tab.mode === homeMode)?.id;
 
     return (
         <Layout>
@@ -245,46 +325,54 @@ const Home = () => {
                         className={classnames('home-hero-options', `is-${homeMode}`)}
                     >
                         <span className="hero-option-thumb" aria-hidden="true" />
-                        <button
-                            role="tab"
-                            data-tour="home-search-place"
-                            aria-selected={homeMode === 'place'}
-                            aria-label={t('heroSearch.byPlaceAria')}
-                            className={classnames('hero-option', {
-                                selected: homeMode === 'place',
-                            })}
-                            onClick={() => setHomeMode('place')}
-                        >
-                            <PublicRoundedIcon className="hero-option-icon" />
-                            <span>
-                                <span className="hero-option-prefix">
-                                    {t('heroSearch.searchByPrefix')}
-                                </span>
-                                {t('heroSearch.place')}
-                            </span>
-                        </button>
-                        <button
-                            role="tab"
-                            data-tour="home-search-describe"
-                            aria-selected={homeMode === 'describe'}
-                            aria-label={t('heroSearch.byDescriptionAria')}
-                            className={classnames('hero-option', {
-                                selected: homeMode === 'describe',
-                            })}
-                            onClick={() => setHomeMode('describe')}
-                        >
-                            <SearchRoundedIcon className="hero-option-icon" />
-                            <span>
-                                <span className="hero-option-prefix">
-                                    {t('heroSearch.searchByPrefix')}
-                                </span>
-                                {t('heroSearch.description')}
-                            </span>
-                        </button>
+                        {HERO_TABS.map(
+                            ({ mode, id, tour, Icon, labelKey, ariaKey }) => {
+                                const selected = homeMode === mode;
+                                return (
+                                    <button
+                                        key={mode}
+                                        ref={(el) => {
+                                            tabRefs.current[mode] = el;
+                                        }}
+                                        type="button"
+                                        role="tab"
+                                        id={id}
+                                        data-tour={tour}
+                                        aria-selected={selected}
+                                        aria-controls={HERO_TABPANEL_ID}
+                                        tabIndex={selected ? 0 : -1}
+                                        aria-label={t(ariaKey)}
+                                        className={classnames('hero-option', {
+                                            selected,
+                                        })}
+                                        onClick={() => {
+                                            setHomeMode(mode);
+                                            focusSearchInput();
+                                        }}
+                                        onKeyDown={handleTabKeyDown}
+                                    >
+                                        <Icon className="hero-option-icon" />
+                                        <span>
+                                            <span className="hero-option-prefix">
+                                                {t('heroSearch.searchByPrefix')}
+                                            </span>
+                                            {t(labelKey)}
+                                        </span>
+                                    </button>
+                                );
+                            }
+                        )}
                     </div>
 
-                    <div className="home-hero-search" data-tour="home-searchbar">
+                    <div
+                        role="tabpanel"
+                        id={HERO_TABPANEL_ID}
+                        aria-labelledby={activeTabId}
+                        className="home-hero-search"
+                        data-tour="home-searchbar"
+                    >
                         <SearchBar
+                            ref={searchBarRef}
                             onPlaceSelected={handlePlaceSelected}
                             mode={homeMode === 'describe' ? 'recommend' : 'place'}
                             placeholders={

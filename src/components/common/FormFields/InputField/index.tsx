@@ -36,6 +36,12 @@ export interface InputFieldProps {
      *           No external `<Field>` wrapper needed; pass the label via `label`.
      */
     variant?: InputFieldVariant;
+    /** Escape hatch for native `<input>` attributes that this wrapper doesn't
+     *  model — spread onto the underlying input. Used, e.g., to make the input
+     *  a WAI-ARIA combobox (`role` / `aria-*` / `onKeyDown`) in SearchBar's
+     *  simple variant. Only applied to the plain text/outlined + bare inputs
+     *  (not the date/time pickers). */
+    inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
 }
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
@@ -55,6 +61,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             placeholder,
             required = true,
             variant = 'outlined',
+            inputProps,
         },
         ref
     ) => {
@@ -220,6 +227,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                             aria-describedby={name}
                             onChange={handleOnChange}
                             required={required}
+                            {...(inputProps ? { inputProps } : {})}
                         />
                     );
             }
@@ -240,6 +248,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                         value={isControlled ? value : data}
                         onChange={(e) => handleOnChange(e)}
                         className="input-field-bare-input"
+                        {...inputProps}
                     />
                 </label>
             );

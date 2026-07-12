@@ -25,11 +25,10 @@ const DEBOUNCE_MS = 250;
 //
 // TIMER APPROACH: real timers throughout. Because the hooks are mocked to
 // return results *regardless* of `submittedQuery`, the dropdown opens (and the
-// result buttons render) as soon as the user types one character — it keys off
-// `rawQuery`, not the debounced `submittedQuery` — so most tests never touch
-// the debounce. The one exception is the empty-state copy, which interpolates
-// `submittedQuery`; those tests `flushDebounce` so the settled query is present
-// in the "no results for X" message.
+// result options render) as soon as the user types one character — it keys off
+// `rawQuery`, not the debounced `submittedQuery`. The one exception is the
+// empty-state copy, which interpolates `submittedQuery`; those tests
+// `flushDebounce` so the settled query is present in the "no results" message.
 const { placeFixtures, countryFixtures, recommendFixtures, mockState } =
     vi.hoisted(() => {
         const placeFixtures = [
@@ -156,180 +155,172 @@ afterEach(() => {
     vi.clearAllTimers();
 });
 
-describe('SearchBar — place mode (homepage hero)', () => {
-    it('1. renders a search textbox, not a combobox', () => {
-        renderWithProviders(<SearchBar mode="place" />);
-        expect(screen.getByRole('textbox')).toBeInTheDocument();
-        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    });
-
-    it('2. renders result options as real buttons after typing', async () => {
+describe('SearchBar — place mode (homepage hero, Tab-navigable list)', () => {
+    it('1. the input is a combobox; typing opens a controlled listbox', async () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="place" />);
 
-        await user.type(screen.getByRole('textbox'), 'par');
-
-        const buttons = await screen.findAllByRole('button');
-        expect(buttons).toHaveLength(places.length);
-        // The virtual-highlight listbox/option roles are gone.
-        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-        expect(screen.queryByRole('option')).not.toBeInTheDocument();
-
-        expect(buttons[0]).toHaveTextContent('Paris, France');
-        expect(buttons[1]).toHaveTextContent('Lyon, France');
-        // Country-kind row renders the bare name (no ", countryName").
-        expect(buttons[2]).toHaveTextContent('France');
-    });
-
-    it('3. Tab from the input reaches the first result button', async () => {
-        const user = userEvent.setup();
-        renderWithProviders(<SearchBar mode="place" />);
-
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'par');
-        const buttons = await screen.findAllByRole('button');
-
-        expect(input).toHaveFocus();
-        await user.tab();
-        expect(buttons[0]).toHaveFocus();
-        await user.tab();
-        expect(buttons[1]).toHaveFocus();
-    });
-
-    it('4. ArrowDown from the input focuses the first result; roving + Enter selects', async () => {
-        const user = userEvent.setup();
-        const onPlaceSelected = vi.fn();
-        renderWithProviders(
-            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
-        );
-
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'par');
-        const buttons = await screen.findAllByRole('button');
-
-        await user.keyboard('{ArrowDown}');
-        expect(buttons[0]).toHaveFocus();
-
-        await user.keyboard('{ArrowDown}');
-        expect(buttons[1]).toHaveFocus();
-
-        await user.keyboard('{Enter}');
-        expect(onPlaceSelected).toHaveBeenCalledTimes(1);
-        expect(onPlaceSelected).toHaveBeenCalledWith(places[1]);
-    });
-
-    it('5. Space on a focused result also selects it', async () => {
-        const user = userEvent.setup();
-        const onPlaceSelected = vi.fn();
-        renderWithProviders(
-            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
-        );
-
-        await user.type(screen.getByRole('textbox'), 'par');
-        const buttons = await screen.findAllByRole('button');
-
-        await user.keyboard('{ArrowDown}');
-        expect(buttons[0]).toHaveFocus();
-        await user.keyboard('[Space]');
-
-        expect(onPlaceSelected).toHaveBeenCalledWith(places[0]);
-    });
-
-    it('6. clicking a result fires onPlaceSelected with that place', async () => {
-        const user = userEvent.setup();
-        const onPlaceSelected = vi.fn();
-        renderWithProviders(
-            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
-        );
-
-        await user.type(screen.getByRole('textbox'), 'par');
-        const buttons = await screen.findAllByRole('button');
-        await user.click(buttons[0]);
-
-        expect(onPlaceSelected).toHaveBeenCalledTimes(1);
-        expect(onPlaceSelected).toHaveBeenCalledWith(places[0]);
-    });
-
-    it('7. Escape from a result closes the dropdown and returns focus to the input', async () => {
-        const user = userEvent.setup();
-        renderWithProviders(<SearchBar mode="place" />);
-
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'par');
-        const buttons = await screen.findAllByRole('button');
-
-        await user.keyboard('{ArrowDown}');
-        expect(buttons[0]).toHaveFocus();
-
-        await user.keyboard('{Escape}');
-
-        await waitFor(() =>
-            expect(screen.queryAllByRole('button')).toHaveLength(0)
-        );
-        expect(input).toHaveFocus();
-    });
-
-    it('8. Escape from the input closes the dropdown', async () => {
-        const user = userEvent.setup();
-        renderWithProviders(<SearchBar mode="place" />);
-
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'par');
-        await screen.findAllByRole('button');
-
-        await user.keyboard('{Escape}');
-
-        await waitFor(() =>
-            expect(screen.queryAllByRole('button')).toHaveLength(0)
-        );
-    });
-
-    it('9. the disclosure exposes result buttons only after typing', async () => {
-        const user = userEvent.setup();
-        renderWithProviders(<SearchBar mode="place" />);
-
-        const input = screen.getByRole('textbox');
-        // Closed: no result buttons, no aria-controls, and (crucially) no
-        // aria-expanded on the plain textbox (invalid per aria-allowed-attr).
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
-        expect(input).not.toHaveAttribute('aria-expanded');
+        const input = screen.getByRole('combobox');
+        expect(input).toHaveAttribute('aria-expanded', 'false');
+        expect(input).toHaveAttribute('aria-autocomplete', 'list');
         expect(input).not.toHaveAttribute('aria-controls');
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
         await user.type(input, 'par');
-        const buttons = await screen.findAllByRole('button');
-        expect(buttons).toHaveLength(places.length);
-        // Open: the input now points at the results list, and a polite live
-        // region announces the count (the disclosure's screen-reader signal).
-        expect(input).toHaveAttribute('aria-controls');
-        expect(input).not.toHaveAttribute('aria-expanded');
+        await screen.findByRole('listbox');
+
+        expect(input).toHaveAttribute('aria-expanded', 'true');
+        expect(input).toHaveAttribute('aria-controls', 'searchbar-results-list');
         expect(screen.getByRole('status')).toHaveTextContent(
             `${places.length} results available`
         );
     });
 
-    it('10. roving supports ArrowUp / Home / End; Up from first returns to input', async () => {
+    it('2. renders each result as a role=option row', async () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="place" />);
 
-        const input = screen.getByRole('textbox');
+        await user.type(screen.getByRole('combobox'), 'par');
+
+        const options = await screen.findAllByRole('option');
+        expect(options).toHaveLength(places.length);
+        expect(options[0]).toHaveTextContent('Paris, France');
+        expect(options[1]).toHaveTextContent('Lyon, France');
+        expect(options[2]).toHaveTextContent('France');
+    });
+
+    // ---- The exact flow the product owner specified ----
+    it("3. Tab lands on the dropdown, then each item: input → list → item 1 → item 2", async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SearchBar mode="place" />);
+
+        const input = screen.getByRole('combobox');
         await user.type(input, 'par');
-        const buttons = await screen.findAllByRole('button');
-        const last = buttons.length - 1;
+        const listbox = await screen.findByRole('listbox');
+        const options = screen.getAllByRole('option');
 
-        await user.keyboard('{ArrowDown}'); // input → first
-        expect(buttons[0]).toHaveFocus();
-
-        await user.keyboard('{End}');
-        expect(buttons[last]).toHaveFocus();
-
-        await user.keyboard('{ArrowDown}'); // clamps at last (no wrap)
-        expect(buttons[last]).toHaveFocus();
-
-        await user.keyboard('{Home}');
-        expect(buttons[0]).toHaveFocus();
-
-        await user.keyboard('{ArrowUp}'); // first → back to input
         expect(input).toHaveFocus();
+        await user.tab();
+        expect(listbox).toHaveFocus(); // "pressing tab lands you on the dropdown"
+        await user.tab();
+        expect(options[0]).toHaveFocus(); // "tab again, to the first item"
+        await user.tab();
+        expect(options[1]).toHaveFocus(); // and onward through the items
+    });
+
+    it('4. Enter on a focused option selects it', async () => {
+        const user = userEvent.setup();
+        const onPlaceSelected = vi.fn();
+        renderWithProviders(
+            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
+        );
+
+        await user.type(screen.getByRole('combobox'), 'par');
+        const options = await screen.findAllByRole('option');
+
+        act(() => options[1].focus());
+        await user.keyboard('{Enter}');
+        expect(onPlaceSelected).toHaveBeenCalledTimes(1);
+        expect(onPlaceSelected).toHaveBeenCalledWith(places[1]);
+    });
+
+    it('5. Space on a focused option also selects it', async () => {
+        const user = userEvent.setup();
+        const onPlaceSelected = vi.fn();
+        renderWithProviders(
+            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
+        );
+
+        await user.type(screen.getByRole('combobox'), 'par');
+        const options = await screen.findAllByRole('option');
+
+        act(() => options[0].focus());
+        await user.keyboard('[Space]');
+        expect(onPlaceSelected).toHaveBeenCalledWith(places[0]);
+    });
+
+    // ---- The other half of the spec ----
+    it('6. Escape from the dropdown closes it and returns focus to the search bar', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SearchBar mode="place" />);
+
+        const input = screen.getByRole('combobox');
+        await user.type(input, 'par');
+        const options = await screen.findAllByRole('option');
+
+        act(() => options[0].focus());
+        expect(options[0]).toHaveFocus();
+
+        await user.keyboard('{Escape}');
+        expect(input).toHaveFocus(); // "back to the search bar"
+        await waitFor(() =>
+            expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+        );
+        expect(input).toHaveValue('par'); // typed text is preserved
+    });
+
+    it('7. clicking a result selects it', async () => {
+        const user = userEvent.setup();
+        const onPlaceSelected = vi.fn();
+        renderWithProviders(
+            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
+        );
+
+        await user.type(screen.getByRole('combobox'), 'par');
+        const options = await screen.findAllByRole('option');
+        await user.click(options[0]);
+
+        expect(onPlaceSelected).toHaveBeenCalledWith(places[0]);
+    });
+
+    it('8. ArrowDown from the input jumps to the first option; arrows rove', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SearchBar mode="place" />);
+
+        const input = screen.getByRole('combobox');
+        await user.type(input, 'par');
+        const options = await screen.findAllByRole('option');
+
+        await user.keyboard('{ArrowDown}'); // input → first option
+        expect(options[0]).toHaveFocus();
+        await user.keyboard('{ArrowDown}');
+        expect(options[1]).toHaveFocus();
+        await user.keyboard('{ArrowUp}');
+        expect(options[0]).toHaveFocus();
+        await user.keyboard('{ArrowUp}'); // first option → back to the input
+        expect(input).toHaveFocus();
+    });
+
+    it('9. options expose their set position (aria-posinset / setsize) for "N of M"', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SearchBar mode="place" />);
+
+        await user.type(screen.getByRole('combobox'), 'par');
+        const options = await screen.findAllByRole('option');
+
+        expect(options[2]).toHaveAttribute('aria-posinset', '3');
+        expect(options[2]).toHaveAttribute('aria-setsize', String(places.length));
+    });
+
+    it('10. options carry descriptive accessible names and hide the code chip', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SearchBar mode="place" />);
+
+        await user.type(screen.getByRole('combobox'), 'par');
+        await screen.findAllByRole('option');
+
+        const paris = screen.getByRole('option', { name: 'Paris, City, France' });
+        expect(paris).toBeInTheDocument();
+        expect(
+            screen.getByRole('option', { name: 'Lyon, City, France' })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('option', { name: 'France, Country' })
+        ).toBeInTheDocument();
+
+        const codeChip = paris.querySelector('.searchbar-country-code');
+        expect(codeChip).toHaveTextContent('FR');
+        expect(codeChip).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('shows the loading state while fetching with no results yet', async () => {
@@ -337,11 +328,10 @@ describe('SearchBar — place mode (homepage hero)', () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="place" />);
 
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'par');
+        await user.type(screen.getByRole('combobox'), 'par');
 
         expect(await screen.findByText(/Searching/i)).toBeInTheDocument();
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        expect(screen.queryAllByRole('option')).toHaveLength(0);
     });
 
     it('shows the empty state when the settled query returns nothing', async () => {
@@ -349,12 +339,11 @@ describe('SearchBar — place mode (homepage hero)', () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="place" />);
 
-        await user.type(screen.getByRole('textbox'), 'zzz');
+        await user.type(screen.getByRole('combobox'), 'zzz');
         await flushDebounce();
 
-        // The no-results copy interpolates the query in both EN and ES.
         expect(await screen.findByText(/zzz/)).toBeInTheDocument();
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        expect(screen.queryAllByRole('option')).toHaveLength(0);
     });
 
     it('shows the error state when the place query errors', async () => {
@@ -362,25 +351,10 @@ describe('SearchBar — place mode (homepage hero)', () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="place" />);
 
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'par');
+        await user.type(screen.getByRole('combobox'), 'par');
 
         expect(await screen.findByText(/Could not reach/i)).toBeInTheDocument();
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
-    });
-
-    it('clicking a country-kind result fires onPlaceSelected with it', async () => {
-        const user = userEvent.setup();
-        const onPlaceSelected = vi.fn();
-        renderWithProviders(
-            <SearchBar mode="place" onPlaceSelected={onPlaceSelected} />
-        );
-
-        await user.type(screen.getByRole('textbox'), 'fra');
-        const buttons = await screen.findAllByRole('button');
-        await user.click(buttons[2]); // France (kind: 'country')
-
-        expect(onPlaceSelected).toHaveBeenCalledWith(places[2]);
+        expect(screen.queryAllByRole('option')).toHaveLength(0);
     });
 
     it('rotates through the placeholder list on an idle, empty field', () => {
@@ -392,7 +366,7 @@ describe('SearchBar — place mode (homepage hero)', () => {
                     placeholders={['Where to?', 'Try Paris', 'Try Tokyo']}
                 />
             );
-            const input = screen.getByRole('textbox');
+            const input = screen.getByRole('combobox');
             expect(input).toHaveAttribute('placeholder', 'Where to?');
 
             act(() => vi.advanceTimersByTime(3000));
@@ -404,23 +378,32 @@ describe('SearchBar — place mode (homepage hero)', () => {
             vi.useRealTimers();
         }
     });
+
+    it('focusInput() imperatively moves DOM focus to the field', () => {
+        const ref = { current: null } as React.RefObject<{
+            focusInput: () => void;
+        }>;
+        renderWithProviders(<SearchBar ref={ref} mode="place" />);
+
+        const input = screen.getByRole('combobox');
+        expect(input).not.toHaveFocus();
+        act(() => ref.current?.focusInput());
+        expect(input).toHaveFocus();
+    });
 });
 
 describe('SearchBar — country mode', () => {
-    it('renders the textbox, result buttons, and fires onSelected on pick', async () => {
+    it('renders option rows and fires onSelected on pick', async () => {
         const user = userEvent.setup();
         const onSelected = vi.fn();
         renderWithProviders(<SearchBar mode="country" onSelected={onSelected} />);
 
-        const input = screen.getByRole('textbox');
-        expect(input).toBeInTheDocument();
-        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-
+        const input = screen.getByRole('combobox');
         await user.type(input, 'ger');
-        const buttons = await screen.findAllByRole('button');
-        expect(buttons).toHaveLength(countries.length);
+        const options = await screen.findAllByRole('option');
+        expect(options).toHaveLength(countries.length);
 
-        await user.click(buttons[1]); // Germany
+        await user.click(options[1]); // Germany
         expect(onSelected).toHaveBeenCalledWith({
             id: 'c-de',
             name: 'Germany',
@@ -429,17 +412,20 @@ describe('SearchBar — country mode', () => {
         });
     });
 
-    it('keyboard-selects a country with ArrowDown + Enter', async () => {
+    it('keyboard-selects a country: Tab into the list, then Enter', async () => {
         const user = userEvent.setup();
         const onSelected = vi.fn();
         renderWithProviders(<SearchBar mode="country" onSelected={onSelected} />);
 
-        const input = screen.getByRole('textbox');
+        const input = screen.getByRole('combobox');
         await user.type(input, 'fra');
-        const buttons = await screen.findAllByRole('button');
+        const listbox = await screen.findByRole('listbox');
+        const options = screen.getAllByRole('option');
 
-        await user.keyboard('{ArrowDown}');
-        expect(buttons[0]).toHaveFocus();
+        await user.tab(); // → listbox
+        expect(listbox).toHaveFocus();
+        await user.tab(); // → first option
+        expect(options[0]).toHaveFocus();
         await user.keyboard('{Enter}');
 
         expect(onSelected).toHaveBeenCalledWith({
@@ -450,16 +436,32 @@ describe('SearchBar — country mode', () => {
         });
     });
 
+    it('folds the local name into the option name and hides the code chip', async () => {
+        const user = userEvent.setup();
+        renderWithProviders(<SearchBar mode="country" />);
+
+        await user.type(screen.getByRole('combobox'), 'ger');
+        await screen.findAllByRole('option');
+
+        const germany = screen.getByRole('option', { name: 'Germany, Deutschland' });
+        expect(germany).toBeInTheDocument();
+        expect(germany.querySelector('.searchbar-country-code')).toHaveAttribute(
+            'aria-hidden',
+            'true'
+        );
+        expect(screen.getByRole('option', { name: 'France' })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'Testland' })).toBeInTheDocument();
+    });
+
     it('shows the country loading state', async () => {
         mockState.countries = { data: [], isFetching: true, isError: false };
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="country" />);
 
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'ger');
+        await user.type(screen.getByRole('combobox'), 'ger');
 
         expect(await screen.findByText(/Searching/i)).toBeInTheDocument();
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        expect(screen.queryAllByRole('option')).toHaveLength(0);
     });
 
     it('shows the country empty state', async () => {
@@ -467,11 +469,11 @@ describe('SearchBar — country mode', () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="country" />);
 
-        await user.type(screen.getByRole('textbox'), 'zzz');
+        await user.type(screen.getByRole('combobox'), 'zzz');
         await flushDebounce();
 
         expect(await screen.findByText(/zzz/)).toBeInTheDocument();
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        expect(screen.queryAllByRole('option')).toHaveLength(0);
     });
 
     it('shows the country error state', async () => {
@@ -483,25 +485,27 @@ describe('SearchBar — country mode', () => {
         const user = userEvent.setup();
         renderWithProviders(<SearchBar mode="country" />);
 
-        const input = screen.getByRole('textbox');
-        await user.type(input, 'ger');
+        await user.type(screen.getByRole('combobox'), 'ger');
 
         expect(await screen.findByText(/Could not reach/i)).toBeInTheDocument();
-        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        expect(screen.queryAllByRole('option')).toHaveLength(0);
     });
+});
 
-    it('simple variant renders a plain input and maps null local to undefined', async () => {
+describe('SearchBar — simple variant (modal country picker)', () => {
+    it('exposes a combobox and selects a country on click', async () => {
         const user = userEvent.setup();
         const onSelected = vi.fn();
         renderWithProviders(
             <SearchBar mode="country" type="simple" onSelected={onSelected} />
         );
 
-        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        const input = screen.getByRole('combobox');
+        expect(input).toBeInTheDocument();
 
-        await user.type(screen.getByRole('textbox'), 'ger');
-        const buttons = await screen.findAllByRole('button');
-        await user.click(buttons[2]); // Testland (local: null, code: '')
+        await user.type(input, 'ger');
+        const options = await screen.findAllByRole('option');
+        await user.click(options[2]); // Testland (local: null, code: '')
 
         expect(onSelected).toHaveBeenCalledWith({
             id: 'c-xx',
@@ -509,6 +513,27 @@ describe('SearchBar — country mode', () => {
             code: '',
             local: undefined,
         });
+    });
+
+    it('keyboard-selects in the simple variant: ArrowDown into the list, then Enter', async () => {
+        const user = userEvent.setup();
+        const onPlaceSelected = vi.fn();
+        renderWithProviders(
+            <SearchBar
+                mode="place"
+                type="simple"
+                onPlaceSelected={onPlaceSelected}
+            />
+        );
+
+        const input = screen.getByRole('combobox');
+        await user.type(input, 'par');
+        const options = await screen.findAllByRole('option');
+
+        await user.keyboard('{ArrowDown}');
+        expect(options[0]).toHaveFocus();
+        await user.keyboard('{Enter}');
+        expect(onPlaceSelected).toHaveBeenCalledWith(places[0]);
     });
 });
 
@@ -541,7 +566,6 @@ describe('SearchBar — recommend mode', () => {
         const submit = screen.getByRole('button');
         expect(submit).toBeDisabled(); // empty query
 
-        // Leading/trailing space proves submit trims the value.
         await user.type(input, ' tokyo ');
         expect(submit).toBeEnabled();
 
@@ -551,7 +575,6 @@ describe('SearchBar — recommend mode', () => {
         await user.click(submit);
         expect(onAiSearchSubmit).toHaveBeenCalledTimes(2);
 
-        // Navigation flow suppresses the inline recommendation dropdown.
         expect(screen.queryByText('Japan')).not.toBeInTheDocument();
     });
 
@@ -617,27 +640,5 @@ describe('SearchBar — recommend mode', () => {
         await user.type(screen.getByRole('textbox'), 'par');
 
         expect(await screen.findByText(/boom/)).toBeInTheDocument();
-    });
-});
-
-describe('SearchBar — simple variant', () => {
-    it('renders a plain input (no combobox) and still fires onPlaceSelected', async () => {
-        const user = userEvent.setup();
-        const onPlaceSelected = vi.fn();
-        renderWithProviders(
-            <SearchBar
-                mode="place"
-                type="simple"
-                onPlaceSelected={onPlaceSelected}
-            />
-        );
-
-        // The simple variant uses InputField, which has no role="combobox".
-        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-
-        await user.type(screen.getByRole('textbox'), 'par');
-        const buttons = await screen.findAllByRole('button');
-        await user.click(buttons[0]);
-        expect(onPlaceSelected).toHaveBeenCalledWith(places[0]);
     });
 });
