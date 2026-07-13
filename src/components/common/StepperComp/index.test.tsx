@@ -415,6 +415,21 @@ describe('StepperComp — last (Finish) step', () => {
             });
     });
 
+    it('moves focus to the trip-name heading on the final itinerary step', async () => {
+        // The itinerary step's heading (trip name) is a sibling of the step
+        // body, so focus management must reach outside `.step-content`.
+        renderStepperWith(
+            [bodyStep('Dates'), bodyStep('Finish')],
+            completeTrip()
+        );
+        await userEvent.click(screen.getByRole('button', { name: /next/i }));
+        const heading = screen.getByRole('heading', {
+            name: 'Japan Adventure',
+            level: 2,
+        });
+        await waitFor(() => expect(heading).toHaveFocus());
+    });
+
     it('shows a Finish button whose validation blocks an incomplete trip', () => {
         renderStepperWith(
             [bodyStep('Finish')],

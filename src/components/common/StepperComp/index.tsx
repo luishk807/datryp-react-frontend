@@ -301,20 +301,22 @@ const StepperComp = ({
     // instead of being stranded on the now-replaced Next button. The heading is
     // made programmatically focusable (tabIndex -1) on the fly; its focus
     // outline is suppressed in CSS since it's not a Tab stop. Create-flow only —
-    // the ref is unattached in edit mode, so this no-ops there. On the final
-    // "Finish", the same move lands focus on the "Trip created" heading of the
-    // completion screen (via `completeRef`) rather than the old Finish button.
-    const stepContentRef = useRef<HTMLDivElement>(null);
+    // the ref is unattached in edit mode, so this no-ops there. The ref wraps
+    // the WHOLE step region (not just `.step-content`) so the final itinerary
+    // step lands focus on the trip-name `.step-trip-name` <h2>, which is a
+    // sibling of the step body. On the final "Finish", the move lands focus on
+    // the "Trip created" heading of the completion screen (via `completeRef`).
+    const stepRegionRef = useRef<HTMLDivElement>(null);
     const completeRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const isComplete = steps.length > 0 && activeStep === steps.length;
         const container = isComplete
             ? completeRef.current
-            : stepContentRef.current;
+            : stepRegionRef.current;
         if (!container) return;
         // The one-question screens expose a `.trip-step-headline` we control;
-        // fall back to the first native heading for the itinerary + completion
-        // screens.
+        // fall back to the first native heading (the itinerary step's trip-name
+        // <h2>, or the completion screen's <h1>).
         const headline =
             container.querySelector<HTMLElement>('.trip-step-headline');
         const heading =
@@ -1004,7 +1006,7 @@ const StepperComp = ({
                     </span>
                 </div>
             ) : (
-                <Grid container>
+                <Grid container ref={stepRegionRef}>
                     {isLastStep && data && (
                         <Grid item lg={12} md={12} xs={12}>
                             {/* On the itinerary step we just show the trip
@@ -1088,7 +1090,7 @@ const StepperComp = ({
                         </p>
                     </Grid>
                     <Grid item lg={12} md={12} xs={12}>
-                        <div ref={stepContentRef} className="step-content">
+                        <div className="step-content">
                             <StepperAdvanceContext.Provider
                                 value={stepperAdvanceValue}
                             >
