@@ -83,7 +83,16 @@
   letter-spacing: -0.005em;
 }
 
-.date-block .header .title .title:not(:first-child) {
+// The date is now an <h3>; strip its default heading chrome so it inherits the
+// container's size/weight/color and looks exactly like the old span.
+.date-block .header .title .date-block-day-title {
+  margin: 0;
+  font: inherit;
+}
+
+// The range end (" – <end date>") reads as a muted continuation, matching the
+// previous second-span treatment.
+.date-block .header .title .date-block-day-range {
   color: rgba(0, 0, 0, 0.55);
   font-weight: 500;
 }

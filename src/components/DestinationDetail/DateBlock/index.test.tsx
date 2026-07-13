@@ -58,7 +58,29 @@ describe('DateBlock — single trip', () => {
         expect(mockSingleProps.country).toBe('France');
     });
 
-    it('shows a start–end range in the header when the block spans multiple days', () => {
+    it('wraps each single-trip day in a labelled section with an h3 date heading', () => {
+        const { container } = render(
+            <DateBlock
+                typeId={TRIP_BASIC.SINGLE.id}
+                startDate="2026-08-01"
+                endDate="2026-08-01"
+                destinations={[singleDest()]}
+                onChangeBudget={vi.fn()}
+                onChangePlace={vi.fn()}
+            />
+        );
+        // The day is a real region + heading, so a screen reader can navigate
+        // day-to-day and read the date as a heading.
+        const heading = screen.getByRole('heading', {
+            level: 3,
+            name: /August 1, 2026/,
+        });
+        const section = container.querySelector('section.date-block');
+        expect(section).toBeInTheDocument();
+        expect(section).toHaveAttribute('aria-labelledby', heading.id);
+    });
+
+    it('shows a start–end range in the heading when the block spans multiple days', () => {
         const { container } = render(
             <DateBlock
                 typeId={TRIP_BASIC.SINGLE.id}
@@ -69,8 +91,13 @@ describe('DateBlock — single trip', () => {
                 onChangePlace={vi.fn()}
             />
         );
-        // Two title spans render for a spanning block (start + end).
-        expect(container.querySelectorAll('.header span.title').length).toBe(2);
+        const heading = screen.getByRole('heading', { level: 3 });
+        expect(heading).toHaveTextContent(/August 1, 2026/);
+        expect(heading).toHaveTextContent(/August 3, 2026/);
+        // The end date renders as a muted continuation span inside the heading.
+        expect(
+            container.querySelector('.date-block-day-range')
+        ).toBeInTheDocument();
     });
 
     it('passes null trips when no itinerary day matches the block date', () => {

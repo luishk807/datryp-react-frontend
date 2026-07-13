@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useId, useMemo } from 'react';
 import { Grid } from '@mui/material';
 import _ from 'lodash';
 import classnames from 'classnames';
@@ -80,6 +80,11 @@ const DateBlock = ({
 
     const isSingle = isSingleTrip(typeId);
 
+    // Stable id linking each single-trip day's <section> to its date <h3>, so
+    // the block is exposed as a named region and the date is a real heading a
+    // screen reader can navigate to.
+    const headingId = useId();
+
     const trips: Activity[] | Destination[] | null = useMemo(() => {
         if (isSingle) {
             const itinerary = _.get(destinations, '0.itinerary');
@@ -139,7 +144,19 @@ const DateBlock = ({
     })();
 
     return (
-        <Grid item key={`destination-${index}`} lg={12} md={12} xs={12} className={classnames('date-block', statusClass, { 'is-destination-first': !isSingle })}>
+        <Grid
+            item
+            key={`destination-${index}`}
+            lg={12}
+            md={12}
+            xs={12}
+            // Single-trip days are each a labelled region so a screen reader
+            // can jump day-to-day; multi blocks stay a plain div (their heading
+            // lives inside Multiple, so a section here would be unnamed).
+            component={isSingle ? 'section' : 'div'}
+            aria-labelledby={isSingle ? headingId : undefined}
+            className={classnames('date-block', statusClass, { 'is-destination-first': !isSingle })}
+        >
             <Grid container>
                 {/* Single trips are date-first (one block per day, dark date
                     header). Multi trips are destination-first: the destination
@@ -160,12 +177,18 @@ const DateBlock = ({
                             <span className="dot"></span>
                         </Grid>
                         <Grid item className="title">
-                            <span className="title">{formatDate(startDate, 'LL')} </span>
-                            {showsRange && (
-                                <span className="title">
-                                    &#45;&nbsp;&nbsp;{formatDate(endDate, 'LL')}{' '}
-                                </span>
-                            )}
+                            {/* h3 nests under the trip-name <h2> (both the
+                                wizard's step-trip-name and TripDetail's
+                                trip-detail-name are h2). */}
+                            <h3 id={headingId} className="date-block-day-title">
+                                {formatDate(startDate, 'LL')}
+                                {showsRange && (
+                                    <span className="date-block-day-range">
+                                        {' '}&#45;&nbsp;&nbsp;
+                                        {formatDate(endDate, 'LL')}
+                                    </span>
+                                )}
+                            </h3>
                         </Grid>
                     </Grid>
                 </Grid>
