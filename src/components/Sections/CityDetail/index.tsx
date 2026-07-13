@@ -563,127 +563,142 @@ const CityDetail = () => {
                             safety={details.safety}
                             isError={false}
                         />
+                    </aside>
+                </div>
+
+                <div className="city-detail-content">
+                    <div className="city-detail-content-main">
+                        <ParagraphSection
+                            title={t('detail.common.about', {
+                                name: city.name,
+                            })}
+                            description={details.longDescription}
+                            isError={false}
+                        />
+
+                        {/* Getting There moved into the main column so
+                            the distance + travel-time + Maps deep-link
+                            sit alongside the rest of the logistical
+                            info instead of being buried in the aside. */}
+                        <GettingThereSection
+                            placeName={placeForGetting}
+                            coordinates={details.coordinates}
+                            isError={false}
+                        />
+
+                        <ParagraphSection
+                            title={t('detail.common.about', {
+                                name: city.country,
+                            })}
+                            description={details.countryDescription}
+                            isError={false}
+                        />
+
+                        <CulturalShockCallout
+                            text={details.culturalShock}
+                            subjectLabel={city.country}
+                        />
+
+                        <BeforeYouGoSection items={details.beforeYouGo} />
+
+                        <HiddenGemsSection items={details.hiddenGems} />
+
+                        <NotesSection
+                            items={details.notesToKnow}
+                            isError={false}
+                        />
+
+                        <BudgetSection
+                            description={details.budgetDescription}
+                            costLevel={details.costLevel}
+                            isError={false}
+                        />
+
+                        <DetailFactsGrid>
+                            <TapWaterSection code={city.countryCode} />
+                            <AirQualitySection
+                                coordinates={details.coordinates}
+                            />
+                            <WalkabilitySection
+                                walkability={details.walkability}
+                            />
+                            <WifiSection code={city.countryCode} />
+                        </DetailFactsGrid>
+
+                        <EssentialAppsSection code={code} />
+
+                        <LocalFlavorSection
+                            flavor={details.localFlavor}
+                            isError={false}
+                        />
+                    </div>
+
+                    <aside className="city-detail-content-side">
                         <PopularitySection
                             popularity={details.popularity}
                             isError={false}
                         />
+
+                        <AirportsSection airports={details.airports} />
+
+                        <VisaSection visa={details.visa} isError={false} />
+
+                        <TravelAdvisorySection
+                            destination={city.countryCode}
+                        />
+
+                        <WhenToVisitSection
+                            bestTime={details.bestTimeToVisit}
+                            worstTime={details.worstTimeToVisit}
+                            isError={false}
+                        />
+
+                        <StayingSafeSection code={city.countryCode} />
+
+                        <ScamsSection code={city.countryCode} />
+
+                        <HealthSection code={city.countryCode} />
+
+                        <AccessibilitySection code={city.countryCode} />
+
+                        <CountryFactsSection code={city.countryCode} />
+
+                        <ReligionSection code={city.countryCode} />
+
+                        <EtiquetteSection code={city.countryCode} />
+
+                        <TippingSection code={city.countryCode} />
+
+                        <CurrencyTipsSection code={city.countryCode} />
+
+                        <AvgCostsSection code={city.countryCode} />
+
+                        <MatchForYouSection
+                            code={city.countryCode}
+                            costLevel={details.costLevel}
+                            name={city.name}
+                            country={city.country}
+                            kind="city"
+                            greatFor={details.greatFor}
+                        />
+
+                        <FestivalsSection code={city.countryCode} />
+
+                        <LatestNewsSection
+                            country={city.country}
+                            placeName={city.name}
+                        />
                     </aside>
                 </div>
 
-                {/* Single reading-order flow: the DOM order IS the order a
-                    screen reader / heading navigation / keyboard follows.
-                    Logistics (Getting there → Airports → Visa → When to visit →
-                    Staying safe …) sit together right after the overview; the
-                    country context ("About <country>") lands near the end. No
-                    right-rail-read-last split. CSS lays out the compact cards
-                    without reordering the DOM. */}
-                <div className="city-detail-content">
-                    <ParagraphSection
-                        title={t('detail.common.about', { name: city.name })}
-                        description={details.longDescription}
-                        isError={false}
-                    />
-
-                    <GettingThereSection
-                        placeName={placeForGetting}
-                        coordinates={details.coordinates}
-                        isError={false}
-                    />
-
-                    <AirportsSection airports={details.airports} />
-
-                    <VisaSection visa={details.visa} isError={false} />
-
-                    <TravelAdvisorySection destination={city.countryCode} />
-
-                    <WhenToVisitSection
-                        bestTime={details.bestTimeToVisit}
-                        worstTime={details.worstTimeToVisit}
-                        isError={false}
-                    />
-
-                    <StayingSafeSection code={city.countryCode} />
-
-                    <ScamsSection code={city.countryCode} />
-
-                    <HealthSection code={city.countryCode} />
-
-                    <AccessibilitySection code={city.countryCode} />
-
-                    <PracticalInfoSection
-                        basics={details.travelBasics}
-                        lodging={details.lodging}
-                        neighborhoods={details.neighborhoods}
-                        isError={false}
-                    />
-
-                    <CountryFactsSection code={city.countryCode} />
-
-                    <ReligionSection code={city.countryCode} />
-
-                    <EtiquetteSection code={city.countryCode} />
-
-                    <TippingSection code={city.countryCode} />
-
-                    <CurrencyTipsSection code={city.countryCode} />
-
-                    <AvgCostsSection code={city.countryCode} />
-
-                    <BeforeYouGoSection items={details.beforeYouGo} />
-
-                    <HiddenGemsSection items={details.hiddenGems} />
-
-                    <NotesSection items={details.notesToKnow} isError={false} />
-
-                    <BudgetSection
-                        description={details.budgetDescription}
-                        costLevel={details.costLevel}
-                        isError={false}
-                    />
-
-                    <DetailFactsGrid>
-                        <TapWaterSection code={city.countryCode} />
-                        <AirQualitySection coordinates={details.coordinates} />
-                        <WalkabilitySection walkability={details.walkability} />
-                        <WifiSection code={city.countryCode} />
-                    </DetailFactsGrid>
-
-                    <EssentialAppsSection code={code} />
-
-                    <LocalFlavorSection
-                        flavor={details.localFlavor}
-                        isError={false}
-                    />
-
-                    <MatchForYouSection
-                        code={city.countryCode}
-                        costLevel={details.costLevel}
-                        name={city.name}
-                        country={city.country}
-                        kind="city"
-                        greatFor={details.greatFor}
-                    />
-
-                    <FestivalsSection code={city.countryCode} />
-
-                    <ParagraphSection
-                        title={t('detail.common.about', { name: city.country })}
-                        description={details.countryDescription}
-                        isError={false}
-                    />
-
-                    <CulturalShockCallout
-                        text={details.culturalShock}
-                        subjectLabel={city.country}
-                    />
-
-                    <LatestNewsSection
-                        country={city.country}
-                        placeName={city.name}
-                    />
-                </div>
-
                 <ExperienceHighlights things={details.thingsToDo} />
+
+                <PracticalInfoSection
+                    basics={details.travelBasics}
+                    lodging={details.lodging}
+                    neighborhoods={details.neighborhoods}
+                    isError={false}
+                />
 
                 <div className="city-detail-extras">
                     <TipListSection
