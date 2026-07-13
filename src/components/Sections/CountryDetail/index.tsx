@@ -547,123 +547,121 @@ const CountryDetail = () => {
             />
             <CurrencySection currency={details.currency} isError={false} />
             <SafetySection safety={details.safety} isError={false} />
-          </aside>
-        </div>
-
-        <div className="country-detail-content">
-          <div className="country-detail-content-main">
-            <ParagraphSection
-              title={t('detail.common.about', { name: country.name })}
-              description={details.longDescription}
-              isError={false}
-            />
-
-            {/* Getting There — anchors on the capital city's
-                coordinates. Hides entirely for cached rows from
-                before the AI started returning `capital_coordinates`
-                so users don't see a perpetually-loading skeleton.
-                Lives in the main content column where logistical
-                info belongs alongside Budget / Notes. */}
-            {details.capitalCoordinates && (
-              <GettingThereSection
-                placeName={`${details.capitalCity}, ${country.name}`}
-                coordinates={details.capitalCoordinates}
-                isError={false}
-              />
-            )}
-
-            <BudgetSection
-              description={details.budgetDescription}
-              costLevel={details.costLevel}
-              isError={false}
-            />
-
-            <DetailFactsGrid>
-              <TapWaterSection code={code} />
-              <AirQualitySection
-                coordinates={details.capitalCoordinates}
-              />
-              <WifiSection code={code} />
-            </DetailFactsGrid>
-
-            <EssentialAppsSection code={code} />
-
-            <CulturalShockCallout
-              text={details.culturalShock}
-              subjectLabel={country.name}
-            />
-
-            <BeforeYouGoSection items={details.beforeYouGo} />
-
-            <HiddenGemsSection items={details.hiddenGems} />
-
-            <NotesSection items={details.notesToKnow} isError={false} />
-
-            <LocalFlavorSection
-              flavor={details.localFlavor}
-              isError={false}
-            />
-          </div>
-
-          <aside className="country-detail-content-side">
             <PopularitySection
               popularity={details.popularity}
               isError={false}
             />
-
-            <AirportsSection airports={details.airports} />
-
-            <VisaSection visa={details.visa} isError={false} />
-
-            <TravelAdvisorySection destination={code} />
-
-            <WhenToVisitSection
-              bestTime={details.bestTimeToVisit}
-              worstTime={details.worstTimeToVisit}
-              isError={false}
-            />
-
-            <StayingSafeSection code={code} />
-
-            <ScamsSection code={code} />
-
-            <HealthSection code={code} />
-
-            <AccessibilitySection code={code} />
-
-            <CountryFactsSection code={code} />
-
-            <ReligionSection code={code} />
-
-            <EtiquetteSection code={code} />
-
-            <TippingSection code={code} />
-
-            <CurrencyTipsSection code={code} />
-
-            <AvgCostsSection code={code} />
-
-            <MatchForYouSection
-              code={code}
-              costLevel={details.costLevel}
-              name={country.name}
-              country={country.name}
-              kind="country"
-            />
-
-            <FestivalsSection code={code} />
-
-            <LatestNewsSection country={country.name} />
           </aside>
         </div>
 
-        <ExperienceHighlights things={details.thingsToDo} />
+        {/* Single reading-order flow: the DOM order IS the order a screen
+            reader / heading navigation / keyboard follows (WCAG 1.3.2 /
+            2.4.3). Logistics (Getting there → Airports → Visa → When to visit
+            → Staying safe …) sit together right after the overview instead of
+            the old right-rail reading dead-last. Weather/Currency/Safety +
+            Popularity stay in the top hero rail. CSS lays out the compact
+            cards without reordering the DOM. Mirrors CityDetail. */}
+        <div className="country-detail-content">
+          <ParagraphSection
+            title={t('detail.common.about', { name: country.name })}
+            description={details.longDescription}
+            isError={false}
+          />
 
-        <PracticalInfoSection
-          basics={details.travelBasics}
-          lodging={details.lodging}
-          isError={false}
-        />
+          {/* Getting There — anchors on the capital city's coordinates.
+              Hides entirely for cached rows from before the AI started
+              returning `capital_coordinates` so users don't see a
+              perpetually-loading skeleton. */}
+          {details.capitalCoordinates && (
+            <GettingThereSection
+              placeName={`${details.capitalCity}, ${country.name}`}
+              coordinates={details.capitalCoordinates}
+              isError={false}
+            />
+          )}
+
+          <AirportsSection airports={details.airports} />
+
+          <VisaSection visa={details.visa} isError={false} />
+
+          <TravelAdvisorySection destination={code} />
+
+          <WhenToVisitSection
+            bestTime={details.bestTimeToVisit}
+            worstTime={details.worstTimeToVisit}
+            isError={false}
+          />
+
+          <StayingSafeSection code={code} />
+
+          <ScamsSection code={code} />
+
+          <HealthSection code={code} />
+
+          <AccessibilitySection code={code} />
+
+          <PracticalInfoSection
+            basics={details.travelBasics}
+            lodging={details.lodging}
+            isError={false}
+          />
+
+          <CountryFactsSection code={code} />
+
+          <ReligionSection code={code} />
+
+          <EtiquetteSection code={code} />
+
+          <TippingSection code={code} />
+
+          <CurrencyTipsSection code={code} />
+
+          <AvgCostsSection code={code} />
+
+          <BeforeYouGoSection items={details.beforeYouGo} />
+
+          <HiddenGemsSection items={details.hiddenGems} />
+
+          <NotesSection items={details.notesToKnow} isError={false} />
+
+          <BudgetSection
+            description={details.budgetDescription}
+            costLevel={details.costLevel}
+            isError={false}
+          />
+
+          <DetailFactsGrid>
+            <TapWaterSection code={code} />
+            <AirQualitySection coordinates={details.capitalCoordinates} />
+            <WifiSection code={code} />
+          </DetailFactsGrid>
+
+          <EssentialAppsSection code={code} />
+
+          <LocalFlavorSection
+            flavor={details.localFlavor}
+            isError={false}
+          />
+
+          <MatchForYouSection
+            code={code}
+            costLevel={details.costLevel}
+            name={country.name}
+            country={country.name}
+            kind="country"
+          />
+
+          <FestivalsSection code={code} />
+
+          <CulturalShockCallout
+            text={details.culturalShock}
+            subjectLabel={country.name}
+          />
+
+          <LatestNewsSection country={country.name} />
+        </div>
+
+        <ExperienceHighlights things={details.thingsToDo} />
 
         <div className="country-detail-extras">
           <MainSection
