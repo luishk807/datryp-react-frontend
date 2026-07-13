@@ -14,6 +14,11 @@ export interface DetailSectionProps {
    *  count ("5") on the Must-see / Must-eat lists, so the shortlist still
    *  reads as hand-picked after dropping the "Top 5" wording. */
   badge?: React.ReactNode;
+  /** Heading level for the card title. `2` (default) when the card is a
+   *  top-level page section; `3` when it's nested under a grouping section
+   *  (e.g. Airports / Visa inside "Travel information") so the document
+   *  outline stays correct — h1 → h2 → h3, never skipping a level. */
+  headingLevel?: 2 | 3;
 }
 
 /**
@@ -34,21 +39,29 @@ export interface DetailSectionProps {
  * decorative icons are `aria-hidden` — native structure first, ARIA only where
  * the visual presentation doesn't already convey the meaning.
  */
-const DetailSection = ({ title, icon, children, className, badge }: DetailSectionProps) => {
+const DetailSection = ({
+  title,
+  icon,
+  children,
+  className,
+  badge,
+  headingLevel = 2,
+}: DetailSectionProps) => {
   const titleId = useId();
+  const Heading = headingLevel === 3 ? "h3" : "h2";
   return (
     <section
       className={classNames("detail-section", className)}
       role="region"
       aria-labelledby={titleId}
     >
-      <h2 id={titleId} className="detail-section-title">
+      <Heading id={titleId} className="detail-section-title">
         <span className="detail-section-icon" aria-hidden="true">
           {icon}
         </span>
         {title}
         {badge != null && <span className="detail-section-badge">{badge}</span>}
-      </h2>
+      </Heading>
       <div className="detail-section-body">{children}</div>
     </section>
   );

@@ -985,7 +985,9 @@
         "readMore": "Ver aviso oficial"
     },
     "weatherUnit": {
-        "label": "Unidad de temperatura"
+        "label": "Unidad de temperatura",
+        "celsius": "Grados Celsius",
+        "fahrenheit": "Grados Fahrenheit"
     },
     "currencyTips": {
         "title": "Tarjetas y efectivo",
@@ -1974,7 +1976,7 @@
                 "loading": "Calculando la distancia desde tu punto de partida…"
             },
             "visa": {
-                "title": "Visa"
+                "title": "Requisitos de visa"
             },
             "whenToVisit": {
                 "title": "Cuándo visitar",
@@ -2107,7 +2109,8 @@
             "currencyWidget": {
                 "home": "Esta es la moneda de tu país.",
                 "liveRate": "Tasa en vivo del BCE — verifica antes de viajar.",
-                "approx": "Aproximado — verifica antes de viajar."
+                "approx": "Aproximado — verifica antes de viajar.",
+                "rateAria": "Un {{from}} equivale aproximadamente a {{rate}} {{dest}}"
             },
             "safetyWidget": {
                 "low": "Riesgo bajo",
@@ -2130,6 +2133,7 @@
             "travelWidget": {
                 "from": "Desde {{name}}",
                 "mapAria": "Mapa que muestra la ruta hacia tu destino",
+                "mapRouteAria": "Mapa de ruta desde {{from}} hasta {{dest}}",
                 "you": "Tú — {{name}}",
                 "yourLocation": "tu ubicación",
                 "onFoot": "a pie",
@@ -2155,6 +2159,7 @@
                 "forPassport": "Para pasaporte de {{name}}",
                 "setPassport": "Añade tu país de pasaporte",
                 "change": "Cambiar",
+                "changeAria": "Cambiar país de pasaporte, actualmente {{name}}",
                 "pickPassport": "Selecciona tu país de pasaporte",
                 "disclaimer": "Verifica con un consulado oficial antes de reservar."
             },

@@ -197,6 +197,14 @@ const WeatherWidget = ({ text, current }: WeatherWidgetProps) => {
                                 'is-on': unit === u,
                             })}
                             aria-pressed={unit === u}
+                            // Spoken name so Narrator says "Degrees Fahrenheit,
+                            // toggle button, pressed" instead of just "°F". The
+                            // visible "°C"/"°F" glyph stays for sighted users.
+                            aria-label={t(
+                                u === 'C'
+                                    ? 'weatherUnit.celsius'
+                                    : 'weatherUnit.fahrenheit'
+                            )}
                             onClick={() => setUnit(u)}
                         >
                             °{u}

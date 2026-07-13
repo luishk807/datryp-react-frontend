@@ -242,7 +242,21 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                               zoom: 9,
                           })}
                     scrollWheelZoom={false}
-                    aria-label={t('detail.common.travelWidget.mapAria')}
+                    // Don't make the map a keyboard Tab stop — Leaflet's
+                    // keyboard handler adds tabindex=0 so the whole map pans
+                    // with arrows, which reads as a bare "jumps to the map"
+                    // stop with no context. The route is conveyed by the text
+                    // line below + this label; the +/− zoom controls stay real
+                    // labeled buttons for interaction.
+                    keyboard={false}
+                    aria-label={
+                        fromLabel
+                            ? t('detail.common.travelWidget.mapRouteAria', {
+                                  from: fromLabel,
+                                  dest: placeName,
+                              })
+                            : t('detail.common.travelWidget.mapAria')
+                    }
                     // Inline width/height — Leaflet measures the
                     // container at mount and a CSS-only sizing
                     // sometimes resolves a frame too late, leaving
@@ -260,7 +274,11 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                     />
 
                     {userPos && (
-                        <Marker position={userPos} icon={userIcon}>
+                        // keyboard={false}: the marker is a visual pin, not a
+                        // focusable control. Leaflet makes markers Tab stops by
+                        // default, which added a bare unlabeled focus stop; the
+                        // route is conveyed by the map label + the text line.
+                        <Marker position={userPos} icon={userIcon} keyboard={false}>
                             <Tooltip>
                                 {t('detail.common.travelWidget.you', {
                                     name:
@@ -273,7 +291,7 @@ const TravelWidget = ({ placeName, placeCoords }: TravelWidgetProps) => {
                         </Marker>
                     )}
 
-                    <Marker position={destPos} icon={destIcon}>
+                    <Marker position={destPos} icon={destIcon} keyboard={false}>
                         <Tooltip>{placeName}</Tooltip>
                     </Marker>
 

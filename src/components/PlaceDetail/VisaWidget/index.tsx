@@ -123,14 +123,12 @@ const VisaWidget = ({ visa }: VisaWidgetProps) => {
           disabled={updatePrefs.isPending}
           aria-expanded={pickerOpen}
           // Bare "Change" is meaningless out of context to a screen reader, so
-          // spell out what changes and the current passport. The "add" state's
-          // visible label already reads clearly, so it keeps its text as-is.
+          // give it a self-contained name that says what it changes + the
+          // current value ("Change passport country, currently United States").
+          // The "add" state's visible label already reads clearly on its own.
           aria-label={
             code
-              ? `${t("detail.common.visaWidget.change")}, ${t(
-                  "detail.common.visaWidget.forPassport",
-                  { name },
-                )}`
+              ? t("detail.common.visaWidget.changeAria", { name })
               : undefined
           }
         >

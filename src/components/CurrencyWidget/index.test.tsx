@@ -37,10 +37,10 @@ describe('CurrencyWidget', () => {
     it('reads the rate as one accessible sentence, hiding the split pieces', () => {
         renderWithProviders(<CurrencyWidget info={krw} />);
         // The whole rate row is a single labelled unit for screen readers,
-        // using the currency NAME (not the code chip) for a readable name.
+        // spoken as a sentence with both currency NAMES (not the code chips).
         expect(
             screen.getByRole('img', {
-                name: '1 USD ≈ 1300 South Korean Won',
+                name: 'One US Dollar equals approximately 1300 South Korean Won',
             })
         ).toBeInTheDocument();
         // The visual tokens are hidden so they don't double-read.

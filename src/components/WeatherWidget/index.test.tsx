@@ -77,12 +77,14 @@ describe('WeatherWidget', () => {
                 name: /Temperature unit/i,
             });
             expect(group).toBeInTheDocument();
-            const toC = screen.getByRole('button', { name: '°C' });
+            // The toggle buttons are named by aria-label ("Degrees Celsius"),
+            // not the visible "°C" glyph, so Narrator announces the unit in full.
+            const toC = screen.getByRole('button', { name: 'Degrees Celsius' });
             expect(toC).toHaveAttribute('aria-pressed', 'false');
             await userEvent.click(toC);
             expect(screen.getByText('26°C')).toBeInTheDocument();
             expect(
-                screen.getByRole('button', { name: '°C' })
+                screen.getByRole('button', { name: 'Degrees Celsius' })
             ).toHaveAttribute('aria-pressed', 'true');
         });
 

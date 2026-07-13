@@ -706,7 +706,7 @@
                 "loading": "Calculating distance from your home base…"
             },
             "visa": {
-                "title": "Visa"
+                "title": "Visa requirements"
             },
             "whenToVisit": {
                 "title": "When to visit",
@@ -839,7 +839,8 @@
             "currencyWidget": {
                 "home": "This is your home currency.",
                 "liveRate": "Live rate from the ECB — check before travel.",
-                "approx": "Approximate — check before travel."
+                "approx": "Approximate — check before travel.",
+                "rateAria": "One {{from}} equals approximately {{rate}} {{dest}}"
             },
             "safetyWidget": {
                 "low": "Low risk",
@@ -862,6 +863,7 @@
             "travelWidget": {
                 "from": "From {{name}}",
                 "mapAria": "Map showing the travel route to your destination",
+                "mapRouteAria": "Route map from {{from}} to {{dest}}",
                 "you": "You — {{name}}",
                 "yourLocation": "your location",
                 "onFoot": "on foot",
@@ -887,6 +889,7 @@
                 "forPassport": "For {{name}} passport",
                 "setPassport": "Add your passport country",
                 "change": "Change",
+                "changeAria": "Change passport country, currently {{name}}",
                 "pickPassport": "Select your passport country",
                 "disclaimer": "Verify with an official consulate before booking."
             },
@@ -1423,7 +1426,9 @@
         "readMore": "Read official advisory"
     },
     "weatherUnit": {
-        "label": "Temperature unit"
+        "label": "Temperature unit",
+        "celsius": "Degrees Celsius",
+        "fahrenheit": "Degrees Fahrenheit"
     },
     "currencyTips": {
         "title": "Cards & cash",

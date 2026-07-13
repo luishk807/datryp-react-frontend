@@ -27,8 +27,23 @@ const formatRate = (rate: number): string => {
  * doesn't carry it. Below the chip: destination currency name + a
  * live-rate badge or fallback disclaimer.
  */
+/** Currency code → spoken name ("USD" → "US Dollar") via Intl, so the rate
+ *  reads as a sentence instead of letter-by-letter code. Falls back to the raw
+ *  code if the runtime/locale can't resolve it. */
+const currencyName = (code: string, locale: string): string => {
+    try {
+        return (
+            new Intl.DisplayNames([locale || 'en'], { type: 'currency' }).of(
+                code
+            ) ?? code
+        );
+    } catch {
+        return code;
+    }
+};
+
 const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { data: userCurrency } = useUserCurrency();
     const { data: fxRates } = useFxRates();
 
@@ -55,7 +70,11 @@ const CurrencyWidget = ({ info }: CurrencyWidgetProps) => {
                 <div
                     className="currency-widget-rate"
                     role="img"
-                    aria-label={`1 ${fromCode} ≈ ${formatRate(rate)} ${info.name}`}
+                    aria-label={t('detail.common.currencyWidget.rateAria', {
+                        from: currencyName(fromCode, i18n.language),
+                        rate: formatRate(rate),
+                        dest: info.name,
+                    })}
                 >
                     <span className="currency-widget-from" aria-hidden="true">
                         1 {fromCode}

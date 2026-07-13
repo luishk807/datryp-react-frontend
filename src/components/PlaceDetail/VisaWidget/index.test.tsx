@@ -113,10 +113,10 @@ describe('VisaWidget — passport picker', () => {
             screen.queryByPlaceholderText('Select your passport country')
         ).not.toBeInTheDocument();
 
-        // Accessible name spells out the passport context (bare "Change" is
-        // meaningless to a screen reader) and echoes the current country.
+        // Self-contained accessible name (bare "Change" is meaningless to a
+        // screen reader) that says what it changes + the current country.
         const change = screen.getByRole('button', {
-            name: /change, for united states passport/i,
+            name: /change passport country, currently united states/i,
         });
         expect(change).toHaveAttribute('aria-expanded', 'false');
         await userEvent.click(change);
