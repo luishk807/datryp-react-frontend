@@ -61,7 +61,7 @@
   gap: 6px;
   padding: 8px 14px;
   border-radius: 9999px;
-  background: theme('colors.primaryOrange');
+  background: theme('colors.primaryOrangeDeep');
   color: #fff;
   font-size: 0.88rem;
   font-weight: 600;
@@ -69,7 +69,7 @@
   transition: background 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    background: #e07a2e;
+    background: #9e4400;
     box-shadow: 0 2px 6px rgba(243, 142, 64, 0.35);
   }
 }

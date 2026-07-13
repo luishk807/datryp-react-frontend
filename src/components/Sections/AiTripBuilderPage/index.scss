@@ -298,8 +298,8 @@
   }
 
   &.is-selected {
-    background: theme('colors.primaryOrange');
-    border-color: theme('colors.primaryOrange');
+    background: theme('colors.primaryOrangeDeep');
+    border-color: theme('colors.primaryOrangeDeep');
     color: #fff;
     box-shadow: 0 4px 14px rgba(246, 137, 31, 0.26);
   }
@@ -358,7 +358,7 @@
 
 .ai-trip-builder-page-chip {
   &.is-selected.MuiChip-root {
-    background-color: theme('colors.primaryOrange') !important;
+    background-color: theme('colors.primaryOrangeDeep') !important;
     color: #fff !important;
     font-weight: 600;
 
@@ -483,7 +483,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 22px;
-  background: theme('colors.primaryOrange');
+  background: theme('colors.primaryOrangeDeep');
   border: none;
   color: #fff;
   font: inherit;

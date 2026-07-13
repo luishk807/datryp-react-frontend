@@ -273,9 +273,9 @@
         width: 100%;
         margin-top: 10px;
         padding: 9px 12px;
-        border: 1px solid theme('colors.primaryOrange');
+        border: 1px solid theme('colors.primaryOrangeDeep');
         border-radius: 10px;
-        background: theme('colors.primaryOrange');
+        background: theme('colors.primaryOrangeDeep');
         color: #fff;
         font-size: 13px;
         font-weight: 600;
@@ -284,8 +284,8 @@
             box-shadow 0.15s ease;
 
         &:hover:not(:disabled) {
-            background: #e88a1a;
-            border-color: #e88a1a;
+            background: #9e4400;
+            border-color: #9e4400;
             box-shadow: 0 3px 10px rgba(247, 159, 38, 0.3);
         }
 

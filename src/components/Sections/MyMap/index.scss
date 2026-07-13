@@ -1345,11 +1345,11 @@ img.my-map-trips-panel-flag {
 // switches to the brand orange so the two CTAs are visually distinct
 // when both show on the popup.
 .my-map-pin-popup-cta-trip {
-  background: theme('colors.primaryOrange');
+  background: theme('colors.primaryOrangeDeep');
 
   &:hover,
   &:focus-visible {
-    background: #d9871f;
+    background: #9e4400;
   }
 }
 

@@ -140,7 +140,7 @@
 .app-header-drawer .drawer-auth.signup button,
 .app-header-drawer .drawer-auth.signup .auth-cta-link {
   display: inline-block;
-  background: theme('colors.primaryOrange') !important;
+  background: theme('colors.primaryOrangeDeep') !important;
   color: #fff !important;
   font-weight: 600;
   font-size: 0.95rem;
@@ -156,7 +156,7 @@
 .app-header .auth-cta .auth-cta-link:hover,
 .app-header-drawer .drawer-auth.signup button:hover,
 .app-header-drawer .drawer-auth.signup .auth-cta-link:hover {
-  background: #db7710 !important;
+  background: #9e4400 !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(246, 137, 31, 0.25);
 }

@@ -171,9 +171,11 @@
   left: 3px;
   // Two-tab layout — the thumb covers half the pill.
   width: calc(50% - 3px);
-  background: theme('colors.primaryOrange');
+  // Deep orange (#b84f00) so the SELECTED tab's white text passes WCAG AA
+  // (~5.1:1). White on the bright `primaryOrange` was only ~2.5:1.
+  background: theme('colors.primaryOrangeDeep');
   border-radius: 9999px;
-  box-shadow: 0 2px 8px rgba(246, 137, 31, 0.4);
+  box-shadow: 0 2px 8px rgba(184, 79, 0, 0.4);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
     background 0.28s ease, box-shadow 0.28s ease;
   z-index: 0;
@@ -210,13 +212,13 @@
   color: #fff;
 }
 
-// Selected tab: orange (or AI gradient) thumb sits behind it; text
-// is near-black + heavier weight. White-on-orange only hit ~2.5:1
-// (fails WCAG AA); #1f1f1f on the #f6891f thumb is ~6.7:1. text-shadow
-// drops here because the thumb is solid behind the text — extra shadow
-// would muddy it.
+// Selected tab: the deep-orange thumb (#b84f00) sits behind it, so the
+// text is WHITE + heavier weight (~5.1:1, passes WCAG AA). Product prefers
+// white-on-deep-orange over the earlier dark-text-on-bright-orange for brand
+// consistency. text-shadow drops here because the thumb is solid behind the
+// text — extra shadow would muddy it.
 .home-hero-options .hero-option.selected {
-  color: #1f1f1f;
+  color: #ffffff;
   font-weight: 600;
   text-shadow: none;
 }
@@ -486,7 +488,9 @@
 }
 
 .home-hero-search .searchbarMain .container .button {
-  background: theme('colors.primaryOrange') !important;
+  // Deep orange (#b84f00) so the white label passes WCAG AA (~5.1:1). The
+  // bright `primaryOrange` gave white text only ~2.5:1.
+  background: theme('colors.primaryOrangeDeep') !important;
   color: #fff !important;
   border-radius: 12px;
   padding: 12px 38px;
@@ -497,7 +501,8 @@
 }
 
 .home-hero-search .searchbarMain .container .button:hover {
-  background: #db7710 !important;
+  // Darker still on hover (~7:1) — keeps white legible through the lift.
+  background: #9e4400 !important;
   color: #fff !important;
   transform: translateY(-1px);
 }
@@ -850,11 +855,11 @@
   margin-bottom: 16px;
 }
 
-// Selected toggle tab sits on the orange thumb — force the same near-black
-// (WCAG-AA ~6.7:1 on #f6891f) so the compact dark-label override doesn't
-// bleed into the selected state.
+// Selected toggle tab sits on the deep-orange thumb — force white (WCAG-AA
+// ~5.1:1 on #b84f00) so the compact dark-label override doesn't bleed into
+// the selected state.
 .home-hero--compact .hero-option.selected {
-  color: #1f1f1f;
+  color: #ffffff;
 }
 
 .home-hero--compact .home-hero-content {

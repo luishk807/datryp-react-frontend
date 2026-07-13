@@ -627,8 +627,8 @@
   border-color: rgba(124, 58, 237, 0.4);
 
   &:hover {
-    background: theme('colors.primaryOrange');
-    border-color: theme('colors.primaryOrange');
+    background: theme('colors.primaryOrangeDeep');
+    border-color: theme('colors.primaryOrangeDeep');
     color: #fff;
     box-shadow: 0 4px 10px rgba(246, 137, 31, 0.28);
   }

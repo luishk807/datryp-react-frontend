@@ -137,14 +137,15 @@
     align-items: center;
     padding: 5px 12px;
     border-radius: 999px;
-    background: theme('colors.primaryOrange');
-    // Near-black on the bright #f6891f fill: white was only ~2.5:1 (fails
-    // WCAG AA), #1f1f1f is ~6.7:1. Brand orange stays bright per product.
-    color: #1f1f1f;
+    // Deep orange (#b84f00) so the white date text passes WCAG AA (~5.1:1).
+    // White on the bright `primaryOrange` fill was only ~2.5:1. Product
+    // prefers white-on-deep-orange over dark-text-on-bright-orange.
+    background: theme('colors.primaryOrangeDeep');
+    color: #ffffff;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.03em;
-    box-shadow: 0 2px 8px rgba(246, 137, 31, 0.32);
+    box-shadow: 0 2px 8px rgba(184, 79, 0, 0.32);
 }
 
 .world-event-meta-host {
