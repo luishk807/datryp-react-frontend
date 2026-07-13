@@ -30,6 +30,10 @@ interface FriendPickerProps {
     name?: string;
     isMultiple?: boolean;
     selectedOptions?: Friend[];
+    /** Accessible name for the combobox input when the visible label lives in
+     *  a section header above the picker (callers pass `title=""` to suppress
+     *  the floating MUI label — this keeps the input programmatically named). */
+    ariaLabel?: string;
 }
 
 const hashId = (s: string): number => {
@@ -62,6 +66,7 @@ const FriendPicker = ({
     name,
     isMultiple = true,
     selectedOptions = [],
+    ariaLabel,
 }: FriendPickerProps) => {
     const { t } = useTranslation();
     const { user } = useUser();
@@ -146,6 +151,12 @@ const FriendPicker = ({
                         options={optionList}
                         name={name}
                         label={resolvedTitle}
+                        ariaLabel={ariaLabel}
+                        getRemoveAriaLabel={(option) =>
+                            t('activity.friendPicker.removeAria', {
+                                name: option.label,
+                            })
+                        }
                         onRemove={handleOnRemove}
                         onSelect={handleOnSelect}
                         renderOption={(option, isSelected) => {

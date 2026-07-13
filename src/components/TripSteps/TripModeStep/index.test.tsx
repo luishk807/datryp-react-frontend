@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 
 describe('TripModeStep', () => {
-    it('renders the mode question and all three choice cards', () => {
+    it('renders the mode question as a radiogroup with two radios + an AI button', () => {
         renderWithProviders(
             <TripProvider>
                 <Harness />
@@ -42,12 +42,17 @@ describe('TripModeStep', () => {
         expect(
             screen.getByRole('heading', { name: /what kind of trip/i })
         ).toBeInTheDocument();
+        // The two mutually-exclusive choices are radios inside a radiogroup.
         expect(
-            screen.getByRole('button', { name: /one destination/i })
+            screen.getByRole('radiogroup', { name: /what kind of trip/i })
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: /multiple destinations/i })
+            screen.getByRole('radio', { name: /one destination/i })
         ).toBeInTheDocument();
+        expect(
+            screen.getByRole('radio', { name: /multiple destinations/i })
+        ).toBeInTheDocument();
+        // The AI hand-off is a separate path, not a radio option.
         expect(
             screen.getByRole('button', { name: /let us plan it for you/i })
         ).toBeInTheDocument();
@@ -60,12 +65,12 @@ describe('TripModeStep', () => {
             </TripProvider>
         );
         await userEvent.click(
-            screen.getByRole('button', { name: /one destination/i })
+            screen.getByRole('radio', { name: /one destination/i })
         );
         expect(mockAdvance).toHaveBeenCalledTimes(1);
-        expect(
-            screen.getByRole('button', { name: /one destination/i })
-        ).toHaveClass('is-selected');
+        const single = screen.getByRole('radio', { name: /one destination/i });
+        expect(single).toHaveClass('is-selected');
+        expect(single).toHaveAttribute('aria-checked', 'true');
     });
 
     it('selects multiple mode and advances the wizard', async () => {
@@ -75,12 +80,33 @@ describe('TripModeStep', () => {
             </TripProvider>
         );
         await userEvent.click(
-            screen.getByRole('button', { name: /multiple destinations/i })
+            screen.getByRole('radio', { name: /multiple destinations/i })
         );
         expect(mockAdvance).toHaveBeenCalledTimes(1);
         expect(
-            screen.getByRole('button', { name: /multiple destinations/i })
+            screen.getByRole('radio', { name: /multiple destinations/i })
         ).toHaveClass('is-selected');
+    });
+
+    it('arrow keys move + select between radios WITHOUT advancing', async () => {
+        renderWithProviders(
+            <TripProvider>
+                <Harness />
+            </TripProvider>
+        );
+        const single = screen.getByRole('radio', { name: /one destination/i });
+        single.focus();
+        // ArrowRight moves to (and selects) "Multiple" but must not advance.
+        await userEvent.keyboard('{ArrowRight}');
+        const multi = screen.getByRole('radio', {
+            name: /multiple destinations/i,
+        });
+        expect(multi).toHaveAttribute('aria-checked', 'true');
+        expect(multi).toHaveFocus();
+        expect(mockAdvance).not.toHaveBeenCalled();
+        // Enter on the focused radio commits the choice and advances.
+        await userEvent.keyboard('{Enter}');
+        expect(mockAdvance).toHaveBeenCalledTimes(1);
     });
 
     it('routes the AI card to /discover with no place hint by default', async () => {

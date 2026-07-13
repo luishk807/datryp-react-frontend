@@ -219,4 +219,60 @@ describe('AutocompleteCustom', () => {
         await user.keyboard('{Backspace}');
         expect(onRemove).toHaveBeenCalledWith([{ id: 2, label: 'Bob' }]);
     });
+
+    it('names the combobox input via ariaLabel when there is no visible label', () => {
+        renderWithProviders(
+            <AutocompleteCustom
+                label=""
+                ariaLabel="Organizers"
+                options={OPTIONS}
+                isMultiple
+                selectedOptions={NO_SELECTION}
+            />
+        );
+        expect(
+            screen.getByRole('combobox', { name: 'Organizers' })
+        ).toBeInTheDocument();
+    });
+
+    it('renders a named remove button on each chip when getRemoveAriaLabel is set', () => {
+        renderWithProviders(
+            <AutocompleteCustom
+                label="Friends"
+                options={OPTIONS}
+                isMultiple
+                selectedOptions={[
+                    { id: 1, label: 'Alice' },
+                    { id: 2, label: 'Bob' },
+                ]}
+                getRemoveAriaLabel={(o) => `Remove ${o.label}`}
+            />
+        );
+        expect(
+            screen.getByRole('button', { name: 'Remove Alice' })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Remove Bob' })
+        ).toBeInTheDocument();
+    });
+
+    it("the chip's named remove button reports just that option to onRemove", async () => {
+        const user = userEvent.setup();
+        const onRemove = vi.fn();
+        renderWithProviders(
+            <AutocompleteCustom
+                label="Friends"
+                options={OPTIONS}
+                isMultiple
+                selectedOptions={[
+                    { id: 1, label: 'Alice' },
+                    { id: 2, label: 'Bob' },
+                ]}
+                onRemove={onRemove}
+                getRemoveAriaLabel={(o) => `Remove ${o.label}`}
+            />
+        );
+        await user.click(screen.getByRole('button', { name: 'Remove Alice' }));
+        expect(onRemove).toHaveBeenCalledWith([{ id: 1, label: 'Alice' }]);
+    });
 });

@@ -3,12 +3,33 @@ import { render, screen } from '../../../test/renderWithProviders';
 import type { Friend } from 'types';
 
 // Capture the props the shared Autocomplete receives so the picker's
-// select/remove/renderOption logic can be driven directly.
+// select/remove/renderOption logic can be driven directly. The mock also
+// renders the combobox input + a chip-per-selection using the accessibility
+// props FriendPicker wires (`ariaLabel`, `getRemoveAriaLabel`) so those names
+// can be asserted through real roles/accessible names. The real MUI rendering
+// of these props is covered in the shared Autocomplete's own test.
 let autoProps: any;
 vi.mock('components/common/FormFields/Autocomplete', () => ({
     default: (props: any) => {
         autoProps = props;
-        return <div data-testid="autocomplete" />;
+        return (
+            <div data-testid="autocomplete">
+                <input role="combobox" aria-label={props.ariaLabel} readOnly />
+                <ul>
+                    {(props.selectedOptions ?? []).map((o: any) => (
+                        <li key={o.id}>
+                            <span>{o.label}</span>
+                            <button
+                                type="button"
+                                aria-label={props.getRemoveAriaLabel?.(o)}
+                            >
+                                ×
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
     },
 }));
 
@@ -164,5 +185,28 @@ describe('FriendPicker — renderOption', () => {
         render(<FriendPicker onChange={vi.fn()} />);
         renderOpt({ id: 8, label: 'Ash' }, true);
         expect(screen.getByText('Added')).toBeInTheDocument();
+    });
+});
+
+describe('FriendPicker — accessible names', () => {
+    it('names the combobox input from the ariaLabel prop', () => {
+        render(<FriendPicker ariaLabel="Organizers" onChange={vi.fn()} />);
+        expect(
+            screen.getByRole('combobox', { name: 'Organizers' })
+        ).toBeInTheDocument();
+    });
+
+    it('gives each selected chip a translated remove button name', () => {
+        const selected = [
+            { id: 1, label: 'Alice', name: 'Alice' },
+            { id: 2, label: 'Bob', name: 'Bob' },
+        ] as unknown as Friend[];
+        render(<FriendPicker onChange={vi.fn()} selectedOptions={selected} />);
+        expect(
+            screen.getByRole('button', { name: 'Remove Alice' })
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Remove Bob' })
+        ).toBeInTheDocument();
     });
 });

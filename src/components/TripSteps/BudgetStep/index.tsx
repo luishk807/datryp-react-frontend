@@ -129,12 +129,21 @@ const BudgetStep = ({ data, onChange }: BudgetStepProps) => {
                         }
                         onChange={(e) => onChange('budget', e)}
                     />
-                    <BudgetSuggestionBadge
-                        suggestion={suggestion}
-                        isLoading={isLoadingSuggestion}
-                        destinationLabel={destinationLabel}
-                        inputMatchesAi={inputMatchesAi}
-                    />
+                    {/* Persistent polite live region — the suggested budget
+                        ("Suggested budget for Mexico: $1,035") streams in after
+                        an async call, so announce it to a screen reader user
+                        who's parked on the budget input. The wrapper must exist
+                        BEFORE the badge content appears for the announcement to
+                        fire, hence it stays mounted even while the badge itself
+                        renders null. */}
+                    <div role="status" aria-live="polite">
+                        <BudgetSuggestionBadge
+                            suggestion={suggestion}
+                            isLoading={isLoadingSuggestion}
+                            destinationLabel={destinationLabel}
+                            inputMatchesAi={inputMatchesAi}
+                        />
+                    </div>
                     <p className="trip-budget-hint">
                         {t('createTrip.budget.hint')}
                     </p>

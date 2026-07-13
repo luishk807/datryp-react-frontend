@@ -108,6 +108,12 @@ export interface StepperStep {
     comp: ReactNode;
 }
 
+// Ids used to fold the "Step N of M" progress line into the current step's
+// heading accessible name, so a screen reader announces progress + the
+// question together on each transition ("Step 2 of 6, When are you going?").
+const WIZARD_STEP_PROGRESS_ID = 'wizard-step-progress';
+const WIZARD_STEP_HEADING_ID = 'wizard-step-heading';
+
 interface StepperAdvanceContextValue {
     onAdvance: () => void;
 }
@@ -295,18 +301,40 @@ const StepperComp = ({
     // instead of being stranded on the now-replaced Next button. The heading is
     // made programmatically focusable (tabIndex -1) on the fly; its focus
     // outline is suppressed in CSS since it's not a Tab stop. Create-flow only —
-    // the ref is unattached in edit mode, so this no-ops there.
+    // the ref is unattached in edit mode, so this no-ops there. On the final
+    // "Finish", the same move lands focus on the "Trip created" heading of the
+    // completion screen (via `completeRef`) rather than the old Finish button.
     const stepContentRef = useRef<HTMLDivElement>(null);
+    const completeRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        const container = stepContentRef.current;
+        const isComplete = steps.length > 0 && activeStep === steps.length;
+        const container = isComplete
+            ? completeRef.current
+            : stepContentRef.current;
         if (!container) return;
+        // The one-question screens expose a `.trip-step-headline` we control;
+        // fall back to the first native heading for the itinerary + completion
+        // screens.
+        const headline =
+            container.querySelector<HTMLElement>('.trip-step-headline');
         const heading =
-            container.querySelector<HTMLElement>('.trip-step-headline') ??
-            container.querySelector<HTMLElement>('h1, h2');
+            headline ?? container.querySelector<HTMLElement>('h1, h2');
         if (!heading) return;
         heading.setAttribute('tabindex', '-1');
+        // Fold "Step N of M" into the question screen's heading name so the
+        // transition announces progress + the question together (WCAG 3.2
+        // orientation). Only the single-question steps carry the progress line
+        // + a `.trip-step-headline`; the itinerary/completion headings read as
+        // their own text.
+        if (headline && document.getElementById(WIZARD_STEP_PROGRESS_ID)) {
+            headline.id = WIZARD_STEP_HEADING_ID;
+            headline.setAttribute(
+                'aria-labelledby',
+                `${WIZARD_STEP_PROGRESS_ID} ${WIZARD_STEP_HEADING_ID}`
+            );
+        }
         heading.focus();
-    }, [activeStep]);
+    }, [activeStep, steps.length]);
 
     // In edit mode the "Describe Your Trip!" form opens as a modal triggered
     // by the pencil-edit icon on BasicTripInfo, rather than appearing inline
@@ -940,7 +968,9 @@ const StepperComp = ({
              *  mobile) without helping the user. Progress is implicit in the
              *  Back/Next buttons. */}
             {activeStep === steps.length ? (
-                <TripComplete onReset={handleReset} />
+                <div ref={completeRef}>
+                    <TripComplete onReset={handleReset} />
+                </div>
             ) : saveItinerary.isPending || aiPlanning ? (
                 <div
                     style={{
@@ -1045,6 +1075,18 @@ const StepperComp = ({
                             <TripDestinationChip data={data} />
                         </Grid>
                     )}
+                    {/* "Step N of M" — orientation for everyone, and folded
+                     *  into the current question's heading name (see the focus
+                     *  effect) so a screen reader announces "Step 2 of 6, When
+                     *  are you going?" on each transition. */}
+                    <Grid item lg={12} md={12} xs={12}>
+                        <p className="step-progress" id={WIZARD_STEP_PROGRESS_ID}>
+                            {t('createTrip.stepper.progress', {
+                                current: activeStep + 1,
+                                total: steps.length,
+                            })}
+                        </p>
+                    </Grid>
                     <Grid item lg={12} md={12} xs={12}>
                         <div ref={stepContentRef} className="step-content">
                             <StepperAdvanceContext.Provider

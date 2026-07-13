@@ -93,8 +93,11 @@ vi.mock('components/NotifyParticipantsCheckbox', () => ({
     ),
 }));
 vi.mock('components/DestinationDetail/Completed', () => ({
+    // Mirrors the real component's <h1 class="trip-complete-title"> so the
+    // stepper's post-Finish focus move (to the completion heading) is testable.
     default: (props: { onReset: () => void }) => (
         <div data-testid="trip-complete">
+            <h1 className="trip-complete-title">Trip created</h1>
             <button type="button" onClick={() => props.onReset()}>
                 plan another
             </button>
@@ -247,9 +250,13 @@ describe('StepperComp — basic navigation', () => {
         renderStepperWith(focusSteps);
         await userEvent.click(screen.getByRole('button', { name: /next/i }));
         const heading = screen.getByRole('heading', {
-            name: 'When are you going?',
+            name: /When are you going\?/,
         });
         await waitFor(() => expect(heading).toHaveFocus());
+        // "Step N of M" is folded into the heading's accessible name so a
+        // screen reader announces progress + the question together on the move.
+        expect(heading).toHaveAccessibleName('Step 2 of 2 When are you going?');
+        expect(screen.getByText('Step 2 of 2')).toBeInTheDocument();
     });
 
     it('notifies the parent when the active step changes', async () => {
@@ -446,6 +453,20 @@ describe('StepperComp — Finish save path (create)', () => {
         expect(input.organizerIds).toContain('u1');
 
         expect(await screen.findByTestId('trip-complete')).toBeInTheDocument();
+    });
+
+    it('moves focus to the completion heading after Finish', async () => {
+        // Don't strand focus on the now-gone Finish button — a screen reader
+        // user needs to hear "Trip created" when the wizard completes.
+        mockUser = { isPaidMember: true };
+        seedLookups();
+        renderStepperWith([bodyStep('Finish')], completeTrip());
+
+        await userEvent.click(screen.getByRole('button', { name: /finish/i }));
+        const heading = await screen.findByRole('heading', {
+            name: 'Trip created',
+        });
+        await waitFor(() => expect(heading).toHaveFocus());
     });
 
     it('routes home when "plan another" is clicked on the completion screen', async () => {

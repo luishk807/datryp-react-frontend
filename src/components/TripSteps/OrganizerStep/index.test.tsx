@@ -8,6 +8,7 @@ import type { Friend, TripState } from 'types';
 // picker's onChange, so the step's own handler contract is what's tested.
 interface PickerStubProps {
     title?: string;
+    ariaLabel?: string;
     name?: string;
     selectedOptions?: Friend[];
     onChange: (
@@ -17,9 +18,16 @@ interface PickerStubProps {
 }
 const ADDED: Friend = { id: 9, name: 'Bob', userId: 'u9' };
 vi.mock('components/DestinationDetail/FriendPicker', () => ({
-    default: ({ title, name, selectedOptions, onChange }: PickerStubProps) => (
+    default: ({
+        title,
+        ariaLabel,
+        name,
+        selectedOptions,
+        onChange,
+    }: PickerStubProps) => (
         <div data-testid="friend-picker">
             <span data-testid="fp-title">{title}</span>
+            <span data-testid="fp-arialabel" data-value={ariaLabel} />
             <span data-testid="fp-name">{name}</span>
             <span data-testid="fp-count">{selectedOptions?.length ?? 0}</span>
             <button
@@ -53,6 +61,11 @@ describe('OrganizerStep', () => {
             screen.getByRole('heading', { name: /who's organizing/i })
         ).toBeInTheDocument();
         expect(screen.getByText('Organizers')).toBeInTheDocument();
+        // The picker's combobox gets the section label as its accessible name.
+        expect(screen.getByTestId('fp-arialabel')).toHaveAttribute(
+            'data-value',
+            'Organizers'
+        );
         expect(screen.getByTestId('fp-name')).toHaveTextContent('organizer');
         expect(screen.getByTestId('fp-count')).toHaveTextContent('1');
     });

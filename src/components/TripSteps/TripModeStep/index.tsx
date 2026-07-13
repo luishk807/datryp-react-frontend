@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import classnames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -15,9 +16,18 @@ interface TripModeStepProps {
     data: TripState | undefined;
 }
 
+type PickableMode = typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE;
+
 /** Step 1 — single vs. multi-destination. One question per screen. The
  *  "Going to <place>" context chip is rendered globally by StepperComp
- *  (TripDestinationChip) so it persists across every step, not just here. */
+ *  (TripDestinationChip) so it persists across every step, not just here.
+ *
+ *  The two manual choices form a WAI-ARIA radiogroup (mutually-exclusive):
+ *  arrow keys move + select without advancing, so a keyboard user can browse
+ *  the options; a deliberate click / Enter / Space commits the choice AND
+ *  advances (picking IS the answer to this one-question step). The "plan it
+ *  for you" AI card is a separate path — a plain button that navigates away,
+ *  NOT a radio option. */
 const TripModeStep = ({ data }: TripModeStepProps) => {
     const { t } = useTranslation();
     const dispatch = useTripDispatch();
@@ -27,21 +37,54 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
     const isSingle = selectedId === TRIP_BASIC.SINGLE.id;
     const isMulti = selectedId === TRIP_BASIC.MULTIPLE.id;
 
+    const singleRef = useRef<HTMLButtonElement>(null);
+    const multiRef = useRef<HTMLButtonElement>(null);
+
     // Only set when the user entered the wizard with a country already pinned
     // (AI search / top-place / country-detail entry). Lets the "plan it for
     // you" card name the destination and hand it to the AI builder.
     const place = data?.destinations?.[0]?.country?.name?.trim() || undefined;
 
-    const pickMode = (
-        mode: typeof TRIP_MODE.SINGLE | typeof TRIP_MODE.MULTIPLE
+    const pickMode = (mode: PickableMode) => {
+        const next =
+            mode === TRIP_MODE.SINGLE ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
+        dispatch(basicInfo({ type: next }));
+        // Committing a mode (click / Enter / Space) IS the answer to this
+        // one-question step — advance immediately rather than making the user
+        // then hit Next. (The AI card navigates away on its own.)
+        onAdvance();
+    };
+
+    // Arrow-key move within the radiogroup: select the option under focus
+    // WITHOUT advancing, so a keyboard user can browse both choices and commit
+    // deliberately. With two options every arrow just moves to the other one.
+    const selectMode = (
+        mode: PickableMode,
+        focusRef: React.RefObject<HTMLButtonElement>
     ) => {
         const next =
             mode === TRIP_MODE.SINGLE ? TRIP_BASIC.SINGLE : TRIP_BASIC.MULTIPLE;
         dispatch(basicInfo({ type: next }));
-        // Picking a mode IS the answer to this one-question step — advance to
-        // the next step immediately rather than making the user then hit Next.
-        // (The AI card navigates away on its own, so it doesn't go through here.)
-        onAdvance();
+        focusRef.current?.focus();
+    };
+
+    const handleRadioKeyDown = (
+        e: React.KeyboardEvent<HTMLButtonElement>,
+        mode: PickableMode
+    ) => {
+        if (
+            e.key === 'ArrowRight' ||
+            e.key === 'ArrowDown' ||
+            e.key === 'ArrowLeft' ||
+            e.key === 'ArrowUp'
+        ) {
+            e.preventDefault();
+            if (mode === TRIP_MODE.SINGLE) {
+                selectMode(TRIP_MODE.MULTIPLE, multiRef);
+            } else {
+                selectMode(TRIP_MODE.SINGLE, singleRef);
+            }
+        }
     };
 
     // Hand the planning to the Pro AI builder. When we already know the
@@ -64,36 +107,58 @@ const TripModeStep = ({ data }: TripModeStepProps) => {
             <p className="trip-step-sub">{t('createTrip.mode.subtitle')}</p>
 
             <div className="trip-mode-cards">
-                <button
-                    type="button"
-                    className={classnames('trip-mode-card', {
-                        'is-selected': isSingle,
-                    })}
-                    onClick={() => pickMode(TRIP_MODE.SINGLE)}
+                <div
+                    className="trip-mode-options"
+                    role="radiogroup"
+                    aria-label={t('createTrip.mode.title')}
                 >
-                    <FlightTakeoffRoundedIcon className="trip-mode-card-icon" />
-                    <span className="trip-mode-card-title">
-                        {t('createTrip.mode.single.title')}
-                    </span>
-                    <span className="trip-mode-card-sub">
-                        {t('createTrip.mode.single.subtitle')}
-                    </span>
-                </button>
-                <button
-                    type="button"
-                    className={classnames('trip-mode-card', {
-                        'is-selected': isMulti,
-                    })}
-                    onClick={() => pickMode(TRIP_MODE.MULTIPLE)}
-                >
-                    <PublicRoundedIcon className="trip-mode-card-icon" />
-                    <span className="trip-mode-card-title">
-                        {t('createTrip.mode.multiple.title')}
-                    </span>
-                    <span className="trip-mode-card-sub">
-                        {t('createTrip.mode.multiple.subtitle')}
-                    </span>
-                </button>
+                    <button
+                        ref={singleRef}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSingle}
+                        // Roving tabindex — exactly one radio is a Tab stop
+                        // (the selected one, or the first when none is set).
+                        tabIndex={isMulti ? -1 : 0}
+                        className={classnames('trip-mode-card', {
+                            'is-selected': isSingle,
+                        })}
+                        onClick={() => pickMode(TRIP_MODE.SINGLE)}
+                        onKeyDown={(e) =>
+                            handleRadioKeyDown(e, TRIP_MODE.SINGLE)
+                        }
+                    >
+                        <FlightTakeoffRoundedIcon className="trip-mode-card-icon" />
+                        <span className="trip-mode-card-title">
+                            {t('createTrip.mode.single.title')}
+                        </span>
+                        <span className="trip-mode-card-sub">
+                            {t('createTrip.mode.single.subtitle')}
+                        </span>
+                    </button>
+                    <button
+                        ref={multiRef}
+                        type="button"
+                        role="radio"
+                        aria-checked={isMulti}
+                        tabIndex={isMulti ? 0 : -1}
+                        className={classnames('trip-mode-card', {
+                            'is-selected': isMulti,
+                        })}
+                        onClick={() => pickMode(TRIP_MODE.MULTIPLE)}
+                        onKeyDown={(e) =>
+                            handleRadioKeyDown(e, TRIP_MODE.MULTIPLE)
+                        }
+                    >
+                        <PublicRoundedIcon className="trip-mode-card-icon" />
+                        <span className="trip-mode-card-title">
+                            {t('createTrip.mode.multiple.title')}
+                        </span>
+                        <span className="trip-mode-card-sub">
+                            {t('createTrip.mode.multiple.subtitle')}
+                        </span>
+                    </button>
+                </div>
 
                 <button
                     type="button"

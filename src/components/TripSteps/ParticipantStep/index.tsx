@@ -47,6 +47,7 @@ const ParticipantStep = ({ data, onChange }: ParticipantStepProps) => {
                     "Participants" label that overlaps the header. */}
                 <FriendPicker
                     title=""
+                    ariaLabel={t('createTrip.participants.label')}
                     name="friends"
                     selectedOptions={friends}
                     onChange={handleFriends}

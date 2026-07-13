@@ -47,6 +47,7 @@ const OrganizerStep = ({ data, onChange }: OrganizerStepProps) => {
                     "Organizers" label that overlaps the header. */}
                 <FriendPicker
                     title=""
+                    ariaLabel={t('createTrip.organizers.label')}
                     name="organizer"
                     selectedOptions={organizers}
                     onChange={handleOrganizer}

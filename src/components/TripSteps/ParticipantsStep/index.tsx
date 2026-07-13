@@ -33,6 +33,7 @@ const ParticipantsStep = ({ data, onChange }: ParticipantsStepProps) => {
 
             <FriendPicker
                 title={t('createTrip.participantsEdit.label')}
+                ariaLabel={t('createTrip.participantsEdit.label')}
                 name="friends"
                 selectedOptions={selected}
                 onChange={handlePicker}

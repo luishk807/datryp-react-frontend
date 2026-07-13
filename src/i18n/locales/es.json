@@ -2473,7 +2473,8 @@
             "inviteFriend": "Invitar a un amigo",
             "sendEmailInvite": "Enviar una invitación por correo",
             "invited": "Invitado",
-            "added": "Agregado"
+            "added": "Agregado",
+            "removeAria": "Quitar a {{name}}"
         },
         "complete": {
             "title": "¡Tu viaje está listo!",
@@ -3274,6 +3275,7 @@
             "goingTo": "Vas a"
         },
         "stepper": {
+            "progress": "Paso {{current}} de {{total}}",
             "savingTrip": "Guardando tu viaje…",
             "savingChanges": "Guardando cambios…",
             "aiPlanning": "Planeando tu itinerario…",

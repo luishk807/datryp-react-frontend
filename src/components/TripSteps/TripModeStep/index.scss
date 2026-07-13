@@ -1,4 +1,13 @@
 .trip-mode-step .trip-mode-cards {
+  // Column flow: the two-choice radiogroup on top, the AI hand-off row below.
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// The two mutually-exclusive manual choices — a WAI-ARIA radiogroup laid out
+// as a 2-up grid (was the outer grid before the radiogroup wrapper existed).
+.trip-mode-step .trip-mode-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -25,6 +34,14 @@
     border-color: theme('colors.primaryGreen');
     transform: translateY(-2px);
     box-shadow: 0 8px 22px rgba(60, 181, 75, 0.14);
+  }
+
+  // Keyboard focus must always be visible (WCAG 2.4.7). The radios use a
+  // roving tabindex, so :focus-visible is the only ring a keyboard user gets.
+  &:focus-visible {
+    outline: none;
+    border-color: theme('colors.primaryGreen');
+    box-shadow: 0 0 0 3px rgba(60, 181, 75, 0.35);
   }
 
   &.is-selected {
@@ -56,7 +73,6 @@
 // arrow) so it feels like a distinct, premium third path rather than a peer
 // of the manual choices.
 .trip-mode-step .trip-mode-card--ai {
-  grid-column: 1 / -1;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
@@ -116,7 +132,7 @@
 }
 
 @media (max-width: 640px) {
-  .trip-mode-step .trip-mode-cards {
+  .trip-mode-step .trip-mode-options {
     grid-template-columns: 1fr;
   }
 

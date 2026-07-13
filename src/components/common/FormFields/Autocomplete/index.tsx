@@ -4,9 +4,11 @@ import './index.scss';
 import {
     TextField,
     Autocomplete,
+    Chip,
     type AutocompleteChangeReason,
     type AutocompleteChangeDetails,
 } from '@mui/material';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 
 export interface AutocompleteOption {
     id: number;
@@ -22,6 +24,14 @@ export interface AutocompleteCustomProps<T extends AutocompleteOption = Autocomp
     onRemove?: (removed: T[]) => void;
     selectedOptions?: T[];
     renderOption?: (option: T, isSelected: boolean) => ReactNode;
+    /** Accessible name for the combobox input when there's no visible field
+     *  `label` (e.g. the label lives in a section header above the picker).
+     *  Applied as `aria-label` on the native input. */
+    ariaLabel?: string;
+    /** Accessible name for each selected chip's remove button, per option
+     *  (e.g. "Remove Alice"). When provided, chips render a real, named
+     *  `<button>` delete affordance instead of MUI's unlabeled default icon. */
+    getRemoveAriaLabel?: (option: T) => string;
 }
 
 // Stable empty-array default. Without it, omitting `selectedOptions` handed the
@@ -39,6 +49,8 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
     onRemove,
     selectedOptions = EMPTY_SELECTION,
     renderOption,
+    ariaLabel,
+    getRemoveAriaLabel,
 }: AutocompleteCustomProps<T>) => {
     const [data, setData] = useState<T[]>([]);
 
@@ -80,6 +92,45 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
             freeSolo
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={handleOnChange}
+            renderTags={
+                getRemoveAriaLabel
+                    ? (value, getTagProps) =>
+                          value.map((option, index) => {
+                              const { key, ...tagProps } = getTagProps({
+                                  index,
+                              });
+                              return (
+                                  <Chip
+                                      key={key}
+                                      label={option.label}
+                                      {...tagProps}
+                                      // A real <button> (not MUI's default,
+                                      // aria-hidden SVG) so screen readers
+                                      // announce a named, operable delete
+                                      // control. tabIndex -1 matches MUI's
+                                      // "chips aren't tab stops" pattern —
+                                      // keyboard removal is Backspace on the
+                                      // empty input.
+                                      deleteIcon={
+                                          <button
+                                              type="button"
+                                              tabIndex={-1}
+                                              className="autocomplete-custom-remove"
+                                              aria-label={getRemoveAriaLabel(
+                                                  option
+                                              )}
+                                          >
+                                              <CancelRoundedIcon
+                                                  fontSize="small"
+                                                  aria-hidden="true"
+                                              />
+                                          </button>
+                                      }
+                                  />
+                              );
+                          })
+                    : undefined
+            }
             renderOption={(props, option) => {
                 // MUI (>=5.15) puts `key` in the props object; pull it out so
                 // it's passed explicitly and the rest spreads cleanly onto the
@@ -135,7 +186,20 @@ const AutocompleteCustom = <T extends AutocompleteOption = AutocompleteOption>({
                     </li>
                 );
             }}
-            renderInput={(params) => <TextField {...params} name={name} label={label} />}
+            renderInput={(params) => (
+                <TextField
+                    {...params}
+                    name={name}
+                    label={label}
+                    inputProps={{
+                        ...params.inputProps,
+                        // Names the combobox when there's no visible field
+                        // label (title="" case). Merged into MUI's own
+                        // inputProps so role/aria-autocomplete wiring survives.
+                        ...(ariaLabel ? { 'aria-label': ariaLabel } : {}),
+                    }}
+                />
+            )}
         />
     );
 };

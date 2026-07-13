@@ -7,6 +7,7 @@ import type { Friend, TripState } from 'types';
 // the label through the picker's `title` prop rather than a standalone label.
 interface PickerStubProps {
     title?: string;
+    ariaLabel?: string;
     name?: string;
     selectedOptions?: Friend[];
     onChange: (
@@ -16,9 +17,16 @@ interface PickerStubProps {
 }
 const ADDED: Friend = { id: 9, name: 'Bob', userId: 'u9' };
 vi.mock('components/DestinationDetail/FriendPicker', () => ({
-    default: ({ title, name, selectedOptions, onChange }: PickerStubProps) => (
+    default: ({
+        title,
+        ariaLabel,
+        name,
+        selectedOptions,
+        onChange,
+    }: PickerStubProps) => (
         <div data-testid="friend-picker">
             <span data-testid="fp-title">{title}</span>
+            <span data-testid="fp-arialabel" data-value={ariaLabel} />
             <span data-testid="fp-name">{name}</span>
             <span data-testid="fp-count">{selectedOptions?.length ?? 0}</span>
             <button
@@ -50,6 +58,11 @@ describe('ParticipantsStep', () => {
             screen.getByRole('heading', { name: /who's coming along/i })
         ).toBeInTheDocument();
         expect(screen.getByTestId('fp-title')).toHaveTextContent('Participants');
+        // The picker's combobox also gets the label as its accessible name.
+        expect(screen.getByTestId('fp-arialabel')).toHaveAttribute(
+            'data-value',
+            'Participants'
+        );
         expect(screen.getByTestId('fp-name')).toHaveTextContent('friends');
         expect(screen.getByTestId('fp-count')).toHaveTextContent('1');
     });
